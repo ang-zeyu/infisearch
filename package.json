@@ -4,8 +4,8 @@
   "description": "Librarian",
   "main": "index.js",
   "scripts": {
-    "dev": "cd packages/indexer && tsc --watch",
-    "lint": "eslint packages/indexer --ext .ts && eslint packages/search --ext .js",
+    "dev": "lerna run dev",
+    "lint": "cd packages/indexer && eslint . --ext .ts && cd ../.. && eslint packages/search --ext .js",
     "lintfix": "eslint packages/indexer --ext .ts --fix && eslint packages/search --ext .js --fix",
     "setup": "npm install && lerna bootstrap",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,6 +16,7 @@
     "@typescript-eslint/eslint-plugin": "^4.15.0",
     "@typescript-eslint/parser": "^4.15.0",
     "eslint": "^7.19.0",
+    "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-plugin-import": "^2.22.1",
     "lerna": "^3.22.1",

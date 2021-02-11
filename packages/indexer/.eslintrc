@@ -2,8 +2,12 @@
   "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": ["packages/indexer/tsconfig.json"]
+    "project": ["tsconfig.json"]
   },
   "plugins": ["@typescript-eslint"],
-  "extends": ["airbnb-typescript/base"]
+  "extends": ["airbnb-typescript/base"],
+  "rules": {
+    "max-len": ["error", { "code": 110 }],
+    "no-param-reassign": ["error", { "props": false }]
+  }
 }

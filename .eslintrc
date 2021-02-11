@@ -1,8 +1,14 @@
 {
+  "root": true,
   "env": {
-    "browser": true
+    "browser": true,
+    "es6": true
   },
   "extends": [
-    "eslint:recommended"
-  ]
+    "airbnb-base"
+  ],
+  "rules": {
+    "max-len": ["error", { "code": 110 }],
+    "no-param-reassign": ["error", { "props": false }]
+  }
 }

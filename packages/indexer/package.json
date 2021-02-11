@@ -1,6 +1,6 @@
 {
   "name": "indexer",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "indexer package for Librarian",
   "author": "Ze Yu <angzeyu@gmail.com>",
   "homepage": "",
@@ -14,9 +14,18 @@
     "lib"
   ],
   "scripts": {
+    "dev": "tsc-watch --onSuccess \"node ./lib/indexer.js html ./test/1/source\" && http-server ./_index",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.5"
+    "@types/fs-extra": "^9.0.7",
+    "cheerio": "^1.0.0-rc.5",
+    "commander": "^7.0.0",
+    "fs-extra": "^9.1.0",
+    "walk-sync": "^2.2.0"
+  },
+  "devDependencies": {
+    "http-server": "^0.12.3",
+    "tsc-watch": "^4.2.9"
   }
 }

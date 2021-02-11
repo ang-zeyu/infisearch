@@ -1,3 +1,10 @@
+# test files
+_index
+packages/indexer/test/1/
+
+# sourcemaps
+*.js.map
+
 # Logs
 logs
 *.log
@@ -25,12 +32,6 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
 # node-waf configuration
 .lock-wscript
 
@@ -39,7 +40,6 @@ build/Release
 
 # Dependency directories
 node_modules/
-jspm_packages/
 
 # TypeScript v1 declaration files
 typings/
@@ -66,23 +66,5 @@ typings/
 .env
 .env.test
 
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
 # Serverless directories
 .serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
