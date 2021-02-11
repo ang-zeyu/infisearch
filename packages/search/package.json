@@ -1,0 +1,24 @@
+{
+  "name": "search",
+  "version": "0.0.0",
+  "description": "frontend search module for Librarian",
+  "author": "Ze Yu <angzeyu@gmail.com>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "lib/search.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "devDependencies": {
+    "webpack": "^5.21.2",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
+  }
+}
