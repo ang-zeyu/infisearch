@@ -1,12 +1,6 @@
-/* eslint-env node */
-const path = require('path');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-
 module.exports = {
   entry: {
-    main: './src/index.js',
-    vendor: './src/vendor.js',
+    main: './lib/search.js',
   },
   module: {
     rules: [

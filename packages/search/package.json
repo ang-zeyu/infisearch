@@ -14,7 +14,7 @@
     "lib"
   ],
   "scripts": {
-    "dev": "webpack-dev-server --config webpack.dev.js --open",
+    "dev": "webpack-cli serve --config webpack.dev.js --open",
     "build": "webpack --config webpack.prod.js",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
@@ -26,7 +26,6 @@
     "style-loader": "^2.0.0",
     "webpack": "^5.21.2",
     "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.7.3"
   }
 }

@@ -1,7 +1,7 @@
 /* eslint-env node */
 const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const common = require('./webpack.common');
 
@@ -13,7 +13,7 @@ module.exports = merge(common, {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/template.html',
+      template: './public/template.html',
     }),
   ],
 });
