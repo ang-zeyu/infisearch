@@ -46,7 +46,7 @@ class HtmlMiner extends Miner {
 
     fields[el.name] = fields[el.name] ?? [];
 
-    const elTxt = $(el).text();
+    const elTxt = $(el).text().toLowerCase();
     $(el).text('');
     fields[el.name].push(elTxt);
   }

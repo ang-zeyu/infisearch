@@ -41,7 +41,7 @@ class HtmlMiner extends Miner_1.default {
             return;
         }
         fields[el.name] = (_a = fields[el.name]) !== null && _a !== void 0 ? _a : [];
-        const elTxt = $(el).text();
+        const elTxt = $(el).text().toLowerCase();
         $(el).text('');
         fields[el.name].push(elTxt);
     }
