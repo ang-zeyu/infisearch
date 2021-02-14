@@ -14,7 +14,8 @@
     "lib"
   ],
   "scripts": {
-    "dev": "tsc-watch --onSuccess \"node ./lib/indexer.js html ./test/1/source\" && http-server ./_index",
+    "dev": "tsc-watch --onSuccess \"node ./lib/indexer.js html ./test/1/source\"",
+    "devServer": "http-server ./_index -p 3000 --cors",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
