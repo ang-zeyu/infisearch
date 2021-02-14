@@ -5,6 +5,7 @@ const fs = require("fs-extra");
 const English_1 = require("../tokenizers/English");
 const Dictionary_1 = require("../Dictionary/Dictionary");
 const PostingsListManager_1 = require("../Postings/PostingsListManager");
+const DocInfo_1 = require("../DocInfo/DocInfo");
 const tokenizer = new English_1.default();
 class Miner {
     constructor(outputFolder) {
@@ -16,10 +17,7 @@ class Miner {
     }
     add(link, serp, fields) {
         this.lastDocId += 1;
-        this.docInfos[this.lastDocId] = {
-            link,
-            serp,
-        };
+        this.docInfos[this.lastDocId] = new DocInfo_1.default(this.lastDocId, link, serp);
         let pos = -1;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         Object.entries(fields).forEach(([fieldName, texts]) => {
@@ -37,19 +35,21 @@ class Miner {
         });
     }
     dump() {
-        this.postingsListManager.dump(this.dictionary, this.outputFolder);
+        this.postingsListManager.dump(this.dictionary, this.docInfos, this.outputFolder);
         this.dictionary.dump(this.outputFolder);
         this.dumpDocInfo();
     }
     dumpDocInfo() {
         fs.ensureDirSync(path.join(this.outputFolder, 'serps'));
-        const linkFullPath = path.join(this.outputFolder, 'links.txt');
-        const linksBuffer = [];
+        const linkFullPath = path.join(this.outputFolder, 'docInfo.txt');
+        const numDocs = Object.keys(this.docInfos).length;
+        const buffer = [`${numDocs}`];
         Object.entries(this.docInfos).forEach(([docId, info]) => {
-            linksBuffer.push(info.link);
+            buffer.push(String(Math.sqrt(info.normalizationFactor)));
+            buffer.push(info.link);
             fs.writeFileSync(path.join(this.outputFolder, 'serps', `${docId}`), info.serp);
         });
-        fs.writeFileSync(linkFullPath, linksBuffer.join('\n'));
+        fs.writeFileSync(linkFullPath, buffer.join('\n'));
     }
 }
 exports.default = Miner;

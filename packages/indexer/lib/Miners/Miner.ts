@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import Tokenizer from '../tokenizers/English';
 import Dictionary from '../Dictionary/Dictionary';
 import PostingsListManager from '../Postings/PostingsListManager';
+import DocInfo from '../DocInfo/DocInfo';
 
 const tokenizer = new Tokenizer();
 
@@ -12,10 +13,7 @@ abstract class Miner {
   lastDocId: number = 0;
 
   docInfos: {
-    [docId: number]: {
-      link: string,
-      serp: string,
-    }
+    [docId: number]: DocInfo
   } = {};
 
   dictionary: Dictionary = new Dictionary();
@@ -29,10 +27,7 @@ abstract class Miner {
   protected add(link: string, serp: string, fields: { [fieldName: string]: string[] }) {
     this.lastDocId += 1;
 
-    this.docInfos[this.lastDocId] = {
-      link,
-      serp,
-    };
+    this.docInfos[this.lastDocId] = new DocInfo(this.lastDocId, link, serp);
 
     let pos: number = -1;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -54,22 +49,24 @@ abstract class Miner {
   }
 
   dump(): void {
-    this.postingsListManager.dump(this.dictionary, this.outputFolder);
+    this.postingsListManager.dump(this.dictionary, this.docInfos, this.outputFolder);
     this.dictionary.dump(this.outputFolder);
     this.dumpDocInfo();
   }
 
   private dumpDocInfo(): void {
     fs.ensureDirSync(path.join(this.outputFolder, 'serps'));
-    const linkFullPath = path.join(this.outputFolder, 'links.txt');
+    const linkFullPath = path.join(this.outputFolder, 'docInfo.txt');
 
-    const linksBuffer = [];
+    const numDocs = Object.keys(this.docInfos).length;
+    const buffer = [`${numDocs}`];
     Object.entries(this.docInfos).forEach(([docId, info]) => {
-      linksBuffer.push(info.link);
+      buffer.push(String(Math.sqrt(info.normalizationFactor)));
+      buffer.push(info.link);
       fs.writeFileSync(path.join(this.outputFolder, 'serps', `${docId}`), info.serp);
     });
 
-    fs.writeFileSync(linkFullPath, linksBuffer.join('\n'));
+    fs.writeFileSync(linkFullPath, buffer.join('\n'));
   }
 }
 

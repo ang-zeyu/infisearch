@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio = require("cheerio");
 const Miner_1 = require("./Miner");
+const WHITESPACE = new RegExp('\\s+', 'g');
 const blockHtmlElements = [
     'address',
     'article',
@@ -47,7 +48,7 @@ class HtmlMiner extends Miner_1.default {
     }
     indexHtmlDoc(link, htmlSource) {
         const $ = cheerio.load(htmlSource);
-        const serp = $.root().text();
+        const serp = $.root().text().replace(WHITESPACE, ' ');
         const fields = Object.create(null);
         this.indexEl($, $('html')[0], fields);
         this.add(link, serp, fields);

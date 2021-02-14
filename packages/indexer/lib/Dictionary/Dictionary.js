@@ -20,6 +20,7 @@ class Dictionary {
     }
     dumpDictTable(folderPath) {
         const fullPath = path.join(folderPath, 'dictionaryTable.txt');
+        fs.writeFileSync(fullPath, '');
         const buffer = Buffer.allocUnsafe(16);
         const sortedTerms = Object.keys(this.entries).sort();
         for (let i = 0; i < sortedTerms.length; i += 1) {
@@ -28,8 +29,8 @@ class Dictionary {
             buffer.writeUInt32LE(entry.docFreq, 4);
             buffer.writeUInt32LE(entry.postingsFileLength, 8);
             buffer.writeUInt32LE(entry.postingsFileOffset, 12);
+            fs.appendFileSync(fullPath, buffer);
         }
-        fs.writeFileSync(fullPath, buffer);
     }
     dumpDictAsAString(folderPath) {
         const fullPath = path.join(folderPath, 'dictionaryString.txt');
@@ -41,12 +42,11 @@ class Dictionary {
             let j = i + 1;
             while (j < sortedTerms.length) {
                 const commonPrefixLen = Dictionary.getCommonPrefixLength(currCommonPrefix, sortedTerms[j]);
-                if (commonPrefixLen === 0) {
+                if (commonPrefixLen <= 2) {
                     break;
                 }
                 if (commonPrefixLen < currCommonPrefix.length) {
-                    const totalDiff = (currCommonPrefix.length - commonPrefixLen) * numFrontcodedTerms;
-                    if (totalDiff === numFrontcodedTerms) {
+                    if (commonPrefixLen === currCommonPrefix.length - 1) {
                         // equally worth it
                         currCommonPrefix = currCommonPrefix.substring(0, commonPrefixLen);
                     }
@@ -58,15 +58,18 @@ class Dictionary {
                 numFrontcodedTerms += 1;
                 j += 1;
             }
-            buffers.push(Buffer.from([sortedTerms[i].length]));
-            buffers.push(Buffer.from(currCommonPrefix));
+            const termBuffer = Buffer.from(sortedTerms[i]);
+            const currPrefixBuffer = Buffer.from(currCommonPrefix);
+            buffers.push(Buffer.from([termBuffer.length]));
+            buffers.push(currPrefixBuffer);
             if (numFrontcodedTerms > 0) {
                 buffers.push(Buffer.from(`*${sortedTerms[i].substring(currCommonPrefix.length)}`));
             }
             while (numFrontcodedTerms > 0) {
                 i += 1;
                 numFrontcodedTerms -= 1;
-                buffers.push(Buffer.from([sortedTerms[i].length - currCommonPrefix.length]));
+                const frontCodedTermBuffer = Buffer.from(sortedTerms[i]);
+                buffers.push(Buffer.from([frontCodedTermBuffer.length - currPrefixBuffer.length]));
                 buffers.push(Buffer.from(`&${sortedTerms[i].substring(currCommonPrefix.length)}`));
             }
         }

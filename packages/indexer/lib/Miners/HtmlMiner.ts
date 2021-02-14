@@ -2,6 +2,8 @@ import * as cheerio from 'cheerio';
 
 import Miner from './Miner';
 
+const WHITESPACE = new RegExp('\\s+', 'g');
+
 const blockHtmlElements : string[] = [
   'address',
   'article',
@@ -53,7 +55,7 @@ class HtmlMiner extends Miner {
 
   indexHtmlDoc(link: string, htmlSource: string) {
     const $ = cheerio.load(htmlSource);
-    const serp: string = $.root().text();
+    const serp: string = $.root().text().replace(WHITESPACE, ' ');
 
     const fields: { [fieldName: string]: string[] } = Object.create(null);
     this.indexEl($, $('html')[0], fields);
