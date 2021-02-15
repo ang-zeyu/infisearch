@@ -1,11 +1,13 @@
 {
   "root": true,
+  "parser": "@typescript-eslint/parser",
   "env": {
     "browser": true,
     "es6": true
   },
+  "plugins": ["@typescript-eslint"],
   "extends": [
-    "airbnb-base"
+    "airbnb-typescript/base"
   ],
   "rules": {
     "max-len": ["error", { "code": 110 }],

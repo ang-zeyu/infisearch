@@ -1,6 +1,9 @@
 module.exports = {
   entry: {
-    main: './lib/search.js',
+    main: './lib/search.ts',
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js'],
   },
   module: {
     rules: [
@@ -14,6 +17,10 @@ module.exports = {
           'style-loader',
           'css-loader',
         ],
+      },
+      {
+        test: /\.tsx?$/,
+        use: ['ts-loader'],
       },
       {
         test: /\.(svg|png|jpg|gif)$/,

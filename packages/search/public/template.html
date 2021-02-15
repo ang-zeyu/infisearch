@@ -4,8 +4,32 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Librarian</title>
+    <style>
+      #app {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      }
+
+      #librarian-search {
+          outline: none;
+          width: 200px;
+          height: 30px;
+          border-radius: 5px;
+          border-color: aliceblue;
+          font-size: 1.2em;
+      }
+
+      #librarian-search:focus {
+          border-color: #c9e0f5;
+          box-shadow: 0 0 5px #c9e0f5;
+      }
+    </style>
   </head>
   <body>
-
+    <div id="app">
+      <input id="librarian-search" />
+      <div>Librarian</div>
+    </div>
   </body>
 </html>
