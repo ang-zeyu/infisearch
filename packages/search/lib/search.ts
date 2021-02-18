@@ -6,13 +6,13 @@ import Results from './results/Results';
 
 const { h } = domUtils;
 
-function transformResults(results: Results): HTMLBaseElement[] {
-  return results.retrieve(10).map((result) => {
+async function transformResults(results: Results): Promise<HTMLBaseElement[]> {
+  return (await results.retrieve(10)).map((result) => {
     const x = 1 + 1;
 
     return h('li', { class: 'librarian-dropdown-item' },
-      h('a', { class: 'librarian-link', href: result.link },
-        h('div', { class: 'librarian-heading' }, 'Test heading')));
+      h('a', { class: 'librarian-link', href: result.fields.link },
+        h('div', { class: 'librarian-heading' }, result.fields.heading)));
   });
 }
 
@@ -21,7 +21,7 @@ async function update(query: string, container: HTMLBaseElement, searcher: Searc
   container.style.display = 'flex';
 
   const results = await searcher.getResults(query);
-  const resultsEls = transformResults(results);
+  const resultsEls = await transformResults(results);
 
   container.innerHTML = '';
   resultsEls.forEach((el) => container.appendChild(el));

@@ -1,13 +1,12 @@
 class Result {
-  heading: string;
+  fields: {
+    [fieldName: string]: string
+  };
 
   constructor(
     public docId: number,
     public score: number,
-    public link: string,
-  ) {
-    this.heading = 'heading';
-  }
+  ) {}
 }
 
 export default Result;
