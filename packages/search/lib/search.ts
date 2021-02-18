@@ -6,14 +6,59 @@ import Results from './results/Results';
 
 const { h } = domUtils;
 
-async function transformResults(results: Results): Promise<HTMLBaseElement[]> {
-  return (await results.retrieve(10)).map((result) => {
-    const x = 1 + 1;
+const BODY_SERP_BOUND = 40;
+
+function transformBody(body: string, query: string): string {
+  const terms = query.split(/\s+/g);
+  const lowerCasedBody = body.toLowerCase();
+  const bounds: number[][] = [];
+  terms.forEach((term) => {
+    const termIdx = lowerCasedBody.indexOf(term);
+    const minBound = Math.max(0, termIdx - BODY_SERP_BOUND);
+    const maxBound = Math.min(body.length, termIdx + BODY_SERP_BOUND);
+
+    let mergedBound = false;
+    for (let i = 0; i < bounds.length; i += 1) {
+      if ((minBound <= bounds[i][1] && minBound >= bounds[i][0])
+        || (maxBound >= bounds[i][0] && maxBound <= bounds[i][1])) {
+        mergedBound = true;
+
+        bounds[i][0] = Math.min(minBound, bounds[i][0]);
+        bounds[i][1] = Math.max(maxBound, bounds[i][1]);
+        break;
+      }
+    }
+
+    if (!mergedBound) {
+      bounds.push([minBound, maxBound]);
+    }
+  });
+
+  return bounds.map((bound) => `... ${body.substring(bound[0], bound[1])} ...`).reduce((x, y) => `${x} ${y}`);
+}
+
+async function transformResults(results: Results, query: string, container: HTMLBaseElement): Promise<void> {
+  const resultsEls = (await results.retrieve(10)).map((result) => {
+    console.log(result);
 
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: result.fields.link },
-        h('div', { class: 'librarian-heading' }, result.fields.heading)));
+        h('div', { class: 'librarian-heading' }, result.fields.title),
+        h('div', { class: 'librarian-body' }, transformBody(result.fields.body, query))));
   });
+  resultsEls.forEach((el) => container.appendChild(el));
+
+  const sentinel = h('div', {});
+  container.appendChild(sentinel);
+  const iObserver = new IntersectionObserver(async (entries, observer) => {
+    if (!entries[0].isIntersecting) {
+      return;
+    }
+
+    observer.unobserve(sentinel);
+    await transformResults(results, query, container);
+  });
+  iObserver.observe(sentinel);
 }
 
 let isUpdating = false;
@@ -21,10 +66,9 @@ async function update(query: string, container: HTMLBaseElement, searcher: Searc
   container.style.display = 'flex';
 
   const results = await searcher.getResults(query);
-  const resultsEls = await transformResults(results);
-
   container.innerHTML = '';
-  resultsEls.forEach((el) => container.appendChild(el));
+
+  await transformResults(results, query, container);
 
   isUpdating = false;
 }
@@ -45,12 +89,12 @@ function initLibrarian(url): void {
   const searcher = new Searcher(url);
 
   input.addEventListener('input', (ev) => {
-    const query = (ev.target as HTMLInputElement).value;
+    const query = (ev.target as HTMLInputElement).value.toLowerCase();
 
     if (query.length > 2 && !isUpdating) {
       isUpdating = true;
       update(query, container, searcher);
-    } else {
+    } else if (query.length < 2) {
       hide(container);
     }
   });

@@ -85,7 +85,7 @@ class Searcher {
 
         const wtd = 1 + Math.log10(totalTermFreq);
         const tfidf = wtd * idf;
-        docScores[docIdInt] = (docScores[docIdInt] ? docScores[docIdInt] : 0) + tfidf;
+        docScores[docIdInt] = (docScores[docIdInt] ?? 0) + tfidf;
       });
     });
 
