@@ -64,7 +64,9 @@ class Searcher {
   }
 
   async getResults(query): Promise<Results> {
-    const terms = query.split(/\s+/g);
+    const queryTerms = query.split(/\s+/g);
+    const terms = queryTerms.map((queryTerm) => this.dictionary.getTerm(queryTerm)).filter((q) => q);
+
     await this.dictionary.setupPromise;
     await this.postingsListManager.retrieve(terms);
     const docLengths = await this.docLengths;
@@ -74,10 +76,6 @@ class Searcher {
     const docScores: { [docId:number]: { [fieldId: number]: number } } = {};
 
     terms.forEach((term) => {
-      if (!this.dictionary.termInfo[term]) {
-        return;
-      }
-
       const postingsList = this.postingsListManager.getDocs(term);
       const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
