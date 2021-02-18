@@ -8,7 +8,7 @@ class Searcher {
 
   private postingsListManager: PostingsListManager;
 
-  private docLengths: Promise<number[]>;
+  private docLengths: Promise<number[][]>;
 
   private fieldInfo: Promise<{
     [id: number]: {
@@ -28,7 +28,7 @@ class Searcher {
     this.fieldInfo = this.setupFieldInfo();
   }
 
-  async setupDocLengths(): Promise<number[]> {
+  async setupDocLengths(): Promise<number[][]> {
     const text = await (await fetch(`${this.url}/docInfo.txt`, {
       method: 'GET',
       headers: {
@@ -36,7 +36,12 @@ class Searcher {
       },
     })).text();
 
-    return text.split('\n').map((x) => parseFloat(x));
+    const docLengths = [];
+    text.split('\n').forEach((line) => {
+      docLengths.push(line.split(',').map(parseFloat));
+    });
+
+    return docLengths;
   }
 
   async setupFieldInfo() {
@@ -53,6 +58,7 @@ class Searcher {
       delete json[json[fieldName].id].id;
       delete json[fieldName];
     });
+    console.log(json);
 
     return json;
   }
@@ -63,9 +69,9 @@ class Searcher {
     await this.postingsListManager.retrieve(terms);
     const docLengths = await this.docLengths;
     const fieldInfo = await this.fieldInfo;
-    const N = docLengths[0];
+    const N = docLengths[0][0]; // first line is number of documents
 
-    const docScores: { [docId:number]: number } = {};
+    const docScores: { [docId:number]: { [fieldId: number]: number } } = {};
 
     terms.forEach((term) => {
       if (!this.dictionary.termInfo[term]) {
@@ -76,23 +82,29 @@ class Searcher {
       const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
       Object.entries(postingsList.termFreqs).forEach(([docId, fields]) => {
-        let totalTermFreq = 0;
         const docIdInt = Number(docId);
+        docScores[docIdInt] = docScores[docIdInt] ?? {};
 
         Object.entries(fields).forEach(([fieldId, termFreq]) => {
-          totalTermFreq += termFreq * fieldInfo[Number(fieldId)].weight;
+          const wtd = 1 + Math.log10(termFreq);
+          docScores[docIdInt][fieldId] = (docScores[docIdInt][fieldId] ?? 0) + wtd * idf;
         });
-
-        const wtd = 1 + Math.log10(totalTermFreq);
-        const tfidf = wtd * idf;
-        docScores[docIdInt] = (docScores[docIdInt] ?? 0) + tfidf;
       });
     });
 
     const results = new Results(fieldInfo, this.url);
-    results.add(Object.keys(docScores).map(Number).map((docId) => {
-      docScores[docId] /= docLengths[docId];
-      return new Result(docId, docScores[docId]);
+    results.add(Object.entries(docScores).map(([docId, fieldScores]) => {
+      const docIdInt = Number(docId);
+      let docScore = 0;
+
+      Object.entries(fieldScores).forEach(([fieldId, fieldScore]) => {
+        const fieldIdInt = Number(fieldId);
+        const fieldWeight = fieldInfo[fieldIdInt].weight;
+        const fieldLen = docLengths[docIdInt][fieldIdInt - 1];
+        docScore += ((fieldScore / fieldLen) * fieldWeight);
+      });
+
+      return new Result(docIdInt, docScore);
     }));
 
     return results;

@@ -15,9 +15,11 @@ class Miner {
         this.docInfos = {};
         this.fieldInfo = Object.create(null);
         this.dictionary = new Dictionary_1.default();
+        let totalWeight = 0;
         let fieldId = 0;
         Object.values(fields).forEach((field) => {
             fieldId += 1;
+            totalWeight += field.weight;
             this.fieldInfo[field.name] = {
                 id: fieldId,
                 storage: field.storage.constructor.name,
@@ -25,6 +27,9 @@ class Miner {
                 weight: field.weight,
             };
         });
+        if (totalWeight !== 1) {
+            throw new Error('Field weights must sum to 1.');
+        }
         this.postingsListManager = new PostingsListManager_1.default(this.fieldInfo);
     }
     add(fields) {
@@ -61,10 +66,7 @@ class Miner {
     }
     dumpDocInfo() {
         const numDocs = Object.keys(this.docInfos).length;
-        const buffer = [`${numDocs}`];
-        Object.values(this.docInfos).forEach((info) => {
-            buffer.push(String(Math.sqrt(info.normalizationFactor)));
-        });
+        const buffer = [`${numDocs}`, ...Object.values(this.docInfos).map((info) => info.getDumpString())];
         const linkFullPath = path.join(this.outputFolder, 'docInfo.txt');
         fs.writeFileSync(linkFullPath, buffer.join('\n'));
     }

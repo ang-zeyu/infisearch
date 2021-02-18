@@ -31,7 +31,6 @@ class PostingsListManager {
             let postingsFileLength = 0;
             // eslint-disable-next-line @typescript-eslint/no-loop-func
             Object.entries(postingsList.termFreqs).forEach(([docId, fields]) => {
-                let totalTermFreq = 0;
                 const docIdInt = Number(docId);
                 Object.entries(this.fieldInfo).forEach(([fieldName, info]) => {
                     const fieldId = info.id;
@@ -45,7 +44,6 @@ class PostingsListManager {
                     buffer.writeUInt16LE(fieldTermFreq, 3);
                     buffers.push(buffer);
                     postingsFileLength += 5;
-                    totalTermFreq += fieldTermFreq * this.fieldInfo[fieldName].weight;
                     let prevPos = 0;
                     postingsList.positions[docIdInt][fieldId].forEach((pos) => {
                         const gap = new VarInt_1.default(pos - prevPos);
@@ -53,12 +51,10 @@ class PostingsListManager {
                         postingsFileLength += gap.value.length;
                         buffers.push(gap.value);
                     });
-                });
-                if (totalTermFreq > 0) {
-                    const wtd = 1 + Math.log10(totalTermFreq);
+                    const wtd = 1 + Math.log10(fieldTermFreq);
                     const tfIdf = wtd * idf;
-                    docInfos[docIdInt].normalizationFactor += tfIdf * tfIdf;
-                }
+                    docInfos[docIdInt].addDocLen(fieldId, tfIdf);
+                });
             });
             dictionary.entries[currTerm] = new DictionaryEntry_1.default(currTerm, docFreq, currentName, postingsFileOffset, postingsFileLength);
             postingsFileOffset += postingsFileLength;
