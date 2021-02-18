@@ -40,16 +40,18 @@ class Searcher {
   }
 
   async setupFieldInfo() {
-    const json = (await fetch(`${this.url}/fieldInfo.json`, {
+    const json = await (await fetch(`${this.url}/fieldInfo.json`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     })).json();
 
-    Object.keys(json).forEach((k) => {
-      json[json[k].id] = json[k];
-      delete json[k];
+    Object.keys(json).forEach((fieldName) => {
+      json[json[fieldName].id] = json[fieldName];
+      json[json[fieldName].id].name = fieldName;
+      delete json[json[fieldName].id].id;
+      delete json[fieldName];
     });
 
     return json;
@@ -78,7 +80,7 @@ class Searcher {
         const docIdInt = Number(docId);
 
         Object.entries(fields).forEach(([fieldId, termFreq]) => {
-          totalTermFreq += termFreq * this.fieldInfo[Number(fieldId)].weight;
+          totalTermFreq += termFreq * fieldInfo[Number(fieldId)].weight;
         });
 
         const wtd = 1 + Math.log10(totalTermFreq);

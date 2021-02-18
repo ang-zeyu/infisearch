@@ -1,7 +1,7 @@
 class Result {
   fields: {
     [fieldName: string]: string
-  };
+  } = Object.create(null);
 
   constructor(
     public docId: number,
