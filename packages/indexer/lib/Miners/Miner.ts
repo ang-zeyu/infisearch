@@ -87,14 +87,13 @@ abstract class Miner {
   }
 
   private dumpDocInfo(): void {
-    const linkFullPath = path.join(this.outputFolder, 'docInfo.txt');
-
     const numDocs = Object.keys(this.docInfos).length;
     const buffer = [`${numDocs}`];
     Object.values(this.docInfos).forEach((info) => {
       buffer.push(String(Math.sqrt(info.normalizationFactor)));
     });
 
+    const linkFullPath = path.join(this.outputFolder, 'docInfo.txt');
     fs.writeFileSync(linkFullPath, buffer.join('\n'));
   }
 

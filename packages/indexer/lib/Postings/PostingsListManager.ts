@@ -29,7 +29,7 @@ class PostingsListManager {
       this.postingsLists[term] = new PostingsList();
     }
 
-    this.postingsLists[term].add(this.fieldInfo[fieldName].id, docId, pos);
+    this.postingsLists[term].add(docId, this.fieldInfo[fieldName].id, pos);
   }
 
   dump(dictionary: Dictionary, docInfos: { [docId: number]: DocInfo }, outputFolderPath: string): void {
@@ -48,33 +48,29 @@ class PostingsListManager {
 
       let postingsFileLength = 0;
       // eslint-disable-next-line @typescript-eslint/no-loop-func
-      Object.entries(postingsList.positions).forEach(([docId, fields]) => {
+      Object.entries(postingsList.termFreqs).forEach(([docId, fields]) => {
         let totalTermFreq = 0;
 
         const docIdInt = Number(docId);
 
         Object.entries(this.fieldInfo).forEach(([fieldName, info]) => {
           const fieldId = info.id;
-          const positions = fields[fieldId];
-          if (!positions) {
+          const fieldTermFreq = fields[fieldId];
+          if (!fieldTermFreq) {
             return;
           }
 
           const buffer = Buffer.allocUnsafe(5);
-
           buffer.writeUInt16LE(docIdInt);
-          const fieldIdInt = Number(fieldId);
-          buffer.writeUInt8(fieldIdInt, 2);
-          const termFreq = postingsList.termFreqs[docIdInt][fieldIdInt];
-          buffer.writeUInt16LE(termFreq, 3);
-
-          postingsFileLength += 5;
+          buffer.writeUInt8(fieldId, 2);
+          buffer.writeUInt16LE(fieldTermFreq, 3);
           buffers.push(buffer);
+          postingsFileLength += 5;
 
-          totalTermFreq += termFreq * this.fieldInfo[fieldName].weight;
+          totalTermFreq += fieldTermFreq * this.fieldInfo[fieldName].weight;
 
           let prevPos = 0;
-          positions.forEach((pos) => {
+          postingsList.positions[docIdInt][fieldId].forEach((pos) => {
             const gap = new VarInt(pos - prevPos);
             prevPos = pos;
 
@@ -83,9 +79,11 @@ class PostingsListManager {
           });
         });
 
-        const wtd = 1 + Math.log10(totalTermFreq);
-        const tfIdf = wtd * idf;
-        docInfos[docId].normalizationFactor += tfIdf * tfIdf;
+        if (totalTermFreq > 0) {
+          const wtd = 1 + Math.log10(totalTermFreq);
+          const tfIdf = wtd * idf;
+          docInfos[docIdInt].normalizationFactor += tfIdf * tfIdf;
+        }
       });
 
       dictionary.entries[currTerm] = new DictionaryEntry(
