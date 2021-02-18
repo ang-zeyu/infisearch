@@ -1,3 +1,5 @@
+import decodeVarInt from '../utils/varInt';
+
 const PREFIX_FRONT_CODE = 42; // '*'
 const SUBSEQUENT_FRONT_CODE = 38; // '&'
 
@@ -40,14 +42,18 @@ class Dictionary {
       dictTablePos += 1;
       prevPostingsFileName = postingsFileName;
 
-      const docFreq = dictionaryTableView.getUint32(dictTablePos, true);
-      dictTablePos += 4;
+      const { value: docFreq, newPos: dictTablePos1 } = decodeVarInt(dictionaryTableView, dictTablePos);
+      dictTablePos = dictTablePos1;
 
-      const postingsFileLength = dictionaryTableView.getUint32(dictTablePos, true);
-      dictTablePos += 4;
+      const {
+        value: postingsFileLength, newPos: dictTablePos2,
+      } = decodeVarInt(dictionaryTableView, dictTablePos);
+      dictTablePos = dictTablePos2;
 
-      const postingsFileOffset = dictionaryTableView.getUint32(dictTablePos, true);
-      dictTablePos += 4;
+      const {
+        value: postingsFileOffset, newPos: dictTablePos3,
+      } = decodeVarInt(dictionaryTableView, dictTablePos);
+      dictTablePos = dictTablePos3;
 
       const termLen = dictionaryStringView.getUint8(dictStringPos);
       dictStringPos += 1;

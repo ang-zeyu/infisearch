@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const path = require("path");
 const fs = require("fs-extra");
+const varInt_1 = require("../Postings/varInt");
 class Dictionary {
     constructor() {
         this.entries = Object.create(null);
@@ -19,20 +20,21 @@ class Dictionary {
         this.dumpDictTable(folderPath);
     }
     dumpDictTable(folderPath) {
-        const fullPath = path.join(folderPath, 'dictionaryTable.txt');
-        fs.writeFileSync(fullPath, '');
-        const buffer = Buffer.allocUnsafe(13);
+        const buffers = [];
         const sortedTerms = Object.keys(this.entries).sort();
         let prevPostingsFileName = 0;
         for (let i = 0; i < sortedTerms.length; i += 1) {
             const entry = this.entries[sortedTerms[i]];
-            buffer.writeUInt8(entry.postingsFileName - prevPostingsFileName);
+            const postingsFileNameBuffer = Buffer.allocUnsafe(1);
+            postingsFileNameBuffer.writeUInt8(entry.postingsFileName - prevPostingsFileName);
             prevPostingsFileName = entry.postingsFileName;
-            buffer.writeUInt32LE(entry.docFreq, 1);
-            buffer.writeUInt32LE(entry.postingsFileLength, 5);
-            buffer.writeUInt32LE(entry.postingsFileOffset, 9);
-            fs.appendFileSync(fullPath, buffer);
+            buffers.push(postingsFileNameBuffer);
+            buffers.push(varInt_1.default(entry.docFreq));
+            buffers.push(varInt_1.default(entry.postingsFileLength));
+            buffers.push(varInt_1.default(entry.postingsFileOffset));
         }
+        const fullPath = path.join(folderPath, 'dictionaryTable.txt');
+        fs.writeFileSync(fullPath, Buffer.concat(buffers));
     }
     dumpDictAsAString(folderPath) {
         const fullPath = path.join(folderPath, 'dictionaryString.txt');
