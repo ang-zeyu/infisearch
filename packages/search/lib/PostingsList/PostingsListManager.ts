@@ -36,18 +36,23 @@ class PostingsListManager {
     const info = this.dictionary.termInfo[term];
     const postingsList = new PostingsList();
 
+    let prevDocId = 0;
     const end = info.postingsFileOffset + info.postingsFileLength;
     for (let i = info.postingsFileOffset; i < end;) {
-      const docId = view.getUint16(i, true);
-      i += 2;
+      const { value: docIdGap, newPos: posAfterDocId } = decodeVarInt(view, i);
+      const docId = docIdGap + prevDocId;
+      prevDocId = docId;
+      i = posAfterDocId;
+
       const fieldId = view.getUint8(i);
       i += 1;
-      const termFreq = view.getUint16(i, true);
-      i += 2;
 
-      for (let j = 0; j < termFreq; j += 1) {
-        const { value, pos } = decodeVarInt(view, i);
-        i = pos;
+      const { value: fieldTermFreq, newPos: posAfterTermFreq } = decodeVarInt(view, i);
+      i = posAfterTermFreq;
+
+      for (let j = 0; j < fieldTermFreq; j += 1) {
+        const { value, newPos } = decodeVarInt(view, i);
+        i = newPos;
 
         postingsList.add(docId, fieldId, value);
       }

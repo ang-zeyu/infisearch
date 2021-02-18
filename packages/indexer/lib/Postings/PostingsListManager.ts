@@ -5,7 +5,7 @@ import PostingsList from './PostingsList';
 import Dictionary from '../Dictionary/Dictionary';
 import DictionaryEntry from '../Dictionary/DictionaryEntry';
 
-import VarInt from './VarInt';
+import getVarInt from './VarInt';
 import DocInfo from '../DocInfo/DocInfo';
 
 const POSTINGS_LIST_BLOCK_SIZE_MAX = 20000; // 20kb
@@ -47,30 +47,39 @@ class PostingsListManager {
       const idf = Math.log10(numDocs / docFreq);
 
       let postingsFileLength = 0;
+      let prevDocId = 0;
       // eslint-disable-next-line @typescript-eslint/no-loop-func
-      Object.entries(postingsList.termFreqs).forEach(([docId, fields]) => {
+      Object.entries(postingsList.termFreqs).forEach(([docId, docFields]) => {
         const docIdInt = Number(docId);
+
         Object.entries(this.fieldInfo).forEach(([fieldName, info]) => {
           const fieldId = info.id;
-          const fieldTermFreq = fields[fieldId];
+          const fieldTermFreq = docFields[fieldId];
           if (!fieldTermFreq) {
             return;
           }
 
-          const buffer = Buffer.allocUnsafe(5);
-          buffer.writeUInt16LE(docIdInt);
-          buffer.writeUInt8(fieldId, 2);
-          buffer.writeUInt16LE(fieldTermFreq, 3);
+          const docIdGapVarInt = getVarInt(docIdInt - prevDocId);
+          prevDocId = docIdInt;
+          postingsFileLength += docIdGapVarInt.length;
+          buffers.push(docIdGapVarInt);
+
+          const buffer = Buffer.allocUnsafe(1);
+          buffer.writeUInt8(fieldId);
           buffers.push(buffer);
-          postingsFileLength += 5;
+          postingsFileLength += 1;
+
+          const fieldTermFreqVarInt = getVarInt(fieldTermFreq);
+          postingsFileLength += fieldTermFreqVarInt.length;
+          buffers.push(fieldTermFreqVarInt);
 
           let prevPos = 0;
           postingsList.positions[docIdInt][fieldId].forEach((pos) => {
-            const gap = new VarInt(pos - prevPos);
+            const gap = getVarInt(pos - prevPos);
             prevPos = pos;
 
-            postingsFileLength += gap.value.length;
-            buffers.push(gap.value);
+            postingsFileLength += gap.length;
+            buffers.push(gap);
           });
 
           const wtd = 1 + Math.log10(fieldTermFreq);

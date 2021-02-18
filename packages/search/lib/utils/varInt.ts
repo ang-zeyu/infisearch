@@ -3,7 +3,7 @@
 const VALUE_MASK = 0x7f; // 0111 1111
 const CONTINUATION_MASK = 0x80; // 1000 0000
 
-function decodeVarInt(view: DataView, offset: number): { value: number, pos: number } {
+function decodeVarInt(view: DataView, offset: number): { value: number, newPos: number } {
   let currentValue = 0;
   let shiftAmount = 0;
   let pos = offset;
@@ -20,7 +20,7 @@ function decodeVarInt(view: DataView, offset: number): { value: number, pos: num
     }
   }
 
-  return { value: currentValue, pos: pos + 1 };
+  return { value: currentValue, newPos: pos + 1 };
 }
 
 export default decodeVarInt;
