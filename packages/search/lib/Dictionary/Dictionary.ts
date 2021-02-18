@@ -142,6 +142,10 @@ class Dictionary {
     const biGrams = Dictionary.getBiGrams(misSpelledTerm);
     const levenshteinCandidates: { [term: string]: number } = Object.create(null);
     biGrams.forEach((biGram) => {
+      if (!this.biGrams[biGram]) {
+        return;
+      }
+
       this.biGrams[biGram].forEach((term) => {
         levenshteinCandidates[term] = (levenshteinCandidates[term] ?? 0) + 1;
       });
