@@ -11,24 +11,31 @@
           align-items: center;
       }
 
+      .app-heading {
+          font-size: 3em;
+          color: #75b1e9;
+      }
+
       #librarian-search {
+          padding: 0 1em;
           outline: none;
           width: 200px;
           height: 30px;
-          border-radius: 5px;
-          border-color: aliceblue;
+          border: 2px solid #d1e5f6;
+          border-radius: 30px;
           font-size: 1.2em;
+          transition: 0.2s all linear;
       }
 
       #librarian-search:focus {
-          border-color: #c9e0f5;
-          box-shadow: 0 0 5px #c9e0f5;
+          border-color: #b4d6f5;
+          box-shadow: 0 0 5px #b4d6f5;
       }
     </style>
   </head>
   <body>
     <div id="app">
-      <div>Librarian</div>
+      <h1 class="app-heading">Librarian</h1>
       <div style="position: relative">
         <input id="librarian-search" />
       </div>
