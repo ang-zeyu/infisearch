@@ -3,8 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio = require("cheerio");
 const Miner_1 = require("./Miner");
 const Field_1 = require("./Fields/Field");
-const CombinedFileStorage_1 = require("./Fields/CombinedFileStorage");
-const SingleFileStorage_1 = require("./Fields/SingleFileStorage");
+const TextStorage_1 = require("./Fields/TextStorage");
 const WHITESPACE = new RegExp('\\s+', 'g');
 const blockHtmlElements = [
     'address',
@@ -35,10 +34,10 @@ const blockHtmlElementsSet = new Set(blockHtmlElements);
 class HtmlMiner extends Miner_1.default {
     constructor(outputFolderPath) {
         super(outputFolderPath, {
-            title: new Field_1.default('title', 1.5, new CombinedFileStorage_1.default(outputFolderPath, 'title')),
-            heading: new Field_1.default('heading', 1.2, new CombinedFileStorage_1.default(outputFolderPath, 'heading')),
-            body: new Field_1.default('body', 1, new SingleFileStorage_1.default(outputFolderPath, 'body')),
-            link: new Field_1.default('link', 0, new CombinedFileStorage_1.default(outputFolderPath, 'link')),
+            title: new Field_1.default('title', 500, new TextStorage_1.default(outputFolderPath, { baseName: 'title', n: 100 })),
+            heading: new Field_1.default('heading', 1.5, new TextStorage_1.default(outputFolderPath, { baseName: 'heading', n: 100 })),
+            body: new Field_1.default('body', 1, new TextStorage_1.default(outputFolderPath, { baseName: 'body', n: 1 })),
+            link: new Field_1.default('link', 0, new TextStorage_1.default(outputFolderPath, { baseName: 'link', n: 100 })),
         });
     }
     indexEl($, el, fields) {

@@ -18,7 +18,7 @@ class PostingsListManager {
       [fieldName: string]: {
         id: number,
         storage: string,
-        baseFileName: string,
+        storageParams: { [param: string]: any },
         weight: number
       }
     },

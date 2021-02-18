@@ -21,7 +21,7 @@ class Miner {
             this.fieldInfo[field.name] = {
                 id: fieldId,
                 storage: field.storage.constructor.name,
-                baseFileName: field.storage.baseName,
+                storageParams: field.storage.params,
                 weight: field.weight,
             };
         });

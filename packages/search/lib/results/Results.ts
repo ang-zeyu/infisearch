@@ -11,7 +11,7 @@ class Results {
       [id: number]: {
         name: string,
         storage: string,
-        baseFileName: string,
+        storageParams: { [param: string]: any },
         weight: number
       }
     },
@@ -31,7 +31,7 @@ class Results {
 
     await Promise.all(Object.values(this.fieldInfo).map((info) => {
       const retrieve = storageMap[info.storage];
-      return retrieve(retrievedResults, this.baseUrl, info.name, info.baseFileName);
+      return retrieve(retrievedResults, this.baseUrl, info.name, info.storageParams);
     }));
 
     return retrievedResults;

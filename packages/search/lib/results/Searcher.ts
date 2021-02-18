@@ -14,7 +14,7 @@ class Searcher {
     [id: number]: {
       name: string,
       storage: string,
-      baseFileName: string,
+      storageParams: { [param: string]: any },
       weight: number
     }
   }>;

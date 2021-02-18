@@ -1,43 +1,38 @@
 import Result from './Result';
 
 const storageMap: {
-  [storage: string]: (results: Result[], baseUrl: string, fieldName: string, baseFileName: string) => Promise<void>
+  [storage: string]: (
+    results: Result[],
+    baseUrl: string,
+    fieldName: string,
+    storageParams: { [param: string]: any },
+  ) => Promise<void>
 } = {};
 
-storageMap.SingleFileStorage = async (
+storageMap.TextStorage = async (
   results: Result[],
   baseUrl: string,
   fieldName: string,
-  baseFileName: string,
+  storageParams: { [param: string]: any },
 ): Promise<void> => {
-  const directoryUrl = `${baseUrl}/${baseFileName}`;
+  const directoryUrl = `${baseUrl}/${storageParams.baseName}`;
+  const numDocsPerFile = storageParams.n;
+
+  const filePromises: { [fileName: number]: Promise<string> } = {};
+  const lines: { [fileName: number]: string[] } = {};
+
   await Promise.all(results.map(async (result) => {
-    result.fields[fieldName] = await (await fetch(`${directoryUrl}/${result.docId}`, {
+    const file = Math.floor((result.docId - 1) / numDocsPerFile) * numDocsPerFile + 1;
+    filePromises[file] = filePromises[file] ?? fetch(`${directoryUrl}/${file}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'text/plain',
       },
-    })).text();
+    }).then((res) => res.text());
+
+    lines[file] = lines[file] ?? (await filePromises[file]).split('\n');
+    result.fields[fieldName] = lines[file][(result.docId - 1) % numDocsPerFile];
   }));
-};
-
-storageMap.CombinedFileStorage = async (
-  results: Result[],
-  baseUrl: string,
-  fieldName: string,
-  baseFileName: string,
-): Promise<void> => {
-  const fileUrl = `${baseUrl}/${baseFileName}`;
-  const lines = (await (await fetch(fileUrl, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'text/plain',
-    },
-  })).text()).split('\n');
-
-  results.forEach((result) => {
-    result.fields[fieldName] = lines[result.docId - 1];
-  });
 };
 
 export default storageMap;

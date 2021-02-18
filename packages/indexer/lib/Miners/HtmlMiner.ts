@@ -2,8 +2,7 @@ import * as cheerio from 'cheerio';
 
 import Miner from './Miner';
 import Field from './Fields/Field';
-import CombinedFileStorage from './Fields/CombinedFileStorage';
-import SingleFileStorage from './Fields/SingleFileStorage';
+import TextStorage from './Fields/TextStorage';
 
 const WHITESPACE = new RegExp('\\s+', 'g');
 
@@ -38,10 +37,10 @@ const blockHtmlElementsSet = new Set(blockHtmlElements);
 class HtmlMiner extends Miner {
   constructor(outputFolderPath) {
     super(outputFolderPath, {
-      title: new Field('title', 1.5, new CombinedFileStorage(outputFolderPath, 'title')),
-      heading: new Field('heading', 1.2, new CombinedFileStorage(outputFolderPath, 'heading')),
-      body: new Field('body', 1, new SingleFileStorage(outputFolderPath, 'body')),
-      link: new Field('link', 0, new CombinedFileStorage(outputFolderPath, 'link')),
+      title: new Field('title', 500, new TextStorage(outputFolderPath, { baseName: 'title', n: 100 })),
+      heading: new Field('heading', 1.5, new TextStorage(outputFolderPath, { baseName: 'heading', n: 100 })),
+      body: new Field('body', 1, new TextStorage(outputFolderPath, { baseName: 'body', n: 1 })),
+      link: new Field('link', 0, new TextStorage(outputFolderPath, { baseName: 'link', n: 100 })),
     });
   }
 

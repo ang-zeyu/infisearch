@@ -19,7 +19,7 @@ abstract class Miner {
     [fieldName: string]: {
       id: number,
       storage: string,
-      baseFileName: string,
+      storageParams: { [param: string]: any },
       weight: number
     }
   } = Object.create(null);
@@ -38,7 +38,7 @@ abstract class Miner {
       this.fieldInfo[field.name] = {
         id: fieldId,
         storage: field.storage.constructor.name,
-        baseFileName: field.storage.baseName,
+        storageParams: field.storage.params,
         weight: field.weight,
       };
     });

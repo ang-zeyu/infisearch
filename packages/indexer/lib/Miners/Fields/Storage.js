@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Storage {
-    constructor(outputFolderPath, baseName) {
+    constructor(outputFolderPath, params) {
         this.outputFolderPath = outputFolderPath;
-        this.baseName = baseName;
+        this.params = params;
     }
 }
 exports.default = Storage;
