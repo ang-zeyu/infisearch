@@ -7,7 +7,7 @@ const SENTENCE_SPLITTER = new RegExp('[.?!](?=\\s)', 'g');
 class English {
     // eslint-disable-next-line class-methods-use-this
     tokenize(text) {
-        return flatMap(text.split(SENTENCE_SPLITTER), (sent) => sent.split(WHITESPACE_SPLITTER)
+        return flatMap(text.toLowerCase().split(SENTENCE_SPLITTER), (sent) => sent.split(WHITESPACE_SPLITTER)
             .map((term) => term.replace(PUNCTUATION_FILTER, ''))
             .filter((term) => term.length !== 0 && term.length <= 255));
     }

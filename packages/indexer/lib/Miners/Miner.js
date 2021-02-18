@@ -8,29 +8,48 @@ const PostingsListManager_1 = require("../Postings/PostingsListManager");
 const DocInfo_1 = require("../DocInfo/DocInfo");
 const tokenizer = new English_1.default();
 class Miner {
-    constructor(outputFolder) {
+    constructor(outputFolder, fields) {
+        this.outputFolder = outputFolder;
+        this.fields = fields;
         this.lastDocId = 0;
         this.docInfos = {};
+        this.fieldInfo = Object.create(null);
         this.dictionary = new Dictionary_1.default();
-        this.postingsListManager = new PostingsListManager_1.default();
-        this.outputFolder = outputFolder;
+        let fieldId = 0;
+        Object.values(fields).forEach((field) => {
+            fieldId += 1;
+            this.fieldInfo[field.name] = {
+                id: fieldId,
+                storage: field.storage.constructor.name,
+                baseFileName: field.storage.baseName,
+                weight: field.weight,
+            };
+        });
+        this.postingsListManager = new PostingsListManager_1.default(this.fieldInfo);
     }
-    add(link, serp, fields) {
+    add(fields) {
         this.lastDocId += 1;
-        this.docInfos[this.lastDocId] = new DocInfo_1.default(this.lastDocId, link, serp);
+        this.docInfos[this.lastDocId] = new DocInfo_1.default(this.lastDocId);
         let pos = -1;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        Object.entries(fields).forEach(([fieldName, texts]) => {
-            texts.forEach((text) => {
+        fields.forEach((item) => {
+            const { fieldName, text } = item;
+            const field = this.fields[fieldName];
+            if (!field) {
+                throw new Error('Indexing undefined field.');
+            }
+            pos += 1;
+            field.add(this.lastDocId, text);
+            if (!field.weight) {
+                // E.g. auxillary document info - links
+                return;
+            }
+            const terms = tokenizer.tokenize(text);
+            terms.forEach((term) => {
                 pos += 1;
-                const terms = tokenizer.tokenize(text);
-                terms.forEach((term) => {
-                    pos += 1;
-                    if (term.length > 255) {
-                        return;
-                    }
-                    this.postingsListManager.addTerm(term, this.lastDocId, pos);
-                });
+                if (term.length > 255) {
+                    return;
+                }
+                this.postingsListManager.addTerm(field.name, term, this.lastDocId, pos);
             });
         });
     }
@@ -38,18 +57,20 @@ class Miner {
         this.postingsListManager.dump(this.dictionary, this.docInfos, this.outputFolder);
         this.dictionary.dump(this.outputFolder);
         this.dumpDocInfo();
+        this.dumpFields();
     }
     dumpDocInfo() {
-        fs.ensureDirSync(path.join(this.outputFolder, 'serps'));
         const linkFullPath = path.join(this.outputFolder, 'docInfo.txt');
         const numDocs = Object.keys(this.docInfos).length;
         const buffer = [`${numDocs}`];
-        Object.entries(this.docInfos).forEach(([docId, info]) => {
+        Object.values(this.docInfos).forEach((info) => {
             buffer.push(String(Math.sqrt(info.normalizationFactor)));
-            buffer.push(info.link);
-            fs.writeFileSync(path.join(this.outputFolder, 'serps', `${docId}`), info.serp);
         });
         fs.writeFileSync(linkFullPath, buffer.join('\n'));
+    }
+    dumpFields() {
+        fs.writeJSONSync(path.join(this.outputFolder, 'fieldInfo.json'), this.fieldInfo);
+        Object.values(this.fields).forEach((field) => field.dump());
     }
 }
 exports.default = Miner;

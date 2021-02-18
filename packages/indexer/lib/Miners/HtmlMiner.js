@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio = require("cheerio");
 const Miner_1 = require("./Miner");
+const Field_1 = require("./Fields/Field");
+const CombinedFileStorage_1 = require("./Fields/CombinedFileStorage");
+const SingleFileStorage_1 = require("./Fields/SingleFileStorage");
 const WHITESPACE = new RegExp('\\s+', 'g');
 const blockHtmlElements = [
     'address',
@@ -26,32 +29,53 @@ const blockHtmlElements = [
     'div',
     'section',
     'td',
+    'title',
 ];
 const blockHtmlElementsSet = new Set(blockHtmlElements);
 class HtmlMiner extends Miner_1.default {
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor(outputFolderPath) {
-        super(outputFolderPath);
+        super(outputFolderPath, {
+            title: new Field_1.default('title', 1.5, new CombinedFileStorage_1.default(outputFolderPath, 'title')),
+            heading: new Field_1.default('heading', 1.2, new CombinedFileStorage_1.default(outputFolderPath, 'heading')),
+            body: new Field_1.default('body', 1, new SingleFileStorage_1.default(outputFolderPath, 'body')),
+            link: new Field_1.default('link', 0, new CombinedFileStorage_1.default(outputFolderPath, 'link')),
+        });
     }
     indexEl($, el, fields) {
-        var _a;
         $(el).children().each((i, child) => {
             this.indexEl($, child, fields);
         });
         if (!blockHtmlElementsSet.has(el.name)) {
             return;
         }
-        fields[el.name] = (_a = fields[el.name]) !== null && _a !== void 0 ? _a : [];
-        const elTxt = $(el).text().toLowerCase();
+        let fieldName;
+        switch (el.name) {
+            case 'title':
+                fieldName = 'title';
+                break;
+            case 'h1':
+            case 'h2':
+            case 'h3':
+            case 'h4':
+            case 'h5':
+            case 'h6':
+                fieldName = 'heading';
+                break;
+            default:
+                fieldName = 'body';
+        }
+        const elTxt = $(el).text().replace(WHITESPACE, ' ');
         $(el).text('');
-        fields[el.name].push(elTxt);
+        fields.push({ fieldName, text: elTxt });
     }
     indexHtmlDoc(link, htmlSource) {
+        const fields = [];
+        fields.push({ fieldName: 'link', text: link });
+        fields.push({ fieldName: 'title', text: '' });
+        fields.push({ fieldName: 'heading', text: '' });
         const $ = cheerio.load(htmlSource);
-        const serp = $.root().text().replace(WHITESPACE, ' ');
-        const fields = Object.create(null);
         this.indexEl($, $('html')[0], fields);
-        this.add(link, serp, fields);
+        this.add(fields);
     }
 }
 exports.default = HtmlMiner;

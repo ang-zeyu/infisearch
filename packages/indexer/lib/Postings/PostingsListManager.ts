@@ -13,12 +13,23 @@ const POSTINGS_LIST_BLOCK_SIZE_MAX = 20000; // 20kb
 class PostingsListManager {
   private postingsLists: { [term: string]: PostingsList } = Object.create(null);
 
-  addTerm(term: string, docId: number, pos: number): void {
+  constructor(
+    private fieldInfo: {
+      [fieldName: string]: {
+        id: number,
+        storage: string,
+        baseFileName: string,
+        weight: number
+      }
+    },
+  ) {}
+
+  addTerm(fieldName: string, term: string, docId: number, pos: number): void {
     if (!this.postingsLists[term]) {
       this.postingsLists[term] = new PostingsList();
     }
 
-    this.postingsLists[term].add(docId, pos);
+    this.postingsLists[term].add(this.fieldInfo[fieldName].id, docId, pos);
   }
 
   dump(dictionary: Dictionary, docInfos: { [docId: number]: DocInfo }, outputFolderPath: string): void {
@@ -32,34 +43,49 @@ class PostingsListManager {
       const currTerm = sortedTerms[i];
       const postingsList = this.postingsLists[currTerm];
 
-      const docFreq = Object.keys(postingsList.positions).length;
+      const docFreq = postingsList.getDocFreq();
       const idf = Math.log10(numDocs / docFreq);
 
       let postingsFileLength = 0;
       // eslint-disable-next-line @typescript-eslint/no-loop-func
-      Object.entries(postingsList.positions).forEach(([docId, positions]) => {
-        const buffer = Buffer.allocUnsafe(4);
+      Object.entries(postingsList.positions).forEach(([docId, fields]) => {
+        let totalTermFreq = 0;
 
-        const docIdInt = parseInt(docId, 10);
-        buffer.writeUInt16LE(docIdInt);
-        const termFreq = postingsList.termFreqs[docIdInt];
-        buffer.writeUInt16LE(termFreq, 2);
+        const docIdInt = Number(docId);
 
-        postingsFileLength += 4;
-        buffers.push(buffer);
+        Object.entries(this.fieldInfo).forEach(([fieldName, info]) => {
+          const fieldId = info.id;
+          const positions = fields[fieldId];
+          if (!positions) {
+            return;
+          }
 
-        const wtd = 1 + Math.log10(termFreq);
+          const buffer = Buffer.allocUnsafe(5);
+
+          buffer.writeUInt16LE(docIdInt);
+          const fieldIdInt = Number(fieldId);
+          buffer.writeUInt8(fieldIdInt, 2);
+          const termFreq = postingsList.termFreqs[docIdInt][fieldIdInt];
+          buffer.writeUInt16LE(termFreq, 3);
+
+          postingsFileLength += 5;
+          buffers.push(buffer);
+
+          totalTermFreq += termFreq * this.fieldInfo[fieldName].weight;
+
+          let prevPos = 0;
+          positions.forEach((pos) => {
+            const gap = new VarInt(pos - prevPos);
+            prevPos = pos;
+
+            postingsFileLength += gap.value.length;
+            buffers.push(gap.value);
+          });
+        });
+
+        const wtd = 1 + Math.log10(totalTermFreq);
         const tfIdf = wtd * idf;
         docInfos[docId].normalizationFactor += tfIdf * tfIdf;
-
-        let prevPos = 0;
-        positions.forEach((pos) => {
-          const gap = new VarInt(pos - prevPos);
-          prevPos = pos;
-
-          postingsFileLength += gap.value.length;
-          buffers.push(gap.value);
-        });
       });
 
       dictionary.entries[currTerm] = new DictionaryEntry(

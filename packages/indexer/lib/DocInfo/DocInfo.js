@@ -1,10 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class DocInfo {
-    constructor(docId, link, serp) {
+    constructor(docId) {
         this.docId = docId;
-        this.link = link;
-        this.serp = serp;
         this.normalizationFactor = 0;
     }
 }

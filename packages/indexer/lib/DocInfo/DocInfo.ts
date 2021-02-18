@@ -3,8 +3,6 @@ class DocInfo {
 
   constructor(
     public docId: number,
-    public link: string,
-    public serp: string,
   ) {
   }
 }

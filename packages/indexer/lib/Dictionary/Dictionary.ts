@@ -27,16 +27,20 @@ class Dictionary {
 
     fs.writeFileSync(fullPath, '');
 
-    const buffer: Buffer = Buffer.allocUnsafe(16);
+    const buffer: Buffer = Buffer.allocUnsafe(13);
     const sortedTerms: string[] = Object.keys(this.entries).sort();
+
+    let prevPostingsFileName = 0;
 
     for (let i = 0; i < sortedTerms.length; i += 1) {
       const entry = this.entries[sortedTerms[i]];
 
-      buffer.writeUInt32LE(entry.postingsFileName);
-      buffer.writeUInt32LE(entry.docFreq, 4);
-      buffer.writeUInt32LE(entry.postingsFileLength, 8);
-      buffer.writeUInt32LE(entry.postingsFileOffset, 12);
+      buffer.writeUInt8(entry.postingsFileName - prevPostingsFileName);
+      prevPostingsFileName = entry.postingsFileName;
+
+      buffer.writeUInt32LE(entry.docFreq, 1);
+      buffer.writeUInt32LE(entry.postingsFileLength, 5);
+      buffer.writeUInt32LE(entry.postingsFileOffset, 9);
 
       fs.appendFileSync(fullPath, buffer);
     }

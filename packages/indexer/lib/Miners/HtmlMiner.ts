@@ -1,6 +1,9 @@
 import * as cheerio from 'cheerio';
 
 import Miner from './Miner';
+import Field from './Fields/Field';
+import CombinedFileStorage from './Fields/CombinedFileStorage';
+import SingleFileStorage from './Fields/SingleFileStorage';
 
 const WHITESPACE = new RegExp('\\s+', 'g');
 
@@ -27,17 +30,22 @@ const blockHtmlElements : string[] = [
   'div',
   'section',
   'td',
+  'title',
 ];
 
 const blockHtmlElementsSet = new Set(blockHtmlElements);
 
 class HtmlMiner extends Miner {
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor(outputFolderPath) {
-    super(outputFolderPath);
+    super(outputFolderPath, {
+      title: new Field('title', 1.5, new CombinedFileStorage(outputFolderPath, 'title')),
+      heading: new Field('heading', 1.2, new CombinedFileStorage(outputFolderPath, 'heading')),
+      body: new Field('body', 1, new SingleFileStorage(outputFolderPath, 'body')),
+      link: new Field('link', 0, new CombinedFileStorage(outputFolderPath, 'link')),
+    });
   }
 
-  private indexEl($: any, el: any, fields: { [fieldName: string]: string[] }): void {
+  private indexEl($: any, el: any, fields: { fieldName: string, text: string }[]): void {
     $(el).children().each((i, child) => {
       this.indexEl($, child, fields);
     });
@@ -46,21 +54,40 @@ class HtmlMiner extends Miner {
       return;
     }
 
-    fields[el.name] = fields[el.name] ?? [];
+    let fieldName;
+    switch (el.name) {
+      case 'title':
+        fieldName = 'title';
+        break;
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
+        fieldName = 'heading';
+        break;
+      default:
+        fieldName = 'body';
+    }
 
-    const elTxt = $(el).text().toLowerCase();
+    const elTxt = $(el).text().replace(WHITESPACE, ' ');
     $(el).text('');
-    fields[el.name].push(elTxt);
+
+    fields.push({ fieldName, text: elTxt });
   }
 
   indexHtmlDoc(link: string, htmlSource: string) {
-    const $ = cheerio.load(htmlSource);
-    const serp: string = $.root().text().replace(WHITESPACE, ' ');
+    const fields: { fieldName: string, text: string }[] = [];
+    fields.push({ fieldName: 'link', text: link });
 
-    const fields: { [fieldName: string]: string[] } = Object.create(null);
+    fields.push({ fieldName: 'title', text: '' });
+    fields.push({ fieldName: 'heading', text: '' });
+
+    const $ = cheerio.load(htmlSource);
     this.indexEl($, $('html')[0], fields);
 
-    this.add(link, serp, fields);
+    this.add(fields);
   }
 }
 

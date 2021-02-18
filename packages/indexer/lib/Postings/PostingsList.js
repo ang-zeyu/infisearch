@@ -5,13 +5,20 @@ class PostingsList {
         this.positions = {};
         this.termFreqs = {};
     }
-    add(docId, pos) {
+    add(docId, fieldId, pos) {
         if (!this.positions[docId]) {
-            this.positions[docId] = [];
-            this.termFreqs[docId] = 0;
+            this.positions[docId] = {};
+            this.termFreqs[docId] = {};
         }
-        this.positions[docId].push(pos);
-        this.termFreqs[docId] += 1;
+        if (!this.positions[docId][fieldId]) {
+            this.positions[docId][fieldId] = [];
+            this.termFreqs[docId][fieldId] = 0;
+        }
+        this.positions[docId][fieldId].push(pos);
+        this.termFreqs[docId][fieldId] += 1;
+    }
+    getDocFreq() {
+        return Object.keys(this.positions).length;
     }
 }
 exports.default = PostingsList;
