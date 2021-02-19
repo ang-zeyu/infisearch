@@ -9,6 +9,7 @@ import Results from './results/Results';
 const { h } = domUtils;
 
 const BODY_SERP_BOUND = 40;
+const MAX_SERP_HIGHLIGHT_PARTS = 8;
 
 function transformBody(body: string[], query: string): (string | HTMLElement)[] {
   const terms = query.split(/\s+/g);
@@ -45,7 +46,8 @@ function transformBody(body: string[], query: string): (string | HTMLElement)[] 
 
   return body
     .map((origStr) => getBoundsForString(origStr))
-    .reduce((acc, next) => acc.concat(next), []);
+    .reduce((acc, next) => acc.concat(next), [])
+    .slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
 async function transformResults(results: Results, query: string, container: HTMLElement): Promise<void> {
@@ -54,7 +56,7 @@ async function transformResults(results: Results, query: string, container: HTML
 
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: result.fields.link[0] },
-        h('div', { class: 'librarian-heading' }, result.fields.title[0]),
+        h('div', { class: 'librarian-title' }, result.fields.title[0]),
         h('div', { class: 'librarian-body' }, ...transformBody(result.fields.body, query))));
   });
   resultsEls.forEach((el) => container.appendChild(el));

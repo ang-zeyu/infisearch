@@ -4,6 +4,8 @@
     margin: 1em 0 0 0;
     position: absolute;
     top: 100%;
+    left: -50%;
+    right: -50%;
     flex-direction: column;
     min-width: 30em;
     max-height: 30em;
@@ -24,11 +26,11 @@
     text-decoration: none;
 }
 
-.librarian-heading {
+.librarian-title {
     font-size: 1.2em;
     font-weight: 600;
 }
 
 .librarian-body {
-
+    margin-top: 0.2em;
 }
