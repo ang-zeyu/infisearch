@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import Miner from './Miner';
 import Field from './Fields/Field';
 import TextStorage from './Fields/TextStorage';
+import JsonStorage from './Fields/JsonStorage';
 
 const WHITESPACE = new RegExp('\\s+', 'g');
 
@@ -38,8 +39,8 @@ class HtmlMiner extends Miner {
   constructor(outputFolderPath) {
     super(outputFolderPath, {
       title: new Field('title', 0.5, new TextStorage(outputFolderPath, { baseName: 'title', n: 100 })),
-      heading: new Field('heading', 0.3, new TextStorage(outputFolderPath, { baseName: 'heading', n: 100 })),
-      body: new Field('body', 0.2, new TextStorage(outputFolderPath, { baseName: 'body', n: 1 })),
+      heading: new Field('heading', 0.3, new JsonStorage(outputFolderPath, { baseName: 'heading', n: 100 })),
+      body: new Field('body', 0.2, new JsonStorage(outputFolderPath, { baseName: 'body', n: 1 })),
       link: new Field('link', 0, new TextStorage(outputFolderPath, { baseName: 'link', n: 100 })),
     });
   }

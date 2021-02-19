@@ -1,6 +1,6 @@
 class Result {
   fields: {
-    [fieldName: string]: string
+    [fieldName: string]: string[]
   } = Object.create(null);
 
   constructor(

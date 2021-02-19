@@ -8,33 +8,47 @@ const { h } = domUtils;
 
 const BODY_SERP_BOUND = 40;
 
-function transformBody(body: string, query: string): string {
+function transformBody(body: string[], query: string): string {
   const terms = query.split(/\s+/g);
-  const lowerCasedBody = body.toLowerCase();
-  const bounds: number[][] = [];
-  terms.forEach((term) => {
-    const termIdx = lowerCasedBody.indexOf(term);
-    const minBound = Math.max(0, termIdx - BODY_SERP_BOUND);
-    const maxBound = Math.min(body.length, termIdx + BODY_SERP_BOUND);
 
-    let mergedBound = false;
-    for (let i = 0; i < bounds.length; i += 1) {
-      if ((minBound <= bounds[i][1] && minBound >= bounds[i][0])
-        || (maxBound >= bounds[i][0] && maxBound <= bounds[i][1])) {
-        mergedBound = true;
-
-        bounds[i][0] = Math.min(minBound, bounds[i][0]);
-        bounds[i][1] = Math.max(maxBound, bounds[i][1]);
-        break;
+  function getBoundsForString(originalStr: string, lowerCasedStr: string) {
+    const bounds: number[][] = [];
+    terms.forEach((term) => {
+      const termIdx = lowerCasedStr.indexOf(term);
+      if (termIdx === -1) {
+        return;
       }
-    }
 
-    if (!mergedBound) {
-      bounds.push([minBound, maxBound]);
-    }
-  });
+      const minBound = Math.max(0, termIdx - BODY_SERP_BOUND);
+      const maxBound = Math.min(body.length, termIdx + BODY_SERP_BOUND);
 
-  return bounds.map((bound) => `... ${body.substring(bound[0], bound[1])} ...`).reduce((x, y) => `${x} ${y}`);
+      let mergedBound = false;
+      for (let i = 0; i < bounds.length; i += 1) {
+        if ((minBound <= bounds[i][1] && minBound >= bounds[i][0])
+          || (maxBound >= bounds[i][0] && maxBound <= bounds[i][1])) {
+          mergedBound = true;
+
+          bounds[i][0] = Math.min(minBound, bounds[i][0]);
+          bounds[i][1] = Math.max(maxBound, bounds[i][1]);
+          break;
+        }
+      }
+
+      if (!mergedBound) {
+        bounds.push([minBound, maxBound]);
+      }
+    });
+
+    return bounds
+      .map((bound) => `... ${originalStr.substring(bound[0], bound[1])} ...`)
+      .reduce((x, y) => `${x} ${y}`, '');
+  }
+
+  const lowerCasedBody = body.map((str) => str.toLowerCase());
+
+  return body
+    .map((origStr, idx) => getBoundsForString(origStr, lowerCasedBody[idx]))
+    .reduce((x, y) => `${x} ${y}`);
 }
 
 async function transformResults(results: Results, query: string, container: HTMLBaseElement): Promise<void> {
@@ -42,8 +56,8 @@ async function transformResults(results: Results, query: string, container: HTML
     console.log(result);
 
     return h('li', { class: 'librarian-dropdown-item' },
-      h('a', { class: 'librarian-link', href: result.fields.link },
-        h('div', { class: 'librarian-heading' }, result.fields.title),
+      h('a', { class: 'librarian-link', href: result.fields.link[0] },
+        h('div', { class: 'librarian-heading' }, result.fields.title[0]),
         h('div', { class: 'librarian-body' }, transformBody(result.fields.body, query))));
   });
   resultsEls.forEach((el) => container.appendChild(el));
