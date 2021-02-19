@@ -34,10 +34,11 @@ const blockHtmlElements = [
 const blockHtmlElementsSet = new Set(blockHtmlElements);
 class HtmlMiner extends Miner_1.default {
     constructor(outputFolderPath) {
+        const headingBodyStorage = new JsonStorage_1.default(outputFolderPath, { baseName: 'text', n: 1 });
         super(outputFolderPath, {
             title: new Field_1.default('title', 0.5, new TextStorage_1.default(outputFolderPath, { baseName: 'title', n: 100 })),
-            heading: new Field_1.default('heading', 0.3, new JsonStorage_1.default(outputFolderPath, { baseName: 'heading', n: 100 })),
-            body: new Field_1.default('body', 0.2, new JsonStorage_1.default(outputFolderPath, { baseName: 'body', n: 1 })),
+            heading: new Field_1.default('heading', 0.3, headingBodyStorage),
+            body: new Field_1.default('body', 0.2, headingBodyStorage),
             link: new Field_1.default('link', 0, new TextStorage_1.default(outputFolderPath, { baseName: 'link', n: 100 })),
         });
     }

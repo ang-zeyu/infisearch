@@ -19,7 +19,7 @@ abstract class Miner {
     [fieldName: string]: {
       id: number,
       storage: string,
-      storageParams: { [param: string]: any },
+      storageParams: { baseName: string, [param: string]: any },
       weight: number
     }
   } = Object.create(null);
@@ -43,6 +43,7 @@ abstract class Miner {
         storageParams: field.storage.params,
         weight: field.weight,
       };
+      field.id = fieldId;
     });
 
     if (totalWeight !== 1) {

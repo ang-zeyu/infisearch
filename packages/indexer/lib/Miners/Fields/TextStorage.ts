@@ -13,7 +13,7 @@ class TextStorage extends Storage {
     this.numDocsPerFile = params.n;
   }
 
-  add(fieldName: string, docId: number, text: string): void {
+  add(fieldId: number, docId: number, text: string): void {
     for (let i = this.texts.length; i <= docId; i += 1) {
       this.texts.push('');
     }

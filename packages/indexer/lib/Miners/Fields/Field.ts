@@ -1,6 +1,8 @@
 import Storage from './Storage';
 
 class Field {
+  public id: number;
+
   constructor(
     public readonly name: string,
     public readonly weight: number,
@@ -8,7 +10,7 @@ class Field {
   ) {}
 
   add(docId: number, text: string): void {
-    this.storage.add(this.name, docId, text);
+    this.storage.add(this.id, docId, text);
   }
 
   dump(): void {

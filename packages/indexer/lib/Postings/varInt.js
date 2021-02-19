@@ -20,4 +20,4 @@ function getVarInt(value) {
     return Buffer.from(bytes);
 }
 exports.default = getVarInt;
-//# sourceMappingURL=VarInt.js.map
+//# sourceMappingURL=varInt.js.map

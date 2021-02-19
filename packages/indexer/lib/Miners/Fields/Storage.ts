@@ -4,7 +4,7 @@ abstract class Storage {
     public readonly params: { baseName: string },
   ) {}
 
-  abstract add(fieldName: string, docId: number, text: string): void;
+  abstract add(fieldId: number, docId: number, text: string): void;
 
   abstract dump(): void;
 }

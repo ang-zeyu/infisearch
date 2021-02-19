@@ -4,7 +4,9 @@ import * as fs from 'fs-extra';
 import Storage from './Storage';
 
 class JsonStorage extends Storage {
-  private texts: string[][] = [];
+  private texts: (string | number)[][] = [];
+
+  private lastFieldId: { [docId: number]: number } = {};
 
   private numDocsPerFile: number;
 
@@ -13,11 +15,17 @@ class JsonStorage extends Storage {
     this.numDocsPerFile = params.n;
   }
 
-  add(fieldName: string, docId: number, text: string): void {
+  add(fieldId: number, docId: number, text: string): void {
     const end = docId - 1;
     for (let i = this.texts.length; i <= end; i += 1) {
       this.texts.push([]);
     }
+
+    if (this.lastFieldId[docId] !== fieldId) {
+      this.texts[end].push(fieldId);
+      this.lastFieldId[docId] = fieldId;
+    }
+
     this.texts[end].push(text);
   }
 
@@ -25,7 +33,7 @@ class JsonStorage extends Storage {
     const fullOutputFolderPath = path.join(this.outputFolderPath, this.params.baseName);
     fs.ensureDirSync(fullOutputFolderPath);
     for (let i = 0; i < this.texts.length; i += this.numDocsPerFile) {
-      const slice: string[][] = [];
+      const slice: (string | number)[][] = [];
 
       const end = i + this.numDocsPerFile;
       for (let j = i; j < end; j += 1) {

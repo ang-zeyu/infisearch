@@ -7,12 +7,17 @@ class JsonStorage extends Storage_1.default {
     constructor(outputFolderPath, params) {
         super(outputFolderPath, params);
         this.texts = [];
+        this.lastFieldId = {};
         this.numDocsPerFile = params.n;
     }
-    add(fieldName, docId, text) {
+    add(fieldId, docId, text) {
         const end = docId - 1;
         for (let i = this.texts.length; i <= end; i += 1) {
             this.texts.push([]);
+        }
+        if (this.lastFieldId[docId] !== fieldId) {
+            this.texts[end].push(fieldId);
+            this.lastFieldId[docId] = fieldId;
         }
         this.texts[end].push(text);
     }

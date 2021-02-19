@@ -26,6 +26,7 @@ class Miner {
                 storageParams: field.storage.params,
                 weight: field.weight,
             };
+            field.id = fieldId;
         });
         if (totalWeight !== 1) {
             throw new Error('Field weights must sum to 1.');

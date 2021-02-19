@@ -9,7 +9,7 @@ class TextStorage extends Storage_1.default {
         this.texts = [''];
         this.numDocsPerFile = params.n;
     }
-    add(fieldName, docId, text) {
+    add(fieldId, docId, text) {
         for (let i = this.texts.length; i <= docId; i += 1) {
             this.texts.push('');
         }

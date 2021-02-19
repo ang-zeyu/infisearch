@@ -7,7 +7,7 @@ class Field {
         this.storage = storage;
     }
     add(docId, text) {
-        this.storage.add(this.name, docId, text);
+        this.storage.add(this.id, docId, text);
     }
     dump() {
         this.storage.dump();
