@@ -57,6 +57,9 @@ abstract class Miner {
 
     this.docInfos[this.lastDocId] = new DocInfo(this.lastDocId);
 
+    // Initialize empty values for all fields of this doc
+    Object.values(this.fields).forEach((field) => field.add(this.lastDocId, ''));
+
     let pos = -1;
     fields.forEach((item) => {
       const { fieldName, text } = item;

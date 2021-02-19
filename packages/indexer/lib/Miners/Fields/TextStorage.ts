@@ -17,7 +17,7 @@ class TextStorage extends Storage {
     for (let i = this.texts.length; i <= docId; i += 1) {
       this.texts.push('');
     }
-    this.texts[docId] = `${this.texts[docId]} ${text}`;
+    this.texts[docId] = this.texts[docId] ? `${this.texts[docId]} ${text}` : text;
   }
 
   dump(): void {

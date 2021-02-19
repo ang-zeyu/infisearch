@@ -70,8 +70,6 @@ class HtmlMiner extends Miner_1.default {
     indexHtmlDoc(link, htmlSource) {
         const fields = [];
         fields.push({ fieldName: 'link', text: link });
-        fields.push({ fieldName: 'title', text: '' });
-        fields.push({ fieldName: 'heading', text: '' });
         const $ = cheerio.load(htmlSource);
         this.indexEl($, $('html')[0], fields);
         this.add(fields);
