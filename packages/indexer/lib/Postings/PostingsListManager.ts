@@ -7,22 +7,14 @@ import DictionaryEntry from '../Dictionary/DictionaryEntry';
 
 import getVarInt from './VarInt';
 import DocInfo from '../DocInfo/DocInfo';
+import FieldInfo from '../Miners/Fields/FieldInfo';
 
 const POSTINGS_LIST_BLOCK_SIZE_MAX = 20000; // 20kb
 
 class PostingsListManager {
   private postingsLists: { [term: string]: PostingsList } = Object.create(null);
 
-  constructor(
-    private fieldInfo: {
-      [fieldName: string]: {
-        id: number,
-        storage: string,
-        storageParams: { baseName: string, [param: string]: any },
-        weight: number
-      }
-    },
-  ) {}
+  constructor(private fieldInfo: FieldInfo) {}
 
   addTerm(fieldName: string, term: string, docId: number, pos: number): void {
     if (!this.postingsLists[term]) {

@@ -1,10 +1,14 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
+
 import Tokenizer from '../tokenizers/English';
 import Dictionary from '../Dictionary/Dictionary';
 import PostingsListManager from '../Postings/PostingsListManager';
 import DocInfo from '../DocInfo/DocInfo';
 import Field from './Fields/Field';
+import FieldInfo from './Fields/FieldInfo';
+
+const clone = require('lodash/clone');
 
 const tokenizer = new Tokenizer();
 
@@ -15,35 +19,34 @@ abstract class Miner {
     [docId: number]: DocInfo
   } = {};
 
-  fieldInfo: {
-    [fieldName: string]: {
-      id: number,
-      storage: string,
-      storageParams: { baseName: string, [param: string]: any },
-      weight: number
-    }
-  } = Object.create(null);
+  fieldInfo: FieldInfo = Object.create(null);
 
   dictionary: Dictionary = new Dictionary();
 
   postingsListManager: PostingsListManager;
 
+  private fields: { [fieldName: string]: Field } = Object.create(null);
+
   protected constructor(
     private outputFolder: string,
-    private fields: { [fieldName: string]: Field },
+    fields: Field[],
   ) {
     let totalWeight = 0;
     let fieldId = 0;
-    Object.values(fields).forEach((field) => {
+    fields.forEach((field) => {
       fieldId += 1;
-      totalWeight += field.weight;
+      field.id = fieldId;
+
       this.fieldInfo[field.name] = {
         id: fieldId,
         storage: field.storage.constructor.name,
         storageParams: field.storage.params,
         weight: field.weight,
       };
-      field.id = fieldId;
+
+      this.fields[field.name] = field;
+
+      totalWeight += field.weight;
     });
 
     if (totalWeight !== 1) {
@@ -58,14 +61,15 @@ abstract class Miner {
 
     this.docInfos[this.lastDocId] = new DocInfo(this.lastDocId);
 
-    // Initialize empty values for all fields of this doc
-    Object.values(this.fields).forEach((field) => field.add(this.lastDocId, ''));
+    const uninitializedFields: { [fieldName: string]: Field } = clone(this.fields);
 
     let pos = -1;
     fields.forEach((item) => {
       const { fieldName, text } = item;
 
       pos += 1;
+
+      delete uninitializedFields[fieldName];
 
       const field = this.fields[fieldName];
       field.add(this.lastDocId, text);
@@ -84,6 +88,8 @@ abstract class Miner {
         this.postingsListManager.addTerm(field.name, term, this.lastDocId, pos);
       });
     });
+
+    Object.values(uninitializedFields).forEach((field) => field.add(this.lastDocId, ''));
   }
 
   dump(): void {

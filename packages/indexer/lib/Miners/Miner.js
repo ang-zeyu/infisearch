@@ -6,27 +6,29 @@ const English_1 = require("../tokenizers/English");
 const Dictionary_1 = require("../Dictionary/Dictionary");
 const PostingsListManager_1 = require("../Postings/PostingsListManager");
 const DocInfo_1 = require("../DocInfo/DocInfo");
+const clone = require('lodash/clone');
 const tokenizer = new English_1.default();
 class Miner {
     constructor(outputFolder, fields) {
         this.outputFolder = outputFolder;
-        this.fields = fields;
         this.lastDocId = 0;
         this.docInfos = {};
         this.fieldInfo = Object.create(null);
         this.dictionary = new Dictionary_1.default();
+        this.fields = Object.create(null);
         let totalWeight = 0;
         let fieldId = 0;
-        Object.values(fields).forEach((field) => {
+        fields.forEach((field) => {
             fieldId += 1;
-            totalWeight += field.weight;
+            field.id = fieldId;
             this.fieldInfo[field.name] = {
                 id: fieldId,
                 storage: field.storage.constructor.name,
                 storageParams: field.storage.params,
                 weight: field.weight,
             };
-            field.id = fieldId;
+            this.fields[field.name] = field;
+            totalWeight += field.weight;
         });
         if (totalWeight !== 1) {
             throw new Error('Field weights must sum to 1.');
@@ -36,12 +38,12 @@ class Miner {
     add(fields) {
         this.lastDocId += 1;
         this.docInfos[this.lastDocId] = new DocInfo_1.default(this.lastDocId);
-        // Initialize empty values for all fields of this doc
-        Object.values(this.fields).forEach((field) => field.add(this.lastDocId, ''));
+        const uninitializedFields = clone(this.fields);
         let pos = -1;
         fields.forEach((item) => {
             const { fieldName, text } = item;
             pos += 1;
+            delete uninitializedFields[fieldName];
             const field = this.fields[fieldName];
             field.add(this.lastDocId, text);
             if (!field.weight) {
@@ -57,6 +59,7 @@ class Miner {
                 this.postingsListManager.addTerm(field.name, term, this.lastDocId, pos);
             });
         });
+        Object.values(uninitializedFields).forEach((field) => field.add(this.lastDocId, ''));
     }
     dump() {
         this.postingsListManager.dump(this.dictionary, this.docInfos, this.outputFolder);
