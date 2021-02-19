@@ -40,11 +40,8 @@ class Miner {
         let pos = -1;
         fields.forEach((item) => {
             const { fieldName, text } = item;
-            const field = this.fields[fieldName];
-            if (!field) {
-                throw new Error('Indexing undefined field.');
-            }
             pos += 1;
+            const field = this.fields[fieldName];
             field.add(this.lastDocId, text);
             if (!field.weight) {
                 // E.g. auxillary document info - links
