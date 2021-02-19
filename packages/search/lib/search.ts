@@ -104,8 +104,11 @@ async function transformResults(results: Query, container: HTMLElement): Promise
 
   const sentinel = h('li', {});
   container.appendChild(sentinel);
+
+  let firstRun = true;
   const iObserver = new IntersectionObserver(async (entries, observer) => {
-    if (!entries[0].isIntersecting) {
+    if (firstRun || !entries[0].isIntersecting) {
+      firstRun = false;
       return;
     }
 
