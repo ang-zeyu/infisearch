@@ -4,7 +4,7 @@ import './styles/search.css';
 
 import Searcher from './results/Searcher';
 import domUtils from './utils/dom';
-import Results from './results/Results';
+import Query from './results/Query';
 
 const { h } = domUtils;
 
@@ -13,10 +13,9 @@ const MAX_SERP_HIGHLIGHT_PARTS = 8;
 
 function transformText(
   texts: { fieldName: string, text: string }[],
-  query: string,
+  queriedTerms: string[],
 ): (string | HTMLElement)[] {
-  const terms = query.split(/\s+/g);
-  const termRegex = new RegExp(terms.map((t) => escapeRegex(t)).join('|'), 'gi');
+  const termRegex = new RegExp(queriedTerms.map((t) => escapeRegex(t)).join('|'), 'gi');
 
   function getMatchResult(str: string): (string | HTMLElement)[] {
     const result = [];
@@ -85,14 +84,14 @@ function transformText(
   return result.slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
-async function transformResults(results: Results, query: string, container: HTMLElement): Promise<void> {
+async function transformResults(results: Query, container: HTMLElement): Promise<void> {
   const resultsEls = (await results.retrieve(10)).map((result) => {
     console.log(result);
 
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: result.storages.link },
         h('div', { class: 'librarian-title' }, result.storages.title),
-        ...transformText(result.storages.text, query)));
+        ...transformText(result.storages.text, results.queriedTerms)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 
@@ -105,7 +104,7 @@ async function transformResults(results: Results, query: string, container: HTML
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(results, query, container);
+    await transformResults(results, container);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
@@ -117,7 +116,7 @@ async function update(query: string, container: HTMLElement, searcher: Searcher)
   const results = await searcher.getResults(query);
   container.innerHTML = '';
 
-  await transformResults(results, query, container);
+  await transformResults(results, container);
 
   isUpdating = false;
 }

@@ -1,7 +1,7 @@
 import Result from './Result';
 import PostingsListManager from '../PostingsList/PostingsListManager';
 import Dictionary from '../Dictionary/Dictionary';
-import Results from './Results';
+import Query from './Query';
 import Storage from './Storage';
 import FieldInfo from './FieldInfo';
 
@@ -76,7 +76,7 @@ class Searcher {
     return json;
   }
 
-  async getResults(query): Promise<Results> {
+  async getResults(query): Promise<Query> {
     await this.dictionary.setupPromise;
 
     const queryTerms = query.split(/\s+/g);
@@ -104,7 +104,7 @@ class Searcher {
       });
     });
 
-    const results = new Results(this.storages);
+    const results = new Query(terms, this.storages);
     results.add(Object.entries(docScores).map(([docId, fieldScores]) => {
       const docIdInt = Number(docId);
       let docScore = 0;

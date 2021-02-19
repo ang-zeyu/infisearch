@@ -3,10 +3,11 @@ import Storage from './Storage';
 
 const Heap = require('heap');
 
-class Results {
+class Query {
   resultHeap: Heap<Result> = new Heap((r1: Result, r2: Result) => r2.score - r1.score);
 
   constructor(
+    public readonly queriedTerms: string[],
     private storages: {
       [baseName: string]: Storage
     },
@@ -29,4 +30,4 @@ class Results {
   }
 }
 
-export default Results;
+export default Query;
