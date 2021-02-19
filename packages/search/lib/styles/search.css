@@ -13,16 +13,13 @@
     max-height: 30em;
     overflow-y: scroll;
     list-style: none;
+    background-color: white;
 }
 
 .librarian-dropdown-item:not(:first-child) {
     border-style: solid;
     border-color: rgba(67, 67, 67, 0.3);
     border-width: 1px 0 0 0;
-}
-
-.librarian-dropdown-item:hover {
-    background-color: aliceblue;
 }
 
 .librarian-link {
@@ -32,20 +29,29 @@
 
 .librarian-title {
     padding: 3px 3px 3px 5px;
-    background-color: #dff6fd;
+    background-color: rgb(235, 248, 255);
     border-bottom: 1px solid #949494;
     font-size: 1.2em;
     font-weight: 600;
+}
+
+.librarian-title:hover {
+    background-color: rgb(228, 243, 255);
 }
 
 .librarian-heading-body {
     display: flex;
     grid-template-columns: 35% 65%;
     grid-row-gap: 2px;
+    text-decoration: none;
 }
 
 .librarian-heading-body:not(:nth-child(2)) {
-    border-top: 1px solid #949494;;
+    border-top: 1px solid #949494;
+}
+
+.librarian-heading-body:hover {
+    background-color: aliceblue;
 }
 
 .librarian-heading {
@@ -54,7 +60,7 @@
     padding: 0.2em;
     display: inline-block;
     vertical-align: top;
-    background-color: #f3f3f3;
+    background-color: rgba(243, 243, 243, 0.7);
     font-weight: 600;
     color: #5d5d5d;
 }
@@ -66,8 +72,12 @@
 .librarian-body {
     grid-column-start: 2;
     box-sizing: border-box;
-    padding: 0.1em;
-    margin-top: 0.2em;
+    padding: 3px 3px 3px 2px;
+    color: black;
+}
+
+.librarian-link > .librarian-body:hover {
+    background-color: aliceblue;
 }
 
 .librarian-highlight {

@@ -67,8 +67,8 @@ function transformText(
         const href = texts[i - 1]?.fieldName === 'headingLink'
           ? `${baseUrl}${texts[i - 1].text}`
           : undefined;
-        result.push(h('div', { class: 'librarian-heading-body' },
-          h('div', { class: 'librarian-heading', href }, texts[i].text),
+        result.push(h('a', { class: 'librarian-heading-body', href },
+          h('div', { class: 'librarian-heading' }, texts[i].text),
           h('div', { class: 'librarian-bodies' },
             h('div', { class: 'librarian-body' }, ...bodyMatchResult))));
         return;
