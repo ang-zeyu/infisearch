@@ -77,10 +77,11 @@ class Searcher {
   }
 
   async getResults(query): Promise<Results> {
+    await this.dictionary.setupPromise;
+
     const queryTerms = query.split(/\s+/g);
     const terms = queryTerms.map((queryTerm) => this.dictionary.getTerm(queryTerm)).filter((q) => q);
 
-    await this.dictionary.setupPromise;
     await this.postingsListManager.retrieve(terms);
     const docLengths = await this.docLengths;
     const fieldInfo = await this.fieldInfo;
