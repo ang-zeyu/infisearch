@@ -42,6 +42,7 @@ class HtmlMiner extends Miner {
       title: new Field('title', 0.5, new TextStorage(outputFolderPath, { baseName: 'title', n: 100 })),
       heading: new Field('heading', 0.3, headingBodyStorage),
       body: new Field('body', 0.2, headingBodyStorage),
+      headingLink: new Field('headingLink', 0, headingBodyStorage),
       link: new Field('link', 0, new TextStorage(outputFolderPath, { baseName: 'link', n: 100 })),
     });
   }
@@ -66,8 +67,16 @@ class HtmlMiner extends Miner {
       case 'h4':
       case 'h5':
       case 'h6':
+      {
+        const hrefEl = $(el).find('[href]')[0];
+        const link = hrefEl && hrefEl.attribs.href;
+        if (link) {
+          fields.push({ fieldName: 'headingLink', text: link });
+        }
+
         fieldName = 'heading';
         break;
+      }
       default:
         fieldName = 'body';
     }

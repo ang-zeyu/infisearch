@@ -39,6 +39,7 @@ class HtmlMiner extends Miner_1.default {
             title: new Field_1.default('title', 0.5, new TextStorage_1.default(outputFolderPath, { baseName: 'title', n: 100 })),
             heading: new Field_1.default('heading', 0.3, headingBodyStorage),
             body: new Field_1.default('body', 0.2, headingBodyStorage),
+            headingLink: new Field_1.default('headingLink', 0, headingBodyStorage),
             link: new Field_1.default('link', 0, new TextStorage_1.default(outputFolderPath, { baseName: 'link', n: 100 })),
         });
     }
@@ -60,8 +61,15 @@ class HtmlMiner extends Miner_1.default {
             case 'h4':
             case 'h5':
             case 'h6':
-                fieldName = 'heading';
-                break;
+                {
+                    const hrefEl = $(el).find('[href]')[0];
+                    const link = hrefEl && hrefEl.attribs.href;
+                    if (link) {
+                        fields.push({ fieldName: 'headingLink', text: link });
+                    }
+                    fieldName = 'heading';
+                    break;
+                }
             default:
                 fieldName = 'body';
         }

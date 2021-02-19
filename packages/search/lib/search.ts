@@ -14,6 +14,7 @@ const MAX_SERP_HIGHLIGHT_PARTS = 8;
 function transformText(
   texts: { fieldName: string, text: string }[],
   queriedTerms: string[],
+  baseUrl: string,
 ): (string | HTMLElement)[] {
   const termRegex = new RegExp(queriedTerms.map((t) => escapeRegex(t)).join('|'), 'gi');
 
@@ -50,7 +51,7 @@ function transformText(
   const result: (string |HTMLElement)[] = [];
 
   texts.forEach((item, idx) => {
-    if (item.fieldName === 'heading') {
+    if (item.fieldName.startsWith('heading')) {
       return;
     }
 
@@ -59,11 +60,15 @@ function transformText(
       return;
     }
 
+    // Find a new heading this text is under
     for (let i = idx - 1; i > lastIncludedHeading; i -= 1) {
       if (texts[i].fieldName === 'heading') {
         lastIncludedHeading = i;
+        const href = texts[i - 1]?.fieldName === 'headingLink'
+          ? `${baseUrl}${texts[i - 1].text}`
+          : undefined;
         result.push(h('div', { class: 'librarian-heading-body' },
-          h('div', { class: 'librarian-heading' }, texts[i].text),
+          h('div', { class: 'librarian-heading', href }, texts[i].text),
           h('div', { class: 'librarian-bodies' },
             h('div', { class: 'librarian-body' }, ...bodyMatchResult))));
         return;
@@ -74,9 +79,11 @@ function transformText(
     if (lastResultAdded && lastResultAdded.classList.contains('librarian-heading-body')) {
       const headingBodyContainer = lastResultAdded.children[1];
       if (headingBodyContainer.childElementCount < 3) {
+        // Insert under previous heading
         headingBodyContainer.appendChild(h('div', { class: 'librarian-body' }, ...bodyMatchResult));
       }
     } else {
+      // Insert without heading
       result.push(h('div', { class: 'librarian-body' }, ...bodyMatchResult));
     }
   });
@@ -91,7 +98,7 @@ async function transformResults(results: Query, container: HTMLElement): Promise
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: result.storages.link },
         h('div', { class: 'librarian-title' }, result.storages.title),
-        ...transformText(result.storages.text, results.queriedTerms)));
+        ...transformText(result.storages.text, results.queriedTerms, result.storages.link)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 
