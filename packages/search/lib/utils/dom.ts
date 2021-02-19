@@ -1,4 +1,8 @@
-function h(name, attrs, ...children): HTMLBaseElement {
+function h(
+  name: string,
+  attrs: { [attrName: string]: string },
+  ...children: (string | HTMLElement)[]
+): HTMLElement {
   const el = document.createElement(name);
 
   Object.entries(attrs).forEach(([key, value]) => {
@@ -6,10 +10,12 @@ function h(name, attrs, ...children): HTMLBaseElement {
   });
 
   children.forEach((child) => {
-    if (typeof child === 'string') {
-      el.textContent += child;
-    } else {
+    if (typeof child === 'object') {
       el.appendChild(child);
+    } else {
+      const span = document.createElement('span');
+      span.textContent = child;
+      el.appendChild(span);
     }
   });
 

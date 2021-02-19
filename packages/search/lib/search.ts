@@ -1,3 +1,5 @@
+import * as escapeRegex from 'escape-string-regexp';
+
 import './styles/search.css';
 
 import Searcher from './results/Searcher';
@@ -8,57 +10,52 @@ const { h } = domUtils;
 
 const BODY_SERP_BOUND = 40;
 
-function transformBody(body: string[], query: string): string {
+function transformBody(body: string[], query: string): (string | HTMLElement)[] {
   const terms = query.split(/\s+/g);
+  const termRegex = new RegExp(terms.map((t) => escapeRegex(t)).join('|'), 'gi');
 
-  function getBoundsForString(originalStr: string, lowerCasedStr: string) {
-    const bounds: number[][] = [];
-    terms.forEach((term) => {
-      const termIdx = lowerCasedStr.indexOf(term);
-      if (termIdx === -1) {
-        return;
+  function getBoundsForString(str: string): (string | HTMLElement)[] {
+    const result = [];
+
+    let lastInsertedIdxStart = 0;
+    let lastInsertedIdxEnd = 0;
+    let match;
+    // eslint-disable-next-line no-cond-assign
+    while (match = termRegex.exec(str)) {
+      const matchedText = match[0];
+      const matchIdx = match.index;
+
+      if (lastInsertedIdxEnd > matchIdx) {
+        result.pop();
+        lastInsertedIdxEnd = lastInsertedIdxStart;
       }
 
-      const minBound = Math.max(0, termIdx - BODY_SERP_BOUND);
-      const maxBound = Math.min(body.length, termIdx + BODY_SERP_BOUND);
+      const beforeSubstringStart = Math.max(lastInsertedIdxEnd, matchIdx - BODY_SERP_BOUND);
+      result.push(` ...${str.substring(beforeSubstringStart, matchIdx)}`);
 
-      let mergedBound = false;
-      for (let i = 0; i < bounds.length; i += 1) {
-        if ((minBound <= bounds[i][1] && minBound >= bounds[i][0])
-          || (maxBound >= bounds[i][0] && maxBound <= bounds[i][1])) {
-          mergedBound = true;
+      result.push(h('mark', {}, matchedText));
 
-          bounds[i][0] = Math.min(minBound, bounds[i][0]);
-          bounds[i][1] = Math.max(maxBound, bounds[i][1]);
-          break;
-        }
-      }
+      lastInsertedIdxStart = termRegex.lastIndex;
+      lastInsertedIdxEnd = Math.min(str.length, lastInsertedIdxStart + BODY_SERP_BOUND);
+      result.push(`${str.substring(lastInsertedIdxStart, lastInsertedIdxEnd)}... `);
+    }
 
-      if (!mergedBound) {
-        bounds.push([minBound, maxBound]);
-      }
-    });
-
-    return bounds
-      .map((bound) => `... ${originalStr.substring(bound[0], bound[1])} ...`)
-      .reduce((x, y) => `${x} ${y}`, '');
+    return result;
   }
 
-  const lowerCasedBody = body.map((str) => str.toLowerCase());
-
   return body
-    .map((origStr, idx) => getBoundsForString(origStr, lowerCasedBody[idx]))
-    .reduce((x, y) => `${x} ${y}`);
+    .map((origStr) => getBoundsForString(origStr))
+    .reduce((acc, next) => acc.concat(next), []);
 }
 
-async function transformResults(results: Results, query: string, container: HTMLBaseElement): Promise<void> {
+async function transformResults(results: Results, query: string, container: HTMLElement): Promise<void> {
   const resultsEls = (await results.retrieve(10)).map((result) => {
     console.log(result);
 
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: result.fields.link[0] },
         h('div', { class: 'librarian-heading' }, result.fields.title[0]),
-        h('div', { class: 'librarian-body' }, transformBody(result.fields.body, query))));
+        h('div', { class: 'librarian-body' }, ...transformBody(result.fields.body, query))));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 
@@ -76,7 +73,7 @@ async function transformResults(results: Results, query: string, container: HTML
 }
 
 let isUpdating = false;
-async function update(query: string, container: HTMLBaseElement, searcher: Searcher): Promise<void> {
+async function update(query: string, container: HTMLElement, searcher: Searcher): Promise<void> {
   container.style.display = 'flex';
 
   const results = await searcher.getResults(query);
