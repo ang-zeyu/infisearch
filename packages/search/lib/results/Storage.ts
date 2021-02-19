@@ -1,22 +1,22 @@
 import Result from './Result';
+import FieldInfo from './FieldInfo';
 
 const storageMap: {
   [storage: string]: (
     results: Result[],
     baseUrl: string,
-    fieldName: string,
-    storageParams: { [param: string]: any },
+    storageParams: { baseName: string, [param: string]: any },
+    fieldInfo: FieldInfo
   ) => Promise<void>
 } = {};
 
 storageMap.TextStorage = async (
   results: Result[],
   baseUrl: string,
-  fieldName: string,
-  storageParams: { [param: string]: any },
+  storageParams: { baseName: string, [param: string]: any },
 ): Promise<void> => {
-  const directoryUrl = `${baseUrl}/${storageParams.baseName}`;
-  const numDocsPerFile = storageParams.n;
+  const { baseName, n: numDocsPerFile } = storageParams;
+  const directoryUrl = `${baseUrl}/${baseName}`;
 
   const filePromises: { [fileName: number]: Promise<string> } = {};
   const lines: { [fileName: number]: string[] } = {};
@@ -31,20 +31,20 @@ storageMap.TextStorage = async (
     }).then((res) => res.text());
 
     lines[file] = lines[file] ?? (await filePromises[file]).split('\n');
-    result.fields[fieldName] = [lines[file][(result.docId - 1) % numDocsPerFile]];
+    result.storages[baseName] = lines[file][(result.docId - 1) % numDocsPerFile];
   }));
 };
 
 storageMap.JsonStorage = async (
   results: Result[],
   baseUrl: string,
-  fieldName: string,
-  storageParams: { [param: string]: any },
+  storageParams: { baseName: string, [param: string]: any },
+  fieldInfo: FieldInfo,
 ): Promise<void> => {
-  const directoryUrl = `${baseUrl}/${storageParams.baseName}`;
-  const numDocsPerFile = storageParams.n;
+  const { baseName, n: numDocsPerFile } = storageParams;
+  const directoryUrl = `${baseUrl}/${baseName}`;
 
-  const filePromises: { [fileName: number]: Promise<string[][]> } = {};
+  const filePromises: { [fileName: number]: Promise<(string | number)[][]> } = {};
 
   await Promise.all(results.map(async (result) => {
     const file = Math.floor((result.docId - 1) / numDocsPerFile) * numDocsPerFile;
@@ -56,8 +56,33 @@ storageMap.JsonStorage = async (
     }).then((res) => res.json());
 
     const json = await filePromises[file];
-    result.fields[fieldName] = json[(result.docId - 1) % numDocsPerFile];
+    const texts = json[(result.docId - 1) % numDocsPerFile];
+    const aggregatedTexts: { fieldName: string, text: string }[] = [];
+
+    let currentField: number = texts[0] as number;
+    for (let i = 0; i < texts.length; i += 1) {
+      if (typeof texts[i] === 'number') {
+        currentField = texts[i] as number;
+      } else if (texts[i]) {
+        aggregatedTexts.push({ fieldName: fieldInfo[currentField].name, text: texts[i] as string });
+      }
+    }
+
+    result.storages[baseName] = aggregatedTexts;
   }));
 };
 
-export default storageMap;
+class Storage {
+  constructor(
+    private storageType: string,
+    private storageParams: { baseName: string, [param: string]: any },
+    private baseUrl: string,
+    private fieldInfo: FieldInfo,
+  ) {}
+
+  async populate(results: Result[]) {
+    await storageMap[this.storageType](results, this.baseUrl, this.storageParams, this.fieldInfo);
+  }
+}
+
+export default Storage;

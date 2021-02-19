@@ -2,6 +2,8 @@ import Result from './Result';
 import PostingsListManager from '../PostingsList/PostingsListManager';
 import Dictionary from '../Dictionary/Dictionary';
 import Results from './Results';
+import Storage from './Storage';
+import FieldInfo from './FieldInfo';
 
 class Searcher {
   private dictionary: Dictionary;
@@ -10,14 +12,11 @@ class Searcher {
 
   private docLengths: Promise<number[][]>;
 
-  private fieldInfo: Promise<{
-    [id: number]: {
-      name: string,
-      storage: string,
-      storageParams: { [param: string]: any },
-      weight: number
-    }
-  }>;
+  private fieldInfo: Promise<FieldInfo>;
+
+  private storages: {
+    [baseName: string]: Storage
+  } = Object.create(null);
 
   constructor(
     private url: string,
@@ -44,6 +43,18 @@ class Searcher {
     return docLengths;
   }
 
+  private setupStorage(fieldInfo: FieldInfo) {
+    Object.values(fieldInfo).forEach((field) => {
+      if (this.storages[field.storageParams.baseName]) {
+        return;
+      }
+
+      this.storages[field.storageParams.baseName] = new Storage(
+        field.storage, field.storageParams, this.url, fieldInfo,
+      );
+    });
+  }
+
   async setupFieldInfo() {
     const json = await (await fetch(`${this.url}/fieldInfo.json`, {
       method: 'GET',
@@ -59,6 +70,8 @@ class Searcher {
       delete json[fieldName];
     });
     console.log(json);
+
+    this.setupStorage(json);
 
     return json;
   }
@@ -90,7 +103,7 @@ class Searcher {
       });
     });
 
-    const results = new Results(fieldInfo, this.url);
+    const results = new Results(this.storages);
     results.add(Object.entries(docScores).map(([docId, fieldScores]) => {
       const docIdInt = Number(docId);
       let docScore = 0;

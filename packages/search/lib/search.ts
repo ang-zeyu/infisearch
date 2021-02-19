@@ -11,11 +11,14 @@ const { h } = domUtils;
 const BODY_SERP_BOUND = 40;
 const MAX_SERP_HIGHLIGHT_PARTS = 8;
 
-function transformBody(body: string[], query: string): (string | HTMLElement)[] {
+function transformText(
+  texts: { fieldName: string, text: string }[],
+  query: string,
+): (string | HTMLElement)[] {
   const terms = query.split(/\s+/g);
   const termRegex = new RegExp(terms.map((t) => escapeRegex(t)).join('|'), 'gi');
 
-  function getBoundsForString(str: string): (string | HTMLElement)[] {
+  function getMatchResult(str: string): (string | HTMLElement)[] {
     const result = [];
 
     let lastInsertedIdxStart = 0;
@@ -34,7 +37,7 @@ function transformBody(body: string[], query: string): (string | HTMLElement)[] 
       const beforeSubstringStart = Math.max(lastInsertedIdxEnd, matchIdx - BODY_SERP_BOUND);
       result.push(` ...${str.substring(beforeSubstringStart, matchIdx)}`);
 
-      result.push(h('mark', {}, matchedText));
+      result.push(h('span', { class: 'librarian-highlight' }, matchedText));
 
       lastInsertedIdxStart = termRegex.lastIndex;
       lastInsertedIdxEnd = Math.min(str.length, lastInsertedIdxStart + BODY_SERP_BOUND);
@@ -44,10 +47,42 @@ function transformBody(body: string[], query: string): (string | HTMLElement)[] 
     return result;
   }
 
-  return body
-    .map((origStr) => getBoundsForString(origStr))
-    .reduce((acc, next) => acc.concat(next), [])
-    .slice(0, MAX_SERP_HIGHLIGHT_PARTS);
+  let lastIncludedHeading = -1;
+  const result: (string |HTMLElement)[] = [];
+
+  texts.forEach((item, idx) => {
+    if (item.fieldName === 'heading') {
+      return;
+    }
+
+    const bodyMatchResult = getMatchResult(item.text);
+    if (bodyMatchResult.length === 0) {
+      return;
+    }
+
+    for (let i = idx - 1; i > lastIncludedHeading; i -= 1) {
+      if (texts[i].fieldName === 'heading') {
+        lastIncludedHeading = i;
+        result.push(h('div', { class: 'librarian-heading-body' },
+          h('div', { class: 'librarian-heading' }, texts[i].text),
+          h('div', { class: 'librarian-bodies' },
+            h('div', { class: 'librarian-body' }, ...bodyMatchResult))));
+        return;
+      }
+    }
+
+    const lastResultAdded = result[result.length - 1] as HTMLElement;
+    if (lastResultAdded && lastResultAdded.classList.contains('librarian-heading-body')) {
+      const headingBodyContainer = lastResultAdded.children[1];
+      if (headingBodyContainer.childElementCount < 3) {
+        headingBodyContainer.appendChild(h('div', { class: 'librarian-body' }, ...bodyMatchResult));
+      }
+    } else {
+      result.push(h('div', { class: 'librarian-body' }, ...bodyMatchResult));
+    }
+  });
+
+  return result.slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
 async function transformResults(results: Results, query: string, container: HTMLElement): Promise<void> {
@@ -55,13 +90,13 @@ async function transformResults(results: Results, query: string, container: HTML
     console.log(result);
 
     return h('li', { class: 'librarian-dropdown-item' },
-      h('a', { class: 'librarian-link', href: result.fields.link[0] },
-        h('div', { class: 'librarian-title' }, result.fields.title[0]),
-        h('div', { class: 'librarian-body' }, ...transformBody(result.fields.body, query))));
+      h('a', { class: 'librarian-link', href: result.storages.link },
+        h('div', { class: 'librarian-title' }, result.storages.title),
+        ...transformText(result.storages.text, query)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 
-  const sentinel = h('div', {});
+  const sentinel = h('li', {});
   container.appendChild(sentinel);
   const iObserver = new IntersectionObserver(async (entries, observer) => {
     if (!entries[0].isIntersecting) {
@@ -69,8 +104,9 @@ async function transformResults(results: Results, query: string, container: HTML
     }
 
     observer.unobserve(sentinel);
+    sentinel.remove();
     await transformResults(results, query, container);
-  });
+  }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
 

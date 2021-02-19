@@ -1,6 +1,6 @@
 class Result {
-  fields: {
-    [fieldName: string]: string[]
+  storages: {
+    [storageBaseName: string]: any
   } = Object.create(null);
 
   constructor(

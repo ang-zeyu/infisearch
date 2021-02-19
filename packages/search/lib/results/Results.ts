@@ -1,5 +1,5 @@
 import Result from './Result';
-import storageMap from './Storage';
+import Storage from './Storage';
 
 const Heap = require('heap');
 
@@ -7,15 +7,9 @@ class Results {
   resultHeap: Heap<Result> = new Heap((r1: Result, r2: Result) => r2.score - r1.score);
 
   constructor(
-    private fieldInfo: {
-      [id: number]: {
-        name: string,
-        storage: string,
-        storageParams: { [param: string]: any },
-        weight: number
-      }
+    private storages: {
+      [baseName: string]: Storage
     },
-    private baseUrl: string,
   ) {}
 
   add(results: Result[]): void {
@@ -29,10 +23,7 @@ class Results {
       retrievedResults.push(this.resultHeap.pop());
     }
 
-    await Promise.all(Object.values(this.fieldInfo).map((info) => {
-      const retrieve = storageMap[info.storage];
-      return retrieve(retrievedResults, this.baseUrl, info.name, info.storageParams);
-    }));
+    await Promise.all(Object.values(this.storages).map((storage) => storage.populate(retrievedResults)));
 
     return retrievedResults;
   }
