@@ -33,7 +33,7 @@ class Miner {
         if (totalWeight !== 1) {
             throw new Error('Field weights must sum to 1.');
         }
-        this.postingsListManager = new PostingsListManager_1.default();
+        this.postingsListManager = new PostingsListManager_1.default(this.fieldInfo);
     }
     add(fields) {
         this.lastDocId += 1;

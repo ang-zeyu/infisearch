@@ -7,11 +7,20 @@ import DictionaryEntry from '../Dictionary/DictionaryEntry';
 
 import getVarInt from './VarInt';
 import DocInfo from '../DocInfo/DocInfo';
+import FieldInfo from '../Miners/Fields/FieldInfo';
 
 const POSTINGS_LIST_BLOCK_SIZE_MAX = 20000; // 20kb
 
 class PostingsListManager {
   private postingsLists: { [term: string]: PostingsList } = Object.create(null);
+
+  private fieldWeights: { [fieldId: number]: number } = {};
+
+  constructor(fieldInfo: FieldInfo) {
+    Object.values(fieldInfo).forEach((info) => {
+      this.fieldWeights[info.id] = info.weight;
+    });
+  }
 
   addTerm(fieldId: number, term: string, docId: number, pos: number): void {
     if (!this.postingsLists[term]) {
@@ -37,14 +46,29 @@ class PostingsListManager {
 
       let postingsFileLength = 0;
 
+      // Calculate normalization factors and impact order the entries
       const sortedEntries = Object.entries(postingsList.positions)
-        .sort(([, docFieldPos1], [, docFieldPos2]) => {
-          const totalTermFreq1 = Object.values(docFieldPos1).reduce((acc, pos) => acc + pos.length, 0);
-          const totalTermFreq2 = Object.values(docFieldPos2).reduce((acc, pos) => acc + pos.length, 0);
+        .map(([docId, docFieldPositions]) => {
+          const docIdInt = Number(docId);
 
-          return totalTermFreq2 - totalTermFreq1;
-        });
+          let score = 0;
+          Object.entries(docFieldPositions).forEach(([fieldId, positions]) => {
+            const fieldIdInt = Number(fieldId);
+            const fieldTermFreq = positions.length;
 
+            const wtd = 1 + Math.log10(fieldTermFreq);
+            const tfIdf = wtd * idf;
+            docInfos[docIdInt].addDocLen(fieldIdInt, tfIdf);
+
+            // doc length is constant for impact ordering a single posting list
+            score += (tfIdf * this.fieldWeights[fieldIdInt]);
+          });
+
+          return [docId, docFieldPositions, score];
+        })
+        .sort(([,, score1], [,, score2]) => (score2 as number) - (score1 as number));
+
+      // Dump
       // eslint-disable-next-line @typescript-eslint/no-loop-func
       sortedEntries.forEach(([docId, docFieldPositions]) => {
         const docIdInt = Number(docId);
@@ -77,10 +101,6 @@ class PostingsListManager {
             postingsFileLength += gap.length;
             buffers.push(gap);
           });
-
-          const wtd = 1 + Math.log10(fieldTermFreq);
-          const tfIdf = wtd * idf;
-          docInfos[docIdInt].addDocLen(fieldIdInt, tfIdf);
         });
       });
 

@@ -53,7 +53,7 @@ abstract class Miner {
       throw new Error('Field weights must sum to 1.');
     }
 
-    this.postingsListManager = new PostingsListManager();
+    this.postingsListManager = new PostingsListManager(this.fieldInfo);
   }
 
   protected add(fields: { fieldName: string, text: string }[]) {
