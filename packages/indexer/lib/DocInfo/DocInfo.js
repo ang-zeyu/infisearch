@@ -11,10 +11,14 @@ class DocInfo {
         }
         this.normalizationFactors[fieldId] += tfIdf * tfIdf;
     }
+    sqrtNormalizationFactors() {
+        for (let i = 1; i < this.normalizationFactors.length; i += 1) {
+            this.normalizationFactors[i] = Math.sqrt(this.normalizationFactors[i]);
+        }
+    }
     getDumpString() {
         const buffer = [];
         for (let i = 1; i < this.normalizationFactors.length; i += 1) {
-            this.normalizationFactors[i] = Math.sqrt(this.normalizationFactors[i]);
             buffer.push(this.normalizationFactors[i].toFixed(6));
         }
         return buffer.join(',');

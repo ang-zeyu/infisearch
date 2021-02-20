@@ -13,10 +13,15 @@ class DocInfo {
     this.normalizationFactors[fieldId] += tfIdf * tfIdf;
   }
 
+  sqrtNormalizationFactors(): void {
+    for (let i = 1; i < this.normalizationFactors.length; i += 1) {
+      this.normalizationFactors[i] = Math.sqrt(this.normalizationFactors[i]);
+    }
+  }
+
   getDumpString(): string {
     const buffer = [];
     for (let i = 1; i < this.normalizationFactors.length; i += 1) {
-      this.normalizationFactors[i] = Math.sqrt(this.normalizationFactors[i]);
       buffer.push(this.normalizationFactors[i].toFixed(6));
     }
 

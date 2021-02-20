@@ -30,9 +30,34 @@ class PostingsListManager {
     this.postingsLists[term].add(docId, fieldId, pos);
   }
 
+  private calcNormalizationFactors(sortedTerms: string[], numDocs: number, docInfos: { [p: number]: DocInfo }) {
+    for (let i = 0; i < sortedTerms.length; i += 1) {
+      const postingsList = this.postingsLists[sortedTerms[i]];
+      const docFreq = postingsList.getDocFreq();
+      const idf = Math.log10(numDocs / docFreq);
+
+      Object.entries(postingsList.positions).forEach(([docId, docFieldPositions]) => {
+        const docIdInt = Number(docId);
+
+        Object.entries(docFieldPositions).forEach(([fieldId, positions]) => {
+          const fieldIdInt = Number(fieldId);
+          const fieldTermFreq = positions.length;
+
+          const wtd = 1 + Math.log10(fieldTermFreq);
+          const tfIdf = wtd * idf;
+          docInfos[docIdInt].addDocLen(fieldIdInt, tfIdf);
+        });
+      });
+    }
+
+    Object.values(docInfos).forEach((docInfo) => docInfo.sqrtNormalizationFactors());
+  }
+
   dump(dictionary: Dictionary, docInfos: { [docId: number]: DocInfo }, outputFolderPath: string): void {
     const numDocs = Object.keys(docInfos).length;
     const sortedTerms = Object.keys(this.postingsLists).sort();
+
+    this.calcNormalizationFactors(sortedTerms, numDocs, docInfos);
 
     let postingsFileOffset = 0;
     let currentName = 1;
@@ -44,13 +69,9 @@ class PostingsListManager {
       const docFreq = postingsList.getDocFreq();
       const idf = Math.log10(numDocs / docFreq);
 
-      let postingsFileLength = 0;
-
-      // Calculate normalization factors and impact order the entries
+      // Impact order the entries
       const sortedEntries = Object.entries(postingsList.positions)
         .map(([docId, docFieldPositions]) => {
-          const docIdInt = Number(docId);
-
           let score = 0;
           Object.entries(docFieldPositions).forEach(([fieldId, positions]) => {
             const fieldIdInt = Number(fieldId);
@@ -58,7 +79,6 @@ class PostingsListManager {
 
             const wtd = 1 + Math.log10(fieldTermFreq);
             const tfIdf = wtd * idf;
-            docInfos[docIdInt].addDocLen(fieldIdInt, tfIdf);
 
             // doc length is constant for impact ordering a single posting list
             score += (tfIdf * this.fieldWeights[fieldIdInt]);
@@ -67,6 +87,8 @@ class PostingsListManager {
           return [docId, docFieldPositions, score];
         })
         .sort(([,, score1], [,, score2]) => (score2 as number) - (score1 as number));
+
+      let postingsFileLength = 0;
 
       // Dump
       // eslint-disable-next-line @typescript-eslint/no-loop-func
