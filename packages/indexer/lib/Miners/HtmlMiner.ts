@@ -39,9 +39,9 @@ class HtmlMiner extends Miner {
   constructor(outputFolderPath) {
     const headingBodyStorage = new JsonStorage(outputFolderPath, { baseName: 'text', n: 1 });
     super(outputFolderPath, [
-      new Field('title', 0.5, new TextStorage(outputFolderPath, { baseName: 'title', n: 100 })),
+      new Field('title', 0.2, new TextStorage(outputFolderPath, { baseName: 'title', n: 100 })),
       new Field('heading', 0.3, headingBodyStorage),
-      new Field('body', 0.2, headingBodyStorage),
+      new Field('body', 0.5, headingBodyStorage),
       new Field('headingLink', 0, headingBodyStorage),
       new Field('link', 0, new TextStorage(outputFolderPath, { baseName: 'link', n: 100 })),
     ]);
