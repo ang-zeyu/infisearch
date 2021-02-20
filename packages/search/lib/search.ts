@@ -32,16 +32,18 @@ function transformText(
       if (lastInsertedIdxEnd > matchIdx) {
         result.pop();
         lastInsertedIdxEnd = lastInsertedIdxStart;
+      } else if (lastInsertedIdxEnd > 0) {
+        result.push(' ...');
       }
 
       const beforeSubstringStart = Math.max(lastInsertedIdxEnd, matchIdx - BODY_SERP_BOUND);
-      result.push(` ...${str.substring(beforeSubstringStart, matchIdx)}`);
+      result.push(str.substring(beforeSubstringStart, matchIdx));
 
       result.push(h('span', { class: 'librarian-highlight' }, matchedText));
 
       lastInsertedIdxStart = termRegex.lastIndex;
       lastInsertedIdxEnd = Math.min(str.length, lastInsertedIdxStart + BODY_SERP_BOUND);
-      result.push(`${str.substring(lastInsertedIdxStart, lastInsertedIdxEnd)}... `);
+      result.push(`${str.substring(lastInsertedIdxStart, lastInsertedIdxEnd)} ... `);
     }
 
     return result;
