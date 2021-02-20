@@ -7,21 +7,18 @@ import DictionaryEntry from '../Dictionary/DictionaryEntry';
 
 import getVarInt from './VarInt';
 import DocInfo from '../DocInfo/DocInfo';
-import FieldInfo from '../Miners/Fields/FieldInfo';
 
 const POSTINGS_LIST_BLOCK_SIZE_MAX = 20000; // 20kb
 
 class PostingsListManager {
   private postingsLists: { [term: string]: PostingsList } = Object.create(null);
 
-  constructor(private fieldInfo: FieldInfo) {}
-
-  addTerm(fieldName: string, term: string, docId: number, pos: number): void {
+  addTerm(fieldId: number, term: string, docId: number, pos: number): void {
     if (!this.postingsLists[term]) {
       this.postingsLists[term] = new PostingsList();
     }
 
-    this.postingsLists[term].add(docId, this.fieldInfo[fieldName].id, pos);
+    this.postingsLists[term].add(docId, fieldId, pos);
   }
 
   dump(dictionary: Dictionary, docInfos: { [docId: number]: DocInfo }, outputFolderPath: string): void {
@@ -41,15 +38,12 @@ class PostingsListManager {
       let postingsFileLength = 0;
       let prevDocId = 0;
       // eslint-disable-next-line @typescript-eslint/no-loop-func
-      Object.entries(postingsList.termFreqs).forEach(([docId, docFields]) => {
+      Object.entries(postingsList.positions).forEach(([docId, docFieldPositions]) => {
         const docIdInt = Number(docId);
 
-        Object.entries(this.fieldInfo).forEach(([fieldName, info]) => {
-          const fieldId = info.id;
-          const fieldTermFreq = docFields[fieldId];
-          if (!fieldTermFreq) {
-            return;
-          }
+        Object.entries(docFieldPositions).forEach(([fieldId, positions]) => {
+          const fieldIdInt = Number(fieldId);
+          const fieldTermFreq = positions.length;
 
           const docIdGapVarInt = getVarInt(docIdInt - prevDocId);
           prevDocId = docIdInt;
@@ -57,7 +51,7 @@ class PostingsListManager {
           buffers.push(docIdGapVarInt);
 
           const buffer = Buffer.allocUnsafe(1);
-          buffer.writeUInt8(fieldId);
+          buffer.writeUInt8(fieldIdInt);
           buffers.push(buffer);
           postingsFileLength += 1;
 
@@ -66,7 +60,7 @@ class PostingsListManager {
           buffers.push(fieldTermFreqVarInt);
 
           let prevPos = 0;
-          postingsList.positions[docIdInt][fieldId].forEach((pos) => {
+          positions.forEach((pos) => {
             const gap = getVarInt(pos - prevPos);
             prevPos = pos;
 
@@ -76,7 +70,7 @@ class PostingsListManager {
 
           const wtd = 1 + Math.log10(fieldTermFreq);
           const tfIdf = wtd * idf;
-          docInfos[docIdInt].addDocLen(fieldId, tfIdf);
+          docInfos[docIdInt].addDocLen(fieldIdInt, tfIdf);
         });
       });
 

@@ -33,7 +33,7 @@ class Miner {
         if (totalWeight !== 1) {
             throw new Error('Field weights must sum to 1.');
         }
-        this.postingsListManager = new PostingsListManager_1.default(this.fieldInfo);
+        this.postingsListManager = new PostingsListManager_1.default();
     }
     add(fields) {
         this.lastDocId += 1;
@@ -56,7 +56,7 @@ class Miner {
                 if (term.length > 255) {
                     return;
                 }
-                this.postingsListManager.addTerm(field.name, term, this.lastDocId, pos);
+                this.postingsListManager.addTerm(field.id, term, this.lastDocId, pos);
             });
         });
         Object.values(uninitializedFields).forEach((field) => field.add(this.lastDocId, ''));

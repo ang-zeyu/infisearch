@@ -53,7 +53,7 @@ abstract class Miner {
       throw new Error('Field weights must sum to 1.');
     }
 
-    this.postingsListManager = new PostingsListManager(this.fieldInfo);
+    this.postingsListManager = new PostingsListManager();
   }
 
   protected add(fields: { fieldName: string, text: string }[]) {
@@ -85,7 +85,7 @@ abstract class Miner {
           return;
         }
 
-        this.postingsListManager.addTerm(field.name, term, this.lastDocId, pos);
+        this.postingsListManager.addTerm(field.id, term, this.lastDocId, pos);
       });
     });
 
