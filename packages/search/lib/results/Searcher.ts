@@ -76,50 +76,18 @@ class Searcher {
     return json;
   }
 
-  async getResults(query): Promise<Query> {
+  async getQuery(query): Promise<Query> {
     await this.dictionary.setupPromise;
 
     const queryTerms = query.split(/\s+/g);
     const terms = queryTerms.map((queryTerm) => this.dictionary.getTerm(queryTerm)).filter((q) => q);
 
-    await this.postingsListManager.retrieve(terms);
+    const postingsLists = await this.postingsListManager.retrieve(terms);
+
     const docLengths = await this.docLengths;
     const fieldInfo = await this.fieldInfo;
-    const N = docLengths[0][0]; // first line is number of documents
 
-    const docScores: { [docId:number]: { [fieldId: number]: number } } = {};
-
-    terms.forEach((term) => {
-      const postingsList = this.postingsListManager.getDocs(term);
-      const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
-
-      Object.entries(postingsList.termFreqs).forEach(([docId, fields]) => {
-        const docIdInt = Number(docId);
-        docScores[docIdInt] = docScores[docIdInt] ?? {};
-
-        Object.entries(fields).forEach(([fieldId, termFreq]) => {
-          const wtd = 1 + Math.log10(termFreq);
-          docScores[docIdInt][fieldId] = (docScores[docIdInt][fieldId] ?? 0) + wtd * idf;
-        });
-      });
-    });
-
-    const results = new Query(terms, this.storages);
-    results.add(Object.entries(docScores).map(([docId, fieldScores]) => {
-      const docIdInt = Number(docId);
-      let docScore = 0;
-
-      Object.entries(fieldScores).forEach(([fieldId, fieldScore]) => {
-        const fieldIdInt = Number(fieldId);
-        const fieldWeight = fieldInfo[fieldIdInt].weight;
-        const fieldLen = docLengths[docIdInt][fieldIdInt - 1];
-        docScore += ((fieldScore / fieldLen) * fieldWeight);
-      });
-
-      return new Result(docIdInt, docScore);
-    }));
-
-    return results;
+    return new Query(terms, this.storages, docLengths, fieldInfo, this.dictionary, postingsLists);
   }
 }
 

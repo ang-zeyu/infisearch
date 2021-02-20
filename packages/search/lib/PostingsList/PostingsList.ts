@@ -1,29 +1,76 @@
+import decodeVarInt from '../utils/varInt';
+import TermInfo from '../results/TermInfo';
+
 class PostingsList {
-  positions: {
-    [docId: number]: {
-      [fieldId: number]: number[]
-    }
-  } = {};
+  private arrayBuffer: ArrayBuffer;
 
-  termFreqs: {
-    [docId: number]: {
-      [fieldId: number]: number
-    }
-  } = {};
+  private resultStore: Map<number, { [fieldId: number]: number[] }> = new Map<number, { [p: number]: number[] }>();
 
-  add(docId: number, fieldId: number, pos: number) {
-    if (!this.positions[docId]) {
-      this.positions[docId] = {};
-      this.termFreqs[docId] = {};
+  private currentOffset: number;
+
+  private readonly endOffset: number;
+
+  constructor(
+    public readonly term: string,
+    private readonly url: string,
+    private readonly termInfo: TermInfo,
+  ) {
+    this.currentOffset = termInfo.postingsFileOffset;
+    this.endOffset = termInfo.postingsFileOffset + termInfo.postingsFileLength;
+  }
+
+  async fetch(): Promise<void> {
+    this.arrayBuffer = await (await fetch(`${this.url}/pl_${this.termInfo.postingsFileName}`)).arrayBuffer();
+  }
+
+  getDocs(r: number): Map<number, { [fieldId: number]: number[] }> {
+    const view = new DataView(this.arrayBuffer);
+
+    let numDocsRead = this.resultStore.size;
+
+    while (this.currentOffset < this.endOffset) {
+      if (numDocsRead > r) {
+        break;
+      }
+      numDocsRead += 1;
+
+      const { value: docId, newPos: posAfterDocId } = decodeVarInt(view, this.currentOffset);
+      this.currentOffset = posAfterDocId;
+
+      const fieldPositions = {};
+      this.resultStore.set(docId, fieldPositions);
+
+      let isLast = 0;
+      do {
+        const nextInt = view.getUint8(this.currentOffset);
+        this.currentOffset += 1;
+
+        /* eslint-disable no-bitwise */
+        const fieldId = nextInt & 0x7f;
+        isLast = nextInt & 0x80;
+        /* eslint-enable no-bitwise */
+
+        fieldPositions[fieldId] = [];
+
+        const { value: fieldTermFreq, newPos: posAfterTermFreq } = decodeVarInt(view, this.currentOffset);
+        this.currentOffset = posAfterTermFreq;
+
+        let posSoFar = 0;
+        for (let j = 0; j < fieldTermFreq; j += 1) {
+          const { value: posGap, newPos: posAfterPosGap } = decodeVarInt(view, this.currentOffset);
+          this.currentOffset = posAfterPosGap;
+          posSoFar += posGap;
+
+          fieldPositions[fieldId].push(posSoFar);
+        }
+      } while (!isLast);
     }
 
-    if (!this.positions[docId][fieldId]) {
-      this.positions[docId][fieldId] = [];
-      this.termFreqs[docId][fieldId] = 0;
-    }
+    return this.resultStore;
+  }
 
-    this.positions[docId][fieldId].push(pos);
-    this.termFreqs[docId][fieldId] += 1;
+  deleteDocs(docIds: number[]) {
+    docIds.forEach((docId) => this.resultStore.delete(docId));
   }
 }
 

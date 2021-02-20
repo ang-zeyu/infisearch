@@ -123,7 +123,7 @@ let isUpdating = false;
 async function update(query: string, container: HTMLElement, searcher: Searcher): Promise<void> {
   container.style.display = 'flex';
 
-  const results = await searcher.getResults(query);
+  const results = await searcher.getQuery(query);
   container.innerHTML = '';
 
   await transformResults(results, container);

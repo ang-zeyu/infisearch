@@ -1,6 +1,7 @@
 import * as levenshtein from 'fast-levenshtein';
 
 import decodeVarInt from '../utils/varInt';
+import TermInfo from '../results/TermInfo';
 
 const PREFIX_FRONT_CODE = 42; // '*'
 const SUBSEQUENT_FRONT_CODE = 38; // '&'
@@ -14,12 +15,7 @@ class Dictionary {
   setupPromise: Promise<void>;
 
   termInfo: {
-    [term: string]: {
-      postingsFileName: number
-      docFreq: number
-      postingsFileLength: number
-      postingsFileOffset: number
-    }
+    [term: string]: TermInfo
   } = Object.create(null);
 
   biGrams: {
