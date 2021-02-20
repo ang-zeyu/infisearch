@@ -68,7 +68,7 @@ class HtmlMiner extends Miner {
       case 'h5':
       case 'h6':
       {
-        const hrefEl = $(el).find('[href]')[0];
+        const hrefEl = $(el).find('a[href^=\'#\']')[0];
         const link = hrefEl && hrefEl.attribs.href;
         if (link) {
           fields.push({ fieldName: 'headingLink', text: link });
