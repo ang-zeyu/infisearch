@@ -36,26 +36,33 @@ class PostingsListManager {
     const info = this.dictionary.termInfo[term];
     const postingsList = new PostingsList();
 
-    let prevDocId = 0;
     const end = info.postingsFileOffset + info.postingsFileLength;
     for (let i = info.postingsFileOffset; i < end;) {
-      const { value: docIdGap, newPos: posAfterDocId } = decodeVarInt(view, i);
-      const docId = docIdGap + prevDocId;
-      prevDocId = docId;
+      const { value: docId, newPos: posAfterDocId } = decodeVarInt(view, i);
       i = posAfterDocId;
 
-      const fieldId = view.getUint8(i);
-      i += 1;
+      let isLast = 0;
+      do {
+        const nextInt = view.getUint8(i);
+        i += 1;
 
-      const { value: fieldTermFreq, newPos: posAfterTermFreq } = decodeVarInt(view, i);
-      i = posAfterTermFreq;
+        /* eslint-disable no-bitwise */
+        const fieldId = nextInt & 0x7f;
+        isLast = nextInt & 0x80;
+        /* eslint-enable no-bitwise */
 
-      for (let j = 0; j < fieldTermFreq; j += 1) {
-        const { value, newPos } = decodeVarInt(view, i);
-        i = newPos;
+        const { value: fieldTermFreq, newPos: posAfterTermFreq } = decodeVarInt(view, i);
+        i = posAfterTermFreq;
 
-        postingsList.add(docId, fieldId, value);
-      }
+        let posSoFar = 0;
+        for (let j = 0; j < fieldTermFreq; j += 1) {
+          const { value: posGap, newPos: posAfterPosGap } = decodeVarInt(view, i);
+          i = posAfterPosGap;
+          posSoFar += posGap;
+
+          postingsList.add(docId, fieldId, posSoFar);
+        }
+      } while (!isLast);
     }
 
     return postingsList;

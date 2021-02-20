@@ -28,19 +28,25 @@ class PostingsListManager {
             const docFreq = postingsList.getDocFreq();
             const idf = Math.log10(numDocs / docFreq);
             let postingsFileLength = 0;
-            let prevDocId = 0;
+            const sortedEntries = Object.entries(postingsList.positions)
+                .sort(([, docFieldPos1], [, docFieldPos2]) => {
+                const totalTermFreq1 = Object.values(docFieldPos1).reduce((acc, pos) => acc + pos.length, 0);
+                const totalTermFreq2 = Object.values(docFieldPos2).reduce((acc, pos) => acc + pos.length, 0);
+                return totalTermFreq2 - totalTermFreq1;
+            });
             // eslint-disable-next-line @typescript-eslint/no-loop-func
-            Object.entries(postingsList.positions).forEach(([docId, docFieldPositions]) => {
+            sortedEntries.forEach(([docId, docFieldPositions]) => {
                 const docIdInt = Number(docId);
-                Object.entries(docFieldPositions).forEach(([fieldId, positions]) => {
+                const docIdGapVarInt = VarInt_1.default(docIdInt);
+                postingsFileLength += docIdGapVarInt.length;
+                buffers.push(docIdGapVarInt);
+                const lastFieldIdx = Object.keys(docFieldPositions).length - 1;
+                Object.entries(docFieldPositions).forEach(([fieldId, positions], idx) => {
                     const fieldIdInt = Number(fieldId);
                     const fieldTermFreq = positions.length;
-                    const docIdGapVarInt = VarInt_1.default(docIdInt - prevDocId);
-                    prevDocId = docIdInt;
-                    postingsFileLength += docIdGapVarInt.length;
-                    buffers.push(docIdGapVarInt);
                     const buffer = Buffer.allocUnsafe(1);
-                    buffer.writeUInt8(fieldIdInt);
+                    // eslint-disable-next-line no-bitwise
+                    buffer.writeUInt8(idx === lastFieldIdx ? (fieldIdInt | 0x80) : fieldIdInt);
                     buffers.push(buffer);
                     postingsFileLength += 1;
                     const fieldTermFreqVarInt = VarInt_1.default(fieldTermFreq);
