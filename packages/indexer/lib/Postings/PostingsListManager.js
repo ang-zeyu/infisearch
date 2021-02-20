@@ -53,14 +53,15 @@ class PostingsListManager {
             // Impact order the entries
             const sortedEntries = Object.entries(postingsList.positions)
                 .map(([docId, docFieldPositions]) => {
+                const docIdInt = Number(docId);
                 let score = 0;
                 Object.entries(docFieldPositions).forEach(([fieldId, positions]) => {
                     const fieldIdInt = Number(fieldId);
                     const fieldTermFreq = positions.length;
                     const wtd = 1 + Math.log10(fieldTermFreq);
                     const tfIdf = wtd * idf;
-                    // doc length is constant for impact ordering a single posting list
-                    score += (tfIdf * this.fieldWeights[fieldIdInt]);
+                    score += (tfIdf / docInfos[docIdInt].normalizationFactors[fieldIdInt])
+                        * this.fieldWeights[fieldIdInt];
                 });
                 return [docId, docFieldPositions, score];
             })
