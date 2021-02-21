@@ -7,7 +7,7 @@ class PostingsListManager {
     private dictionary: Dictionary,
   ) {}
 
-  retrieve(terms): Promise<PostingsList[]> {
+  retrieve(terms: string[]): Promise<PostingsList[]> {
     return Promise.all(terms
       .map(async (term) => {
         const postingsList = new PostingsList(term, this.url, this.dictionary.termInfo[term]);

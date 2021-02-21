@@ -10,7 +10,8 @@ class Query {
   private postingsLists: { [term: string]: PostingsList } = {};
 
   constructor(
-    public readonly queriedTerms: string[],
+    public readonly aggregatedTerms: string[],
+    private readonly queriedTerms: string[][],
     private storages: {
       [baseName: string]: Storage
     },
@@ -29,34 +30,37 @@ class Query {
 
     const docScores: { [docId:number]: number } = {};
 
-    const meanIdf = this.queriedTerms
-      .reduce((acc, term) => acc + Math.log10(N / this.dictionary.termInfo[term].docFreq), 0)
-      / this.queriedTerms.length;
-
     // Tf-idf computation
-    this.queriedTerms.forEach((term) => {
-      const postingsList = this.postingsLists[term];
-      const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
+    this.queriedTerms.forEach((terms) => {
+      terms.forEach((term, idx) => {
+        const postingsList = this.postingsLists[term];
+        const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
-      const r = Math.floor((idf / meanIdf) > 1 ? (idf / meanIdf) * n : n) * 2;
-      const nextRDocs = postingsList.getDocs(r);
+        const r = n * 2;
+        // console.log(`${r} ${term}`);
+        const nextRDocs = postingsList.getDocs(r);
 
-      nextRDocs.forEach((fields, docId) => {
-        let wfTD = 0;
+        nextRDocs.forEach((fields, docId) => {
+          let wfTD = 0;
 
-        Object.entries(fields).forEach(([fieldId, positions]) => {
-          const fieldIdInt = Number(fieldId);
-          const fieldWeight = this.fieldInfo[fieldIdInt].weight;
-          const fieldLen = this.docLengths[docId][fieldIdInt - 1];
+          Object.entries(fields).forEach(([fieldId, positions]) => {
+            const fieldIdInt = Number(fieldId);
+            const fieldWeight = this.fieldInfo[fieldIdInt].weight;
+            const fieldLen = this.docLengths[docId][fieldIdInt - 1];
 
-          const termFreq = positions.length;
-          const wtd = 1 + Math.log10(termFreq);
+            const termFreq = positions.length;
+            const wtd = 1 + Math.log10(termFreq);
 
-          // with normalization and weighted zone scoring
-          wfTD += ((wtd * idf) / fieldLen) * fieldWeight;
+            // with normalization and weighted zone scoring
+            wfTD += ((wtd * idf) / fieldLen) * fieldWeight;
+          });
+
+          if (idx !== 0) {
+            wfTD *= 0.5;
+          }
+
+          docScores[docId] = (docScores[docId] ?? 0) + wfTD;
         });
-
-        docScores[docId] = (docScores[docId] ?? 0) + wfTD;
       });
     });
 

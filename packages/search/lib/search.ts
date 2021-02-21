@@ -16,7 +16,8 @@ function transformText(
   queriedTerms: string[],
   baseUrl: string,
 ): (string | HTMLElement)[] {
-  const termRegex = new RegExp(queriedTerms.map((t) => escapeRegex(t)).join('|'), 'gi');
+  const sortedQueryTerms = queriedTerms.sort((str1, str2) => str2.length - str1.length);
+  const termRegex = new RegExp(sortedQueryTerms.map((t) => escapeRegex(t)).join('|'), 'gi');
 
   function getMatchResult(str: string): (string | HTMLElement)[] {
     const result = [];
@@ -99,8 +100,9 @@ async function transformResults(results: Query, container: HTMLElement): Promise
 
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: result.storages.link },
-        h('div', { class: 'librarian-title' }, result.storages.title),
-        ...transformText(result.storages.text, results.queriedTerms, result.storages.link)));
+        h('div', { class: 'librarian-title' },
+          result.storages.title ? result.storages.title : result.storages.link),
+        ...transformText(result.storages.text, results.aggregatedTerms, result.storages.link)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 

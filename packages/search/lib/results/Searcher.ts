@@ -1,4 +1,3 @@
-import Result from './Result';
 import PostingsListManager from '../PostingsList/PostingsListManager';
 import Dictionary from '../Dictionary/Dictionary';
 import Query from './Query';
@@ -79,15 +78,17 @@ class Searcher {
   async getQuery(query): Promise<Query> {
     await this.dictionary.setupPromise;
 
-    const queryTerms = query.split(/\s+/g);
-    const terms = queryTerms.map((queryTerm) => this.dictionary.getTerm(queryTerm)).filter((q) => q);
+    const queryTerms: string[] = query.split(/\s+/g);
+    const terms = queryTerms.map((queryTerm, idx) => this.dictionary.getTerms(queryTerm,
+      idx === queryTerms.length - 1));
+    const aggregatedTerms = terms.reduce((acc, t) => acc.concat(t), []);
 
-    const postingsLists = await this.postingsListManager.retrieve(terms);
+    const postingsLists = await this.postingsListManager.retrieve(aggregatedTerms);
 
     const docLengths = await this.docLengths;
     const fieldInfo = await this.fieldInfo;
 
-    return new Query(terms, this.storages, docLengths, fieldInfo, this.dictionary, postingsLists);
+    return new Query(aggregatedTerms, terms, this.storages, docLengths, fieldInfo, this.dictionary, postingsLists);
   }
 }
 

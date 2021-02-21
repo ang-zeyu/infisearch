@@ -9,7 +9,7 @@ const SUBSEQUENT_FRONT_CODE = 38; // '&'
 const BIGRAM_START_CHAR = '^';
 const BIGRAM_END_CHAR = '$';
 
-const SPELLING_CORRECTION_ALPHA = 0.8;
+const CORRECTION_ALPHA = 0.85;
 
 class Dictionary {
   setupPromise: Promise<void>;
@@ -126,48 +126,79 @@ class Dictionary {
     });
   }
 
-  getTerm(queryTerm: string): string {
-    if (this.termInfo[queryTerm]) {
-      return queryTerm;
+  getTerms(queryTerm: string, doExpand: boolean): string[] {
+    if (!this.termInfo[queryTerm]) {
+      return this.getCorrectedTerms(queryTerm);
+    } if (doExpand) {
+      return this.getExpandedTerms(queryTerm);
     }
 
-    return this.getCorrectedTerm(queryTerm);
+    return [queryTerm];
   }
 
-  getCorrectedTerm(misSpelledTerm: string): string {
-    const biGrams = Dictionary.getBiGrams(misSpelledTerm);
-    const levenshteinCandidates: { [term: string]: number } = Object.create(null);
+  getCorrectedTerms(misSpelledTerm: string): string[] {
+    const levenshteinCandidates = this.getTermCandidates(misSpelledTerm);
+
+    const editDistances: { [term: string]: number } = Object.create(null);
+    levenshteinCandidates.forEach((term) => {
+      editDistances[term] = levenshtein.get(misSpelledTerm, term);
+    });
+
+    let minEditDistanceTerms = [];
+    let minEditDistance = 99999;
+    Object.entries(editDistances).forEach(([term, editDistance]) => {
+      if (editDistance >= 3) {
+        return;
+      }
+
+      if (editDistance < minEditDistance) {
+        minEditDistanceTerms = [];
+        minEditDistanceTerms.push(term);
+        minEditDistance = editDistance;
+      } else if (editDistance === minEditDistance) {
+        minEditDistanceTerms.push(term);
+      }
+    });
+    console.log(`Spelling corrected terms: ${minEditDistanceTerms}`);
+
+    return minEditDistanceTerms;
+  }
+
+  getExpandedTerms(baseTerm: string): string[] {
+    if (baseTerm.length < 3) {
+      return [baseTerm];
+    }
+
+    const prefixCheckCandidates = this.getTermCandidates(baseTerm);
+
+    const minBaseTermSubstring = baseTerm.substring(0, Math.floor(CORRECTION_ALPHA * baseTerm.length));
+    const expandedTerms: string[] = [];
+    prefixCheckCandidates.forEach((term) => {
+      if (term.startsWith(minBaseTermSubstring)) {
+        expandedTerms.push(term);
+      }
+    });
+    console.log(`Expanded terms: ${expandedTerms}`);
+
+    return expandedTerms;
+  }
+
+  private getTermCandidates(baseTerm: string): string[] {
+    const biGrams = Dictionary.getBiGrams(baseTerm);
+    const minMatchingBiGrams = Math.floor(CORRECTION_ALPHA * biGrams.length);
+
+    const candidates: { [term: string]: number } = Object.create(null);
     biGrams.forEach((biGram) => {
       if (!this.biGrams[biGram]) {
         return;
       }
 
       this.biGrams[biGram].forEach((term) => {
-        levenshteinCandidates[term] = (levenshteinCandidates[term] ?? 0) + 1;
+        candidates[term] = candidates[term] ? candidates[term] + 1 : 1;
       });
     });
 
-    const minMatchingBiGrams = Math.floor(SPELLING_CORRECTION_ALPHA * biGrams.length);
-    const editDistances: { [term: string]: number } = Object.create(null);
-    Object.entries(levenshteinCandidates).forEach(([term, numMatching]) => {
-      if (numMatching < minMatchingBiGrams) {
-        return;
-      }
-
-      editDistances[term] = levenshtein.get(misSpelledTerm, term);
-    });
-
-    let minEditDistanceTerm = '';
-    let minEditDistance = 99999;
-    Object.entries(editDistances).forEach(([term, editDistance]) => {
-      if (editDistance < minEditDistance) {
-        minEditDistanceTerm = term;
-        minEditDistance = editDistance;
-      }
-    });
-    console.log(minEditDistanceTerm);
-
-    return minEditDistanceTerm;
+    return Object.keys(candidates).filter((term) => candidates[term] >= minMatchingBiGrams);
   }
 }
 
