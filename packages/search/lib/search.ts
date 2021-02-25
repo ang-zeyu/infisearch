@@ -13,12 +13,9 @@ const MAX_SERP_HIGHLIGHT_PARTS = 8;
 
 function transformText(
   texts: { fieldName: string, text: string }[],
-  queriedTerms: string[],
+  termRegex: RegExp,
   baseUrl: string,
 ): (string | HTMLElement)[] {
-  const sortedQueryTerms = queriedTerms.sort((str1, str2) => str2.length - str1.length);
-  const termRegex = new RegExp(sortedQueryTerms.map((t) => escapeRegex(t)).join('|'), 'gi');
-
   function getMatchResult(str: string): (string | HTMLElement)[] {
     const result = [];
 
@@ -95,6 +92,9 @@ function transformText(
 }
 
 async function transformResults(results: Query, container: HTMLElement): Promise<void> {
+  const sortedQueryTerms = results.aggregatedTerms.sort((str1, str2) => str2.length - str1.length);
+  const termRegex = new RegExp(sortedQueryTerms.map((t) => `([\\W]${escapeRegex(t)}[\\W])`).join('|'), 'gi');
+
   const resultsEls = (await results.retrieve(10)).map((result) => {
     console.log(result);
 
@@ -102,7 +102,7 @@ async function transformResults(results: Query, container: HTMLElement): Promise
       h('a', { class: 'librarian-link', href: result.storages.link },
         h('div', { class: 'librarian-title' },
           result.storages.title ? result.storages.title : result.storages.link),
-        ...transformText(result.storages.text, results.aggregatedTerms, result.storages.link)));
+        ...transformText(result.storages.text, termRegex, result.storages.link)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 
