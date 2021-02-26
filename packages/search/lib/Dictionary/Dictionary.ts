@@ -129,7 +129,9 @@ class Dictionary {
   getTerms(queryTerm: string, doExpand: boolean): string[] {
     if (!this.termInfo[queryTerm]) {
       return this.getCorrectedTerms(queryTerm);
-    } if (doExpand) {
+    }
+
+    if (doExpand) {
       return this.getExpandedTerms(queryTerm);
     }
 
@@ -159,7 +161,7 @@ class Dictionary {
         minEditDistanceTerms.push(term);
       }
     });
-    console.log(`Spelling corrected terms: ${minEditDistanceTerms}`);
+    console.log(`Spelling corrected terms: ${misSpelledTerm} -> ${minEditDistanceTerms}`);
 
     return minEditDistanceTerms;
   }
@@ -174,13 +176,13 @@ class Dictionary {
     const minBaseTermSubstring = baseTerm.substring(0, Math.floor(CORRECTION_ALPHA * baseTerm.length));
     const expandedTerms: string[] = [];
     prefixCheckCandidates.forEach((term) => {
-      if (term.startsWith(minBaseTermSubstring)) {
+      if (term.startsWith(minBaseTermSubstring) && term !== baseTerm) {
         expandedTerms.push(term);
       }
     });
-    console.log(`Expanded terms: ${expandedTerms}`);
+    console.log(`Expanded terms: ${baseTerm} -> ${expandedTerms}`);
 
-    return expandedTerms;
+    return [baseTerm, ...expandedTerms];
   }
 
   private getTermCandidates(baseTerm: string): string[] {
