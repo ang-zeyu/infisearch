@@ -2,6 +2,7 @@ import * as levenshtein from 'fast-levenshtein';
 
 import decodeVarInt from '../utils/varInt';
 import TermInfo from '../results/TermInfo';
+import QueryVector from '../results/QueryVector';
 
 const PREFIX_FRONT_CODE = 42; // '*'
 const SUBSEQUENT_FRONT_CODE = 38; // '&'
@@ -126,7 +127,7 @@ class Dictionary {
     });
   }
 
-  getTerms(queryTerm: string, doExpand: boolean): string[] {
+  getTerms(queryTerm: string, doExpand: boolean): QueryVector {
     if (!this.termInfo[queryTerm]) {
       return this.getCorrectedTerms(queryTerm);
     }
@@ -135,10 +136,12 @@ class Dictionary {
       return this.getExpandedTerms(queryTerm);
     }
 
-    return [queryTerm];
+    const queryVec = new QueryVector();
+    queryVec.addTerm(queryTerm, 1);
+    return queryVec;
   }
 
-  getCorrectedTerms(misSpelledTerm: string): string[] {
+  getCorrectedTerms(misSpelledTerm: string): QueryVector {
     const levenshteinCandidates = this.getTermCandidates(misSpelledTerm);
 
     const editDistances: { [term: string]: number } = Object.create(null);
@@ -146,7 +149,7 @@ class Dictionary {
       editDistances[term] = levenshtein.get(misSpelledTerm, term);
     });
 
-    let minEditDistanceTerms = [];
+    let minEditDistanceTerms = new QueryVector();
     let minEditDistance = 99999;
     Object.entries(editDistances).forEach(([term, editDistance]) => {
       if (editDistance >= 3) {
@@ -154,35 +157,36 @@ class Dictionary {
       }
 
       if (editDistance < minEditDistance) {
-        minEditDistanceTerms = [];
-        minEditDistanceTerms.push(term);
+        minEditDistanceTerms = new QueryVector();
+        minEditDistanceTerms.addTerm(term, 1);
         minEditDistance = editDistance;
       } else if (editDistance === minEditDistance) {
-        minEditDistanceTerms.push(term);
+        minEditDistanceTerms.addTerm(term, 1);
       }
     });
-    console.log(`Spelling corrected terms: ${misSpelledTerm} -> ${minEditDistanceTerms}`);
+    console.log(`Spelling corrected terms: ${minEditDistanceTerms}`);
 
     return minEditDistanceTerms;
   }
 
-  getExpandedTerms(baseTerm: string): string[] {
+  getExpandedTerms(baseTerm: string): QueryVector {
+    const queryVec = new QueryVector();
+    queryVec.addTerm(baseTerm, 1);
     if (baseTerm.length < 3) {
-      return [baseTerm];
+      return queryVec;
     }
 
     const prefixCheckCandidates = this.getTermCandidates(baseTerm);
 
     const minBaseTermSubstring = baseTerm.substring(0, Math.floor(CORRECTION_ALPHA * baseTerm.length));
-    const expandedTerms: string[] = [];
     prefixCheckCandidates.forEach((term) => {
       if (term.startsWith(minBaseTermSubstring) && term !== baseTerm) {
-        expandedTerms.push(term);
+        queryVec.addTerm(term, 1 / (term.length - minBaseTermSubstring.length + 1));
       }
     });
-    console.log(`Expanded terms: ${baseTerm} -> ${expandedTerms}`);
+    console.log(`Expanded terms: ${queryVec}`);
 
-    return [baseTerm, ...expandedTerms];
+    return queryVec;
   }
 
   private getTermCandidates(baseTerm: string): string[] {

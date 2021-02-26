@@ -3,6 +3,7 @@ import Storage from './Storage';
 import FieldInfo from './FieldInfo';
 import PostingsList from '../PostingsList/PostingsList';
 import Dictionary from '../Dictionary/Dictionary';
+import QueryVector from './QueryVector';
 
 const Heap = require('heap');
 
@@ -11,7 +12,7 @@ class Query {
 
   constructor(
     public readonly aggregatedTerms: string[],
-    private readonly queriedTerms: string[][],
+    private readonly queryVectors: QueryVector[],
     private storages: {
       [baseName: string]: Storage
     },
@@ -31,12 +32,12 @@ class Query {
     const docScores: { [docId:number]: number } = {};
 
     // Tf-idf computation
-    this.queriedTerms.forEach((terms) => {
-      terms.forEach((term, idx) => {
+    this.queryVectors.forEach((queryVec) => {
+      Object.entries(queryVec.termsAndWeights).forEach(([term, termWeight], idx) => {
         const postingsList = this.postingsLists[term];
         const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
-        const r = n * 2;
+        const r = n * 3;
         // console.log(`${r} ${term}`);
         const nextRDocs = postingsList.getDocs(r);
 
@@ -55,9 +56,7 @@ class Query {
             wfTD += ((wtd * idf) / fieldLen) * fieldWeight;
           });
 
-          if (idx !== 0) {
-            wfTD *= 0.5;
-          }
+          wfTD *= termWeight;
 
           docScores[docId] = (docScores[docId] ?? 0) + wfTD;
         });
