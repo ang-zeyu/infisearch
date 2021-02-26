@@ -164,7 +164,6 @@ class Dictionary {
         minEditDistanceTerms.addTerm(term, 1);
       }
     });
-    console.log(`Spelling corrected terms: ${minEditDistanceTerms}`);
 
     return minEditDistanceTerms;
   }
@@ -184,7 +183,6 @@ class Dictionary {
         queryVec.addTerm(term, 1 / (term.length - minBaseTermSubstring.length + 1));
       }
     });
-    console.log(`Expanded terms: ${queryVec}`);
 
     return queryVec;
   }

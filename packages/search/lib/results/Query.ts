@@ -30,10 +30,11 @@ class Query {
     const N = this.docLengths[0][0]; // first line is number of documents
 
     const docScores: { [docId:number]: number } = {};
+    const docPositions: { [docId: number]: number[][] } = {};
 
     // Tf-idf computation
-    this.queryVectors.forEach((queryVec) => {
-      Object.entries(queryVec.termsAndWeights).forEach(([term, termWeight], idx) => {
+    this.queryVectors.forEach((queryVec, queryVecIdx) => {
+      Object.entries(queryVec.termsAndWeights).forEach(([term, termWeight]) => {
         const postingsList = this.postingsLists[term];
         const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
@@ -44,6 +45,11 @@ class Query {
         nextRDocs.forEach((fields, docId) => {
           let wfTD = 0;
 
+          docPositions[docId] = docPositions[docId] ?? [];
+          for (let i = docPositions[docId].length; i <= queryVecIdx; i += 1) {
+            docPositions[docId].push([]);
+          }
+
           Object.entries(fields).forEach(([fieldId, positions]) => {
             const fieldIdInt = Number(fieldId);
             const fieldWeight = this.fieldInfo[fieldIdInt].weight;
@@ -51,6 +57,8 @@ class Query {
 
             const termFreq = positions.length;
             const wtd = 1 + Math.log10(termFreq);
+
+            docPositions[docId][queryVecIdx].push(...positions);
 
             // with normalization and weighted zone scoring
             wfTD += ((wtd * idf) / fieldLen) * fieldWeight;
@@ -62,6 +70,8 @@ class Query {
         });
       });
     });
+
+    this.rankByTermProximity(docPositions, docScores);
 
     const resultHeap: Heap<Result> = new Heap((r1: Result, r2: Result) => r2.score - r1.score);
 
@@ -82,6 +92,62 @@ class Query {
     await Promise.all(Object.values(this.storages).map((storage) => storage.populate(retrievedResults)));
 
     return retrievedResults;
+  }
+
+  private rankByTermProximity(
+    docPositions: { [docId: number]: number[][] },
+    docScores: { [docId: number]: number },
+  ): void {
+    if (this.queryVectors.length <= 1) {
+      return;
+    }
+
+    const MIN_WINDOW_MAX_BOUND = 10000;
+    const defaultScalingFactor = 1 + Math.log10(MIN_WINDOW_MAX_BOUND / this.queryVectors.length);
+    console.log(`Default scaling factor ${defaultScalingFactor}`);
+    Object.entries(docPositions).forEach(([docId, docQueryVecPositions]) => {
+      const docIdInt = Number(docId);
+      if (
+        Object.values(docQueryVecPositions).filter((positions) => positions.length).length
+          !== this.queryVectors.length
+      ) {
+        docScores[docIdInt] /= defaultScalingFactor;
+        return;
+      }
+
+      const iteratorAndPos: { it: number, positions: number[] }[] = [];
+      Object.values(docQueryVecPositions).forEach((positions) => {
+        positions.sort();
+        iteratorAndPos.push({ it: 0, positions });
+      });
+
+      const initialPositions = iteratorAndPos.map((itAndPos) => itAndPos.positions[itAndPos.it]);
+      let minWindow = Math.max(...initialPositions) - Math.min(...initialPositions) + 1;
+      while (iteratorAndPos.every((itAndPos) => itAndPos.it + 1 < itAndPos.positions.length)) {
+        let minNextPos = Number.MAX_VALUE;
+        let minNextPosIdx = Number.MAX_VALUE;
+        iteratorAndPos.forEach((itAndPos, idx) => {
+          if (itAndPos.positions[itAndPos.it + 1] < minNextPos) {
+            minNextPos = itAndPos.positions[itAndPos.it + 1];
+            minNextPosIdx = idx;
+          }
+        });
+
+        iteratorAndPos[minNextPosIdx].it += 1;
+
+        const currentPositions = iteratorAndPos.map((itAndPos) => itAndPos.positions[itAndPos.it]);
+        const window = Math.max(...currentPositions) - Math.min(...currentPositions) + 1;
+        minWindow = Math.min(minWindow, window);
+      }
+
+      // Scoring function for query term proximity
+      minWindow = Math.min(MIN_WINDOW_MAX_BOUND, minWindow);
+      const factor = 1 + Math.log10(minWindow / this.queryVectors.length);
+      docScores[docIdInt] /= factor;
+
+      console.log(`Scaling positions for ${docId} by factor ${factor}`);
+      console.log(docQueryVecPositions);
+    });
   }
 }
 
