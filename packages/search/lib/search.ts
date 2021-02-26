@@ -93,7 +93,10 @@ function transformText(
 
 async function transformResults(results: Query, container: HTMLElement): Promise<void> {
   const sortedQueryTerms = results.aggregatedTerms.sort((str1, str2) => str2.length - str1.length);
-  const termRegex = new RegExp(sortedQueryTerms.map((t) => `([\\W]${escapeRegex(t)}[\\W])`).join('|'), 'gi');
+  const termRegex = new RegExp(
+    sortedQueryTerms.map((t) => `((^|\\W)${escapeRegex(t)}(?=\\W|$))`).join('|'),
+    'gi',
+  );
 
   const resultsEls = (await results.retrieve(10)).map((result) => {
     console.log(result);
