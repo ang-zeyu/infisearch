@@ -1,6 +1,6 @@
 # test files
 _index
-packages/indexer/test/1/
+packages/indexer/test/
 
 # sourcemaps
 *.js.map
