@@ -11,6 +11,7 @@ const BIGRAM_START_CHAR = '^';
 const BIGRAM_END_CHAR = '$';
 
 const CORRECTION_ALPHA = 0.85;
+const SPELLING_CORRECTION_ALPHA = 0.8;
 
 class Dictionary {
   setupPromise: Promise<void>;
@@ -223,7 +224,7 @@ class Dictionary {
     return Object.keys(candidates).filter((term) => (useJacard
       // (A intersect B) / (A union B)
       // For n-gram string, there are n + 1 bi-grams
-      ? (candidates[term] / (term.length + baseTerm.length + 2)) >= CORRECTION_ALPHA
+      ? candidates[term] / (term.length + baseTerm.length + 2 - candidates[term]) >= SPELLING_CORRECTION_ALPHA
       : candidates[term] >= minMatchingBiGrams));
   }
 }
