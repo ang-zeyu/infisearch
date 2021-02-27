@@ -126,7 +126,7 @@ async function transformResults(results: Query, container: HTMLElement): Promise
   iObserver.observe(sentinel);
 }
 
-let isUpdating = false;
+const updatePromiseQueue: (() => Promise<void>)[] = [];
 async function update(query: string, container: HTMLElement, searcher: Searcher): Promise<void> {
   container.style.display = 'flex';
 
@@ -135,7 +135,10 @@ async function update(query: string, container: HTMLElement, searcher: Searcher)
 
   await transformResults(results, container);
 
-  isUpdating = false;
+  updatePromiseQueue.shift();
+  if (updatePromiseQueue.length) {
+    updatePromiseQueue[0]();
+  }
 }
 
 function hide(container): void {
@@ -153,12 +156,18 @@ function initLibrarian(url): void {
 
   const searcher = new Searcher(url);
 
+  let inputTimer: any = -1;
   input.addEventListener('input', (ev) => {
     const query = (ev.target as HTMLInputElement).value.toLowerCase();
 
-    if (query.length > 2 && !isUpdating) {
-      isUpdating = true;
-      update(query, container, searcher);
+    if (query.length > 2) {
+      clearTimeout(inputTimer);
+      inputTimer = setTimeout(() => {
+        updatePromiseQueue.push(() => update(query, container, searcher));
+        if (updatePromiseQueue.length === 1) {
+          updatePromiseQueue[0]();
+        }
+      }, 200);
     } else if (query.length < 2) {
       hide(container);
     }
