@@ -11,7 +11,7 @@ const BIGRAM_START_CHAR = '^';
 const BIGRAM_END_CHAR = '$';
 
 const CORRECTION_ALPHA = 0.85;
-const SPELLING_CORRECTION_ALPHA = 0.8;
+const SPELLING_CORRECTION_ALPHA = 0.7;
 
 class Dictionary {
   setupPromise: Promise<void>;
