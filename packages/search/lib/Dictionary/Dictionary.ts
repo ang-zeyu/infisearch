@@ -142,7 +142,7 @@ class Dictionary {
   }
 
   getCorrectedTerms(misSpelledTerm: string): QueryVector {
-    const levenshteinCandidates = this.getTermCandidates(misSpelledTerm);
+    const levenshteinCandidates = this.getTermCandidates(misSpelledTerm, true);
 
     const editDistances: { [term: string]: number } = Object.create(null);
     levenshteinCandidates.forEach((term) => {
@@ -175,7 +175,7 @@ class Dictionary {
       return queryVec;
     }
 
-    const prefixCheckCandidates = this.getTermCandidates(baseTerm);
+    const prefixCheckCandidates = this.getTermCandidates(baseTerm, false);
 
     const minBaseTermSubstring = baseTerm.substring(0, Math.floor(CORRECTION_ALPHA * baseTerm.length));
     prefixCheckCandidates.forEach((term) => {
@@ -187,7 +187,7 @@ class Dictionary {
     return queryVec;
   }
 
-  private getTermCandidates(baseTerm: string): string[] {
+  private getTermCandidates(baseTerm: string, useJacard: boolean): string[] {
     const biGrams = Dictionary.getBiGrams(baseTerm);
     const minMatchingBiGrams = Math.floor(CORRECTION_ALPHA * biGrams.length);
 
@@ -202,7 +202,11 @@ class Dictionary {
       });
     });
 
-    return Object.keys(candidates).filter((term) => candidates[term] >= minMatchingBiGrams);
+    return Object.keys(candidates).filter((term) => (useJacard
+      // (A intersect B) / (A union B)
+      // For n-gram string, there are n + 1 bi-grams
+      ? (candidates[term] / (term.length + baseTerm.length + 2)) >= CORRECTION_ALPHA
+      : candidates[term] >= minMatchingBiGrams));
   }
 }
 
