@@ -41,7 +41,6 @@ class Dictionary {
       buffers.push(postingsFileNameBuffer);
 
       buffers.push(getVarInt(entry.docFreq));
-      buffers.push(getVarInt(entry.postingsFileLength));
       buffers.push(getVarInt(entry.postingsFileOffset));
     }
 

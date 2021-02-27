@@ -1,8 +1,9 @@
 interface TermInfo {
-  postingsFileName: number
   docFreq: number
-  postingsFileLength: number
+  postingsFileName: number
   postingsFileOffset: number
+  postingsFileEndName: number
+  postingsFileEndOffset: number
 }
 
 export default TermInfo;

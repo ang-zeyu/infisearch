@@ -8,7 +8,7 @@ class PostingsList {
 
   private currentOffset: number;
 
-  private readonly endOffset: number;
+  private endOffset: number;
 
   constructor(
     public readonly term: string,
@@ -16,11 +16,13 @@ class PostingsList {
     private readonly termInfo: TermInfo,
   ) {
     this.currentOffset = termInfo.postingsFileOffset;
-    this.endOffset = termInfo.postingsFileOffset + termInfo.postingsFileLength;
   }
 
   async fetch(): Promise<void> {
     this.arrayBuffer = await (await fetch(`${this.url}/pl_${this.termInfo.postingsFileName}`)).arrayBuffer();
+    this.endOffset = this.termInfo.postingsFileEndName === this.termInfo.postingsFileName
+      ? Math.min(this.termInfo.postingsFileEndOffset, this.arrayBuffer.byteLength)
+      : this.arrayBuffer.byteLength;
   }
 
   getDocs(r: number): Map<number, { [fieldId: number]: number[] }> {

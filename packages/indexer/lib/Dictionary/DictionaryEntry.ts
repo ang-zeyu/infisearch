@@ -4,7 +4,6 @@ class DictionaryEntry {
     public docFreq: number,
     public postingsFileName: number,
     public postingsFileOffset: number,
-    public postingsFileLength: number,
   ) {}
 }
 

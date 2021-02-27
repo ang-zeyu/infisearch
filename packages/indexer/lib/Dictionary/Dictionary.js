@@ -32,7 +32,6 @@ class Dictionary {
             prevPostingsFileName = entry.postingsFileName;
             buffers.push(postingsFileNameBuffer);
             buffers.push(varInt_1.default(entry.docFreq));
-            buffers.push(varInt_1.default(entry.postingsFileLength));
             buffers.push(varInt_1.default(entry.postingsFileOffset));
         }
         const fullPath = path.join(folderPath, 'dictionaryTable');

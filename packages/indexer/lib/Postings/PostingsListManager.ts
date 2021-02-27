@@ -69,6 +69,10 @@ class PostingsListManager {
       const docFreq = postingsList.getDocFreq();
       const idf = Math.log10(numDocs / docFreq);
 
+      dictionary.entries[currTerm] = new DictionaryEntry(
+        currTerm, docFreq, currentName, postingsFileOffset,
+      );
+
       // Impact order the entries
       const sortedEntries = Object.entries(postingsList.positions)
         .map(([docId, docFieldPositions]) => {
@@ -90,15 +94,13 @@ class PostingsListManager {
         })
         .sort(([,, score1], [,, score2]) => (score2 as number) - (score1 as number));
 
-      let postingsFileLength = 0;
-
       // Dump
       // eslint-disable-next-line @typescript-eslint/no-loop-func
       sortedEntries.forEach(([docId, docFieldPositions]) => {
         const docIdInt = Number(docId);
 
         const docIdGapVarInt = getVarInt(docIdInt);
-        postingsFileLength += docIdGapVarInt.length;
+        postingsFileOffset += docIdGapVarInt.length;
         buffers.push(docIdGapVarInt);
 
         const lastFieldIdx = Object.keys(docFieldPositions).length - 1;
@@ -111,10 +113,10 @@ class PostingsListManager {
           // eslint-disable-next-line no-bitwise
           buffer.writeUInt8(idx === lastFieldIdx ? (fieldIdInt | 0x80) : fieldIdInt);
           buffers.push(buffer);
-          postingsFileLength += 1;
+          postingsFileOffset += 1;
 
           const fieldTermFreqVarInt = getVarInt(fieldTermFreq);
-          postingsFileLength += fieldTermFreqVarInt.length;
+          postingsFileOffset += fieldTermFreqVarInt.length;
           buffers.push(fieldTermFreqVarInt);
 
           let prevPos = 0;
@@ -122,18 +124,11 @@ class PostingsListManager {
             const gap = getVarInt(pos - prevPos);
             prevPos = pos;
 
-            postingsFileLength += gap.length;
+            postingsFileOffset += gap.length;
             buffers.push(gap);
           });
         });
       });
-
-      dictionary.entries[currTerm] = new DictionaryEntry(
-        currTerm, docFreq, currentName,
-        postingsFileOffset, postingsFileLength,
-      );
-
-      postingsFileOffset += postingsFileLength;
 
       if (i === (sortedTerms.length - 1) || postingsFileOffset > POSTINGS_LIST_BLOCK_SIZE_MAX) {
         const postingsListFilePath = path.join(outputFolderPath, `pl_${currentName}`);

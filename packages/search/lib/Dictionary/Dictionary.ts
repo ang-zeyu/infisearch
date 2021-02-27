@@ -42,6 +42,15 @@ class Dictionary {
     const dictionaryTableBuffer = await (await dictionaryTablePromise).arrayBuffer();
     const dictionaryTableView = new DataView(dictionaryTableBuffer);
 
+    const tempTermInfos: {
+      term: string
+      docFreq: number
+      postingsFileName: number
+      postingsFileOffset: number
+      postingsFileEndName: number
+      postingsFileEndOffset: number
+    }[] = [];
+
     let prevPostingsFileName = 0;
     let dictStringPos = 0;
     let frontCodingPrefix = '';
@@ -54,14 +63,9 @@ class Dictionary {
       dictTablePos = dictTablePos1;
 
       const {
-        value: postingsFileLength, newPos: dictTablePos2,
+        value: postingsFileOffset, newPos: dictTablePos2,
       } = decodeVarInt(dictionaryTableView, dictTablePos);
       dictTablePos = dictTablePos2;
-
-      const {
-        value: postingsFileOffset, newPos: dictTablePos3,
-      } = decodeVarInt(dictionaryTableView, dictTablePos);
-      dictTablePos = dictTablePos3;
 
       const termLen = dictionaryStringView.getUint8(dictStringPos);
       dictStringPos += 1;
@@ -93,12 +97,26 @@ class Dictionary {
         dictStringPos += 1;
       }
 
-      this.termInfo[term] = {
-        postingsFileName,
+      // console.log(`${frontCodingPrefix} ${term}`);
+      if (term.indexOf('{') !== -1 || term.indexOf('}') !== -1) {
+        throw new Error(`Uh oh ${term}`);
+      }
+
+      tempTermInfos.push({
+        term,
         docFreq,
-        postingsFileLength,
+        postingsFileName,
         postingsFileOffset,
-      };
+        postingsFileEndName: postingsFileName,
+        postingsFileEndOffset: Number.MAX_VALUE,
+      });
+    }
+
+    const sentinelIdx = tempTermInfos.length - 1;
+    for (let i = 0; i < sentinelIdx; i += 1) {
+      this.termInfo[tempTermInfos[i].term] = tempTermInfos[i];
+      this.termInfo[tempTermInfos[i].term].postingsFileEndName = tempTermInfos[i + 1].postingsFileName;
+      this.termInfo[tempTermInfos[i].term].postingsFileEndOffset = tempTermInfos[i + 1].postingsFileOffset;
     }
 
     this.setupBigram();
