@@ -171,7 +171,7 @@ class Dictionary {
   getExpandedTerms(baseTerm: string): QueryVector {
     const queryVec = new QueryVector();
     queryVec.addTerm(baseTerm, 1);
-    if (baseTerm.length < 3) {
+    if (baseTerm.length < 4) {
       return queryVec;
     }
 
