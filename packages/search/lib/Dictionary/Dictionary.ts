@@ -82,10 +82,10 @@ class Dictionary {
       } else if (term.indexOf('{') !== -1) {
         [frontCodingPrefix] = term.split('{');
 
-        const suffixStartPos = dictStringPos - termLen + frontCodingPrefix.length + 1;
-        const suffixEndPos = dictStringPos + 1;
-        term = frontCodingPrefix
-          + decoder.decode(dictionaryStringBuffer.slice(suffixStartPos, suffixEndPos));
+        // Redecode the full string, then remove the '{'
+        term = decoder
+          .decode(dictionaryStringBuffer.slice(dictStringPos - termLen, dictStringPos + 1))
+          .replace('{', '');
         dictStringPos += 1;
       } else if (dictStringPos < dictionaryStringBuffer.byteLength
         && dictionaryStringView.getUint8(dictStringPos) === PREFIX_FRONT_CODE) {
