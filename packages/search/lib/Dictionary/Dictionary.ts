@@ -28,11 +28,11 @@ class Dictionary {
   }
 
   async setup(url): Promise<void> {
-    const dictionaryTablePromise = fetch(`${url}/dictionaryTable.txt`, {
+    const dictionaryTablePromise = fetch(`${url}/dictionaryTable`, {
       method: 'GET',
     });
 
-    const dictionaryStringBuffer = await (await fetch(`${url}/dictionaryString.txt`, {
+    const dictionaryStringBuffer = await (await fetch(`${url}/dictionaryString`, {
       method: 'GET',
     })).arrayBuffer();
     const dictionaryStringView = new DataView(dictionaryStringBuffer);

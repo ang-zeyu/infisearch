@@ -42,12 +42,12 @@ class Dictionary {
       buffers.push(getVarInt(entry.postingsFileOffset));
     }
 
-    const fullPath = path.join(folderPath, 'dictionaryTable.txt');
+    const fullPath = path.join(folderPath, 'dictionaryTable');
     fs.writeFileSync(fullPath, Buffer.concat(buffers));
   }
 
   private dumpDictAsAString(folderPath: string) {
-    const fullPath = path.join(folderPath, 'dictionaryString.txt');
+    const fullPath = path.join(folderPath, 'dictionaryString');
 
     const buffers: Buffer[] = [];
     const sortedTerms: string[] = Object.keys(this.entries).sort();

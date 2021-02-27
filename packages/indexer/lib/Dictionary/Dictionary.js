@@ -33,11 +33,11 @@ class Dictionary {
             buffers.push(varInt_1.default(entry.postingsFileLength));
             buffers.push(varInt_1.default(entry.postingsFileOffset));
         }
-        const fullPath = path.join(folderPath, 'dictionaryTable.txt');
+        const fullPath = path.join(folderPath, 'dictionaryTable');
         fs.writeFileSync(fullPath, Buffer.concat(buffers));
     }
     dumpDictAsAString(folderPath) {
-        const fullPath = path.join(folderPath, 'dictionaryString.txt');
+        const fullPath = path.join(folderPath, 'dictionaryString');
         const buffers = [];
         const sortedTerms = Object.keys(this.entries).sort();
         for (let i = 0; i < sortedTerms.length; i += 1) {
