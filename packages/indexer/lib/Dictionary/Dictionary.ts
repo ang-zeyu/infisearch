@@ -4,6 +4,9 @@ import * as fs from 'fs-extra';
 import DictionaryEntry from './DictionaryEntry';
 import getVarInt from '../Postings/varInt';
 
+const PREFIX_FRONT_CODE = 123; // '{'
+const SUBSEQUENT_FRONT_CODE = 125; // '}'
+
 class Dictionary {
   entries: { [term: string]: DictionaryEntry } = Object.create(null);
 
@@ -82,7 +85,8 @@ class Dictionary {
       buffers.push(Buffer.from([termBuffer.length]));
       buffers.push(currPrefixBuffer);
       if (numFrontcodedTerms > 0) {
-        buffers.push(Buffer.from(`*${sortedTerms[i].substring(currCommonPrefix.length)}`));
+        buffers.push(Buffer.from([PREFIX_FRONT_CODE]));
+        buffers.push(termBuffer.slice(currPrefixBuffer.length));
       }
 
       while (numFrontcodedTerms > 0) {
@@ -90,7 +94,8 @@ class Dictionary {
         numFrontcodedTerms -= 1;
         const frontCodedTermBuffer = Buffer.from(sortedTerms[i]);
         buffers.push(Buffer.from([frontCodedTermBuffer.length - currPrefixBuffer.length]));
-        buffers.push(Buffer.from(`&${sortedTerms[i].substring(currCommonPrefix.length)}`));
+        buffers.push(Buffer.from([SUBSEQUENT_FRONT_CODE]));
+        buffers.push(frontCodedTermBuffer.slice(currPrefixBuffer.length));
       }
     }
 

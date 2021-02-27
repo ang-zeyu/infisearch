@@ -4,8 +4,8 @@ import decodeVarInt from '../utils/varInt';
 import TermInfo from '../results/TermInfo';
 import QueryVector from '../results/QueryVector';
 
-const PREFIX_FRONT_CODE = 42; // '*'
-const SUBSEQUENT_FRONT_CODE = 38; // '&'
+const PREFIX_FRONT_CODE = 123; // '{'
+const SUBSEQUENT_FRONT_CODE = 125; // '}'
 
 const BIGRAM_START_CHAR = '^';
 const BIGRAM_END_CHAR = '$';
@@ -79,8 +79,8 @@ class Dictionary {
 
       if (frontCodingPrefix) {
         term = frontCodingPrefix + term;
-      } else if (term.indexOf('*') !== -1) {
-        [frontCodingPrefix] = term.split('*');
+      } else if (term.indexOf('{') !== -1) {
+        [frontCodingPrefix] = term.split('{');
 
         const suffixStartPos = dictStringPos - termLen + frontCodingPrefix.length + 1;
         const suffixEndPos = dictStringPos + 1;

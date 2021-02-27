@@ -81,7 +81,9 @@ abstract class Miner {
       const terms = tokenizer.tokenize(text);
       terms.forEach((term) => {
         pos += 1;
-        if (term.length > 255) {
+        const termBuffer = Buffer.from(term);
+        if (termBuffer.length > 120) {
+          console.log(`Term ${term} has encoded length > 120, this won't be indexed.`);
           return;
         }
 
