@@ -32,17 +32,20 @@ class Query {
     const docScores: { [docId:number]: number } = {};
     const docPositions: { [docId: number]: number[][] } = {};
 
+    const nextContenders: Map<number, { [fieldId: number]: number[] }>[][] = await Promise.all(
+      this.queryVectors.map((queryVec) => Promise.all(
+        Object.keys(queryVec.termsAndWeights).map((term) => this.postingsLists[term].getDocs(n * 3)),
+      )),
+    );
+
     // Tf-idf computation
     this.queryVectors.forEach((queryVec, queryVecIdx) => {
-      Object.entries(queryVec.termsAndWeights).forEach(([term, termWeight]) => {
-        const postingsList = this.postingsLists[term];
+      Object.entries(queryVec.termsAndWeights).forEach(([term, termWeight], queryVecTermIdx) => {
         const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
-        const r = n * 3;
-        // console.log(`${r} ${term}`);
-        const nextRDocs = postingsList.getDocs(r);
+        const nextRContendersForTerm = nextContenders[queryVecIdx][queryVecTermIdx];
 
-        nextRDocs.forEach((fields, docId) => {
+        nextRContendersForTerm.forEach((fields, docId) => {
           let wfTD = 0;
 
           docPositions[docId] = docPositions[docId] ?? [];

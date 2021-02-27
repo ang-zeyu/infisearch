@@ -32,7 +32,9 @@ class Dictionary {
             prevPostingsFileName = entry.postingsFileName;
             buffers.push(postingsFileNameBuffer);
             buffers.push(varInt_1.default(entry.docFreq));
-            buffers.push(varInt_1.default(entry.postingsFileOffset));
+            const postingsFileOffsetBuffer = Buffer.allocUnsafe(2);
+            postingsFileOffsetBuffer.writeUInt16LE(entry.postingsFileOffset);
+            buffers.push(postingsFileOffsetBuffer);
         }
         const fullPath = path.join(folderPath, 'dictionaryTable');
         fs.writeFileSync(fullPath, Buffer.concat(buffers));

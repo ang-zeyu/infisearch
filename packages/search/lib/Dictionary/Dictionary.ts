@@ -63,10 +63,8 @@ class Dictionary {
       const { value: docFreq, newPos: dictTablePos1 } = decodeVarInt(dictionaryTableView, dictTablePos);
       dictTablePos = dictTablePos1;
 
-      const {
-        value: postingsFileOffset, newPos: dictTablePos2,
-      } = decodeVarInt(dictionaryTableView, dictTablePos);
-      dictTablePos = dictTablePos2;
+      const postingsFileOffset = dictionaryTableView.getUint16(dictTablePos, true);
+      dictTablePos += 2;
 
       const termLen = dictionaryStringView.getUint8(dictStringPos);
       dictStringPos += 1;

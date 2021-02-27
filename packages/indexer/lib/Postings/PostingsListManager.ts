@@ -9,7 +9,7 @@ import getVarInt from './VarInt';
 import DocInfo from '../DocInfo/DocInfo';
 import FieldInfo from '../Miners/Fields/FieldInfo';
 
-const POSTINGS_LIST_BLOCK_SIZE_MAX = 20000; // 20kb
+const POSTINGS_LIST_BLOCK_SIZE_MAX = 65535; // Max that 2 bytes can store
 
 class PostingsListManager {
   private postingsLists: { [term: string]: PostingsList } = Object.create(null);
@@ -62,12 +62,21 @@ class PostingsListManager {
     let postingsFileOffset = 0;
     let currentName = 1;
     let buffers = [];
+
+    function moveToNextFile() {
+      const postingsListFilePath = path.join(outputFolderPath, `pl_${currentName}`);
+      fs.writeFileSync(postingsListFilePath, Buffer.concat(buffers));
+
+      postingsFileOffset = 0;
+      currentName += 1;
+      buffers = [];
+    }
+
     for (let i = 0; i < sortedTerms.length; i += 1) {
       const currTerm = sortedTerms[i];
       const postingsList = this.postingsLists[currTerm];
 
       const docFreq = postingsList.getDocFreq();
-      const idf = Math.log10(numDocs / docFreq);
 
       dictionary.entries[currTerm] = new DictionaryEntry(
         currTerm, docFreq, currentName, postingsFileOffset,
@@ -83,11 +92,9 @@ class PostingsListManager {
             const fieldIdInt = Number(fieldId);
             const fieldTermFreq = positions.length;
 
-            const wtd = 1 + Math.log10(fieldTermFreq);
-            const tfIdf = wtd * idf;
-
-            score += (tfIdf / docInfos[docIdInt].normalizationFactors[fieldIdInt])
-              * this.fieldWeights[fieldIdInt];
+            score += (
+              fieldTermFreq / docInfos[docIdInt].normalizationFactors[fieldIdInt]
+            ) * this.fieldWeights[fieldIdInt];
           });
 
           return [docId, docFieldPositions, score];
@@ -128,15 +135,14 @@ class PostingsListManager {
             buffers.push(gap);
           });
         });
+
+        if (postingsFileOffset > POSTINGS_LIST_BLOCK_SIZE_MAX) {
+          moveToNextFile();
+        }
       });
 
-      if (i === (sortedTerms.length - 1) || postingsFileOffset > POSTINGS_LIST_BLOCK_SIZE_MAX) {
-        const postingsListFilePath = path.join(outputFolderPath, `pl_${currentName}`);
-        fs.writeFileSync(postingsListFilePath, Buffer.concat(buffers));
-
-        postingsFileOffset = 0;
-        currentName += 1;
-        buffers = [];
+      if (i === (sortedTerms.length - 1)) {
+        moveToNextFile();
       }
     }
   }

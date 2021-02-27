@@ -41,7 +41,10 @@ class Dictionary {
       buffers.push(postingsFileNameBuffer);
 
       buffers.push(getVarInt(entry.docFreq));
-      buffers.push(getVarInt(entry.postingsFileOffset));
+
+      const postingsFileOffsetBuffer: Buffer = Buffer.allocUnsafe(2);
+      postingsFileOffsetBuffer.writeUInt16LE(entry.postingsFileOffset);
+      buffers.push(postingsFileOffsetBuffer);
     }
 
     const fullPath = path.join(folderPath, 'dictionaryTable');
