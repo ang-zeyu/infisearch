@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class DictionaryEntry {
-    constructor(term, docFreq, postingsFileName, postingsFileOffset) {
-        this.term = term;
+    constructor(docFreq, postingsFileName, postingsFileOffset) {
         this.docFreq = docFreq;
         this.postingsFileName = postingsFileName;
         this.postingsFileOffset = postingsFileOffset;

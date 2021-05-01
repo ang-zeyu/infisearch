@@ -59,17 +59,17 @@ class PostingsListManager {
 
     this.calcNormalizationFactors(sortedTerms, numDocs, docInfos);
 
-    let postingsFileOffset = 0;
-    let currentName = 1;
-    let buffers = [];
+    let currentPl = 1;
+    let currentPlOffset = 0;
+    let currentPlBuffers = [];
 
-    function moveToNextFile() {
-      const postingsListFilePath = path.join(outputFolderPath, `pl_${currentName}`);
-      fs.writeFileSync(postingsListFilePath, Buffer.concat(buffers));
+    function moveToNextPl() {
+      const postingsListFilePath = path.join(outputFolderPath, `pl_${currentPl}`);
+      fs.writeFileSync(postingsListFilePath, Buffer.concat(currentPlBuffers));
 
-      postingsFileOffset = 0;
-      currentName += 1;
-      buffers = [];
+      currentPl += 1;
+      currentPlOffset = 0;
+      currentPlBuffers = [];
     }
 
     for (let i = 0; i < sortedTerms.length; i += 1) {
@@ -78,37 +78,16 @@ class PostingsListManager {
 
       const docFreq = postingsList.getDocFreq();
 
-      dictionary.entries[currTerm] = new DictionaryEntry(
-        currTerm, docFreq, currentName, postingsFileOffset,
-      );
+      dictionary.entries[currTerm] = new DictionaryEntry(docFreq, currentPl, currentPlOffset);
 
-      // Impact order the entries
-      const sortedEntries = Object.entries(postingsList.positions)
-        .map(([docId, docFieldPositions]) => {
-          const docIdInt = Number(docId);
-
-          let score = 0;
-          Object.entries(docFieldPositions).forEach(([fieldId, positions]) => {
-            const fieldIdInt = Number(fieldId);
-            const fieldTermFreq = positions.length;
-
-            score += (
-              fieldTermFreq / docInfos[docIdInt].normalizationFactors[fieldIdInt]
-            ) * this.fieldWeights[fieldIdInt];
-          });
-
-          return [docId, docFieldPositions, score];
-        })
-        .sort(([,, score1], [,, score2]) => (score2 as number) - (score1 as number));
-
-      // Dump
+      // Dump postings list
       // eslint-disable-next-line @typescript-eslint/no-loop-func
-      sortedEntries.forEach(([docId, docFieldPositions]) => {
+      Object.entries(postingsList.positions).forEach(([docId, docFieldPositions]) => {
         const docIdInt = Number(docId);
 
-        const docIdGapVarInt = getVarInt(docIdInt);
-        postingsFileOffset += docIdGapVarInt.length;
-        buffers.push(docIdGapVarInt);
+        const docIdVarInt = getVarInt(docIdInt);
+        currentPlOffset += docIdVarInt.length;
+        currentPlBuffers.push(docIdVarInt);
 
         const lastFieldIdx = Object.keys(docFieldPositions).length - 1;
 
@@ -119,30 +98,25 @@ class PostingsListManager {
           const buffer = Buffer.allocUnsafe(1);
           // eslint-disable-next-line no-bitwise
           buffer.writeUInt8(idx === lastFieldIdx ? (fieldIdInt | 0x80) : fieldIdInt);
-          buffers.push(buffer);
-          postingsFileOffset += 1;
+          currentPlBuffers.push(buffer);
+          currentPlOffset += 1;
 
           const fieldTermFreqVarInt = getVarInt(fieldTermFreq);
-          postingsFileOffset += fieldTermFreqVarInt.length;
-          buffers.push(fieldTermFreqVarInt);
+          currentPlOffset += fieldTermFreqVarInt.length;
+          currentPlBuffers.push(fieldTermFreqVarInt);
 
           let prevPos = 0;
-          positions.forEach((pos) => {
-            const gap = getVarInt(pos - prevPos);
-            prevPos = pos;
-
-            postingsFileOffset += gap.length;
-            buffers.push(gap);
-          });
+          for (let j = 0; j < positions.length; j += 1) {
+            const posGapVarInt = getVarInt(positions[j] - prevPos);
+            currentPlOffset += posGapVarInt.length;
+            currentPlBuffers.push(posGapVarInt);
+            prevPos = positions[j];
+          }
         });
-
-        if (postingsFileOffset > POSTINGS_LIST_BLOCK_SIZE_MAX) {
-          moveToNextFile();
-        }
       });
 
-      if (i === (sortedTerms.length - 1)) {
-        moveToNextFile();
+      if (i === (sortedTerms.length - 1) || currentPlOffset > POSTINGS_LIST_BLOCK_SIZE_MAX) {
+        moveToNextPl();
       }
     }
   }
