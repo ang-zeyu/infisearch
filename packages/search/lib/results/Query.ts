@@ -10,6 +10,10 @@ const Heap = require('heap');
 class Query {
   private postingsLists: { [term: string]: PostingsList } = {};
 
+  private resultHeap: Heap<Result> = new Heap((r1: Result, r2: Result) => r2.score - r1.score);
+
+  private retrievePromise: Promise<void> = undefined;
+
   constructor(
     public readonly aggregatedTerms: string[],
     private readonly queryVectors: QueryVector[],
@@ -26,15 +30,34 @@ class Query {
     });
   }
 
+  private async populate(n: number): Promise<Result[]> {
+    const minAmtResults = Math.min(n, this.resultHeap.size());
+    const retrievedResults: Result[] = [];
+    for (let i = 0; i < minAmtResults; i += 1) {
+      retrievedResults.push(this.resultHeap.pop());
+    }
+
+    await Promise.all(Object.values(this.storages).map((storage) => storage.populate(retrievedResults)));
+
+    return retrievedResults;
+  }
+
   async retrieve(n: number): Promise<Result[]> {
+    if (this.retrievePromise) {
+      await this.retrievePromise;
+      return this.populate(n);
+    }
+    let resolve;
+    this.retrievePromise = new Promise((res) => { resolve = res; });
+
     const N = this.docLengths[0][0]; // first line is number of documents
 
     const docScores: { [docId:number]: number } = {};
     const docPositions: { [docId: number]: number[][] } = {};
 
-    const nextContenders: Map<number, { [fieldId: number]: number[] }>[][] = await Promise.all(
+    const contenders: Map<number, { [fieldId: number]: number[] }>[][] = await Promise.all(
       this.queryVectors.map((queryVec) => Promise.all(
-        Object.keys(queryVec.termsAndWeights).map((term) => this.postingsLists[term].getDocs(n * 3)),
+        Object.keys(queryVec.termsAndWeights).map((term) => this.postingsLists[term].getDocs()),
       )),
     );
 
@@ -43,9 +66,7 @@ class Query {
       Object.entries(queryVec.termsAndWeights).forEach(([term, termWeight], queryVecTermIdx) => {
         const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
-        const nextRContendersForTerm = nextContenders[queryVecIdx][queryVecTermIdx];
-
-        nextRContendersForTerm.forEach((fields, docId) => {
+        contenders[queryVecIdx][queryVecTermIdx].forEach((fields, docId) => {
           let wfTD = 0;
 
           docPositions[docId] = docPositions[docId] ?? [];
@@ -58,8 +79,7 @@ class Query {
             const fieldWeight = this.fieldInfo[fieldIdInt].weight;
             const fieldLen = this.docLengths[docId][fieldIdInt - 1];
 
-            const termFreq = positions.length;
-            const wtd = 1 + Math.log10(termFreq);
+            const wtd = 1 + Math.log10(positions.length);
 
             docPositions[docId][queryVecIdx].push(...positions);
 
@@ -76,25 +96,16 @@ class Query {
 
     this.rankByTermProximity(docPositions, docScores);
 
-    const resultHeap: Heap<Result> = new Heap((r1: Result, r2: Result) => r2.score - r1.score);
-
     Object.entries(docScores).forEach(([docId, score]) => {
       const docIdInt = Number(docId);
-      resultHeap.push(new Result(docIdInt, score));
+      this.resultHeap.push(new Result(docIdInt, score));
     });
 
-    const minAmtResults = Math.min(n, resultHeap.size());
-    const retrievedResults: Result[] = [];
-    for (let i = 0; i < minAmtResults; i += 1) {
-      retrievedResults.push(resultHeap.pop());
-    }
+    const populated = await this.populate(n);
 
-    const docIds = retrievedResults.map((result) => result.docId);
-    Object.values(this.postingsLists).forEach((postingsList) => postingsList.deleteDocs(docIds));
+    resolve();
 
-    await Promise.all(Object.values(this.storages).map((storage) => storage.populate(retrievedResults)));
-
-    return retrievedResults;
+    return populated;
   }
 
   private rankByTermProximity(

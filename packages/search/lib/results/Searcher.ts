@@ -79,8 +79,9 @@ class Searcher {
     await this.dictionary.setupPromise;
 
     const queryTerms: string[] = query.split(/\s+/g);
-    const queryVectors = queryTerms.map((queryTerm, idx) => this.dictionary.getTerms(queryTerm,
-      idx === queryTerms.length - 1));
+    const queryVectors = queryTerms
+      .map((queryTerm, idx) => this.dictionary.getTerms(queryTerm, idx === queryTerms.length - 1))
+      .filter((queryVec) => queryVec.getTerms().length);
     const aggregatedTerms = queryVectors.reduce((acc, queryVec) => acc.concat(queryVec.getTerms()), []);
 
     const postingsLists = await this.postingsListManager.retrieve(aggregatedTerms);
@@ -88,7 +89,10 @@ class Searcher {
     const docLengths = await this.docLengths;
     const fieldInfo = await this.fieldInfo;
 
-    return new Query(aggregatedTerms, queryVectors, this.storages, docLengths, fieldInfo, this.dictionary, postingsLists);
+    return new Query(
+      aggregatedTerms, queryVectors, this.storages, docLengths, fieldInfo, this.dictionary,
+      postingsLists,
+    );
   }
 }
 
