@@ -1,4 +1,6 @@
 class QueryVector {
+  public mainTerm: string;
+
   public readonly mainTermAndWeight: { [term: string]: number } = Object.create(null);
 
   public readonly correctedTermsAndWeights: { [term: string]: number } = Object.create(null);

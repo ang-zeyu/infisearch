@@ -132,6 +132,7 @@ class Dictionary {
       this.getCorrectedTerms(queryTerm).forEach((term) => {
         queryVec.addCorrectedTerm(term, 1);
       });
+      queryVec.mainTerm = queryTerm;
 
       return queryVec;
     }

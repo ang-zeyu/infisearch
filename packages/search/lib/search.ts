@@ -132,7 +132,7 @@ function displayTermInfo(query: Query, container: HTMLElement) {
       container.appendChild(
         h('div', { class: 'librarian-suggestion-container' },
           h('div', { class: 'librarian-suggestion-content' },
-            `Could not find ${Object.keys(queryVec.mainTermAndWeight)[0]}, searched for:`,
+            `Could not find any matches for "${queryVec.mainTerm}", did you mean:`,
             h('br', {}),
             ...Object.keys(queryVec.correctedTermsAndWeights).map((correctedTerm) => h(
               'span', { class: 'librarian-suggestion' }, `${correctedTerm} `,
