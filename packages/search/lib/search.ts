@@ -130,12 +130,12 @@ function displayTermInfo(query: Query, container: HTMLElement) {
   query.queryVectors.forEach((queryVec) => {
     if (Object.keys(queryVec.correctedTermsAndWeights).length) {
       container.appendChild(
-        h('div', { class: 'librarian-suggestion-container' },
+        h('div', { class: 'librarian-suggestion-container-corrected' },
           h('div', { class: 'librarian-suggestion-content' },
             `Could not find any matches for "${queryVec.mainTerm}", did you mean:`,
-            h('br', {}),
+            h('hr', {}),
             ...Object.keys(queryVec.correctedTermsAndWeights).map((correctedTerm) => h(
-              'span', { class: 'librarian-suggestion' }, `${correctedTerm} `,
+              'span', { class: 'librarian-suggestion-corrected' }, `${correctedTerm} `,
             ))),
           h('div', { class: 'librarian-suggestion-buttons' },
             h('button', { class: 'librarian-suggestion-button-dismiss', onclick: '() => console.log(\'hi\')' }),
@@ -143,12 +143,14 @@ function displayTermInfo(query: Query, container: HTMLElement) {
       );
     } else if (Object.keys(queryVec.expandedTermsAndWeights).length) {
       container.appendChild(
-        h('div', { class: 'librarian-suggestion-container' },
+        h('div', { class: 'librarian-suggestion-container-expanded' },
           h('div', { class: 'librarian-suggestion-content' },
-            'Also searched for... (add a space to the last term to finalise the search!):',
+            'Also searched for...',
             h('br', {}),
+            h('small', {}, 'Add a space to the last term to finalise the search!'),
+            h('hr', {}),
             ...Object.keys(queryVec.expandedTermsAndWeights).map((expandedTerm) => h(
-              'span', { class: 'librarian-suggestion' }, `${expandedTerm} `,
+              'span', { class: 'librarian-suggestion-expanded' }, `${expandedTerm} `,
             ))),
           h('div', { class: 'librarian-suggestion-buttons' },
             h('button', { class: 'librarian-suggestion-button-dismiss' }),

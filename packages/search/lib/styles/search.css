@@ -33,17 +33,23 @@
     background-color: #d7f3ff;
 }
 
-.librarian-suggestion-container {
+.librarian-suggestion-container-corrected,
+.librarian-suggestion-container-expanded {
     display: flex;
     width: 100%;
     padding: 3px;
     background: linear-gradient(90deg, rgba(0,255,191,0.0896961340743504) 0%, rgba(255,255,255,1) 100%);
     color: #000000;
-    font-size: 1.2rem;
+}
+
+.librarian-suggestion-container-corrected {
+    background: linear-gradient(90deg, rgba(255,0,0,0.0559882689058111) 0%, rgba(255,255,255,1) 100%);
 }
 
 .librarian-suggestion-content {
     flex: 1 0 0;
+    padding: 5px;
+    font-size: 1.1rem;
 }
 
 .librarian-suggestion-buttons {
@@ -76,11 +82,28 @@
 
 }
 
-.librarian-suggestion {
-    border-radius: 5px;
-    border: 1px solid white;
+.librarian-suggestion-content > hr {
+    border: none;
+    border-top: 1px solid rgba(175, 175, 175, 0.3);
+}
+
+.librarian-suggestion-corrected,
+.librarian-suggestion-expanded {
+    border-radius: 7px;
+    border: 1px solid black;
+    padding: 1px 4px;
     color: #000000;
     font-size: 1rem;
+}
+
+.librarian-suggestion-corrected {
+    color: #ff1212;
+}
+
+.librarian-suggestion-expanded {
+    color: #000000;
+    border-color: #d1ffad;
+    background: linear-gradient(90deg, rgba(0,255,70,0.0953141116024403) 0%, rgba(11,255,0,0.0307073700294066) 100%);
 }
 
 .librarian-dropdown-item:not(:first-child) {
