@@ -11,9 +11,26 @@
     flex-direction: column;
     min-width: 30em;
     max-height: 30em;
+    overflow-x: hidden;
     overflow-y: scroll;
     list-style: none;
     background-color: white;
+}
+
+.librarian-dropdown::-webkit-scrollbar-track {
+    border-radius: 5px;
+    margin: 12px 0;
+    background-color: transparent;
+}
+
+.librarian-dropdown::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent;
+}
+
+.librarian-dropdown::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: #d7f3ff;
 }
 
 .librarian-dropdown-item:not(:first-child) {
