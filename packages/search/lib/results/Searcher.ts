@@ -78,11 +78,13 @@ class Searcher {
   async getQuery(query): Promise<Query> {
     await this.dictionary.setupPromise;
 
+    // TODO tokenize by language
     const queryTerms: string[] = query.split(/\s+/g);
+
     const queryVectors = queryTerms
       .map((queryTerm, idx) => this.dictionary.getTerms(queryTerm, idx === queryTerms.length - 1))
-      .filter((queryVec) => queryVec.getTerms().length);
-    const aggregatedTerms = queryVectors.reduce((acc, queryVec) => acc.concat(queryVec.getTerms()), []);
+      .filter((queryVec) => queryVec.getAllTerms().length);
+    const aggregatedTerms = queryVectors.reduce((acc, queryVec) => acc.concat(queryVec.getAllTerms()), []);
 
     const postingsLists = await this.postingsListManager.retrieve(aggregatedTerms);
 

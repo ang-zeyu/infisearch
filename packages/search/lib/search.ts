@@ -91,14 +91,14 @@ function transformText(
   return result.slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
-async function transformResults(results: Query, container: HTMLElement): Promise<void> {
-  const sortedQueryTerms = results.aggregatedTerms.sort((str1, str2) => str2.length - str1.length);
+async function transformResults(query: Query, container: HTMLElement): Promise<void> {
+  const sortedQueryTerms = query.aggregatedTerms.sort((str1, str2) => str2.length - str1.length);
   const termRegex = new RegExp(
     sortedQueryTerms.map((t) => `((^|\\W)${escapeRegex(t)}(?=\\W|$))`).join('|'),
     'gi',
   );
 
-  const resultsEls = (await results.retrieve(10)).map((result) => {
+  const resultsEls = (await query.retrieve(10)).map((result) => {
     console.log(result);
 
     return h('li', { class: 'librarian-dropdown-item' },
@@ -121,19 +121,52 @@ async function transformResults(results: Query, container: HTMLElement): Promise
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(results, container);
+    await transformResults(query, container);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
 
+function displayTermInfo(query: Query, container: HTMLElement) {
+  query.queryVectors.forEach((queryVec) => {
+    if (Object.keys(queryVec.correctedTermsAndWeights).length) {
+      container.appendChild(
+        h('div', { class: 'librarian-suggestion-container' },
+          h('div', { class: 'librarian-suggestion-content' },
+            `Could not find ${Object.keys(queryVec.mainTermAndWeight)[0]}, searched for:`,
+            h('br', {}),
+            ...Object.keys(queryVec.correctedTermsAndWeights).map((correctedTerm) => h(
+              'span', { class: 'librarian-suggestion' }, `${correctedTerm} `,
+            ))),
+          h('div', { class: 'librarian-suggestion-buttons' },
+            h('button', { class: 'librarian-suggestion-button-dismiss', onclick: '() => console.log(\'hi\')' }),
+            h('button', { class: 'librarian-suggestion-button-dismiss-tip' }))),
+      );
+    } else if (Object.keys(queryVec.expandedTermsAndWeights).length) {
+      container.appendChild(
+        h('div', { class: 'librarian-suggestion-container' },
+          h('div', { class: 'librarian-suggestion-content' },
+            'Also searched for... (add a space to the last term to finalise the search!):',
+            h('br', {}),
+            ...Object.keys(queryVec.expandedTermsAndWeights).map((expandedTerm) => h(
+              'span', { class: 'librarian-suggestion' }, `${expandedTerm} `,
+            ))),
+          h('div', { class: 'librarian-suggestion-buttons' },
+            h('button', { class: 'librarian-suggestion-button-dismiss' }),
+            h('button', { class: 'librarian-suggestion-button-dismiss-tip' }))),
+      );
+    }
+  });
+}
+
 const updatePromiseQueue: (() => Promise<void>)[] = [];
-async function update(query: string, container: HTMLElement, searcher: Searcher): Promise<void> {
+async function update(queryString: string, container: HTMLElement, searcher: Searcher): Promise<void> {
   container.style.display = 'flex';
 
-  const results = await searcher.getQuery(query);
+  const query = await searcher.getQuery(queryString);
   container.innerHTML = '';
+  displayTermInfo(query, container);
 
-  await transformResults(results, container);
+  await transformResults(query, container);
 
   updatePromiseQueue.shift();
   if (updatePromiseQueue.length) {

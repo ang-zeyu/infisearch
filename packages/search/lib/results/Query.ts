@@ -16,7 +16,7 @@ class Query {
 
   constructor(
     public readonly aggregatedTerms: string[],
-    private readonly queryVectors: QueryVector[],
+    public readonly queryVectors: QueryVector[],
     private storages: {
       [baseName: string]: Storage
     },
@@ -57,13 +57,13 @@ class Query {
 
     const contenders: Map<number, { [fieldId: number]: number[] }>[][] = await Promise.all(
       this.queryVectors.map((queryVec) => Promise.all(
-        Object.keys(queryVec.termsAndWeights).map((term) => this.postingsLists[term].getDocs()),
+        queryVec.getAllTerms().map((term) => this.postingsLists[term].getDocs()),
       )),
     );
 
     // Tf-idf computation
     this.queryVectors.forEach((queryVec, queryVecIdx) => {
-      Object.entries(queryVec.termsAndWeights).forEach(([term, termWeight], queryVecTermIdx) => {
+      Object.entries(queryVec.getAllTermsAndWeights()).forEach(([term, termWeight], queryVecTermIdx) => {
         const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
 
         contenders[queryVecIdx][queryVecTermIdx].forEach((fields, docId) => {

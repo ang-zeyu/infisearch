@@ -126,20 +126,28 @@ class Dictionary {
   }
 
   getTerms(queryTerm: string, doExpand: boolean): QueryVector {
+    const queryVec = new QueryVector();
+
     if (!this.termInfo[queryTerm]) {
-      return this.getCorrectedTerms(queryTerm);
+      this.getCorrectedTerms(queryTerm).forEach((term) => {
+        queryVec.addCorrectedTerm(term, 1);
+      });
+
+      return queryVec;
     }
+
+    queryVec.setTerm(queryTerm, 1);
 
     if (doExpand) {
-      return this.getExpandedTerms(queryTerm);
+      Object.entries(this.getExpandedTerms(queryTerm)).forEach(([term, weight]) => {
+        queryVec.addExpandedTerm(term, weight);
+      });
     }
 
-    const queryVec = new QueryVector();
-    queryVec.addTerm(queryTerm, 1);
     return queryVec;
   }
 
-  getCorrectedTerms(misSpelledTerm: string): QueryVector {
+  getCorrectedTerms(misSpelledTerm: string): string[] {
     const levenshteinCandidates = this.getTermCandidates(misSpelledTerm, true);
 
     const editDistances: { [term: string]: number } = Object.create(null);
@@ -147,7 +155,7 @@ class Dictionary {
       editDistances[term] = levenshtein.get(misSpelledTerm, term);
     });
 
-    let minEditDistanceTerms = new QueryVector();
+    let minEditDistanceTerms = [];
     let minEditDistance = 99999;
     Object.entries(editDistances).forEach(([term, editDistance]) => {
       if (editDistance >= 3) {
@@ -155,34 +163,33 @@ class Dictionary {
       }
 
       if (editDistance < minEditDistance) {
-        minEditDistanceTerms = new QueryVector();
-        minEditDistanceTerms.addTerm(term, 1);
+        minEditDistanceTerms = [];
+        minEditDistanceTerms.push(term);
         minEditDistance = editDistance;
       } else if (editDistance === minEditDistance) {
-        minEditDistanceTerms.addTerm(term, 1);
+        minEditDistanceTerms.push(term);
       }
     });
 
     return minEditDistanceTerms;
   }
 
-  getExpandedTerms(baseTerm: string): QueryVector {
-    const queryVec = new QueryVector();
-    queryVec.addTerm(baseTerm, 1);
+  getExpandedTerms(baseTerm: string): { [term: string]: number } {
     if (baseTerm.length < 4) {
-      return queryVec;
+      return Object.create(null);
     }
 
+    const expandedTerms: { [term: string]: number } = Object.create(null);
     const prefixCheckCandidates = this.getTermCandidates(baseTerm, false);
 
     const minBaseTermSubstring = baseTerm.substring(0, Math.floor(CORRECTION_ALPHA * baseTerm.length));
     prefixCheckCandidates.forEach((term) => {
       if (term.startsWith(minBaseTermSubstring) && term !== baseTerm) {
-        queryVec.addTerm(term, 1 / (term.length - minBaseTermSubstring.length + 1));
+        expandedTerms[term] = 1 / (term.length - minBaseTermSubstring.length + 1);
       }
     });
 
-    return queryVec;
+    return expandedTerms;
   }
 
   private getTermCandidates(baseTerm: string, useJacard: boolean): string[] {
