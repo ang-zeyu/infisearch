@@ -11,7 +11,7 @@ const BIGRAM_START_CHAR = '^';
 const BIGRAM_END_CHAR = '$';
 
 const CORRECTION_ALPHA = 0.85;
-const SPELLING_CORRECTION_ALPHA = 0.7;
+const SPELLING_CORRECTION_BASE_ALPHA = 0.625;
 
 class Dictionary {
   setupPromise: Promise<void>;
@@ -154,6 +154,7 @@ class Dictionary {
     levenshteinCandidates.forEach((term) => {
       editDistances[term] = levenshtein.get(misSpelledTerm, term);
     });
+    console.log(levenshteinCandidates);
 
     let minEditDistanceTerms = [];
     let minEditDistance = 99999;
@@ -181,6 +182,7 @@ class Dictionary {
 
     const expandedTerms: { [term: string]: number } = Object.create(null);
     const prefixCheckCandidates = this.getTermCandidates(baseTerm, false);
+    console.log(prefixCheckCandidates);
 
     const minBaseTermSubstring = baseTerm.substring(0, Math.floor(CORRECTION_ALPHA * baseTerm.length));
     prefixCheckCandidates.forEach((term) => {
@@ -210,7 +212,7 @@ class Dictionary {
     return Object.keys(candidates).filter((term) => (useJacard
       // (A intersect B) / (A union B)
       // For n-gram string, there are n + 1 bi-grams
-      ? candidates[term] / (term.length + baseTerm.length + 2 - candidates[term]) >= SPELLING_CORRECTION_ALPHA
+      ? candidates[term] / (term.length + baseTerm.length + 2 - candidates[term]) >= SPELLING_CORRECTION_BASE_ALPHA
       : candidates[term] >= minMatchingBiGrams));
   }
 }
