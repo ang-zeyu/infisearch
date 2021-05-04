@@ -15,10 +15,7 @@
   ],
   "scripts": {
     "dev": "tsc-watch --onSuccess \"node ./lib/indexer.js html ./test/1/source\"",
-    "devServer": "http-server ./_index -p 3000 --cors",
-    "devLarger": "tsc-watch --onSuccess \"node --max-old-space-size=8192 ./lib/indexer.js csv ./test/2/source ./test/2/output\"",
-    "devLargerServer": "http-server ./test/2/output -p 3000 --cors",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "devLarger": "tsc-watch --onSuccess \"node --max-old-space-size=8192 ./lib/indexer.js csv ./test/2/source ./test/2/output\""
   },
   "dependencies": {
     "@types/fs-extra": "^9.0.7",
@@ -31,7 +28,6 @@
   },
   "devDependencies": {
     "csv-parse": "^4.15.3",
-    "http-server": "^0.12.3",
     "tsc-watch": "^4.2.9"
   }
 }

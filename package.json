@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "lerna run dev",
+    "devServer1": "http-server ./test_files/1/output -p 3000 --cors",
+    "devServer2": "http-server ./test_files/2/output -p 3000 --cors",
     "lint": "cd packages/indexer && eslint . --ext .ts && cd ../.. && eslint packages/search --ext .js",
     "lintfix": "eslint packages/indexer --ext .ts --fix && eslint packages/search --ext .js --fix",
     "setup": "npm install && lerna bootstrap",
@@ -19,6 +21,7 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-plugin-import": "^2.22.1",
+    "http-server": "^0.12.3",
     "lerna": "^3.22.1",
     "typescript": "^4.1.5"
   }
