@@ -15,16 +15,14 @@ static PREFIX_FRONT_CODE: u8 = 123;
 static SUBSEQUENT_FRONT_CODE: u8 = 125;
 
 pub struct DictionaryEntry {
-    pub assigned_id: u32,
     pub doc_freq: u32,
     pub postings_file_name: u32,
     pub postings_file_offset: u16,
 }
 
+
 pub struct Dictionary<'a> {
     pub entries: DashMap<String, DictionaryEntry>,
-    pub id_to_term_map: DashMap<u32, String>,
-    pub next_term_id: Mutex<u32>,
     pub sorted_entries_by_term: Vec<RefMutMulti<'a, String, DictionaryEntry>>,
 }
 
@@ -32,23 +30,12 @@ unsafe impl<'a> Send for Dictionary<'a> {}
 unsafe impl<'a> Sync for Dictionary<'a> {}
 
 impl<'a> Dictionary<'a> {
-    pub fn add_term(&self, term: String) -> u32 {
-        self.entries.entry(term.clone()).or_insert_with(|| {
-            let mut next_id = self.next_term_id.lock().unwrap();
-
-            let dict_entry = DictionaryEntry {
-                assigned_id: *next_id,
-                doc_freq: 0,
-                postings_file_name: 0,
-                postings_file_offset: 0
-            };
-        
-            self.id_to_term_map.insert(*next_id, term);
-
-            *next_id += 1;
-
-            dict_entry
-        }).assigned_id
+    pub fn add_term(&self, term: String) {
+        self.entries.entry(term).or_insert(DictionaryEntry {
+            doc_freq: 0,
+            postings_file_name: 0,
+            postings_file_offset: 0
+        }).doc_freq += 1;
     }
 
     pub fn sort_entries_by_term(&'a mut self) {

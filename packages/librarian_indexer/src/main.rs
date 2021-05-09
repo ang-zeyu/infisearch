@@ -186,8 +186,6 @@ fn main() {
 
     let dictionary = Arc::new(Dictionary {
         entries: DashMap::new(),
-        id_to_term_map: DashMap::new(),
-        next_term_id: Mutex::new(1),
         sorted_entries_by_term: vec![]
     });
 
@@ -259,7 +257,7 @@ fn main() {
                         bsbi_counter += 1;
 
                         if bsbi_counter == NUM_DOCS {
-                            write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &output_folder_path);
+                            write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &dictionary, &output_folder_path);
                             Worker::make_all_workers_available(&mut workers);
                         }
                     }
@@ -273,7 +271,7 @@ fn main() {
 
     if bsbi_counter != NUM_DOCS {
         println!("Writing last bsbi block");
-        write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &output_folder_path);
+        write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &dictionary, &output_folder_path);
         Worker::make_all_workers_available(&mut workers);
     }
 
@@ -293,6 +291,7 @@ fn write_block (
     doc_id_counter: &u32,
     workers: &mut Vec<Worker>,
     rx_main: &Receiver<WorkerToMainMessage>, 
+    dictionary: &Arc<Dictionary>,
     output_folder_path: &Path
 ) {
     // BSBI logic
@@ -342,7 +341,7 @@ fn write_block (
     let bsbi_block = WorkerMiner::combine_and_sort(worker_miners);
 
     // Write the block
-    WorkerMiner::write_bsbi_block(bsbi_block, output_folder_path, doc_id_counter / NUM_DOCS);
+    WorkerMiner::write_bsbi_block(bsbi_block, dictionary, output_folder_path, doc_id_counter / NUM_DOCS);
     println!("Wrote bsbi block {}", doc_id_counter / NUM_DOCS);
 
     *bsbi_counter = 0;
