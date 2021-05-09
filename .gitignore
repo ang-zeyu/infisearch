@@ -1,6 +1,9 @@
 # test files
 test_files
 
+# cargo
+packages/librarian_indexer/target
+
 # sourcemaps
 *.js.map
 

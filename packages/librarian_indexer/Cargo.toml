@@ -1,0 +1,16 @@
+[package]
+name = "librarian_indexer"
+version = "0.0.1"
+authors = ["Ze Yu <angzeyu@gmail.com>"]
+edition = "2018"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+byteorder = "1"
+csv = "1.1"
+dashmap = "4"
+lazy_static = "1.4"
+regex = "1"
+walkdir = "2"
