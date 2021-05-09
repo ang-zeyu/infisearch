@@ -8,7 +8,6 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
-use crate::Dictionary;
 use crate::fieldinfo::FieldInfo;
 use crate::tokenize::english::tokenize;
 
@@ -63,14 +62,17 @@ impl WorkerMiner {
         // Combine
         for worker_miner in worker_miners {
             for (worker_term, worker_term_docs) in worker_miner.terms {
-                let combined_term_docs = combined_terms.entry(worker_term).or_insert(Vec::new());
-                combined_term_docs.push(worker_term_docs);
+                combined_terms
+                    .entry(worker_term)
+                    .or_insert(Vec::new())
+                    .push(worker_term_docs);
             }
         }
 
         // Sort
         let mut sorted_entries: Vec<(String, Vec<TermDoc>)> = combined_terms.into_iter()
             .map(|mut tup| {
+                // Sort and aggregate worker docIds into one vector
                 let mut output: Vec<TermDoc> = Vec::new();
 
                 let mut heap: BinaryHeap<TermDocComparator> = BinaryHeap::new();
@@ -94,12 +96,14 @@ impl WorkerMiner {
                 
                 (tup.0, output)
             }).collect();
+
+        // Sort terms by lexicographical order
         sorted_entries.sort_by(|a, b| a.0.cmp(&b.0));
 
         sorted_entries
     }
 
-    pub fn write_bsbi_block(bsbi_block: Vec<(String, Vec<TermDoc>)>, dictionary: &Arc<Dictionary>, output_folder_path: &Path, bsbi_block_number: u32) {
+    pub fn write_bsbi_block(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: &Path, bsbi_block_number: u32) {
         let dict_output_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", bsbi_block_number));
         let output_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", bsbi_block_number));
 
@@ -118,7 +122,7 @@ impl WorkerMiner {
             let term_byte_len: u32 = term.len().try_into().unwrap();
             buffered_writer_dict.write_all(&term_byte_len.to_le_bytes()).unwrap();
             buffered_writer_dict.write_all(term.as_bytes()).unwrap();
-            buffered_writer_dict.write_all(&dictionary.entries.get(&term).unwrap().doc_freq.to_le_bytes()).unwrap();
+            buffered_writer_dict.write_all(&(term_docs.len() as u32).to_le_bytes()).unwrap();
             buffered_writer_dict.write_all(&postings_file_offset.to_le_bytes()).unwrap();
 
             // buffered_writer.write_all(&term_id.to_le_bytes()).unwrap();
@@ -146,7 +150,7 @@ impl WorkerMiner {
         buffered_writer_dict.flush().unwrap();
     }
 
-    pub fn index_doc (&mut self, doc_id: u32, field_texts: Vec<(String, String)>, dictionary: &Arc<Dictionary>) {
+    pub fn index_doc (&mut self, doc_id: u32, field_texts: Vec<(String, String)>) {
         for (field_name, field_text) in field_texts {
             let mut field_pos = 0;
             let field_id = self.field_infos.get(&field_name).expect(&format!("Inexistent field: {}", field_name)).id;
@@ -154,8 +158,6 @@ impl WorkerMiner {
             let field_terms = tokenize(&field_text);
             for field_term in field_terms {
                 field_pos += 1;
-
-                dictionary.add_term(field_term.clone());
 
                 let term_docs = self.terms.entry(field_term).or_insert(Vec::new());
 

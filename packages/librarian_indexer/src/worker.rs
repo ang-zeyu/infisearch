@@ -6,7 +6,6 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::thread;
 
-use crate::Dictionary;
 use crate::FieldInfo;
 use miner::WorkerMiner;
 
@@ -80,8 +79,6 @@ pub fn worker<'a> (
     rcvr: Receiver<MainToWorkerMessage>,
     /* Immutable shared data structures... */
     field_infos: Arc<HashMap<String, FieldInfo>>,
-    /* Shared data structures... */
-    dictionary: Arc<Dictionary<'a>>
 ) {
     // Initialize data structures...
     let mut doc_miner = WorkerMiner {
@@ -118,7 +115,7 @@ pub fn worker<'a> (
                 continue;
             },
             MainToWorkerMessage::Index { doc_id, field_texts } => {
-                doc_miner.index_doc(doc_id, field_texts, &dictionary);
+                doc_miner.index_doc(doc_id, field_texts);
         
                 sndr.send(WorkerToMainMessage {
                     id,

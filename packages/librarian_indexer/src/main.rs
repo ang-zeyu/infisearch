@@ -1,4 +1,3 @@
-mod dictionary;
 mod docinfo;
 mod fieldinfo;
 mod tokenize;
@@ -18,7 +17,6 @@ use dashmap::DashMap;
 use csv::Reader;
 use walkdir::WalkDir;
 
-use dictionary::Dictionary;
 use fieldinfo::FieldInfo;
 use worker::Worker;
 use worker::MainToWorkerMessage;
@@ -184,11 +182,6 @@ fn main() {
     let mut doc_id_counter = 0;
     let mut bsbi_counter = 0;
 
-    let dictionary = Arc::new(Dictionary {
-        entries: DashMap::new(),
-        sorted_entries_by_term: vec![]
-    });
-
     let mut field_infos: HashMap<String, FieldInfo> = HashMap::new();
     field_infos.insert("title".to_owned(), FieldInfo {
         id: 1,
@@ -228,12 +221,11 @@ fn main() {
     for i in 0..NUM_THREADS {
         let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = std::sync::mpsc::channel();
         let tx_worker_clone = tx_worker.clone();
-        let dict_clone = Arc::clone(&dictionary);
         let field_info_clone = Arc::clone(&field_infos_arc);
 
         workers.push(Worker {
             id: i as usize,
-            join_handle: std::thread::spawn(move || worker::worker(i as usize, tx_worker_clone, rx_worker, field_info_clone, dict_clone)),
+            join_handle: std::thread::spawn(move || worker::worker(i as usize, tx_worker_clone, rx_worker, field_info_clone)),
             tx: tx_main
         });
     }
@@ -257,7 +249,7 @@ fn main() {
                         bsbi_counter += 1;
 
                         if bsbi_counter == NUM_DOCS {
-                            write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &dictionary, &output_folder_path);
+                            write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &output_folder_path);
                             Worker::make_all_workers_available(&mut workers);
                         }
                     }
@@ -271,7 +263,7 @@ fn main() {
 
     if bsbi_counter != NUM_DOCS {
         println!("Writing last bsbi block");
-        write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &dictionary, &output_folder_path);
+        write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &output_folder_path);
         Worker::make_all_workers_available(&mut workers);
     }
 
@@ -291,7 +283,6 @@ fn write_block (
     doc_id_counter: &u32,
     workers: &mut Vec<Worker>,
     rx_main: &Receiver<WorkerToMainMessage>, 
-    dictionary: &Arc<Dictionary>,
     output_folder_path: &Path
 ) {
     // BSBI logic
@@ -341,7 +332,7 @@ fn write_block (
     let bsbi_block = WorkerMiner::combine_and_sort(worker_miners);
 
     // Write the block
-    WorkerMiner::write_bsbi_block(bsbi_block, dictionary, output_folder_path, doc_id_counter / NUM_DOCS);
+    WorkerMiner::write_bsbi_block(bsbi_block, output_folder_path, doc_id_counter / NUM_DOCS);
     println!("Wrote bsbi block {}", doc_id_counter / NUM_DOCS);
 
     *bsbi_counter = 0;
