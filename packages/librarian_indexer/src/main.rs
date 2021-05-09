@@ -1,10 +1,10 @@
 mod docinfo;
 mod fieldinfo;
+mod spimiwriter;
 mod tokenize;
 mod utils;
 mod worker;
 
-use std::sync::Mutex;
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::sync::mpsc::Receiver;
@@ -13,7 +13,6 @@ use std::env;
 use std::path::Path;
 use std::path::PathBuf;
 
-use dashmap::DashMap;
 use csv::Reader;
 use walkdir::WalkDir;
 
@@ -180,7 +179,10 @@ fn main() {
 
     // Initialise ds...
     let mut doc_id_counter = 0;
-    let mut bsbi_counter = 0;
+    let block_number = |doc_id_counter| {
+        ((doc_id_counter as f64) / (NUM_DOCS as f64)).ceil() as u32
+    };
+    let mut spimi_counter = 0;
 
     let mut field_infos: HashMap<String, FieldInfo> = HashMap::new();
     field_infos.insert("title".to_owned(), FieldInfo {
@@ -246,10 +248,10 @@ fn main() {
                         w.send_work(doc_id_counter, vec![("title".to_owned(), record[1].to_string()), ("body".to_owned(), record[2].to_string())]);
 
                         doc_id_counter += 1;
-                        bsbi_counter += 1;
+                        spimi_counter += 1;
 
-                        if bsbi_counter == NUM_DOCS {
-                            write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &output_folder_path);
+                        if spimi_counter == NUM_DOCS {
+                            spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
                             Worker::make_all_workers_available(&mut workers);
                         }
                     }
@@ -261,79 +263,19 @@ fn main() {
         }
     }
 
-    if bsbi_counter != NUM_DOCS {
-        println!("Writing last bsbi block");
-        write_block(&mut bsbi_counter, &doc_id_counter, &mut workers, &rx_main, &output_folder_path);
+    if spimi_counter != 0 && spimi_counter != NUM_DOCS {
+        println!("Writing last spimi block");
+        spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
         Worker::make_all_workers_available(&mut workers);
     }
 
-    // Merge bsbi blocks
+    // Merge spimi blocks
     // Go through all blocks at once
-    let last_bsbi_block = doc_id_counter / NUM_DOCS;
-    for mut i in 0..last_bsbi_block {
+    let last_spimi_block = block_number(doc_id_counter);
+    for mut i in 0..last_spimi_block {
         
         i += 1;
     }
 
     Worker::terminate_all_workers(workers);
-}
-
-fn write_block (
-    bsbi_counter: &mut u32,
-    doc_id_counter: &u32,
-    workers: &mut Vec<Worker>,
-    rx_main: &Receiver<WorkerToMainMessage>, 
-    output_folder_path: &Path
-) {
-    // BSBI logic
-
-    let mut worker_miners: Vec<WorkerMiner> = Vec::new();
-
-    // Receive idle messages
-    for i in 0..NUM_THREADS {
-        let worker_msg = rx_main.recv();
-        match worker_msg {
-            Ok(worker_msg_unwrapped) => {
-                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
-                    panic!("Failed to receive idle message from worker!");
-                } else {
-                    println!("Worker {} idle message received", worker_msg_unwrapped.id);
-                }
-            },
-            Err(e) => panic!("Failed to receive idle message from worker! {}", e)
-        }
-    }
-
-    // Request doc miner move
-    for worker in workers {
-        println!("Requesting doc miner move! {}", worker.id);
-        worker.receive_work();
-    }
-
-    // Receive doc miners
-    for _i in 0..NUM_THREADS {
-        let worker_msg = rx_main.recv();
-        match worker_msg {
-            Ok(worker_msg_unwrapped) => {
-                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
-                    println!("Received worker {} data!", worker_msg_unwrapped.id);
-                    worker_miners.push(doc_miner_unwrapped);
-                } else {
-                    panic!("Unexpected message received from worker {}!", worker_msg_unwrapped.id);
-                }
-            },
-            Err(e) => panic!("Failed to receive message from worker! {}", e)
-        }
-    }
-
-    // Assign bsbi term ids
-
-    // Aggregate the lists into the block, and sort it according to term
-    let bsbi_block = WorkerMiner::combine_and_sort(worker_miners);
-
-    // Write the block
-    WorkerMiner::write_bsbi_block(bsbi_block, output_folder_path, doc_id_counter / NUM_DOCS);
-    println!("Wrote bsbi block {}", doc_id_counter / NUM_DOCS);
-
-    *bsbi_counter = 0;
 }
