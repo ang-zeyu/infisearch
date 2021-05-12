@@ -1,9 +1,9 @@
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
+use std::path::PathBuf;
 use std::path::Path;
 
 use crate::Receiver;
@@ -12,6 +12,74 @@ use crate::WorkerToMainMessage;
 use crate::Worker;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::TermDocComparator;
+
+pub fn write_block (
+    num_threads: u32,
+    spimi_counter: &mut u32,
+    block_number: u32,
+    workers: &mut Vec<Worker>,
+    rx_main: &Receiver<WorkerToMainMessage>, 
+    output_folder_path: &Path
+) {
+    // SPIMI logic
+
+    let mut worker_miners: Vec<WorkerMiner> = Vec::new();
+
+    // Receive idle messages
+    for i in 0..num_threads {
+        let worker_msg = rx_main.recv();
+        match worker_msg {
+            Ok(worker_msg_unwrapped) => {
+                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
+                    panic!("Failed to receive idle message from worker!");
+                } else {
+                    println!("Worker {} idle message received", worker_msg_unwrapped.id);
+                }
+            },
+            Err(e) => panic!("Failed to receive idle message from worker! {}", e)
+        }
+    }
+
+    // Request doc miner move
+    for worker in workers.iter() {
+        println!("Requesting doc miner move! {}", worker.id);
+        worker.receive_work();
+    }
+
+    // Receive doc miners
+    for _i in 0..num_threads {
+        let worker_msg = rx_main.recv();
+        match worker_msg {
+            Ok(worker_msg_unwrapped) => {
+                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
+                    println!("Received worker {} data!", worker_msg_unwrapped.id);
+                    worker_miners.push(doc_miner_unwrapped);
+                } else {
+                    panic!("Unexpected message received from worker {}!", worker_msg_unwrapped.id);
+                }
+            },
+            Err(e) => panic!("Failed to receive message from worker! {}", e)
+        }
+    }
+
+    // Make workers available for work again; Wait for all doc miners to be received.
+    Worker::make_all_workers_available(workers);
+
+    let combine_and_sort_worker = Worker::get_available_worker(workers, rx_main);
+    let new_output_folder_path = PathBuf::new().join(output_folder_path);
+    combine_and_sort_worker.combine_and_sort_block(worker_miners, new_output_folder_path, block_number);
+
+    *spimi_counter = 0;
+}
+
+pub fn combine_worker_results_and_write_block(
+    worker_miners: Vec<WorkerMiner>,
+    output_folder_path: PathBuf,
+    block_number: u32
+) {
+    let spimi_block = combine_and_sort(worker_miners);
+    write_to_disk(spimi_block, output_folder_path, block_number);
+}
 
 fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc>)> {
     let mut combined_terms: HashMap<String, Vec<Vec<TermDoc>>> = HashMap::new();
@@ -60,9 +128,9 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc
     sorted_entries
 }
 
-fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: &Path, bsbi_block_number: u32) {
-    let dict_output_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", bsbi_block_number));
-    let output_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", bsbi_block_number));
+fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: PathBuf, bsbi_block_number: u32) {
+    let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", bsbi_block_number));
+    let output_file_path = output_folder_path.join(format!("bsbi_block_{}", bsbi_block_number));
 
     println!("Writing bsbi block {} to {}, num terms {}", bsbi_block_number, output_file_path.to_str().unwrap(), bsbi_block.len());
 
@@ -76,17 +144,18 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: &P
     for (term, term_docs) in bsbi_block {
         // println!("Writing {}", term);
 
-        let term_byte_len: u32 = term.len().try_into().unwrap();
-        buffered_writer_dict.write_all(&term_byte_len.to_le_bytes()).unwrap();
+        // Write **temporary** dict table
+        // Term len (4 bytes) - term (term len bytes) - doc freq (4 bytes) - postings_file_offset (4 bytes)
+        buffered_writer_dict.write_all(&(term.len() as u32).to_le_bytes()).unwrap();
         buffered_writer_dict.write_all(term.as_bytes()).unwrap();
         buffered_writer_dict.write_all(&(term_docs.len() as u32).to_le_bytes()).unwrap();
         buffered_writer_dict.write_all(&postings_file_offset.to_le_bytes()).unwrap();
 
-        // buffered_writer.write_all(&term_id.to_le_bytes()).unwrap();
+        // Write pl
         for term_doc in term_docs {
             buffered_writer.write_all(&term_doc.doc_id.to_le_bytes()).unwrap();
 
-            let num_fields: u8 = term_doc.doc_fields.len().try_into().unwrap();
+            let num_fields: u8 = term_doc.doc_fields.len() as u8;
             buffered_writer.write_all(&[num_fields]).unwrap();
 
             postings_file_offset += 5;
@@ -105,63 +174,4 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: &P
 
     buffered_writer.flush().unwrap();
     buffered_writer_dict.flush().unwrap();
-}
-
-pub fn write_block (
-    num_threads: u32,
-    spimi_counter: &mut u32,
-    block_number: u32,
-    workers: &mut Vec<Worker>,
-    rx_main: &Receiver<WorkerToMainMessage>, 
-    output_folder_path: &Path
-) {
-    // SPIMI logic
-
-    let mut worker_miners: Vec<WorkerMiner> = Vec::new();
-
-    // Receive idle messages
-    for i in 0..num_threads {
-        let worker_msg = rx_main.recv();
-        match worker_msg {
-            Ok(worker_msg_unwrapped) => {
-                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
-                    panic!("Failed to receive idle message from worker!");
-                } else {
-                    println!("Worker {} idle message received", worker_msg_unwrapped.id);
-                }
-            },
-            Err(e) => panic!("Failed to receive idle message from worker! {}", e)
-        }
-    }
-
-    // Request doc miner move
-    for worker in workers {
-        println!("Requesting doc miner move! {}", worker.id);
-        worker.receive_work();
-    }
-
-    // Receive doc miners
-    for _i in 0..num_threads {
-        let worker_msg = rx_main.recv();
-        match worker_msg {
-            Ok(worker_msg_unwrapped) => {
-                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
-                    println!("Received worker {} data!", worker_msg_unwrapped.id);
-                    worker_miners.push(doc_miner_unwrapped);
-                } else {
-                    panic!("Unexpected message received from worker {}!", worker_msg_unwrapped.id);
-                }
-            },
-            Err(e) => panic!("Failed to receive message from worker! {}", e)
-        }
-    }
-
-    // Aggregate the lists into the block, and sort it according to term
-    let spimi_block = combine_and_sort(worker_miners);
-
-    // Write the block
-    write_to_disk(spimi_block, output_folder_path, block_number);
-    println!("Wrote spimi block {}", block_number);
-
-    *spimi_counter = 0;
 }

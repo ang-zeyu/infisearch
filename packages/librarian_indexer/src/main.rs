@@ -1,5 +1,6 @@
 mod docinfo;
 mod fieldinfo;
+mod spimireader;
 mod spimiwriter;
 mod tokenize;
 mod utils;
@@ -252,7 +253,6 @@ fn main() {
 
                         if spimi_counter == NUM_DOCS {
                             spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
-                            Worker::make_all_workers_available(&mut workers);
                         }
                     }
                 }
@@ -266,7 +266,6 @@ fn main() {
     if spimi_counter != 0 && spimi_counter != NUM_DOCS {
         println!("Writing last spimi block");
         spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
-        Worker::make_all_workers_available(&mut workers);
     }
 
     // Merge spimi blocks
@@ -276,6 +275,7 @@ fn main() {
         
         i += 1;
     }
+    //spimireader::merge_blocks(NUM_THREADS, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
 
     Worker::terminate_all_workers(workers);
 }
