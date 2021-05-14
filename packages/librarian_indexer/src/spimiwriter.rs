@@ -1,3 +1,4 @@
+use crate::worker::miner::TermDocComparator;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
 use std::fs::File;
@@ -11,13 +12,12 @@ use crate::WorkerMiner;
 use crate::WorkerToMainMessage;
 use crate::Worker;
 use crate::worker::miner::TermDoc;
-use crate::worker::miner::TermDocComparator;
 
 pub fn write_block (
     num_threads: u32,
     spimi_counter: &mut u32,
     block_number: u32,
-    workers: &mut Vec<Worker>,
+    workers: &Vec<Worker>,
     rx_main: &Receiver<WorkerToMainMessage>, 
     output_folder_path: &Path
 ) {
@@ -30,7 +30,7 @@ pub fn write_block (
         let worker_msg = rx_main.recv();
         match worker_msg {
             Ok(worker_msg_unwrapped) => {
-                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
+                if let Some(_doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
                     panic!("Failed to receive idle message from worker!");
                 } else {
                     println!("Worker {} idle message received", worker_msg_unwrapped.id);
@@ -62,8 +62,8 @@ pub fn write_block (
         }
     }
 
-    // Make workers available for work again; Wait for all doc miners to be received.
-    Worker::make_all_workers_available(workers);
+    // wait here to avoid receiving messages from the same workers above more than once
+    Worker::make_all_workers_available(&workers);
 
     let combine_and_sort_worker = Worker::get_available_worker(workers, rx_main);
     let new_output_folder_path = PathBuf::new().join(output_folder_path);
@@ -89,7 +89,7 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc
         for (worker_term, worker_term_docs) in worker_miner.terms {
             combined_terms
                 .entry(worker_term)
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(worker_term_docs);
         }
     }
@@ -135,10 +135,10 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: Pa
     println!("Writing bsbi block {} to {}, num terms {}", bsbi_block_number, output_file_path.to_str().unwrap(), bsbi_block.len());
 
     let df = File::create(dict_output_file_path).expect("Failed to open temporary dictionary table for writing.");
-    let mut buffered_writer_dict = BufWriter::new(df);
+    let mut buffered_writer_dict = BufWriter::with_capacity(819200, df);
 
     let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");
-    let mut buffered_writer = BufWriter::new(f);
+    let mut buffered_writer = BufWriter::with_capacity(819200, f);
     
     let mut postings_file_offset: u32 = 0;
     for (term, term_docs) in bsbi_block {
@@ -161,7 +161,7 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: Pa
             postings_file_offset += 5;
             for doc_field in term_doc.doc_fields {
                 buffered_writer.write_all(&[doc_field.field_id]).unwrap();
-                buffered_writer.write_all(&doc_field.field_tf.to_le_bytes()).unwrap();
+                buffered_writer.write_all(&(doc_field.field_positions.len() as u32).to_le_bytes()).unwrap();
 
                 postings_file_offset += 5;
                 for pos in doc_field.field_positions {

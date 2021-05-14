@@ -6,11 +6,12 @@ mod tokenize;
 mod utils;
 mod worker;
 
-use std::sync::Arc;
+use std::time::Instant;
 use std::collections::HashMap;
+use std::env;
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
-use std::env;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -168,7 +169,7 @@ fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path) ->
     }
 }
 
-static NUM_THREADS: u32 = 12;
+static NUM_THREADS: u32 = 10;
 static NUM_DOCS: u32 = 1000;
 
 fn main() {
@@ -193,25 +194,25 @@ fn main() {
         weight: 0.2
     });
     field_infos.insert("heading".to_owned(), FieldInfo {
-        id: 1,
+        id: 2,
         storage: "JsonStorage".to_owned(),
         storage_params: HashMap::new(),
         weight: 0.3
     });
     field_infos.insert("body".to_owned(), FieldInfo {
-        id: 1,
+        id: 3,
         storage: "JsonStorage".to_owned(),
         storage_params: HashMap::new(),
         weight: 0.5
     });
     field_infos.insert("headingLink".to_owned(), FieldInfo {
-        id: 1,
+        id: 4,
         storage: "JsonStorage".to_owned(),
         storage_params: HashMap::new(),
         weight: 0.0
     });
     field_infos.insert("link".to_owned(), FieldInfo {
-        id: 1,
+        id: 5,
         storage: "TextStorage".to_owned(),
         storage_params: HashMap::new(),
         weight: 0.0
@@ -232,7 +233,15 @@ fn main() {
             tx: tx_main
         });
     }
-    Worker::make_all_workers_available(&mut workers);
+    Worker::make_all_workers_available(&workers);
+
+    let now = Instant::now();
+    spimireader::merge_blocks(10, &workers, &rx_main, &output_folder_path);
+
+    let elapsed = now.elapsed().as_secs();
+    println!("{} mins {} seconds elapsed", elapsed / 60, elapsed % 60);
+    Worker::terminate_all_workers(workers);
+    return;
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -244,7 +253,7 @@ fn main() {
                     
                     for result in rdr.records() {
                         let record = result.expect("Failed to unwrap csv record result!");
-                        let w = Worker::get_available_worker(&mut workers, &rx_main);
+                        let w = Worker::get_available_worker(&workers, &rx_main);
 
                         w.send_work(doc_id_counter, vec![("title".to_owned(), record[1].to_string()), ("body".to_owned(), record[2].to_string())]);
 
@@ -252,7 +261,7 @@ fn main() {
                         spimi_counter += 1;
 
                         if spimi_counter == NUM_DOCS {
-                            spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
+                            spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
                         }
                     }
                 }
@@ -265,17 +274,15 @@ fn main() {
 
     if spimi_counter != 0 && spimi_counter != NUM_DOCS {
         println!("Writing last spimi block");
-        spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
+        spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
     }
+    Worker::make_all_workers_available(&workers); // block writing must finish before proceeding to merge spimi blocks
 
     // Merge spimi blocks
     // Go through all blocks at once
-    let last_spimi_block = block_number(doc_id_counter);
-    for mut i in 0..last_spimi_block {
-        
-        i += 1;
-    }
-    //spimireader::merge_blocks(NUM_THREADS, block_number(doc_id_counter), &mut workers, &rx_main, &output_folder_path);
+    // spimireader::merge_blocks(block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
 
+    let elapsed = now.elapsed().as_secs();
+    println!("{} mins {} seconds elapsed", elapsed / 60, elapsed % 60);
     Worker::terminate_all_workers(workers);
 }

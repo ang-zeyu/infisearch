@@ -7,7 +7,6 @@ use crate::tokenize::english::tokenize;
 
 pub struct DocField {
     pub field_id: u8,
-    pub field_tf: u32,
     pub field_positions: Vec<u32>
 }
 
@@ -59,7 +58,7 @@ impl WorkerMiner {
             for field_term in field_terms {
                 field_pos += 1;
 
-                let term_docs = self.terms.entry(field_term).or_insert(Vec::new());
+                let term_docs = self.terms.entry(field_term).or_insert_with(Vec::new);
 
                 let term_doc: &mut TermDoc = if let Some(term_doc) = term_docs.last_mut() {
                     if term_doc.doc_id != doc_id {
@@ -83,7 +82,6 @@ impl WorkerMiner {
                     if doc_field.field_id != field_id {
                         term_doc.doc_fields.push(DocField {
                             field_id,
-                            field_tf: 0,
                             field_positions: Vec::new()
                         });
                         term_doc.doc_fields.last_mut().unwrap()
@@ -93,13 +91,11 @@ impl WorkerMiner {
                 } else {
                     term_doc.doc_fields.push(DocField {
                         field_id,
-                        field_tf: 0,
                         field_positions: Vec::new()
                     });
                     term_doc.doc_fields.last_mut().unwrap()
                 };
 
-                doc_field.field_tf += 1;
                 doc_field.field_positions.push(field_pos);
             }
         }
