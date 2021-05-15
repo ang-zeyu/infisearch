@@ -26,8 +26,8 @@ static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 2000;
 static POSTINGS_FILE_LIMIT: u32 = 65535;
 static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
 
-static PREFIX_FRONT_CODE: u8 = 123;
-static SUBSEQUENT_FRONT_CODE: u8 = 125;
+static PREFIX_FRONT_CODE: u8 = 123;     // {
+static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
 
 pub enum PostingsStreamDecoder {
     Reader(PostingsStreamReader),
@@ -263,13 +263,18 @@ pub fn merge_blocks(
     let mut prev_common_prefix = "".to_owned();
     let mut pending_terms: Vec<String> = Vec::new();
     let write_pending_terms = |dict_string_writer: &mut BufWriter<File>, prev_common_prefix: &mut String, pending_terms: &mut Vec<String>| {
+        let curr_term = pending_terms.remove(0);
+
+        // Write the first term's full length
+        dict_string_writer.write_all(&[curr_term.len() as u8]).unwrap();
+
         // Write the prefix (if there are frontcoded terms) **or** just the term (pending_terms.len() == 1)
         dict_string_writer.write_all(prev_common_prefix.as_bytes()).unwrap();
                 
         if pending_terms.len() > 1 {
             // Write frontcoded terms...
             dict_string_writer.write_all(&[PREFIX_FRONT_CODE]).unwrap();
-            dict_string_writer.write_all(&pending_terms.remove(0).as_bytes()[prev_common_prefix.len()..]).unwrap(); // first term suffix
+            dict_string_writer.write_all(&curr_term.as_bytes()[prev_common_prefix.len()..]).unwrap(); // first term suffix
 
             for term in pending_terms {
                 dict_string_writer.write_all(&[(term.len() -  prev_common_prefix.len()) as u8]).unwrap();
