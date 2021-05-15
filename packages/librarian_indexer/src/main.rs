@@ -236,12 +236,11 @@ fn main() {
     Worker::make_all_workers_available(&workers);
 
     let now = Instant::now();
-    spimireader::merge_blocks(10, &workers, &rx_main, &output_folder_path);
+    /* spimireader::merge_blocks(10, &workers, &rx_main, &output_folder_path);
 
-    let elapsed = now.elapsed().as_secs();
-    println!("{} mins {} seconds elapsed", elapsed / 60, elapsed % 60);
+    print_time_elapsed(now);
     Worker::terminate_all_workers(workers);
-    return;
+    return; */
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -276,13 +275,20 @@ fn main() {
         println!("Writing last spimi block");
         spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
     }
-    Worker::make_all_workers_available(&workers); // block writing must finish before proceeding to merge spimi blocks
+
+    // Wait on all workers
+    Worker::wait_on_all_workers(&workers, &rx_main, NUM_THREADS);
+    print_time_elapsed(now);
 
     // Merge spimi blocks
     // Go through all blocks at once
-    // spimireader::merge_blocks(block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
+    spimireader::merge_blocks(block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
 
-    let elapsed = now.elapsed().as_secs();
-    println!("{} mins {} seconds elapsed", elapsed / 60, elapsed % 60);
+    print_time_elapsed(now);
     Worker::terminate_all_workers(workers);
+}
+
+fn print_time_elapsed(instant: Instant) {
+    let elapsed = instant.elapsed().as_secs();
+    println!("{} mins {} seconds elapsed", elapsed / 60, elapsed % 60);
 }

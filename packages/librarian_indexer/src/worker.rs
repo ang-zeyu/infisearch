@@ -58,7 +58,7 @@ impl Worker {
         self.tx.send(MainToWorkerMessage::Combine {
             worker_miners,
             output_folder_path,
-            block_number
+            block_number,
         }).expect("Failed to send work message to worker!");
     }
 
@@ -76,10 +76,30 @@ impl Worker {
         }
     }
 
+    pub fn make_available(&self) {
+        self.tx.send(MainToWorkerMessage::Wait).expect(&format!("Failed to send make_available message for worker {}!", self.id));
+    }
+
     pub fn make_all_workers_available(workers: &Vec<Worker>) {
         for worker in workers {
-            worker.tx.send(MainToWorkerMessage::Wait).expect("Failed to send make_all_workers_available message!");
+            worker.make_available();
         }
+    }
+
+    pub fn wait_on_all_workers(workers: &Vec<Worker>, rx_main: &Receiver<WorkerToMainMessage>, num_threads: u32) {
+        for i in 0..num_threads {
+            let worker_msg = rx_main.recv();
+            match worker_msg {
+                Ok(worker_msg_unwrapped) => {
+                    if let Some(_doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
+                        panic!("Received data from worker {} unexpectedly!", worker_msg_unwrapped.id);
+                    }
+                },
+                Err(e) => panic!("Failed to receive idle message from worker! {}", e)
+            }
+        }
+
+        Worker::make_all_workers_available(workers);
     }
     
     pub fn get_available_worker<'b> (workers: &'b Vec<Worker>, rx_main: &'b Receiver<WorkerToMainMessage>) -> &'b Worker {

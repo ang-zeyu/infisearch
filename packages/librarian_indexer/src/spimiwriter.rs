@@ -22,32 +22,11 @@ pub fn write_block (
     output_folder_path: &Path
 ) {
     // SPIMI logic
-
-    let mut worker_miners: Vec<WorkerMiner> = Vec::new();
-
-    // Receive idle messages
-    for i in 0..num_threads {
-        let worker_msg = rx_main.recv();
-        match worker_msg {
-            Ok(worker_msg_unwrapped) => {
-                if let Some(_doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
-                    panic!("Failed to receive idle message from worker!");
-                } else {
-                    println!("Worker {} idle message received", worker_msg_unwrapped.id);
-                }
-            },
-            Err(e) => panic!("Failed to receive idle message from worker! {}", e)
-        }
-    }
-
-    // Request doc miner move
-    for worker in workers.iter() {
-        println!("Requesting doc miner move! {}", worker.id);
-        worker.receive_work();
-    }
-
-    // Receive doc miners
-    for _i in 0..num_threads {
+    let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_threads as usize);
+    
+    // Receive available messages, request workers for doc miners
+    // num_threads availability messages and num_threads doc_miner messages should be received in total
+    for _i in 0..(2 * num_threads) {
         let worker_msg = rx_main.recv();
         match worker_msg {
             Ok(worker_msg_unwrapped) => {
@@ -55,10 +34,11 @@ pub fn write_block (
                     println!("Received worker {} data!", worker_msg_unwrapped.id);
                     worker_miners.push(doc_miner_unwrapped);
                 } else {
-                    panic!("Unexpected message received from worker {}!", worker_msg_unwrapped.id);
+                    println!("Requesting doc miner move for worker {}!", worker_msg_unwrapped.id);
+                    workers[worker_msg_unwrapped.id].receive_work();
                 }
             },
-            Err(e) => panic!("Failed to receive message from worker! {}", e)
+            Err(e) => panic!("Failed to receive idle message from worker! {}", e)
         }
     }
 
@@ -66,8 +46,7 @@ pub fn write_block (
     Worker::make_all_workers_available(&workers);
 
     let combine_and_sort_worker = Worker::get_available_worker(workers, rx_main);
-    let new_output_folder_path = PathBuf::new().join(output_folder_path);
-    combine_and_sort_worker.combine_and_sort_block(worker_miners, new_output_folder_path, block_number);
+    combine_and_sort_worker.combine_and_sort_block(worker_miners, PathBuf::new().join(output_folder_path), block_number);
 
     *spimi_counter = 0;
 }
