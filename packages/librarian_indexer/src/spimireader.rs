@@ -8,6 +8,7 @@ use std::collections::VecDeque;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::fs::File;
+use std::str;
 use std::io::BufWriter;
 use std::io::BufReader;
 use std::io::Write;
@@ -267,11 +268,10 @@ pub fn merge_blocks(
 
         // Write the first term's full length
         dict_string_writer.write_all(&[curr_term.len() as u8]).unwrap();
-
         // Write the prefix (if there are frontcoded terms) **or** just the term (pending_terms.len() == 1)
         dict_string_writer.write_all(prev_common_prefix.as_bytes()).unwrap();
                 
-        if pending_terms.len() > 1 {
+        if pending_terms.len() > 0 {
             // Write frontcoded terms...
             dict_string_writer.write_all(&[PREFIX_FRONT_CODE]).unwrap();
             dict_string_writer.write_all(&curr_term.as_bytes()[prev_common_prefix.len()..]).unwrap(); // first term suffix
@@ -301,13 +301,22 @@ pub fn merge_blocks(
 
     println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
 
+    // Initialise
+    let mut initial_postings_stream = postings_streams.pop().unwrap();
+    prev_term = std::mem::take(&mut initial_postings_stream.curr_term);
+    prev_common_prefix = prev_term.clone();
+    pending_terms.push(prev_term.clone());
+    prev_combined_term_docs = std::mem::take(&mut initial_postings_stream.curr_term_docs);
+    initial_postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
+    postings_streams.push(initial_postings_stream);
+
     while !postings_streams.is_empty() {
         let mut postings_stream = postings_streams.pop().unwrap();
         // println!("term {} idx {} first doc {}", postings_stream.curr_term, postings_stream.idx, postings_stream.curr_term_docs[0].doc_id);
         if postings_stream.is_empty {
             continue;
         }
-
+        
         // Aggregate same terms from different blocks...
         if prev_term == postings_stream.curr_term {
             // Add on
@@ -408,10 +417,18 @@ pub fn merge_blocks(
             // TODO make this optimal?
             let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(&prev_common_prefix, &prev_term);
             // println!("{} {} ", prev_common_prefix.len(), unicode_prefix_byte_len);
-            let frontcode_cost: i32 = (pending_terms.len() * (prev_common_prefix.len() - unicode_prefix_byte_len)) as i32 // num already frontcoded terms * prefix length reduction
-                + 2 // len + symbol
-                + (if pending_terms.len() == 1 { 1 } else { 0 })
-                - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */;
+
+            // How much bytes do we add / lose by frontcoding this term?
+            let frontcode_cost: i32 = if pending_terms.len() == 1 {
+                (pending_terms.len() * (prev_common_prefix.len() - unicode_prefix_byte_len)) as i32 // num already frontcoded terms * prefix length reduction
+                    + 2 // 2 symbols
+                    + 5 // the bar for the first match should be higher
+                    - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
+            } else {
+                (pending_terms.len() * (prev_common_prefix.len() - unicode_prefix_byte_len)) as i32 // num already frontcoded terms * prefix length reduction
+                    + 2 // 1 symbol
+                    - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
+            };
     
             if frontcode_cost <= 0 {
                 prev_common_prefix = prev_common_prefix[0..unicode_prefix_byte_len].to_owned();
