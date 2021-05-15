@@ -89,6 +89,9 @@ impl WorkerMiner {
         let mut field_store_buffered_writer = BufWriter::new(File::create(field_store_path).expect("Failed to open field store file for writing!"));
         field_store_buffered_writer.write_all(b"[").unwrap();
 
+        let field_texts_len = field_texts.len();
+        let mut field_text_count = 1;
+
         for (field_name, field_text) in field_texts {
             let mut field_pos = 0;
             let field_info = self.field_infos.get(&field_name).expect(&format!("Inexistent field: {}", field_name));
@@ -96,10 +99,16 @@ impl WorkerMiner {
 
             // Store raw text
             if field_info.do_store {
-                field_store_buffered_writer.write_all(format!("[{},\"", field_id).as_bytes()).unwrap();
+                field_store_buffered_writer.write_all(b"[").unwrap();
+                field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
+                field_store_buffered_writer.write_all(b",\"").unwrap();
                 field_store_buffered_writer.write_all(find_u8_unsafe_morecap(&field_text).as_bytes()).unwrap();
                 field_store_buffered_writer.write_all(b"\"]").unwrap();
+                if field_text_count != field_texts_len {
+                    field_store_buffered_writer.write_all(b",").unwrap();
+                }
             }
+            field_text_count += 1;
 
             if field_info.weight == 0.0 {
                 continue;
