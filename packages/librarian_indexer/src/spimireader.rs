@@ -1,3 +1,4 @@
+use dashmap::DashMap;
 use std::sync::mpsc::Sender;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -28,7 +29,7 @@ static SUBSEQUENT_FRONT_CODE: u8 = 125;
 
 pub enum PostingsStreamDecoder {
     Reader(PostingsStreamReader),
-    Notifier(Sender<()>),
+    Notifier(Mutex<Sender<()>>),
     None
 }
 
@@ -44,13 +45,13 @@ impl PostingsStreamReader {
         self,
         rx_main: &Receiver<WorkerToMainMessage>,
         workers: &Vec<Worker>,
-        postings_stream_readers: Arc<Mutex<Vec<PostingsStreamDecoder>>>,
+        postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
     ) {
         let w = Worker::get_available_worker(workers, rx_main);
         w.decode_spimi(
             POSTINGS_STREAM_BUFFER_SIZE,
             self,
-            postings_stream_readers,
+            postings_stream_decoders,
         );
     }
 }
@@ -97,15 +98,16 @@ impl PostingsStream {
     // Transfer first term of term_buffer into curr_term and curr_term_docs
     fn get_term (
         &mut self,
-        postings_stream_readers: Arc<Mutex<Vec<PostingsStreamDecoder>>>,
+        postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
         rx_main: &Receiver<WorkerToMainMessage>,
         workers: &Vec<Worker>,
         blocking_sndr: &Sender<()>,
         blocking_rcvr: &Receiver<()>,
     ) {
         if self.term_buffer.len() == 0 {
-            let mut postings_stream_readers_vec = postings_stream_readers.lock().unwrap();
-            match postings_stream_readers_vec.get_mut(self.idx as usize).unwrap() {
+            let mut lock = postings_stream_decoders.get_mut(&self.idx).unwrap();
+            let lock_value_mut = lock.value_mut();
+            match lock_value_mut {
                 PostingsStreamDecoder::Reader(postings_stream_reader) => {
                     std::mem::swap(&mut postings_stream_reader.future_term_buffer, &mut self.term_buffer);
                 },
@@ -113,17 +115,16 @@ impl PostingsStream {
                     println!("Blocked! Ouch! Consider increasing the decode buffer size...");
 
                     // Set to notifier
-                    postings_stream_readers_vec[self.idx as usize] = PostingsStreamDecoder::Notifier(blocking_sndr.clone());
+                    *lock_value_mut = PostingsStreamDecoder::Notifier(Mutex::from(blocking_sndr.clone()));
 
                     // Deadlock otherwise - worker will never be able to acquire postings_stream_readers_vec
-                    drop(postings_stream_readers_vec);
+                    drop(lock);
 
                     // Wait for worker to finish decoding...
                     blocking_rcvr.recv().unwrap();
 
                     // Done! Reacquire lock
-                    postings_stream_readers_vec = postings_stream_readers.lock().unwrap();
-                    match postings_stream_readers_vec.get_mut(self.idx as usize).unwrap() {
+                    match postings_stream_decoders.get_mut(&self.idx).unwrap().value_mut() {
                         PostingsStreamDecoder::Reader(postings_stream_reader) => {
                             std::mem::swap(&mut postings_stream_reader.future_term_buffer, &mut self.term_buffer);
                         },
@@ -135,9 +136,10 @@ impl PostingsStream {
             self.is_reader_decoding = false;
         } else if !self.is_reader_decoding && self.term_buffer.len() < POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD {
             // Request for an in-advance worker decode...
-            match std::mem::replace(&mut postings_stream_readers.lock().unwrap()[self.idx as usize], PostingsStreamDecoder::None) {
+
+            match std::mem::replace(postings_stream_decoders.get_mut(&self.idx).unwrap().value_mut(), PostingsStreamDecoder::None) {
                 PostingsStreamDecoder::Reader(postings_stream_reader) => {
-                    postings_stream_reader.read_next_batch(rx_main, workers, Arc::clone(&postings_stream_readers));
+                    postings_stream_reader.read_next_batch(rx_main, workers, Arc::clone(postings_stream_decoders));
                     self.is_reader_decoding = true;
                 },
                 _ => panic!("Unexpected state @get_term")
@@ -190,7 +192,7 @@ pub fn merge_blocks<'a> (
      using a simple hashset...
      */
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
-    let postings_stream_readers: Arc<Mutex<Vec<PostingsStreamDecoder>>> = Arc::from(Mutex::from(Vec::with_capacity(num_blocks as usize)));
+    let postings_stream_readers: Arc<DashMap<u32, PostingsStreamDecoder>> = Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = std::sync::mpsc::channel();
 
     // let (tx_stream, rx_stream) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = std::sync::mpsc::channel();
@@ -204,12 +206,10 @@ pub fn merge_blocks<'a> (
         let block_dict_file = File::open(block_dict_file_path).expect("Failed to open block dictionary table for reading.");
 
         // Transfer reader to thread and begin reads
-        let mut decoders_guard = postings_stream_readers.lock().unwrap();
-        decoders_guard.push(PostingsStreamDecoder::None);
-        drop(decoders_guard);
+        postings_stream_readers.insert(idx, PostingsStreamDecoder::None);
 
         (PostingsStreamReader {
-            idx: idx - 1,
+            idx,
             buffered_reader: BufReader::with_capacity(819200, block_file),
             buffered_dict_reader: BufReader::with_capacity(819200, block_dict_file),
             future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize)
@@ -218,7 +218,7 @@ pub fn merge_blocks<'a> (
 
     // Initialize postings streams...
     // And wait for all decoding to finish...
-    for idx in 0..num_blocks {
+    for idx in 1..(num_blocks + 1) {
         let mut postings_stream = PostingsStream {
             idx,
             is_empty: false,
@@ -227,7 +227,7 @@ pub fn merge_blocks<'a> (
             curr_term_docs: Vec::new(),
             term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize), // transfer ownership of future term buffer to the main postings stream
         };
-        postings_stream.get_term(Arc::clone(&postings_stream_readers), rx_main, workers, &blocking_sndr, &blocking_rcvr);
+        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
         postings_streams.push(postings_stream);
     }
     println!("Initialized postings streams...");
@@ -293,7 +293,7 @@ pub fn merge_blocks<'a> (
             
             if !postings_streams.is_empty() {
                 // Plop the next term from the term buffer into curr_term and curr_term_docs
-                postings_stream.get_term(Arc::clone(&postings_stream_readers), rx_main, workers, &blocking_sndr, &blocking_rcvr);
+                postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
                 postings_streams.push(postings_stream);
                 continue; // go to the next postings stream which has the same term, if any.
             }
@@ -411,7 +411,7 @@ pub fn merge_blocks<'a> (
         // ---------------------------------------------
         // Plop the next term from the term buffer into the stream
         // Then push it back into the heap.
-        postings_stream.get_term(Arc::clone(&postings_stream_readers), rx_main, workers, &blocking_sndr, &blocking_rcvr);
+        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
         postings_streams.push(postings_stream);
         // ---------------------------------------------
     }

@@ -1,5 +1,6 @@
 pub mod miner;
 
+use dashmap::DashMap;
 use crate::spimireader::PostingsStreamDecoder;
 use std::sync::Mutex;
 use crate::spimireader::PostingsStreamReader;
@@ -44,7 +45,7 @@ impl Worker {
         &self,
         n: u32,
         postings_stream_reader: PostingsStreamReader,
-        postings_stream_decoders: Arc<Mutex<Vec<PostingsStreamDecoder>>>,
+        postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
     ) {
         self.tx.send(MainToWorkerMessage::Decode {
             n,
@@ -108,7 +109,7 @@ pub enum MainToWorkerMessage {
     Decode {
         n: u32,
         postings_stream_reader: PostingsStreamReader,
-        postings_stream_decoders: Arc<Mutex<Vec<PostingsStreamDecoder>>>,
+        postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
     }
 }
 
@@ -184,9 +185,9 @@ pub fn worker (
                 for _unused in 0..n {
                     if let Ok(()) = postings_stream_reader.buffered_dict_reader.read_exact(&mut u32_buf) {
                         // Temporary combined dictionary table / dictionary string
-                        let term_len = LittleEndian::read_u32(&u32_buf);
+                        let term_len: usize = LittleEndian::read_u32(&u32_buf) as usize;
                     
-                        let mut term_vec: Vec<u8> = vec![0; term_len as usize];
+                        let mut term_vec = vec![0; term_len];
                         postings_stream_reader.buffered_dict_reader.read_exact(&mut term_vec).unwrap();
                         let term = str::from_utf8(&term_vec).unwrap().to_owned();
         
@@ -239,12 +240,11 @@ pub fn worker (
                 }
 
                 {
-                    let idx = postings_stream_reader.idx as usize;
-                    let mut postings_stream_decoders_guard = postings_stream_decoders.lock().unwrap();
-                    let postings_stream_decoder = postings_stream_decoders_guard.get_mut(idx).unwrap();
+                    let mut postings_stream_decoder_entry = postings_stream_decoders.get_mut(&postings_stream_reader.idx).unwrap();
+                    let postings_stream_decoder = postings_stream_decoder_entry.value_mut();
                     match postings_stream_decoder {
                         PostingsStreamDecoder::None => {
-                            postings_stream_decoders_guard[idx] = PostingsStreamDecoder::Reader(postings_stream_reader);
+                            *postings_stream_decoder = PostingsStreamDecoder::Reader(postings_stream_reader);
                         },
                         PostingsStreamDecoder::Notifier(_tx) => {
                             let notifier_decoder = std::mem::replace(postings_stream_decoder, PostingsStreamDecoder::Reader(postings_stream_reader));
@@ -252,7 +252,7 @@ pub fn worker (
                             // Main thread was blocked as this worker was still decoding
                             // Re-notify that decoding is done!
                             if let PostingsStreamDecoder::Notifier(tx) = notifier_decoder {
-                                tx.send(()).unwrap();
+                                tx.lock().unwrap().send(()).unwrap();
                             }
                         },
                         PostingsStreamDecoder::Reader(_r) => panic!("Reader still available in array @worker")
