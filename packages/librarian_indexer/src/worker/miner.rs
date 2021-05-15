@@ -74,7 +74,7 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
                 b'\r' => output.extend_from_slice(b"\\r"),
                 b'\t' => output.extend_from_slice(b"\\t"),
                 b'"' => output.extend_from_slice(b"\\\""),
-                b'\\' => output.extend_from_slice(b"\\"),
+                b'\\' => output.extend_from_slice(b"\\\\"),
                 _ => output.push(c),
             }
         }
