@@ -1,23 +1,18 @@
-use std::convert::TryInto;
+static VALUE_MASK: u32 = 127;       // 0111 1111
+static CONTINUATION_MASK: u8 = 128; // 1000 0000
 
-static VALUE_MASK: u32 = 0x7f; // 0111 1111
-static CONTINUATION_MASK: u8 = 0x80; // 1000 0000
+pub fn get_var_int<'a> (mut value: u32, output_buf: &'a mut [u8]) -> &'a [u8] {
+    for buf_idx in 0..32 {
+        let last_seven_bits: u8 = (value & VALUE_MASK) as u8;
+        value = value >> 7;
 
-pub fn get_var_int(value: u32) -> Vec<u8> {
-    let mut buffer = Vec::new();
-
-    let mut new_value = value;
-    loop {
-        let last_seven_bits: u8 = (new_value & VALUE_MASK).try_into().unwrap();
-        new_value >>= 7;
-
-        if new_value > 0 {
-            buffer.push(last_seven_bits);
+        if value != 0 {
+            output_buf[buf_idx] = last_seven_bits;
         } else {
-            buffer.push(last_seven_bits & CONTINUATION_MASK);
-            break;
+            output_buf[buf_idx] = last_seven_bits | CONTINUATION_MASK;
+            return &output_buf[..buf_idx + 1];
         }
     }
 
-    buffer
+    panic!("Attempted to encode variable integer over 32 bytes in length!");
 }
