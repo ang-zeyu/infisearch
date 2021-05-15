@@ -304,8 +304,6 @@ pub fn merge_blocks(
     // Initialise
     let mut initial_postings_stream = postings_streams.pop().unwrap();
     prev_term = std::mem::take(&mut initial_postings_stream.curr_term);
-    prev_common_prefix = prev_term.clone();
-    pending_terms.push(prev_term.clone());
     prev_combined_term_docs = std::mem::take(&mut initial_postings_stream.curr_term_docs);
     initial_postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
     postings_streams.push(initial_postings_stream);
