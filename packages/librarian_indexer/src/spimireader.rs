@@ -1,3 +1,5 @@
+use crate::FieldInfos;
+use crate::docinfo::DocInfos;
 use dashmap::DashMap;
 use std::sync::mpsc::Sender;
 use std::sync::Arc;
@@ -175,8 +177,10 @@ fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
     byte_len
 }
 
-pub fn merge_blocks<'a> (
+pub fn merge_blocks(
+    doc_id_counter: u32,
     num_blocks: u32,
+    field_infos: &Arc<FieldInfos>,
     workers: &Vec<Worker>,
     rx_main: &Receiver<WorkerToMainMessage>,
     output_folder_path: &Path
@@ -279,6 +283,14 @@ pub fn merge_blocks<'a> (
     let mut curr_pl = 0;
     let mut curr_pl_offset: u32 = 0;
 
+    // Document info trackers
+    let doc_id_counter_double = doc_id_counter as f64;
+    let mut doc_infos = DocInfos::init_doc_infos(
+        output_folder_path.join("docInfo"),
+        doc_id_counter as usize,
+        field_infos.values().filter(|field_info| field_info.weight != 0.0).count()
+    );
+
     println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
 
     while !postings_streams.is_empty() {
@@ -306,16 +318,21 @@ pub fn merge_blocks<'a> (
         // and dictionary table, dictionary-as-a-string for the term.
 
         // ---------------------------------------------
-        // Dictionary table writing: gap (1 byte), doc freq (var-int), pl offset (u16)
-        let difference: u8 = if curr_pl_offset == 0 { 1 } else { 0 };
-        dict_table_writer.write_all(&[difference]).unwrap();
+        // Dictionary table writing: pl file gap (1 byte), doc freq (var-int), pl offset (u16)
+        let pl_filename_gap: u8 = if curr_pl_offset == 0 { 1 } else { 0 };
+        dict_table_writer.write_all(&[pl_filename_gap]).unwrap();
         
-        dict_table_writer.write_all(&get_var_int(prev_combined_term_docs.len() as u32)).unwrap();
+        let doc_freq = prev_combined_term_docs.len() as u32;
+        dict_table_writer.write_all(&get_var_int(doc_freq as u32)).unwrap();
 
         dict_table_writer.write_all(&(curr_pl_offset as u16).to_le_bytes()).unwrap();
 
         // ---------------------------------------------
         // Postings writing
+        // And doc norms length calculation
+
+        let idf = (doc_id_counter_double / (doc_freq as f64)).log10();
+
         let mut prev_doc_id = 0;
         for mut term_doc in prev_combined_term_docs {
             // println!("term {} curr {} prev {}", prev_term, term_doc.doc_id, prev_doc_id);
@@ -327,7 +344,8 @@ pub fn merge_blocks<'a> (
                 + term_doc.doc_fields.len()) as u32; // field id contribution
 
             let mut write_doc_field = |doc_field: DocField, pl_writer: &mut BufWriter<File>| {
-                let field_tf_varint = get_var_int(doc_field.field_positions.len() as u32);
+                let field_tf = doc_field.field_positions.len();
+                let field_tf_varint = get_var_int(field_tf as u32);
                 pl_writer.write_all(&field_tf_varint).unwrap();
                 curr_pl_offset += field_tf_varint.len() as u32;
 
@@ -338,6 +356,13 @@ pub fn merge_blocks<'a> (
                 /* if prev_doc_id == 3552 {
                     return;
                 } */
+
+                // -----------------------------------
+                // Doc norm calculation
+
+                doc_infos.add_doc_len(prev_doc_id, doc_field.field_id, (1.0 + (field_tf as f64).log10()) * idf);
+
+                // -----------------------------------
 
                 let mut prev_pos = 0;
                 for field_term_pos in doc_field.field_positions {
@@ -427,4 +452,5 @@ pub fn merge_blocks<'a> (
     dict_table_writer.flush().unwrap();
     pl_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
+    doc_infos.flush();
 }

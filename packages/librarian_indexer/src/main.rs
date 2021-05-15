@@ -189,14 +189,14 @@ fn main() {
     let mut spimi_counter = 0;
 
     let mut field_infos: FieldInfos = HashMap::new();
-    field_infos.insert("title".to_owned(),       FieldInfo { id: 1, do_store: true, weight: 0.2 });
-    field_infos.insert("heading".to_owned(),     FieldInfo { id: 2, do_store: true, weight: 0.3 });
-    field_infos.insert("body".to_owned(),        FieldInfo { id: 3, do_store: true, weight: 0.5 });
-    field_infos.insert("headingLink".to_owned(), FieldInfo { id: 4, do_store: true, weight: 0.0 });
-    field_infos.insert("link".to_owned(),        FieldInfo { id: 5, do_store: true, weight: 0.0 });
+    field_infos.insert("title".to_owned(),       FieldInfo { id: 0, do_store: true, weight: 0.2 });
+    field_infos.insert("heading".to_owned(),     FieldInfo { id: 1, do_store: true, weight: 0.3 });
+    field_infos.insert("body".to_owned(),        FieldInfo { id: 2, do_store: true, weight: 0.5 });
+    field_infos.insert("headingLink".to_owned(), FieldInfo { id: 3, do_store: true, weight: 0.0 });
+    field_infos.insert("link".to_owned(),        FieldInfo { id: 4, do_store: true, weight: 0.0 });
     let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
     
-    fieldinfo::dump_field_infos(Arc::clone(&field_infos_arc), &output_folder_path);
+    fieldinfo::dump_field_infos(&field_infos_arc, &output_folder_path);
 
     // Spawn some worker threads!
     let mut workers: Vec<Worker> = Vec::new();
@@ -213,19 +213,19 @@ fn main() {
         });
     }
     Worker::make_all_workers_available(&workers);
-    fieldinfo::dump_field_infos(field_infos_arc, &output_folder_path);
     
     let now = Instant::now();
-    /* spimireader::merge_blocks(10, &workers, &rx_main, &output_folder_path);
+    /* spimireader::merge_blocks(9544, 10, &field_infos_arc, &workers, &rx_main, &output_folder_path);
 
     print_time_elapsed(now);
     Worker::terminate_all_workers(workers);
     return; */
 
     let field_store_folder_path = output_folder_path.join("field_store");
-    if !field_store_folder_path.exists() {
-        fs::create_dir(Path::new(&field_store_folder_path)).unwrap();
+    if field_store_folder_path.exists() {
+        fs::remove_dir_all(&field_store_folder_path).unwrap();
     }
+    fs::create_dir(&field_store_folder_path).unwrap();
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -266,17 +266,18 @@ fn main() {
 
     // Wait on all workers
     Worker::wait_on_all_workers(&workers, &rx_main, NUM_THREADS);
-    print_time_elapsed(now);
+    println!("Number of docs: {}", doc_id_counter);
+    print_time_elapsed(now, "Block indexing done!");
 
     // Merge spimi blocks
     // Go through all blocks at once
-    spimireader::merge_blocks(block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
+    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), &field_infos_arc, &workers, &rx_main, &output_folder_path);
 
-    print_time_elapsed(now);
-    Worker::terminate_all_workers(workers);
+    print_time_elapsed(now, "Blocks merged!");
+    Worker::terminate_all_workers(workers); 
 }
 
-fn print_time_elapsed(instant: Instant) {
+fn print_time_elapsed(instant: Instant, extra_message: &str) {
     let elapsed = instant.elapsed().as_secs();
-    println!("{} mins {} seconds elapsed", elapsed / 60, elapsed % 60);
+    println!("{} {} mins {} seconds elapsed.", extra_message, elapsed / 60, elapsed % 60);
 }

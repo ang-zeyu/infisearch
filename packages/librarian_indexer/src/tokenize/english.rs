@@ -13,7 +13,7 @@ pub fn tokenize(text: &str) -> Vec<String> {
       .map(|term| BOUNDARY_FILTER.replace_all(&PUNCTUATION_FILTER.replace_all(term, ""), "").into_owned())
       .filter(|term| {
         let term_byte_len = term.as_bytes().len();
-        term_byte_len > 0 && term_byte_len <= 255
+        term_byte_len > 0 && term_byte_len <= 120
       })
     )
     .collect()

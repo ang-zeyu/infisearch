@@ -96,9 +96,7 @@ impl WorkerMiner {
 
             // Store raw text
             if field_info.do_store {
-                field_store_buffered_writer.write_all(b"[").unwrap();
-                field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
-                field_store_buffered_writer.write_all(b",\"").unwrap();
+                field_store_buffered_writer.write_all(format!("[{},\"", field_id).as_bytes()).unwrap();
                 field_store_buffered_writer.write_all(find_u8_unsafe_morecap(&field_text).as_bytes()).unwrap();
                 field_store_buffered_writer.write_all(b"\"]").unwrap();
             }

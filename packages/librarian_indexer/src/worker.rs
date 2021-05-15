@@ -87,7 +87,7 @@ impl Worker {
     }
 
     pub fn wait_on_all_workers(workers: &Vec<Worker>, rx_main: &Receiver<WorkerToMainMessage>, num_threads: u32) {
-        for i in 0..num_threads {
+        for _i in 0..num_threads {
             let worker_msg = rx_main.recv();
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
