@@ -418,9 +418,8 @@ pub fn merge_blocks(
 
             // How much bytes do we add / lose by frontcoding this term?
             let frontcode_cost: i32 = if pending_terms.len() == 1 {
-                (pending_terms.len() * (prev_common_prefix.len() - unicode_prefix_byte_len)) as i32 // num already frontcoded terms * prefix length reduction
-                    + 2 // 2 symbols
-                    + 5 // the bar for the first match should be higher
+                2 // 2 symbols
+                    + 2 // the bar for the first match should be higher
                     - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
             } else {
                 (pending_terms.len() * (prev_common_prefix.len() - unicode_prefix_byte_len)) as i32 // num already frontcoded terms * prefix length reduction
