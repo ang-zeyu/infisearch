@@ -1,8 +1,8 @@
 pub mod miner;
 
+use crate::FieldInfos;
 use dashmap::DashMap;
 use crate::spimireader::PostingsStreamDecoder;
-use std::sync::Mutex;
 use crate::spimireader::PostingsStreamReader;
 use std::path::PathBuf;
 use std::io::Read;
@@ -17,7 +17,6 @@ use std::thread;
 
 use byteorder::{ByteOrder, LittleEndian};
 
-use crate::FieldInfo;
 use miner::WorkerMiner;
 use crate::spimiwriter;
 use crate::worker::miner::DocField;
@@ -30,10 +29,11 @@ pub struct Worker {
 }
 
 impl Worker {
-    pub fn send_work(&self, doc_id: u32, field_texts: Vec<(String, String)>) {
+    pub fn send_work(&self, doc_id: u32, field_texts: Vec<(String, String)>, field_store_path: PathBuf) {
         self.tx.send(MainToWorkerMessage::Index {
             doc_id,
-            field_texts
+            field_texts,
+            field_store_path,
         }).expect("Failed to send work message to worker!");
     }
 
@@ -124,7 +124,8 @@ pub enum MainToWorkerMessage {
     },
     Index {
         doc_id: u32,
-        field_texts: Vec<(String, String)>
+        field_texts: Vec<(String, String)>,
+        field_store_path: PathBuf
     },
     Decode {
         n: u32,
@@ -143,7 +144,7 @@ pub fn worker (
     sndr: Sender<WorkerToMainMessage>, 
     rcvr: Receiver<MainToWorkerMessage>,
     /* Immutable shared data structures... */
-    field_infos: Arc<HashMap<String, FieldInfo>>,
+    field_infos: Arc<FieldInfos>,
 ) {
     // Initialize data structures...
     let mut doc_miner = WorkerMiner {
@@ -164,8 +165,8 @@ pub fn worker (
             MainToWorkerMessage::Wait => {
                 send_available_msg();
             },
-            MainToWorkerMessage::Index { doc_id, field_texts } => {
-                doc_miner.index_doc(doc_id, field_texts);
+            MainToWorkerMessage::Index { doc_id, field_texts, field_store_path } => {
+                doc_miner.index_doc(doc_id, field_texts, field_store_path);
         
                 send_available_msg();
             },

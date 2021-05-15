@@ -279,7 +279,8 @@ pub fn merge_blocks<'a> (
     let mut curr_pl = 0;
     let mut curr_pl_offset: u32 = 0;
 
-    println!("Starting main decode loop! Num postings streams {}", postings_streams.len());
+    println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
+
     while !postings_streams.is_empty() {
         let mut postings_stream = postings_streams.pop().unwrap();
         // println!("term {} idx {} first doc {}", postings_stream.curr_term, postings_stream.idx, postings_stream.curr_term_docs[0].doc_id);
@@ -287,12 +288,14 @@ pub fn merge_blocks<'a> (
             continue;
         }
 
+        // Aggregate same terms from different blocks...
         if prev_term == postings_stream.curr_term {
             // Add on
             prev_combined_term_docs.extend(std::mem::take(&mut postings_stream.curr_term_docs));
             
             if !postings_streams.is_empty() {
                 // Plop the next term from the term buffer into curr_term and curr_term_docs
+                // Unless its the last term in the stream
                 postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
                 postings_streams.push(postings_stream);
                 continue; // go to the next postings stream which has the same term, if any.

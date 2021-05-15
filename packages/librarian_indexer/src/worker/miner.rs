@@ -1,8 +1,15 @@
+use std::borrow::Cow;
+use regex::Regex;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufWriter;
+use std::io::Write;
+use std::path::PathBuf;
+use std::str;
 use std::sync::Arc;
 
-use crate::fieldinfo::FieldInfo;
+use crate::FieldInfos;
 use crate::tokenize::english::tokenize;
 
 pub struct DocField {
@@ -18,7 +25,7 @@ pub struct TermDoc {
 // Intermediate BSBI miner for use in a worker
 // Outputs (termID, docID, fieldId, fieldTf, positions ...., fieldId, fieldTf, positions ....) tuples
 pub struct WorkerMiner {
-    pub field_infos: Arc<HashMap<String, FieldInfo>>,
+    pub field_infos: Arc<FieldInfos>,
 
     pub terms: HashMap<String, Vec<TermDoc>>
 }
@@ -48,13 +55,60 @@ impl PartialEq for TermDocComparator {
     }
 }
 
+// Adapted from https://lise-henry.github.io/articles/optimising_strings.html
+fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
+    lazy_static! {
+        static ref REGEX: Regex = Regex::new(r#"[\n\r\t"\\]"#).unwrap();
+    }
+    let input = input.into();
+    let first = REGEX.find(&input);
+    if let Some(first) = first {
+        let start = first.start();
+        let len = input.len();
+        let mut output:Vec<u8> = Vec::with_capacity(len + len/2);
+        output.extend_from_slice(input[0..start].as_bytes());
+        let rest = input[start..].bytes();
+        for c in rest {
+            match c {
+                b'\n' => output.extend_from_slice(b"\\n"),
+                b'\r' => output.extend_from_slice(b"\\r"),
+                b'\t' => output.extend_from_slice(b"\\t"),
+                b'"' => output.extend_from_slice(b"\\\""),
+                b'\\' => output.extend_from_slice(b"\\"),
+                _ => output.push(c),
+            }
+        }
+        Cow::Owned(unsafe { String::from_utf8_unchecked(output) })
+    } else {
+        input
+    }
+}
+
 impl WorkerMiner {
-    pub fn index_doc (&mut self, doc_id: u32, field_texts: Vec<(String, String)>) {
+    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>, field_store_path: PathBuf) {
+        let mut field_store_buffered_writer = BufWriter::new(File::create(field_store_path).expect("Failed to open field store file for writing!"));
+        field_store_buffered_writer.write_all(b"[").unwrap();
+
         for (field_name, field_text) in field_texts {
             let mut field_pos = 0;
-            let field_id = self.field_infos.get(&field_name).expect(&format!("Inexistent field: {}", field_name)).id;
+            let field_info = self.field_infos.get(&field_name).expect(&format!("Inexistent field: {}", field_name));
+            let field_id = field_info.id;
+
+            // Store raw text
+            if field_info.do_store {
+                field_store_buffered_writer.write_all(b"[").unwrap();
+                field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
+                field_store_buffered_writer.write_all(b",\"").unwrap();
+                field_store_buffered_writer.write_all(find_u8_unsafe_morecap(&field_text).as_bytes()).unwrap();
+                field_store_buffered_writer.write_all(b"\"]").unwrap();
+            }
+
+            if field_info.weight == 0.0 {
+                continue;
+            }
 
             let field_terms = tokenize(&field_text);
+
             for field_term in field_terms {
                 field_pos += 1;
 
@@ -99,5 +153,8 @@ impl WorkerMiner {
                 doc_field.field_positions.push(field_pos);
             }
         }
+
+        field_store_buffered_writer.write_all(b"]").unwrap();
+        field_store_buffered_writer.flush().unwrap();
     }
 }

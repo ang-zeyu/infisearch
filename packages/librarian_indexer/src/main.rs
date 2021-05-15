@@ -6,6 +6,7 @@ mod tokenize;
 mod utils;
 mod worker;
 
+use std::fs;
 use std::time::Instant;
 use std::collections::HashMap;
 use std::env;
@@ -19,6 +20,7 @@ use csv::Reader;
 use walkdir::WalkDir;
 
 use fieldinfo::FieldInfo;
+use fieldinfo::FieldInfos;
 use worker::Worker;
 use worker::MainToWorkerMessage;
 use worker::WorkerToMainMessage;
@@ -186,39 +188,16 @@ fn main() {
     };
     let mut spimi_counter = 0;
 
-    let mut field_infos: HashMap<String, FieldInfo> = HashMap::new();
-    field_infos.insert("title".to_owned(), FieldInfo {
-        id: 1,
-        storage: "TextStorage".to_owned(),
-        storage_params: HashMap::new(),
-        weight: 0.2
-    });
-    field_infos.insert("heading".to_owned(), FieldInfo {
-        id: 2,
-        storage: "JsonStorage".to_owned(),
-        storage_params: HashMap::new(),
-        weight: 0.3
-    });
-    field_infos.insert("body".to_owned(), FieldInfo {
-        id: 3,
-        storage: "JsonStorage".to_owned(),
-        storage_params: HashMap::new(),
-        weight: 0.5
-    });
-    field_infos.insert("headingLink".to_owned(), FieldInfo {
-        id: 4,
-        storage: "JsonStorage".to_owned(),
-        storage_params: HashMap::new(),
-        weight: 0.0
-    });
-    field_infos.insert("link".to_owned(), FieldInfo {
-        id: 5,
-        storage: "TextStorage".to_owned(),
-        storage_params: HashMap::new(),
-        weight: 0.0
-    });
-    let field_infos_arc: Arc<HashMap<String, FieldInfo>> = Arc::new(field_infos);
+    let mut field_infos: FieldInfos = HashMap::new();
+    field_infos.insert("title".to_owned(),       FieldInfo { id: 1, do_store: true, weight: 0.2 });
+    field_infos.insert("heading".to_owned(),     FieldInfo { id: 2, do_store: true, weight: 0.3 });
+    field_infos.insert("body".to_owned(),        FieldInfo { id: 3, do_store: true, weight: 0.5 });
+    field_infos.insert("headingLink".to_owned(), FieldInfo { id: 4, do_store: true, weight: 0.0 });
+    field_infos.insert("link".to_owned(),        FieldInfo { id: 5, do_store: true, weight: 0.0 });
+    let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
     
+    fieldinfo::dump_field_infos(Arc::clone(&field_infos_arc), &output_folder_path);
+
     // Spawn some worker threads!
     let mut workers: Vec<Worker> = Vec::new();
     let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = std::sync::mpsc::channel();
@@ -234,13 +213,19 @@ fn main() {
         });
     }
     Worker::make_all_workers_available(&workers);
-
+    fieldinfo::dump_field_infos(field_infos_arc, &output_folder_path);
+    
     let now = Instant::now();
     /* spimireader::merge_blocks(10, &workers, &rx_main, &output_folder_path);
 
     print_time_elapsed(now);
     Worker::terminate_all_workers(workers);
     return; */
+
+    let field_store_folder_path = output_folder_path.join("field_store");
+    if !field_store_folder_path.exists() {
+        fs::create_dir(Path::new(&field_store_folder_path)).unwrap();
+    }
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -254,7 +239,10 @@ fn main() {
                         let record = result.expect("Failed to unwrap csv record result!");
                         let w = Worker::get_available_worker(&workers, &rx_main);
 
-                        w.send_work(doc_id_counter, vec![("title".to_owned(), record[1].to_string()), ("body".to_owned(), record[2].to_string())]);
+                        
+                        w.send_work(doc_id_counter,
+                            vec![("title".to_owned(), record[1].to_string()), ("body".to_owned(), record[2].to_string())],
+                            field_store_folder_path.join(format!("{}.json", doc_id_counter)));
 
                         doc_id_counter += 1;
                         spimi_counter += 1;
