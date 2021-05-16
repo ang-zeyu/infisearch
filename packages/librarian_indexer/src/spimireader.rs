@@ -265,9 +265,15 @@ pub fn merge_blocks(
         ).expect("Failed to final dictionary string for writing.")
     );
 
-    // N-way merge trackers
-    let mut prev_term = "".to_owned();
-    let mut prev_combined_term_docs: Vec<TermDocForMerge> = Vec::new();
+    let mut initial_postings_stream = postings_streams.pop().unwrap();
+
+    // Initialise N-way merge trackers
+    let mut prev_term = std::mem::take(&mut initial_postings_stream.curr_term);
+    let mut prev_combined_term_docs = std::mem::take(&mut initial_postings_stream.curr_term_docs);
+    
+    // Push back the initial postings stream
+    initial_postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
+    postings_streams.push(initial_postings_stream);
 
     // Dictionary front coding trackers
     let mut prev_common_prefix = "".to_owned();
@@ -309,13 +315,6 @@ pub fn merge_blocks(
     let mut varint_buf: [u8; 16] = [0; 16];
 
     println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
-
-    // Initialise
-    let mut initial_postings_stream = postings_streams.pop().unwrap();
-    prev_term = std::mem::take(&mut initial_postings_stream.curr_term);
-    prev_combined_term_docs = std::mem::take(&mut initial_postings_stream.curr_term_docs);
-    initial_postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
-    postings_streams.push(initial_postings_stream);
 
     while !postings_streams.is_empty() {
         let mut postings_stream = postings_streams.pop().unwrap();

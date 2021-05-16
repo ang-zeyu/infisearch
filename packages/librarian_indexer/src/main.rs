@@ -199,7 +199,7 @@ fn main() {
     fieldinfo::dump_field_infos(&field_infos_arc, &output_folder_path);
 
     // Spawn some worker threads!
-    let mut workers: Vec<Worker> = Vec::new();
+    let mut workers: Vec<Worker> = Vec::with_capacity(NUM_THREADS as usize);
     let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = std::sync::mpsc::channel();
     for i in 0..NUM_THREADS {
         let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = std::sync::mpsc::channel();
@@ -217,7 +217,7 @@ fn main() {
     let now = Instant::now();
     /* spimireader::merge_blocks(9544, 10, &field_infos_arc, &workers, &rx_main, &output_folder_path);
 
-    print_time_elapsed(now);
+    print_time_elapsed(now, "Just merge, ");
     Worker::terminate_all_workers(workers);
     return; */
 
