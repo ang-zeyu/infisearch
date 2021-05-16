@@ -19,8 +19,8 @@ use crate::utils::varint;
 use crate::WorkerToMainMessage;
 use crate::Worker;
 
-static POSTINGS_STREAM_BUFFER_SIZE: u32 = 2000;
-static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 2000;
+static POSTINGS_STREAM_BUFFER_SIZE: u32 = 5000;
+static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 5000;
 
 static POSTINGS_FILE_LIMIT: u32 = 65535;
 static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
@@ -115,6 +115,7 @@ impl PostingsStream {
         workers: &[Worker],
         blocking_sndr: &Sender<()>,
         blocking_rcvr: &Receiver<()>,
+        do_print_blocked_msg: bool,
     ) {
         if self.term_buffer.is_empty() {
             let mut lock = postings_stream_decoders.get_mut(&self.idx).unwrap();
@@ -124,7 +125,9 @@ impl PostingsStream {
                     std::mem::swap(&mut postings_stream_reader.future_term_buffer, &mut self.term_buffer);
                 },
                 PostingsStreamDecoder::None => {
-                    println!("Blocked! Ouch! Consider increasing the decode buffer size...");
+                    if do_print_blocked_msg {
+                        println!("Blocked! Ouch! Consider increasing the decode buffer size...");
+                    }
 
                     // Set to notifier
                     *lock_value_mut = PostingsStreamDecoder::Notifier(Mutex::from(blocking_sndr.clone()));
@@ -241,7 +244,7 @@ pub fn merge_blocks(
             curr_term_docs: Vec::new(),
             term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize), // transfer ownership of future term buffer to the main postings stream
         };
-        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
+        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, false);
         postings_streams.push(postings_stream);
     }
     println!("Initialized postings streams...");
@@ -272,7 +275,7 @@ pub fn merge_blocks(
     let mut prev_combined_term_docs = std::mem::take(&mut initial_postings_stream.curr_term_docs);
     
     // Push back the initial postings stream
-    initial_postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
+    initial_postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
     postings_streams.push(initial_postings_stream);
 
     // Dictionary front coding trackers
@@ -331,7 +334,7 @@ pub fn merge_blocks(
             if !postings_streams.is_empty() {
                 // Plop the next term from the term buffer into curr_term and curr_term_docs
                 // Unless its the last term in the stream
-                postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
+                postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
                 postings_streams.push(postings_stream);
                 continue; // go to the next postings stream which has the same term, if any.
             }
@@ -450,7 +453,7 @@ pub fn merge_blocks(
         // ---------------------------------------------
         // Plop the next term from the term buffer into the stream
         // Then push it back into the heap.
-        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr);
+        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
         postings_streams.push(postings_stream);
         // ---------------------------------------------
     }
