@@ -87,7 +87,7 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
 
 impl WorkerMiner {
     pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>, field_store_path: PathBuf) {
-        let mut field_store_buffered_writer = BufWriter::new(File::create(field_store_path).expect("Failed to open field store file for writing!"));
+        let mut field_store_buffered_writer = BufWriter::with_capacity(819200, File::create(field_store_path).expect("Failed to open field store file for writing!"));
         field_store_buffered_writer.write_all(b"[").unwrap();
 
         let field_texts_len = field_texts.len();
