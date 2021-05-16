@@ -1,11 +1,12 @@
 use crate::worker::miner::TermDocComparator;
 use std::collections::BinaryHeap;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
 use std::path::PathBuf;
 use std::path::Path;
+
+use rustc_hash::FxHashMap;
 
 use crate::Receiver;
 use crate::WorkerMiner;
@@ -61,7 +62,7 @@ pub fn combine_worker_results_and_write_block(
 }
 
 fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc>)> {
-    let mut combined_terms: HashMap<String, Vec<Vec<TermDoc>>> = HashMap::new();
+    let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
 
     // Combine
     for worker_miner in worker_miners {

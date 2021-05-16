@@ -10,7 +10,6 @@ use std::path::PathBuf;
 use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
-use std::collections::HashMap;
 use std::str;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
@@ -18,6 +17,7 @@ use std::sync::mpsc::Sender;
 use std::thread;
 
 use byteorder::{ByteOrder, LittleEndian};
+use rustc_hash::FxHashMap;
 
 use miner::WorkerMiner;
 use crate::spimiwriter;
@@ -150,7 +150,7 @@ pub fn worker (
     // Initialize data structures...
     let mut doc_miner = WorkerMiner {
         field_infos: Arc::clone(&field_infos),
-        terms: HashMap::new()
+        terms: FxHashMap::default()
     };
 
     let send_available_msg = || {
@@ -193,7 +193,7 @@ pub fn worker (
                 // reset local variables...
                 doc_miner = WorkerMiner {
                     field_infos: Arc::clone(&field_infos),
-                    terms: HashMap::new()
+                    terms: FxHashMap::default()
                 };
             },
             MainToWorkerMessage::Decode {

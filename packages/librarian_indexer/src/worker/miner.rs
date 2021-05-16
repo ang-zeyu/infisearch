@@ -1,13 +1,14 @@
 use std::borrow::Cow;
 use regex::Regex;
 use std::cmp::Ordering;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
 use std::path::PathBuf;
 use std::str;
 use std::sync::Arc;
+
+use rustc_hash::FxHashMap;
 
 use crate::FieldInfos;
 use crate::tokenize::english::tokenize;
@@ -27,7 +28,7 @@ pub struct TermDoc {
 pub struct WorkerMiner {
     pub field_infos: Arc<FieldInfos>,
 
-    pub terms: HashMap<String, Vec<TermDoc>>
+    pub terms: FxHashMap<String, Vec<TermDoc>>
 }
 
 pub struct TermDocComparator {

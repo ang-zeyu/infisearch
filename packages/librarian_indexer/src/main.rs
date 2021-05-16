@@ -8,7 +8,6 @@ mod worker;
 
 use std::fs;
 use std::time::Instant;
-use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
@@ -17,6 +16,7 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use csv::Reader;
+use rustc_hash::FxHashMap;
 use walkdir::WalkDir;
 
 use fieldinfo::FieldInfo;
@@ -188,7 +188,7 @@ fn main() {
     };
     let mut spimi_counter = 0;
 
-    let mut field_infos: FieldInfos = HashMap::new();
+    let mut field_infos: FieldInfos = FxHashMap::default();
     field_infos.insert("title".to_owned(),       FieldInfo { id: 0, do_store: true, weight: 0.2 });
     field_infos.insert("heading".to_owned(),     FieldInfo { id: 1, do_store: true, weight: 0.3 });
     field_infos.insert("body".to_owned(),        FieldInfo { id: 2, do_store: true, weight: 0.5 });
