@@ -13,36 +13,72 @@ const MAX_SERP_HIGHLIGHT_PARTS = 8;
 
 function transformText(
   texts: [string, string][], // field name - field content pairs
-  termRegex: RegExp,
+  sortedQueryTerms: string[],
   baseUrl: string,
 ): (string | HTMLElement)[] {
-  function getMatchResult(str: string): (string | HTMLElement)[] {
-    const result = [];
+  const termRegex = new RegExp(
+    `(^|\\W)(${sortedQueryTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
+    'gi',
+  );
+  const lowerCasedSortedQueryTerms = sortedQueryTerms.map((t) => t.toLowerCase());
 
-    let lastInsertedIdxStart = 0;
-    let lastInsertedIdxEnd = 0;
+  function getBestMatchResult(str: string): (string | HTMLElement)[] {
+    const lastTermPositions = sortedQueryTerms.map(() => -100000000);
+    let lastClosestWindowLen = 100000000;
+    let lastNumberMatchedTerms = 0;
+    let lastClosestWindowPositions: [number, string][] = lastTermPositions.map((i) => [i, '']);
+
     let match;
     // eslint-disable-next-line no-cond-assign
     while (match = termRegex.exec(str)) {
-      const matchedText = match[0];
-      const matchIdx = match.index;
+      const matchedText = match[2].toLowerCase();
 
-      if (lastInsertedIdxEnd > matchIdx) {
-        result.pop();
-        lastInsertedIdxEnd = lastInsertedIdxStart;
-      } else if (lastInsertedIdxEnd > 0) {
-        result.push(' ...');
+      const sortedQueryTermIdx = lowerCasedSortedQueryTerms.findIndex(
+        (term) => matchedText.includes(term),
+      );
+      lastTermPositions[sortedQueryTermIdx] = match.index + match[1].length;
+
+      const filteredPositions = lastTermPositions.filter((p) => p >= 0);
+      const windowLen = Math.max(...filteredPositions) - Math.min(...filteredPositions);
+      if (filteredPositions.length > lastNumberMatchedTerms || windowLen < lastClosestWindowLen) {
+        if (filteredPositions.length > lastNumberMatchedTerms) {
+          lastNumberMatchedTerms = filteredPositions.length;
+        }
+        lastClosestWindowLen = windowLen;
+        lastClosestWindowPositions = lastTermPositions.map((i, idx) => [
+          i,
+          idx === sortedQueryTermIdx ? match[0] : lastClosestWindowPositions[idx][1],
+        ]);
       }
-
-      const beforeSubstringStart = Math.max(lastInsertedIdxEnd, matchIdx - BODY_SERP_BOUND);
-      result.push(str.substring(beforeSubstringStart, matchIdx));
-
-      result.push(h('span', { class: 'librarian-highlight' }, matchedText));
-
-      lastInsertedIdxStart = termRegex.lastIndex;
-      lastInsertedIdxEnd = Math.min(str.length, lastInsertedIdxStart + BODY_SERP_BOUND);
-      result.push(`${str.substring(lastInsertedIdxStart, lastInsertedIdxEnd)} ... `);
     }
+
+    const result: (string | HTMLElement)[] = [];
+    lastClosestWindowPositions = lastClosestWindowPositions
+      .filter((pair) => pair[0] >= 0)
+      .sort((a, b) => a[0] - b[0]);
+    if (!lastClosestWindowPositions.length) {
+      return result;
+    }
+
+    let prevHighlightEndPos = 0;
+    for (let i = 0; i < lastClosestWindowPositions.length; i += 1) {
+      const pos = lastClosestWindowPositions[i][0];
+      const matchedText = lastClosestWindowPositions[i][1];
+      const highlightEndPos = pos + matchedText.length;
+      if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
+        result.push(' ... ');
+        result.push(str.substring(pos - BODY_SERP_BOUND, pos));
+        result.push(h('span', { class: 'librarian-highlight' }, matchedText));
+        result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
+      } else {
+        result.pop();
+        result.push(str.substring(prevHighlightEndPos, pos));
+        result.push(h('span', { class: 'librarian-highlight' }, matchedText));
+        result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
+      }
+      prevHighlightEndPos = highlightEndPos;
+    }
+    result.push(' ...');
 
     return result;
   }
@@ -55,7 +91,7 @@ function transformText(
       return;
     }
 
-    const bodyMatchResult = getMatchResult(item[1]);
+    const bodyMatchResult = getBestMatchResult(item[1]);
     if (bodyMatchResult.length === 0) {
       return;
     }
@@ -93,10 +129,6 @@ function transformText(
 
 async function transformResults(query: Query, container: HTMLElement): Promise<void> {
   const sortedQueryTerms = query.aggregatedTerms.sort((str1, str2) => str2.length - str1.length);
-  const termRegex = new RegExp(
-    sortedQueryTerms.map((t) => `((^|\\W)${escapeRegex(t)}(?=\\W|$))`).join('|'),
-    'gi',
-  );
 
   const resultsEls = (await query.retrieve(10)).map((result) => {
     console.log(result);
@@ -106,7 +138,8 @@ async function transformResults(query: Query, container: HTMLElement): Promise<v
       h('a', { class: 'librarian-link', href: link },
         h('div', { class: 'librarian-title' },
           result.getSingleField('title') || link),
-        ...transformText(result.getStorageWithFieldNames(), termRegex, link)));
+        ...transformText(result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
+          sortedQueryTerms, link)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 
