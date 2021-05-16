@@ -408,7 +408,7 @@ pub fn merge_blocks(
 
             // How much bytes do we add / lose by frontcoding this term?
             let frontcode_cost: i32 = if pending_terms.len() == 1 {
-                2 // 2 symbols
+                    2   // 2 symbols - PREFIX_FRONT_CODE and SUBSEQUENT_FRONT_CODE
                     + 2 // the bar for the first match should be higher
                     - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
             } else {
@@ -417,7 +417,7 @@ pub fn merge_blocks(
                     - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
             };
     
-            if frontcode_cost <= 0 {
+            if frontcode_cost < 0 {
                 prev_common_prefix = prev_common_prefix[0..unicode_prefix_byte_len].to_owned();
                 pending_terms.push(prev_term.clone());
             } else {
