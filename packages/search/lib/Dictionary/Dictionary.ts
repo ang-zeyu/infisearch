@@ -43,7 +43,7 @@ class Dictionary {
     const dictionaryTableBuffer = await (await dictionaryTablePromise).arrayBuffer();
     const dictionaryTableView = new DataView(dictionaryTableBuffer);
 
-    let prevPostingsFileName = 0;
+    let prevPostingsFileName = -1;
     let dictStringPos = 0;
     let frontCodingPrefix = '';
     for (let dictTablePos = 0; dictTablePos < dictionaryTableBuffer.byteLength;) {

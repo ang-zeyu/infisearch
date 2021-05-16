@@ -12,7 +12,7 @@ const BODY_SERP_BOUND = 40;
 const MAX_SERP_HIGHLIGHT_PARTS = 8;
 
 function transformText(
-  texts: { fieldName: string, text: string }[],
+  texts: [string, string][], // field name - field content pairs
   termRegex: RegExp,
   baseUrl: string,
 ): (string | HTMLElement)[] {
@@ -51,24 +51,24 @@ function transformText(
   const result: (string |HTMLElement)[] = [];
 
   texts.forEach((item, idx) => {
-    if (item.fieldName.startsWith('heading')) {
+    if (item[0].startsWith('heading')) {
       return;
     }
 
-    const bodyMatchResult = getMatchResult(item.text);
+    const bodyMatchResult = getMatchResult(item[1]);
     if (bodyMatchResult.length === 0) {
       return;
     }
 
     // Find a new heading this text is under
     for (let i = idx - 1; i > lastIncludedHeading; i -= 1) {
-      if (texts[i].fieldName === 'heading') {
+      if (texts[i][0] === 'heading') {
         lastIncludedHeading = i;
-        const href = texts[i - 1]?.fieldName === 'headingLink'
-          ? `${baseUrl}${texts[i - 1].text}`
+        const href = (i - 1 >= 0) && texts[i - 1][0] === 'headingLink'
+          ? `${baseUrl}${texts[i - 1][1]}`
           : undefined;
         result.push(h('a', { class: 'librarian-heading-body', href },
-          h('div', { class: 'librarian-heading' }, texts[i].text),
+          h('div', { class: 'librarian-heading' }, texts[i][1]),
           h('div', { class: 'librarian-bodies' },
             h('div', { class: 'librarian-body' }, ...bodyMatchResult))));
         return;
@@ -101,11 +101,12 @@ async function transformResults(query: Query, container: HTMLElement): Promise<v
   const resultsEls = (await query.retrieve(10)).map((result) => {
     console.log(result);
 
+    const link = result.getSingleField('link');
     return h('li', { class: 'librarian-dropdown-item' },
-      h('a', { class: 'librarian-link', href: result.storages.link },
+      h('a', { class: 'librarian-link', href: link },
         h('div', { class: 'librarian-title' },
-          result.storages.title ? result.storages.title : result.storages.link),
-        ...transformText(result.storages.text, termRegex, result.storages.link)));
+          result.getSingleField('title') || link),
+        ...transformText(result.getStorageWithFieldNames(), termRegex, link)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 

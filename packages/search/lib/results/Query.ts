@@ -1,9 +1,9 @@
 import Result from './Result';
-import Storage from './Storage';
 import FieldInfo from './FieldInfo';
 import PostingsList from '../PostingsList/PostingsList';
 import Dictionary from '../Dictionary/Dictionary';
 import QueryVector from './QueryVector';
+import DocInfo from './DocInfo';
 
 const Heap = require('heap');
 
@@ -17,12 +17,10 @@ class Query {
   constructor(
     public readonly aggregatedTerms: string[],
     public readonly queryVectors: QueryVector[],
-    private storages: {
-      [baseName: string]: Storage
-    },
-    private docLengths: number[][],
+    private docInfo: DocInfo,
     private fieldInfo: FieldInfo,
     private dictionary: Dictionary,
+    private baseUrl: string,
     postingsLists: PostingsList[],
   ) {
     postingsLists.forEach((postingsList) => {
@@ -37,7 +35,8 @@ class Query {
       retrievedResults.push(this.resultHeap.pop());
     }
 
-    await Promise.all(Object.values(this.storages).map((storage) => storage.populate(retrievedResults)));
+    console.log(retrievedResults);
+    await Promise.all(retrievedResults.map((result) => result.populate(this.baseUrl)));
 
     return retrievedResults;
   }
@@ -50,7 +49,7 @@ class Query {
     let resolve;
     this.retrievePromise = new Promise((res) => { resolve = res; });
 
-    const N = this.docLengths[0][0]; // first line is number of documents
+    const N = this.docInfo.numDocs;
 
     const docScores: { [docId:number]: number } = {};
     const docPositions: { [docId: number]: number[][] } = {};
@@ -77,7 +76,7 @@ class Query {
           Object.entries(fields).forEach(([fieldId, positions]) => {
             const fieldIdInt = Number(fieldId);
             const fieldWeight = this.fieldInfo[fieldIdInt].weight;
-            const fieldLen = this.docLengths[docId][fieldIdInt - 1];
+            const fieldLen = this.docInfo.docLengths[docId][fieldIdInt];
 
             const wtd = 1 + Math.log10(positions.length);
 
@@ -98,7 +97,7 @@ class Query {
 
     Object.entries(docScores).forEach(([docId, score]) => {
       const docIdInt = Number(docId);
-      this.resultHeap.push(new Result(docIdInt, score));
+      this.resultHeap.push(new Result(docIdInt, score, this.fieldInfo));
     });
 
     const populated = await this.populate(n);

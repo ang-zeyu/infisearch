@@ -1,8 +1,8 @@
 interface FieldInfo {
-  [id: number]: {
+  [idOrName: string]: {
+    id: number
     name: string,
-    storage: string,
-    storageParams: { baseName: string, [param: string]: any },
+    do_store: boolean,
     weight: number
   }
 }

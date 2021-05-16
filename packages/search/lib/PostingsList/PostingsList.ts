@@ -21,8 +21,10 @@ class PostingsList {
     let numDocsRead = 0;
     const view = new DataView(this.arrayBuffer);
 
+    let docId = 0;
     while (numDocsRead < this.termInfo.docFreq) {
-      const { value: docId, newPos: posAfterDocId } = decodeVarInt(view, currentFileOffset);
+      const { value: docIdGap, newPos: posAfterDocId } = decodeVarInt(view, currentFileOffset);
+      docId += docIdGap;
       currentFileOffset = posAfterDocId;
 
       const fieldPositions: { [fieldId: number]: number[] } = {};
