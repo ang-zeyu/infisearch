@@ -94,7 +94,7 @@ impl WorkerMiner {
 
         for (field_name, field_text) in field_texts {
             let mut field_pos = 0;
-            let field_info = self.field_infos.get(&field_name).expect(&format!("Inexistent field: {}", field_name));
+            let field_info = self.field_infos.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
             let field_id = field_info.id;
 
             // Store raw text

@@ -17,7 +17,7 @@ pub fn write_block (
     num_threads: u32,
     spimi_counter: &mut u32,
     block_number: u32,
-    workers: &Vec<Worker>,
+    workers: &[Worker],
     rx_main: &Receiver<WorkerToMainMessage>, 
     output_folder_path: &Path
 ) {
@@ -80,11 +80,9 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc
             let mut output: Vec<TermDoc> = Vec::new();
 
             let mut heap: BinaryHeap<TermDocComparator> = BinaryHeap::new();
-            let mut next_indices: Vec<u32> = Vec::new();
 
             for i in 0..tup.1.len() {
                 heap.push(TermDocComparator { val: tup.1.get_mut(i).unwrap().remove(0), idx: i });
-                next_indices.push(1)
             }
 
             while !heap.is_empty() {

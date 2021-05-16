@@ -22,8 +22,6 @@ use byteorder::{ByteOrder, LittleEndian};
 use miner::WorkerMiner;
 use crate::spimiwriter;
 use crate::utils::varint;
-use crate::worker::miner::DocField;
-use crate::worker::miner::TermDoc;
 
 pub struct Worker {
     pub id: usize,
@@ -71,7 +69,7 @@ impl Worker {
 
     pub fn terminate_all_workers(workers: Vec<Worker>) {
         for worker in &workers {
-            &worker.terminate();
+            worker.terminate();
         }
 
         for worker in workers {
@@ -80,16 +78,16 @@ impl Worker {
     }
 
     pub fn make_available(&self) {
-        self.tx.send(MainToWorkerMessage::Wait).expect(&format!("Failed to send make_available message for worker {}!", self.id));
+        self.tx.send(MainToWorkerMessage::Wait).unwrap_or_else(|_| panic!("Failed to send make_available message for worker {}!", self.id));
     }
 
-    pub fn make_all_workers_available(workers: &Vec<Worker>) {
+    pub fn make_all_workers_available(workers: &[Worker]) {
         for worker in workers {
             worker.make_available();
         }
     }
 
-    pub fn wait_on_all_workers(workers: &Vec<Worker>, rx_main: &Receiver<WorkerToMainMessage>, num_threads: u32) {
+    pub fn wait_on_all_workers(workers: &[Worker], rx_main: &Receiver<WorkerToMainMessage>, num_threads: u32) {
         for _i in 0..num_threads {
             let worker_msg = rx_main.recv();
             match worker_msg {
@@ -105,11 +103,11 @@ impl Worker {
         Worker::make_all_workers_available(workers);
     }
     
-    pub fn get_available_worker<'b> (workers: &'b Vec<Worker>, rx_main: &'b Receiver<WorkerToMainMessage>) -> &'b Worker {
+    pub fn get_available_worker<'b> (workers: &'b [Worker], rx_main: &'b Receiver<WorkerToMainMessage>) -> &'b Worker {
         let worker_msg = rx_main.recv();
         match worker_msg {
             Ok(msg) => {
-                return workers.get(msg.id).expect(&format!("Failed to return mutable worker reference for index {}", msg.id));
+                return workers.get(msg.id).unwrap_or_else(|| panic!("Failed to return worker reference for index {}", msg.id));
             },
             Err(e) => panic!("Failed to receive message from worker @get_available_worker! {}", e)
         }
@@ -206,9 +204,6 @@ pub fn worker (
                 let mut u32_buf: [u8; 4] = [0; 4];
                 let mut u8_buf: [u8; 1] = [0; 1];
                 
-                // Varint buffer
-                let mut varint_buf: [u8; 32] = [0; 32];
-
                 for _unused in 0..n {
                     if let Ok(()) = postings_stream_reader.buffered_dict_reader.read_exact(&mut u32_buf) {
                         // Temporary combined dictionary table / dictionary string

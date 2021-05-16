@@ -56,7 +56,7 @@ impl PostingsStreamReader {
     fn read_next_batch (
         self,
         rx_main: &Receiver<WorkerToMainMessage>,
-        workers: &Vec<Worker>,
+        workers: &[Worker],
         postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
     ) {
         let w = Worker::get_available_worker(workers, rx_main);
@@ -112,11 +112,11 @@ impl PostingsStream {
         &mut self,
         postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
         rx_main: &Receiver<WorkerToMainMessage>,
-        workers: &Vec<Worker>,
+        workers: &[Worker],
         blocking_sndr: &Sender<()>,
         blocking_rcvr: &Receiver<()>,
     ) {
-        if self.term_buffer.len() == 0 {
+        if self.term_buffer.is_empty() {
             let mut lock = postings_stream_decoders.get_mut(&self.idx).unwrap();
             let lock_value_mut = lock.value_mut();
             match lock_value_mut {
@@ -191,7 +191,7 @@ pub fn merge_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
     field_infos: &Arc<FieldInfos>,
-    workers: &Vec<Worker>,
+    workers: &[Worker],
     rx_main: &Receiver<WorkerToMainMessage>,
     output_folder_path: &Path
 ) {
@@ -286,7 +286,7 @@ pub fn merge_blocks(
         // Write the prefix (if there are frontcoded terms) **or** just the term (pending_terms.len() == 1)
         dict_string_writer.write_all(prev_common_prefix.as_bytes()).unwrap();
                 
-        if pending_terms.len() > 0 {
+        if !pending_terms.is_empty() {
             // Write frontcoded terms...
             dict_string_writer.write_all(&[PREFIX_FRONT_CODE]).unwrap();
             dict_string_writer.write_all(&curr_term.as_bytes()[prev_common_prefix.len()..]).unwrap(); // first term suffix
