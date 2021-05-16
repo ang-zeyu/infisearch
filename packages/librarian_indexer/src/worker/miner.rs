@@ -92,11 +92,14 @@ impl WorkerMiner {
 
         let field_texts_len = field_texts.len();
         let mut field_text_count = 1;
+        
+        let mut pos = 0;
 
         for (field_name, field_text) in field_texts {
-            let mut field_pos = 0;
             let field_info = self.field_infos.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
             let field_id = field_info.id;
+
+            pos += 1000; // to "split up zones"
 
             // Store raw text
             if field_info.do_store {
@@ -118,7 +121,7 @@ impl WorkerMiner {
             let field_terms = tokenize(&field_text);
 
             for field_term in field_terms {
-                field_pos += 1;
+                pos += 1;
 
                 let term_docs = self.terms.entry(field_term).or_insert_with(Vec::new);
 
@@ -126,7 +129,10 @@ impl WorkerMiner {
                     if term_doc.doc_id != doc_id {
                         term_docs.push(TermDoc {
                             doc_id,
-                            doc_fields: Vec::new()
+                            doc_fields: vec![DocField {
+                                field_id,
+                                field_positions: Vec::new()
+                            }]
                         });
                         term_docs.last_mut().unwrap()
                     } else {
@@ -135,7 +141,10 @@ impl WorkerMiner {
                 } else {
                     term_docs.push(TermDoc {
                         doc_id,
-                        doc_fields: Vec::new()
+                        doc_fields: vec![DocField {
+                            field_id,
+                            field_positions: Vec::new()
+                        }]
                     });
                     term_docs.last_mut().unwrap()
                 };
@@ -158,7 +167,7 @@ impl WorkerMiner {
                     term_doc.doc_fields.last_mut().unwrap()
                 };
 
-                doc_field.field_positions.push(field_pos);
+                doc_field.field_positions.push(pos);
             }
         }
 
