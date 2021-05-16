@@ -83,7 +83,7 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc
             let mut heap: BinaryHeap<TermDocComparator> = BinaryHeap::new();
 
             for i in 0..tup.1.len() {
-                heap.push(TermDocComparator { val: tup.1.get_mut(i).unwrap().remove(0), idx: i });
+                heap.push(TermDocComparator { val: tup.1.get_mut(i).unwrap().pop().unwrap(), idx: i });
             }
 
             while !heap.is_empty() {
@@ -91,7 +91,7 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc
 
                 let worker_term_docs = tup.1.get_mut(top.idx).unwrap();
                 if !worker_term_docs.is_empty() {
-                    heap.push(TermDocComparator { val: worker_term_docs.remove(0), idx: top.idx });
+                    heap.push(TermDocComparator { val: worker_term_docs.pop().unwrap(), idx: top.idx });
                 }
 
                 output.push(top.val);
@@ -130,7 +130,7 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: Pa
         buffered_writer_dict.write_all(&postings_file_offset.to_le_bytes()).unwrap();
 
         // Write pl
-        for term_doc in term_docs {
+        for term_doc in term_docs.into_iter().rev() {
             buffered_writer.write_all(&term_doc.doc_id.to_le_bytes()).unwrap();
 
             let num_fields: u8 = term_doc.doc_fields.len() as u8;

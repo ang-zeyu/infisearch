@@ -40,13 +40,13 @@ impl Eq for TermDocComparator {}
 
 impl Ord for TermDocComparator {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.val.doc_id.cmp(&self.val.doc_id)
+        self.val.doc_id.cmp(&other.val.doc_id)
     }
 }
 
 impl PartialOrd for TermDocComparator {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(other.val.doc_id.cmp(&self.val.doc_id))
+        Some(self.val.doc_id.cmp(&other.val.doc_id))
     }
 }
 
