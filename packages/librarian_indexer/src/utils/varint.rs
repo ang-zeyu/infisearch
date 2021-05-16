@@ -2,7 +2,7 @@ static VALUE_MASK: u32 = 127;       // 0111 1111
 static CONTINUATION_MASK: u8 = 128; // 1000 0000
 
 pub fn get_var_int<'a> (mut value: u32, output_buf: &'a mut [u8]) -> &'a [u8] {
-    for buf_idx in 0..32 {
+    for buf_idx in 0..16 {
         let last_seven_bits: u8 = (value & VALUE_MASK) as u8;
         value = value >> 7;
 
@@ -14,5 +14,21 @@ pub fn get_var_int<'a> (mut value: u32, output_buf: &'a mut [u8]) -> &'a [u8] {
         }
     }
 
-    panic!("Attempted to encode variable integer over 32 bytes in length!");
+    panic!("Attempted to encode variable integer over 16 bytes in length!");
+}
+
+pub fn get_var_int_vec<'a> (mut value: u32, output_buf: &'a mut Vec<u8>) {
+    for buf_idx in 0..16 {
+        let last_seven_bits: u8 = (value & VALUE_MASK) as u8;
+        value = value >> 7;
+
+        if value != 0 {
+            output_buf.push(last_seven_bits);
+        } else {
+            output_buf.push(last_seven_bits | CONTINUATION_MASK);
+            return;
+        }
+    }
+
+    panic!("Attempted to encode variable integer over 16 bytes in length!");
 }

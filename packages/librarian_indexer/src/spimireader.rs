@@ -15,11 +15,9 @@ use std::io::Write;
 use std::path::Path;
 
 use crate::Receiver;
-use crate::utils::varint::get_var_int;
+use crate::utils::varint;
 use crate::WorkerToMainMessage;
 use crate::Worker;
-use crate::worker::miner::DocField;
-use crate::worker::miner::TermDoc;
 
 static POSTINGS_STREAM_BUFFER_SIZE: u32 = 2000;
 static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 2000;
@@ -29,6 +27,17 @@ static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
 
 static PREFIX_FRONT_CODE: u8 = 123;     // {
 static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
+
+pub struct DocFieldForMerge {
+    pub field_id: u8,
+    pub field_tf: u32,
+    pub field_tf_and_positions_varint: Vec<u8>,
+}
+
+pub struct TermDocForMerge {
+    pub doc_id: u32,
+    pub doc_fields: Vec<DocFieldForMerge>
+}
 
 pub enum PostingsStreamDecoder {
     Reader(PostingsStreamReader),
@@ -40,7 +49,7 @@ pub struct PostingsStreamReader {
     pub idx: u32,
     pub buffered_reader: BufReader<File>,
     pub buffered_dict_reader: BufReader<File>,
-    pub future_term_buffer: VecDeque<(String, Vec<TermDoc>)>
+    pub future_term_buffer: VecDeque<(String, Vec<TermDocForMerge>)>
 }
 
 impl PostingsStreamReader {
@@ -64,8 +73,8 @@ struct PostingsStream {
     is_empty: bool,
     is_reader_decoding: bool,
     curr_term: String,
-    curr_term_docs: Vec<TermDoc>,
-    term_buffer: VecDeque<(String, Vec<TermDoc>)>,
+    curr_term_docs: Vec<TermDocForMerge>,
+    term_buffer: VecDeque<(String, Vec<TermDocForMerge>)>,
 }
 
 // Order by term, then block number
@@ -258,7 +267,7 @@ pub fn merge_blocks(
 
     // N-way merge trackers
     let mut prev_term = "".to_owned();
-    let mut prev_combined_term_docs: Vec<TermDoc> = Vec::new();
+    let mut prev_combined_term_docs: Vec<TermDocForMerge> = Vec::new();
 
     // Dictionary front coding trackers
     let mut prev_common_prefix = "".to_owned();
@@ -297,7 +306,7 @@ pub fn merge_blocks(
     );
 
     // Varint buffer
-    let mut varint_buf: [u8; 32] = [0; 32];
+    let mut varint_buf: [u8; 16] = [0; 16];
 
     println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
 
@@ -338,7 +347,7 @@ pub fn merge_blocks(
         dict_table_writer.write_all(&[pl_filename_gap]).unwrap();
         
         let doc_freq = prev_combined_term_docs.len() as u32;
-        dict_table_writer.write_all(get_var_int(doc_freq, &mut varint_buf)).unwrap();
+        dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
 
         dict_table_writer.write_all(&(curr_pl_offset as u16).to_le_bytes()).unwrap();
 
@@ -351,42 +360,23 @@ pub fn merge_blocks(
         let mut prev_doc_id = 0;
         for mut term_doc in prev_combined_term_docs {
             // println!("term {} curr {} prev {}", prev_term, term_doc.doc_id, prev_doc_id);
-            let doc_id_gap_varint = get_var_int(term_doc.doc_id - prev_doc_id, &mut varint_buf);
+            let doc_id_gap_varint = varint::get_var_int(term_doc.doc_id - prev_doc_id, &mut varint_buf);
             pl_writer.write_all(doc_id_gap_varint).unwrap();
             prev_doc_id = term_doc.doc_id;
 
             curr_pl_offset += (doc_id_gap_varint.len()
                 + term_doc.doc_fields.len()) as u32; // field id contribution
 
-            let mut write_doc_field = |doc_field: DocField, pl_writer: &mut BufWriter<File>| {
-                let field_tf = doc_field.field_positions.len();
-                let field_tf_varint = get_var_int(field_tf as u32, &mut varint_buf);
-                pl_writer.write_all(field_tf_varint).unwrap();
-                curr_pl_offset += field_tf_varint.len() as u32;
-
-                /* for i in 0..doc_field.field_positions.len() {
-                    println!("prev_term {} doc {} curr pos {} next pos {}", prev_term, prev_doc_id, doc_field.field_positions[i],
-                        if i == (doc_field.field_positions.len() - 1) { 999999999 } else { doc_field.field_positions[i + 1] });
-                } */
-                /* if prev_doc_id == 3552 {
-                    return;
-                } */
-
+            let mut write_doc_field = |doc_field: DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
                 // -----------------------------------
                 // Doc norm calculation
 
-                doc_infos.add_doc_len(prev_doc_id, doc_field.field_id, (1.0 + (field_tf as f64).log10()) * idf);
+                doc_infos.add_doc_len(prev_doc_id, doc_field.field_id, (1.0 + (doc_field.field_tf as f64).log10()) * idf);
 
                 // -----------------------------------
 
-                let mut prev_pos = 0;
-                for field_term_pos in doc_field.field_positions {
-                    //println!("prev_term {} doc {} curr pos {} prev pos {}", prev_term, prev_doc_id, field_term_pos, prev_pos);
-                    let pos_gap_varint = get_var_int(field_term_pos - prev_pos, &mut varint_buf);
-                    pl_writer.write_all(pos_gap_varint).unwrap();
-                    curr_pl_offset += pos_gap_varint.len() as u32;
-                    prev_pos = field_term_pos;
-                }
+                pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
+                curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
             };
 
             let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
@@ -423,7 +413,7 @@ pub fn merge_blocks(
                     - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
             } else {
                 (pending_terms.len() * (prev_common_prefix.len() - unicode_prefix_byte_len)) as i32 // num already frontcoded terms * prefix length reduction
-                    + 2 // 1 symbol
+                    + 1 // 1 symbol
                     - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
             };
     

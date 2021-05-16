@@ -1,5 +1,7 @@
 pub mod miner;
 
+use crate::spimireader::DocFieldForMerge;
+use crate::spimireader::TermDocForMerge;
 use crate::FieldInfos;
 use dashmap::DashMap;
 use crate::spimireader::PostingsStreamDecoder;
@@ -19,6 +21,7 @@ use byteorder::{ByteOrder, LittleEndian};
 
 use miner::WorkerMiner;
 use crate::spimiwriter;
+use crate::utils::varint;
 use crate::worker::miner::DocField;
 use crate::worker::miner::TermDoc;
 
@@ -202,6 +205,9 @@ pub fn worker (
             } => {
                 let mut u32_buf: [u8; 4] = [0; 4];
                 let mut u8_buf: [u8; 1] = [0; 1];
+                
+                // Varint buffer
+                let mut varint_buf: [u8; 32] = [0; 32];
 
                 for _unused in 0..n {
                     if let Ok(()) = postings_stream_reader.buffered_dict_reader.read_exact(&mut u32_buf) {
@@ -221,7 +227,7 @@ pub fn worker (
                         // Postings list
                         postings_stream_reader.buffered_reader.seek(SeekFrom::Start(pl_offset as u64)).unwrap();
         
-                        let mut term_docs: Vec<TermDoc> = Vec::with_capacity(doc_freq as usize);
+                        let mut term_docs: Vec<TermDocForMerge> = Vec::with_capacity(doc_freq as usize);
                         for _i in 0..doc_freq {
                             postings_stream_reader.buffered_reader.read_exact(&mut u32_buf).unwrap();
                             let doc_id = LittleEndian::read_u32(&u32_buf);
@@ -229,26 +235,37 @@ pub fn worker (
                             postings_stream_reader.buffered_reader.read_exact(&mut u8_buf).unwrap();
                             let num_fields = u8_buf[0];
         
-                            let mut doc_fields: Vec<DocField> = Vec::with_capacity(num_fields as usize);
+                            let mut doc_fields: Vec<DocFieldForMerge> = Vec::with_capacity(num_fields as usize);
                             for _j in 0..num_fields {
                                 postings_stream_reader.buffered_reader.read_exact(&mut u8_buf).unwrap();
                                 let field_id = u8_buf[0];
                                 postings_stream_reader.buffered_reader.read_exact(&mut u32_buf).unwrap();
                                 let field_tf = LittleEndian::read_u32(&u32_buf);
+
+                                /*
+                                 Pre-encode field tf and position gaps into varint in the worker,
+                                 then write it out in the main thread later.
+                                */
+                                let mut field_tf_and_positions_varint: Vec<u8> = Vec::with_capacity(4 + field_tf as usize * 2);
+
+                                varint::get_var_int_vec(field_tf, &mut field_tf_and_positions_varint);
                                 
-                                let mut field_positions: Vec<u32> = Vec::with_capacity(field_tf as usize);
+                                let mut prev_pos = 0;
                                 for _k in 0..field_tf {
                                     postings_stream_reader.buffered_reader.read_exact(&mut u32_buf).unwrap();
-                                    field_positions.push(LittleEndian::read_u32(&u32_buf));
+                                    let curr_pos = LittleEndian::read_u32(&u32_buf);
+                                    varint::get_var_int_vec(curr_pos - prev_pos, &mut field_tf_and_positions_varint);
+                                    prev_pos = curr_pos;
                                 }
         
-                                doc_fields.push(DocField {
+                                doc_fields.push(DocFieldForMerge {
                                     field_id,
-                                    field_positions
+                                    field_tf,
+                                    field_tf_and_positions_varint,
                                 });
                             }
         
-                            term_docs.push(TermDoc {
+                            term_docs.push(TermDocForMerge {
                                 doc_id,
                                 doc_fields
                             });
