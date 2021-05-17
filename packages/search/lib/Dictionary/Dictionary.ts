@@ -14,8 +14,6 @@ const CORRECTION_ALPHA = 0.85;
 const SPELLING_CORRECTION_BASE_ALPHA = 0.625;
 
 class Dictionary {
-  setupPromise: Promise<void>;
-
   termInfo: {
     [term: string]: TermInfo
   } = Object.create(null);
@@ -24,11 +22,7 @@ class Dictionary {
     [biGram: string]: string[]
   } = Object.create(null);
 
-  constructor(url) {
-    this.setupPromise = this.setup(url);
-  }
-
-  async setup(url): Promise<void> {
+  async setup(url, numDocs: number): Promise<void> {
     const dictionaryTablePromise = fetch(`${url}/dictionaryTable`, {
       method: 'GET',
     });
@@ -94,6 +88,7 @@ class Dictionary {
 
       this.termInfo[term] = {
         docFreq,
+        idf: Math.log10(numDocs / docFreq),
         postingsFileName,
         postingsFileOffset,
       };

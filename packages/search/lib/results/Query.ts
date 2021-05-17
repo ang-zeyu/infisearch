@@ -49,118 +49,124 @@ class Query {
     let resolve;
     this.retrievePromise = new Promise((res) => { resolve = res; });
 
-    const N = this.docInfo.numDocs;
+    let plIteratorsAndWeights = this.queryVectors
+      .map((q) => Object.entries(q.getAllTermsAndWeights()).map(([term, weight]) => ({
+        term, it: this.postingsLists[term].getIt(), weight,
+      })))
+      .reduce((acc, curr) => acc.concat(curr), [])
+      .sort((a, b) => a.it.td.docId - b.it.td.docId);
+    let queryVectorTermSets: Set<string>[];
+    const doUseQueryTermProximityRanking = true;
+    if (doUseQueryTermProximityRanking) {
+      queryVectorTermSets = this.queryVectors.map((q) => new Set(q.getAllTerms()));
+    }
 
-    const docScores: { [docId:number]: number } = {};
-    const docPositions: { [docId: number]: number[][] } = {};
+    // DAAT traversal
+    while (plIteratorsAndWeights.length > 0) {
+      const { docId } = plIteratorsAndWeights[0].it.td;
+      const result = new Result(Number(docId), 0, this.fieldInfo);
 
-    const contenders: Map<number, { [fieldId: number]: number[] }>[][] = await Promise.all(
-      this.queryVectors.map((queryVec) => Promise.all(
-        queryVec.getAllTerms().map((term) => this.postingsLists[term].getDocs()),
-      )),
-    );
+      let scalingFactor = 1;
 
-    // Tf-idf computation
-    this.queryVectors.forEach((queryVec, queryVecIdx) => {
-      Object.entries(queryVec.getAllTermsAndWeights()).forEach(([term, termWeight], queryVecTermIdx) => {
-        const idf = Math.log10(N / this.dictionary.termInfo[term].docFreq);
+      // Query term proximity ranking
+      if (doUseQueryTermProximityRanking && queryVectorTermSets.length > 1) {
+        const positionHeap: Heap<[number, number, number, number]> = new Heap((a, b) => a[0] - b[0]);
+        for (let i = 0; i < plIteratorsAndWeights.length; i += 1) {
+          const currFields = plIteratorsAndWeights[i].it.td.fields;
+          for (let j = 0; j < currFields.length; j += 1) {
+            if (!currFields[j] || !currFields[j].fieldPositions.length) {
+              // eslint-disable-next-line no-continue
+              continue;
+            }
+            const { fieldPositions } = currFields[j];
+            positionHeap.push([fieldPositions[0], i, j, 1]);
+          }
+        }
 
-        contenders[queryVecIdx][queryVecTermIdx].forEach((fields, docId) => {
-          let wfTD = 0;
+        const mergedPositions: [number, string][] = [];
+        while (!positionHeap.empty()) {
+          const top = positionHeap.pop();
 
-          docPositions[docId] = docPositions[docId] ?? [];
-          for (let i = docPositions[docId].length; i <= queryVecIdx; i += 1) {
-            docPositions[docId].push([]);
+          const docField = plIteratorsAndWeights[top[1]].it.td.fields[top[2]];
+          if (top[3] < docField.fieldPositions.length) {
+            positionHeap.push([docField.fieldPositions[top[3]], top[1], top[2], top[3] + 1]);
           }
 
-          Object.entries(fields).forEach(([fieldId, positions]) => {
-            const fieldIdInt = Number(fieldId);
-            const fieldWeight = this.fieldInfo[fieldIdInt].weight;
-            const fieldLen = this.docInfo.docLengths[docId][fieldIdInt];
+          mergedPositions.push([top[0], plIteratorsAndWeights[top[1]].term]);
+        }
+        /* console.log(docId);
+        console.log(mergedPositions); */
 
-            const wtd = 1 + Math.log10(positions.length);
+        let atQueryVec = 0;
+        let minWindow = [];
+        let minWindowLen = 2000000000;
+        const currWindow = [];
+        let currWindowLen = 2000000000;
+        for (let i = 0; i < mergedPositions.length; i += 1) {
+          if (queryVectorTermSets[atQueryVec].has(mergedPositions[i][1])) {
+            // eslint-disable-next-line prefer-destructuring
+            currWindow[atQueryVec] = mergedPositions[i][0];
+            atQueryVec += 1;
+          } else if (atQueryVec !== 0 && queryVectorTermSets[0].has(mergedPositions[i][1])) {
+            // eslint-disable-next-line prefer-destructuring
+            currWindow[0] = mergedPositions[i][0];
+            atQueryVec = 1;
+          } else {
+            atQueryVec = 0;
+          }
 
-            docPositions[docId][queryVecIdx].push(...positions);
+          if (atQueryVec >= queryVectorTermSets.length) {
+            currWindowLen = Math.max(...currWindow) - Math.min(...currWindow);
+            atQueryVec = 0;
+            if (currWindowLen < minWindowLen) {
+              minWindow = currWindow;
+              minWindowLen = currWindowLen;
+            }
+          }
+        }
 
-            // with normalization and weighted zone scoring
-            wfTD += ((wtd * idf) / fieldLen) * fieldWeight;
-          });
+        if (minWindowLen < 10000) {
+          scalingFactor = 1 + 7 / (10 + minWindowLen);
+          console.log(`Scaling ${docId} by ${scalingFactor}, minWindowLen ${minWindowLen}`);
+        }
+      }
 
-          wfTD *= termWeight;
+      for (let i = 0; i < plIteratorsAndWeights.length; i += 1) {
+        const curr = plIteratorsAndWeights[i];
+        if (curr.it.td.docId !== docId) {
+          break;
+        }
 
-          docScores[docId] = (docScores[docId] ?? 0) + wfTD;
-        });
-      });
-    });
+        const { idf } = this.dictionary.termInfo[curr.term];
+        for (let j = 0; j < curr.it.td.fields.length; j += 1) {
+          if (!curr.it.td.fields[j]) {
+            // eslint-disable-next-line no-continue
+            continue;
+          }
 
-    this.rankByTermProximity(docPositions, docScores);
+          const fieldWeight = this.fieldInfo[curr.it.td.fields[j].fieldId].weight;
+          const fieldLen = this.docInfo.docLengths[docId][curr.it.td.fields[j].fieldId];
+          const wtd = 1 + Math.log10(curr.it.td.fields[j].fieldPositions.length);
 
-    Object.entries(docScores).forEach(([docId, score]) => {
-      const docIdInt = Number(docId);
-      this.resultHeap.push(new Result(docIdInt, score, this.fieldInfo));
-    });
+          result.score += ((wtd * idf) / fieldLen) * fieldWeight * curr.weight;
+        }
+
+        curr.it.next();
+      }
+
+      result.score *= scalingFactor;
+      this.resultHeap.push(result);
+
+      plIteratorsAndWeights = plIteratorsAndWeights
+        .filter((x) => x.it.td)
+        .sort((a, b) => a.it.td.docId - b.it.td.docId);
+    }
 
     const populated = await this.populate(n);
 
     resolve();
 
     return populated;
-  }
-
-  private rankByTermProximity(
-    docPositions: { [docId: number]: number[][] },
-    docScores: { [docId: number]: number },
-  ): void {
-    if (this.queryVectors.length <= 1) {
-      return;
-    }
-
-    const MIN_WINDOW_MAX_BOUND = 10000;
-    const defaultScalingFactor = 1 + Math.log10(MIN_WINDOW_MAX_BOUND / this.queryVectors.length);
-    console.log(`Default scaling factor ${defaultScalingFactor}`);
-    Object.entries(docPositions).forEach(([docId, docQueryVecPositions]) => {
-      const docIdInt = Number(docId);
-      if (
-        Object.values(docQueryVecPositions).filter((positions) => positions.length).length
-          !== this.queryVectors.length
-      ) {
-        docScores[docIdInt] /= defaultScalingFactor;
-        return;
-      }
-
-      const iteratorAndPos: { it: number, positions: number[] }[] = [];
-      Object.values(docQueryVecPositions).forEach((positions) => {
-        positions.sort();
-        iteratorAndPos.push({ it: 0, positions });
-      });
-
-      const initialPositions = iteratorAndPos.map((itAndPos) => itAndPos.positions[itAndPos.it]);
-      let minWindow = Math.max(...initialPositions) - Math.min(...initialPositions) + 1;
-      while (iteratorAndPos.every((itAndPos) => itAndPos.it + 1 < itAndPos.positions.length)) {
-        let minNextPos = Number.MAX_VALUE;
-        let minNextPosIdx = Number.MAX_VALUE;
-        iteratorAndPos.forEach((itAndPos, idx) => {
-          if (itAndPos.positions[itAndPos.it + 1] < minNextPos) {
-            minNextPos = itAndPos.positions[itAndPos.it + 1];
-            minNextPosIdx = idx;
-          }
-        });
-
-        iteratorAndPos[minNextPosIdx].it += 1;
-
-        const currentPositions = iteratorAndPos.map((itAndPos) => itAndPos.positions[itAndPos.it]);
-        const window = Math.max(...currentPositions) - Math.min(...currentPositions) + 1;
-        minWindow = Math.min(minWindow, window);
-      }
-
-      // Scoring function for query term proximity
-      minWindow = Math.min(MIN_WINDOW_MAX_BOUND, minWindow);
-      const factor = 1 + Math.log10(minWindow / this.queryVectors.length);
-      docScores[docIdInt] /= factor;
-
-      console.log(`Scaling positions for ${docId} by factor ${factor}`);
-      console.log(docQueryVecPositions);
-    });
   }
 }
 

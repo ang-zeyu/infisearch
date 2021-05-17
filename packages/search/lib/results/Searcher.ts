@@ -16,7 +16,7 @@ class Searcher {
   constructor(
     private url: string,
   ) {
-    this.dictionary = new Dictionary(url);
+    this.dictionary = new Dictionary();
     this.postingsListManager = new PostingsListManager(url, this.dictionary);
     this.fieldInfo = this.setupFieldInfo();
   }
@@ -35,6 +35,9 @@ class Searcher {
     })).json();
 
     this.setupDocInfo(json);
+    await this.docInfo.initialisedPromise;
+
+    await this.dictionary.setup(this.url, this.docInfo.numDocs);
 
     Object.keys(json).forEach((fieldName) => {
       json[json[fieldName].id] = json[fieldName];
@@ -46,7 +49,7 @@ class Searcher {
   }
 
   async getQuery(query): Promise<Query> {
-    await this.dictionary.setupPromise;
+    const fieldInfo = await this.fieldInfo;
 
     // TODO tokenize by language
     const queryTerms: string[] = query.split(/\s+/g);
@@ -58,9 +61,6 @@ class Searcher {
     console.log(aggregatedTerms);
 
     const postingsLists = await this.postingsListManager.retrieve(aggregatedTerms);
-
-    await this.docInfo.initialisedPromise;
-    const fieldInfo = await this.fieldInfo;
 
     return new Query(
       aggregatedTerms, queryVectors, this.docInfo, fieldInfo, this.dictionary, this.url, postingsLists,
