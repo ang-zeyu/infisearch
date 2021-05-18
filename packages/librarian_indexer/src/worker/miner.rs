@@ -118,7 +118,7 @@ impl WorkerMiner {
                 continue;
             }
 
-            let field_terms = tokenize(&field_text);
+            let field_terms = tokenize(field_text);
 
             for field_term in field_terms {
                 pos += 1;
