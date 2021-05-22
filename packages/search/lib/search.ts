@@ -128,8 +128,6 @@ function transformText(
 }
 
 async function transformResults(query: Query, container: HTMLElement): Promise<void> {
-  const sortedQueryTerms = query.aggregatedTerms.sort((str1, str2) => str2.length - str1.length);
-
   const resultsEls = (await query.retrieve(10)).map((result) => {
     console.log(result);
 
@@ -139,7 +137,7 @@ async function transformResults(query: Query, container: HTMLElement): Promise<v
         h('div', { class: 'librarian-title' },
           result.getSingleField('title') || link),
         ...transformText(result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
-          sortedQueryTerms, link)));
+          query.aggregatedTerms, link)));
   });
   resultsEls.forEach((el) => container.appendChild(el));
 

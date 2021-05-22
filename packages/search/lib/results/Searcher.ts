@@ -11,15 +11,15 @@ class Searcher {
 
   private docInfo: DocInfo;
 
-  private fieldInfo: Promise<FieldInfo>;
+  private fieldInfo: FieldInfo;
+
+  private setupPromise: Promise<void>;
 
   constructor(
     private url: string,
     private setupDictionaryUrl: string,
   ) {
-    this.dictionary = new Dictionary();
-    this.postingsListManager = new PostingsListManager(url, this.dictionary);
-    this.fieldInfo = this.setupFieldInfo();
+    this.setupPromise = this.setup();
   }
 
   setupDocInfo(fieldInfoJson: any) {
@@ -27,7 +27,7 @@ class Searcher {
       Object.values(fieldInfoJson).filter((field: any) => field.weight !== 0).length);
   }
 
-  async setupFieldInfo() {
+  async setup() {
     const json = await (await fetch(`${this.url}/fieldInfo.json`, {
       method: 'GET',
       headers: {
@@ -38,19 +38,22 @@ class Searcher {
     this.setupDocInfo(json);
     await this.docInfo.initialisedPromise;
 
+    this.dictionary = new Dictionary();
     await this.dictionary.setup(this.setupDictionaryUrl, this.url, this.docInfo.numDocs);
+
+    this.postingsListManager = new PostingsListManager(this.url, this.dictionary);
 
     Object.keys(json).forEach((fieldName) => {
       json[json[fieldName].id] = json[fieldName];
       json[fieldName].name = fieldName;
     });
-    console.log(json);
 
-    return json;
+    this.fieldInfo = json;
+    console.log(this.fieldInfo);
   }
 
   async getQuery(query): Promise<Query> {
-    const fieldInfo = await this.fieldInfo;
+    await this.setupPromise;
 
     // TODO tokenize by language
     const queryTerms: string[] = query.split(/\s+/g);
@@ -64,7 +67,7 @@ class Searcher {
     const postingsLists = await this.postingsListManager.retrieve(aggregatedTerms);
 
     return new Query(
-      aggregatedTerms, queryVectors, this.docInfo, fieldInfo, this.dictionary, this.url, postingsLists,
+      aggregatedTerms, queryVectors, this.docInfo, this.fieldInfo, this.dictionary, this.url, postingsLists,
     );
   }
 }
