@@ -377,11 +377,13 @@ pub fn merge_blocks(
                 pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
                 curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
 
-                let k = field_infos_by_id.get(doc_field.field_id as usize).unwrap().k;
-                let b = field_infos_by_id.get(doc_field.field_id as usize).unwrap().b;
+                let field_info = field_infos_by_id.get(doc_field.field_id as usize).unwrap();
+                let k = field_info.k;
+                let b = field_info.b;
                 curr_doc_term_score += (doc_field.field_tf as f32 * (k + 1.0))
                     / (doc_field.field_tf as f32
-                        + k * (1.0 - b + b * (doc_infos_unlocked.get_field_len_factor(prev_doc_id as usize, doc_field.field_id as usize))));
+                        + k * (1.0 - b + b * (doc_infos_unlocked.get_field_len_factor(prev_doc_id as usize, doc_field.field_id as usize))))
+                    * field_info.weight;
             };
 
             let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
