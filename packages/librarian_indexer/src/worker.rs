@@ -1,5 +1,7 @@
 pub mod miner;
 
+use crate::DocInfos;
+use std::sync::Mutex;
 use crate::spimireader::DocFieldForMerge;
 use crate::spimireader::TermDocForMerge;
 use crate::FieldInfos;
@@ -55,11 +57,13 @@ impl Worker {
         }).expect("Failed to request worker spimi block decode!");
     }
 
-    pub fn combine_and_sort_block(&self, worker_miners: Vec<WorkerMiner>, output_folder_path: PathBuf, block_number: u32) {
+    pub fn combine_and_sort_block(&self, worker_miners: Vec<WorkerMiner>, output_folder_path: PathBuf, block_number: u32, num_docs: u32, doc_infos: &Arc<Mutex<DocInfos>>) {
         self.tx.send(MainToWorkerMessage::Combine {
             worker_miners,
             output_folder_path,
             block_number,
+            num_docs,
+            doc_infos: Arc::clone(doc_infos),
         }).expect("Failed to send work message to worker!");
     }
 
@@ -122,6 +126,8 @@ pub enum MainToWorkerMessage {
         worker_miners: Vec<WorkerMiner>,
         output_folder_path: PathBuf,
         block_number: u32,
+        num_docs: u32,
+        doc_infos: Arc<Mutex<DocInfos>>,
     },
     Index {
         doc_id: u32,
@@ -146,11 +152,15 @@ pub fn worker (
     rcvr: Receiver<MainToWorkerMessage>,
     /* Immutable shared data structures... */
     field_infos: Arc<FieldInfos>,
+    num_scored_fields: usize,
+    expected_num_docs_per_reset: usize,
 ) {
     // Initialize data structures...
     let mut doc_miner = WorkerMiner {
         field_infos: Arc::clone(&field_infos),
-        terms: FxHashMap::default()
+        terms: FxHashMap::default(),
+        num_scored_fields,
+        document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
     };
 
     let send_available_msg = || {
@@ -175,8 +185,10 @@ pub fn worker (
                 worker_miners,
                 output_folder_path,
                 block_number,
+                num_docs,
+                doc_infos,
             } => {
-                spimiwriter::combine_worker_results_and_write_block(worker_miners, output_folder_path, block_number);
+                spimiwriter::combine_worker_results_and_write_block(worker_miners, doc_infos, output_folder_path, block_number, num_docs);
                 println!("Worker {} wrote spimi block {}!", id, block_number);
 
                 send_available_msg();
@@ -193,7 +205,9 @@ pub fn worker (
                 // reset local variables...
                 doc_miner = WorkerMiner {
                     field_infos: Arc::clone(&field_infos),
-                    terms: FxHashMap::default()
+                    terms: FxHashMap::default(),
+                    num_scored_fields,
+                    document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
                 };
             },
             MainToWorkerMessage::Decode {

@@ -1,3 +1,4 @@
+use crate::FieldInfo;
 use crate::FieldInfos;
 use crate::docinfo::DocInfos;
 use dashmap::DashMap;
@@ -194,6 +195,7 @@ pub fn merge_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
     field_infos: &Arc<FieldInfos>,
+    doc_infos: Arc<Mutex<DocInfos>>,
     workers: &[Worker],
     rx_main: &Receiver<WorkerToMainMessage>,
     output_folder_path: &Path
@@ -306,13 +308,14 @@ pub fn merge_blocks(
     let mut curr_pl = 0;
     let mut curr_pl_offset: u32 = 0;
 
-    // Document info trackers
-    let doc_id_counter_double = doc_id_counter as f64;
-    let mut doc_infos = DocInfos::init_doc_infos(
-        output_folder_path.join("docInfo"),
-        doc_id_counter as usize,
-        field_infos.values().filter(|field_info| field_info.weight != 0.0).count()
-    );
+    // Field / Doc info
+    let mut field_infos_by_id: Vec<&FieldInfo> = (&**field_infos).values().collect();
+    field_infos_by_id.sort_by(|fi1, fi2| fi1.id.cmp(&fi2.id));
+
+    let mut doc_infos_unlocked = doc_infos.lock().unwrap();
+    doc_infos_unlocked.divide_field_lengths();
+
+    let doc_id_counter_float = doc_id_counter as f64;
 
     // Varint buffer
     let mut varint_buf: [u8; 16] = [0; 16];
@@ -343,12 +346,12 @@ pub fn merge_blocks(
         // Commit the **previous** term's n-way merged postings (curr_combined_term_docs),
         // and dictionary table, dictionary-as-a-string for the term.
 
+        let doc_freq = prev_combined_term_docs.len() as u32;
+
         // ---------------------------------------------
         // Dictionary table writing: pl file gap (1 byte), doc freq (var-int), pl offset (u16)
-        let pl_filename_gap: u8 = if curr_pl_offset == 0 { 1 } else { 0 };
-        dict_table_writer.write_all(&[pl_filename_gap]).unwrap();
+        dict_table_writer.write_all(&[(if curr_pl_offset == 0 { 1 } else { 0 }) as u8]).unwrap();
         
-        let doc_freq = prev_combined_term_docs.len() as u32;
         dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
 
         dict_table_writer.write_all(&(curr_pl_offset as u16).to_le_bytes()).unwrap();
@@ -357,7 +360,7 @@ pub fn merge_blocks(
         // Postings writing
         // And doc norms length calculation
 
-        let idf = (doc_id_counter_double / (doc_freq as f64)).log10();
+        let mut max_doc_term_score: f32 = 0.0;
 
         let mut prev_doc_id = 0;
         for mut term_doc in prev_combined_term_docs {
@@ -369,31 +372,42 @@ pub fn merge_blocks(
             curr_pl_offset += (doc_id_gap_varint.len()
                 + term_doc.doc_fields.len()) as u32; // field id contribution
 
+            let mut curr_doc_term_score: f32 = 0.0;
             let mut write_doc_field = |doc_field: DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
-                // -----------------------------------
-                // Doc norm calculation
-
-                doc_infos.add_doc_len(prev_doc_id, doc_field.field_id, (1.0 + (doc_field.field_tf as f64).log10()) * idf);
-
-                // -----------------------------------
-
                 pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
                 curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
+
+                let k = field_infos_by_id.get(doc_field.field_id as usize).unwrap().k;
+                let b = field_infos_by_id.get(doc_field.field_id as usize).unwrap().b;
+                curr_doc_term_score += (doc_field.field_tf as f32 * (k + 1.0))
+                    / (doc_field.field_tf as f32
+                        + k * (1.0 - b + b * (doc_infos_unlocked.get_field_len_factor(prev_doc_id as usize, doc_field.field_id as usize))));
             };
 
             let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
 
             for doc_field in term_doc.doc_fields {
-                let field_id = doc_field.field_id;
-                pl_writer.write_all(&[field_id]).unwrap();
+                pl_writer.write_all(&[doc_field.field_id]).unwrap();
                 write_doc_field(doc_field, &mut pl_writer);
             }
 
-            let last_field_id = last_doc_field.field_id | LAST_FIELD_MASK;
-            pl_writer.write_all(&[last_field_id]).unwrap();
+            pl_writer.write_all(&[last_doc_field.field_id | LAST_FIELD_MASK]).unwrap();
             write_doc_field(last_doc_field, &mut pl_writer);
+
+            if curr_doc_term_score > max_doc_term_score {
+                max_doc_term_score = curr_doc_term_score;
+            }
         }
+
+        let doc_freq_double = doc_freq as f64;
+        max_doc_term_score *= (1.0 + (doc_id_counter_float - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
+
         // ---------------------------------------------
+
+        // ---------------------------------------------
+        // Dictionary table writing: max term score for any document (f32)
+
+        dict_table_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
 
         // ---------------------------------------------
         // Dictionary string writing
@@ -463,8 +477,9 @@ pub fn merge_blocks(
     // Commit frontcoded terms
     write_pending_terms(&mut dict_string_writer, &mut prev_common_prefix, &mut pending_terms);
 
+    doc_infos_unlocked.flush(output_folder_path.join("docInfo"));
+
     dict_table_writer.flush().unwrap();
     pl_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
-    doc_infos.flush();
 }

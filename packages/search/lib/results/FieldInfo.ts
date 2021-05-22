@@ -3,7 +3,9 @@ interface FieldInfo {
     id: number
     name: string,
     do_store: boolean,
-    weight: number
+    weight: number,
+    k: number,
+    b: number,
   }
 }
 

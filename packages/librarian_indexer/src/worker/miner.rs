@@ -27,8 +27,9 @@ pub struct TermDoc {
 // Outputs (termID, docID, fieldId, fieldTf, positions ...., fieldId, fieldTf, positions ....) tuples
 pub struct WorkerMiner {
     pub field_infos: Arc<FieldInfos>,
-
-    pub terms: FxHashMap<String, Vec<TermDoc>>
+    pub terms: FxHashMap<String, Vec<TermDoc>>,
+    pub num_scored_fields: usize,
+    pub document_lengths: Vec<(u32, Vec<u32>)>
 }
 
 pub struct TermDocComparator {
@@ -53,6 +54,28 @@ impl PartialOrd for TermDocComparator {
 impl PartialEq for TermDocComparator {
     fn eq(&self, other: &Self) -> bool {
         self.val.doc_id == other.val.doc_id
+    }
+}
+
+pub struct DocIdAndFieldLengthsComparator(pub (u32, Vec<u32>), pub usize);
+
+impl Eq for DocIdAndFieldLengthsComparator {}
+
+impl Ord for DocIdAndFieldLengthsComparator {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+impl PartialOrd for DocIdAndFieldLengthsComparator {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.0.cmp(&other.0))
+    }
+}
+
+impl PartialEq for DocIdAndFieldLengthsComparator {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
 
@@ -95,6 +118,8 @@ impl WorkerMiner {
         
         let mut pos = 0;
 
+        self.document_lengths.push((doc_id, vec![0; self.num_scored_fields]));
+
         for (field_name, field_text) in field_texts {
             let field_info = self.field_infos.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
             let field_id = field_info.id;
@@ -119,6 +144,8 @@ impl WorkerMiner {
             }
 
             let field_terms = tokenize(field_text);
+
+            *self.document_lengths.last_mut().unwrap().1.get_mut(field_id as usize).unwrap() += field_terms.len() as u32;
 
             for field_term in field_terms {
                 pos += 1;

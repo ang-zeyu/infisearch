@@ -137,19 +137,24 @@ class Query {
           break;
         }
 
-        const { idf } = this.dictionary.termInfo[curr.term];
-        for (let j = 0; j < curr.it.td.fields.length; j += 1) {
+        const currDocFields = curr.it.td.fields;
+        for (let j = 0; j < currDocFields.length; j += 1) {
           if (!curr.it.td.fields[j]) {
             // eslint-disable-next-line no-continue
             continue;
           }
 
-          const fieldWeight = this.fieldInfo[curr.it.td.fields[j].fieldId].weight;
-          const fieldLen = this.docInfo.docLengths[docId][curr.it.td.fields[j].fieldId];
-          const wtd = 1 + Math.log10(curr.it.td.fields[j].fieldPositions.length);
+          const currDocField = currDocFields[j];
+          const fieldInfo = this.fieldInfo[currDocField.fieldId];
+          const fieldLenFactor = this.docInfo.docLengthFactors[docId][currDocField.fieldId];
+          const fieldTermFreq = currDocField.fieldPositions.length;
 
-          result.score += ((wtd * idf) / fieldLen) * fieldWeight * curr.weight;
+          result.score += ((fieldTermFreq * (fieldInfo.k + 1))
+            / (fieldTermFreq + fieldInfo.k * (1 - fieldInfo.b + fieldInfo.b * (fieldLenFactor))))
+            * fieldInfo.weight;
         }
+
+        result.score *= this.dictionary.termInfo[curr.term].idf * curr.weight;
 
         curr.it.next();
       }

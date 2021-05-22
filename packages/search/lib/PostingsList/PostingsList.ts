@@ -25,7 +25,7 @@ class PlIterator {
     this.docCount += 1;
     if (this.docCount > this.docFreq) {
       this.td = undefined;
-      return;
+      return this.td;
     }
 
     const { value: docIdGap, newPos: posAfterDocId } = decodeVarInt(this.view, this.bufferPos);

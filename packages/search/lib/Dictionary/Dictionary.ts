@@ -51,6 +51,9 @@ class Dictionary {
       const postingsFileOffset = dictionaryTableView.getUint16(dictTablePos, true);
       dictTablePos += 2;
 
+      const maxTermScore = dictionaryTableView.getFloat32(dictTablePos, true);
+      dictTablePos += 4;
+
       const termLen = dictionaryStringView.getUint8(dictStringPos);
       dictStringPos += 1;
 
@@ -88,7 +91,8 @@ class Dictionary {
 
       this.termInfo[term] = {
         docFreq,
-        idf: Math.log10(numDocs / docFreq),
+        idf: Math.log(1 + (numDocs - docFreq + 0.5) / (docFreq + 0.5)),
+        maxTermScore,
         postingsFileName,
         postingsFileOffset,
       };

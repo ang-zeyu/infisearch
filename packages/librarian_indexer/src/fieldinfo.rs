@@ -11,7 +11,9 @@ use serde::{Serialize};
 pub struct FieldInfo {
     pub id: u8,
     pub do_store: bool,
-    pub weight: f32
+    pub weight: f32,
+    pub k: f32,
+    pub b: f32,
 }
 
 pub type FieldInfos = FxHashMap<String, FieldInfo>;

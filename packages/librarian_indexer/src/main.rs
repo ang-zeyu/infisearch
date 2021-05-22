@@ -6,6 +6,8 @@ mod tokenize;
 mod utils;
 mod worker;
 
+use std::sync::Mutex;
+use crate::docinfo::DocInfos;
 use std::fs;
 use std::time::Instant;
 use std::env;
@@ -173,6 +175,7 @@ fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path) ->
 
 static NUM_THREADS: u32 = 10;
 static NUM_DOCS: u32 = 1000;
+static EXPECTED_NUM_DOCS_PER_THREAD: usize = (NUM_DOCS / NUM_THREADS * 2) as usize;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -189,13 +192,16 @@ fn main() {
     let mut spimi_counter = 0;
 
     let mut field_infos: FieldInfos = FxHashMap::default();
-    field_infos.insert("title".to_owned(),       FieldInfo { id: 0, do_store: true, weight: 0.2 });
-    field_infos.insert("heading".to_owned(),     FieldInfo { id: 1, do_store: true, weight: 0.3 });
-    field_infos.insert("body".to_owned(),        FieldInfo { id: 2, do_store: true, weight: 0.5 });
-    field_infos.insert("headingLink".to_owned(), FieldInfo { id: 3, do_store: true, weight: 0.0 });
-    field_infos.insert("link".to_owned(),        FieldInfo { id: 4, do_store: true, weight: 0.0 });
-    let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
+    field_infos.insert("title".to_owned(),       FieldInfo { id: 0, do_store: true, weight: 0.2, k: 1.2, b: 0.75 });
+    field_infos.insert("heading".to_owned(),     FieldInfo { id: 1, do_store: true, weight: 0.3, k: 1.2, b: 0.75 });
+    field_infos.insert("body".to_owned(),        FieldInfo { id: 2, do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
+    field_infos.insert("headingLink".to_owned(), FieldInfo { id: 3, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
+    field_infos.insert("link".to_owned(),        FieldInfo { id: 4, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
     
+    let num_scored_fields = field_infos.values().filter(|field_info| field_info.weight != 0.0).count();
+
+    let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
+
     fieldinfo::dump_field_infos(&field_infos_arc, &output_folder_path);
 
     // Spawn some worker threads!
@@ -208,24 +214,22 @@ fn main() {
 
         workers.push(Worker {
             id: i as usize,
-            join_handle: std::thread::spawn(move || worker::worker(i as usize, tx_worker_clone, rx_worker, field_info_clone)),
+            join_handle: std::thread::spawn(move ||
+                worker::worker(i as usize, tx_worker_clone, rx_worker, field_info_clone, num_scored_fields, EXPECTED_NUM_DOCS_PER_THREAD)),
             tx: tx_main
         });
     }
     Worker::make_all_workers_available(&workers);
     
     let now = Instant::now();
-    /* spimireader::merge_blocks(9544, 10, &field_infos_arc, &workers, &rx_main, &output_folder_path);
-
-    print_time_elapsed(now, "Just merge, ");
-    Worker::terminate_all_workers(workers);
-    return; */
-
+    
     let field_store_folder_path = output_folder_path.join("field_store");
     if field_store_folder_path.exists() {
         fs::remove_dir_all(&field_store_folder_path).unwrap();
     }
     fs::create_dir(&field_store_folder_path).unwrap();
+
+    let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(num_scored_fields)));
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -248,7 +252,7 @@ fn main() {
                         spimi_counter += 1;
 
                         if spimi_counter == NUM_DOCS {
-                            spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
+                            spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &workers, &rx_main, &output_folder_path, &doc_infos);
                         }
                     }
                 }
@@ -261,7 +265,7 @@ fn main() {
 
     if spimi_counter != 0 && spimi_counter != NUM_DOCS {
         println!("Writing last spimi block");
-        spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &workers, &rx_main, &output_folder_path);
+        spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &workers, &rx_main, &output_folder_path, &doc_infos);
     }
 
     // Wait on all workers
@@ -271,7 +275,7 @@ fn main() {
 
     // Merge spimi blocks
     // Go through all blocks at once
-    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), &field_infos_arc, &workers, &rx_main, &output_folder_path);
+    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), &field_infos_arc, doc_infos, &workers, &rx_main, &output_folder_path);
 
     print_time_elapsed(now, "Blocks merged!");
     Worker::terminate_all_workers(workers); 

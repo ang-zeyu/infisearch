@@ -1,3 +1,7 @@
+use std::sync::Arc;
+use std::sync::Mutex;
+use crate::DocInfos;
+use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDocComparator;
 use std::collections::BinaryHeap;
 use std::fs::File;
@@ -20,7 +24,8 @@ pub fn write_block (
     block_number: u32,
     workers: &[Worker],
     rx_main: &Receiver<WorkerToMainMessage>, 
-    output_folder_path: &Path
+    output_folder_path: &Path,
+    doc_infos: &Arc<Mutex<DocInfos>>
 ) {
     // SPIMI logic
     let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_threads as usize);
@@ -47,22 +52,26 @@ pub fn write_block (
     Worker::make_all_workers_available(&workers);
 
     let combine_and_sort_worker = Worker::get_available_worker(workers, rx_main);
-    combine_and_sort_worker.combine_and_sort_block(worker_miners, PathBuf::new().join(output_folder_path), block_number);
+    combine_and_sort_worker.combine_and_sort_block(worker_miners, PathBuf::new().join(output_folder_path), block_number, *spimi_counter, doc_infos);
 
     *spimi_counter = 0;
 }
 
 pub fn combine_worker_results_and_write_block(
     worker_miners: Vec<WorkerMiner>,
+    doc_infos: Arc<Mutex<DocInfos>>,
     output_folder_path: PathBuf,
-    block_number: u32
+    block_number: u32,
+    num_docs: u32,
 ) {
-    let spimi_block = combine_and_sort(worker_miners);
+    let spimi_block = combine_and_sort(worker_miners, doc_infos, num_docs);
     write_to_disk(spimi_block, output_folder_path, block_number);
 }
 
-fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc>)> {
+fn combine_and_sort(worker_miners: Vec<WorkerMiner>, doc_infos: Arc<Mutex<DocInfos>>, num_docs: u32) -> Vec<(String, Vec<TermDoc>)> {
     let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
+
+    let mut worker_lengths: Vec<Vec<(u32, Vec<u32>)>> = Vec::with_capacity(num_docs as usize);
 
     // Combine
     for worker_miner in worker_miners {
@@ -72,6 +81,35 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>) -> Vec<(String, Vec<TermDoc
                 .or_insert_with(Vec::new)
                 .push(worker_term_docs);
         }
+
+        worker_lengths.push(worker_miner.document_lengths);
+    }
+
+    
+    {
+        let mut sorted_doc_lengths: Vec<(u32, Vec<u32>)> = Vec::with_capacity(num_docs as usize);
+
+        let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::new();
+
+        for idx in 0..worker_lengths.len() {
+            let worker_document_lengths = worker_lengths.get_mut(idx).unwrap();
+            if !worker_document_lengths.is_empty() {
+                heap.push(DocIdAndFieldLengthsComparator(worker_document_lengths.pop().unwrap(), idx as usize));
+            }
+        }
+
+        while !heap.is_empty() {
+            let top = heap.pop().unwrap();
+
+            let worker_document_lengths = worker_lengths.get_mut(top.1).unwrap();
+            if !worker_document_lengths.is_empty() {
+                heap.push(DocIdAndFieldLengthsComparator(worker_document_lengths.pop().unwrap(), top.1));
+            }
+
+            sorted_doc_lengths.push(top.0);
+        }
+
+        doc_infos.lock().unwrap().extend_with(sorted_doc_lengths);
     }
 
     // Sort
