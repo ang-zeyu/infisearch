@@ -138,6 +138,7 @@ class Query {
         }
 
         const currDocFields = curr.it.td.fields;
+        let score = 0;
         for (let j = 0; j < currDocFields.length; j += 1) {
           if (!curr.it.td.fields[j]) {
             // eslint-disable-next-line no-continue
@@ -149,12 +150,13 @@ class Query {
           const fieldLenFactor = this.docInfo.docLengthFactors[docId][currDocField.fieldId];
           const fieldTermFreq = currDocField.fieldPositions.length;
 
-          result.score += ((fieldTermFreq * (fieldInfo.k + 1))
+          score += ((fieldTermFreq * (fieldInfo.k + 1))
             / (fieldTermFreq + fieldInfo.k * (1 - fieldInfo.b + fieldInfo.b * (fieldLenFactor))))
             * fieldInfo.weight;
         }
 
-        result.score *= this.dictionary.termInfo[curr.term].idf * curr.weight;
+        score *= this.dictionary.termInfo[curr.term].idf * curr.weight;
+        result.score += score;
 
         curr.it.next();
       }
