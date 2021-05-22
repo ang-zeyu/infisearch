@@ -119,7 +119,7 @@ class Dictionary {
     return Object.keys(candidates).filter((term) => (useJacard
       // (A intersect B) / (A union B)
       // For n-gram string, there are n + 1 bi-grams
-      ? candidates[term] / (term.length + baseTerm.length + 2 - candidates[term]) >= SPELLING_CORRECTION_BASE_ALPHA
+      ? candidates[term] / (term.length + baseTerm.length - 2 - candidates[term]) >= SPELLING_CORRECTION_BASE_ALPHA
       : candidates[term] >= minMatchingBiGrams));
   }
 }
