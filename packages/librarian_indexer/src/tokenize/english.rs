@@ -10,7 +10,7 @@ pub fn tokenize (mut text: String) -> Vec<String> {
   text.make_ascii_lowercase();
   SENTENCE_SPLITTER
     .split(&text)
-    .flat_map(|sent_slice| sent_slice.split_ascii_whitespace()
+    .flat_map(|sent_slice| sent_slice.split_whitespace()
       .map(|term_slice| BOUNDARY_FILTER.replace_all(&PUNCTUATION_FILTER.replace_all(term_slice, ""), "").into_owned())
       .filter(|term| {
         let term_byte_len = term.as_bytes().len();
