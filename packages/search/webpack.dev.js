@@ -17,6 +17,7 @@ module.exports = merge(common, {
   },
   plugins: [
     new HtmlWebpackPlugin({
+      excludeChunks: ['setupDictionary'],
       template: './public/template.html',
     }),
   ],

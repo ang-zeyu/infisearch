@@ -1,6 +1,7 @@
 module.exports = {
   entry: {
     main: './lib/search.ts',
+    setupDictionary: './lib/Dictionary/setupDictionary.ts',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],

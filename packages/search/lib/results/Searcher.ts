@@ -15,6 +15,7 @@ class Searcher {
 
   constructor(
     private url: string,
+    private setupDictionaryUrl: string,
   ) {
     this.dictionary = new Dictionary();
     this.postingsListManager = new PostingsListManager(url, this.dictionary);
@@ -37,7 +38,7 @@ class Searcher {
     this.setupDocInfo(json);
     await this.docInfo.initialisedPromise;
 
-    await this.dictionary.setup(this.url, this.docInfo.numDocs);
+    await this.dictionary.setup(this.setupDictionaryUrl, this.url, this.docInfo.numDocs);
 
     Object.keys(json).forEach((fieldName) => {
       json[json[fieldName].id] = json[fieldName];

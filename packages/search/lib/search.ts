@@ -214,7 +214,7 @@ function hide(container): void {
   container.style.display = 'none';
 }
 
-function initLibrarian(url): void {
+function initLibrarian(url: string, setupDictionaryUrl: string): void {
   const input = document.getElementById('librarian-search');
   if (!input) {
     return;
@@ -223,10 +223,11 @@ function initLibrarian(url): void {
   const container = h('ul', { class: 'librarian-dropdown' });
   input.parentElement.appendChild(container);
 
-  const searcher = new Searcher(url);
+  const searcher = new Searcher(url, setupDictionaryUrl);
 
   let inputTimer: any = -1;
   input.addEventListener('input', (ev) => {
+    console.log('fired');
     const query = (ev.target as HTMLInputElement).value.toLowerCase();
 
     if (query.length > 2) {
@@ -243,6 +244,4 @@ function initLibrarian(url): void {
   });
 }
 
-initLibrarian('http://localhost:3000');
-
-export default initLibrarian;
+initLibrarian('http://localhost:3000', 'http://localhost:8080/setupDictionary.bundle.js');
