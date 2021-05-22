@@ -1,5 +1,5 @@
 import decodeVarInt from '../utils/varInt';
-import getBiGrams from './biGrams';
+import getTriGrams from './triGrams';
 import TermInfo from '../results/TermInfo';
 
 const PREFIX_FRONT_CODE = 123; // '{'
@@ -86,26 +86,26 @@ async function getTermInfos(url: string, numDocs: number): Promise<{ [term: stri
   return termInfo;
 }
 
-function setupBigrams(termInfo: { [term: string]: TermInfo }): { [biGram: string]: string[] } {
-  const biGrams: { [biGram: string]: string[] } = Object.create(null);
+function setupTrigrams(termInfo: { [term: string]: TermInfo }): { [triGram: string]: string[] } {
+  const triGrams: { [triGram: string]: string[] } = Object.create(null);
   Object.keys(termInfo).forEach((term) => {
-    getBiGrams(term).forEach((biGram) => {
-      biGrams[biGram] = biGrams[biGram] ?? [];
-      biGrams[biGram].push(term);
+    getTriGrams(term).forEach((triGram) => {
+      triGrams[triGram] = triGrams[triGram] ?? [];
+      triGrams[triGram].push(term);
     });
   });
 
-  return biGrams;
+  return triGrams;
 }
 
 onmessage = async function setupDictionary(ev) {
   const { url, numDocs } = ev.data;
 
   const termInfo = await getTermInfos(url, numDocs);
-  const biGrams = setupBigrams(termInfo);
+  const triGrams = setupTrigrams(termInfo);
 
   postMessage({
     termInfo,
-    biGrams,
+    triGrams,
   });
 };

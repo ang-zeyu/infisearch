@@ -2,7 +2,7 @@ import * as levenshtein from 'fast-levenshtein';
 
 import TermInfo from '../results/TermInfo';
 import QueryVector from '../results/QueryVector';
-import getBiGrams from './biGrams';
+import getTriGrams from './triGrams';
 
 const CORRECTION_ALPHA = 0.85;
 const SPELLING_CORRECTION_BASE_ALPHA = 0.625;
@@ -12,8 +12,8 @@ class Dictionary {
     [term: string]: TermInfo
   };
 
-  biGrams: {
-    [biGram: string]: string[]
+  triGrams: {
+    [triGram: string]: string[]
   };
 
   setup(setupDictionaryUrl: string, url: string, numDocs: number): Promise<void> {
@@ -21,7 +21,7 @@ class Dictionary {
       const w = new Worker(setupDictionaryUrl);
       w.onmessage = (ev) => {
         this.termInfo = ev.data.termInfo;
-        this.biGrams = ev.data.biGrams;
+        this.triGrams = ev.data.triGrams;
         resolve();
       };
 
@@ -61,7 +61,6 @@ class Dictionary {
     levenshteinCandidates.forEach((term) => {
       editDistances[term] = levenshtein.get(misSpelledTerm, term);
     });
-    console.log(levenshteinCandidates);
 
     let minEditDistanceTerms = [];
     let minEditDistance = 99999;
@@ -89,7 +88,6 @@ class Dictionary {
 
     const expandedTerms: { [term: string]: number } = Object.create(null);
     const prefixCheckCandidates = this.getTermCandidates(baseTerm, false);
-    console.log(prefixCheckCandidates);
 
     const minBaseTermSubstring = baseTerm.substring(0, Math.floor(CORRECTION_ALPHA * baseTerm.length));
     prefixCheckCandidates.forEach((term) => {
@@ -102,25 +100,26 @@ class Dictionary {
   }
 
   private getTermCandidates(baseTerm: string, useJacard: boolean): string[] {
-    const biGrams = getBiGrams(baseTerm);
-    const minMatchingBiGrams = Math.floor(CORRECTION_ALPHA * biGrams.length);
+    const triGrams = getTriGrams(baseTerm);
+    const minMatchingTriGrams = Math.floor(CORRECTION_ALPHA * triGrams.length);
 
     const candidates: { [term: string]: number } = Object.create(null);
-    biGrams.forEach((biGram) => {
-      if (!this.biGrams[biGram]) {
+    triGrams.forEach((triGram) => {
+      if (!this.triGrams[triGram]) {
         return;
       }
 
-      this.biGrams[biGram].forEach((term) => {
+      this.triGrams[triGram].forEach((term) => {
         candidates[term] = candidates[term] ? candidates[term] + 1 : 1;
       });
     });
 
     return Object.keys(candidates).filter((term) => (useJacard
       // (A intersect B) / (A union B)
-      // For n-gram string, there are n + 1 bi-grams
-      ? candidates[term] / (term.length + baseTerm.length - 2 - candidates[term]) >= SPELLING_CORRECTION_BASE_ALPHA
-      : candidates[term] >= minMatchingBiGrams));
+      // For n-gram string, there are n - 2 tri-grams
+      ? (candidates[term] / (term.length + baseTerm.length - 4 - candidates[term]))
+        >= SPELLING_CORRECTION_BASE_ALPHA
+      : candidates[term] >= minMatchingTriGrams));
   }
 }
 
