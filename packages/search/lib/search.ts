@@ -235,7 +235,7 @@ function initLibrarian(url: string, setupDictionaryUrl: string): void {
         if (updatePromiseQueue.length === 1) {
           updatePromiseQueue[0]();
         }
-      }, 200);
+      }, 250);
     } else if (query.length < 2) {
       hide(container);
     }
