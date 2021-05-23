@@ -75,7 +75,6 @@ class Query {
           const currFields = plIteratorsAndWeights[i].it.td.fields;
           for (let j = 0; j < currFields.length; j += 1) {
             if (!currFields[j] || !currFields[j].fieldPositions.length) {
-              // eslint-disable-next-line no-continue
               continue;
             }
             const { fieldPositions } = currFields[j];
