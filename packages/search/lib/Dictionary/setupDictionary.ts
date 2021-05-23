@@ -22,16 +22,18 @@ async function getTermInfos(url: string, numDocs: number): Promise<{ [term: stri
 
   const termInfo: { [term: string]: TermInfo } = Object.create(null);
 
-  let prevPostingsFileName = -1;
+  let postingsFileName = 0;
   let dictStringPos = 0;
   let frontCodingPrefix = '';
   for (let dictTablePos = 0; dictTablePos < dictionaryTableBuffer.byteLength;) {
-    const postingsFileName = dictionaryTableView.getUint8(dictTablePos) + prevPostingsFileName;
-    dictTablePos += 1;
-    prevPostingsFileName = postingsFileName;
-
     const { value: docFreq, newPos: dictTablePos1 } = decodeVarInt(dictionaryTableView, dictTablePos);
     dictTablePos = dictTablePos1;
+
+    // new postings list delimiter
+    if (docFreq === 0) {
+      postingsFileName += 1;
+      continue;
+    }
 
     const postingsFileOffset = dictionaryTableView.getUint16(dictTablePos, true);
     dictTablePos += 2;

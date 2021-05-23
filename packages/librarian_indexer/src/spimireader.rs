@@ -349,8 +349,7 @@ pub fn merge_blocks(
         let doc_freq = prev_combined_term_docs.len() as u32;
 
         // ---------------------------------------------
-        // Dictionary table writing: pl file gap (1 byte), doc freq (var-int), pl offset (u16)
-        dict_table_writer.write_all(&[(if curr_pl_offset == 0 { 1 } else { 0 }) as u8]).unwrap();
+        // Dictionary table writing: doc freq (var-int), pl offset (u16)
         
         dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
 
@@ -450,6 +449,13 @@ pub fn merge_blocks(
         // ---------------------------------------------
         // Split postings file if necessary
         if curr_pl_offset > POSTINGS_FILE_LIMIT {
+            // --------------------------------
+            // Dictionary table writing
+            // (1 byte varint = 0 in place of the docFreq varint, delimiting a new postings list)
+
+            dict_table_writer.write_all(&[128 as u8]).unwrap();
+            // --------------------------------
+
             pl_writer.flush().unwrap();
 
             curr_pl += 1;
