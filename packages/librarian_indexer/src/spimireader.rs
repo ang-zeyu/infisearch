@@ -322,7 +322,7 @@ pub fn merge_blocks(
         
         let curr_term = std::mem::take(&mut postings_stream.curr_term);
         let mut curr_term_max_score = postings_stream.curr_term_max_score;
-        let mut curr_combined_term_docs = std::mem::take(&mut postings_stream.curr_term_docs);
+        let mut curr_combined_term_docs: Vec<Vec<TermDocForMerge>> = vec![std::mem::take(&mut postings_stream.curr_term_docs)];
 
         postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
         if !postings_stream.is_empty { postings_streams.push(postings_stream); }
@@ -335,7 +335,7 @@ pub fn merge_blocks(
             } else {
                 curr_term_max_score
             };
-            curr_combined_term_docs.extend(std::mem::take(&mut postings_stream.curr_term_docs));
+            curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term_docs));
             
             postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
             if !postings_stream.is_empty { postings_streams.push(postings_stream); }
@@ -358,29 +358,31 @@ pub fn merge_blocks(
         // And doc norms length calculation
 
         let mut prev_doc_id = 0;
-        for mut term_doc in curr_combined_term_docs {
-            // println!("term {} curr {} prev {}", prev_term, term_doc.doc_id, prev_doc_id);
-            let doc_id_gap_varint = varint::get_var_int(term_doc.doc_id - prev_doc_id, &mut varint_buf);
-            pl_writer.write_all(doc_id_gap_varint).unwrap();
-            prev_doc_id = term_doc.doc_id;
-
-            curr_pl_offset += (doc_id_gap_varint.len()
-                + term_doc.doc_fields.len()) as u32; // field id contribution
-
-            let mut write_doc_field = |doc_field: DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
-                pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
-                curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
-            };
-
-            let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
-
-            for doc_field in term_doc.doc_fields {
-                pl_writer.write_all(&[doc_field.field_id]).unwrap();
-                write_doc_field(doc_field, &mut pl_writer);
+        for term_docs in curr_combined_term_docs {
+            for mut term_doc in term_docs {
+                // println!("term {} curr {} prev {}", prev_term, term_doc.doc_id, prev_doc_id);
+                let doc_id_gap_varint = varint::get_var_int(term_doc.doc_id - prev_doc_id, &mut varint_buf);
+                pl_writer.write_all(doc_id_gap_varint).unwrap();
+                prev_doc_id = term_doc.doc_id;
+    
+                curr_pl_offset += (doc_id_gap_varint.len()
+                    + term_doc.doc_fields.len()) as u32; // field id contribution
+    
+                let mut write_doc_field = |doc_field: DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
+                    pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
+                    curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
+                };
+    
+                let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
+    
+                for doc_field in term_doc.doc_fields {
+                    pl_writer.write_all(&[doc_field.field_id]).unwrap();
+                    write_doc_field(doc_field, &mut pl_writer);
+                }
+    
+                pl_writer.write_all(&[last_doc_field.field_id | LAST_FIELD_MASK]).unwrap();
+                write_doc_field(last_doc_field, &mut pl_writer);
             }
-
-            pl_writer.write_all(&[last_doc_field.field_id | LAST_FIELD_MASK]).unwrap();
-            write_doc_field(last_doc_field, &mut pl_writer);
         }
 
         // ---------------------------------------------
