@@ -28,7 +28,6 @@ pub struct TermDoc {
 pub struct WorkerMiner {
     pub field_infos: Arc<FieldInfos>,
     pub terms: FxHashMap<String, Vec<TermDoc>>,
-    pub num_scored_fields: usize,
     pub document_lengths: Vec<(u32, Vec<u32>)>
 }
 
@@ -118,10 +117,10 @@ impl WorkerMiner {
         
         let mut pos = 0;
 
-        self.document_lengths.push((doc_id, vec![0; self.num_scored_fields]));
+        self.document_lengths.push((doc_id, vec![0; self.field_infos.num_scored_fields]));
 
         for (field_name, field_text) in field_texts {
-            let field_info = self.field_infos.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
+            let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
             let field_id = field_info.id;
 
             pos += 1000; // to "split up zones"

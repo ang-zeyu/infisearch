@@ -191,18 +191,17 @@ fn main() {
     };
     let mut spimi_counter = 0;
 
-    let mut field_infos: FieldInfos = FxHashMap::default();
-    field_infos.insert("title".to_owned(),       FieldInfo { id: 0, do_store: true, weight: 0.2, k: 1.2, b: 0.75 });
-    field_infos.insert("heading".to_owned(),     FieldInfo { id: 1, do_store: true, weight: 0.3, k: 1.2, b: 0.75 });
-    field_infos.insert("body".to_owned(),        FieldInfo { id: 2, do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
-    field_infos.insert("headingLink".to_owned(), FieldInfo { id: 3, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
-    field_infos.insert("link".to_owned(),        FieldInfo { id: 4, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
-    
-    let num_scored_fields = field_infos.values().filter(|field_info| field_info.weight != 0.0).count();
+    let mut field_infos_map: FxHashMap<String, FieldInfo> = FxHashMap::default();
+    field_infos_map.insert("title".to_owned(),       FieldInfo { id: 0, do_store: true, weight: 0.2, k: 1.2, b: 0.75 });
+    field_infos_map.insert("heading".to_owned(),     FieldInfo { id: 1, do_store: true, weight: 0.3, k: 1.2, b: 0.75 });
+    field_infos_map.insert("body".to_owned(),        FieldInfo { id: 2, do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
+    field_infos_map.insert("headingLink".to_owned(), FieldInfo { id: 3, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
+    field_infos_map.insert("link".to_owned(),        FieldInfo { id: 4, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
+
+    let field_infos = FieldInfos::init(field_infos_map);
+    field_infos.dump(&output_folder_path);
 
     let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
-
-    fieldinfo::dump_field_infos(&field_infos_arc, &output_folder_path);
 
     // Spawn some worker threads!
     let mut workers: Vec<Worker> = Vec::with_capacity(NUM_THREADS as usize);
@@ -215,7 +214,7 @@ fn main() {
         workers.push(Worker {
             id: i as usize,
             join_handle: std::thread::spawn(move ||
-                worker::worker(i as usize, tx_worker_clone, rx_worker, field_info_clone, num_scored_fields, EXPECTED_NUM_DOCS_PER_THREAD)),
+                worker::worker(i as usize, tx_worker_clone, rx_worker, field_info_clone, EXPECTED_NUM_DOCS_PER_THREAD)),
             tx: tx_main
         });
     }
@@ -229,7 +228,7 @@ fn main() {
     }
     fs::create_dir(&field_store_folder_path).unwrap();
 
-    let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(num_scored_fields)));
+    let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(field_infos_arc.num_scored_fields)));
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -275,7 +274,7 @@ fn main() {
 
     // Merge spimi blocks
     // Go through all blocks at once
-    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), &field_infos_arc, doc_infos, &workers, &rx_main, &output_folder_path);
+    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), field_infos_arc, doc_infos, &workers, &rx_main, &output_folder_path);
 
     print_time_elapsed(now, "Blocks merged!");
     Worker::terminate_all_workers(workers); 

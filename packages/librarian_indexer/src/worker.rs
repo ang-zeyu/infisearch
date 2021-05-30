@@ -1,5 +1,6 @@
 pub mod miner;
 
+use crate::FieldInfo;
 use crate::DocInfos;
 use std::sync::Mutex;
 use crate::spimireader::DocFieldForMerge;
@@ -152,14 +153,12 @@ pub fn worker (
     rcvr: Receiver<MainToWorkerMessage>,
     /* Immutable shared data structures... */
     field_infos: Arc<FieldInfos>,
-    num_scored_fields: usize,
     expected_num_docs_per_reset: usize,
 ) {
     // Initialize data structures...
     let mut doc_miner = WorkerMiner {
         field_infos: Arc::clone(&field_infos),
         terms: FxHashMap::default(),
-        num_scored_fields,
         document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
     };
 
@@ -206,7 +205,6 @@ pub fn worker (
                 doc_miner = WorkerMiner {
                     field_infos: Arc::clone(&field_infos),
                     terms: FxHashMap::default(),
-                    num_scored_fields,
                     document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
                 };
             },
@@ -235,6 +233,8 @@ pub fn worker (
         
                         // Postings list
                         postings_stream_reader.buffered_reader.seek(SeekFrom::Start(pl_offset as u64)).unwrap();
+
+                        let mut max_doc_term_score: f32 = 0.0;
         
                         let mut term_docs: Vec<TermDocForMerge> = Vec::with_capacity(doc_freq as usize);
                         for _i in 0..doc_freq {
@@ -244,6 +244,8 @@ pub fn worker (
                             postings_stream_reader.buffered_reader.read_exact(&mut u8_buf).unwrap();
                             let num_fields = u8_buf[0];
         
+                            let mut curr_doc_term_score: f32 = 0.0;
+
                             let mut doc_fields: Vec<DocFieldForMerge> = Vec::with_capacity(num_fields as usize);
                             for _j in 0..num_fields {
                                 postings_stream_reader.buffered_reader.read_exact(&mut u8_buf).unwrap();
@@ -266,12 +268,28 @@ pub fn worker (
                                     varint::get_var_int_vec(curr_pos - prev_pos, &mut field_tf_and_positions_varint);
                                     prev_pos = curr_pos;
                                 }
+
+                                let field_info = field_infos.field_infos_by_id.get(field_id as usize).unwrap();
+                                let k = field_info.k;
+                                let b = field_info.b;
+                                curr_doc_term_score += (field_tf as f32 * (k + 1.0))
+                                    / (field_tf as f32
+                                        + k * (
+                                            1.0
+                                            - b
+                                            + b * (postings_stream_reader.doc_infos_unlocked.get_field_len_factor(doc_id as usize, field_id as usize))
+                                        )
+                                    )
+                                    * field_info.weight;
         
                                 doc_fields.push(DocFieldForMerge {
                                     field_id,
-                                    field_tf,
                                     field_tf_and_positions_varint,
                                 });
+                            }
+
+                            if curr_doc_term_score > max_doc_term_score {
+                                max_doc_term_score = curr_doc_term_score;
                             }
         
                             term_docs.push(TermDocForMerge {
@@ -280,7 +298,7 @@ pub fn worker (
                             });
                         }
 
-                        postings_stream_reader.future_term_buffer.push_back((term, term_docs));
+                        postings_stream_reader.future_term_buffer.push_back((term, term_docs, max_doc_term_score));
                     } else {
                         break; // eof
                     }

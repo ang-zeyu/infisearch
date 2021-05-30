@@ -31,7 +31,6 @@ static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
 
 pub struct DocFieldForMerge {
     pub field_id: u8,
-    pub field_tf: u32,
     pub field_tf_and_positions_varint: Vec<u8>,
 }
 
@@ -50,7 +49,8 @@ pub struct PostingsStreamReader {
     pub idx: u32,
     pub buffered_reader: BufReader<File>,
     pub buffered_dict_reader: BufReader<File>,
-    pub future_term_buffer: VecDeque<(String, Vec<TermDocForMerge>)>
+    pub future_term_buffer: VecDeque<(String, Vec<TermDocForMerge>, f32)>,
+    pub doc_infos_unlocked: Arc<DocInfos>,
 }
 
 impl PostingsStreamReader {
@@ -74,8 +74,9 @@ struct PostingsStream {
     is_empty: bool,
     is_reader_decoding: bool,
     curr_term: String,
+    curr_term_max_score: f32,
     curr_term_docs: Vec<TermDocForMerge>,
-    term_buffer: VecDeque<(String, Vec<TermDocForMerge>)>,
+    term_buffer: VecDeque<(String, Vec<TermDocForMerge>, f32)>,
 }
 
 // Order by term, then block number
@@ -163,9 +164,10 @@ impl PostingsStream {
         }
 
         // Pluck out the first tuple
-        if let Some(term_termdocs_pair) = self.term_buffer.pop_front() {
-            self.curr_term = term_termdocs_pair.0;
-            self.curr_term_docs = term_termdocs_pair.1;
+        if let Some(term_termdocs_triple) = self.term_buffer.pop_front() {
+            self.curr_term = term_termdocs_triple.0;
+            self.curr_term_docs = term_termdocs_triple.1;
+            self.curr_term_max_score = term_termdocs_triple.2;
         } else {
             self.is_empty = true;
         }
@@ -194,7 +196,7 @@ fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
 pub fn merge_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
-    field_infos: &Arc<FieldInfos>,
+    field_infos: Arc<FieldInfos>,
     doc_infos: Arc<Mutex<DocInfos>>,
     workers: &[Worker],
     rx_main: &Receiver<WorkerToMainMessage>,
@@ -216,6 +218,19 @@ pub fn merge_blocks(
 
     // let (tx_stream, rx_stream) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = std::sync::mpsc::channel();
 
+    // Unwrap the inner mutex to avoid locks as it is now read-only
+    let doc_infos_unlocked_arc = if let Ok(doc_infos_mutex) = Arc::try_unwrap(doc_infos) {
+        let mut doc_infos_unwrapped_inner = doc_infos_mutex.into_inner().unwrap();
+        doc_infos_unwrapped_inner.divide_field_lengths();
+        doc_infos_unwrapped_inner.flush(output_folder_path.join("docInfo"));
+    
+        Arc::from(doc_infos_unwrapped_inner)
+    } else {
+        panic!("Failed to unwrap doc info mutex from arc.");
+    };
+
+    let doc_id_counter_float = doc_id_counter as f64;
+
     // Initialize postings streams and readers, start reading
     for idx in 1..(num_blocks + 1) {
         let block_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", idx));
@@ -231,7 +246,8 @@ pub fn merge_blocks(
             idx,
             buffered_reader: BufReader::with_capacity(819200, block_file),
             buffered_dict_reader: BufReader::with_capacity(819200, block_dict_file),
-            future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize)
+            future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize),
+            doc_infos_unlocked:  Arc::clone(&doc_infos_unlocked_arc),
         }).read_next_batch(rx_main, workers, Arc::clone(&postings_stream_readers));
     }
 
@@ -243,6 +259,7 @@ pub fn merge_blocks(
             is_empty: false,
             is_reader_decoding: false,
             curr_term: "".to_owned(),
+            curr_term_max_score: 0.0,
             curr_term_docs: Vec::new(),
             term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize), // transfer ownership of future term buffer to the main postings stream
         };
@@ -269,16 +286,6 @@ pub fn merge_blocks(
             Path::new(output_folder_path).join("pl_0")
         ).expect("Failed to final dictionary string for writing.")
     );
-
-    let mut initial_postings_stream = postings_streams.pop().unwrap();
-
-    // Initialise N-way merge trackers
-    let mut prev_term = std::mem::take(&mut initial_postings_stream.curr_term);
-    let mut prev_combined_term_docs = std::mem::take(&mut initial_postings_stream.curr_term_docs);
-    
-    // Push back the initial postings stream
-    initial_postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
-    postings_streams.push(initial_postings_stream);
 
     // Dictionary front coding trackers
     let mut prev_common_prefix = "".to_owned();
@@ -308,15 +315,6 @@ pub fn merge_blocks(
     let mut curr_pl = 0;
     let mut curr_pl_offset: u32 = 0;
 
-    // Field / Doc info
-    let mut field_infos_by_id: Vec<&FieldInfo> = (&**field_infos).values().collect();
-    field_infos_by_id.sort_by(|fi1, fi2| fi1.id.cmp(&fi2.id));
-
-    let mut doc_infos_unlocked = doc_infos.lock().unwrap();
-    doc_infos_unlocked.divide_field_lengths();
-
-    let doc_id_counter_float = doc_id_counter as f64;
-
     // Varint buffer
     let mut varint_buf: [u8; 16] = [0; 16];
 
@@ -325,28 +323,32 @@ pub fn merge_blocks(
     while !postings_streams.is_empty() {
         let mut postings_stream = postings_streams.pop().unwrap();
         // println!("term {} idx {} first doc {}", postings_stream.curr_term, postings_stream.idx, postings_stream.curr_term_docs[0].doc_id);
-        if postings_stream.is_empty {
-            continue;
-        }
         
+        let curr_term = std::mem::take(&mut postings_stream.curr_term);
+        let mut curr_term_max_score = postings_stream.curr_term_max_score;
+        let mut curr_combined_term_docs = std::mem::take(&mut postings_stream.curr_term_docs);
+
+        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
+        if !postings_stream.is_empty { postings_streams.push(postings_stream); }
+
         // Aggregate same terms from different blocks...
-        if prev_term == postings_stream.curr_term {
-            // Add on
-            prev_combined_term_docs.extend(std::mem::take(&mut postings_stream.curr_term_docs));
+        while !postings_streams.is_empty() && postings_streams.peek().unwrap().curr_term == curr_term {
+            postings_stream = postings_streams.pop().unwrap();
+            curr_term_max_score = if curr_term_max_score < postings_stream.curr_term_max_score {
+                postings_stream.curr_term_max_score
+            } else {
+                curr_term_max_score
+            };
+            curr_combined_term_docs.extend(std::mem::take(&mut postings_stream.curr_term_docs));
             
-            if !postings_streams.is_empty() {
-                // Plop the next term from the term buffer into curr_term and curr_term_docs
-                // Unless its the last term in the stream
-                postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
-                postings_streams.push(postings_stream);
-                continue; // go to the next postings stream which has the same term, if any.
-            }
+            postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
+            if !postings_stream.is_empty { postings_streams.push(postings_stream); }
         }
 
-        // Commit the **previous** term's n-way merged postings (curr_combined_term_docs),
+        // Commit the term's n-way merged postings (curr_combined_term_docs),
         // and dictionary table, dictionary-as-a-string for the term.
 
-        let doc_freq = prev_combined_term_docs.len() as u32;
+        let doc_freq = curr_combined_term_docs.len() as u32;
 
         // ---------------------------------------------
         // Dictionary table writing: doc freq (var-int), pl offset (u16)
@@ -359,10 +361,8 @@ pub fn merge_blocks(
         // Postings writing
         // And doc norms length calculation
 
-        let mut max_doc_term_score: f32 = 0.0;
-
         let mut prev_doc_id = 0;
-        for mut term_doc in prev_combined_term_docs {
+        for mut term_doc in curr_combined_term_docs {
             // println!("term {} curr {} prev {}", prev_term, term_doc.doc_id, prev_doc_id);
             let doc_id_gap_varint = varint::get_var_int(term_doc.doc_id - prev_doc_id, &mut varint_buf);
             pl_writer.write_all(doc_id_gap_varint).unwrap();
@@ -371,18 +371,9 @@ pub fn merge_blocks(
             curr_pl_offset += (doc_id_gap_varint.len()
                 + term_doc.doc_fields.len()) as u32; // field id contribution
 
-            let mut curr_doc_term_score: f32 = 0.0;
             let mut write_doc_field = |doc_field: DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
                 pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
                 curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
-
-                let field_info = field_infos_by_id.get(doc_field.field_id as usize).unwrap();
-                let k = field_info.k;
-                let b = field_info.b;
-                curr_doc_term_score += (doc_field.field_tf as f32 * (k + 1.0))
-                    / (doc_field.field_tf as f32
-                        + k * (1.0 - b + b * (doc_infos_unlocked.get_field_len_factor(prev_doc_id as usize, doc_field.field_id as usize))))
-                    * field_info.weight;
             };
 
             let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
@@ -394,20 +385,16 @@ pub fn merge_blocks(
 
             pl_writer.write_all(&[last_doc_field.field_id | LAST_FIELD_MASK]).unwrap();
             write_doc_field(last_doc_field, &mut pl_writer);
-
-            if curr_doc_term_score > max_doc_term_score {
-                max_doc_term_score = curr_doc_term_score;
-            }
         }
-
-        let doc_freq_double = doc_freq as f64;
-        max_doc_term_score *= (1.0 + (doc_id_counter_float - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
 
         // ---------------------------------------------
 
         // ---------------------------------------------
         // Dictionary table writing: max term score for any document (f32)
 
+        let doc_freq_double = doc_freq as f64;
+        let max_doc_term_score: f32 = curr_term_max_score
+            * (1.0 + (doc_id_counter_float - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
         dict_table_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
 
         // ---------------------------------------------
@@ -415,12 +402,12 @@ pub fn merge_blocks(
         // With simultaneous front coding
         // For frontcoding, candidates are temporarily stored
         if pending_terms.is_empty() {
-            prev_common_prefix = prev_term.clone();
-            pending_terms.push(prev_term.clone());
+            prev_common_prefix = curr_term.clone();
+            pending_terms.push(curr_term.clone());
         } else {
             // Compute the cost if we add this term in, it should be <= 0 to also frontcode this term
             // TODO make this optimal?
-            let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(&prev_common_prefix, &prev_term);
+            let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(&prev_common_prefix, &curr_term);
             // println!("{} {} ", prev_common_prefix.len(), unicode_prefix_byte_len);
 
             // How much bytes do we add / lose by frontcoding this term?
@@ -436,12 +423,12 @@ pub fn merge_blocks(
     
             if frontcode_cost < 0 {
                 prev_common_prefix = prev_common_prefix[0..unicode_prefix_byte_len].to_owned();
-                pending_terms.push(prev_term.clone());
+                pending_terms.push(curr_term.clone());
             } else {
                 write_pending_terms(&mut dict_string_writer, &mut prev_common_prefix, &mut pending_terms);
 
-                prev_common_prefix = prev_term.clone();
-                pending_terms = vec![prev_term.clone()];
+                prev_common_prefix = curr_term.clone();
+                pending_terms = vec![curr_term.clone()];
             }
         }
         // ---------------------------------------------
@@ -467,25 +454,12 @@ pub fn merge_blocks(
             );
         }
         // ---------------------------------------------
-
-        // Update some things
-        prev_term = std::mem::take(&mut postings_stream.curr_term);
-        prev_combined_term_docs = std::mem::take(&mut postings_stream.curr_term_docs);
-
-        // ---------------------------------------------
-        // Plop the next term from the term buffer into the stream
-        // Then push it back into the heap.
-        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
-        postings_streams.push(postings_stream);
-        // ---------------------------------------------
     }
 
     println!("Commiting pending terms");
 
     // Commit frontcoded terms
     write_pending_terms(&mut dict_string_writer, &mut prev_common_prefix, &mut pending_terms);
-
-    doc_infos_unlocked.flush(output_folder_path.join("docInfo"));
 
     dict_table_writer.flush().unwrap();
     pl_writer.flush().unwrap();
