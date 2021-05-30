@@ -253,7 +253,7 @@ pub fn merge_blocks(
         let mut postings_stream = PostingsStream {
             idx,
             is_empty: false,
-            is_reader_decoding: false,
+            is_reader_decoding: true,
             curr_term: "".to_owned(),
             curr_term_max_score: 0.0,
             curr_term_docs: Vec::new(),
