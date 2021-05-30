@@ -1,6 +1,5 @@
 pub mod miner;
 
-use crate::FieldInfo;
 use crate::DocInfos;
 use std::sync::Mutex;
 use crate::spimireader::DocFieldForMerge;

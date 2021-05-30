@@ -274,7 +274,7 @@ fn main() {
 
     // Merge spimi blocks
     // Go through all blocks at once
-    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), field_infos_arc, doc_infos, &workers, &rx_main, &output_folder_path);
+    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), doc_infos, &workers, &rx_main, &output_folder_path);
 
     print_time_elapsed(now, "Blocks merged!");
     Worker::terminate_all_workers(workers); 

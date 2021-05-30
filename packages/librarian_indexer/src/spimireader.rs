@@ -1,5 +1,3 @@
-use crate::FieldInfo;
-use crate::FieldInfos;
 use crate::docinfo::DocInfos;
 use dashmap::DashMap;
 use std::sync::mpsc::Sender;
@@ -196,7 +194,6 @@ fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
 pub fn merge_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
-    field_infos: Arc<FieldInfos>,
     doc_infos: Arc<Mutex<DocInfos>>,
     workers: &[Worker],
     rx_main: &Receiver<WorkerToMainMessage>,
@@ -251,8 +248,7 @@ pub fn merge_blocks(
         }).read_next_batch(rx_main, workers, Arc::clone(&postings_stream_readers));
     }
 
-    // Initialize postings streams...
-    // And wait for all decoding to finish...
+    // Wait for all initial decoding to finish...
     for idx in 1..(num_blocks + 1) {
         let mut postings_stream = PostingsStream {
             idx,
@@ -440,7 +436,7 @@ pub fn merge_blocks(
             // Dictionary table writing
             // (1 byte varint = 0 in place of the docFreq varint, delimiting a new postings list)
 
-            dict_table_writer.write_all(&[128 as u8]).unwrap();
+            dict_table_writer.write_all(&[128_u8]).unwrap();
             // --------------------------------
 
             pl_writer.flush().unwrap();
