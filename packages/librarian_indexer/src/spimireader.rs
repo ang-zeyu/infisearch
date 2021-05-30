@@ -210,7 +210,7 @@ pub fn merge_blocks(
      using a simple hashset...
      */
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
-    let postings_stream_readers: Arc<DashMap<u32, PostingsStreamDecoder>> = Arc::from(DashMap::with_capacity(num_blocks as usize));
+    let postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>> = Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = std::sync::mpsc::channel();
 
     // let (tx_stream, rx_stream) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = std::sync::mpsc::channel();
@@ -237,7 +237,7 @@ pub fn merge_blocks(
         let block_dict_file = File::open(block_dict_file_path).expect("Failed to open block dictionary table for reading.");
 
         // Transfer reader to thread and begin reads
-        postings_stream_readers.insert(idx, PostingsStreamDecoder::None);
+        postings_stream_decoders.insert(idx, PostingsStreamDecoder::None);
 
         (PostingsStreamReader {
             idx,
@@ -245,7 +245,7 @@ pub fn merge_blocks(
             buffered_dict_reader: BufReader::with_capacity(819200, block_dict_file),
             future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize),
             doc_infos_unlocked:  Arc::clone(&doc_infos_unlocked_arc),
-        }).read_next_batch(rx_main, workers, Arc::clone(&postings_stream_readers));
+        }).read_next_batch(rx_main, workers, Arc::clone(&postings_stream_decoders));
     }
 
     // Wait for all initial decoding to finish...
@@ -259,7 +259,7 @@ pub fn merge_blocks(
             curr_term_docs: Vec::new(),
             term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize), // transfer ownership of future term buffer to the main postings stream
         };
-        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, false);
+        postings_stream.get_term(&postings_stream_decoders, rx_main, workers, &blocking_sndr, &blocking_rcvr, false);
         postings_streams.push(postings_stream);
     }
     println!("Initialized postings streams...");
@@ -324,7 +324,7 @@ pub fn merge_blocks(
         let mut curr_term_max_score = postings_stream.curr_term_max_score;
         let mut curr_combined_term_docs: Vec<Vec<TermDocForMerge>> = vec![std::mem::take(&mut postings_stream.curr_term_docs)];
 
-        postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
+        postings_stream.get_term(&postings_stream_decoders, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
         if !postings_stream.is_empty { postings_streams.push(postings_stream); }
 
         // Aggregate same terms from different blocks...
@@ -337,7 +337,7 @@ pub fn merge_blocks(
             };
             curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term_docs));
             
-            postings_stream.get_term(&postings_stream_readers, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
+            postings_stream.get_term(&postings_stream_decoders, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
             if !postings_stream.is_empty { postings_streams.push(postings_stream); }
         }
 
