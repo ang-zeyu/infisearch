@@ -283,6 +283,9 @@ pub fn merge_blocks(
         ).expect("Failed to final dictionary string for writing.")
     );
 
+    // Preallocate some things
+    let mut curr_combined_term_docs: Vec<Vec<TermDocForMerge>> = Vec::with_capacity(num_blocks as usize);
+
     // Dictionary front coding trackers
     let mut prev_common_prefix = "".to_owned();
     let mut pending_terms: Vec<String> = Vec::new();
@@ -317,12 +320,16 @@ pub fn merge_blocks(
     println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
 
     while !postings_streams.is_empty() {
+        curr_combined_term_docs.clear();
+
         let mut postings_stream = postings_streams.pop().unwrap();
         // println!("term {} idx {} first doc {}", postings_stream.curr_term, postings_stream.idx, postings_stream.curr_term_docs[0].doc_id);
         
+        let mut doc_freq = postings_stream.curr_term_docs.len() as u32;
+
         let curr_term = std::mem::take(&mut postings_stream.curr_term);
         let mut curr_term_max_score = postings_stream.curr_term_max_score;
-        let mut curr_combined_term_docs: Vec<Vec<TermDocForMerge>> = vec![std::mem::take(&mut postings_stream.curr_term_docs)];
+        curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term_docs));
 
         postings_stream.get_term(&postings_stream_decoders, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
         if !postings_stream.is_empty { postings_streams.push(postings_stream); }
@@ -330,11 +337,12 @@ pub fn merge_blocks(
         // Aggregate same terms from different blocks...
         while !postings_streams.is_empty() && postings_streams.peek().unwrap().curr_term == curr_term {
             postings_stream = postings_streams.pop().unwrap();
-            curr_term_max_score = if curr_term_max_score < postings_stream.curr_term_max_score {
-                postings_stream.curr_term_max_score
-            } else {
-                curr_term_max_score
-            };
+
+            doc_freq += postings_stream.curr_term_docs.len() as u32;
+
+            if postings_stream.curr_term_max_score > curr_term_max_score {
+                curr_term_max_score = postings_stream.curr_term_max_score;
+            }
             curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term_docs));
             
             postings_stream.get_term(&postings_stream_decoders, rx_main, workers, &blocking_sndr, &blocking_rcvr, true);
@@ -343,8 +351,6 @@ pub fn merge_blocks(
 
         // Commit the term's n-way merged postings (curr_combined_term_docs),
         // and dictionary table, dictionary-as-a-string for the term.
-
-        let doc_freq = curr_combined_term_docs.len() as u32;
 
         // ---------------------------------------------
         // Dictionary table writing: doc freq (var-int), pl offset (u16)
@@ -358,8 +364,8 @@ pub fn merge_blocks(
         // And doc norms length calculation
 
         let mut prev_doc_id = 0;
-        for term_docs in curr_combined_term_docs {
-            for mut term_doc in term_docs {
+        for term_docs in curr_combined_term_docs.iter_mut() {
+            for term_doc in term_docs {
                 // println!("term {} curr {} prev {}", prev_term, term_doc.doc_id, prev_doc_id);
                 let doc_id_gap_varint = varint::get_var_int(term_doc.doc_id - prev_doc_id, &mut varint_buf);
                 pl_writer.write_all(doc_id_gap_varint).unwrap();
@@ -368,20 +374,20 @@ pub fn merge_blocks(
                 curr_pl_offset += (doc_id_gap_varint.len()
                     + term_doc.doc_fields.len()) as u32; // field id contribution
     
-                let mut write_doc_field = |doc_field: DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
+                let mut write_doc_field = |doc_field: &DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
                     pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
                     curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
                 };
     
                 let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
     
-                for doc_field in term_doc.doc_fields {
+                for doc_field in term_doc.doc_fields.iter_mut() {
                     pl_writer.write_all(&[doc_field.field_id]).unwrap();
                     write_doc_field(doc_field, &mut pl_writer);
                 }
     
                 pl_writer.write_all(&[last_doc_field.field_id | LAST_FIELD_MASK]).unwrap();
-                write_doc_field(last_doc_field, &mut pl_writer);
+                write_doc_field(&last_doc_field, &mut pl_writer);
             }
         }
 
