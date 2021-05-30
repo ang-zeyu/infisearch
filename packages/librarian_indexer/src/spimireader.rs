@@ -401,7 +401,7 @@ pub fn merge_blocks(
         // For frontcoding, candidates are temporarily stored
         if pending_terms.is_empty() {
             prev_common_prefix = curr_term.clone();
-            pending_terms.push(curr_term.clone());
+            pending_terms.push(curr_term);
         } else {
             // Compute the cost if we add this term in, it should be <= 0 to also frontcode this term
             // TODO make this optimal?
@@ -421,12 +421,12 @@ pub fn merge_blocks(
     
             if frontcode_cost < 0 {
                 prev_common_prefix = prev_common_prefix[0..unicode_prefix_byte_len].to_owned();
-                pending_terms.push(curr_term.clone());
+                pending_terms.push(curr_term);
             } else {
                 write_pending_terms(&mut dict_string_writer, &mut prev_common_prefix, &mut pending_terms);
 
                 prev_common_prefix = curr_term.clone();
-                pending_terms = vec![curr_term.clone()];
+                pending_terms = vec![curr_term];
             }
         }
         // ---------------------------------------------
