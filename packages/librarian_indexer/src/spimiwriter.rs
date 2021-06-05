@@ -1,3 +1,6 @@
+use crossbeam::Sender;
+use crate::MainToWorkerMessage;
+use std::sync::Barrier;
 use std::sync::Arc;
 use std::sync::Mutex;
 use crate::DocInfos;
@@ -15,44 +18,45 @@ use rustc_hash::FxHashMap;
 use crate::Receiver;
 use crate::WorkerMiner;
 use crate::WorkerToMainMessage;
-use crate::Worker;
 use crate::worker::miner::TermDoc;
 
 pub fn write_block (
     num_threads: u32,
     spimi_counter: &mut u32,
     block_number: u32,
-    workers: &[Worker],
-    rx_main: &Receiver<WorkerToMainMessage>, 
+    tx_main: &Sender<MainToWorkerMessage>,
+    rx_main: &Receiver<WorkerToMainMessage>,
     output_folder_path: &Path,
     doc_infos: &Arc<Mutex<DocInfos>>
 ) {
     // SPIMI logic
-    let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_threads as usize);
+
+    // Request all workers for doc miners
+    let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_threads as usize));
+    for _i in 0..num_threads {
+        tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier))).unwrap();
+    }
     
-    // Receive available messages, request workers for doc miners
-    // num_threads availability messages and num_threads doc_miner messages should be received in total
-    for _i in 0..(2 * num_threads) {
+    // Receive doc miners
+    let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_threads as usize);
+    for _i in 0..num_threads {
         let worker_msg = rx_main.recv();
         match worker_msg {
             Ok(worker_msg_unwrapped) => {
-                if let Some(doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
-                    println!("Received worker {} data!", worker_msg_unwrapped.id);
-                    worker_miners.push(doc_miner_unwrapped);
-                } else {
-                    println!("Requesting doc miner move for worker {}!", worker_msg_unwrapped.id);
-                    workers[worker_msg_unwrapped.id].receive_work();
-                }
+                println!("Received worker {} data!", worker_msg_unwrapped.id);
+                worker_miners.push(worker_msg_unwrapped.doc_miner.expect("Received non doc miner message!"));
             },
             Err(e) => panic!("Failed to receive idle message from worker! {}", e)
         }
     }
 
-    // wait here to avoid receiving messages from the same workers above more than once
-    Worker::make_all_workers_available(&workers);
-
-    let combine_and_sort_worker = Worker::get_available_worker(workers, rx_main);
-    combine_and_sort_worker.combine_and_sort_block(worker_miners, PathBuf::new().join(output_folder_path), block_number, *spimi_counter, doc_infos);
+    tx_main.send(MainToWorkerMessage::Combine {
+        worker_miners,
+        output_folder_path: PathBuf::new().join(output_folder_path),
+        block_number,
+        num_docs: *spimi_counter,
+        doc_infos: Arc::clone(doc_infos),
+    }).expect("Failed to send work message to worker!");
 
     *spimi_counter = 0;
 }
@@ -108,6 +112,7 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>, doc_infos: Arc<Mutex<DocInf
 
             sorted_doc_lengths.push(top.0);
         }
+        sorted_doc_lengths.reverse();
 
         doc_infos.lock().unwrap().extend_with(sorted_doc_lengths);
     }

@@ -62,19 +62,19 @@ impl Eq for DocIdAndFieldLengthsComparator {}
 
 impl Ord for DocIdAndFieldLengthsComparator {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
+        self.0.0.cmp(&other.0.0)
     }
 }
 
 impl PartialOrd for DocIdAndFieldLengthsComparator {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.0.cmp(&other.0))
+        Some(self.0.0.cmp(&other.0.0))
     }
 }
 
 impl PartialEq for DocIdAndFieldLengthsComparator {
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
+        self.0.0 == other.0.0
     }
 }
 

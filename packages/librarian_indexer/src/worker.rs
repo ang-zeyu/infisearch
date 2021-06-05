@@ -1,5 +1,6 @@
 pub mod miner;
 
+use std::sync::Barrier;
 use crate::DocInfos;
 use std::sync::Mutex;
 use crate::spimireader::DocFieldForMerge;
@@ -14,11 +15,11 @@ use std::io::Seek;
 use std::io::SeekFrom;
 use std::str;
 use std::sync::Arc;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
 use std::thread;
 
 use byteorder::{ByteOrder, LittleEndian};
+use crossbeam::Sender;
+use crossbeam::Receiver;
 use rustc_hash::FxHashMap;
 
 use miner::WorkerMiner;
@@ -28,52 +29,12 @@ use crate::utils::varint;
 pub struct Worker {
     pub id: usize,
     pub join_handle: thread::JoinHandle<()>,
-    pub tx: Sender<MainToWorkerMessage>
 }
 
 impl Worker {
-    pub fn send_work(&self, doc_id: u32, field_texts: Vec<(String, String)>, field_store_path: PathBuf) {
-        self.tx.send(MainToWorkerMessage::Index {
-            doc_id,
-            field_texts,
-            field_store_path,
-        }).expect("Failed to send work message to worker!");
-    }
-
-    pub fn receive_work(&self) {
-        self.tx.send(MainToWorkerMessage::Reset).expect("Failed to request worker doc miner move!");
-    }
-
-    pub fn decode_spimi(
-        &self,
-        n: u32,
-        postings_stream_reader: PostingsStreamReader,
-        postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
-    ) {
-        self.tx.send(MainToWorkerMessage::Decode {
-            n,
-            postings_stream_reader,
-            postings_stream_decoders,
-        }).expect("Failed to request worker spimi block decode!");
-    }
-
-    pub fn combine_and_sort_block(&self, worker_miners: Vec<WorkerMiner>, output_folder_path: PathBuf, block_number: u32, num_docs: u32, doc_infos: &Arc<Mutex<DocInfos>>) {
-        self.tx.send(MainToWorkerMessage::Combine {
-            worker_miners,
-            output_folder_path,
-            block_number,
-            num_docs,
-            doc_infos: Arc::clone(doc_infos),
-        }).expect("Failed to send work message to worker!");
-    }
-
-    fn terminate(&self) {
-        self.tx.send(MainToWorkerMessage::Terminate).expect("Failed to request worker termination!");
-    }
-
-    pub fn terminate_all_workers(workers: Vec<Worker>) {
-        for worker in &workers {
-            worker.terminate();
+    pub fn terminate_all_workers(workers: Vec<Worker>, tx_main: Sender<MainToWorkerMessage>) {
+        for _worker in &workers {
+            tx_main.send(MainToWorkerMessage::Terminate).expect("Failed to request worker termination!");
         }
 
         for worker in workers {
@@ -81,46 +42,18 @@ impl Worker {
         }
     }
 
-    pub fn make_available(&self) {
-        self.tx.send(MainToWorkerMessage::Wait).unwrap_or_else(|_| panic!("Failed to send make_available message for worker {}!", self.id));
-    }
-
-    pub fn make_all_workers_available(workers: &[Worker]) {
-        for worker in workers {
-            worker.make_available();
-        }
-    }
-
-    pub fn wait_on_all_workers(workers: &[Worker], rx_main: &Receiver<WorkerToMainMessage>, num_threads: u32) {
+    pub fn wait_on_all_workers(tx_main: &Sender<MainToWorkerMessage>, num_threads: u32) {
+        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new((num_threads + 1) as usize));
         for _i in 0..num_threads {
-            let worker_msg = rx_main.recv();
-            match worker_msg {
-                Ok(worker_msg_unwrapped) => {
-                    if let Some(_doc_miner_unwrapped) = worker_msg_unwrapped.doc_miner {
-                        panic!("Received data from worker {} unexpectedly!", worker_msg_unwrapped.id);
-                    }
-                },
-                Err(e) => panic!("Failed to receive idle message from worker! {}", e)
-            }
+            tx_main.send(MainToWorkerMessage::Synchronize(Arc::clone(&receive_work_barrier))).unwrap();
         }
-
-        Worker::make_all_workers_available(workers);
-    }
-    
-    pub fn get_available_worker<'b> (workers: &'b [Worker], rx_main: &'b Receiver<WorkerToMainMessage>) -> &'b Worker {
-        let worker_msg = rx_main.recv();
-        match worker_msg {
-            Ok(msg) => {
-                return workers.get(msg.id).unwrap_or_else(|| panic!("Failed to return worker reference for index {}", msg.id));
-            },
-            Err(e) => panic!("Failed to receive message from worker @get_available_worker! {}", e)
-        }
+        receive_work_barrier.wait();
     }
 }
 
 pub enum MainToWorkerMessage {
-    Reset,
-    Wait,
+    Synchronize(Arc<Barrier>),
+    Reset(Arc<Barrier>),
     Terminate,
     Combine {
         worker_miners: Vec<WorkerMiner>,
@@ -161,23 +94,11 @@ pub fn worker (
         document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
     };
 
-    let send_available_msg = || {
-        sndr.send(WorkerToMainMessage {
-            id,
-            doc_miner: Option::None,
-        }).expect("Failed to send availability message back to main thread!");
-    };
-
     loop {
         let msg = rcvr.recv().expect("Failed to receive message on worker side!");
         match msg {
-            MainToWorkerMessage::Wait => {
-                send_available_msg();
-            },
             MainToWorkerMessage::Index { doc_id, field_texts, field_store_path } => {
                 doc_miner.index_doc(doc_id, field_texts, field_store_path);
-        
-                send_available_msg();
             },
             MainToWorkerMessage::Combine {
                 worker_miners,
@@ -188,10 +109,8 @@ pub fn worker (
             } => {
                 spimiwriter::combine_worker_results_and_write_block(worker_miners, doc_infos, output_folder_path, block_number, num_docs);
                 println!("Worker {} wrote spimi block {}!", id, block_number);
-
-                send_available_msg();
             },
-            MainToWorkerMessage::Reset => {
+            MainToWorkerMessage::Reset(barrier) => {
                 println!("Worker {} resetting!", id);
             
                 // return the indexed documents...
@@ -206,6 +125,11 @@ pub fn worker (
                     terms: FxHashMap::default(),
                     document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
                 };
+
+                barrier.wait();
+            },
+            MainToWorkerMessage::Synchronize(barrier) => {
+                barrier.wait();
             },
             MainToWorkerMessage::Decode {
                 n,
@@ -322,8 +246,6 @@ pub fn worker (
                         PostingsStreamDecoder::Reader(_r) => panic!("Reader still available in array @worker")
                     }
                 }
-
-                send_available_msg();
             },
             MainToWorkerMessage::Terminate => {
                 break;
