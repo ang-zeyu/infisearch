@@ -21,25 +21,18 @@ static POSTINGS_STREAM_BUFFER_SIZE: u32 = 5000;
 static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 5000;
 
 static POSTINGS_FILE_LIMIT: u32 = 65535;
-static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
 
 static PREFIX_FRONT_CODE: u8 = 123;     // {
 static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
 
-pub struct DocFieldForMerge {
-    pub field_id: u8,
-    pub field_tf_and_positions_varint: Vec<u8>,
-}
-
-pub struct TermDocForMerge {
-    pub doc_id: u32,
-    pub doc_fields: Vec<DocFieldForMerge>
-}
-
+#[derive(Default)]
 pub struct TermDocsForMerge {
     pub term: String,
     pub max_doc_term_score: f32,
-    pub term_docs: Vec<TermDocForMerge>,
+    pub doc_freq: u32,
+    pub combined_var_ints: Vec<u8>,
+    pub first_doc_id: u32,
+    pub last_doc_id: u32,
 }
 
 pub enum PostingsStreamDecoder {
@@ -74,9 +67,7 @@ struct PostingsStream {
     idx: u32,
     is_empty: bool,
     is_reader_decoding: bool,
-    curr_term: String,
-    curr_term_max_score: f32,
-    curr_term_docs: Vec<TermDocForMerge>,
+    curr_term: TermDocsForMerge,
     term_buffer: VecDeque<TermDocsForMerge>,
 }
 
@@ -85,13 +76,13 @@ impl Eq for PostingsStream {}
 
 impl PartialEq for PostingsStream {
     fn eq(&self, other: &Self) -> bool {
-        self.curr_term == other.curr_term && self.idx == other.idx
+        self.curr_term.term == other.curr_term.term && self.idx == other.idx
     }
 }
 
 impl Ord for PostingsStream {
     fn cmp(&self, other: &Self) -> Ordering {
-        match other.curr_term.cmp(&self.curr_term) {
+        match other.curr_term.term.cmp(&self.curr_term.term) {
             Ordering::Equal => other.idx.cmp(&self.idx),
             Ordering::Greater => Ordering::Greater,
             Ordering::Less => Ordering::Less,
@@ -101,7 +92,7 @@ impl Ord for PostingsStream {
 
 impl PartialOrd for PostingsStream {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match other.curr_term.cmp(&self.curr_term) {
+        match other.curr_term.term.cmp(&self.curr_term.term) {
             Ordering::Equal => Some(other.idx.cmp(&self.idx)),
             Ordering::Greater => Some(Ordering::Greater),
             Ordering::Less => Some(Ordering::Less),
@@ -165,9 +156,7 @@ impl PostingsStream {
 
         // Pluck out the first tuple
         if let Some(term_termdocs) = self.term_buffer.pop_front() {
-            self.curr_term = term_termdocs.term;
-            self.curr_term_docs = term_termdocs.term_docs;
-            self.curr_term_max_score = term_termdocs.max_doc_term_score;
+            self.curr_term = term_termdocs;
         } else {
             self.is_empty = true;
         }
@@ -255,9 +244,7 @@ pub fn merge_blocks(
             idx,
             is_empty: false,
             is_reader_decoding: true,
-            curr_term: "".to_owned(),
-            curr_term_max_score: 0.0,
-            curr_term_docs: Vec::new(),
+            curr_term: Default::default(),
             term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize), // transfer ownership of future term buffer to the main postings stream
         };
         postings_stream.get_term(&postings_stream_decoders, tx_main, &blocking_sndr, &blocking_rcvr, false);
@@ -285,7 +272,7 @@ pub fn merge_blocks(
     );
 
     // Preallocate some things
-    let mut curr_combined_term_docs: Vec<Vec<TermDocForMerge>> = Vec::with_capacity(num_blocks as usize);
+    let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);
 
     // Dictionary front coding trackers
     let mut prev_common_prefix = "".to_owned();
@@ -326,25 +313,25 @@ pub fn merge_blocks(
         let mut postings_stream = postings_streams.pop().unwrap();
         // println!("term {} idx {} first doc {}", postings_stream.curr_term, postings_stream.idx, postings_stream.curr_term_docs[0].doc_id);
         
-        let mut doc_freq = postings_stream.curr_term_docs.len() as u32;
+        let mut doc_freq = postings_stream.curr_term.doc_freq;
 
-        let curr_term = std::mem::take(&mut postings_stream.curr_term);
-        let mut curr_term_max_score = postings_stream.curr_term_max_score;
-        curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term_docs));
+        let curr_term = std::mem::take(&mut postings_stream.curr_term.term);
+        let mut curr_term_max_score = postings_stream.curr_term.max_doc_term_score;
+        curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term));
 
         postings_stream.get_term(&postings_stream_decoders, tx_main, &blocking_sndr, &blocking_rcvr, true);
         if !postings_stream.is_empty { postings_streams.push(postings_stream); }
 
         // Aggregate same terms from different blocks...
-        while !postings_streams.is_empty() && postings_streams.peek().unwrap().curr_term == curr_term {
+        while !postings_streams.is_empty() && postings_streams.peek().unwrap().curr_term.term == curr_term {
             postings_stream = postings_streams.pop().unwrap();
 
-            doc_freq += postings_stream.curr_term_docs.len() as u32;
+            doc_freq += postings_stream.curr_term.doc_freq;
 
-            if postings_stream.curr_term_max_score > curr_term_max_score {
-                curr_term_max_score = postings_stream.curr_term_max_score;
+            if postings_stream.curr_term.max_doc_term_score > curr_term_max_score {
+                curr_term_max_score = postings_stream.curr_term.max_doc_term_score;
             }
-            curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term_docs));
+            curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term));
             
             postings_stream.get_term(&postings_stream_decoders, tx_main, &blocking_sndr, &blocking_rcvr, true);
             if !postings_stream.is_empty { postings_streams.push(postings_stream); }
@@ -362,34 +349,18 @@ pub fn merge_blocks(
 
         // ---------------------------------------------
         // Postings writing
-        // And doc norms length calculation
 
-        let mut prev_doc_id = 0;
+        let mut prev_block_last_doc_id = 0;
         for term_docs in curr_combined_term_docs.iter_mut() {
-            for term_doc in term_docs {
-                // println!("term {} curr {} prev {}", curr_term, term_doc.doc_id, prev_doc_id);
-                let doc_id_gap_varint = varint::get_var_int(term_doc.doc_id - prev_doc_id, &mut varint_buf);
-                pl_writer.write_all(doc_id_gap_varint).unwrap();
-                prev_doc_id = term_doc.doc_id;
-    
-                curr_pl_offset += (doc_id_gap_varint.len()
-                    + term_doc.doc_fields.len()) as u32; // field id contribution
-    
-                let mut write_doc_field = |doc_field: &DocFieldForMerge, pl_writer: &mut BufWriter<File>| {
-                    pl_writer.write_all(&doc_field.field_tf_and_positions_varint).unwrap();
-                    curr_pl_offset += doc_field.field_tf_and_positions_varint.len() as u32;
-                };
-    
-                let last_doc_field = term_doc.doc_fields.remove(term_doc.doc_fields.len() - 1);
-    
-                for doc_field in term_doc.doc_fields.iter_mut() {
-                    pl_writer.write_all(&[doc_field.field_id]).unwrap();
-                    write_doc_field(doc_field, &mut pl_writer);
-                }
-    
-                pl_writer.write_all(&[last_doc_field.field_id | LAST_FIELD_MASK]).unwrap();
-                write_doc_field(&last_doc_field, &mut pl_writer);
-            }
+            // Link up the gap between the first doc id of the current block and the previous block
+            let block_doc_id_gap_varint = varint::get_var_int(term_docs.first_doc_id - prev_block_last_doc_id, &mut varint_buf);
+            pl_writer.write_all(block_doc_id_gap_varint).unwrap();
+            curr_pl_offset += block_doc_id_gap_varint.len() as u32;
+
+            prev_block_last_doc_id = term_docs.last_doc_id;
+
+            pl_writer.write_all(&term_docs.combined_var_ints).unwrap();
+            curr_pl_offset += term_docs.combined_var_ints.len() as u32;
         }
 
         // ---------------------------------------------

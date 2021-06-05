@@ -1,16 +1,11 @@
 pub mod miner;
 
-use crate::spimireader::TermDocsForMerge;
 use std::sync::Barrier;
-use crate::DocInfos;
 use std::sync::Mutex;
-use crate::spimireader::DocFieldForMerge;
-use crate::spimireader::TermDocForMerge;
-use crate::FieldInfos;
 use dashmap::DashMap;
-use crate::spimireader::PostingsStreamDecoder;
-use crate::spimireader::PostingsStreamReader;
 use std::path::PathBuf;
+use std::fs::File;
+use std::io::BufReader;
 use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
@@ -26,6 +21,13 @@ use rustc_hash::FxHashMap;
 use miner::WorkerMiner;
 use crate::spimiwriter;
 use crate::utils::varint;
+use crate::DocInfos;
+use crate::FieldInfos;
+use crate::spimireader::TermDocsForMerge;
+use crate::spimireader::PostingsStreamDecoder;
+use crate::spimireader::PostingsStreamReader;
+
+static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
 
 pub struct Worker {
     pub id: usize,
@@ -139,6 +141,9 @@ pub fn worker (
             } => {
                 let mut u32_buf: [u8; 4] = [0; 4];
                 let mut u8_buf: [u8; 1] = [0; 1];
+
+                let pl_reader = &mut postings_stream_reader.buffered_reader;
+                let doc_infos = &postings_stream_reader.doc_infos_unlocked;
                 
                 for _unused in 0..n {
                     if let Ok(()) = postings_stream_reader.buffered_dict_reader.read_exact(&mut u32_buf) {
@@ -156,40 +161,30 @@ pub fn worker (
                         let pl_offset = LittleEndian::read_u32(&u32_buf);
         
                         // Postings list
-                        postings_stream_reader.buffered_reader.seek(SeekFrom::Start(pl_offset as u64)).unwrap();
+                        pl_reader.seek(SeekFrom::Start(pl_offset as u64)).unwrap();
+
+                        // TODO improve the capacity heuristic
+                        let mut combined_var_ints = Vec::with_capacity((doc_freq * 20) as usize);
 
                         let mut max_doc_term_score: f32 = 0.0;
         
-                        let mut term_docs: Vec<TermDocForMerge> = Vec::with_capacity(doc_freq as usize);
-                        for _i in 0..doc_freq {
-                            postings_stream_reader.buffered_reader.read_exact(&mut u32_buf).unwrap();
-                            let doc_id = LittleEndian::read_u32(&u32_buf);
-        
-                            postings_stream_reader.buffered_reader.read_exact(&mut u8_buf).unwrap();
-                            let num_fields = u8_buf[0];
-        
+                        let mut read_and_write_doc = |doc_id, pl_reader: &mut BufReader<File>, combined_var_ints: &mut Vec<u8>, u8_buf: &mut [u8; 1], u32_buf: &mut [u8; 4]| {        
                             let mut curr_doc_term_score: f32 = 0.0;
-
-                            let mut doc_fields: Vec<DocFieldForMerge> = Vec::with_capacity(num_fields as usize);
-                            for _j in 0..num_fields {
-                                postings_stream_reader.buffered_reader.read_exact(&mut u8_buf).unwrap();
-                                let field_id = u8_buf[0];
-                                postings_stream_reader.buffered_reader.read_exact(&mut u32_buf).unwrap();
-                                let field_tf = LittleEndian::read_u32(&u32_buf);
+                            let mut read_and_write_field = |field_id, pl_reader: &mut BufReader<File>, combined_var_ints: &mut Vec<u8>, u32_buf: &mut [u8; 4]| {
+                                pl_reader.read_exact(u32_buf).unwrap();
+                                let field_tf = LittleEndian::read_u32(u32_buf);
+                                varint::get_var_int_vec(field_tf, combined_var_ints);
 
                                 /*
                                  Pre-encode field tf and position gaps into varint in the worker,
                                  then write it out in the main thread later.
                                 */
-                                let mut field_tf_and_positions_varint: Vec<u8> = Vec::with_capacity(4 + field_tf as usize * 2);
-
-                                varint::get_var_int_vec(field_tf, &mut field_tf_and_positions_varint);
                                 
                                 let mut prev_pos = 0;
                                 for _k in 0..field_tf {
-                                    postings_stream_reader.buffered_reader.read_exact(&mut u32_buf).unwrap();
-                                    let curr_pos = LittleEndian::read_u32(&u32_buf);
-                                    varint::get_var_int_vec(curr_pos - prev_pos, &mut field_tf_and_positions_varint);
+                                    pl_reader.read_exact(u32_buf).unwrap();
+                                    let curr_pos = LittleEndian::read_u32(u32_buf);
+                                    varint::get_var_int_vec(curr_pos - prev_pos, combined_var_ints);
                                     prev_pos = curr_pos;
                                 }
 
@@ -201,29 +196,60 @@ pub fn worker (
                                         + k * (
                                             1.0
                                             - b
-                                            + b * (postings_stream_reader.doc_infos_unlocked.get_field_len_factor(doc_id as usize, field_id as usize))
+                                            + b * (doc_infos.get_field_len_factor(doc_id as usize, field_id as usize))
                                         )
                                     )
                                     * field_info.weight;
-        
-                                doc_fields.push(DocFieldForMerge {
-                                    field_id,
-                                    field_tf_and_positions_varint,
-                                });
+                            };
+
+                            pl_reader.read_exact(u8_buf).unwrap();
+                            let num_fields = u8_buf[0];
+                            for _j in 1..num_fields {
+                                pl_reader.read_exact(u8_buf).unwrap();
+                                let field_id = u8_buf[0];
+                                combined_var_ints.push(field_id);
+                                
+                                read_and_write_field(field_id, pl_reader, combined_var_ints, u32_buf);
                             }
+
+                            // Delimit the last field with LAST_FIELD_MASK
+                            pl_reader.read_exact(u8_buf).unwrap();
+                            let field_id = u8_buf[0];
+                            combined_var_ints.push(field_id | LAST_FIELD_MASK);
+                            read_and_write_field(field_id, pl_reader, combined_var_ints, u32_buf);
 
                             if curr_doc_term_score > max_doc_term_score {
                                 max_doc_term_score = curr_doc_term_score;
                             }
-        
-                            term_docs.push(TermDocForMerge {
-                                doc_id,
-                                doc_fields
-                            });
+                        };
+
+                        
+                        /*
+                         For the first document, don't encode the doc id variable integer.
+                         Encode it in the main thread later where the gap information between blocks is available.
+                         */
+                        pl_reader.read_exact(&mut u32_buf).unwrap();
+                        let first_doc_id = LittleEndian::read_u32(&u32_buf);
+
+                        let mut prev_doc_id = first_doc_id;
+                        read_and_write_doc(first_doc_id, pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf);
+
+                        for _i in 1..doc_freq {
+                            pl_reader.read_exact(&mut u32_buf).unwrap();
+                            let doc_id = LittleEndian::read_u32(&u32_buf);
+                            varint::get_var_int_vec(doc_id - prev_doc_id, &mut combined_var_ints);
+
+                            prev_doc_id = doc_id;
+                            read_and_write_doc(doc_id, pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf);
                         }
 
                         postings_stream_reader.future_term_buffer.push_back(TermDocsForMerge {
-                            term, term_docs, max_doc_term_score
+                            term,
+                            max_doc_term_score,
+                            doc_freq,
+                            combined_var_ints,
+                            first_doc_id,
+                            last_doc_id: prev_doc_id,
                         });
                     } else {
                         break; // eof
