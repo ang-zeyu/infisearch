@@ -7,8 +7,6 @@ use std::path::PathBuf;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Read;
-use std::io::Seek;
-use std::io::SeekFrom;
 use std::str;
 use std::sync::Arc;
 use std::thread;
@@ -146,22 +144,14 @@ pub fn worker (
                 let doc_infos = &postings_stream_reader.doc_infos_unlocked;
                 
                 for _unused in 0..n {
-                    if let Ok(()) = postings_stream_reader.buffered_dict_reader.read_exact(&mut u32_buf) {
+                    if let Ok(()) = postings_stream_reader.buffered_dict_reader.read_exact(&mut u8_buf) {
                         // Temporary combined dictionary table / dictionary string
-                        let term_len: usize = LittleEndian::read_u32(&u32_buf) as usize;
-                    
-                        let mut term_vec = vec![0; term_len];
+                        let mut term_vec = vec![0; u8_buf[0] as usize];
                         postings_stream_reader.buffered_dict_reader.read_exact(&mut term_vec).unwrap();
                         let term = str::from_utf8(&term_vec).unwrap().to_owned();
         
                         postings_stream_reader.buffered_dict_reader.read_exact(&mut u32_buf).unwrap();
                         let doc_freq = LittleEndian::read_u32(&u32_buf);
-        
-                        postings_stream_reader.buffered_dict_reader.read_exact(&mut u32_buf).unwrap();
-                        let pl_offset = LittleEndian::read_u32(&u32_buf);
-        
-                        // Postings list
-                        pl_reader.seek(SeekFrom::Start(pl_offset as u64)).unwrap();
 
                         // TODO improve the capacity heuristic
                         let mut combined_var_ints = Vec::with_capacity((doc_freq * 20) as usize);

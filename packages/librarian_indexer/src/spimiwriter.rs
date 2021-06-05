@@ -156,38 +156,36 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: Pa
     println!("Writing bsbi block {} to {}, num terms {}", bsbi_block_number, output_file_path.to_str().unwrap(), bsbi_block.len());
 
     let df = File::create(dict_output_file_path).expect("Failed to open temporary dictionary table for writing.");
-    let mut buffered_writer_dict = BufWriter::with_capacity(819200, df);
+    let mut buffered_writer_dict = BufWriter::new(df);
 
     let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");
     let mut buffered_writer = BufWriter::with_capacity(819200, f);
     
-    let mut postings_file_offset: u32 = 0;
     for (term, term_docs) in bsbi_block {
         // println!("Writing {}", term);
 
         // Write **temporary** dict table
-        // Term len (4 bytes) - term (term len bytes) - doc freq (4 bytes) - postings_file_offset (4 bytes)
-        buffered_writer_dict.write_all(&(term.len() as u32).to_le_bytes()).unwrap();
+        // Term len (1 byte) - term (term len bytes) - doc freq (4 bytes) - postings_file_offset (4 bytes)
+        buffered_writer_dict.write_all(&(term.len() as u8).to_le_bytes()).unwrap();
         buffered_writer_dict.write_all(term.as_bytes()).unwrap();
         buffered_writer_dict.write_all(&(term_docs.len() as u32).to_le_bytes()).unwrap();
-        buffered_writer_dict.write_all(&postings_file_offset.to_le_bytes()).unwrap();
 
         // Write pl
+        // doc id (4 bytes) - number of fields (1 byte)
+        //   field id (1 byte) - field term frequency (4 bytes)
+        //     field term position (4 bytes)
         for term_doc in term_docs.into_iter().rev() {
             buffered_writer.write_all(&term_doc.doc_id.to_le_bytes()).unwrap();
 
             let num_fields: u8 = term_doc.doc_fields.len() as u8;
             buffered_writer.write_all(&[num_fields]).unwrap();
 
-            postings_file_offset += 5;
             for doc_field in term_doc.doc_fields {
                 buffered_writer.write_all(&[doc_field.field_id]).unwrap();
                 buffered_writer.write_all(&(doc_field.field_positions.len() as u32).to_le_bytes()).unwrap();
 
-                postings_file_offset += 5;
                 for pos in doc_field.field_positions {
                     buffered_writer.write_all(&pos.to_le_bytes()).unwrap();
-                    postings_file_offset += 4;
                 }
             }
         }
