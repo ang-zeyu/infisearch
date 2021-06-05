@@ -231,8 +231,8 @@ pub fn merge_blocks(
 
         (PostingsStreamReader {
             idx,
-            buffered_reader: BufReader::with_capacity(819200, block_file),
-            buffered_dict_reader: BufReader::with_capacity(819200, block_dict_file),
+            buffered_reader: BufReader::new(block_file),
+            buffered_dict_reader: BufReader::new(block_dict_file),
             future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize),
             doc_infos_unlocked:  Arc::clone(&doc_infos_unlocked_arc),
         }).read_next_batch(tx_main, Arc::clone(&postings_stream_decoders));
