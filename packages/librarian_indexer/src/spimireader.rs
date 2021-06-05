@@ -36,6 +36,12 @@ pub struct TermDocForMerge {
     pub doc_fields: Vec<DocFieldForMerge>
 }
 
+pub struct TermDocsForMerge {
+    pub term: String,
+    pub max_doc_term_score: f32,
+    pub term_docs: Vec<TermDocForMerge>,
+}
+
 pub enum PostingsStreamDecoder {
     Reader(PostingsStreamReader),
     Notifier(Mutex<Sender<()>>),
@@ -46,7 +52,7 @@ pub struct PostingsStreamReader {
     pub idx: u32,
     pub buffered_reader: BufReader<File>,
     pub buffered_dict_reader: BufReader<File>,
-    pub future_term_buffer: VecDeque<(String, Vec<TermDocForMerge>, f32)>,
+    pub future_term_buffer: VecDeque<TermDocsForMerge>,
     pub doc_infos_unlocked: Arc<DocInfos>,
 }
 
@@ -71,7 +77,7 @@ struct PostingsStream {
     curr_term: String,
     curr_term_max_score: f32,
     curr_term_docs: Vec<TermDocForMerge>,
-    term_buffer: VecDeque<(String, Vec<TermDocForMerge>, f32)>,
+    term_buffer: VecDeque<TermDocsForMerge>,
 }
 
 // Order by term, then block number
@@ -158,10 +164,10 @@ impl PostingsStream {
         }
 
         // Pluck out the first tuple
-        if let Some(term_termdocs_triple) = self.term_buffer.pop_front() {
-            self.curr_term = term_termdocs_triple.0;
-            self.curr_term_docs = term_termdocs_triple.1;
-            self.curr_term_max_score = term_termdocs_triple.2;
+        if let Some(term_termdocs) = self.term_buffer.pop_front() {
+            self.curr_term = term_termdocs.term;
+            self.curr_term_docs = term_termdocs.term_docs;
+            self.curr_term_max_score = term_termdocs.max_doc_term_score;
         } else {
             self.is_empty = true;
         }

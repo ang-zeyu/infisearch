@@ -1,5 +1,6 @@
 pub mod miner;
 
+use crate::spimireader::TermDocsForMerge;
 use std::sync::Barrier;
 use crate::DocInfos;
 use std::sync::Mutex;
@@ -221,7 +222,9 @@ pub fn worker (
                             });
                         }
 
-                        postings_stream_reader.future_term_buffer.push_back((term, term_docs, max_doc_term_score));
+                        postings_stream_reader.future_term_buffer.push_back(TermDocsForMerge {
+                            term, term_docs, max_doc_term_score
+                        });
                     } else {
                         break; // eof
                     }
