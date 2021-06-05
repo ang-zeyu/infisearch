@@ -149,22 +149,17 @@ impl WorkerMiner {
             for field_term in field_terms {
                 pos += 1;
 
-                let term_docs = self.terms.entry(field_term).or_insert_with(Vec::new);
+                let term_docs = self.terms.entry(field_term)
+                    .or_insert_with(|| vec![TermDoc {
+                        doc_id,
+                        doc_fields: vec![DocField {
+                            field_id,
+                            field_positions: Vec::new()
+                        }]
+                    }]);
 
-                let term_doc: &mut TermDoc = if let Some(term_doc) = term_docs.last_mut() {
-                    if term_doc.doc_id != doc_id {
-                        term_docs.push(TermDoc {
-                            doc_id,
-                            doc_fields: vec![DocField {
-                                field_id,
-                                field_positions: Vec::new()
-                            }]
-                        });
-                        term_docs.last_mut().unwrap()
-                    } else {
-                        term_doc
-                    }
-                } else {
+                let mut term_doc = term_docs.last_mut().unwrap();
+                if term_doc.doc_id != doc_id {
                     term_docs.push(TermDoc {
                         doc_id,
                         doc_fields: vec![DocField {
@@ -172,26 +167,17 @@ impl WorkerMiner {
                             field_positions: Vec::new()
                         }]
                     });
-                    term_docs.last_mut().unwrap()
-                };
+                    term_doc = term_docs.last_mut().unwrap();
+                }
 
-                let doc_field: &mut DocField = if let Some(doc_field) = term_doc.doc_fields.last_mut() {
-                    if doc_field.field_id != field_id {
-                        term_doc.doc_fields.push(DocField {
-                            field_id,
-                            field_positions: Vec::new()
-                        });
-                        term_doc.doc_fields.last_mut().unwrap()
-                    } else {
-                        doc_field
-                    }
-                } else {
+                let mut doc_field = term_doc.doc_fields.last_mut().unwrap();
+                if doc_field.field_id != field_id {
                     term_doc.doc_fields.push(DocField {
                         field_id,
                         field_positions: Vec::new()
                     });
-                    term_doc.doc_fields.last_mut().unwrap()
-                };
+                    doc_field = term_doc.doc_fields.last_mut().unwrap();
+                }
 
                 doc_field.field_positions.push(pos);
             }
