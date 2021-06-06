@@ -2,7 +2,6 @@ mod docinfo;
 mod fieldinfo;
 mod spimireader;
 mod spimiwriter;
-mod tokenize;
 mod utils;
 mod worker;
 

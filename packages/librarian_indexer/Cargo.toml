@@ -13,6 +13,7 @@ byteorder = "1"
 csv = "1.1"
 dashmap = "4"
 lazy_static = "1.4"
+librarian_tokenizer = { path = "../librarian_tokenizer" }
 regex = "1"
 rustc-hash = "1.1"
 walkdir = "2"

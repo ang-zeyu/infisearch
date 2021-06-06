@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "packages/librarian_indexer",
+    "packages/librarian_tokenizer",
+]

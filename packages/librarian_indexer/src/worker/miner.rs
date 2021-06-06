@@ -8,10 +8,10 @@ use std::path::PathBuf;
 use std::str;
 use std::sync::Arc;
 
+use librarian_tokenizer::tokenize::english::tokenize;
 use rustc_hash::FxHashMap;
 
 use crate::FieldInfos;
-use crate::tokenize::english::tokenize;
 
 pub struct DocField {
     pub field_id: u8,
