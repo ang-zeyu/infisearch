@@ -2,6 +2,7 @@
 test_files
 
 # cargo
+target
 packages/librarian_indexer/target
 
 # sourcemaps
