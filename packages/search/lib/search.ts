@@ -226,7 +226,7 @@ function initLibrarian(url: string, setupDictionaryUrl: string): void {
   let inputTimer: any = -1;
   input.addEventListener('input', (ev) => {
     console.log('fired');
-    const query = (ev.target as HTMLInputElement).value.toLowerCase();
+    const query = (ev.target as HTMLInputElement).value;
 
     if (query.length > 2) {
       clearTimeout(inputTimer);
