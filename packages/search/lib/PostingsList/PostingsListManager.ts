@@ -10,8 +10,8 @@ class PostingsListManager {
   retrieve(terms: string[]): Promise<PostingsList[]> {
     return Promise.all(terms
       .map(async (term) => {
-        const postingsList = new PostingsList(term, this.url, this.dictionary.termInfo[term]);
-        await postingsList.fetch();
+        const postingsList = new PostingsList(term, this.dictionary.termInfo[term]);
+        await postingsList.fetch(this.url);
 
         return postingsList;
       }));
