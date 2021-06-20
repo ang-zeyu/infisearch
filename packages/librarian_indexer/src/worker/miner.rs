@@ -123,8 +123,6 @@ impl WorkerMiner {
             let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
             let field_id = field_info.id;
 
-            pos += 1000; // to "split up zones"
-
             // Store raw text
             if field_info.do_store {
                 field_store_buffered_writer.write_all(b"[").unwrap();
@@ -181,6 +179,8 @@ impl WorkerMiner {
 
                 doc_field.field_positions.push(pos);
             }
+
+            pos += 1000; // to "split up zones"
         }
 
         field_store_buffered_writer.write_all(b"]").unwrap();
