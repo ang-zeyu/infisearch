@@ -2,39 +2,142 @@
 import decodeVarInt from '../utils/varInt';
 import TermInfo from '../results/TermInfo';
 
-interface DocField {
+export interface DocField {
   fieldId: number,
   fieldPositions: number[]
 }
 
-interface TermDoc {
+export interface TermDoc {
   docId: number,
   fields: DocField[]
 }
 
-class PlIterator {
-  td: TermDoc = { docId: 0, fields: [] };
+export class PlIterator {
+  td: TermDoc;
 
   private idx = 0;
 
-  constructor(private postingsList: PostingsList) {
+  constructor(public readonly pl: PostingsList) {
     // eslint-disable-next-line prefer-destructuring
-    this.td = postingsList.termDocs[0];
+    this.td = pl.termDocs[0];
   }
 
-  next(): void {
-    // eslint-disable-next-line no-plusplus
-    this.td = this.postingsList.termDocs[this.idx++];
+  next(): TermDoc {
+    // eslint-disable-next-line no-return-assign, no-plusplus
+    return this.td = this.pl.termDocs[++this.idx];
+  }
+
+  peekPrev(): TermDoc {
+    return this.pl.termDocs[this.idx - 1];
   }
 }
 
-class PostingsList {
+export class PostingsList {
   termDocs: TermDoc[] = [];
 
+  weight = 1;
+
+  includeInProximityRanking = true;
+
+  termInfo: TermInfo;
+
+  constructor(termInfo?: TermInfo) {
+    this.termInfo = termInfo || ({} as any);
+  }
+
+  getIt(): PlIterator {
+    return new PlIterator(this);
+  }
+
+  // Used for "processed" (e.g. phrase, bracket, AND) postings lists
+  calcPseudoIdf(numDocs: number): void {
+    this.termInfo.idf = Math.log(1 + (numDocs - this.termDocs.length + 0.5) / (this.termDocs.length + 0.5));
+  }
+
+  static mergeTermDocs(termDoc1: TermDoc, termDoc2: TermDoc): TermDoc {
+    const td: TermDoc = {
+      docId: termDoc1.docId,
+      fields: [],
+    };
+    const maxFieldsLength = Math.max(termDoc1.fields.length, termDoc2.fields.length);
+    for (let fieldId = 0; fieldId < maxFieldsLength; fieldId += 1) {
+      const termDoc1Field = termDoc1.fields[fieldId];
+      const termDoc2Field = termDoc2.fields[fieldId];
+
+      if (termDoc1Field && termDoc2Field) {
+        const docField: DocField = {
+          fieldId,
+          fieldPositions: [],
+        };
+
+        let pos2Idx = 0;
+        for (let pos1Idx = 0; pos1Idx < termDoc1Field.fieldPositions.length; pos1Idx += 1) {
+          while (termDoc2Field.fieldPositions[pos2Idx]
+            && termDoc2Field.fieldPositions[pos2Idx] < termDoc1Field.fieldPositions[pos1Idx]
+          ) {
+            docField.fieldPositions.push(termDoc2Field.fieldPositions[pos2Idx]);
+            pos2Idx += 1;
+          }
+          docField.fieldPositions.push(termDoc1Field.fieldPositions[pos1Idx]);
+        }
+
+        while (termDoc2Field.fieldPositions[pos2Idx]) {
+          docField.fieldPositions.push(termDoc2Field.fieldPositions[pos2Idx]);
+          pos2Idx += 1;
+        }
+
+        td.fields.push(docField);
+      } else if (termDoc1Field) {
+        td.fields.push({
+          fieldId,
+          fieldPositions: termDoc1Field.fieldPositions,
+        });
+      } else if (termDoc2Field) {
+        td.fields.push({
+          fieldId,
+          fieldPositions: termDoc2Field.fieldPositions,
+        });
+      }
+    }
+
+    return td;
+  }
+
+  merge(other: PostingsList): PostingsList {
+    const newPl = new PostingsList();
+
+    let otherTermDocIdx = 0;
+    for (const currTermDoc of this.termDocs) {
+      while (
+        otherTermDocIdx < other.termDocs.length
+        && currTermDoc.docId > other.termDocs[otherTermDocIdx].docId
+      ) {
+        newPl.termDocs.push(other.termDocs[otherTermDocIdx]);
+        otherTermDocIdx += 1;
+      }
+
+      if (
+        otherTermDocIdx >= other.termDocs.length
+        || currTermDoc.docId < other.termDocs[otherTermDocIdx].docId
+      ) {
+        newPl.termDocs.push(currTermDoc);
+      } else if (other.termDocs[otherTermDocIdx].docId === currTermDoc.docId) {
+        newPl.termDocs.push(PostingsList.mergeTermDocs(currTermDoc, other.termDocs[otherTermDocIdx]));
+        otherTermDocIdx += 1;
+      }
+    }
+
+    return newPl;
+  }
+}
+
+export class TermPostingsList extends PostingsList {
   constructor(
     public readonly term: string,
-    private readonly termInfo: TermInfo,
-  ) {}
+    termInfo: TermInfo,
+  ) {
+    super(termInfo);
+  }
 
   async fetch(baseUrl: string): Promise<void> {
     const arrayBuffer = await (await fetch(`${baseUrl}/pl_${this.termInfo.postingsFileName}`)).arrayBuffer();
@@ -67,7 +170,7 @@ class PostingsList {
 
         const fieldPositions = [];
         let prevPos = 0;
-        for (let i = 0; i < fieldTermFreq; i += 1) {
+        for (let j = 0; j < fieldTermFreq; j += 1) {
           const { value: posGap, newPos: posAfterPosGap } = decodeVarInt(dataView, pos);
           pos = posAfterPosGap;
 
@@ -82,10 +185,4 @@ class PostingsList {
       this.termDocs.push(termDoc);
     }
   }
-
-  getIt(): PlIterator {
-    return new PlIterator(this);
-  }
 }
-
-export default PostingsList;

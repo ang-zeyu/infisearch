@@ -3,6 +3,9 @@ module.exports = {
     main: './lib/search.ts',
     setupDictionary: './lib/Dictionary/setupDictionary.ts',
   },
+  experiments: {
+    asyncWebAssembly: true,
+  },
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
   },

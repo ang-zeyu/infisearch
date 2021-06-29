@@ -159,29 +159,30 @@ async function transformResults(query: Query, container: HTMLElement): Promise<v
 }
 
 function displayTermInfo(query: Query, container: HTMLElement) {
-  query.queryVectors.forEach((queryVec) => {
-    if (Object.keys(queryVec.correctedTermsAndWeights).length) {
-      container.appendChild(
-        h('div', { class: 'librarian-suggestion-container-corrected' },
-          h('div', { class: 'librarian-suggestion-content' },
-            `Could not find any matches for "${queryVec.mainTerm}", did you mean:`,
-            h('hr', {}),
-            ...Object.keys(queryVec.correctedTermsAndWeights).map((correctedTerm) => h(
-              'span', { class: 'librarian-suggestion-corrected' }, `${correctedTerm} `,
-            ))),
-          h('div', { class: 'librarian-suggestion-buttons' },
-            h('button', { class: 'librarian-suggestion-button-dismiss', onclick: '() => console.log(\'hi\')' }),
-            h('button', { class: 'librarian-suggestion-button-dismiss-tip' }))),
-      );
-    } else if (Object.keys(queryVec.expandedTermsAndWeights).length) {
+  const misspelledTerms: string[] = [];
+  const correctedTerms: string[] = [];
+  const correctedTermsContainer = h('div', { class: 'librarian-suggestion-container-corrected' },
+    h('div', { class: 'librarian-suggestion-buttons' },
+      h('button', {
+        class: 'librarian-suggestion-button-dismiss',
+        onclick: '() => console.log(\'hi\')',
+      }),
+      h('button', { class: 'librarian-suggestion-button-dismiss-tip' })));
+
+  query.queryParts.forEach((queryPart) => {
+    if (queryPart.isCorrected) {
+      misspelledTerms.push(queryPart.originalTerms[0]);
+      if (queryPart.terms.length) {
+        correctedTerms.push(queryPart.terms[0]);
+      }
+    } else if (queryPart.isExpanded) {
       container.appendChild(
         h('div', { class: 'librarian-suggestion-container-expanded' },
           h('div', { class: 'librarian-suggestion-content' },
-            'Also searched for...',
+            'Also searched for... ',
+            h('small', {}, '(add a space to the last term to finalise the search)'),
             h('br', {}),
-            h('small', {}, 'Add a space to the last term to finalise the search!'),
-            h('hr', {}),
-            ...Object.keys(queryVec.expandedTermsAndWeights).map((expandedTerm) => h(
+            ...queryPart.terms.map((expandedTerm) => h(
               'span', { class: 'librarian-suggestion-expanded' }, `${expandedTerm} `,
             ))),
           h('div', { class: 'librarian-suggestion-buttons' },
@@ -190,21 +191,44 @@ function displayTermInfo(query: Query, container: HTMLElement) {
       );
     }
   });
+
+  if (misspelledTerms.length) {
+    correctedTermsContainer.prepend(
+      h('div', { class: 'librarian-suggestion-content' },
+        'Could not find any matches for',
+        ...misspelledTerms.map((term) => h(
+          'span', { class: 'librarian-suggestion-wrong' }, ` "${term}"`,
+        )),
+        correctedTerms.length ? ', searched for: ' : '',
+        ...correctedTerms.map((correctedTerm) => h(
+          'span', { class: 'librarian-suggestion-corrected' }, `${correctedTerm} `,
+        ))),
+    );
+    container.appendChild(correctedTermsContainer);
+  }
 }
 
 const updatePromiseQueue: (() => Promise<void>)[] = [];
 async function update(queryString: string, container: HTMLElement, searcher: Searcher): Promise<void> {
-  container.style.display = 'flex';
+  try {
+    container.style.display = 'flex';
 
-  const query = await searcher.getQuery(queryString);
-  container.innerHTML = '';
-  displayTermInfo(query, container);
+    const now = performance.now();
+    const query = await searcher.getQuery(queryString);
+    container.innerHTML = '';
+    displayTermInfo(query, container);
 
-  await transformResults(query, container);
+    await transformResults(query, container);
 
-  updatePromiseQueue.shift();
-  if (updatePromiseQueue.length) {
-    updatePromiseQueue[0]();
+    console.log(`Query "${queryString}" took ${performance.now() - now} milliseconds`);
+  } catch (ex) {
+    container.innerHTML = ex.message;
+    throw ex;
+  } finally {
+    updatePromiseQueue.shift();
+    if (updatePromiseQueue.length) {
+      await updatePromiseQueue[0]();
+    }
   }
 }
 
@@ -225,7 +249,6 @@ function initLibrarian(url: string, setupDictionaryUrl: string): void {
 
   let inputTimer: any = -1;
   input.addEventListener('input', (ev) => {
-    console.log('fired');
     const query = (ev.target as HTMLInputElement).value;
 
     if (query.length > 2) {

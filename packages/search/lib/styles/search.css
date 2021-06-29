@@ -47,7 +47,7 @@
 .librarian-suggestion-content {
     flex: 1 0 0;
     padding: 5px;
-    font-size: 1.1rem;
+    font-size: 16px;
 }
 
 .librarian-suggestion-buttons {
@@ -85,23 +85,29 @@
     border-top: 1px solid rgba(175, 175, 175, 0.3);
 }
 
+.librarian-suggestion-content > small {
+    font-size: 14px;
+}
+
 .librarian-suggestion-corrected,
 .librarian-suggestion-expanded {
-    border-radius: 7px;
-    border: 1px solid black;
-    padding: 1px 4px;
+    padding-right: 4px;
     color: #000000;
-    font-size: 1rem;
+    font-size: 16px;
+}
+
+.librarian-suggestion-wrong {
+    color: red;
 }
 
 .librarian-suggestion-corrected {
-    color: #ff1212;
+    color: #13c215;
+    text-decoration: underline;
 }
 
 .librarian-suggestion-expanded {
-    color: #000000;
-    border-color: #d1ffad;
-    background: linear-gradient(90deg, rgba(0,255,70,0.0953141116024403) 0%, rgba(11,255,0,0.0307073700294066) 100%);
+    color: #13c215;
+    text-decoration: underline;
 }
 
 .librarian-dropdown-item {
@@ -153,7 +159,7 @@
     vertical-align: top;
     background-color: rgba(243, 243, 243, 0.7);
     font-weight: 600;
-    color: #5d5d5d;
+    color: #3d3f42;
 }
 
 .librarian-bodies {
@@ -164,7 +170,7 @@
     grid-column-start: 2;
     box-sizing: border-box;
     padding: 3px 3px 3px 2px;
-    color: black;
+    color: #4d5156;
     transition: background-color 0.1s ease-in-out;
 }
 

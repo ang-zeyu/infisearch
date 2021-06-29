@@ -6,7 +6,7 @@ class Result {
   constructor(
     public docId: number,
     public score: number,
-    private fieldInfos: FieldInfo,
+    private fieldInfos: FieldInfo[],
   ) {}
 
   async populate(baseUrl: string): Promise<void> {
@@ -25,9 +25,13 @@ class Result {
   }
 
   getSingleField(fieldName: string): string {
-    const fieldId = this.fieldInfos[fieldName].id;
+    const field = this.fieldInfos.find((fieldInfo) => fieldInfo.name === fieldName);
+    if (!field) {
+      return '';
+    }
+
     const matchingPair: [number, string] = this.storage.find(
-      (fieldIdContentPair) => fieldIdContentPair[0] === fieldId,
+      (fieldIdContentPair) => fieldIdContentPair[0] === field.id,
     );
     return matchingPair ? matchingPair[1] : '';
   }

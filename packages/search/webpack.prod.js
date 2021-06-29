@@ -4,6 +4,7 @@ const path = require('path');
 const merge = require('webpack-merge');
 const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const common = require('./webpack.common');
 
 module.exports = merge(common, {
@@ -22,6 +23,9 @@ module.exports = merge(common, {
           collapseWhitespace: true,
           removeComments: true,
         },
+      }),
+      new WasmPackPlugin({
+        crateDirectory: path.resolve(__dirname, '../librarian_tokenizer'),
       }),
     ],
   },

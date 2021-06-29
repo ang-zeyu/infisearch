@@ -3,6 +3,9 @@ import Dictionary from '../Dictionary/Dictionary';
 import Query from './Query';
 import FieldInfo from './FieldInfo';
 import DocInfo from './DocInfo';
+import parseQuery, { QueryPart } from '../parser/queryParser';
+import preprocess from '../parser/queryPreprocessor';
+import postprocess from '../parser/queryPostProcessor';
 
 class Searcher {
   private dictionary: Dictionary;
@@ -11,9 +14,11 @@ class Searcher {
 
   private docInfo: DocInfo;
 
-  private fieldInfo: FieldInfo;
+  private fieldInfos: FieldInfo[];
 
   private setupPromise: Promise<void>;
+
+  private tokenizer: (string) => string[];
 
   constructor(
     private url: string,
@@ -22,12 +27,11 @@ class Searcher {
     this.setupPromise = this.setup();
   }
 
-  setupDocInfo(fieldInfoJson: any) {
-    this.docInfo = new DocInfo(this.url,
-      Object.values(fieldInfoJson).filter((field: any) => field.weight !== 0).length);
+  setupDocInfo(numScoredFields: number) {
+    this.docInfo = new DocInfo(this.url, numScoredFields);
   }
 
-  async setup() {
+  async setupFieldInfo(): Promise<{ numWeightedFields: number }> {
     const json = await (await fetch(`${this.url}/fieldInfo.json`, {
       method: 'GET',
       headers: {
@@ -35,39 +39,94 @@ class Searcher {
       },
     })).json();
 
-    this.setupDocInfo(json);
+    const numWeightedFields = Object.values(json).filter((field: FieldInfo) => field.weight !== 0).length;
+
+    this.fieldInfos = [];
+    Object.entries(json).forEach(([fieldName, fieldInfo]) => {
+      (fieldInfo as FieldInfo).name = fieldName;
+      this.fieldInfos.push(fieldInfo as FieldInfo);
+    });
+    this.fieldInfos.sort((a, b) => a.id - b.id);
+
+    console.log(this.fieldInfos);
+
+    return { numWeightedFields };
+  }
+
+  async setup() {
+    const tokenizer = import('../../../librarian_tokenizer/pkg/index.js');
+
+    const { numWeightedFields } = await this.setupFieldInfo();
+
+    this.setupDocInfo(numWeightedFields);
     await this.docInfo.initialisedPromise;
 
-    this.dictionary = new Dictionary();
-    await this.dictionary.setup(this.setupDictionaryUrl, this.url, this.docInfo.numDocs);
+    this.dictionary = new Dictionary(this.setupDictionaryUrl);
+    await this.dictionary.setup(this.url, this.docInfo.numDocs);
 
-    this.postingsListManager = new PostingsListManager(this.url, this.dictionary);
+    this.postingsListManager = new PostingsListManager(
+      this.url,
+      this.dictionary,
+      this.fieldInfos,
+      this.docInfo.numDocs,
+    );
 
-    Object.keys(json).forEach((fieldName) => {
-      json[json[fieldName].id] = json[fieldName];
-      json[fieldName].name = fieldName;
+    this.tokenizer = (await tokenizer).wasm_tokenize;
+  }
+
+  getAggregatedTerms(queryParts: QueryPart[], seen: Set<string>, result: string[]) {
+    queryParts.forEach((queryPart) => {
+      if (queryPart.terms) {
+        queryPart.terms.forEach((term) => {
+          if (seen.has(term)) {
+            return;
+          }
+
+          result.push(term);
+        });
+      } else if (queryPart.children) {
+        this.getAggregatedTerms(queryPart.children, seen, result);
+      }
     });
-
-    this.fieldInfo = json;
-    console.log(this.fieldInfo);
   }
 
   async getQuery(query): Promise<Query> {
     await this.setupPromise;
 
     // TODO tokenize by language
-    const queryTerms: string[] = query.split(/\s+/g);
+    const queryParts = parseQuery(query, this.tokenizer);
+    // console.log(JSON.stringify(queryParts, null, 4));
+    // const queryTerms: string[] = query.toLowerCase().split(/\s+/g);
 
-    const queryVectors = queryTerms
-      .map((queryTerm, idx) => this.dictionary.getTerms(queryTerm, idx === queryTerms.length - 1))
+    /* const queryVectors = queryParts
+      .map((queryTerm, idx) => {
+        this.dictionary.getTerms(queryTerm, idx === queryTerms.length - 1);
+      })
       .filter((queryVec) => queryVec.getAllTerms().length);
     const aggregatedTerms = queryVectors.reduce((acc, queryVec) => acc.concat(queryVec.getAllTerms()), []);
-    console.log(aggregatedTerms);
+    console.log(aggregatedTerms); */
 
-    const postingsLists = await this.postingsListManager.retrieve(aggregatedTerms);
+    const preProcessedQueryParts = await preprocess(queryParts, this.dictionary);
+    console.log('preprocessed');
+    console.log(JSON.stringify(preProcessedQueryParts, null, 4));
+
+    const postingsLists = await this.postingsListManager.retrieveTopLevelPls(preProcessedQueryParts);
+    console.log('processed');
+    // console.log(postingsLists);
+
+    const postProcessedQueryParts = await postprocess(queryParts, postingsLists, this.dictionary, this.url);
+
+    const aggregatedTerms: string[] = [];
+    this.getAggregatedTerms(queryParts, new Set<string>(), aggregatedTerms);
 
     return new Query(
-      aggregatedTerms, queryVectors, this.docInfo, this.fieldInfo, this.dictionary, this.url, postingsLists,
+      aggregatedTerms,
+      postProcessedQueryParts,
+      postingsLists,
+      this.docInfo,
+      this.fieldInfos,
+      this.dictionary,
+      this.url,
     );
   }
 }

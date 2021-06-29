@@ -10,12 +10,12 @@ function h(
   });
 
   children.forEach((child) => {
-    if (typeof child === 'object') {
-      el.appendChild(child);
-    } else {
+    if (typeof child === 'string') {
       const span = document.createElement('span');
       span.textContent = child;
       el.appendChild(span);
+    } else {
+      el.appendChild(child);
     }
   });
 
