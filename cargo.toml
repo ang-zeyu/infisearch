@@ -2,5 +2,5 @@
 
 members = [
     "packages/librarian_indexer",
-    "packages/librarian_tokenizer",
+    "packages/librarian_common",
 ]

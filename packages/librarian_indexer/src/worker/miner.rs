@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::str;
 use std::sync::Arc;
 
-use librarian_tokenizer::tokenize::english::tokenize;
+use librarian_common::tokenize::english::tokenize;
 use rustc_hash::FxHashMap;
 
 use crate::FieldInfos;

@@ -54,7 +54,7 @@ class Searcher {
   }
 
   async setup() {
-    const tokenizer = import('../../../librarian_tokenizer/pkg/index.js');
+    const tokenizer = import('../../../librarian_common/pkg/index.js');
 
     const { numWeightedFields } = await this.setupFieldInfo();
 

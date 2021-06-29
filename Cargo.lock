@@ -188,9 +188,9 @@ checksum = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "322f4de77956e22ed0e5032c359a0f1273f1f7f0d79bfa3b8ffbc730d7fbcc5c"
+checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
@@ -209,9 +209,19 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.95"
+version = "0.2.97"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "789da6d93f1b866ffe175afc5322a4d76c038605a1c3319bb57b06967ca98a36"
+checksum = "12b8adadd720df158f4d70dfe7ccc6adb0472d7c55ca83445f6a5ab3e36f8fb6"
+
+[[package]]
+name = "librarian_common"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "regex",
+ "serde",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "librarian_indexer"
@@ -222,22 +232,12 @@ dependencies = [
  "csv",
  "dashmap",
  "lazy_static",
- "librarian_tokenizer",
+ "librarian_common",
  "regex",
  "rustc-hash",
  "serde",
  "serde_json",
  "walkdir",
-]
-
-[[package]]
-name = "librarian_tokenizer"
-version = "0.1.0"
-dependencies = [
- "lazy_static",
- "regex",
- "serde",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -508,9 +508,9 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "syn"
-version = "1.0.72"
+version = "1.0.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1e8cdbefb79a9a5a65e0db8b47b723ee907b7c7f8496c76a1770b5c310bab82"
+checksum = "f71489ff30030d2ae598524f61326b902466f72a0fb1a8564c001cc63425bcc7"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -1,5 +1,5 @@
 [package]
-name = "librarian_tokenizer"
+name = "librarian_common"
 version = "0.1.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
