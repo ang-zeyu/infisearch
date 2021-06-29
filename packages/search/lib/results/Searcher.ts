@@ -3,7 +3,7 @@ import Dictionary from '../Dictionary/Dictionary';
 import Query from './Query';
 import FieldInfo from './FieldInfo';
 import DocInfo from './DocInfo';
-import parseQuery, { QueryPart } from '../parser/queryParser';
+import parseQuery, { QueryPart, QueryPartType } from '../parser/queryParser';
 import preprocess from '../parser/queryPreprocessor';
 import postprocess from '../parser/queryPostProcessor';
 
@@ -19,6 +19,8 @@ class Searcher {
   private setupPromise: Promise<void>;
 
   private tokenizer: (string) => string[];
+
+  private stopWords: Set<string>;
 
   constructor(
     private url: string,
@@ -54,7 +56,7 @@ class Searcher {
   }
 
   async setup() {
-    const tokenizer = import('../../../librarian_common/pkg/index.js');
+    let wasmModule: any = import('../../../librarian_common/pkg/index.js');
 
     const { numWeightedFields } = await this.setupFieldInfo();
 
@@ -71,7 +73,9 @@ class Searcher {
       this.docInfo.numDocs,
     );
 
-    this.tokenizer = (await tokenizer).wasm_tokenize;
+    wasmModule = await wasmModule;
+    this.tokenizer = wasmModule.wasm_tokenize;
+    this.stopWords = new Set(JSON.parse(wasmModule.get_stop_words()));
   }
 
   getAggregatedTerms(queryParts: QueryPart[], seen: Set<string>, result: string[]) {
@@ -106,7 +110,9 @@ class Searcher {
     const aggregatedTerms = queryVectors.reduce((acc, queryVec) => acc.concat(queryVec.getAllTerms()), []);
     console.log(aggregatedTerms); */
 
-    const preProcessedQueryParts = await preprocess(queryParts, this.dictionary);
+    const isFreeTextQuery = queryParts.every((queryPart) => queryPart.type === QueryPartType.TERM);
+
+    const preProcessedQueryParts = await preprocess(queryParts, isFreeTextQuery, this.stopWords, this.dictionary);
     console.log('preprocessed');
     console.log(JSON.stringify(preProcessedQueryParts, null, 4));
 
@@ -123,6 +129,7 @@ class Searcher {
       aggregatedTerms,
       postProcessedQueryParts,
       postingsLists,
+      isFreeTextQuery,
       this.docInfo,
       this.fieldInfos,
       this.dictionary,

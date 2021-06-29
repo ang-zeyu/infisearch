@@ -9,3 +9,8 @@ extern crate lazy_static;
 pub fn wasm_tokenize(text: String) -> JsValue {
     JsValue::from_serde(&tokenize::english::tokenize(text)).unwrap()
 }
+
+#[wasm_bindgen]
+pub fn get_stop_words() -> String {
+   tokenize::english::get_stop_words().to_owned()
+}

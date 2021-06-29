@@ -1,9 +1,11 @@
-import { QueryPart } from './queryParser';
+import { QueryPart, QueryPartType } from './queryParser';
 import Dictionary from '../Dictionary/Dictionary';
 
 // Deal with non-existent terms, spelling errors
 export default async function preprocess(
   queryParts: QueryPart[],
+  isFreeTextQuery: boolean,
+  stopWords: Set<string>,
   dictionary: Dictionary,
 ) : Promise<QueryPart[]> {
   for (let i = 0; i < queryParts.length; i += 1) {
@@ -11,6 +13,12 @@ export default async function preprocess(
     if (queryPart.terms) {
       for (let j = 0; j < queryPart.terms.length; j += 1) {
         const term = queryPart.terms[j];
+        if (isFreeTextQuery && stopWords.has(term)) {
+          queryPart.terms.splice(j, 1);
+          j -= 1;
+          continue;
+        }
+
         const termInfo = await dictionary.getTermInfo(term);
         if (!termInfo) {
           queryPart.isCorrected = true;
@@ -26,7 +34,7 @@ export default async function preprocess(
         }
       }
     } else if (queryPart.children) {
-      preprocess(queryPart.children, dictionary);
+      preprocess(queryPart.children, isFreeTextQuery, stopWords, dictionary);
     }
   }
 

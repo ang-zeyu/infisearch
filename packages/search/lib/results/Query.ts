@@ -12,21 +12,16 @@ class Query {
 
   private retrievePromise: Promise<void> = undefined;
 
-  private isFreeTextQuery: boolean = true;
-
   constructor(
     public readonly aggregatedTerms: string[],
     public readonly queryParts: QueryPart[],
     private postingsLists: PostingsList[],
+    private isFreeTextQuery: boolean,
     private docInfo: DocInfo,
     private fieldInfos: FieldInfo[],
     private dictionary: Dictionary,
     private baseUrl: string,
-  ) {
-    postingsLists.forEach((postingsList) => {
-      this.isFreeTextQuery = this.isFreeTextQuery && (postingsList instanceof TermPostingsList);
-    });
-  }
+  ) {}
 
   private async populate(n: number): Promise<Result[]> {
     const minAmtResults = Math.min(n, this.resultHeap.size());
