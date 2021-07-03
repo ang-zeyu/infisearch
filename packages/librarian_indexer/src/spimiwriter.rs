@@ -15,8 +15,8 @@ use std::path::Path;
 
 use rustc_hash::FxHashMap;
 
+use crate::worker::miner::WorkerMiner;
 use crate::Receiver;
-use crate::WorkerMiner;
 use crate::WorkerToMainMessage;
 use crate::worker::miner::TermDoc;
 

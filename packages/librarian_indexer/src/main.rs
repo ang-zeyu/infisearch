@@ -1,31 +1,10 @@
-mod docinfo;
-mod fieldinfo;
-mod spimireader;
-mod spimiwriter;
-mod utils;
-mod worker;
-
-use std::sync::Mutex;
-use crate::docinfo::DocInfos;
-use std::fs;
 use std::time::Instant;
 use std::env;
-use std::sync::Arc;
 use std::path::Path;
 use std::path::PathBuf;
 
-use crossbeam::Sender;
-use crossbeam::Receiver;
 use csv::Reader;
-use rustc_hash::FxHashMap;
 use walkdir::WalkDir;
-
-use fieldinfo::FieldInfo;
-use fieldinfo::FieldInfos;
-use worker::Worker;
-use worker::MainToWorkerMessage;
-use worker::WorkerToMainMessage;
-use worker::miner::WorkerMiner;
 
 /*
 Cargo new <name> build --release/dev(default) check doc --open
@@ -141,8 +120,6 @@ Patterns
     'a'..'j'
 }
 */
-#[macro_use]
-extern crate lazy_static;
 
 fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path) -> (PathBuf, PathBuf) {
     let cwd_result = env::current_dir();
@@ -172,10 +149,6 @@ fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path) ->
     }
 }
 
-static NUM_THREADS: u32 = 10;
-static NUM_DOCS: u32 = 2000;
-static EXPECTED_NUM_DOCS_PER_THREAD: usize = (NUM_DOCS / NUM_THREADS * 2) as usize;
-
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -183,50 +156,17 @@ fn main() {
 
     println!("Resolved Paths: {} {}", input_folder_path.to_str().unwrap(), output_folder_path.to_str().unwrap());
 
-    // Initialise ds...
-    let mut doc_id_counter = 0;
-    let block_number = |doc_id_counter| {
-        ((doc_id_counter as f64) / (NUM_DOCS as f64)).ceil() as u32
-    };
-    let mut spimi_counter = 0;
+    let mut indexer = librarian_indexer::Indexer::new(&output_folder_path);
 
-    let mut field_infos_map: FxHashMap<String, FieldInfo> = FxHashMap::default();
-    field_infos_map.insert("title".to_owned(),       FieldInfo { id: 0, do_store: true, weight: 0.2, k: 1.2, b: 0.75 });
-    field_infos_map.insert("heading".to_owned(),     FieldInfo { id: 1, do_store: true, weight: 0.3, k: 1.2, b: 0.75 });
-    field_infos_map.insert("body".to_owned(),        FieldInfo { id: 2, do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
-    field_infos_map.insert("headingLink".to_owned(), FieldInfo { id: 3, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
-    field_infos_map.insert("link".to_owned(),        FieldInfo { id: 4, do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
-
-    let field_infos = FieldInfos::init(field_infos_map);
-    field_infos.dump(&output_folder_path);
-
-    let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
-
-    // Spawn some worker threads!
-    let mut workers: Vec<Worker> = Vec::with_capacity(NUM_THREADS as usize);
-    let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(NUM_THREADS as usize);
-    let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(NUM_THREADS as usize);
-    for i in 0..NUM_THREADS {
-        let tx_worker_clone = tx_worker.clone();
-        let rx_worker_clone = rx_worker.clone();
-        let field_info_clone = Arc::clone(&field_infos_arc);
-
-        workers.push(Worker {
-            id: i as usize,
-            join_handle: std::thread::spawn(move ||
-                worker::worker(i as usize, tx_worker_clone, rx_worker_clone, field_info_clone, EXPECTED_NUM_DOCS_PER_THREAD)),
-        });
-    }
+    indexer.add_field(librarian_indexer::FieldConfig { name: "title", do_store: true, weight: 0.2, k: 1.2, b: 0.25 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "heading", do_store: true, weight: 0.3, k: 1.2, b: 0.3 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "body", do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "headingLink", do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "link", do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
     
+    indexer.finalise_fields();
+
     let now = Instant::now();
-    
-    let field_store_folder_path = output_folder_path.join("field_store");
-    if field_store_folder_path.exists() {
-        fs::remove_dir_all(&field_store_folder_path).unwrap();
-    }
-    fs::create_dir(&field_store_folder_path).unwrap();
-
-    let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(field_infos_arc.num_scored_fields)));
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -239,18 +179,9 @@ fn main() {
                     for result in rdr.records() {
                         let record = result.expect("Failed to unwrap csv record result!");
 
-                        tx_main.send(MainToWorkerMessage::Index {
-                            doc_id: doc_id_counter,
-                            field_texts: vec![("title".to_owned(), record[1].to_string()), ("body".to_owned(), record[2].to_string())],
-                            field_store_path: field_store_folder_path.join(format!("{}.json", doc_id_counter)),
-                        }).expect("Failed to send work message to worker!");
-
-                        doc_id_counter += 1;
-                        spimi_counter += 1;
-
-                        if spimi_counter == NUM_DOCS {
-                            spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &tx_main, &rx_main, &output_folder_path, &doc_infos);
-                        }
+                        indexer.index_document(
+                            vec![("title".to_owned(), record[1].to_string()), ("body".to_owned(), record[2].to_string())]
+                        );
                     }
                 }
             },
@@ -259,26 +190,6 @@ fn main() {
             }
         }
     }
-
-    if spimi_counter != 0 && spimi_counter != NUM_DOCS {
-        println!("Writing last spimi block");
-        spimiwriter::write_block(NUM_THREADS, &mut spimi_counter, block_number(doc_id_counter), &tx_main, &rx_main, &output_folder_path, &doc_infos);
-    }
-
-    // Wait on all workers
-    Worker::wait_on_all_workers(&tx_main, NUM_THREADS);
-    println!("Number of docs: {}", doc_id_counter);
-    print_time_elapsed(now, "Block indexing done!");
-
-    // Merge spimi blocks
-    // Go through all blocks at once
-    spimireader::merge_blocks(doc_id_counter, block_number(doc_id_counter), doc_infos, &tx_main, &output_folder_path);
-
-    print_time_elapsed(now, "Blocks merged!");
-    Worker::terminate_all_workers(workers, tx_main); 
-}
-
-fn print_time_elapsed(instant: Instant, extra_message: &str) {
-    let elapsed = instant.elapsed().as_secs_f64();
-    println!("{} {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
+    
+    indexer.finish_writing_docs(Option::from(now));
 }
