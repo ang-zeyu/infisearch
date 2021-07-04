@@ -13,12 +13,13 @@ class Result {
     const fileNumber = Math.floor(this.docId / fieldStoreBlockSize);
     const fileUrl = `${baseUrl}/field_store/${fileNumber}.json`;
     try {
-      this.storage = (await (await fetch(fileUrl, {
+      const rawJson = (await (await fetch(fileUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      })).json())[this.docId % fieldStoreBlockSize];
+      })).json());
+      this.storage = rawJson[this.docId % fieldStoreBlockSize];
     } catch (ex) {
       console.log(this.docId);
       console.log(ex);
