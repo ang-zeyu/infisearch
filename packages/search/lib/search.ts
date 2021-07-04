@@ -151,7 +151,11 @@ function transformHtml(
           if (child.nodeType === Node.ELEMENT_NODE) {
             traverseBody(child as HTMLElement);
           } else if (child.nodeType === Node.TEXT_NODE) {
-            fields.push(['body', (child as Text).data]);
+            if (fields.length && fields[fields.length - 1][0] === 'body') {
+              fields[fields.length - 1][1] += (child as Text).data;
+            } else {
+              fields.push(['body', (child as Text).data]);
+            }
           }
         }
       }
