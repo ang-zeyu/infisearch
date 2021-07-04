@@ -129,7 +129,8 @@ impl WorkerMiner {
             if field_info.do_store {
                 if !is_first_stored_field {
                     field_store_buffered_writer.write_all(b",").unwrap();
-                    is_first_stored_field = true;
+                } else {
+                    is_first_stored_field = false;
                 }
                 field_store_buffered_writer.write_all(b"[").unwrap();
                 field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
