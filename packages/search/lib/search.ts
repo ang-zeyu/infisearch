@@ -175,12 +175,13 @@ async function transformResults(
   query: Query,
   container: HTMLElement,
   baseUrl: string,
-  now: number,
 ): Promise<void> {
   const termRegex = new RegExp(
     `(^|\\W)(${query.aggregatedTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
     'gi',
   );
+
+  const now = performance.now();
 
   const results = await query.retrieve(10);
 
@@ -220,6 +221,8 @@ async function transformResults(
   const sentinel = h('li', {});
   container.appendChild(sentinel);
 
+  console.log(`Result transformation took ${performance.now() - now} milliseconds`);
+
   let firstRun = true;
   const iObserver = new IntersectionObserver(async (entries, observer) => {
     if (firstRun || !entries[0].isIntersecting) {
@@ -229,7 +232,7 @@ async function transformResults(
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, container, baseUrl, performance.now());
+    await transformResults(query, container, baseUrl);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
@@ -296,12 +299,13 @@ async function update(
 
     const now = performance.now();
     const query = await searcher.getQuery(queryString);
+
+    console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
+
     container.innerHTML = '';
     displayTermInfo(query, container);
 
-    await transformResults(query, container, sourceHtmlFilesUrl, now);
-
-    console.log(`Query "${queryString}" took ${performance.now() - now} milliseconds`);
+    await transformResults(query, container, sourceHtmlFilesUrl);
   } catch (ex) {
     container.innerHTML = ex.message;
     throw ex;
