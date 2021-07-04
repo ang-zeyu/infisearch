@@ -140,6 +140,9 @@ export class TermPostingsList extends PostingsList {
   }
 
   async fetch(baseUrl: string): Promise<void> {
+    if (!this.termInfo) {
+      return;
+    }
     const arrayBuffer = await (await fetch(`${baseUrl}/pl_${this.termInfo.postingsFileName}`)).arrayBuffer();
     const dataView = new DataView(arrayBuffer);
 
