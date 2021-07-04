@@ -1,19 +1,53 @@
-.librarian-dropdown {
-    display: flex;
-    padding: 0;
-    border: 1px solid rgba(67, 67, 67, 0.3);
-    margin: 1em 0 0 0;
+.librarian-input-wrapper {
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.librarian-input-dropdown-separator {
     position: absolute;
     top: 100%;
-    left: -50%;
-    right: -50%;
-    flex-direction: column;
-    min-width: 30em;
+    right: 16px;
+    z-index: 1;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 9px solid white;
+}
+
+.librarian-dropdown {
+    padding: 0;
+    border: 1px solid rgba(67, 67, 67, 0.3);
+    border-radius: 5px;
+    margin: 0;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 100%;
     max-height: 30em;
     overflow-x: hidden;
     overflow-y: scroll;
     list-style: none;
     background-color: white;
+    font-size: 16px;
+}
+
+@media screen and (max-width: 1024px) {
+    .librarian-input-wrapper {
+        width: 100%;
+    }
+
+    .librarian-dropdown {
+        font-size: 30px;
+        max-height: 700px;
+    }
+}
+
+@media screen and (min-width: 1025px) {
+    .librarian-dropdown {
+        width: 512px;
+    }
 }
 
 .librarian-dropdown::-webkit-scrollbar-track {
@@ -29,6 +63,11 @@
 .librarian-dropdown::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background-color: rgba(213, 177, 137, 0.5);
+}
+
+.librarian-no-results {
+    color: rgba(0, 0, 0, 0.6);
+    padding: 5px;
 }
 
 .librarian-suggestion-container-corrected,
@@ -47,7 +86,7 @@
 .librarian-suggestion-content {
     flex: 1 0 0;
     padding: 5px;
-    font-size: 16px;
+    font-size: 1em;
 }
 
 .librarian-suggestion-buttons {
@@ -68,7 +107,7 @@
 .librarian-suggestion-button-dismiss:before {
     content: 'x';
     font-weight: 700;
-    font-size: 20px;
+    font-size: 1.2em;
 }
 
 .librarian-suggestion-button-dismiss:hover {
@@ -86,14 +125,14 @@
 }
 
 .librarian-suggestion-content > small {
-    font-size: 14px;
+    font-size: 0.9em;
 }
 
 .librarian-suggestion-corrected,
 .librarian-suggestion-expanded {
     padding-right: 4px;
     color: #000000;
-    font-size: 16px;
+    font-size: 1em;
 }
 
 .librarian-suggestion-wrong {
@@ -169,6 +208,7 @@
 }
 
 .librarian-body {
+    word-break: break-word;
     grid-column-start: 2;
     box-sizing: border-box;
     padding: 3px 3px 3px 2px;

@@ -220,7 +220,11 @@ async function transformResults(
         ...bodies));
   }));
   const fragment = document.createDocumentFragment();
-  resultsEls.forEach((el) => fragment.appendChild(el));
+  if (resultsEls.length) {
+    resultsEls.forEach((el) => fragment.appendChild(el));
+  } else {
+    fragment.appendChild(h('div', { class: 'librarian-no-results' }, 'no results found'));
+  }
   termInfoEls.forEach((el) => fragment.appendChild(el));
   const sentinel = h('li', {});
   fragment.appendChild(sentinel);
@@ -309,7 +313,10 @@ async function update(
   sourceHtmlFilesUrl?: string,
 ): Promise<void> {
   try {
-    container.style.display = 'flex';
+    if (container.style.display === 'none') {
+      (container.previousSibling as HTMLElement).style.display = 'block';
+      container.style.display = 'block';
+    }
 
     const now = performance.now();
     const query = await searcher.getQuery(queryString);
@@ -328,7 +335,8 @@ async function update(
   }
 }
 
-function hide(container): void {
+function hide(container: HTMLElement): void {
+  (container.previousSibling as HTMLElement).style.display = 'none';
   container.style.display = 'none';
 }
 
@@ -342,8 +350,13 @@ function initLibrarian(
     return;
   }
 
-  const container = h('ul', { class: 'librarian-dropdown' });
-  input.parentElement.appendChild(container);
+  const container = h('ul', { class: 'librarian-dropdown', style: 'display: none;' });
+  const parent = input.parentElement;
+  input.remove();
+  parent.appendChild(h('div', { class: 'librarian-input-wrapper' },
+    input,
+    h('div', { class: 'librarian-input-dropdown-separator', style: 'display: none;' }),
+    container));
 
   const searcher = new Searcher(librarianOutputUrl, setupDictionaryUrl);
 
@@ -363,10 +376,12 @@ function initLibrarian(
       hide(container);
     }
   });
+
+  input.addEventListener('blur', () => hide(container));
 }
 
 initLibrarian(
-  'http://localhost:3000/output',
-  'http://localhost:8080/setupDictionary.bundle.js',
-  'http://localhost:3000/source',
+  'http://192.168.10.132:3000/output',
+  '/setupDictionary.bundle.js',
+  'http://192.168.10.132:3000/source',
 );
