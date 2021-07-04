@@ -8,6 +8,8 @@ export default async function preprocess(
   stopWords: Set<string>,
   dictionary: Dictionary,
 ) : Promise<QueryPart[]> {
+  const promises: Promise<any>[] = [];
+
   for (let i = 0; i < queryParts.length; i += 1) {
     const queryPart = queryParts[i];
     if (queryPart.terms) {
@@ -39,9 +41,11 @@ export default async function preprocess(
         i -= 1;
       }
     } else if (queryPart.children) {
-      preprocess(queryPart.children, isFreeTextQuery, stopWords, dictionary);
+      promises.push(preprocess(queryPart.children, isFreeTextQuery, stopWords, dictionary));
     }
   }
+
+  await Promise.all(promises);
 
   return queryParts;
 }
