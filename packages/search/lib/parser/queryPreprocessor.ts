@@ -33,6 +33,11 @@ export default async function preprocess(
           }
         }
       }
+
+      if (!queryPart.terms.length) {
+        queryParts.splice(i, 1);
+        i -= 1;
+      }
     } else if (queryPart.children) {
       preprocess(queryPart.children, isFreeTextQuery, stopWords, dictionary);
     }
