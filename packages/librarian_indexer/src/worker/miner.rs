@@ -1,10 +1,8 @@
 use std::borrow::Cow;
 use regex::Regex;
 use std::cmp::Ordering;
-use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
-use std::path::PathBuf;
 use std::str;
 use std::sync::Arc;
 
@@ -23,12 +21,18 @@ pub struct TermDoc {
     pub doc_fields: Vec<DocField>
 }
 
+pub struct WorkerMinerDocInfo {
+    pub doc_id: u32,
+    pub field_lengths: Vec<u32>,
+    pub field_texts: Vec<u8>,
+}
+
 // Intermediate BSBI miner for use in a worker
 // Outputs (termID, docID, fieldId, fieldTf, positions ...., fieldId, fieldTf, positions ....) tuples
 pub struct WorkerMiner {
     pub field_infos: Arc<FieldInfos>,
     pub terms: FxHashMap<String, Vec<TermDoc>>,
-    pub document_lengths: Vec<(u32, Vec<u32>)>
+    pub doc_infos: Vec<WorkerMinerDocInfo>
 }
 
 pub struct TermDocComparator {
@@ -56,25 +60,25 @@ impl PartialEq for TermDocComparator {
     }
 }
 
-pub struct DocIdAndFieldLengthsComparator(pub (u32, Vec<u32>), pub usize);
+pub struct DocIdAndFieldLengthsComparator(pub WorkerMinerDocInfo, pub usize);
 
 impl Eq for DocIdAndFieldLengthsComparator {}
 
 impl Ord for DocIdAndFieldLengthsComparator {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.0.0.cmp(&other.0.0)
+        self.0.doc_id.cmp(&other.0.doc_id)
     }
 }
 
 impl PartialOrd for DocIdAndFieldLengthsComparator {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.0.0.cmp(&other.0.0))
+        Some(self.0.doc_id.cmp(&other.0.doc_id))
     }
 }
 
 impl PartialEq for DocIdAndFieldLengthsComparator {
     fn eq(&self, other: &Self) -> bool {
-        self.0.0 == other.0.0
+        self.0.doc_id == other.0.doc_id
     }
 }
 
@@ -108,33 +112,31 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
 }
 
 impl WorkerMiner {
-    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>, field_store_path: PathBuf) {
-        let mut field_store_buffered_writer = BufWriter::with_capacity(81920, File::create(field_store_path).expect("Failed to open field store file for writing!"));
-        field_store_buffered_writer.write_all(b"[").unwrap();
-
-        let field_texts_len = field_texts.len();
-        let mut field_text_count = 1;
+    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(&str, String)>) {
+        let mut is_first_stored_field = true;
         
         let mut pos = 0;
 
-        self.document_lengths.push((doc_id, vec![0; self.field_infos.num_scored_fields]));
+        let mut field_lengths = vec![0; self.field_infos.num_scored_fields];
+        let mut field_store_buffered_writer = BufWriter::new(Vec::new());
+        field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
         for (field_name, field_text) in field_texts {
-            let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
+            let field_info = self.field_infos.field_infos_map.get(field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
             let field_id = field_info.id;
 
             // Store raw text
             if field_info.do_store {
+                if !is_first_stored_field {
+                    field_store_buffered_writer.write_all(b",").unwrap();
+                    is_first_stored_field = true;
+                }
                 field_store_buffered_writer.write_all(b"[").unwrap();
                 field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
                 field_store_buffered_writer.write_all(b",\"").unwrap();
                 field_store_buffered_writer.write_all(find_u8_unsafe_morecap(&field_text).as_bytes()).unwrap();
                 field_store_buffered_writer.write_all(b"\"]").unwrap();
-                if field_text_count != field_texts_len {
-                    field_store_buffered_writer.write_all(b",").unwrap();
-                }
             }
-            field_text_count += 1;
 
             if field_info.weight == 0.0 {
                 continue;
@@ -142,7 +144,7 @@ impl WorkerMiner {
 
             let field_terms = tokenize(field_text);
 
-            *self.document_lengths.last_mut().unwrap().1.get_mut(field_id as usize).unwrap() += field_terms.len() as u32;
+            *field_lengths.get_mut(field_id as usize).unwrap() += field_terms.len() as u32;
 
             for field_term in field_terms {
                 pos += 1;
@@ -180,10 +182,15 @@ impl WorkerMiner {
                 doc_field.field_positions.push(pos);
             }
 
-            pos += 1000; // to "split up zones"
+            pos += 120; // to "split up zones"
         }
 
         field_store_buffered_writer.write_all(b"]").unwrap();
         field_store_buffered_writer.flush().unwrap();
+        self.doc_infos.push(WorkerMinerDocInfo {
+            doc_id,
+            field_lengths,
+            field_texts: field_store_buffered_writer.into_inner().unwrap(),
+        });
     }
 }

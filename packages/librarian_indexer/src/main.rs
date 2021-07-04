@@ -2,6 +2,7 @@ use std::time::Instant;
 use std::env;
 use std::path::Path;
 use std::path::PathBuf;
+use path_slash::PathExt;
 
 use csv::Reader;
 use walkdir::WalkDir;
@@ -158,31 +159,52 @@ fn main() {
 
     let mut indexer = librarian_indexer::Indexer::new(&output_folder_path);
 
-    indexer.add_field(librarian_indexer::FieldConfig { name: "title", do_store: true, weight: 0.2, k: 1.2, b: 0.25 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "heading", do_store: true, weight: 0.3, k: 1.2, b: 0.3 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "body", do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "headingLink", do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "title", do_store: false, weight: 0.2, k: 1.2, b: 0.25 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "heading", do_store: false, weight: 0.3, k: 1.2, b: 0.3 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "body", do_store: false, weight: 0.5, k: 1.2, b: 0.75 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "headingLink", do_store: false, weight: 0.0, k: 1.2, b: 0.75 });
     indexer.add_field(librarian_indexer::FieldConfig { name: "link", do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
     
+    indexer.set_field_store_block_size(100);
+
     indexer.finalise_fields();
 
     let now = Instant::now();
 
+    let input_folder_path_clone = input_folder_path.to_str().unwrap().to_owned();
+
     for entry in WalkDir::new(input_folder_path) {
         match entry {
             Ok(dir_entry) => {
-                if dir_entry.file_type().is_file() && dir_entry.path().extension().unwrap() == "csv" {
-                    println!("Reading {}", dir_entry.path().display());
+                if !dir_entry.file_type().is_file() {
+                    continue;
+                }
 
-                    let mut rdr = Reader::from_path(dir_entry.path()).unwrap();
+                let path = dir_entry.path();
+                let extension = path.extension().unwrap();
+                if extension == "csv" {
+                    println!("Reading {}", path.display());
+
+                    let mut rdr = Reader::from_path(path).unwrap();
                     
                     for result in rdr.records() {
                         let record = result.expect("Failed to unwrap csv record result!");
 
                         indexer.index_document(
-                            vec![("title".to_owned(), record[1].to_string()), ("body".to_owned(), record[2].to_string())]
+                            vec![
+                                ("title", record[1].to_string()),
+                                ("body", record[2].to_string()),
+                                ("link", record[0].to_string()),
+                            ]
                         );
                     }
+                } else if extension == "html" {
+                    println!("Reading {}", path.strip_prefix(&input_folder_path_clone).unwrap().to_slash().unwrap());
+
+                    indexer.index_html_document(
+                        path.strip_prefix(&input_folder_path_clone).unwrap().to_slash().unwrap(),
+                        std::fs::read_to_string(path).expect("Failed to read file!")
+                    );
                 }
             },
             Err(e) => {

@@ -35,10 +35,10 @@ static EXPECTED_NUM_DOCS_PER_THREAD: usize = (NUM_DOCS / NUM_THREADS * 2) as usi
 pub struct Indexer {
     doc_id_counter: u32,
     spimi_counter: u32,
+    field_store_block_size: u32,
     field_infos_temp: FxHashMap<String, FieldInfo>,
     field_infos: Option<Arc<FieldInfos>>,
     output_folder_path: PathBuf,
-    field_store_folder_path: PathBuf,
     workers: Vec<Worker>,
     doc_infos: Option<Arc<Mutex<DocInfos>>>,
     tx_main: Sender<MainToWorkerMessage>,
@@ -63,10 +63,10 @@ impl Indexer {
         Indexer {
             doc_id_counter: 0,
             spimi_counter: 0,
+            field_store_block_size: 1,
             field_infos_temp: FxHashMap::default(),
             field_infos: Option::None,
             output_folder_path: output_folder_path.to_path_buf(),
-            field_store_folder_path: output_folder_path.join("field_store"),
             workers: Vec::with_capacity(NUM_THREADS as usize),
             doc_infos: Option::None,
             tx_main,
@@ -89,6 +89,10 @@ impl Indexer {
         );
     }
 
+    pub fn set_field_store_block_size(&mut self, size: u32) {
+        self.field_store_block_size = size;
+    }
+
     pub fn finalise_fields(&mut self) {
         let mut field_entries: Vec<(&String, &mut FieldInfo)> = self.field_infos_temp.iter_mut().collect();
         field_entries.sort_by(|a, b| {
@@ -105,7 +109,7 @@ impl Indexer {
             tup.1.id = field_id as u8;
         }
 
-        let field_infos = FieldInfos::init(std::mem::take(&mut self.field_infos_temp));
+        let field_infos = FieldInfos::init(std::mem::take(&mut self.field_infos_temp), self.field_store_block_size, &self.output_folder_path);
         field_infos.dump(&self.output_folder_path);
         
         self.doc_infos = Option::from(
@@ -127,24 +131,32 @@ impl Indexer {
         }
 
         self.field_infos = Option::from(field_infos_arc);
-
-        
-        if self.field_store_folder_path.exists() {
-            fs::remove_dir_all(&self.field_store_folder_path).unwrap();
-        }
-        fs::create_dir(&self.field_store_folder_path).unwrap();
     }
 
     fn block_number(&self) -> u32 {
         ((self.doc_id_counter as f64) / (NUM_DOCS as f64)).ceil() as u32
     }
 
-    pub fn index_document(&mut self, field_texts: Vec<(String, String)>) {
+    pub fn index_document(&mut self, field_texts: Vec<(&'static str, String)>) {
         self.tx_main.send(MainToWorkerMessage::Index {
             doc_id: self.doc_id_counter,
             field_texts,
-            field_store_path: self.field_store_folder_path.join(format!("{}.json", self.doc_id_counter)),
         }).expect("Failed to send work message to worker!");
+    
+        self.doc_id_counter += 1;
+        self.spimi_counter += 1;
+
+        if self.spimi_counter == NUM_DOCS {
+            self.write_block();
+        }
+    }
+
+    pub fn index_html_document(&mut self, link: String, html_text: String) {
+        self.tx_main.send(MainToWorkerMessage::IndexHtml {
+            doc_id: self.doc_id_counter,
+            link,
+            html_text,
+        }).expect("Failed to send html work message to worker!");
     
         self.doc_id_counter += 1;
         self.spimi_counter += 1;
@@ -158,6 +170,7 @@ impl Indexer {
         let block_number = self.block_number();
         spimiwriter::write_block(
             NUM_THREADS,
+            self.doc_id_counter - self.spimi_counter,
             &mut self.spimi_counter,
             block_number,
             &self.tx_main,

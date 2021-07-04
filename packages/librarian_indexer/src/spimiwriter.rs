@@ -1,3 +1,5 @@
+use crate::FieldInfos;
+use crate::worker::miner::WorkerMinerDocInfo;
 use crossbeam::Sender;
 use crate::MainToWorkerMessage;
 use std::sync::Barrier;
@@ -22,6 +24,7 @@ use crate::worker::miner::TermDoc;
 
 pub fn write_block (
     num_threads: u32,
+    doc_id_counter: u32,
     spimi_counter: &mut u32,
     block_number: u32,
     tx_main: &Sender<MainToWorkerMessage>,
@@ -55,6 +58,7 @@ pub fn write_block (
         output_folder_path: PathBuf::new().join(output_folder_path),
         block_number,
         num_docs: *spimi_counter,
+        total_num_docs: doc_id_counter,
         doc_infos: Arc::clone(doc_infos),
     }).expect("Failed to send work message to worker!");
 
@@ -65,17 +69,25 @@ pub fn combine_worker_results_and_write_block(
     worker_miners: Vec<WorkerMiner>,
     doc_infos: Arc<Mutex<DocInfos>>,
     output_folder_path: PathBuf,
+    field_infos: &Arc<FieldInfos>,
     block_number: u32,
     num_docs: u32,
+    total_num_docs: u32,
 ) {
-    let spimi_block = combine_and_sort(worker_miners, doc_infos, num_docs);
+    let spimi_block = combine_and_sort(worker_miners, doc_infos, num_docs, total_num_docs, field_infos);
     write_to_disk(spimi_block, output_folder_path, block_number);
 }
 
-fn combine_and_sort(worker_miners: Vec<WorkerMiner>, doc_infos: Arc<Mutex<DocInfos>>, num_docs: u32) -> Vec<(String, Vec<TermDoc>)> {
+fn combine_and_sort(
+    worker_miners: Vec<WorkerMiner>,
+    doc_infos: Arc<Mutex<DocInfos>>,
+    num_docs: u32,
+    total_num_docs: u32,
+    field_infos: &Arc<FieldInfos>,
+) -> Vec<(String, Vec<TermDoc>)> {
     let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
 
-    let mut worker_lengths: Vec<Vec<(u32, Vec<u32>)>> = Vec::with_capacity(num_docs as usize);
+    let mut worker_lengths: Vec<Vec<WorkerMinerDocInfo>> = Vec::with_capacity(num_docs as usize);
 
     // Combine
     for worker_miner in worker_miners {
@@ -86,12 +98,12 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>, doc_infos: Arc<Mutex<DocInf
                 .push(worker_term_docs);
         }
 
-        worker_lengths.push(worker_miner.document_lengths);
+        worker_lengths.push(worker_miner.doc_infos);
     }
 
     
     {
-        let mut sorted_doc_lengths: Vec<(u32, Vec<u32>)> = Vec::with_capacity(num_docs as usize);
+        let mut sorted_doc_infos: Vec<WorkerMinerDocInfo> = Vec::with_capacity(num_docs as usize);
 
         let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::new();
 
@@ -110,11 +122,46 @@ fn combine_and_sort(worker_miners: Vec<WorkerMiner>, doc_infos: Arc<Mutex<DocInf
                 heap.push(DocIdAndFieldLengthsComparator(worker_document_lengths.pop().unwrap(), top.1));
             }
 
-            sorted_doc_lengths.push(top.0);
+            sorted_doc_infos.push(top.0);
         }
-        sorted_doc_lengths.reverse();
+        sorted_doc_infos.reverse();
 
-        doc_infos.lock().unwrap().extend_with(sorted_doc_lengths);
+        // Store field texts
+        let mut count = total_num_docs;
+        let mut block_count = 0;
+        let mut writer = BufWriter::new(
+            File::create(field_infos.field_output_folder_path.join(format!("{}.json", count / field_infos.field_store_block_size))).unwrap()
+        );
+        writer.write_all(b"[").unwrap();
+        for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
+            if block_count != 0 {
+                writer.write_all(b",").unwrap();
+            }
+            writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
+
+            block_count += 1;
+            if block_count == field_infos.field_store_block_size {
+                count += block_count;
+                block_count = 0;
+                writer.write_all(b"]").unwrap();
+                writer.flush().unwrap();
+
+                writer = BufWriter::new(
+                    File::create(field_infos.field_output_folder_path.join(format!("{}.json", count / field_infos.field_store_block_size))).unwrap()
+                );
+                writer.write_all(b"[").unwrap();
+            }
+        }
+
+        if block_count != 0 {
+            writer.write_all(b"]").unwrap();
+            writer.flush().unwrap();
+        } else {
+            writer.flush().unwrap();
+            // delete
+        }
+
+        doc_infos.lock().unwrap().extend_with(sorted_doc_infos);
     }
 
     // Sort

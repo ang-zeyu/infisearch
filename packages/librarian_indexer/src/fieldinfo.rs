@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
@@ -15,28 +16,46 @@ pub struct FieldInfo {
     pub b: f32,
 }
 
+#[derive(Serialize)]
 pub struct FieldInfos {
     pub field_infos_map: FxHashMap<String, FieldInfo>,
+    #[serde(skip_serializing)]
     pub field_infos_by_id: Vec<FieldInfo>,
     pub num_scored_fields: usize,
+    pub field_store_block_size: u32,
+    #[serde(skip_serializing)]
+    pub field_output_folder_path: PathBuf,
 }
 
 impl FieldInfos {
-    pub fn init(field_infos_map: FxHashMap<String, FieldInfo>) -> FieldInfos {
+    pub fn init(
+        field_infos_map: FxHashMap<String, FieldInfo>,
+        field_store_block_size: u32,
+        output_folder_path: &Path
+    ) -> FieldInfos {
         let num_scored_fields = field_infos_map.values().filter(|field_info| field_info.weight != 0.0).count();
         
         let mut field_infos_by_id: Vec<FieldInfo> = field_infos_map.values().map(|x| x.clone()).collect();
         field_infos_by_id.sort_by(|fi1, fi2| fi1.id.cmp(&fi2.id));
 
+        let field_output_folder_path = output_folder_path.join("field_store");
+
+        if field_output_folder_path.exists() {
+            std::fs::remove_dir_all(&field_output_folder_path).unwrap();
+        }
+        std::fs::create_dir(&field_output_folder_path).unwrap();
+
         FieldInfos {
             field_infos_map,
             field_infos_by_id,
-            num_scored_fields
+            num_scored_fields,
+            field_store_block_size,
+            field_output_folder_path,
         }
     }
 
     pub fn dump(&self, output_folder_path: &Path) {
-        let serialized = serde_json::to_string(&self.field_infos_map).unwrap();
+        let serialized = serde_json::to_string(self).unwrap();
 
         File::create(output_folder_path.join("fieldInfo.json"))
             .unwrap()

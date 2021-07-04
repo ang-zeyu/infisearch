@@ -1,5 +1,8 @@
 pub mod miner;
 
+use scraper::ElementRef;
+use scraper::Selector;
+use scraper::Html;
 use std::sync::Barrier;
 use std::sync::Mutex;
 use dashmap::DashMap;
@@ -61,12 +64,17 @@ pub enum MainToWorkerMessage {
         output_folder_path: PathBuf,
         block_number: u32,
         num_docs: u32,
+        total_num_docs: u32,
         doc_infos: Arc<Mutex<DocInfos>>,
     },
     Index {
         doc_id: u32,
-        field_texts: Vec<(String, String)>,
-        field_store_path: PathBuf
+        field_texts: Vec<(&'static str, String)>,
+    },
+    IndexHtml {
+        doc_id: u32,
+        link: String,
+        html_text: String
     },
     Decode {
         n: u32,
@@ -78,6 +86,48 @@ pub enum MainToWorkerMessage {
 pub struct WorkerToMainMessage {
     pub id: usize,
     pub doc_miner: Option<WorkerMiner>,
+}
+
+fn traverse_node(node: ElementRef, field_texts: &mut Vec<(&str, String)>) {
+    match node.value().name() {
+        "h1"
+        | "h2"
+        | "h3"
+        | "h4"
+        | "h5"
+        | "h6" => {
+            field_texts.push(("heading", node.text().collect()));
+        }
+        _ => {
+            if !node.has_children() {
+                // field_texts.push(("body", node.text().collect()));
+                return;
+            }
+
+            for child in node.children() {
+                if let Some(el_child) = ElementRef::wrap(child) {
+                    traverse_node(el_child, field_texts);
+                } else {
+                    if let Some(text) = child.value().as_text() {
+                        if let Some(last) = field_texts.last_mut() {
+                            if last.0 == "body" {
+                                last.1 += text;
+                            } else {
+                                field_texts.push(("body", text.to_string()));
+                            }
+                        } else {
+                            field_texts.push(("body", text.to_string()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+lazy_static! {
+    static ref TITLE_SELECTOR: Selector = Selector::parse("title").unwrap();
+    static ref BODY_SELECTOR: Selector = Selector::parse("body").unwrap();
 }
 
 pub fn worker (
@@ -92,23 +142,48 @@ pub fn worker (
     let mut doc_miner = WorkerMiner {
         field_infos: Arc::clone(&field_infos),
         terms: FxHashMap::default(),
-        document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
+        doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
     };
 
     loop {
         let msg = rcvr.recv().expect("Failed to receive message on worker side!");
         match msg {
-            MainToWorkerMessage::Index { doc_id, field_texts, field_store_path } => {
-                doc_miner.index_doc(doc_id, field_texts, field_store_path);
+            MainToWorkerMessage::Index { doc_id, field_texts } => {
+                doc_miner.index_doc(doc_id, field_texts);
+            },
+            MainToWorkerMessage::IndexHtml { doc_id, link, html_text } => {
+                let mut field_texts: Vec<(&str, String)> = Vec::with_capacity(20);
+                let document = Html::parse_document(&html_text);
+
+                field_texts.push(("link", link));
+
+                if let Some(title) = document.select(&TITLE_SELECTOR).next() {
+                    field_texts.push(("title", title.text().collect()));
+                }
+
+                if let Some(body) = document.select(&BODY_SELECTOR).next() {
+                    traverse_node(body, &mut field_texts);
+                }
+
+                doc_miner.index_doc(doc_id, field_texts);
             },
             MainToWorkerMessage::Combine {
                 worker_miners,
                 output_folder_path,
                 block_number,
                 num_docs,
+                total_num_docs,
                 doc_infos,
             } => {
-                spimiwriter::combine_worker_results_and_write_block(worker_miners, doc_infos, output_folder_path, block_number, num_docs);
+                spimiwriter::combine_worker_results_and_write_block(
+                    worker_miners,
+                    doc_infos,
+                    output_folder_path,
+                    &field_infos,
+                    block_number,
+                    num_docs,
+                    total_num_docs,
+                );
                 println!("Worker {} wrote spimi block {}!", id, block_number);
             },
             MainToWorkerMessage::Reset(barrier) => {
@@ -124,7 +199,7 @@ pub fn worker (
                 doc_miner = WorkerMiner {
                     field_infos: Arc::clone(&field_infos),
                     terms: FxHashMap::default(),
-                    document_lengths: Vec::with_capacity(expected_num_docs_per_reset),
+                    doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
                 };
 
                 barrier.wait();

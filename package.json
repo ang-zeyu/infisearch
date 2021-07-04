@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "lerna run dev",
-    "devServer1": "http-server ./test_files/1/output -p 3000 --cors",
+    "devServer1": "http-server ./test_files/1 -p 3000 --cors",
     "devServer2": "http-server ./test_files/2/output -p 3000 --cors",
     "lint": "cd packages/indexer && eslint . --ext .ts && cd ../.. && eslint packages/search --ext .js",
     "lintfix": "eslint packages/indexer --ext .ts --fix && eslint packages/search --ext .js --fix",

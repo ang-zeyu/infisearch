@@ -1,3 +1,4 @@
+use crate::worker::miner::WorkerMinerDocInfo;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
@@ -5,13 +6,13 @@ use std::path::PathBuf;
 
 
 pub struct DocInfos {
-    doc_lengths: Vec<(u32, Vec<u32>)>,
+    doc_lengths: Vec<WorkerMinerDocInfo>,
     total_lengths: Vec<u64>,
 }
 
 impl DocInfos {
     pub fn get_field_len_factor(&self, doc_id: usize, field_id: usize) -> f32 {
-        (self.doc_lengths[doc_id].1[field_id]) as f32 / self.total_lengths[field_id] as f32
+        (self.doc_lengths[doc_id].field_lengths[field_id]) as f32 / self.total_lengths[field_id] as f32
     }
 
     pub fn init_doc_infos(num_scored_fields: usize) -> DocInfos {
@@ -21,9 +22,9 @@ impl DocInfos {
         }
     }
 
-    pub fn extend_with(&mut self, sorted_doc_lengths: Vec<(u32, Vec<u32>)>) {
-        for (_doc_id, doc_field_lengths) in sorted_doc_lengths.iter() {
-            for (field_id, field_length) in doc_field_lengths.iter().enumerate() {
+    pub fn extend_with(&mut self, sorted_doc_lengths: Vec<WorkerMinerDocInfo>) {
+        for worker_miner_doc_info in sorted_doc_lengths.iter() {
+            for (field_id, field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {
                 *self.total_lengths.get_mut(field_id).unwrap() += (*field_length) as u64;
             }
         }
@@ -47,8 +48,8 @@ impl DocInfos {
             doc_info_writer.write_all(&(*total_length as u32).to_le_bytes()).unwrap();
         }
 
-        for (_doc_id, doc_field_lengths) in self.doc_lengths.iter() {
-            for field_length in doc_field_lengths {
+        for worker_miner_doc_info in self.doc_lengths.iter() {
+            for field_length in worker_miner_doc_info.field_lengths.iter() {
                 doc_info_writer.write_all(&field_length.to_le_bytes()).unwrap();
             }
         }
