@@ -171,13 +171,22 @@ function transformHtml(
 
 const domParser = new DOMParser();
 
-async function transformResults(query: Query, container: HTMLElement, baseUrl: string): Promise<void> {
+async function transformResults(
+  query: Query,
+  container: HTMLElement,
+  baseUrl: string,
+  now: number,
+): Promise<void> {
   const termRegex = new RegExp(
     `(^|\\W)(${query.aggregatedTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
     'gi',
   );
 
-  const resultsEls = await Promise.all((await query.retrieve(10)).map(async (result) => {
+  const results = await query.retrieve(10);
+
+  console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
+
+  const resultsEls = await Promise.all(results.map(async (result) => {
     console.log(result);
 
     const link = result.getSingleField('link');
@@ -220,7 +229,7 @@ async function transformResults(query: Query, container: HTMLElement, baseUrl: s
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, container, baseUrl);
+    await transformResults(query, container, baseUrl, performance.now());
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
@@ -290,7 +299,7 @@ async function update(
     container.innerHTML = '';
     displayTermInfo(query, container);
 
-    await transformResults(query, container, sourceHtmlFilesUrl);
+    await transformResults(query, container, sourceHtmlFilesUrl, now);
 
     console.log(`Query "${queryString}" took ${performance.now() - now} milliseconds`);
   } catch (ex) {
