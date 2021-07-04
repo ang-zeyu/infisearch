@@ -21,7 +21,7 @@ function transformText(
 
   function getBestMatchResult(str: string): (string | HTMLElement)[] {
     const lastTermPositions = sortedQueryTerms.map(() => -100000000);
-    const lastClosestTermPositions = lastTermPositions.map((i) => i);
+    let lastClosestTermPositions = lastTermPositions.map((i) => i);
     let lastClosestWindowLen = 100000000;
     let lastNumberMatchedTerms = 0;
 
@@ -44,7 +44,7 @@ function transformText(
         }
         lastClosestWindowLen = windowLen;
 
-        lastClosestTermPositions[matchedQueryTermIdx] = lastTermPositions[matchedQueryTermIdx];
+        lastClosestTermPositions = lastTermPositions.map((pos) => pos);
       }
 
       match = termRegex.exec(str);
