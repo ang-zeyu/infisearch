@@ -152,7 +152,8 @@
 }
 
 .librarian-heading {
-    flex: 1 0 30%;
+    width: 30%;
+    word-break: break-word;
     box-sizing: border-box;
     padding: 0.2em;
     display: inline-block;
