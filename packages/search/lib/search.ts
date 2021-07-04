@@ -173,6 +173,7 @@ const domParser = new DOMParser();
 
 async function transformResults(
   query: Query,
+  isFirst: boolean,
   container: HTMLElement,
   baseUrl: string,
 ): Promise<void> {
@@ -180,6 +181,8 @@ async function transformResults(
     `(^|\\W)(${query.aggregatedTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
     'gi',
   );
+
+  const termInfoEls = isFirst ? displayTermInfo(query) : [];
 
   const now = performance.now();
 
@@ -216,10 +219,18 @@ async function transformResults(
         h('div', { class: 'librarian-title' }, title),
         ...bodies));
   }));
-  resultsEls.forEach((el) => container.appendChild(el));
-
+  const fragment = document.createDocumentFragment();
+  resultsEls.forEach((el) => fragment.appendChild(el));
+  termInfoEls.forEach((el) => fragment.appendChild(el));
   const sentinel = h('li', {});
-  container.appendChild(sentinel);
+  fragment.appendChild(sentinel);
+
+  if (isFirst) {
+    container.innerHTML = '';
+    container.appendChild(fragment);
+  } else {
+    container.appendChild(fragment);
+  }
 
   console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
@@ -232,14 +243,15 @@ async function transformResults(
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, container, baseUrl);
+    await transformResults(query, false, container, baseUrl);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
 
-function displayTermInfo(query: Query, container: HTMLElement) {
+function displayTermInfo(query: Query): HTMLElement[] {
   const misspelledTerms: string[] = [];
   const correctedTerms: string[] = [];
+  const returnVal: HTMLElement[] = [];
   const correctedTermsContainer = h('div', { class: 'librarian-suggestion-container-corrected' },
     h('div', { class: 'librarian-suggestion-buttons' },
       h('button', {
@@ -255,7 +267,7 @@ function displayTermInfo(query: Query, container: HTMLElement) {
         correctedTerms.push(queryPart.terms[0]);
       }
     } else if (queryPart.isExpanded) {
-      container.appendChild(
+      returnVal.push(
         h('div', { class: 'librarian-suggestion-container-expanded' },
           h('div', { class: 'librarian-suggestion-content' },
             'Also searched for... ',
@@ -283,8 +295,10 @@ function displayTermInfo(query: Query, container: HTMLElement) {
           'span', { class: 'librarian-suggestion-corrected' }, `${correctedTerm} `,
         ))),
     );
-    container.appendChild(correctedTermsContainer);
+    returnVal.push(correctedTermsContainer);
   }
+
+  return returnVal;
 }
 
 const updatePromiseQueue: (() => Promise<void>)[] = [];
@@ -302,10 +316,7 @@ async function update(
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
-    container.innerHTML = '';
-    displayTermInfo(query, container);
-
-    await transformResults(query, container, sourceHtmlFilesUrl);
+    await transformResults(query, true, container, sourceHtmlFilesUrl);
   } catch (ex) {
     container.innerHTML = ex.message;
     throw ex;
