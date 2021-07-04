@@ -14,12 +14,9 @@ const MAX_SERP_HIGHLIGHT_PARTS = 3;
 function transformText(
   texts: [string, string][], // field name - field content pairs
   sortedQueryTerms: string[],
+  termRegex: RegExp,
   baseUrl: string,
 ): (string | HTMLElement)[] {
-  const termRegex = new RegExp(
-    `(^|\\W)(${sortedQueryTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
-    'gi',
-  );
   const lowerCasedSortedQueryTerms = sortedQueryTerms.map((t) => t.toLowerCase());
 
   function getBestMatchResult(str: string): (string | HTMLElement)[] {
@@ -52,6 +49,7 @@ function transformText(
 
       match = termRegex.exec(str);
     }
+    termRegex.lastIndex = 0;
 
     const lastClosestWindowPositions = lastClosestTermPositions
       .map((pos, idx) => ({ pos, term: sortedQueryTerms[idx] }))
@@ -131,6 +129,7 @@ function transformText(
 function transformHtml(
   doc: Document,
   sortedQueryTerms: string[],
+  termRegex: RegExp,
   baseUrl: string,
 ): (string | HTMLElement)[] {
   const fields: [string, string][] = [];
@@ -167,12 +166,17 @@ function transformHtml(
     traverseBody(body[0]);
   }
 
-  return transformText(fields, sortedQueryTerms, baseUrl);
+  return transformText(fields, sortedQueryTerms, termRegex, baseUrl);
 }
 
 const domParser = new DOMParser();
 
 async function transformResults(query: Query, container: HTMLElement, baseUrl: string): Promise<void> {
+  const termRegex = new RegExp(
+    `(^|\\W)(${query.aggregatedTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
+    'gi',
+  );
+
   const resultsEls = await Promise.all((await query.retrieve(10)).map(async (result) => {
     console.log(result);
 
@@ -181,6 +185,7 @@ async function transformResults(query: Query, container: HTMLElement, baseUrl: s
     let bodies = transformText(
       result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
       query.aggregatedTerms,
+      termRegex,
       link,
     );
 
@@ -193,7 +198,7 @@ async function transformResults(query: Query, container: HTMLElement, baseUrl: s
         title = titles[0].innerText || title;
       }
 
-      bodies = transformHtml(doc, query.aggregatedTerms, link);
+      bodies = transformHtml(doc, query.aggregatedTerms, termRegex, link);
     }
 
     return h('li', { class: 'librarian-dropdown-item' },
