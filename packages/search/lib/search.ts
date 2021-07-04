@@ -9,7 +9,7 @@ import Query from './results/Query';
 const { h } = domUtils;
 
 const BODY_SERP_BOUND = 40;
-const MAX_SERP_HIGHLIGHT_PARTS = 8;
+const MAX_SERP_HIGHLIGHT_PARTS = 3;
 
 function transformText(
   texts: [string, string][], // field name - field content pairs
