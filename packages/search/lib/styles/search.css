@@ -122,6 +122,7 @@
 }
 
 .librarian-title {
+    word-break: break-word;
     border-radius: 10px 10px 0 0;
     padding: 3px 3px 3px 5px;
     background-color: rgba(245, 169, 86, 0.33);
