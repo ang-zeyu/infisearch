@@ -127,21 +127,12 @@ function transformText(
   return result.slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
-const domParser = new DOMParser();
-
 function transformHtml(
-  html: string, // field name - field content pairs
+  doc: Document,
   sortedQueryTerms: string[],
   baseUrl: string,
 ): (string | HTMLElement)[] {
   const fields: [string, string][] = [];
-
-  const doc = domParser.parseFromString(html, 'text/html');
-
-  const titles = doc.getElementsByTagName('title');
-  if (titles.length) {
-    fields.push(['title', titles[0].innerText]);
-  }
 
   function traverseBody(el: HTMLElement) {
     switch (el.tagName.toLowerCase()) {
@@ -174,11 +165,14 @@ function transformHtml(
   return transformText(fields, sortedQueryTerms, baseUrl);
 }
 
+const domParser = new DOMParser();
+
 async function transformResults(query: Query, container: HTMLElement, baseUrl: string): Promise<void> {
   const resultsEls = await Promise.all((await query.retrieve(10)).map(async (result) => {
     console.log(result);
 
     const link = result.getSingleField('link');
+    let title = result.getSingleField('title') || link;
     let bodies = transformText(
       result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
       query.aggregatedTerms,
@@ -187,13 +181,19 @@ async function transformResults(query: Query, container: HTMLElement, baseUrl: s
 
     if (!bodies.length) {
       const asText = await (await fetch(`${baseUrl}/${link}`)).text();
-      bodies = transformHtml(asText, query.aggregatedTerms, link);
+      const doc = domParser.parseFromString(asText, 'text/html');
+
+      const titles = doc.getElementsByTagName('title');
+      if (titles.length) {
+        title = titles[0].innerText || title;
+      }
+
+      bodies = transformHtml(doc, query.aggregatedTerms, link);
     }
 
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: link },
-        h('div', { class: 'librarian-title' },
-          result.getSingleField('title') || link),
+        h('div', { class: 'librarian-title' }, title),
         ...bodies));
   }));
   resultsEls.forEach((el) => container.appendChild(el));
