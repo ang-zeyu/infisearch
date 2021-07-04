@@ -3,7 +3,7 @@ import {
   DocField, PlIterator, PostingsList, TermDoc, TermPostingsList,
 } from './PostingsList';
 import { QueryPart, QueryPartType } from '../parser/queryParser';
-import FieldInfo from '../results/FieldInfo';
+import { FieldInfo } from '../results/FieldInfo';
 
 const Heap = require('heap');
 

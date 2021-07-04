@@ -1,5 +1,5 @@
 import Result from './Result';
-import FieldInfo from './FieldInfo';
+import { FieldInfo } from './FieldInfo';
 import { PostingsList, TermPostingsList } from '../PostingsList/PostingsList';
 import Dictionary from '../Dictionary/Dictionary';
 import DocInfo from './DocInfo';
@@ -21,6 +21,7 @@ class Query {
     private fieldInfos: FieldInfo[],
     private dictionary: Dictionary,
     private baseUrl: string,
+    private fieldStoreBlockSize: number,
   ) {}
 
   private async populate(n: number): Promise<Result[]> {
@@ -31,7 +32,9 @@ class Query {
     }
 
     // console.log(retrievedResults);
-    await Promise.all(retrievedResults.map((result) => result.populate(this.baseUrl)));
+    await Promise.all(retrievedResults.map((result) => result.populate(
+      this.baseUrl, this.fieldStoreBlockSize,
+    )));
 
     return retrievedResults;
   }

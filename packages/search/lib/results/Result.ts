@@ -1,4 +1,4 @@
-import FieldInfo from './FieldInfo';
+import { FieldInfo } from './FieldInfo';
 
 class Result {
   storage: [number, string][] = Object.create(null);
@@ -9,15 +9,16 @@ class Result {
     private fieldInfos: FieldInfo[],
   ) {}
 
-  async populate(baseUrl: string): Promise<void> {
-    const fileUrl = `${baseUrl}/field_store/${this.docId}.json`;
+  async populate(baseUrl: string, fieldStoreBlockSize: number): Promise<void> {
+    const fileNumber = Math.floor(this.docId / fieldStoreBlockSize);
+    const fileUrl = `${baseUrl}/field_store/${fileNumber}.json`;
     try {
-      this.storage = await (await fetch(fileUrl, {
+      this.storage = (await (await fetch(fileUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      })).json();
+      })).json())[this.docId % fieldStoreBlockSize];
     } catch (ex) {
       console.log(this.docId);
       console.log(ex);

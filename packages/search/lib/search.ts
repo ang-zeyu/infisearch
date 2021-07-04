@@ -127,18 +127,75 @@ function transformText(
   return result.slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
-async function transformResults(query: Query, container: HTMLElement): Promise<void> {
-  const resultsEls = (await query.retrieve(10)).map((result) => {
+const domParser = new DOMParser();
+
+function transformHtml(
+  html: string, // field name - field content pairs
+  sortedQueryTerms: string[],
+  baseUrl: string,
+): (string | HTMLElement)[] {
+  const fields: [string, string][] = [];
+
+  const doc = domParser.parseFromString(html, 'text/html');
+
+  const titles = doc.getElementsByTagName('title');
+  if (titles.length) {
+    fields.push(['title', titles[0].innerText]);
+  }
+
+  function traverseBody(el: HTMLElement) {
+    switch (el.tagName.toLowerCase()) {
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
+        fields.push(['heading', el.innerText]);
+        break;
+      default: {
+        for (let i = 0; i < el.childNodes.length; i += 1) {
+          const child = el.childNodes[i];
+          if (child.nodeType === Node.ELEMENT_NODE) {
+            traverseBody(child as HTMLElement);
+          } else if (child.nodeType === Node.TEXT_NODE) {
+            fields.push(['body', (child as Text).data]);
+          }
+        }
+      }
+    }
+  }
+
+  const body = doc.getElementsByTagName('body');
+  if (body.length) {
+    traverseBody(body[0]);
+  }
+
+  return transformText(fields, sortedQueryTerms, baseUrl);
+}
+
+async function transformResults(query: Query, container: HTMLElement, baseUrl: string): Promise<void> {
+  const resultsEls = await Promise.all((await query.retrieve(10)).map(async (result) => {
     console.log(result);
 
     const link = result.getSingleField('link');
+    let bodies = transformText(
+      result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
+      query.aggregatedTerms,
+      link,
+    );
+
+    if (!bodies.length) {
+      const asText = await (await fetch(`${baseUrl}/${link}`)).text();
+      bodies = transformHtml(asText, query.aggregatedTerms, link);
+    }
+
     return h('li', { class: 'librarian-dropdown-item' },
       h('a', { class: 'librarian-link', href: link },
         h('div', { class: 'librarian-title' },
           result.getSingleField('title') || link),
-        ...transformText(result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
-          query.aggregatedTerms, link)));
-  });
+        ...bodies));
+  }));
   resultsEls.forEach((el) => container.appendChild(el));
 
   const sentinel = h('li', {});
@@ -153,7 +210,7 @@ async function transformResults(query: Query, container: HTMLElement): Promise<v
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, container);
+    await transformResults(query, container, baseUrl);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
@@ -209,7 +266,12 @@ function displayTermInfo(query: Query, container: HTMLElement) {
 }
 
 const updatePromiseQueue: (() => Promise<void>)[] = [];
-async function update(queryString: string, container: HTMLElement, searcher: Searcher): Promise<void> {
+async function update(
+  queryString: string,
+  container: HTMLElement,
+  searcher: Searcher,
+  sourceHtmlFilesUrl?: string,
+): Promise<void> {
   try {
     container.style.display = 'flex';
 
@@ -218,7 +280,7 @@ async function update(queryString: string, container: HTMLElement, searcher: Sea
     container.innerHTML = '';
     displayTermInfo(query, container);
 
-    await transformResults(query, container);
+    await transformResults(query, container, sourceHtmlFilesUrl);
 
     console.log(`Query "${queryString}" took ${performance.now() - now} milliseconds`);
   } catch (ex) {
@@ -236,7 +298,11 @@ function hide(container): void {
   container.style.display = 'none';
 }
 
-function initLibrarian(url: string, setupDictionaryUrl: string): void {
+function initLibrarian(
+  librarianOutputUrl: string,
+  setupDictionaryUrl: string,
+  sourceHtmlFilesUrl?: string,
+): void {
   const input = document.getElementById('librarian-search');
   if (!input) {
     return;
@@ -245,7 +311,7 @@ function initLibrarian(url: string, setupDictionaryUrl: string): void {
   const container = h('ul', { class: 'librarian-dropdown' });
   input.parentElement.appendChild(container);
 
-  const searcher = new Searcher(url, setupDictionaryUrl);
+  const searcher = new Searcher(librarianOutputUrl, setupDictionaryUrl);
 
   let inputTimer: any = -1;
   input.addEventListener('input', (ev) => {
@@ -254,7 +320,7 @@ function initLibrarian(url: string, setupDictionaryUrl: string): void {
     if (query.length > 2) {
       clearTimeout(inputTimer);
       inputTimer = setTimeout(() => {
-        updatePromiseQueue.push(() => update(query, container, searcher));
+        updatePromiseQueue.push(() => update(query, container, searcher, sourceHtmlFilesUrl));
         if (updatePromiseQueue.length === 1) {
           updatePromiseQueue[0]();
         }
@@ -265,4 +331,8 @@ function initLibrarian(url: string, setupDictionaryUrl: string): void {
   });
 }
 
-initLibrarian('http://localhost:3000', 'http://localhost:8080/setupDictionary.bundle.js');
+initLibrarian(
+  'http://localhost:3000/output',
+  'http://localhost:8080/setupDictionary.bundle.js',
+  'http://localhost:3000/source',
+);

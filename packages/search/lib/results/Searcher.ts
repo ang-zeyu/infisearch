@@ -1,7 +1,7 @@
 import PostingsListManager from '../PostingsList/PostingsListManager';
 import Dictionary from '../Dictionary/Dictionary';
 import Query from './Query';
-import FieldInfo from './FieldInfo';
+import { FieldInfosRaw, FieldInfo } from './FieldInfo';
 import DocInfo from './DocInfo';
 import parseQuery, { QueryPart, QueryPartType } from '../parser/queryParser';
 import preprocess from '../parser/queryPreprocessor';
@@ -13,6 +13,8 @@ class Searcher {
   private postingsListManager: PostingsListManager;
 
   private docInfo: DocInfo;
+
+  private fieldStoreBlockSize: number;
 
   private fieldInfos: FieldInfo[];
 
@@ -34,25 +36,25 @@ class Searcher {
   }
 
   async setupFieldInfo(): Promise<{ numWeightedFields: number }> {
-    const json = await (await fetch(`${this.url}/fieldInfo.json`, {
+    const json: FieldInfosRaw = await (await fetch(`${this.url}/fieldInfo.json`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     })).json();
 
-    const numWeightedFields = Object.values(json).filter((field: FieldInfo) => field.weight !== 0).length;
+    this.fieldStoreBlockSize = json.field_store_block_size;
 
     this.fieldInfos = [];
-    Object.entries(json).forEach(([fieldName, fieldInfo]) => {
-      (fieldInfo as FieldInfo).name = fieldName;
+    Object.entries(json.field_infos_map).forEach(([fieldName, fieldInfo]) => {
+      fieldInfo.name = fieldName;
       this.fieldInfos.push(fieldInfo as FieldInfo);
     });
     this.fieldInfos.sort((a, b) => a.id - b.id);
 
     console.log(this.fieldInfos);
 
-    return { numWeightedFields };
+    return { numWeightedFields: json.num_scored_fields };
   }
 
   async setup() {
@@ -134,6 +136,7 @@ class Searcher {
       this.fieldInfos,
       this.dictionary,
       this.url,
+      this.fieldStoreBlockSize,
     );
   }
 }
