@@ -183,12 +183,13 @@ export default function parseQuery(query: string, tokenize: (string) => string[]
             isExpectingAnd = true;
 
             j += 4;
-            while (whitespace.test(query[j])) {
+            while (query[j] && whitespace.test(query[j])) {
               j += 1;
             }
             i = j;
-            j -= 1;
           }
+
+          j -= 1;
 
           isUnaryOperatorAllowed = true;
         } else if (
@@ -234,6 +235,8 @@ export default function parseQuery(query: string, tokenize: (string) => string[]
       const lastQueryParts = parseQuery(query.slice(i, j), tokenize);
       queryParts[queryParts.length - 1].children.push(wrapInNot(lastQueryParts.shift()));
       queryParts.push(...lastQueryParts);
+    } else {
+      throw new Error('Query parsing error: no token found after AND operator');
     }
   } else {
     handleFreeText(query);
