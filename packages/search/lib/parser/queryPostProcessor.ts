@@ -11,7 +11,8 @@ export default async function postprocess(
 ) : Promise<QueryPart[]> {
   const lastQueryPart = queryParts[queryParts.length - 1];
   if (
-    lastQueryPart.type === QueryPartType.TERM
+    lastQueryPart
+    && lastQueryPart.type === QueryPartType.TERM
     && lastQueryPart.shouldExpand
     && !lastQueryPart.originalTerms // don't expand spelling corrected terms
   ) {
