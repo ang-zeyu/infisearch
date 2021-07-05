@@ -127,7 +127,7 @@ function transformText(
     }
 
     // Insert without heading
-    if (lastIncludedHeading !== i) {
+    if (!finalMatchResult.result) {
       finalMatchResult.result = h('div', { class: 'librarian-body' }, ...result);
     }
   }
