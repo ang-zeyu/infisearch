@@ -9,7 +9,17 @@ import Query from './results/Query';
 const { h } = domUtils;
 
 const BODY_SERP_BOUND = 40;
-const MAX_SERP_HIGHLIGHT_PARTS = 3;
+const MAX_SERP_HIGHLIGHT_PARTS = 2;
+
+interface MatchResult {
+  result: (string | HTMLElement)[],
+  numberTermsMatched: number,
+}
+
+interface FinalMatchResult {
+  result: string | HTMLElement,
+  numberTermsMatched: number,
+}
 
 function transformText(
   texts: [string, string][], // field name - field content pairs
@@ -19,7 +29,7 @@ function transformText(
 ): (string | HTMLElement)[] {
   const lowerCasedSortedQueryTerms = sortedQueryTerms.map((t) => t.toLowerCase());
 
-  function getBestMatchResult(str: string): (string | HTMLElement)[] {
+  function getBestMatchResult(str: string): MatchResult {
     const lastTermPositions = sortedQueryTerms.map(() => -100000000);
     let lastClosestTermPositions = lastTermPositions.map((i) => i);
     let lastClosestWindowLen = 100000000;
@@ -57,7 +67,7 @@ function transformText(
       .sort((a, b) => a.pos - b.pos);
     const result: (string | HTMLElement)[] = [];
     if (!lastClosestWindowPositions.length) {
-      return result;
+      return { result, numberTermsMatched: lastNumberMatchedTerms };
     }
 
     let prevHighlightEndPos = 0;
@@ -79,51 +89,53 @@ function transformText(
     }
     result.push(' ...');
 
-    return result;
+    return { result, numberTermsMatched: lastNumberMatchedTerms };
   }
 
   let lastIncludedHeading = -1;
-  const result: (string |HTMLElement)[] = [];
+  const finalMatchResults: FinalMatchResult[] = [];
 
-  texts.forEach((item, idx) => {
+  let itemIdx = -1;
+  for (const item of texts) {
+    itemIdx += 1;
     if (item[0].startsWith('heading')) {
-      return;
+      continue;
     }
 
-    const bodyMatchResult = getBestMatchResult(item[1]);
-    if (bodyMatchResult.length === 0) {
-      return;
+    const { result, numberTermsMatched } = getBestMatchResult(item[1]);
+    if (numberTermsMatched === 0) {
+      continue;
     }
+
+    const finalMatchResult: FinalMatchResult = { result: undefined, numberTermsMatched };
+    finalMatchResults.push(finalMatchResult);
 
     // Find a new heading this text is under
-    for (let i = idx - 1; i > lastIncludedHeading; i -= 1) {
+    let i = itemIdx - 1;
+    for (; i > lastIncludedHeading; i -= 1) {
       if (texts[i][0] === 'heading') {
         lastIncludedHeading = i;
         const href = (i - 1 >= 0) && texts[i - 1][0] === 'headingLink'
           ? `${baseUrl}${texts[i - 1][1]}`
           : undefined;
-        result.push(h('a', { class: 'librarian-heading-body', href },
+        finalMatchResult.result = h('a', { class: 'librarian-heading-body', href },
           h('div', { class: 'librarian-heading' }, texts[i][1]),
           h('div', { class: 'librarian-bodies' },
-            h('div', { class: 'librarian-body' }, ...bodyMatchResult))));
-        return;
+            h('div', { class: 'librarian-body' }, ...result)));
+        break;
       }
     }
 
-    const lastResultAdded = result[result.length - 1] as HTMLElement;
-    if (lastResultAdded && lastResultAdded.classList.contains('librarian-heading-body')) {
-      const headingBodyContainer = lastResultAdded.children[1];
-      if (headingBodyContainer.childElementCount < 3) {
-        // Insert under previous heading
-        headingBodyContainer.appendChild(h('div', { class: 'librarian-body' }, ...bodyMatchResult));
-      }
-    } else {
-      // Insert without heading
-      result.push(h('div', { class: 'librarian-body' }, ...bodyMatchResult));
+    // Insert without heading
+    if (lastIncludedHeading !== i) {
+      finalMatchResult.result = h('div', { class: 'librarian-body' }, ...result);
     }
-  });
+  }
 
-  return result.slice(0, MAX_SERP_HIGHLIGHT_PARTS);
+  return finalMatchResults
+    .sort((a, b) => b.numberTermsMatched - a.numberTermsMatched)
+    .map((r) => r.result)
+    .slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
 function transformHtml(
