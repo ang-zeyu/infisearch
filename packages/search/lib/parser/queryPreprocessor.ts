@@ -15,7 +15,7 @@ export default async function preprocess(
     if (queryPart.terms) {
       for (let j = 0; j < queryPart.terms.length; j += 1) {
         const term = queryPart.terms[j];
-        if (isFreeTextQuery && stopWords.has(term)) {
+        if (isFreeTextQuery && queryParts.length > 2 && stopWords.has(term)) {
           queryPart.terms.splice(j, 1);
           j -= 1;
           continue;
