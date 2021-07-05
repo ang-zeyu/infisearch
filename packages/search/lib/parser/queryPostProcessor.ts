@@ -17,10 +17,12 @@ export default async function postprocess(
     && !lastQueryPart.isCorrected // don't expand spelling corrected terms
   ) {
     // Expand
-    lastQueryPart.isExpanded = true;
     lastQueryPart.originalTerms = lastQueryPart.originalTerms || lastQueryPart.terms.map((t) => t);
 
     const expandedTerms = await dictionary.getExpandedTerms(lastQueryPart.terms[0]);
+
+    lastQueryPart.isExpanded = !!Object.keys(expandedTerms).length;
+
     const extraLists = await Promise.all(
       Object.entries(expandedTerms)
         .map(async ([term, weight]) => {
