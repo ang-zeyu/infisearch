@@ -14,11 +14,11 @@ export default async function postprocess(
     lastQueryPart
     && lastQueryPart.type === QueryPartType.TERM
     && lastQueryPart.shouldExpand
-    && !lastQueryPart.originalTerms // don't expand spelling corrected terms
+    && !lastQueryPart.isCorrected // don't expand spelling corrected terms
   ) {
     // Expand
     lastQueryPart.isExpanded = true;
-    lastQueryPart.originalTerms = lastQueryPart.terms.map((t) => t);
+    lastQueryPart.originalTerms = lastQueryPart.originalTerms || lastQueryPart.terms.map((t) => t);
 
     const expandedTerms = await dictionary.getExpandedTerms(lastQueryPart.terms[0]);
     const extraLists = await Promise.all(

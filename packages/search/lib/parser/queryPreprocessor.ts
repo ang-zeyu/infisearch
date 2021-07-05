@@ -16,6 +16,8 @@ export default async function preprocess(
       for (let j = 0; j < queryPart.terms.length; j += 1) {
         const term = queryPart.terms[j];
         if (isFreeTextQuery && queryParts.length > 2 && stopWords.has(term)) {
+          queryPart.isStopWordRemoved = true;
+          queryPart.originalTerms = queryPart.originalTerms || queryPart.terms.map((t) => t);
           queryPart.terms.splice(j, 1);
           j -= 1;
           continue;
@@ -34,11 +36,6 @@ export default async function preprocess(
             j -= 1;
           }
         }
-      }
-
-      if (!queryPart.terms.length) {
-        queryParts.splice(i, 1);
-        i -= 1;
       }
     } else if (queryPart.children) {
       promises.push(preprocess(queryPart.children, isFreeTextQuery, stopWords, dictionary));

@@ -83,6 +83,10 @@ class Searcher {
   getAggregatedTerms(queryParts: QueryPart[], seen: Set<string>, result: string[]) {
     queryParts.forEach((queryPart) => {
       if (queryPart.terms) {
+        if (queryPart.isStopWordRemoved) {
+          result.push(queryPart.originalTerms[0]);
+        }
+
         queryPart.terms.forEach((term) => {
           if (seen.has(term)) {
             return;

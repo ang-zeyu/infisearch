@@ -9,6 +9,7 @@ export enum QueryPartType {
 
 export interface QueryPart {
   isCorrected?: boolean;
+  isStopWordRemoved?: boolean;
   shouldExpand?: boolean;
   isExpanded?: boolean;
   originalTerms?: string[];
