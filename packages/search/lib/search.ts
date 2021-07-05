@@ -194,7 +194,9 @@ async function transformResults(
     'gi',
   );
 
+  const fragment = document.createDocumentFragment();
   const termInfoEls = isFirst ? displayTermInfo(query) : [];
+  termInfoEls.forEach((el) => fragment.appendChild(el));
 
   const now = performance.now();
 
@@ -231,13 +233,11 @@ async function transformResults(
         h('div', { class: 'librarian-title' }, title),
         ...bodies));
   }));
-  const fragment = document.createDocumentFragment();
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
   } else {
     fragment.appendChild(h('div', { class: 'librarian-no-results' }, 'no results found'));
   }
-  termInfoEls.forEach((el) => fragment.appendChild(el));
   const sentinel = h('li', {});
   fragment.appendChild(sentinel);
 
