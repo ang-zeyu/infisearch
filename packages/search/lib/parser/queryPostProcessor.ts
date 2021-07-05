@@ -36,7 +36,7 @@ export default async function postprocess(
         }),
     );
 
-    lastQueryPart.terms = Object.keys(expandedTerms);
+    lastQueryPart.terms = Object.keys(expandedTerms).concat([lastQueryPart.terms[0]]);
 
     postingsLists.push(...extraLists);
   }
