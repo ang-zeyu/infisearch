@@ -3,7 +3,7 @@ import Dictionary from '../Dictionary/Dictionary';
 import Query from './Query';
 import { FieldInfosRaw, FieldInfo } from './FieldInfo';
 import DocInfo from './DocInfo';
-import parseQuery, { QueryPart, QueryPartType } from '../parser/queryParser';
+import parseQuery, { QueryPart, QueryPartType, Tokenizer } from '../parser/queryParser';
 import preprocess from '../parser/queryPreprocessor';
 import postprocess from '../parser/queryPostProcessor';
 
@@ -20,7 +20,7 @@ class Searcher {
 
   private setupPromise: Promise<void>;
 
-  private tokenizer: (string) => string[];
+  private tokenizer: Tokenizer;
 
   private stopWords: Set<string>;
 

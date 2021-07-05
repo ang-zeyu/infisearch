@@ -19,6 +19,8 @@ export interface QueryPart {
   weight?: number;
 }
 
+export type Tokenizer = (string) => { terms: string[], should_expand: boolean, };
+
 enum QueryParseState {
   NONE,
   QUOTE,
@@ -27,7 +29,7 @@ enum QueryParseState {
 
 const whitespace = new RegExp('\\s');
 
-export default function parseQuery(query: string, tokenize: (string) => string[]): QueryPart[] {
+export default function parseQuery(query: string, tokenize: Tokenizer): QueryPart[] {
   const queryParts: QueryPart[] = [];
 
   let queryParseState: QueryParseState = QueryParseState.NONE;
@@ -56,22 +58,24 @@ export default function parseQuery(query: string, tokenize: (string) => string[]
       return;
     }
 
-    const terms = tokenize(text.slice(i, j));
-    if (!terms.length) {
+    const tokenizeResult = tokenize(text.slice(i, j));
+    if (!tokenizeResult.terms.length) {
       return;
     }
 
     queryParts.push(wrapInNot({
       type: QueryPartType.TERM,
-      terms: [terms.shift()],
+      terms: [tokenizeResult.terms.shift()],
       weight: 1,
+      shouldExpand: tokenizeResult.should_expand,
     }));
 
-    for (const term of terms) {
+    for (const term of tokenizeResult.terms) {
       queryParts.push({
         type: QueryPartType.TERM,
         terms: [term],
         weight: 1,
+        shouldExpand: tokenizeResult.should_expand,
       });
     }
   }
@@ -84,7 +88,7 @@ export default function parseQuery(query: string, tokenize: (string) => string[]
         if (c === '"') {
           queryParseState = QueryParseState.NONE;
 
-          const terms = tokenize(query.slice(i, j));
+          const { terms } = tokenize(query.slice(i, j));
           const phraseQueryPart: QueryPart = wrapInNot({
             type: terms.length <= 1 ? QueryPartType.TERM : QueryPartType.PHRASE,
             terms,

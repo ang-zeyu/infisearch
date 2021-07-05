@@ -1,3 +1,4 @@
+use crate::tokenize::WasmTokenizeResult;
 use regex::Regex;
 
 lazy_static! {
@@ -18,6 +19,14 @@ pub fn tokenize (mut text: String) -> Vec<String> {
       })
     )
     .collect()
+}
+
+pub fn wasm_tokenize(text: String) -> WasmTokenizeResult {
+  let should_expand = !text.ends_with(" ");
+  return WasmTokenizeResult {
+    terms: tokenize(text),
+    should_expand,
+  }
 }
 
 pub fn get_stop_words() -> &'static str {
