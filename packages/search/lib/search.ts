@@ -153,17 +153,14 @@ async function update(
   sourceHtmlFilesUrl?: string,
 ): Promise<void> {
   try {
-    if (container.style.display === 'none') {
-      (container.previousSibling as HTMLElement).style.display = 'block';
-      container.style.display = 'block';
-    }
-
     const now = performance.now();
     const query = await searcher.getQuery(queryString);
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
     await transformResults(query, true, container, sourceHtmlFilesUrl);
+
+    show(container);
   } catch (ex) {
     container.innerHTML = ex.message;
     throw ex;
@@ -178,6 +175,11 @@ async function update(
 function hide(container: HTMLElement): void {
   (container.previousSibling as HTMLElement).style.display = 'none';
   container.style.display = 'none';
+}
+
+function show(container: HTMLElement): void {
+  (container.previousSibling as HTMLElement).style.display = 'block';
+  container.style.display = 'block';
 }
 
 function initLibrarian(
@@ -218,6 +220,11 @@ function initLibrarian(
   });
 
   input.addEventListener('blur', () => hide(container));
+  input.addEventListener('focus', () => {
+    if (container.childElementCount) {
+      show(container);
+    }
+  });
 }
 
 initLibrarian(
