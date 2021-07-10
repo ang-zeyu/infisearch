@@ -49,7 +49,7 @@ class Query {
     this.retrievePromise = new Promise((res) => { resolve = res; });
 
     let plIterators = this.postingsLists
-      .map((postingsList) => postingsList.getIt())
+      .map((postingsList, idx) => postingsList.getIt(idx))
       .filter((x) => x.td)
       .sort((a, b) => a.td.docId - b.td.docId);
 
@@ -99,7 +99,8 @@ class Query {
       // Query term proximity ranking
       if (this.options.useQueryTermProximity) {
         const plIteratorsForProximityRanking = plIterators
-          .filter((plIt) => plIt.pl.includeInProximityRanking && plIt.td.docId === pivotDocId);
+          .filter((plIt) => plIt.pl.includeInProximityRanking && plIt.td.docId === pivotDocId)
+          .sort((plIt, plIt2) => plIt.originalIdx - plIt2.originalIdx);
 
         if (plIteratorsForProximityRanking.length > 1) {
           const positionHeap: Heap<[
@@ -161,7 +162,7 @@ class Query {
             }
           }
 
-          if (minWindowLen < 10000) {
+          if (minWindowLen < 1000) {
             scalingFactor = 1 + (7 / (10 + minWindowLen))
                 * (plIteratorsForProximityRanking.length / totalProximityRankingTerms);
           }

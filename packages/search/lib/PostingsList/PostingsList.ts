@@ -17,7 +17,7 @@ export class PlIterator {
 
   private idx = 0;
 
-  constructor(public readonly pl: PostingsList) {
+  constructor(public readonly pl: PostingsList, public readonly originalIdx: number) {
     // eslint-disable-next-line prefer-destructuring
     this.td = pl.termDocs[0];
   }
@@ -45,8 +45,8 @@ export class PostingsList {
     this.termInfo = termInfo || ({} as any);
   }
 
-  getIt(): PlIterator {
-    return new PlIterator(this);
+  getIt(originalIdx: number = 0): PlIterator {
+    return new PlIterator(this, originalIdx);
   }
 
   // Used for "processed" (e.g. phrase, bracket, AND) postings lists
