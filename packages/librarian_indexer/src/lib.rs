@@ -28,11 +28,11 @@ use crossbeam::Receiver;
 #[macro_use]
 extern crate lazy_static;
 
-static NUM_THREADS: u32 = 10;
-static NUM_DOCS: u32 = 2000;
-static EXPECTED_NUM_DOCS_PER_THREAD: usize = (NUM_DOCS / NUM_THREADS * 2) as usize;
 
 pub struct Indexer {
+    num_docs: u32,
+    num_threads: u32,
+    expected_num_docs_per_thread: usize,
     doc_id_counter: u32,
     spimi_counter: u32,
     field_store_block_size: u32,
@@ -56,18 +56,21 @@ pub struct FieldConfig {
 }
 
 impl Indexer {
-    pub fn new(output_folder_path: &Path) -> Indexer {
-        let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(NUM_THREADS as usize);
-        let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(NUM_THREADS as usize);
+    pub fn new(output_folder_path: &Path, num_docs: u32, num_threads: u32) -> Indexer {
+        let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(num_threads as usize);
+        let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(num_threads as usize);
 
         Indexer {
+            num_docs,
+            num_threads,
+            expected_num_docs_per_thread: (num_docs / num_threads * 2) as usize,
             doc_id_counter: 0,
             spimi_counter: 0,
             field_store_block_size: 1,
             field_infos_temp: FxHashMap::default(),
             field_infos: Option::None,
             output_folder_path: output_folder_path.to_path_buf(),
-            workers: Vec::with_capacity(NUM_THREADS as usize),
+            workers: Vec::with_capacity(num_threads as usize),
             doc_infos: Option::None,
             tx_main,
             rx_main,
@@ -118,7 +121,8 @@ impl Indexer {
         
         let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
         
-        for i in 0..NUM_THREADS {
+        let num_docs_per_thread = self.expected_num_docs_per_thread;
+        for i in 0..self.num_threads {
             let tx_worker_clone = self.tx_worker.clone();
             let rx_worker_clone = self.rx_worker.clone();
             let field_info_clone = Arc::clone(&field_infos_arc);
@@ -126,7 +130,7 @@ impl Indexer {
             self.workers.push(Worker {
                 id: i as usize,
                 join_handle: std::thread::spawn(move ||
-                    worker::worker(i as usize, tx_worker_clone, rx_worker_clone, field_info_clone, EXPECTED_NUM_DOCS_PER_THREAD)),
+                    worker::worker(i as usize, tx_worker_clone, rx_worker_clone, field_info_clone, num_docs_per_thread)),
             });
         }
 
@@ -134,7 +138,7 @@ impl Indexer {
     }
 
     fn block_number(&self) -> u32 {
-        ((self.doc_id_counter as f64) / (NUM_DOCS as f64)).ceil() as u32
+        ((self.doc_id_counter as f64) / (self.num_docs as f64)).ceil() as u32
     }
 
     pub fn index_document(&mut self, field_texts: Vec<(&'static str, String)>) {
@@ -146,7 +150,7 @@ impl Indexer {
         self.doc_id_counter += 1;
         self.spimi_counter += 1;
 
-        if self.spimi_counter == NUM_DOCS {
+        if self.spimi_counter == self.num_docs {
             self.write_block();
         }
     }
@@ -161,34 +165,19 @@ impl Indexer {
         self.doc_id_counter += 1;
         self.spimi_counter += 1;
 
-        if self.spimi_counter == NUM_DOCS {
+        if self.spimi_counter == self.num_docs {
             self.write_block();
         }
-    }
-
-    fn write_block(&mut self) {
-        let block_number = self.block_number();
-        spimiwriter::write_block(
-            NUM_THREADS,
-            self.doc_id_counter - self.spimi_counter,
-            &mut self.spimi_counter,
-            block_number,
-            &self.tx_main,
-            &self.rx_main,
-            &self.output_folder_path,
-            &(self.doc_infos).as_ref().unwrap(),
-        );
     }
 
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
-        if self.spimi_counter != 0 && self.spimi_counter != NUM_DOCS {
+        if self.spimi_counter != 0 && self.spimi_counter != self.num_docs {
             println!("Writing last spimi block");
             self.write_block();
         }
-
         
         // Wait on all workers
-        Worker::wait_on_all_workers(&self.tx_main, NUM_THREADS);
+        Worker::wait_on_all_workers(&self.tx_main, self.num_threads);
         println!("Number of docs: {}", self.doc_id_counter);
         if let Some(now) = instant {
             print_time_elapsed(now, "Block indexing done!");

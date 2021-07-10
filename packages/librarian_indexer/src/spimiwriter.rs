@@ -1,3 +1,4 @@
+use crate::Indexer;
 use crate::FieldInfos;
 use crate::worker::miner::WorkerMinerDocInfo;
 use crossbeam::Sender;
@@ -22,47 +23,41 @@ use crate::Receiver;
 use crate::WorkerToMainMessage;
 use crate::worker::miner::TermDoc;
 
-pub fn write_block (
-    num_threads: u32,
-    doc_id_counter: u32,
-    spimi_counter: &mut u32,
-    block_number: u32,
-    tx_main: &Sender<MainToWorkerMessage>,
-    rx_main: &Receiver<WorkerToMainMessage>,
-    output_folder_path: &Path,
-    doc_infos: &Arc<Mutex<DocInfos>>
-) {
-    // SPIMI logic
 
-    // Request all workers for doc miners
-    let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_threads as usize));
-    for _i in 0..num_threads {
-        tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier))).unwrap();
-    }
+impl Indexer {
+    pub fn write_block (&mut self) {
+        // SPIMI logic
     
-    // Receive doc miners
-    let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_threads as usize);
-    for _i in 0..num_threads {
-        let worker_msg = rx_main.recv();
-        match worker_msg {
-            Ok(worker_msg_unwrapped) => {
-                println!("Received worker {} data!", worker_msg_unwrapped.id);
-                worker_miners.push(worker_msg_unwrapped.doc_miner.expect("Received non doc miner message!"));
-            },
-            Err(e) => panic!("Failed to receive idle message from worker! {}", e)
+        // Request all workers for doc miners
+        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(self.num_threads as usize));
+        for _i in 0..self.num_threads {
+            self.tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier))).unwrap();
         }
+        
+        // Receive doc miners
+        let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(self.num_threads as usize);
+        for _i in 0..self.num_threads {
+            let worker_msg = self.rx_main.recv();
+            match worker_msg {
+                Ok(worker_msg_unwrapped) => {
+                    println!("Received worker {} data!", worker_msg_unwrapped.id);
+                    worker_miners.push(worker_msg_unwrapped.doc_miner.expect("Received non doc miner message!"));
+                },
+                Err(e) => panic!("Failed to receive idle message from worker! {}", e)
+            }
+        }
+    
+        self.tx_main.send(MainToWorkerMessage::Combine {
+            worker_miners,
+            output_folder_path: PathBuf::from(&self.output_folder_path),
+            block_number: self.block_number(),
+            num_docs: self.spimi_counter,
+            total_num_docs: self.doc_id_counter - self.spimi_counter,
+            doc_infos: Arc::clone(&self.doc_infos.as_ref().unwrap()),
+        }).expect("Failed to send work message to worker!");
+    
+        self.spimi_counter = 0;
     }
-
-    tx_main.send(MainToWorkerMessage::Combine {
-        worker_miners,
-        output_folder_path: PathBuf::new().join(output_folder_path),
-        block_number,
-        num_docs: *spimi_counter,
-        total_num_docs: doc_id_counter,
-        doc_infos: Arc::clone(doc_infos),
-    }).expect("Failed to send work message to worker!");
-
-    *spimi_counter = 0;
 }
 
 pub fn combine_worker_results_and_write_block(
