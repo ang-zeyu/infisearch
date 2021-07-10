@@ -201,7 +201,14 @@ function initLibrarian(
     h('div', { class: 'librarian-input-dropdown-separator', style: 'display: none;' }),
     container));
 
-  const searcher = new Searcher(librarianOutputUrl, setupDictionaryUrl);
+  const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
+
+  const searcher = new Searcher({
+    url: librarianOutputUrl,
+    setupDictionaryUrl,
+    useQueryTermExpansion: !isMobile,
+    useQueryTermProximity: !isMobile,
+  });
 
   let inputTimer: any = -1;
   input.addEventListener('input', (ev) => {

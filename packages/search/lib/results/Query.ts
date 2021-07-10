@@ -1,9 +1,10 @@
 import Result from './Result';
 import { FieldInfo } from './FieldInfo';
-import { PostingsList, TermPostingsList } from '../PostingsList/PostingsList';
+import { PostingsList } from '../PostingsList/PostingsList';
 import Dictionary from '../Dictionary/Dictionary';
 import DocInfo from './DocInfo';
 import { QueryPart } from '../parser/queryParser';
+import { SearcherOptions } from './SearcherOptions';
 
 const Heap = require('heap');
 
@@ -20,7 +21,7 @@ class Query {
     private docInfo: DocInfo,
     private fieldInfos: FieldInfo[],
     private dictionary: Dictionary,
-    private baseUrl: string,
+    private options: SearcherOptions,
     private fieldStoreBlockSize: number,
   ) {}
 
@@ -33,7 +34,7 @@ class Query {
 
     // console.log(retrievedResults);
     await Promise.all(retrievedResults.map((result) => result.populate(
-      this.baseUrl, this.fieldStoreBlockSize,
+      this.options.url, this.fieldStoreBlockSize,
     )));
 
     return retrievedResults;
@@ -52,7 +53,7 @@ class Query {
       .filter((x) => x.td)
       .sort((a, b) => a.td.docId - b.td.docId);
 
-    const doUseQueryTermProximityRanking = true;
+    const totalProximityRankingTerms = plIterators.filter((plIt) => plIt.pl.includeInProximityRanking).length;
 
     // Document-at-a-time (DAAT) traversal
 
@@ -96,7 +97,7 @@ class Query {
       let scalingFactor = 1;
 
       // Query term proximity ranking
-      if (doUseQueryTermProximityRanking) {
+      if (this.options.useQueryTermProximity) {
         const plIteratorsForProximityRanking = plIterators
           .filter((plIt) => plIt.pl.includeInProximityRanking && plIt.td.docId === pivotDocId);
 
@@ -136,19 +137,20 @@ class Query {
 
           let nextExpected = 0;
           let minWindowLen = 2000000000;
-          const currWindow = [];
+          let currWindow = [];
           let currWindowLen = 2000000000;
-          for (let i = 0; i < mergedPositions.length; i += 1) {
-            if (nextExpected === mergedPositions[i][1]) {
+          for (const mergedPosition of mergedPositions) {
+            if (nextExpected === mergedPosition[1]) {
               // Continue the match
-              [currWindow[nextExpected]] = mergedPositions[i];
+              [currWindow[nextExpected]] = mergedPosition;
               nextExpected += 1;
-            } else if (nextExpected !== 0 && mergedPositions[i][1] === 0) {
+            } else if (nextExpected !== 0 && mergedPosition[1] === 0) {
               // Restart the match from 1
-              [currWindow[0]] = mergedPositions[i];
+              currWindow = [mergedPosition[0]];
               nextExpected = 1;
             } else {
               // Restart the match from 0
+              currWindow = [];
               nextExpected = 0;
             }
 
@@ -160,8 +162,8 @@ class Query {
           }
 
           if (minWindowLen < 10000) {
-            scalingFactor = 1 + 7 / (10 + minWindowLen);
-            // console.log(`Scaling ${pivotDocId} by ${scalingFactor}, minWindowLen ${minWindowLen}`);
+            scalingFactor = 1 + (7 / (10 + minWindowLen))
+                * (plIteratorsForProximityRanking.length / totalProximityRankingTerms);
           }
         }
       }

@@ -6,6 +6,7 @@ import DocInfo from './DocInfo';
 import parseQuery, { QueryPart, QueryPartType, Tokenizer } from '../parser/queryParser';
 import preprocess from '../parser/queryPreprocessor';
 import postprocess from '../parser/queryPostProcessor';
+import { SearcherOptions } from './SearcherOptions';
 
 class Searcher {
   private dictionary: Dictionary;
@@ -24,19 +25,16 @@ class Searcher {
 
   private stopWords: Set<string>;
 
-  constructor(
-    private url: string,
-    private setupDictionaryUrl: string,
-  ) {
+  constructor(private options: SearcherOptions) {
     this.setupPromise = this.setup();
   }
 
   setupDocInfo(numScoredFields: number) {
-    this.docInfo = new DocInfo(this.url, numScoredFields);
+    this.docInfo = new DocInfo(this.options.url, numScoredFields);
   }
 
   async setupFieldInfo(): Promise<{ numWeightedFields: number }> {
-    const json: FieldInfosRaw = await (await fetch(`${this.url}/fieldInfo.json`, {
+    const json: FieldInfosRaw = await (await fetch(`${this.options.url}/fieldInfo.json`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -65,11 +63,11 @@ class Searcher {
     this.setupDocInfo(numWeightedFields);
     await this.docInfo.initialisedPromise;
 
-    this.dictionary = new Dictionary(this.setupDictionaryUrl);
-    await this.dictionary.setup(this.url, this.docInfo.numDocs);
+    this.dictionary = new Dictionary(this.options.setupDictionaryUrl);
+    await this.dictionary.setup(this.options.url, this.docInfo.numDocs);
 
     this.postingsListManager = new PostingsListManager(
-      this.url,
+      this.options.url,
       this.dictionary,
       this.fieldInfos,
       this.docInfo.numDocs,
@@ -124,9 +122,10 @@ class Searcher {
 
     const postingsLists = await this.postingsListManager.retrieveTopLevelPls(preProcessedQueryParts);
     console.log('processed');
-    // console.log(postingsLists);
+    console.log(postingsLists);
 
-    const postProcessedQueryParts = await postprocess(queryParts, postingsLists, this.dictionary, this.url);
+    const postProcessedQueryParts = await postprocess(queryParts, postingsLists, this.dictionary,
+      this.options);
 
     const aggregatedTerms: string[] = [];
     this.getAggregatedTerms(queryParts, new Set<string>(), aggregatedTerms);
@@ -139,7 +138,7 @@ class Searcher {
       this.docInfo,
       this.fieldInfos,
       this.dictionary,
-      this.url,
+      this.options,
       this.fieldStoreBlockSize,
     );
   }

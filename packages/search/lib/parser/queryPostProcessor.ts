@@ -2,16 +2,18 @@
 import { QueryPart, QueryPartType } from './queryParser';
 import { PostingsList, TermPostingsList } from '../PostingsList/PostingsList';
 import Dictionary from '../Dictionary/Dictionary';
+import { SearcherOptions } from '../results/SearcherOptions';
 
 export default async function postprocess(
   queryParts: QueryPart[],
   postingsLists: PostingsList[],
   dictionary: Dictionary,
-  baseUrl: string,
+  options: SearcherOptions,
 ) : Promise<QueryPart[]> {
   const lastQueryPart = queryParts[queryParts.length - 1];
   if (
-    lastQueryPart
+    options.useQueryTermExpansion
+    && lastQueryPart
     && lastQueryPart.type === QueryPartType.TERM
     && lastQueryPart.shouldExpand
     && !lastQueryPart.isCorrected // don't expand spelling corrected terms
@@ -32,7 +34,7 @@ export default async function postprocess(
           pl.includeInProximityRanking = false;
           pl.weight = weight;
 
-          await pl.fetch(baseUrl);
+          await pl.fetch(options.url);
 
           return pl;
         }),
