@@ -137,6 +137,7 @@ pub fn worker (
     /* Immutable shared data structures... */
     field_infos: Arc<FieldInfos>,
     expected_num_docs_per_reset: usize,
+    num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
 ) {
     // Initialize data structures...
     let mut doc_miner = WorkerMiner {
@@ -185,6 +186,10 @@ pub fn worker (
                     total_num_docs,
                 );
                 println!("Worker {} wrote spimi block {}!", id, block_number);
+                
+                {
+                    *num_workers_writing_blocks_clone.lock().unwrap() -= 1;
+                }
             },
             MainToWorkerMessage::Reset(barrier) => {
                 println!("Worker {} resetting!", id);

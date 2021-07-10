@@ -45,6 +45,7 @@ pub struct Indexer {
     rx_main: Receiver<WorkerToMainMessage>,
     tx_worker: Sender<WorkerToMainMessage>,
     rx_worker: Receiver<MainToWorkerMessage>,
+    num_workers_writing_blocks: Arc<Mutex<usize>>,
 }
 
 pub struct FieldConfig {
@@ -76,6 +77,7 @@ impl Indexer {
             rx_main,
             tx_worker,
             rx_worker,
+            num_workers_writing_blocks: Arc::from(Mutex::from(0)),
         }
     }
 
@@ -126,11 +128,12 @@ impl Indexer {
             let tx_worker_clone = self.tx_worker.clone();
             let rx_worker_clone = self.rx_worker.clone();
             let field_info_clone = Arc::clone(&field_infos_arc);
+            let num_workers_writing_blocks_clone = Arc::clone(&self.num_workers_writing_blocks);
 
             self.workers.push(Worker {
                 id: i as usize,
                 join_handle: std::thread::spawn(move ||
-                    worker::worker(i as usize, tx_worker_clone, rx_worker_clone, field_info_clone, num_docs_per_thread)),
+                    worker::worker(i as usize, tx_worker_clone, rx_worker_clone, field_info_clone, num_docs_per_thread, num_workers_writing_blocks_clone)),
             });
         }
 

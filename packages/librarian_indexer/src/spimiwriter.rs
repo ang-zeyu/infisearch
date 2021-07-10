@@ -1,7 +1,6 @@
 use crate::Indexer;
 use crate::FieldInfos;
 use crate::worker::miner::WorkerMinerDocInfo;
-use crossbeam::Sender;
 use crate::MainToWorkerMessage;
 use std::sync::Barrier;
 use std::sync::Arc;
@@ -14,29 +13,30 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
 use std::path::PathBuf;
-use std::path::Path;
 
 use rustc_hash::FxHashMap;
 
 use crate::worker::miner::WorkerMiner;
-use crate::Receiver;
-use crate::WorkerToMainMessage;
 use crate::worker::miner::TermDoc;
 
 
 impl Indexer {
     pub fn write_block (&mut self) {
-        // SPIMI logic
-    
+        // Don't block on threads that are still writing blocks (long running)
+        let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
+        let num_workers_to_collect = self.num_threads as usize - *num_workers_writing_blocks;
+        let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_workers_to_collect);
+
+        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_workers_to_collect));
+        
         // Request all workers for doc miners
-        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(self.num_threads as usize));
-        for _i in 0..self.num_threads {
-            self.tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier))).unwrap();
+        for _i in 0..num_workers_to_collect {
+            self.tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier)))
+                .expect("Failed to send reset message!");
         }
         
         // Receive doc miners
-        let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(self.num_threads as usize);
-        for _i in 0..self.num_threads {
+        for _i in 0..num_workers_to_collect {
             let worker_msg = self.rx_main.recv();
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
@@ -46,7 +46,8 @@ impl Indexer {
                 Err(e) => panic!("Failed to receive idle message from worker! {}", e)
             }
         }
-    
+
+        *num_workers_writing_blocks += 1;
         self.tx_main.send(MainToWorkerMessage::Combine {
             worker_miners,
             output_folder_path: PathBuf::from(&self.output_folder_path),
