@@ -157,7 +157,7 @@ fn main() {
 
     println!("Resolved Paths: {} {}", input_folder_path.to_str().unwrap(), output_folder_path.to_str().unwrap());
 
-    let mut indexer = librarian_indexer::Indexer::new(&output_folder_path, 2000, 10);
+    let mut indexer = librarian_indexer::Indexer::new(&output_folder_path, 1000, 10);
 
     indexer.add_field(librarian_indexer::FieldConfig { name: "title", do_store: false, weight: 0.2, k: 1.2, b: 0.25 });
     indexer.add_field(librarian_indexer::FieldConfig { name: "heading", do_store: false, weight: 0.3, k: 1.2, b: 0.3 });
