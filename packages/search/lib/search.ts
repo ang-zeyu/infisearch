@@ -15,7 +15,7 @@ async function transformResults(
   query: Query,
   isFirst: boolean,
   container: HTMLElement,
-  baseUrl: string,
+  sourceHtmlFilesUrl: string,
 ): Promise<void> {
   const termRegex = new RegExp(
     `(^|\\W)(${query.aggregatedTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
@@ -35,17 +35,18 @@ async function transformResults(
   const resultsEls = await Promise.all(results.map(async (result) => {
     console.log(result);
 
-    const link = result.getSingleField('link');
-    let title = result.getSingleField('title') || link;
+    const rawLink = result.getSingleField('link');
+    const fullLink = `${sourceHtmlFilesUrl}/${rawLink}`;
+    let title = result.getSingleField('title') || rawLink;
     let bodies = transformText(
       result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
       query.aggregatedTerms,
       termRegex,
-      link,
+      rawLink,
     );
 
     if (!bodies.length) {
-      const asText = await (await fetch(`${baseUrl}/${link}`)).text();
+      const asText = await (await fetch(fullLink)).text();
       const doc = domParser.parseFromString(asText, 'text/html');
 
       const titles = doc.getElementsByTagName('title');
@@ -53,11 +54,11 @@ async function transformResults(
         title = titles[0].innerText || title;
       }
 
-      bodies = transformHtml(doc, query.aggregatedTerms, termRegex, link);
+      bodies = transformHtml(doc, query.aggregatedTerms, termRegex, rawLink);
     }
 
     return h('li', { class: 'librarian-dropdown-item' },
-      h('a', { class: 'librarian-link', href: link },
+      h('a', { class: 'librarian-link', href: fullLink },
         h('div', { class: 'librarian-title' }, title),
         ...bodies));
   }));
@@ -87,7 +88,7 @@ async function transformResults(
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, false, container, baseUrl);
+    await transformResults(query, false, container, sourceHtmlFilesUrl);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
@@ -150,7 +151,7 @@ async function update(
   queryString: string,
   container: HTMLElement,
   searcher: Searcher,
-  sourceHtmlFilesUrl?: string,
+  sourceHtmlFilesUrl: string,
 ): Promise<void> {
   try {
     const now = performance.now();
@@ -185,7 +186,7 @@ function show(container: HTMLElement): void {
 function initLibrarian(
   librarianOutputUrl: string,
   setupDictionaryUrl: string,
-  sourceHtmlFilesUrl?: string,
+  sourceHtmlFilesUrl: string,
 ): void {
   const input = document.getElementById('librarian-search');
   if (!input) {
@@ -219,7 +220,22 @@ function initLibrarian(
     }
   });
 
-  input.addEventListener('blur', () => hide(container));
+  const blurListener = () => {
+    setTimeout(() => {
+      let activeEl = document.activeElement;
+      while (activeEl) {
+        activeEl = activeEl.parentElement;
+        if (activeEl === container) {
+          input.focus();
+          return;
+        }
+      }
+      hide(container);
+    }, 100);
+  };
+
+  input.addEventListener('blur', blurListener);
+
   input.addEventListener('focus', () => {
     if (container.childElementCount) {
       show(container);
