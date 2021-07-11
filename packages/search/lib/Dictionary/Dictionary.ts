@@ -20,8 +20,8 @@ export default class Dictionary {
     [term: string]: PromiseResolvePair<{ [term: string]: number }>
   } = Object.create(null);
 
-  constructor(setupDictionaryUrl: string) {
-    this.w = new Worker(setupDictionaryUrl);
+  constructor(workerUrl: string) {
+    this.w = new Worker(workerUrl);
     this.w.onmessage = (ev) => {
       if (ev.data.term) {
         const { term, termInfo } = ev.data;

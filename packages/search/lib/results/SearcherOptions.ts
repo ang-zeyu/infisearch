@@ -1,6 +1,6 @@
 export interface SearcherOptions {
   url: string,
-  setupDictionaryUrl: string,
+  workerUrl: string,
   useQueryTermExpansion: boolean,
   useQueryTermProximity: boolean,
 }

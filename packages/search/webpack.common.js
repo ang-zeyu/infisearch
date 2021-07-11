@@ -1,7 +1,7 @@
 module.exports = {
   entry: {
     main: './lib/search.ts',
-    setupDictionary: './lib/Dictionary/setupDictionary.ts',
+    worker: './lib/worker/worker.ts',
   },
   experiments: {
     asyncWebAssembly: true,

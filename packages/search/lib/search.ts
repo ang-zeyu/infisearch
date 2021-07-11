@@ -185,7 +185,7 @@ function show(container: HTMLElement): void {
 
 function initLibrarian(
   librarianOutputUrl: string,
-  setupDictionaryUrl: string,
+  workerUrl: string,
   sourceHtmlFilesUrl: string,
 ): void {
   const input = document.getElementById('librarian-search');
@@ -205,7 +205,7 @@ function initLibrarian(
 
   const searcher = new Searcher({
     url: librarianOutputUrl,
-    setupDictionaryUrl,
+    workerUrl,
     useQueryTermExpansion: !isMobile,
     useQueryTermProximity: !isMobile,
   });
@@ -252,6 +252,6 @@ function initLibrarian(
 
 initLibrarian(
   'http://192.168.10.132:3000/output',
-  '/setupDictionary.bundle.js',
+  '/worker.bundle.js',
   'http://192.168.10.132:3000/source',
 );

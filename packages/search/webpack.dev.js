@@ -18,11 +18,12 @@ module.exports = merge(common, {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      excludeChunks: ['setupDictionary'],
+      excludeChunks: ['worker'],
       template: './public/template.html',
     }),
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, '../librarian_common'),
+      forceMode: 'production',
     }),
   ],
 });

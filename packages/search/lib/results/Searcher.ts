@@ -63,7 +63,7 @@ class Searcher {
     this.setupDocInfo(numWeightedFields);
     await this.docInfo.initialisedPromise;
 
-    this.dictionary = new Dictionary(this.options.setupDictionaryUrl);
+    this.dictionary = new Dictionary(this.options.workerUrl);
     await this.dictionary.setup(this.options.url, this.docInfo.numDocs);
 
     this.postingsListManager = new PostingsListManager(

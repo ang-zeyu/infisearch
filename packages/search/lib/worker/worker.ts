@@ -1,7 +1,7 @@
 import * as levenshtein from 'fast-levenshtein';
 
 import decodeVarInt from '../utils/varInt';
-import getTriGrams from './triGrams';
+import getTriGrams from '../Dictionary/triGrams';
 import TermInfo from '../results/TermInfo';
 
 const PREFIX_FRONT_CODE = 123; // '{'
