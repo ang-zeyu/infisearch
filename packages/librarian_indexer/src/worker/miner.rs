@@ -117,7 +117,8 @@ impl WorkerMiner {
         
         let mut pos = 0;
 
-        let mut field_lengths = vec![0; self.field_infos.num_scored_fields];
+        let num_scored_fields = self.field_infos.num_scored_fields;
+        let mut field_lengths = vec![0; num_scored_fields];
         let mut field_store_buffered_writer = BufWriter::new(Vec::new());
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
@@ -153,34 +154,27 @@ impl WorkerMiner {
                 let term_docs = self.terms.entry(field_term)
                     .or_insert_with(|| vec![TermDoc {
                         doc_id,
-                        doc_fields: vec![DocField {
-                            field_id,
-                            field_positions: Vec::new()
-                        }]
+                        doc_fields: Vec::with_capacity(num_scored_fields)
                     }]);
 
                 let mut term_doc = term_docs.last_mut().unwrap();
                 if term_doc.doc_id != doc_id {
                     term_docs.push(TermDoc {
                         doc_id,
-                        doc_fields: vec![DocField {
-                            field_id,
-                            field_positions: Vec::new()
-                        }]
+                        doc_fields: Vec::with_capacity(num_scored_fields)
                     });
                     term_doc = term_docs.last_mut().unwrap();
                 }
 
-                let mut doc_field = term_doc.doc_fields.last_mut().unwrap();
-                if doc_field.field_id != field_id {
+                for field_id in term_doc.doc_fields.len() as u8..field_id + 1 {
                     term_doc.doc_fields.push(DocField {
                         field_id,
                         field_positions: Vec::new()
                     });
-                    doc_field = term_doc.doc_fields.last_mut().unwrap();
                 }
 
-                doc_field.field_positions.push(pos);
+                term_doc.doc_fields.get_mut(field_id as usize).unwrap()
+                    .field_positions.push(pos);
             }
 
             pos += 120; // to "split up zones"

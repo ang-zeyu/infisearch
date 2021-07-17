@@ -220,12 +220,20 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: Pa
         for term_doc in term_docs.into_iter().rev() {
             buffered_writer.write_all(&term_doc.doc_id.to_le_bytes()).unwrap();
 
-            let num_fields: u8 = term_doc.doc_fields.len() as u8;
+            let num_fields = term_doc.doc_fields
+                .iter()
+                .filter(|doc_field| doc_field.field_positions.len() > 0)
+                .count() as u8;
             buffered_writer.write_all(&[num_fields]).unwrap();
 
             for doc_field in term_doc.doc_fields {
+                let tf = doc_field.field_positions.len() as u32;
+                if tf == 0 {
+                    continue;
+                }
+
                 buffered_writer.write_all(&[doc_field.field_id]).unwrap();
-                buffered_writer.write_all(&(doc_field.field_positions.len() as u32).to_le_bytes()).unwrap();
+                buffered_writer.write_all(&tf.to_le_bytes()).unwrap();
 
                 for pos in doc_field.field_positions {
                     buffered_writer.write_all(&pos.to_le_bytes()).unwrap();
