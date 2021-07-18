@@ -21,7 +21,10 @@ export function transformText(
   termRegex: RegExp,
   baseUrl: string,
 ): (string | HTMLElement)[] {
-  const lowerCasedSortedQueryTerms = sortedQueryTerms.map((t) => t.toLowerCase());
+  const lowerCasedSortedQueryTermsIndices: { [term: string]: number } = Object.create(null);
+  sortedQueryTerms.forEach((term, idx) => {
+    lowerCasedSortedQueryTermsIndices[term.toLowerCase()] = idx;
+  });
 
   function getBestMatchResult(str: string): MatchResult {
     const lastTermPositions = sortedQueryTerms.map(() => -100000000);
@@ -33,9 +36,7 @@ export function transformText(
     while (match) {
       const matchedText = match[2].toLowerCase();
 
-      const matchedQueryTermIdx = lowerCasedSortedQueryTerms.findIndex(
-        (term) => matchedText.includes(term),
-      );
+      const matchedQueryTermIdx = lowerCasedSortedQueryTermsIndices[matchedText];
       lastTermPositions[matchedQueryTermIdx] = match.index + match[1].length;
 
       const validLastTermPositions = lastTermPositions.filter((p) => p >= 0);
