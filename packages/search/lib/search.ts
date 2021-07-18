@@ -107,9 +107,13 @@ function displayTermInfo(query: Query): HTMLElement[] {
 
   query.queryParts.forEach((queryPart) => {
     if (queryPart.isCorrected) {
-      misspelledTerms.push(queryPart.originalTerms[0]);
-      if (queryPart.terms.length) {
-        correctedTerms.push(queryPart.terms[0]);
+      for (const misspelledTerm of queryPart.originalTerms) {
+        if (!queryPart.terms.includes(misspelledTerm)) {
+          misspelledTerms.push(misspelledTerm);
+        }
+      }
+      for (const term of queryPart.terms) {
+        correctedTerms.push(term);
       }
     } else if (queryPart.isExpanded) {
       returnVal.push(
