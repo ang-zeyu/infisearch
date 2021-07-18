@@ -81,7 +81,7 @@ class PostingsListManager {
             }
 
             // Repeatedly go through postings lists in sequence
-            let currPos = -10;
+            let currPos = 0;
             for (let termIdx = 0; termIdx < queryPart.terms.length;) {
               const currPlField = termTermDocs[termIdx].fields[fieldId];
               if (!currPlField) {
@@ -95,13 +95,20 @@ class PostingsListManager {
                 break;
               }
 
-              termFieldPositionsIdxes[termIdx] += 1;
-              if (pos === currPos + 1) {
+              if (termIdx === 0) {
+                termFieldPositionsIdxes[termIdx] += 1;
+
+                currPos = pos;
+                termIdx += 1;
+              } else if (pos === currPos + 1) {
+                termFieldPositionsIdxes[termIdx] += 1;
+
                 if (termIdx === queryPart.terms.length - 1) {
                   // Complete the match
                   hasMatch = true;
                   resultDocField.fieldPositions.push(pos - pls.length + 1);
-                  currPos = -10;
+
+                  // Reset
                   termIdx = 0;
                 } else {
                   // Match next term
@@ -120,11 +127,7 @@ class PostingsListManager {
                 }
 
                 // Reset
-                currPos = -10;
                 termIdx = 0;
-              } else {
-                currPos = pos;
-                termIdx += 1;
               }
             }
 
