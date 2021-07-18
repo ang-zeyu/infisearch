@@ -64,7 +64,7 @@ async function transformResults(
   }));
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
-  } else {
+  } else if (isFirst) {
     fragment.appendChild(h('div', { class: 'librarian-no-results' }, 'no results found'));
   }
   const sentinel = h('li', {});
