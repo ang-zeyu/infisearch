@@ -39,14 +39,15 @@ async function transformResults(
     const rawLink = result.getSingleField('link');
     const fullLink = `${sourceHtmlFilesUrl}/${rawLink}`;
     let title = result.getSingleField('title') || rawLink;
+    const nonTitleFields = result.getStorageWithFieldNames().filter((v) => v[0] !== 'title');
     let bodies = transformText(
-      result.getStorageWithFieldNames().filter((v) => v[0] !== 'title'),
+      nonTitleFields,
       query.aggregatedTerms,
       termRegex,
       rawLink,
     );
 
-    if (!bodies.length) {
+    if (!nonTitleFields.length) {
       const asText = await (await fetch(fullLink)).text();
       const doc = domParser.parseFromString(asText, 'text/html');
 
