@@ -1,3 +1,4 @@
+use librarian_common::tokenize::Tokenizer;
 use std::borrow::Cow;
 use regex::Regex;
 use std::cmp::Ordering;
@@ -32,7 +33,8 @@ pub struct WorkerMinerDocInfo {
 pub struct WorkerMiner {
     pub field_infos: Arc<FieldInfos>,
     pub terms: FxHashMap<String, Vec<TermDoc>>,
-    pub doc_infos: Vec<WorkerMinerDocInfo>
+    pub doc_infos: Vec<WorkerMinerDocInfo>,
+    pub tokenizer: Arc<dyn Tokenizer + Send + Sync>,
 }
 
 pub struct TermDocComparator {
@@ -144,7 +146,7 @@ impl WorkerMiner {
                 continue;
             }
 
-            let field_terms = tokenize(field_text);
+            let field_terms = self.tokenizer.tokenize(field_text);
 
             *field_lengths.get_mut(field_id as usize).unwrap() += field_terms.len() as u32;
 

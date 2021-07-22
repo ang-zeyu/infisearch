@@ -6,6 +6,7 @@ mod spimiwriter;
 mod utils;
 mod worker;
 
+use librarian_common::tokenize::Tokenizer;
 use crate::docinfo::DocInfos;
 use crate::worker::MainToWorkerMessage;
 use crate::worker::WorkerToMainMessage;
@@ -16,7 +17,6 @@ use rustc_hash::FxHashMap;
 
 use std::cmp::Ordering;
 use std::sync::Mutex;
-use std::fs;
 use std::time::Instant;
 use std::sync::Arc;
 use std::path::Path;
@@ -46,6 +46,7 @@ pub struct Indexer {
     tx_worker: Sender<WorkerToMainMessage>,
     rx_worker: Receiver<MainToWorkerMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
+    tokenizer: Arc<dyn Tokenizer + Send + Sync>,
 }
 
 pub struct FieldConfig {
@@ -57,7 +58,7 @@ pub struct FieldConfig {
 }
 
 impl Indexer {
-    pub fn new(output_folder_path: &Path, num_docs: u32, num_threads: u32) -> Indexer {
+    pub fn new(output_folder_path: &Path, num_docs: u32, num_threads: u32, tokenizer: Arc<dyn Tokenizer + Send + Sync>) -> Indexer {
         let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(num_threads as usize);
         let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(num_threads as usize);
 
@@ -78,6 +79,7 @@ impl Indexer {
             tx_worker,
             rx_worker,
             num_workers_writing_blocks: Arc::from(Mutex::from(0)),
+            tokenizer,
         }
     }
 
@@ -123,17 +125,27 @@ impl Indexer {
         
         let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
         
+        // Construct worker threads
         let num_docs_per_thread = self.expected_num_docs_per_thread;
         for i in 0..self.num_threads {
             let tx_worker_clone = self.tx_worker.clone();
             let rx_worker_clone = self.rx_worker.clone();
+            let tokenize_clone = Arc::clone(&self.tokenizer);
             let field_info_clone = Arc::clone(&field_infos_arc);
             let num_workers_writing_blocks_clone = Arc::clone(&self.num_workers_writing_blocks);
 
             self.workers.push(Worker {
                 id: i as usize,
                 join_handle: std::thread::spawn(move ||
-                    worker::worker(i as usize, tx_worker_clone, rx_worker_clone, field_info_clone, num_docs_per_thread, num_workers_writing_blocks_clone)),
+                    worker::worker(
+                        i as usize,
+                        tx_worker_clone,
+                        rx_worker_clone,
+                        tokenize_clone,
+                        field_info_clone,
+                        num_docs_per_thread,
+                        num_workers_writing_blocks_clone,
+                    )),
             });
         }
 

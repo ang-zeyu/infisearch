@@ -1,3 +1,7 @@
+use librarian_common::tokenize::english::get_stop_words_set;
+use librarian_common::tokenize::english::EnglishTokenizer;
+use std::sync::Arc;
+use librarian_common::tokenize::english::tokenize;
 use std::time::Instant;
 use std::env;
 use std::path::Path;
@@ -157,15 +161,15 @@ fn main() {
 
     println!("Resolved Paths: {} {}", input_folder_path.to_str().unwrap(), output_folder_path.to_str().unwrap());
 
-    let mut indexer = librarian_indexer::Indexer::new(&output_folder_path, 1000, 10);
+    let mut indexer = librarian_indexer::Indexer::new(&output_folder_path, 1000, 10, Arc::new(EnglishTokenizer::default()));
 
-    indexer.add_field(librarian_indexer::FieldConfig { name: "title", do_store: false, weight: 0.2, k: 1.2, b: 0.25 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "title", do_store: true, weight: 0.2, k: 1.2, b: 0.25 });
     indexer.add_field(librarian_indexer::FieldConfig { name: "heading", do_store: false, weight: 0.3, k: 1.2, b: 0.3 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "body", do_store: false, weight: 0.5, k: 1.2, b: 0.75 });
+    indexer.add_field(librarian_indexer::FieldConfig { name: "body", do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
     indexer.add_field(librarian_indexer::FieldConfig { name: "headingLink", do_store: false, weight: 0.0, k: 1.2, b: 0.75 });
     indexer.add_field(librarian_indexer::FieldConfig { name: "link", do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
     
-    indexer.set_field_store_block_size(100);
+    // indexer.set_field_store_block_size(100);
 
     indexer.finalise_fields();
 

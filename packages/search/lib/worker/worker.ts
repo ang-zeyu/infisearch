@@ -3,6 +3,9 @@ import * as levenshtein from 'fast-levenshtein';
 import decodeVarInt from '../utils/varInt';
 import getTriGrams from '../Dictionary/triGrams';
 import TermInfo from '../results/TermInfo';
+/* import { Dictionary } from '../../../librarian_common/pkg'; */
+import WorkerSearcher from './workerSearcher';
+import fetchMultipleArrayBuffers from './workerWasmUtils';
 
 const PREFIX_FRONT_CODE = 123; // '{'
 const SUBSEQUENT_FRONT_CODE = 125; // '}'
@@ -11,6 +14,8 @@ const CORRECTION_ALPHA = 0.85;
 const SPELLING_CORRECTION_BASE_ALPHA = 0.625;
 
 async function getTermInfos(url: string, numDocs: number): Promise<{ [term: string]: TermInfo }> {
+  const now = performance.now();
+
   const dictionaryTablePromise = fetch(`${url}/dictionaryTable`, {
     method: 'GET',
   });
@@ -24,6 +29,8 @@ async function getTermInfos(url: string, numDocs: number): Promise<{ [term: stri
 
   const dictionaryTableBuffer = await (await dictionaryTablePromise).arrayBuffer();
   const dictionaryTableView = new DataView(dictionaryTableBuffer);
+
+  console.log(`Dictionary table and string retrieval (js) took ${performance.now() - now} ms`);
 
   const termInfo: { [term: string]: TermInfo } = Object.create(null);
 
@@ -198,12 +205,46 @@ class WorkerDictionary {
 
 let workerDictionary: WorkerDictionary;
 
-onmessage = async function setupDictionary(ev) {
-  if (ev.data.url) {
+let workerSearcher: WorkerSearcher;
+
+onmessage = async function worker(ev) {
+  if (ev.data.searcherOptions) {
+    const now = performance.now();
+
+    workerSearcher = await WorkerSearcher.setup(ev.data);
+    postMessage({ isSetupDone: true });
+
+    console.log(`Worker setup took ${performance.now() - now} ms`);
+  } else if (ev.data.query) {
+    const {
+      query, n, isFree, isGetNextN,
+    } = ev.data;
+    if (isFree) {
+      workerSearcher.freeQuery(query);
+    } else if (isGetNextN) {
+      const nextDocIds = workerSearcher.getQueryNextN(query, n);
+      postMessage({
+        query,
+        nextDocIds,
+      });
+    } else {
+      const workerQuery = await workerSearcher.processQuery(query);
+      postMessage({
+        query,
+        aggregatedTerms: workerQuery.aggregatedTerms,
+        queryParts: workerQuery.queryParts,
+      });
+    }
+  } else if (ev.data.url) {
+    const now = performance.now();
+
     const { url, numDocs } = ev.data;
+
     const termInfo = await getTermInfos(url, numDocs);
     const triGrams = setupTrigrams(termInfo);
     workerDictionary = new WorkerDictionary(termInfo, triGrams);
+
+    console.log(`Worker dictionary took ${performance.now() - now} ms`);
   } else if (ev.data.term) {
     const { term } = ev.data;
     postMessage({ term, termInfo: workerDictionary.termInfo[term] });
@@ -219,3 +260,6 @@ onmessage = async function setupDictionary(ev) {
     postMessage({ termToExpand, termsExpanded });
   }
 };
+
+// eslint-disable-next-line no-restricted-globals
+(self as any).fetchMultipleArrayBuffers = fetchMultipleArrayBuffers;

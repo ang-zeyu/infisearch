@@ -14,6 +14,7 @@ class Query {
   private retrievePromise: Promise<void> = undefined;
 
   constructor(
+    public readonly query: string,
     public readonly aggregatedTerms: string[],
     public readonly queryParts: QueryPart[],
     private postingsLists: PostingsList[],
@@ -23,6 +24,8 @@ class Query {
     private dictionary: Dictionary,
     private options: SearcherOptions,
     private fieldStoreBlockSize: number,
+    public readonly getNextN?: any,
+    public readonly free?: any,
   ) {}
 
   private async populate(n: number): Promise<Result[]> {
@@ -41,6 +44,10 @@ class Query {
   }
 
   async retrieve(n: number): Promise<Result[]> {
+    if (this.getNextN) {
+      return this.getNextN(n);
+    }
+
     if (this.retrievePromise) {
       await this.retrievePromise;
       return this.populate(n);

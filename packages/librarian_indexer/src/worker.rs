@@ -1,5 +1,6 @@
 pub mod miner;
 
+use librarian_common::tokenize::Tokenizer;
 use scraper::ElementRef;
 use scraper::Selector;
 use scraper::Html;
@@ -135,6 +136,7 @@ pub fn worker (
     sndr: Sender<WorkerToMainMessage>, 
     rcvr: Receiver<MainToWorkerMessage>,
     /* Immutable shared data structures... */
+    tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     field_infos: Arc<FieldInfos>,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
@@ -144,6 +146,7 @@ pub fn worker (
         field_infos: Arc::clone(&field_infos),
         terms: FxHashMap::default(),
         doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
+        tokenizer: Arc::clone(&tokenizer),
     };
 
     loop {
@@ -205,6 +208,7 @@ pub fn worker (
                     field_infos: Arc::clone(&field_infos),
                     terms: FxHashMap::default(),
                     doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
+                    tokenizer: Arc::clone(&tokenizer),
                 };
 
                 barrier.wait();

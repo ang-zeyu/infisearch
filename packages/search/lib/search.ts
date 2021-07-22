@@ -227,7 +227,7 @@ function initLibrarian(
         if (updatePromiseQueue.length === 1) {
           updatePromiseQueue[0]();
         }
-      }, 250);
+      }, 200);
     } else if (query.length < 2) {
       hide(container);
     }
