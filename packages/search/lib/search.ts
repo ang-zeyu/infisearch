@@ -18,7 +18,7 @@ async function transformResults(
   sourceHtmlFilesUrl: string,
 ): Promise<void> {
   const termRegex = new RegExp(
-    `(^|\\W)(${query.aggregatedTerms.map((t) => escapeRegex(t)).join('|')})(?=\\W|$)`,
+    `(^|\\W)(${query.aggregatedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
     'gi',
   );
 
