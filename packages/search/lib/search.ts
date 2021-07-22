@@ -122,9 +122,9 @@ function displayTermInfo(query: Query): HTMLElement[] {
             'Also searched for... ',
             h('small', {}, '(add a space to the last term to finalise the search)'),
             h('br', {}),
-            ...queryPart.terms.map((expandedTerm) => h(
+            ...queryPart.terms.map((expandedTerm, idx) => (idx === 0 ? '' : h(
               'span', { class: 'librarian-suggestion-expanded' }, `${expandedTerm} `,
-            ))),
+            )))),
           h('div', { class: 'librarian-suggestion-buttons' },
             h('button', { class: 'librarian-suggestion-button-dismiss' }),
             h('button', { class: 'librarian-suggestion-button-dismiss-tip' }))),
