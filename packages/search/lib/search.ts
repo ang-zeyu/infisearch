@@ -26,11 +26,12 @@ async function transformResults(
   const termInfoEls = isFirst ? displayTermInfo(query) : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
-  const now = performance.now();
+  let now = performance.now();
 
   const results = await query.retrieve(10);
 
   console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
+  now = performance.now();
 
   const resultsEls = await Promise.all(results.map(async (result) => {
     console.log(result);
