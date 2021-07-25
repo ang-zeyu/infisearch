@@ -5,7 +5,31 @@ use std::path::Path;
 
 use rustc_hash::FxHashMap;
 
-use serde::{Serialize};
+use serde::{Serialize, Deserialize};
+
+#[derive(Deserialize)]
+pub struct FieldsConfig {
+    pub field_store_block_size: u32,
+    pub fields: Vec<FieldConfig>,
+}
+
+impl Default for FieldsConfig {
+    fn default() -> Self {
+        FieldsConfig {
+            field_store_block_size: 1,
+            fields: Vec::new(),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct FieldConfig {
+    pub name: String,
+    pub do_store: bool,
+    pub weight: f32,
+    pub k: f32,
+    pub b: f32,
+}
 
 #[derive(Serialize, Debug, Clone)]
 pub struct FieldInfo {

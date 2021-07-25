@@ -1,12 +1,14 @@
-use librarian_common::tokenize::english::get_stop_words_set;
-use librarian_common::tokenize::english::EnglishTokenizer;
 use std::sync::Arc;
-use librarian_common::tokenize::english::tokenize;
 use std::time::Instant;
 use std::env;
 use std::path::Path;
 use std::path::PathBuf;
 use path_slash::PathExt;
+use serde::Deserialize;
+
+use librarian_common::tokenize::english::EnglishTokenizer;
+use librarian_indexer::fieldinfo::FieldConfig;
+use librarian_indexer::fieldinfo::FieldsConfig;
 
 use csv::Reader;
 use walkdir::WalkDir;
@@ -126,6 +128,37 @@ Patterns
 }
 */
 
+#[derive(Deserialize)]
+struct LibrarianLanguageConfig {
+    lang: String,
+}
+
+#[derive(Deserialize)]
+struct LibrarianConfig {
+    language: LibrarianLanguageConfig,
+    fields_config: FieldsConfig,
+}
+
+impl Default for LibrarianConfig {
+    fn default() -> Self {
+        LibrarianConfig {
+            language: LibrarianLanguageConfig {
+                lang: "en".to_owned()
+            },
+            fields_config: FieldsConfig {
+                field_store_block_size: 1,
+                fields: vec![
+                    FieldConfig { name: "title".to_owned(), do_store: true, weight: 0.2, k: 1.2, b: 0.25 },
+                    FieldConfig { name: "heading".to_owned(), do_store: false, weight: 0.3, k: 1.2, b: 0.3 },
+                    FieldConfig { name: "body".to_owned(), do_store: true, weight: 0.5, k: 1.2, b: 0.75 },
+                    FieldConfig { name: "headingLink".to_owned(), do_store: false, weight: 0.0, k: 1.2, b: 0.75 },
+                    FieldConfig { name: "link".to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
+                ]
+            }
+        }
+    }
+}
+
 fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path) -> (PathBuf, PathBuf) {
     let cwd_result = env::current_dir();
 
@@ -161,17 +194,21 @@ fn main() {
 
     println!("Resolved Paths: {} {}", input_folder_path.to_str().unwrap(), output_folder_path.to_str().unwrap());
 
-    let mut indexer = librarian_indexer::Indexer::new(&output_folder_path, 1000, 10, Arc::new(EnglishTokenizer::default()));
+    let config_file_path = input_folder_path.join(PathBuf::from("_librarian_config.json"));
+    let mut config: LibrarianConfig = if config_file_path.exists() && config_file_path.is_file() {
+        let config_raw = std::fs::read_to_string(config_file_path).unwrap();
+        serde_json::from_str(&config_raw).expect("_librarian_config.json does not match schema!")
+    } else {
+        LibrarianConfig::default()
+    };
 
-    indexer.add_field(librarian_indexer::FieldConfig { name: "title", do_store: true, weight: 0.2, k: 1.2, b: 0.25 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "heading", do_store: false, weight: 0.3, k: 1.2, b: 0.3 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "body", do_store: true, weight: 0.5, k: 1.2, b: 0.75 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "headingLink", do_store: false, weight: 0.0, k: 1.2, b: 0.75 });
-    indexer.add_field(librarian_indexer::FieldConfig { name: "link", do_store: true, weight: 0.0, k: 1.2, b: 0.75 });
-    
-    // indexer.set_field_store_block_size(100);
-
-    indexer.finalise_fields();
+    let mut indexer = librarian_indexer::Indexer::new(
+        &output_folder_path,
+        1000,
+        10,
+        Arc::new(EnglishTokenizer::default()),
+        std::mem::take(&mut config.fields_config)
+    );
 
     let now = Instant::now();
 

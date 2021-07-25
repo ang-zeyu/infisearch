@@ -1,6 +1,6 @@
 
 mod docinfo;
-mod fieldinfo;
+pub mod fieldinfo;
 mod spimireader;
 mod spimiwriter;
 mod utils;
@@ -8,6 +8,8 @@ mod worker;
 
 use librarian_common::tokenize::Tokenizer;
 use crate::docinfo::DocInfos;
+use crate::fieldinfo::FieldConfig;
+use crate::fieldinfo::FieldsConfig;
 use crate::worker::MainToWorkerMessage;
 use crate::worker::WorkerToMainMessage;
 use crate::worker::Worker;
@@ -36,7 +38,6 @@ pub struct Indexer {
     doc_id_counter: u32,
     spimi_counter: u32,
     field_store_block_size: u32,
-    field_infos_temp: FxHashMap<String, FieldInfo>,
     field_infos: Option<Arc<FieldInfos>>,
     output_folder_path: PathBuf,
     workers: Vec<Worker>,
@@ -49,27 +50,25 @@ pub struct Indexer {
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
 }
 
-pub struct FieldConfig {
-    pub name: &'static str,
-    pub do_store: bool,
-    pub weight: f32,
-    pub k: f32,
-    pub b: f32,
-}
 
 impl Indexer {
-    pub fn new(output_folder_path: &Path, num_docs: u32, num_threads: u32, tokenizer: Arc<dyn Tokenizer + Send + Sync>) -> Indexer {
+    pub fn new(
+        output_folder_path: &Path,
+        num_docs: u32,
+        num_threads: u32,
+        tokenizer: Arc<dyn Tokenizer + Send + Sync>,
+        fields_config: FieldsConfig,
+    ) -> Indexer {
         let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(num_threads as usize);
         let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(num_threads as usize);
 
-        Indexer {
+        let mut indexer = Indexer {
             num_docs,
             num_threads,
             expected_num_docs_per_thread: (num_docs / num_threads * 2) as usize,
             doc_id_counter: 0,
             spimi_counter: 0,
-            field_store_block_size: 1,
-            field_infos_temp: FxHashMap::default(),
+            field_store_block_size: fields_config.field_store_block_size,
             field_infos: Option::None,
             output_folder_path: output_folder_path.to_path_buf(),
             workers: Vec::with_capacity(num_threads as usize),
@@ -80,11 +79,19 @@ impl Indexer {
             rx_worker,
             num_workers_writing_blocks: Arc::from(Mutex::from(0)),
             tokenizer,
+        };
+
+        let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
+        for field_config in fields_config.fields {
+            indexer.add_field(&mut field_infos_by_name, field_config);
         }
+        indexer.finalise_fields(field_infos_by_name);
+
+        indexer
     }
 
-    pub fn add_field(&mut self, field_config: FieldConfig) {
-        self.field_infos_temp.insert(
+    fn add_field(&mut self, field_infos_by_name: &mut FxHashMap<String, FieldInfo>, field_config: FieldConfig) {
+        field_infos_by_name.insert(
             field_config.name.to_owned(),
             FieldInfo {
                 id: 0,
@@ -96,12 +103,8 @@ impl Indexer {
         );
     }
 
-    pub fn set_field_store_block_size(&mut self, size: u32) {
-        self.field_store_block_size = size;
-    }
-
-    pub fn finalise_fields(&mut self) {
-        let mut field_entries: Vec<(&String, &mut FieldInfo)> = self.field_infos_temp.iter_mut().collect();
+    fn finalise_fields(&mut self, mut field_infos_by_name: FxHashMap<String, FieldInfo>) {
+        let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
         field_entries.sort_by(|a, b| {
             if a.1.weight < b.1.weight {
                 Ordering::Greater
@@ -116,7 +119,7 @@ impl Indexer {
             tup.1.id = field_id as u8;
         }
 
-        let field_infos = FieldInfos::init(std::mem::take(&mut self.field_infos_temp), self.field_store_block_size, &self.output_folder_path);
+        let field_infos = FieldInfos::init(field_infos_by_name, self.field_store_block_size, &self.output_folder_path);
         field_infos.dump(&self.output_folder_path);
         
         self.doc_infos = Option::from(
