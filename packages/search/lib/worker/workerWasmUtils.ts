@@ -1,4 +1,4 @@
-import * as wasm from '../../../librarian_common/pkg/index_bg.wasm';
+import * as wasm from '../../../librarian_search/pkg/index_bg.wasm';
 
 export default async function fetchMultipleArrayBuffers(urlsRaw: string, ptr: number) {
   const urls = JSON.parse(urlsRaw);

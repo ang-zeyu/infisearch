@@ -9,7 +9,6 @@ use crate::tokenize::english::EnglishTokenizer;
 use crate::tokenize::Tokenizer;
 use crate::Searcher::query_parser::QueryPart;
 use crate::docinfo::DocInfo;
-use crate::tokenize::english::get_stop_words_set;
 use std::collections::HashSet;
 
 use query_parser::QueryPartType;
@@ -113,6 +112,8 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query
   let mut query_parts = parse_query(query, &searcher_val.tokenizer)?;
   
   web_sys::console::log_1(&format!("parse query took {}", performance.now() - start).into());
+
+  web_sys::console::log_1(&JsValue::from_serde(&query_parts).unwrap());
 
   let is_free_text_query = query_parts.iter().all(|query_part| if let QueryPartType::TERM = query_part.typee { true } else { false });
 

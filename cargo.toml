@@ -3,4 +3,5 @@
 members = [
     "packages/librarian_indexer",
     "packages/librarian_common",
+    "packages/librarian_search",
 ]

@@ -9,12 +9,14 @@ use strsim::levenshtein;
 use trigrams::get_tri_grams;
 
 use byteorder::{ByteOrder, LittleEndian};
-use crate::utils::varint::decode_var_int;
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, Response};
+use web_sys::Response;
+
+use crate::utils::varint::decode_var_int;
+use librarian_common::tokenize::TermInfo;
 
 static PREFIX_FRONT_CODE: u8 = 123;     // {
 static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
@@ -22,13 +24,6 @@ static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
 static CORRECTION_ALPHA: f32 = 0.85;
 static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;
 
-pub struct TermInfo {
-    pub doc_freq: u32,
-    pub idf: f64,
-    pub max_term_score: f32,
-    pub postings_file_name: u32,
-    pub postings_file_offset: u16,
-}
 
 pub struct Dictionary {
     pub term_infos: FxHashMap<Rc<String>, Rc<TermInfo>>,

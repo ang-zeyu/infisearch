@@ -25,7 +25,7 @@ module.exports = merge(common, {
         },
       }),
       new WasmPackPlugin({
-        crateDirectory: path.resolve(__dirname, '../librarian_common'),
+        crateDirectory: path.resolve(__dirname, '../librarian_search'),
       }),
     ],
   },

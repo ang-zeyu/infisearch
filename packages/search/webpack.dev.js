@@ -22,7 +22,7 @@ module.exports = merge(common, {
       template: './public/template.html',
     }),
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, '../librarian_common'),
+      crateDirectory: path.resolve(__dirname, '../librarian_search'),
       forceMode: 'production',
     }),
   ],

@@ -1,13 +1,14 @@
 mod asciiFoldingFilter;
 
+use crate::tokenize::TermInfo;
+use std::rc::Rc;
 use std::collections::HashSet;
 
 use regex::Regex;
 use rustc_hash::FxHashMap;
 
-use crate::tokenize::Dictionary;
 use crate::tokenize::Tokenizer;
-use crate::tokenize::WasmTokenizeResult;
+use crate::tokenize::SearchTokenizeResult;
 
 lazy_static! {
   static ref PUNCTUATION_FILTER: Regex = Regex::new(r#"[\[\](){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.]"#).unwrap();
@@ -33,9 +34,9 @@ pub fn tokenize (mut text: String) -> Vec<String> {
     .collect()
 }
 
-pub fn wasm_tokenize(text: String) -> WasmTokenizeResult {
+pub fn wasm_tokenize(text: String) -> SearchTokenizeResult {
   let should_expand = !text.ends_with(" ");
-  return WasmTokenizeResult {
+  return SearchTokenizeResult {
     terms: tokenize(text),
     should_expand,
   }
@@ -81,7 +82,7 @@ impl Tokenizer for EnglishTokenizer {
     return tokenize(text);
   }
 
-  fn wasm_tokenize(&self, text: String) -> WasmTokenizeResult {
+  fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult {
     return wasm_tokenize(text);
   }
 
@@ -93,11 +94,11 @@ impl Tokenizer for EnglishTokenizer {
     return true;
   }
 
-  fn get_best_corrected_term(&self, _term: &String, _dictionary: &Dictionary) -> Option<String> {
+  fn get_best_corrected_term(&self, _term: &String, _dictionary: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> Option<String> {
     return None;
   }
 
-  fn get_expanded_terms(&self, _term: &String, _dictionary: &Dictionary) -> FxHashMap<String, f32> {
+  fn get_expanded_terms(&self, _term: &String, _dictionary: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
     return FxHashMap::default();
   }
 }

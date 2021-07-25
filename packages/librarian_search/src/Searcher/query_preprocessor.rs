@@ -32,7 +32,7 @@ impl Searcher {
                         let best_corrected_term = if self.tokenizer.use_default_trigram() {
                             self.dictionary.get_best_corrected_term(term)
                         } else {
-                            self.tokenizer.get_best_corrected_term(term, &self.dictionary)
+                            self.tokenizer.get_best_corrected_term(term, &self.dictionary.term_infos)
                         };
                         
                         if let Some(corrected_term) = best_corrected_term {

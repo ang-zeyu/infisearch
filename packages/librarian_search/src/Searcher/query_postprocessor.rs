@@ -30,7 +30,7 @@ impl Searcher {
                 } else {
                     self.tokenizer.get_expanded_terms(
                         last_query_part.terms.as_ref().unwrap().get(0).unwrap(),
-                        &self.dictionary
+                        &self.dictionary.term_infos
                     )
                 };
 

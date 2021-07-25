@@ -6,7 +6,7 @@ use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::JsValue;
 use web_sys::Response;
 
-use crate::dictionary::TermInfo;
+use librarian_common::tokenize::TermInfo;
 use crate::utils::varint::decode_var_int;
 
 pub struct DocField {

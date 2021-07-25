@@ -439,17 +439,10 @@ checksum = "12b8adadd720df158f4d70dfe7ccc6adb0472d7c55ca83445f6a5ab3e36f8fb6"
 name = "librarian_common"
 version = "0.1.0"
 dependencies = [
- "byteorder",
- "futures",
- "js-sys",
  "lazy_static",
  "regex",
  "rustc-hash",
  "serde",
- "strsim",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]
@@ -470,6 +463,23 @@ dependencies = [
  "serde",
  "serde_json",
  "walkdir",
+]
+
+[[package]]
+name = "librarian_search"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "futures",
+ "js-sys",
+ "librarian_common",
+ "regex",
+ "rustc-hash",
+ "serde",
+ "strsim",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

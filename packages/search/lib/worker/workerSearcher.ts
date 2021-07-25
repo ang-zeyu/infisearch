@@ -1,4 +1,4 @@
-import { Query, Searcher } from '../../../librarian_common/pkg';
+import { Query, Searcher } from '../../../librarian_search/pkg';
 import { FieldInfo } from '../results/FieldInfo';
 import { SearcherOptions } from '../results/SearcherOptions';
 import WorkerQuery from './workerQuery';
@@ -62,7 +62,7 @@ export default class WorkerSearcher {
   }
 
   private async setupWasm() {
-    this.wasmModule = await import('../../../librarian_common/pkg');
+    this.wasmModule = await import('../../../librarian_search/pkg');
     this.wasmSearcher = await this.wasmModule.get_new_searcher(
       this.baseUrl,
       this.numScoredFields,

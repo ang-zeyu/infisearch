@@ -1,4 +1,4 @@
-import { Query } from '../../../librarian_common/pkg';
+import { Query } from '../../../librarian_search/pkg';
 import { QueryPart } from '../parser/queryParser';
 
 export default class WorkerQuery {

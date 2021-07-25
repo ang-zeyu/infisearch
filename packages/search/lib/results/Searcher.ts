@@ -111,7 +111,7 @@ class Searcher {
   }
 
   async setup() {
-    let wasmModule: any = import('../../../librarian_common/pkg/index.js');
+    let wasmModule: any = import('../../../librarian_search/pkg/index.js');
 
     await this.setupFieldInfo();
 
