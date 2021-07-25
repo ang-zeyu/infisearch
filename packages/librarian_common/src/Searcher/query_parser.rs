@@ -230,16 +230,21 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             } else if query_parts.len() > 0 && !is_expecting_and {
               // e.g. (lorem) AND ipsum
               let last_curr_query_part = query_parts.pop().unwrap();
-              query_parts.push(QueryPart {
-                isCorrected: false,
-                isStopWordRemoved: false,
-                shouldExpand: false,
-                isExpanded: false,
-                originalTerms: Option::None,
-                terms: Option::None,
-                typee: QueryPartType::AND,
-                children: Option::from(vec![last_curr_query_part]),
-              });
+              if let QueryPartType::AND = last_curr_query_part.typee {
+                // Reuse last AND group
+                query_parts.push(last_curr_query_part);
+              } else {
+                query_parts.push(QueryPart {
+                  isCorrected: false,
+                  isStopWordRemoved: false,
+                  shouldExpand: false,
+                  isExpanded: false,
+                  originalTerms: Option::None,
+                  terms: Option::None,
+                  typee: QueryPartType::AND,
+                  children: Option::from(vec![last_curr_query_part]),
+                });
+              }
             } else {
               return Err("Query parsing error: no token found before AND operator");
             }
