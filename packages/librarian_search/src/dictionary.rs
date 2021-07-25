@@ -18,9 +18,6 @@ use web_sys::Response;
 use crate::utils::varint::decode_var_int;
 use librarian_common::tokenize::TermInfo;
 
-static PREFIX_FRONT_CODE: u8 = 123;     // {
-static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
-
 static CORRECTION_ALPHA: f32 = 0.85;
 static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;
 
@@ -73,7 +70,7 @@ pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, 
   let mut postings_file_name = 0;
   let mut dict_string_pos = 0;
   let mut dict_table_pos = 0;
-  let mut front_code_prefix: Option<String> = Option::None;
+  let mut prev_term: Rc<String> = Rc::new("".to_owned());
 
   let table_vec_len = table_vec.len();
   while dict_table_pos < table_vec_len {
@@ -93,73 +90,27 @@ pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, 
     let max_term_score = LittleEndian::read_f32(&table_vec[dict_table_pos..]);
     dict_table_pos += 4;
 
-    let term_len = string_vec[dict_string_pos] as usize;
+    let prefix_len = string_vec[dict_string_pos] as usize;
     dict_string_pos += 1;
 
-    if let Some(prefix) = front_code_prefix.as_ref() {
-      if string_vec[dict_string_pos] == SUBSEQUENT_FRONT_CODE {
-        dict_string_pos += 1;
+    let remaining_len = string_vec[dict_string_pos] as usize;
+    dict_string_pos += 1;
 
-        let term = prefix.to_owned() + unsafe { std::str::from_utf8_unchecked(&string_vec[dict_string_pos..(dict_string_pos + term_len)]) };
-        dict_string_pos += term_len;
+    let term = Rc::new(
+      prev_term[..prefix_len].to_owned() +
+        unsafe { std::str::from_utf8_unchecked(&string_vec[dict_string_pos..dict_string_pos + remaining_len]) }
+    );
+    dict_string_pos += remaining_len;
 
-        /* if term.find('{').is_some() || term.find('}').is_some() {
-          return Err(JsValue::from(format!("Uh ohhz {} {}",
-            if let Some(prefix) = front_code_prefix { prefix } else { "".to_owned() },
-            term
-          )));
-        } */
-
-        term_infos.insert(Rc::new(term), Rc::new(TermInfo {
-          doc_freq,
-          idf: (1.0 + (num_docs as f64 - doc_freq as f64 + 0.5) / (doc_freq as f64 + 0.5)).ln(),
-          max_term_score,
-          postings_file_name,
-          postings_file_offset,
-        }));
-
-        continue;
-      }
-      
-      front_code_prefix = Option::None;
-    }
-
-    // from_utf8_unchecked must be used here as the term may contain the PREFIX_FRONT_CODE
-    let mut term = unsafe { std::str::from_utf8_unchecked(&string_vec[dict_string_pos..(dict_string_pos + term_len)]).to_owned() };
-    dict_string_pos += term_len;
-
-    if let Some(prefix_front_code_idx) = term.find('{') {
-      front_code_prefix = Option::from(term[0..prefix_front_code_idx].to_owned());
-
-      term.replace_range(prefix_front_code_idx..prefix_front_code_idx + 1, ""); // remove the '{'
-      term.push_str(unsafe { std::str::from_utf8_unchecked(&[string_vec[dict_string_pos]]) });
-
-      // Redecode the full string, then remove the '{'
-      /* term = unsafe {
-        std::str::from_utf8_unchecked(&string_vec[(dict_string_pos - term_len)..(dict_string_pos + 1)])
-          .replace('{', "")
-      }; */
-      
-      dict_string_pos += 1;
-    } else if dict_string_pos < string_vec.len() && string_vec[dict_string_pos] == PREFIX_FRONT_CODE {
-      front_code_prefix = Option::from(term.clone());
-      dict_string_pos += 1;
-    }
-
-    /* if term.find('{').is_some() || term.find('}').is_some() {
-      return Err(JsValue::from(format!("Uh ohhz {} {}",
-        if let Some(prefix) = front_code_prefix { prefix } else { "".to_owned() },
-        term
-      )));
-    } */
-
-    term_infos.insert(Rc::new(term), Rc::new(TermInfo {
+    term_infos.insert(Rc::clone(&term), Rc::new(TermInfo {
       doc_freq,
       idf: (1.0 + (num_docs as f64 - doc_freq as f64 + 0.5) / (doc_freq as f64 + 0.5)).ln(),
       max_term_score,
       postings_file_name,
       postings_file_offset,
     }));
+
+    prev_term = term;
   }
 
   web_sys::console::log_1(&format!("Dictionary initial setup took {}", performance.now() - start).into());

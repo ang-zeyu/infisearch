@@ -22,9 +22,6 @@ static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 5000;
 
 static POSTINGS_FILE_LIMIT: u32 = 65535;
 
-static PREFIX_FRONT_CODE: u8 = 123;     // {
-static SUBSEQUENT_FRONT_CODE: u8 = 125; // }
-
 #[derive(Default)]
 pub struct TermDocsForMerge {
     pub term: String,
@@ -274,29 +271,8 @@ pub fn merge_blocks(
     // Preallocate some things
     let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);
 
-    // Dictionary front coding trackers
-    let mut prev_common_prefix = "".to_owned();
-    let mut pending_terms: Vec<String> = Vec::new();
-    let write_pending_terms = |dict_string_writer: &mut BufWriter<File>, prev_common_prefix: &mut String, pending_terms: &mut Vec<String>| {
-        let curr_term = pending_terms.remove(0);
-
-        // Write the first term's full length
-        dict_string_writer.write_all(&[curr_term.len() as u8]).unwrap();
-        // Write the prefix (if there are frontcoded terms) **or** just the term (pending_terms.len() == 1)
-        dict_string_writer.write_all(prev_common_prefix.as_bytes()).unwrap();
-                
-        if !pending_terms.is_empty() {
-            // Write frontcoded terms...
-            dict_string_writer.write_all(&[PREFIX_FRONT_CODE]).unwrap();
-            dict_string_writer.write_all(&curr_term.as_bytes()[prev_common_prefix.len()..]).unwrap(); // first term suffix
-
-            for term in pending_terms {
-                dict_string_writer.write_all(&[(term.len() -  prev_common_prefix.len()) as u8]).unwrap();
-                dict_string_writer.write_all(&[SUBSEQUENT_FRONT_CODE]).unwrap();
-                dict_string_writer.write_all(&term.as_bytes()[prev_common_prefix.len()..]).unwrap();
-            }
-        }
-    };
+    // Dictionary front coding tracker
+    let mut prev_term = "".to_owned();
 
     // Dictionary table / Postings list trackers
     let mut curr_pl = 0;
@@ -377,36 +353,17 @@ pub fn merge_blocks(
         // Dictionary string writing
         // With simultaneous front coding
         // For frontcoding, candidates are temporarily stored
-        if pending_terms.is_empty() {
-            prev_common_prefix = curr_term.clone();
-            pending_terms.push(curr_term);
-        } else {
-            // Compute the cost if we add this term in, it should be <= 0 to also frontcode this term
-            // TODO make this optimal?
-            let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(&prev_common_prefix, &curr_term);
-            // println!("{} {} ", prev_common_prefix.len(), unicode_prefix_byte_len);
 
-            // How much bytes do we add / lose by frontcoding this term?
-            let frontcode_cost: i32 = if pending_terms.len() == 1 {
-                    2   // 2 symbols - PREFIX_FRONT_CODE and SUBSEQUENT_FRONT_CODE
-                    + 2 // the bar for the first match should be higher
-                    - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
-            } else {
-                (pending_terms.len() * (prev_common_prefix.len() - unicode_prefix_byte_len)) as i32 // num already frontcoded terms * prefix length reduction
-                    + 1 // 1 symbol
-                    - unicode_prefix_byte_len as i32 /* expands to + (prev_term.len() - unicode_prefix_byte_len) - prev_term.len() */
-            };
-    
-            if frontcode_cost < 0 {
-                prev_common_prefix = prev_common_prefix[0..unicode_prefix_byte_len].to_owned();
-                pending_terms.push(curr_term);
-            } else {
-                write_pending_terms(&mut dict_string_writer, &mut prev_common_prefix, &mut pending_terms);
+        let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(&prev_term, &curr_term);
 
-                prev_common_prefix = curr_term.clone();
-                pending_terms = vec![curr_term];
-            }
-        }
+        dict_string_writer.write_all(&[
+            unicode_prefix_byte_len as u8,                      // Prefix length
+            (curr_term.len() - unicode_prefix_byte_len) as u8,  // Remaining length
+        ]).unwrap();
+        dict_string_writer.write_all(&curr_term.as_bytes()[unicode_prefix_byte_len..]).unwrap();
+
+        prev_term = curr_term;
+
         // ---------------------------------------------
 
         // ---------------------------------------------
@@ -431,11 +388,6 @@ pub fn merge_blocks(
         }
         // ---------------------------------------------
     }
-
-    println!("Commiting pending terms");
-
-    // Commit frontcoded terms
-    write_pending_terms(&mut dict_string_writer, &mut prev_common_prefix, &mut pending_terms);
 
     dict_table_writer.flush().unwrap();
     pl_writer.flush().unwrap();
