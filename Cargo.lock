@@ -473,7 +473,6 @@ dependencies = [
  "futures",
  "js-sys",
  "librarian_common",
- "regex",
  "rustc-hash",
  "serde",
  "strsim",
