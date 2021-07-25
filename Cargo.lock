@@ -462,6 +462,7 @@ dependencies = [
  "dashmap",
  "lazy_static",
  "librarian_common",
+ "num_cpus",
  "path-slash",
  "regex",
  "rustc-hash",
