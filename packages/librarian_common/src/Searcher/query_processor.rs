@@ -304,12 +304,14 @@ impl Searcher {
             let min_pl_iterator = doc_heap.pop().unwrap();
             let min_pl_iterator_doc_id = min_pl_iterator.0.td.unwrap().doc_id;
 
-            if min_pl_iterator_doc_id != curr_doc_id && curr_pl_iterators.len() > 0 {
-                merge_curr_termdocs(&curr_pl_iterators);
-
-                for mut curr_pl_it in curr_pl_iterators.drain(..) {
-                    if curr_pl_it.0.next().is_some() {
-                        doc_heap.push(curr_pl_it);
+            if min_pl_iterator_doc_id != curr_doc_id {
+                if curr_pl_iterators.len() > 0 {
+                    merge_curr_termdocs(&curr_pl_iterators);
+    
+                    for mut curr_pl_it in curr_pl_iterators.drain(..) {
+                        if curr_pl_it.0.next().is_some() {
+                            doc_heap.push(curr_pl_it);
+                        }
                     }
                 }
 
