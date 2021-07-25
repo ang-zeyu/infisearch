@@ -214,12 +214,11 @@ impl Indexer {
 
         let field_infos = FieldInfos::init(field_infos_by_name, self.field_store_block_size, &self.output_folder_path);
         field_infos.dump(&self.output_folder_path);
+        self.field_infos = Option::from(Arc::new(field_infos));
         
         self.doc_infos = Option::from(
-            Arc::from(Mutex::from(DocInfos::init_doc_infos(field_infos.num_scored_fields)))
+            Arc::from(Mutex::from(DocInfos::init_doc_infos(self.field_infos.as_ref().unwrap().num_scored_fields)))
         );
-        
-        let field_infos_arc: Arc<FieldInfos> = Arc::new(field_infos);
         
         // Construct worker threads
         let num_docs_per_thread = self.expected_num_docs_per_thread;
@@ -227,7 +226,7 @@ impl Indexer {
             let tx_worker_clone = self.tx_worker.clone();
             let rx_worker_clone = self.rx_worker.clone();
             let tokenize_clone = Arc::clone(&self.tokenizer);
-            let field_info_clone = Arc::clone(&field_infos_arc);
+            let field_info_clone = Arc::clone(self.field_infos.as_ref().unwrap());
             let num_workers_writing_blocks_clone = Arc::clone(&self.num_workers_writing_blocks);
 
             self.workers.push(Worker {
@@ -244,8 +243,6 @@ impl Indexer {
                     )),
             });
         }
-
-        self.field_infos = Option::from(field_infos_arc);
     }
 
     fn block_number(&self) -> u32 {
