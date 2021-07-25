@@ -6,6 +6,7 @@ use wasm_bindgen::JsValue;
 use rustc_hash::FxHashMap;
 use futures::join;
 use strsim::levenshtein;
+use smartstring::alias::String as SmartString;
 use trigrams::get_tri_grams;
 
 use byteorder::{ByteOrder, LittleEndian};
@@ -24,7 +25,7 @@ static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;
 
 pub struct Dictionary {
     pub term_infos: FxHashMap<Rc<String>, Rc<TermInfo>>,
-    trigrams: FxHashMap<String, Vec<Rc<String>>>,
+    trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
 }
 
 #[wasm_bindgen]
@@ -130,8 +131,8 @@ impl Dictionary {
     self.term_infos.get(term)
   }
 
-  fn setup_trigrams(term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<String, Vec<Rc<String>>> {
-    let mut trigrams: FxHashMap<String, Vec<Rc<String>>> = FxHashMap::default();
+  fn setup_trigrams(term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<SmartString, Vec<Rc<String>>> {
+    let mut trigrams: FxHashMap<SmartString, Vec<Rc<String>>> = FxHashMap::default();
 
     for term in term_infos.keys() {
       for term_trigram in get_tri_grams(term) {
@@ -143,7 +144,7 @@ impl Dictionary {
           None => {
             let mut term_vec: Vec<Rc<String>> = Vec::with_capacity(20);
             term_vec.push(Rc::clone(term));
-            trigrams.insert(term_trigram.to_owned(), term_vec);
+            trigrams.insert(SmartString::from(term_trigram), term_vec);
           }
         }
       }
