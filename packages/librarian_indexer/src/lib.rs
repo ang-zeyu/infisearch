@@ -307,7 +307,10 @@ impl Indexer {
 
         // Merge spimi blocks
         // Go through all blocks at once
-        spimireader::merge_blocks(self.doc_id_counter, self.block_number(), self.doc_infos.unwrap(), &self.tx_main, &self.output_folder_path);
+        let num_blocks = self.block_number();
+        spimireader::merge_blocks(self.doc_id_counter, num_blocks, self.doc_infos.unwrap(), &self.tx_main, &self.output_folder_path);
+
+        spimireader::cleanup_blocks(num_blocks, &self.output_folder_path);
 
         if let Some(now) = instant {
             print_time_elapsed(now, "Blocks merged!");

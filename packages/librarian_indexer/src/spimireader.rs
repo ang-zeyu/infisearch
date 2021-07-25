@@ -393,3 +393,16 @@ pub fn merge_blocks(
     pl_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
 }
+
+pub fn cleanup_blocks(
+    num_blocks: u32,
+    output_folder_path: &Path
+) {
+    // Remove temporary spimi files
+    for idx in 1..(num_blocks + 1) {
+        let block_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", idx));
+        let block_dict_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", idx));
+        std::fs::remove_file(&block_file_path).expect("Failed to cleanup temporary bsbi_block file!");
+        std::fs::remove_file(&block_dict_file_path).expect("Failed to cleanup temporary bsbi_block_dict file!");
+    }
+}
