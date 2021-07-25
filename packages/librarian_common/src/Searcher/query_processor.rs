@@ -214,6 +214,46 @@ impl Searcher {
         Rc::new(result_pl)
     }
 
+    fn populate_not_postings_list(
+        &self,
+        query_part: &mut QueryPart,
+        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
+    ) -> Rc<PostingsList> {
+        let not_child_postings_list = self.populate_postings_lists(
+            query_part.children.as_mut().unwrap(),
+            term_postings_lists,
+        ).remove(0);
+        let mut result_pl = PostingsList {
+            weight: 1.0,
+            include_in_proximity_ranking: false,
+            term_docs: Vec::new(),
+            idf: 0.0,
+            term: Option::None,
+            term_info: Option::None,
+        };
+
+        let mut prev = 0;
+        for td in not_child_postings_list.term_docs.iter() {
+            for doc_id in prev..td.doc_id {
+                result_pl.term_docs.push(TermDoc {
+                    doc_id,
+                    fields: Vec::new(),
+                });
+            }
+            prev = td.doc_id + 1;
+        }
+        for doc_id in prev..self.doc_info.num_docs {
+            result_pl.term_docs.push(TermDoc {
+                doc_id,
+                fields: Vec::new(),
+            });
+        }
+
+        result_pl.calc_pseudo_idf(self.doc_info.num_docs);
+
+        Rc::new(result_pl)
+    }
+
     fn populate_bracket_postings_list(
         &self,
         query_part: &mut QueryPart,
@@ -311,38 +351,7 @@ impl Searcher {
                     result.push(self.populate_and_postings_lists(query_part, term_postings_lists));
                 },
                 QueryPartType::NOT => {
-                    let not_child_postings_list = self.populate_postings_lists(
-                        query_part.children.as_mut().unwrap(),
-                        term_postings_lists,
-                    ).remove(0);
-                    let mut result_pl = PostingsList {
-                        weight: 1.0,
-                        include_in_proximity_ranking: false,
-                        term_docs: Vec::new(),
-                        idf: 0.0,
-                        term: Option::None,
-                        term_info: Option::None,
-                    };
-
-                    let mut prev = 0;
-                    for td in not_child_postings_list.term_docs.iter() {
-                        for doc_id in prev..td.doc_id {
-                            result_pl.term_docs.push(TermDoc {
-                                doc_id,
-                                fields: Vec::new(),
-                            });
-                        }
-                        prev = td.doc_id + 1;
-                    }
-                    for doc_id in prev..self.doc_info.num_docs {
-                        result_pl.term_docs.push(TermDoc {
-                            doc_id,
-                            fields: Vec::new(),
-                        });
-                    }
-
-                    result_pl.calc_pseudo_idf(self.doc_info.num_docs);
-                    result.push(Rc::new(result_pl));
+                    result.push(self.populate_not_postings_list(query_part, term_postings_lists));
                 },
                 QueryPartType::BRACKET => {
                     if let Some(bracket_postings_list) = self.populate_bracket_postings_list(query_part, term_postings_lists) {
