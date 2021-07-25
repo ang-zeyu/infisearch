@@ -115,7 +115,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query
 
   web_sys::console::log_1(&JsValue::from_serde(&query_parts).unwrap());
 
-  let is_free_text_query = query_parts.iter().all(|query_part| if let QueryPartType::TERM = query_part.typee { true } else { false });
+  let is_free_text_query = query_parts.iter().all(|query_part| if let QueryPartType::TERM = query_part.partType { true } else { false });
 
   searcher_val.preprocess(&mut query_parts, is_free_text_query);
 

@@ -16,7 +16,7 @@ impl Searcher {
         let query_parts_len = query_parts.len();
         if let Some(last_query_part) = query_parts.get_mut(query_parts_len - 1) {
             if self.searcher_options.use_query_term_expansion
-              && matches!(last_query_part.typee, QueryPartType::TERM)
+              && matches!(last_query_part.partType, QueryPartType::TERM)
               && last_query_part.shouldExpand
               && !last_query_part.isCorrected {
                 if let None = last_query_part.originalTerms {

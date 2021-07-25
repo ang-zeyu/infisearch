@@ -19,7 +19,7 @@ pub struct QueryPart {
   pub isExpanded: bool,
   pub originalTerms: Option<Vec<String>>,
   pub terms: Option<Vec<String>>,
-  pub typee: QueryPartType,
+  pub partType: QueryPartType,
   pub children: Option<Vec<QueryPart>>,
 }
 
@@ -50,7 +50,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
         isExpanded: false,
         originalTerms: Option::None,
         terms: Option:: None,
-        typee: QueryPartType::NOT,
+        partType: QueryPartType::NOT,
         children: Option::from(vec![query_part]),
       }
     } else {
@@ -80,7 +80,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           isExpanded: false,
           originalTerms: Option::None,
           terms: Option::from(vec![term]),
-          typee: QueryPartType::TERM,
+          partType: QueryPartType::TERM,
           children: Option::None,
         }, did_encounter_not));
       } else {
@@ -91,7 +91,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           isExpanded: false,
           originalTerms: Option::None,
           terms: Option::from(vec![term]),
-          typee: QueryPartType::TERM,
+          partType: QueryPartType::TERM,
           children: Option::None,
         });
       }
@@ -109,7 +109,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           query_parse_state = QueryParseState::NONE;
           
           let terms = tokenizer.wasm_tokenize(query_chars[i..j].iter().collect()).terms;
-          let typee = if terms.len() <= 1 { QueryPartType::TERM } else { QueryPartType::PHRASE };
+          let partType = if terms.len() <= 1 { QueryPartType::TERM } else { QueryPartType::PHRASE };
           let phrase_query_part: QueryPart = wrap_in_not(QueryPart {
             isCorrected: false,
             isStopWordRemoved: false,
@@ -117,7 +117,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             isExpanded: false,
             originalTerms: Option::None,
             terms: Option::from(terms),
-            typee,
+            partType,
             children: Option::None,
           }, &mut did_encounter_not);
 
@@ -148,7 +148,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             isExpanded: false,
             originalTerms: Option::None,
             terms: Option::None,
-            typee: QueryPartType::BRACKET,
+            partType: QueryPartType::BRACKET,
             children: Option::from(parse_query(content, tokenizer)?),
           }, &mut did_encounter_not);
 
@@ -224,14 +224,14 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
                   isExpanded: false,
                   originalTerms: Option::None,
                   terms: Option::None,
-                  typee: QueryPartType::AND,
+                  partType: QueryPartType::AND,
                   children: Option::from(vec![last_curr_query_part]),
                 });
               }
             } else if query_parts.len() > 0 && !is_expecting_and {
               // e.g. (lorem) AND ipsum
               let last_curr_query_part = query_parts.pop().unwrap();
-              if let QueryPartType::AND = last_curr_query_part.typee {
+              if let QueryPartType::AND = last_curr_query_part.partType {
                 // Reuse last AND group
                 query_parts.push(last_curr_query_part);
               } else {
@@ -242,7 +242,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
                   isExpanded: false,
                   originalTerms: Option::None,
                   terms: Option::None,
-                  typee: QueryPartType::AND,
+                  partType: QueryPartType::AND,
                   children: Option::from(vec![last_curr_query_part]),
                 });
               }

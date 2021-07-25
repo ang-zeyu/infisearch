@@ -338,7 +338,7 @@ impl Searcher {
         let mut result: Vec<Rc<PostingsList>> = Vec::new();
 
         for query_part in query_parts {
-            match query_part.typee {
+            match query_part.partType {
                 QueryPartType::TERM => {
                     if let Some(term) = query_part.terms.as_ref().unwrap().get(0) {
                         if let Some(term_pl) = term_postings_lists.get(term) {

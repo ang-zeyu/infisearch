@@ -13,7 +13,7 @@ export interface QueryPart {
   shouldExpand?: boolean;
   isExpanded?: boolean;
   originalTerms?: string[];
-  type: QueryPartType;
+  partType: QueryPartType;
   terms?: string[];
   children?: QueryPart[];
   weight?: number;
