@@ -14,6 +14,7 @@ csv = "1.1"
 dashmap = "4"
 lazy_static = "1.4"
 librarian_common = { path = "../librarian_common" }
+num_cpus = "1.13.0"
 path-slash = "0.1.4"
 regex = "1"
 rustc-hash = "1.1"

@@ -47,8 +47,8 @@ impl Worker {
         }
     }
 
-    pub fn wait_on_all_workers(tx_main: &Sender<MainToWorkerMessage>, num_threads: u32) {
-        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new((num_threads + 1) as usize));
+    pub fn wait_on_all_workers(tx_main: &Sender<MainToWorkerMessage>, num_threads: usize) {
+        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_threads + 1));
         for _i in 0..num_threads {
             tx_main.send(MainToWorkerMessage::Synchronize(Arc::clone(&receive_work_barrier))).unwrap();
         }

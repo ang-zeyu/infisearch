@@ -26,14 +26,105 @@ use std::path::PathBuf;
 
 use crossbeam::Sender;
 use crossbeam::Receiver;
+use serde::Deserialize;
 
 #[macro_use]
 extern crate lazy_static;
 
+fn get_default_num_threads() -> usize {
+    std::cmp::max(num_cpus::get_physical() - 1, 1)
+}
+
+fn get_default_num_docs_per_block() -> u32 {
+    1000
+}
+
+#[derive(Deserialize)]
+struct LibrarianIndexingConfig {
+    #[serde(default = "get_default_num_threads")]
+    num_threads: usize,
+    #[serde(default = "get_default_num_docs_per_block")]
+    num_docs_per_block: u32,
+}
+
+impl Default for LibrarianIndexingConfig {
+    fn default() -> Self {
+        LibrarianIndexingConfig {
+            num_threads: get_default_num_threads(),
+            num_docs_per_block: get_default_num_docs_per_block(),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct LibrarianLanguageConfig {
+    lang: String,
+}
+
+#[derive(Deserialize)]
+pub struct LibrarianConfig {
+    #[serde(default)]
+    indexing_config: LibrarianIndexingConfig,
+    language: LibrarianLanguageConfig,
+    fields_config: FieldsConfig,
+}
+
+impl Default for LibrarianConfig {
+    fn default() -> Self {
+
+        LibrarianConfig {
+            indexing_config: LibrarianIndexingConfig::default(),
+            language: LibrarianLanguageConfig {
+                lang: "en".to_owned()
+            },
+            fields_config: FieldsConfig {
+                field_store_block_size: 1,
+                fields: vec![
+                    FieldConfig {
+                        name: "title".to_owned(),
+                        do_store: false,
+                        weight: 0.2,
+                        k: 1.2,
+                        b: 0.25
+                    },
+                    FieldConfig {
+                        name: "heading".to_owned(),
+                        do_store: false,
+                        weight: 0.3,
+                        k: 1.2,
+                        b: 0.3
+                    },
+                    FieldConfig {
+                        name: "body".to_owned(),
+                        do_store: false,
+                        weight: 0.5,
+                        k: 1.2,
+                        b: 0.75
+                    },
+                    FieldConfig {
+                        name: "headingLink".to_owned(),
+                        do_store: false,
+                        weight: 0.0,
+                        k: 1.2,
+                        b: 0.75
+                    },
+                    FieldConfig {
+                        name: "link".to_owned(),
+                        do_store: true,
+                        weight: 0.0,
+                        k: 1.2,
+                        b: 0.75
+                    },
+                ]
+            }
+        }
+    }
+}
+
 
 pub struct Indexer {
     num_docs: u32,
-    num_threads: u32,
+    num_threads: usize,
     expected_num_docs_per_thread: usize,
     doc_id_counter: u32,
     spimi_counter: u32,
@@ -54,24 +145,26 @@ pub struct Indexer {
 impl Indexer {
     pub fn new(
         output_folder_path: &Path,
-        num_docs: u32,
-        num_threads: u32,
+        config: LibrarianConfig,
         tokenizer: Arc<dyn Tokenizer + Send + Sync>,
-        fields_config: FieldsConfig,
     ) -> Indexer {
-        let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(num_threads as usize);
-        let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(num_threads as usize);
+        let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
+        let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
+
+        let expected_num_docs_per_thread = (
+            config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2
+        ) as usize;
 
         let mut indexer = Indexer {
-            num_docs,
-            num_threads,
-            expected_num_docs_per_thread: (num_docs / num_threads * 2) as usize,
+            num_docs: config.indexing_config.num_docs_per_block,
+            num_threads: config.indexing_config.num_threads,
+            expected_num_docs_per_thread,
             doc_id_counter: 0,
             spimi_counter: 0,
-            field_store_block_size: fields_config.field_store_block_size,
+            field_store_block_size: config.fields_config.field_store_block_size,
             field_infos: Option::None,
             output_folder_path: output_folder_path.to_path_buf(),
-            workers: Vec::with_capacity(num_threads as usize),
+            workers: Vec::with_capacity(config.indexing_config.num_threads as usize),
             doc_infos: Option::None,
             tx_main,
             rx_main,
@@ -82,7 +175,7 @@ impl Indexer {
         };
 
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
-        for field_config in fields_config.fields {
+        for field_config in config.fields_config.fields {
             indexer.add_field(&mut field_infos_by_name, field_config);
         }
         indexer.finalise_fields(field_infos_by_name);
