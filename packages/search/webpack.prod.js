@@ -1,7 +1,7 @@
 /* eslint-env node */
 const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
