@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::time::Instant;
 use std::env;
 use std::path::Path;
@@ -6,7 +5,6 @@ use std::path::PathBuf;
 use path_slash::PathExt;
 
 use librarian_indexer::LibrarianConfig;
-use librarian_common::tokenize::english::EnglishTokenizer;
 
 use csv::Reader;
 use walkdir::WalkDir;
@@ -173,7 +171,6 @@ fn main() {
     let mut indexer = librarian_indexer::Indexer::new(
         &output_folder_path,
         config,
-        Arc::new(EnglishTokenizer::default()),
     );
 
     let now = Instant::now();

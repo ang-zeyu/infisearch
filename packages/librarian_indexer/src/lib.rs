@@ -7,6 +7,8 @@ mod utils;
 mod worker;
 
 use librarian_common::tokenize::Tokenizer;
+use librarian_common::tokenize::english::EnglishTokenizer;
+
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldConfig;
 use crate::fieldinfo::FieldsConfig;
@@ -75,7 +77,7 @@ impl Default for LibrarianConfig {
         LibrarianConfig {
             indexing_config: LibrarianIndexingConfig::default(),
             language: LibrarianLanguageConfig {
-                lang: "en".to_owned()
+                lang: "english".to_owned()
             },
             fields_config: FieldsConfig {
                 field_store_block_size: 1,
@@ -146,7 +148,6 @@ impl Indexer {
     pub fn new(
         output_folder_path: &Path,
         config: LibrarianConfig,
-        tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     ) -> Indexer {
         let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
         let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
@@ -154,6 +155,8 @@ impl Indexer {
         let expected_num_docs_per_thread = (
             config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2
         ) as usize;
+
+        let tokenizer = Indexer::resolve_tokenizer(config.language);
 
         let mut indexer = Indexer {
             num_docs: config.indexing_config.num_docs_per_block,
@@ -181,6 +184,17 @@ impl Indexer {
         indexer.finalise_fields(field_infos_by_name);
 
         indexer
+    }
+
+    fn resolve_tokenizer(language_config: LibrarianLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
+        match language_config.lang.as_str() {
+            "english" => {
+                Arc::new(EnglishTokenizer::default())
+            },
+            _ => {
+                panic!("Unsupported language {}", language_config.lang)
+            }
+        }
     }
 
     fn add_field(&mut self, field_infos_by_name: &mut FxHashMap<String, FieldInfo>, field_config: FieldConfig) {
