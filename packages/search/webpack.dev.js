@@ -11,6 +11,7 @@ module.exports = merge(common, {
   devtool: 'inline-source-map',
   devServer: {
     hot: true,
+    open: false,
   },
   output: {
     filename: '[name].bundle.js',

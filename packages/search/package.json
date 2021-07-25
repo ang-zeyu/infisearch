@@ -14,7 +14,7 @@
     "lib"
   ],
   "scripts": {
-    "dev": "webpack-cli serve --config webpack.dev.js --open",
+    "dev": "webpack-cli serve --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
