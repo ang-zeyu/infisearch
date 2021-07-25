@@ -39,7 +39,8 @@ async function transformResults(
     const rawLink = result.getSingleField('link');
     const fullLink = `${sourceHtmlFilesUrl}/${rawLink}`;
     let title = result.getSingleField('title') || rawLink;
-    const nonTitleFields = result.getStorageWithFieldNames().filter((v) => v[0] !== 'title');
+    const fields = result.getStorageWithFieldNames();
+    const nonTitleFields = fields.filter((v) => v[0] !== 'title');
     let bodies = transformText(
       nonTitleFields,
       query.aggregatedTerms,
@@ -47,7 +48,7 @@ async function transformResults(
       rawLink,
     );
 
-    if (!nonTitleFields.length) {
+    if (!fields.find((v) => v[0] !== 'link')) {
       const asText = await (await fetch(fullLink)).text();
       const doc = domParser.parseFromString(asText, 'text/html');
 
