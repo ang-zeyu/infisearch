@@ -161,6 +161,7 @@ impl Searcher {
             .iter()
             .enumerate()
             .map(|(idx, pl_vec)| Reverse(pl_vec.get_it(idx as u8)))
+            .filter(|pl_it| pl_it.0.td.is_some())
             .collect();
         let num_pls = doc_heap.len();
 
@@ -233,6 +234,7 @@ impl Searcher {
             .iter()
             .enumerate()
             .map(|(idx, pl_vec)| Reverse(pl_vec.get_it(idx as u8)))
+            .filter(|pl_it| pl_it.0.td.is_some())
             .collect();
         let num_pls = doc_heap.len();
 
