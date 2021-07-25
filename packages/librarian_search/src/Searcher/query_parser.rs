@@ -193,7 +193,8 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             j += 1;
           }
 
-          if j < query_chars_len - 4
+          if query_chars_len > 6 // overflow
+            &&  j < query_chars_len - 4
             && query_chars[j] == 'A' && query_chars[j + 1] == 'N' && query_chars[j + 2] == 'D'
             && query_chars[j + 3].is_ascii_whitespace() {
             
@@ -260,6 +261,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           j -= 1;
           is_unary_operator_allowed = true;
         } else if is_unary_operator_allowed
+          && query_chars_len > 5 // overflow
           && j < query_chars_len - 4
           && query_chars[j] == 'N' && query_chars[j + 1] == 'O' && query_chars[j + 2] == 'T'
           && query_chars[j + 3].is_ascii_whitespace() {
