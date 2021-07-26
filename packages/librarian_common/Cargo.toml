@@ -12,6 +12,7 @@ lazy_static = "1.4"
 regex = "1"
 rustc-hash = "1.1"
 serde = { version = "1.0", features = ["derive"] }
+smartstring = "0.2.7"
 
 [profile.release]
 lto = true

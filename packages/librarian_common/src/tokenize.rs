@@ -3,6 +3,7 @@ pub mod english;
 use std::rc::Rc;
 use rustc_hash::FxHashMap;
 use serde::{Serialize};
+use smartstring::alias::String as SmartString;
 
 pub struct TermInfo {
     pub doc_freq: u32,
@@ -22,9 +23,9 @@ pub trait Tokenizer {
     // If true, simply return Option::None / An empty hashmap for the below two methods
     fn use_default_trigram(&self) -> bool;
 
-    fn get_best_corrected_term(&self, term: &String, dictionary: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> Option<String>;
+    fn get_best_corrected_term(&self, term: &String, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String>;
 
-    fn get_expanded_terms(&self, term: &String, dictionary: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<String, f32>;
+    fn get_expanded_terms(&self, term: &String, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32>;
 }
 
 #[derive(Serialize)]

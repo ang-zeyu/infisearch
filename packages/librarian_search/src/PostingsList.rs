@@ -168,7 +168,7 @@ impl PostingsList {
         let term_info = self.term_info.as_ref().unwrap();
         
         let pl_resp_value = JsFuture::from(
-            window.fetch_with_str(&(base_url.to_owned() + "/pl_" + &term_info.postings_file_name.to_string()))
+            window.fetch_with_str(&(base_url.to_owned() + "/pl_" + &term_info.postings_file_name.to_string()[..]))
         ).await?;
         let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
         let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;

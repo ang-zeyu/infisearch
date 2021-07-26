@@ -17,6 +17,7 @@ use crate::dictionary::Dictionary;
 use crate::dictionary::setup_dictionary;
 
 use serde::{Deserialize};
+use smartstring::alias::String as SmartString;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::{wasm_bindgen};
@@ -58,7 +59,7 @@ pub async fn get_new_searcher(
 ) -> Result<Searcher, JsValue> {
   let doc_info = DocInfo::create(base_url.clone(), num_scored_fields).await?;
 
-  let dictionary = setup_dictionary(base_url.clone(), doc_info.num_docs).await?;
+  let dictionary = setup_dictionary(SmartString::from(&base_url), doc_info.num_docs).await?;
 
   let field_infos: Vec<FieldInfo> = field_infos_js.into_serde().unwrap();
   let searcher_options: SearcherOptions = searcher_options.into_serde().unwrap();

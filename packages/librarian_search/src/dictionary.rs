@@ -6,6 +6,7 @@ use wasm_bindgen::JsValue;
 use rustc_hash::FxHashMap;
 use futures::join;
 use strsim::levenshtein;
+use smartstring::alias::String;
 use smartstring::alias::String as SmartString;
 use trigrams::get_tri_grams;
 
@@ -26,12 +27,6 @@ static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;
 pub struct Dictionary {
     pub term_infos: FxHashMap<Rc<String>, Rc<TermInfo>>,
     trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
-}
-
-#[wasm_bindgen]
-extern "C" {
-  #[wasm_bindgen(js_namespace = self, catch)]
-  async fn fetchMultipleArrayBuffers(urls: String, ptr: u32) -> Result<(), JsValue>;
 }
 
 pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, JsValue> {
@@ -71,7 +66,7 @@ pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, 
   let mut postings_file_name = 0;
   let mut dict_string_pos = 0;
   let mut dict_table_pos = 0;
-  let mut prev_term: Rc<String> = Rc::new("".to_owned());
+  let mut prev_term: Rc<String> = Rc::new(SmartString::from(""));
 
   let table_vec_len = table_vec.len();
   while dict_table_pos < table_vec_len {
@@ -98,7 +93,7 @@ pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, 
     dict_string_pos += 1;
 
     let term = Rc::new(
-      prev_term[..prefix_len].to_owned() +
+      SmartString::from(&prev_term[..prefix_len]) +
         unsafe { std::str::from_utf8_unchecked(&string_vec[dict_string_pos..dict_string_pos + remaining_len]) }
     );
     dict_string_pos += remaining_len;
@@ -127,8 +122,8 @@ pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, 
 }
 
 impl Dictionary {
-  pub fn get_term_info(&self, term: &String) -> Option<&Rc<TermInfo>> {
-    self.term_infos.get(term)
+  pub fn get_term_info(&self, term: &str) -> Option<&Rc<TermInfo>> {
+    self.term_infos.get(&String::from(term))
   }
 
   fn setup_trigrams(term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<SmartString, Vec<Rc<String>>> {
@@ -155,7 +150,7 @@ impl Dictionary {
 }
 
 impl Dictionary {
-  pub fn get_best_corrected_term(&self, misspelled_term: &String) -> Option<String> {
+  pub fn get_best_corrected_term(&self, misspelled_term: &str) -> Option<std::string::String> {
     let mut best_term = Option::None;
     let mut min_idf = f64::MAX;
     for term in self.get_corrected_terms(misspelled_term) {
@@ -165,7 +160,13 @@ impl Dictionary {
         best_term = Option::from(term);
       }
     };
-    return best_term;
+
+    if let Some(best_term) = best_term {
+      let normal_string: std::string::String = best_term.into();
+      Option::from(normal_string)
+    } else {
+      Option::None
+    }
   }
   
   fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<String> {
@@ -191,8 +192,8 @@ impl Dictionary {
     return min_edit_distance_terms;
   }
   
-  pub fn get_expanded_terms(&self, base_term: &str) -> FxHashMap<String, f32> {
-    let mut expanded_terms: FxHashMap<String, f32> = FxHashMap::default();
+  pub fn get_expanded_terms(&self, base_term: &str) -> FxHashMap<std::string::String, f32> {
+    let mut expanded_terms: FxHashMap<std::string::String, f32> = FxHashMap::default();
     let base_term_char_count = base_term.chars().count();
     if base_term_char_count < 4 {
       return expanded_terms;
@@ -205,7 +206,7 @@ impl Dictionary {
       if term.starts_with(min_baseterm_substring) && term != base_term {
         let score = 1.0 / ((term.chars().count() - min_baseterm_substring.chars().count() + 1) as f32);
         if score >= 0.2 {
-          expanded_terms.insert(term, score);
+          expanded_terms.insert(term.into(), score);
         }
       }
     };

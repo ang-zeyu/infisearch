@@ -6,6 +6,7 @@ use std::collections::HashSet;
 
 use regex::Regex;
 use rustc_hash::FxHashMap;
+use smartstring::alias::String as SmartString;
 
 use crate::tokenize::Tokenizer;
 use crate::tokenize::SearchTokenizeResult;
@@ -94,11 +95,11 @@ impl Tokenizer for EnglishTokenizer {
     return true;
   }
 
-  fn get_best_corrected_term(&self, _term: &String, _dictionary: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> Option<String> {
+  fn get_best_corrected_term(&self, _term: &String, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String> {
     return None;
   }
 
-  fn get_expanded_terms(&self, _term: &String, _dictionary: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
+  fn get_expanded_terms(&self, _term: &String, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
     return FxHashMap::default();
   }
 }
