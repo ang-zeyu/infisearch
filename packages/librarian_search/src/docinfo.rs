@@ -7,7 +7,6 @@ use web_sys::Request;
 use wasm_bindgen::JsValue;
 
 pub struct DocInfo {
-    avg_doc_lengths: Vec<f64>,
     pub doc_length_factors: Vec<Vec<f64>>,
     pub num_docs: u32,
 }
@@ -48,7 +47,6 @@ impl DocInfo {
         }
 
         Ok(DocInfo {
-            avg_doc_lengths,
             doc_length_factors,
             num_docs,
         })
