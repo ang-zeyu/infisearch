@@ -153,7 +153,8 @@ function displayTermInfo(query: Query): HTMLElement[] {
   return returnVal;
 }
 
-const updatePromiseQueue: (() => Promise<void>)[] = [];
+let isUpdating = false;
+let nextUpdate: () => Promise<void>;
 async function update(
   queryString: string,
   container: HTMLElement,
@@ -173,9 +174,10 @@ async function update(
     container.innerHTML = ex.message;
     throw ex;
   } finally {
-    updatePromiseQueue.shift();
-    if (updatePromiseQueue.length) {
-      await updatePromiseQueue[0]();
+    if (nextUpdate) {
+      await nextUpdate();
+    } else {
+      isUpdating = false;
     }
   }
 }
@@ -224,9 +226,11 @@ function initLibrarian(
     if (query.length) {
       clearTimeout(inputTimer);
       inputTimer = setTimeout(() => {
-        updatePromiseQueue.push(() => update(query, container, searcher, sourceHtmlFilesUrl));
-        if (updatePromiseQueue.length === 1) {
-          updatePromiseQueue[0]();
+        if (isUpdating) {
+          nextUpdate = () => update(query, container, searcher, sourceHtmlFilesUrl);
+        } else {
+          isUpdating = true;
+          update(query, container, searcher, sourceHtmlFilesUrl);
         }
       }, 200);
     } else {
