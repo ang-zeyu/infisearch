@@ -9,16 +9,13 @@ pub fn decode_var_int(slice: &[u8]) -> (u32, usize) {
   while pos < slice.len() {
     let current_byte = slice[pos];
     let mask_result = VALUE_MASK & current_byte;
-    current_value += (mask_result as u32) << shift_amount;
+    current_value |= (mask_result as u32) << shift_amount;
 
+    pos += 1;
     if (CONTINUATION_MASK & current_byte) != 0 {
-      pos += 1;
       break;
-    } else {
-      shift_amount += 7;
     }
-
-    pos += 1
+    shift_amount += 7;
   }
 
   (current_value, pos)
