@@ -151,9 +151,7 @@ class Searcher {
       query,
       result.aggregatedTerms,
       result.queryParts,
-      this.librarianConfig.fieldInfos,
       this.options,
-      this.librarianConfig.fieldStoreBlockSize,
       getNextN,
       free,
     );
