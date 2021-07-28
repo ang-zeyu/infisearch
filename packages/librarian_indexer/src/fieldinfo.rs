@@ -1,6 +1,4 @@
 use std::path::PathBuf;
-use std::fs::File;
-use std::io::Write;
 use std::path::Path;
 
 use rustc_hash::FxHashMap;
@@ -76,14 +74,5 @@ impl FieldInfos {
             field_store_block_size,
             field_output_folder_path,
         }
-    }
-
-    pub fn dump(&self, output_folder_path: &Path) {
-        let serialized = serde_json::to_string(self).unwrap();
-
-        File::create(output_folder_path.join("fieldInfo.json"))
-            .unwrap()
-            .write_all(serialized.as_bytes())
-            .unwrap();
     }
 }

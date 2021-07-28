@@ -6,8 +6,10 @@ mod spimiwriter;
 mod utils;
 mod worker;
 
+use librarian_common::LibrarianLanguageConfig;
 use librarian_common::tokenize::Tokenizer;
-use librarian_common::tokenize::english::EnglishTokenizer;
+use librarian_lang_chinese::chinese;
+use librarian_lang_latin::english;
 
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldConfig;
@@ -20,6 +22,8 @@ use crate::fieldinfo::FieldInfos;
 use rustc_hash::FxHashMap;
 
 use std::cmp::Ordering;
+use std::fs::File;
+use std::io::Write;
 use std::sync::Mutex;
 use std::time::Instant;
 use std::sync::Arc;
@@ -28,7 +32,7 @@ use std::path::PathBuf;
 
 use crossbeam::Sender;
 use crossbeam::Receiver;
-use serde::Deserialize;
+use serde::{Serialize,Deserialize};
 
 #[macro_use]
 extern crate lazy_static;
@@ -59,16 +63,18 @@ impl Default for LibrarianIndexingConfig {
 }
 
 #[derive(Deserialize)]
-struct LibrarianLanguageConfig {
-    lang: String,
-}
-
-#[derive(Deserialize)]
 pub struct LibrarianConfig {
     #[serde(default)]
     indexing_config: LibrarianIndexingConfig,
+    #[serde(default)]
     language: LibrarianLanguageConfig,
     fields_config: FieldsConfig,
+}
+
+#[derive(Serialize)]
+pub struct LibrarianOutputConfig<'a> {
+    language: &'a LibrarianLanguageConfig,
+    field_infos: &'a FieldInfos,
 }
 
 impl Default for LibrarianConfig {
@@ -77,7 +83,8 @@ impl Default for LibrarianConfig {
         LibrarianConfig {
             indexing_config: LibrarianIndexingConfig::default(),
             language: LibrarianLanguageConfig {
-                lang: "english".to_owned()
+                lang: "english".to_owned(),
+                options: Option::None,
             },
             fields_config: FieldsConfig {
                 field_store_block_size: 1,
@@ -141,6 +148,7 @@ pub struct Indexer {
     rx_worker: Receiver<MainToWorkerMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
+    language_config: LibrarianLanguageConfig,
 }
 
 
@@ -156,7 +164,7 @@ impl Indexer {
             config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2
         ) as usize;
 
-        let tokenizer = Indexer::resolve_tokenizer(config.language);
+        let tokenizer = Indexer::resolve_tokenizer(&config.language);
 
         let mut indexer = Indexer {
             num_docs: config.indexing_config.num_docs_per_block,
@@ -175,6 +183,7 @@ impl Indexer {
             rx_worker,
             num_workers_writing_blocks: Arc::from(Mutex::from(0)),
             tokenizer,
+            language_config: config.language,
         };
 
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
@@ -186,10 +195,21 @@ impl Indexer {
         indexer
     }
 
-    fn resolve_tokenizer(language_config: LibrarianLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
+    fn resolve_tokenizer(language_config: &LibrarianLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
         match language_config.lang.as_str() {
-            "english" => {
-                Arc::new(EnglishTokenizer::default())
+            "latin" => {
+                if let Some(options) = language_config.options.as_ref() {
+                    Arc::new(english::new_with_options(serde_json::from_value(options.clone()).unwrap()))
+                } else {
+                    Arc::new(english::EnglishTokenizer::default())
+                }
+            },
+            "chinese" => {
+                if let Some(options) = language_config.options.as_ref() {
+                    Arc::new(chinese::new_with_options(serde_json::from_value(options.clone()).unwrap()))
+                } else {
+                    Arc::new(chinese::ChineseTokenizer::default())
+                }
             },
             _ => {
                 panic!("Unsupported language {}", language_config.lang)
@@ -227,7 +247,6 @@ impl Indexer {
         }
 
         let field_infos = FieldInfos::init(field_infos_by_name, self.field_store_block_size, &self.output_folder_path);
-        field_infos.dump(&self.output_folder_path);
         self.field_infos = Option::from(Arc::new(field_infos));
         
         self.doc_infos = Option::from(
@@ -257,6 +276,16 @@ impl Indexer {
                     )),
             });
         }
+
+        let serialized = serde_json::to_string(&LibrarianOutputConfig {
+            language: &self.language_config,
+            field_infos: self.field_infos.as_ref().unwrap(),
+        }).unwrap();
+
+        File::create(self.output_folder_path.join("_librarian_config.json"))
+            .unwrap()
+            .write_all(serialized.as_bytes())
+            .unwrap();
     }
 
     fn block_number(&self) -> u32 {

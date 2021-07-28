@@ -1,14 +1,10 @@
-import { Query, Searcher } from '../../../librarian_search/pkg';
-import { FieldInfo } from '../results/FieldInfo';
+import { FieldInfo, LibrarianConfig } from '../results/FieldInfo';
 import { SearcherOptions } from '../results/SearcherOptions';
 import WorkerQuery from './workerQuery';
 
 export interface WorkerSearcherSetup {
   url: string,
-  fieldInfos: {
-    numScoredFields: number,
-    fieldInfos: FieldInfo[],
-  },
+  config: LibrarianConfig,
   searcherOptions: SearcherOptions,
 }
 
@@ -17,29 +13,24 @@ export default class WorkerSearcher {
 
   wasmModule;
 
-  wasmSearcher: Searcher;
+  wasmSearcher: any;
 
   private baseUrl: string;
 
-  private fieldStoreBlockSize: number;
-
-  private numScoredFields: number;
-
-  private fieldInfos: FieldInfo[];
+  private config: LibrarianConfig;
 
   private searcherOptions: SearcherOptions;
 
   constructor(data: WorkerSearcherSetup) {
     this.baseUrl = data.url;
-    this.numScoredFields = data.fieldInfos.numScoredFields;
-    this.fieldInfos = data.fieldInfos.fieldInfos;
+    this.config = data.config;
     this.searcherOptions = data.searcherOptions;
   }
 
   async processQuery(query: string): Promise<WorkerQuery> {
     this.freeQuery(query);
 
-    const wasmQuery: Query = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
+    const wasmQuery: any = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
 
     this.workerQueries[query] = new WorkerQuery(
       wasmQuery.get_aggregated_terms(),
@@ -62,11 +53,16 @@ export default class WorkerSearcher {
   }
 
   private async setupWasm() {
-    this.wasmModule = await import('../../../librarian_search/pkg');
+    const language = this.config.language.lang;
+    this.wasmModule = await import(
+      /* webpackChunkName: "librarian_search_wasm.[index]" */
+      `../../../librarian_search/pkg/lang_${language}/index.js`
+    );
     this.wasmSearcher = await this.wasmModule.get_new_searcher(
       this.baseUrl,
-      this.numScoredFields,
-      this.fieldInfos,
+      this.config.numScoredFields,
+      this.config.language,
+      this.config.fieldInfos,
       {
         url: this.baseUrl,
         use_query_term_expansion: this.searcherOptions.useQueryTermExpansion,

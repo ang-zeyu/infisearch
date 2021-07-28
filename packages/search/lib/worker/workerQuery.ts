@@ -1,11 +1,10 @@
-import { Query } from '../../../librarian_search/pkg';
 import { QueryPart } from '../parser/queryParser';
 
 export default class WorkerQuery {
   constructor(
     public aggregatedTerms: string[],
     public queryParts: QueryPart[],
-    private query: Query,
+    private query: any,
   ) {}
 
   getNextN(n: number): number[] {

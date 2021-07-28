@@ -1,8 +1,5 @@
-pub mod english;
-
 use std::rc::Rc;
 use rustc_hash::FxHashMap;
-use serde::{Serialize};
 use smartstring::alias::String as SmartString;
 
 pub struct TermInfo {
@@ -28,7 +25,6 @@ pub trait Tokenizer {
     fn get_expanded_terms(&self, term: &String, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32>;
 }
 
-#[derive(Serialize)]
 pub struct SearchTokenizeResult {
     pub terms: Vec<String>,
     pub should_expand: bool,

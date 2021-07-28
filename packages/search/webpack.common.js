@@ -1,3 +1,7 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+const path = require('path');
+
 module.exports = {
   entry: {
     main: './lib/search.ts',
@@ -38,4 +42,18 @@ module.exports = {
       },
     ],
   },
+  plugins: [
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, '../librarian_search'),
+      extraArgs: '-- --no-default-features --features lang_latin',
+      forceMode: 'production',
+      outDir: 'pkg/lang_latin',
+    }),
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, '../librarian_search'),
+      extraArgs: '-- --no-default-features --features lang_chinese',
+      forceMode: 'production',
+      outDir: 'pkg/lang_chinese',
+    }),
+  ],
 };

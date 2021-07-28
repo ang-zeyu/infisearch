@@ -1,5 +1,4 @@
 import WorkerSearcher from './workerSearcher';
-import fetchMultipleArrayBuffers from './workerWasmUtils';
 
 let workerSearcher: WorkerSearcher;
 
@@ -33,6 +32,3 @@ onmessage = async function worker(ev) {
     }
   }
 };
-
-// eslint-disable-next-line no-restricted-globals
-(self as any).fetchMultipleArrayBuffers = fetchMultipleArrayBuffers;

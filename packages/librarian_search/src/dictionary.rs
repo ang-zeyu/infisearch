@@ -29,7 +29,7 @@ pub struct Dictionary {
     trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
 }
 
-pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, JsValue> {
+pub async fn setup_dictionary(url: String, num_docs: u32, build_trigram: bool) -> Result<Dictionary, JsValue> {
   let window: web_sys::Window = js_sys::global().unchecked_into();
 
   let performance = window.performance().unwrap();
@@ -111,7 +111,7 @@ pub async fn setup_dictionary(url: String, num_docs: u32) -> Result<Dictionary, 
 
   web_sys::console::log_1(&format!("Dictionary initial setup took {}", performance.now() - start).into());
 
-  let trigrams = Dictionary::setup_trigrams(&term_infos);
+  let trigrams = if build_trigram { Dictionary::setup_trigrams(&term_infos) } else { FxHashMap::default() };
 
   web_sys::console::log_1(&format!("Dictionary trigram setup took {}", performance.now() - start).into());
 

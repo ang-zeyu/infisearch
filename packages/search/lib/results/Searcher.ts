@@ -1,16 +1,14 @@
 import Query from './Query';
-import { FieldInfosRaw, FieldInfo } from './FieldInfo';
+import {
+  FieldInfo, LibrarianConfigRaw, LibrarianConfig,
+} from './FieldInfo';
 import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
 import { WorkerSearcherSetup } from '../worker/workerSearcher';
 import { QueryPart } from '../parser/queryParser';
 
 class Searcher {
-  private fieldStoreBlockSize: number;
-
-  private numScoredFields: number;
-
-  private fieldInfos: FieldInfo[];
+  private librarianConfig: LibrarianConfig;
 
   private readonly setupPromise: Promise<any>;
 
@@ -55,10 +53,7 @@ class Searcher {
     this.setupPromise = this.setupFieldInfo().then(() => {
       const message: WorkerSearcherSetup = {
         url: options.url,
-        fieldInfos: {
-          fieldInfos: this.fieldInfos,
-          numScoredFields: this.numScoredFields,
-        },
+        config: this.librarianConfig,
         searcherOptions: options,
       };
       this.worker.postMessage(message);
@@ -68,25 +63,30 @@ class Searcher {
   }
 
   async setupFieldInfo(): Promise<void> {
-    const json: FieldInfosRaw = await (await fetch(`${this.options.url}/fieldInfo.json`, {
+    const json: LibrarianConfigRaw = await (await fetch(`${this.options.url}/_librarian_config.json`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     })).json();
 
-    this.fieldStoreBlockSize = json.field_store_block_size;
+    const { field_infos: fieldInfosRaw } = json;
 
-    this.numScoredFields = json.num_scored_fields;
-
-    this.fieldInfos = [];
-    Object.entries(json.field_infos_map).forEach(([fieldName, fieldInfo]) => {
+    const fieldInfos: FieldInfo[] = [];
+    Object.entries(fieldInfosRaw.field_infos_map).forEach(([fieldName, fieldInfo]) => {
       fieldInfo.name = fieldName;
-      this.fieldInfos.push(fieldInfo as FieldInfo);
+      fieldInfos.push(fieldInfo as FieldInfo);
     });
-    this.fieldInfos.sort((a, b) => a.id - b.id);
+    fieldInfos.sort((a, b) => a.id - b.id);
 
-    console.log(this.fieldInfos);
+    console.log(fieldInfos);
+
+    this.librarianConfig = {
+      language: json.language,
+      fieldInfos,
+      numScoredFields: fieldInfosRaw.num_scored_fields,
+      fieldStoreBlockSize: fieldInfosRaw.field_store_block_size,
+    };
   }
 
   async getQuery(query: string): Promise<Query> {
@@ -132,9 +132,11 @@ class Searcher {
       const { nextDocIds } = getNextNResult;
 
       // console.log(retrievedResults);
-      const retrievedResults = nextDocIds.map((docId) => new Result(docId, 0, this.fieldInfos));
+      const retrievedResults = nextDocIds.map((docId) => new Result(
+        docId, 0, this.librarianConfig.fieldInfos,
+      ));
       await Promise.all(retrievedResults.map((res) => res.populate(
-        this.options.url, this.fieldStoreBlockSize,
+        this.options.url, this.librarianConfig.fieldStoreBlockSize,
       )));
 
       return retrievedResults;
@@ -149,9 +151,9 @@ class Searcher {
       query,
       result.aggregatedTerms,
       result.queryParts,
-      this.fieldInfos,
+      this.librarianConfig.fieldInfos,
       this.options,
-      this.fieldStoreBlockSize,
+      this.librarianConfig.fieldStoreBlockSize,
       getNextN,
       free,
     );

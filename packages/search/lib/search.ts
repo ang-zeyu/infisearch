@@ -221,7 +221,7 @@ function initLibrarian(
   input.addEventListener('input', (ev) => {
     const query = (ev.target as HTMLInputElement).value;
 
-    if (query.length > 2) {
+    if (query.length) {
       clearTimeout(inputTimer);
       inputTimer = setTimeout(() => {
         updatePromiseQueue.push(() => update(query, container, searcher, sourceHtmlFilesUrl));
@@ -229,7 +229,7 @@ function initLibrarian(
           updatePromiseQueue[0]();
         }
       }, 200);
-    } else if (query.length < 2) {
+    } else {
       hide(container);
     }
   });

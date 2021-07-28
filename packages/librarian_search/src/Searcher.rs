@@ -5,7 +5,11 @@ pub mod query_processor;
 pub mod query_postprocessor;
 pub mod Query;
 
-use crate::tokenize::english::EnglishTokenizer;
+#[cfg(feature = "lang_latin")]
+use librarian_lang_latin::english;
+#[cfg(feature = "lang_chinese")]
+use librarian_lang_chinese::chinese;
+use librarian_common::LibrarianLanguageConfig;
 use crate::tokenize::Tokenizer;
 use crate::Searcher::query_parser::QueryPart;
 use crate::docinfo::DocInfo;
@@ -50,16 +54,39 @@ pub struct Searcher {
     searcher_options: SearcherOptions,
 }
 
+#[cfg(feature = "lang_latin")]
+fn get_tokenizer(language_config: LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
+  if let Some(options) = language_config.options {
+    Box::new(english::new_with_options(serde_json::from_value(options).unwrap()))
+  } else {
+    Box::new(english::EnglishTokenizer::default())
+  }
+}
+
+#[cfg(feature = "lang_chinese")]
+fn get_tokenizer(language_config: LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
+  if let Some(options) = language_config.options {
+    Box::new(chinese::new_with_options(serde_json::from_value(options).unwrap()))
+  } else {
+    Box::new(chinese::ChineseTokenizer::default())
+  }
+}
+
 #[wasm_bindgen]
 pub async fn get_new_searcher(
     base_url: String,
     num_scored_fields: usize,
+    language_config: JsValue,
     field_infos_js: JsValue,
     searcher_options: JsValue,
 ) -> Result<Searcher, JsValue> {
   let doc_info = DocInfo::create(base_url.clone(), num_scored_fields).await?;
+  
+  let language_config: LibrarianLanguageConfig = language_config.into_serde().unwrap();
+  let tokenizer = get_tokenizer(language_config);
+  let build_trigram = tokenizer.use_default_trigram();
 
-  let dictionary = setup_dictionary(SmartString::from(&base_url), doc_info.num_docs).await?;
+  let dictionary = setup_dictionary(SmartString::from(&base_url), doc_info.num_docs, build_trigram).await?;
 
   let field_infos: Vec<FieldInfo> = field_infos_js.into_serde().unwrap();
   let searcher_options: SearcherOptions = searcher_options.into_serde().unwrap();
@@ -67,7 +94,7 @@ pub async fn get_new_searcher(
   Ok(Searcher {
     base_url,
     dictionary,
-    tokenizer: Box::new(EnglishTokenizer::default()),
+    tokenizer,
     num_scored_fields,
     field_infos,
     doc_info,

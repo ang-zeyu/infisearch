@@ -14,6 +14,8 @@ csv = "1.1"
 dashmap = "4"
 lazy_static = "1.4"
 librarian_common = { path = "../librarian_common" }
+librarian_lang_chinese = { path = "../librarian_languages/librarian_lang_chinese" }
+librarian_lang_latin = { path = "../librarian_languages/librarian_lang_latin" }
 num_cpus = "1.13.0"
 path-slash = "0.1.4"
 regex = "1"

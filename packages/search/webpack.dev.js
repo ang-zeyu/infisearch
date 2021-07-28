@@ -3,7 +3,6 @@ const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
 const { merge } = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const common = require('./webpack.common');
 
 module.exports = merge(common, {
@@ -11,6 +10,7 @@ module.exports = merge(common, {
   devtool: 'inline-source-map',
   devServer: {
     hot: true,
+    host: '0.0.0.0',
     open: false,
   },
   output: {
@@ -21,10 +21,6 @@ module.exports = merge(common, {
     new HtmlWebpackPlugin({
       excludeChunks: ['worker'],
       template: './public/template.html',
-    }),
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, '../librarian_search'),
-      forceMode: 'production',
     }),
   ],
 });
