@@ -13,8 +13,7 @@ use librarian_common::tokenize::Tokenizer;
 use crate::ascii_folding_filter;
 
 lazy_static! {
-  static ref PUNCTUATION_FILTER: Regex = Regex::new(r#"[\[\](){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.]"#).unwrap();
-  static ref BOUNDARY_FILTER: Regex = Regex::new(r#"(^\W)|(\W$)"#).unwrap();
+  static ref TERM_FILTER: Regex = Regex::new(r#"(^\W+)|(\W+$)|([\[\](){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.])"#).unwrap();
   static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.?!](\s+|$)"#).unwrap();
 }
 
@@ -110,11 +109,10 @@ impl Tokenizer for EnglishTokenizer {
       .split(&text)
       .flat_map(|sent_slice| sent_slice.split_whitespace()
         .map(|term_slice| {
-          let folded = ascii_folding_filter::to_ascii(&BOUNDARY_FILTER.replace_all(
-            &PUNCTUATION_FILTER.replace_all(term_slice, ""), ""
-          ));
+          let folded = ascii_folding_filter::to_ascii(term_slice);
+          let filtered = TERM_FILTER.replace_all(&folded, "");
 
-          if self.use_stemmer { self.stemmer.stem(&folded).into_owned() } else { folded }
+          if self.use_stemmer { self.stemmer.stem(&folded).into_owned() } else { filtered.into_owned() }
         })
         .filter(|term| {
           let term_byte_len = term.as_bytes().len();
