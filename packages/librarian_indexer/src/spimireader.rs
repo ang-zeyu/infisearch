@@ -205,8 +205,7 @@ pub fn merge_blocks(
     // Unwrap the inner mutex to avoid locks as it is now read-only
     let doc_infos_unlocked_arc = if let Ok(doc_infos_mutex) = Arc::try_unwrap(doc_infos) {
         let mut doc_infos_unwrapped_inner = doc_infos_mutex.into_inner().unwrap();
-        doc_infos_unwrapped_inner.divide_field_lengths();
-        doc_infos_unwrapped_inner.flush(output_folder_path.join("docInfo"));
+        doc_infos_unwrapped_inner.finalize_and_flush(output_folder_path.join("docInfo"));
     
         Arc::from(doc_infos_unwrapped_inner)
     } else {

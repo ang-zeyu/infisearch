@@ -5,7 +5,6 @@ use crate::MainToWorkerMessage;
 use std::sync::Barrier;
 use std::sync::Arc;
 use std::sync::Mutex;
-use crate::DocInfos;
 use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDocComparator;
 use std::collections::BinaryHeap;
@@ -16,6 +15,8 @@ use std::path::PathBuf;
 
 use rustc_hash::FxHashMap;
 
+use crate::docinfo::BlockDocLengths;
+use crate::DocInfos;
 use crate::worker::miner::WorkerMiner;
 use crate::worker::miner::TermDoc;
 
@@ -156,7 +157,7 @@ fn combine_and_sort(
         }
 
         {
-            doc_infos.lock().unwrap().extend_with(sorted_doc_infos);
+            doc_infos.lock().unwrap().all_block_doc_lengths.push(BlockDocLengths(sorted_doc_infos));
         }
     }
 
