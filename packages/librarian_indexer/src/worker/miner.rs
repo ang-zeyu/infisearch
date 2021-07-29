@@ -36,50 +36,47 @@ pub struct WorkerMiner {
     pub tokenizer: Arc<dyn Tokenizer + Send + Sync>,
 }
 
-pub struct TermDocComparator {
-    pub val: TermDoc,
-    pub idx: usize
-}
+pub struct TermDocComparator(pub TermDoc, pub std::vec::IntoIter<TermDoc>);
 
 impl Eq for TermDocComparator {}
 
 impl Ord for TermDocComparator {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.val.doc_id.cmp(&other.val.doc_id)
+        other.0.doc_id.cmp(&self.0.doc_id)
     }
 }
 
 impl PartialOrd for TermDocComparator {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.val.doc_id.cmp(&other.val.doc_id))
+        Some(other.0.doc_id.cmp(&self.0.doc_id))
     }
 }
 
 impl PartialEq for TermDocComparator {
     fn eq(&self, other: &Self) -> bool {
-        self.val.doc_id == other.val.doc_id
+        other.0.doc_id == self.0.doc_id
     }
 }
 
-pub struct DocIdAndFieldLengthsComparator(pub WorkerMinerDocInfo, pub usize);
+pub struct DocIdAndFieldLengthsComparator(pub WorkerMinerDocInfo, pub std::vec::IntoIter<WorkerMinerDocInfo>);
 
 impl Eq for DocIdAndFieldLengthsComparator {}
 
 impl Ord for DocIdAndFieldLengthsComparator {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.0.doc_id.cmp(&other.0.doc_id)
+        other.0.doc_id.cmp(&self.0.doc_id)
     }
 }
 
 impl PartialOrd for DocIdAndFieldLengthsComparator {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.0.doc_id.cmp(&other.0.doc_id))
+        Some(other.0.doc_id.cmp(&self.0.doc_id))
     }
 }
 
 impl PartialEq for DocIdAndFieldLengthsComparator {
     fn eq(&self, other: &Self) -> bool {
-        self.0.doc_id == other.0.doc_id
+        other.0.doc_id == self.0.doc_id
     }
 }
 

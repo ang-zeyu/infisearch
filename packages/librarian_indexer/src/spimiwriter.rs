@@ -83,7 +83,7 @@ fn combine_and_sort(
 ) -> Vec<(String, Vec<TermDoc>)> {
     let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
 
-    let mut worker_lengths: Vec<Vec<WorkerMinerDocInfo>> = Vec::with_capacity(num_docs as usize);
+    let mut worker_lengths: Vec<std::vec::IntoIter<WorkerMinerDocInfo>> = Vec::with_capacity(num_docs as usize);
 
     // Combine
     for worker_miner in worker_miners {
@@ -94,7 +94,7 @@ fn combine_and_sort(
                 .push(worker_term_docs);
         }
 
-        worker_lengths.push(worker_miner.doc_infos);
+        worker_lengths.push(worker_miner.doc_infos.into_iter());
     }
 
     
@@ -103,24 +103,22 @@ fn combine_and_sort(
 
         let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::new();
 
-        for idx in 0..worker_lengths.len() {
-            let worker_document_lengths = worker_lengths.get_mut(idx).unwrap();
-            if !worker_document_lengths.is_empty() {
-                heap.push(DocIdAndFieldLengthsComparator(worker_document_lengths.pop().unwrap(), idx as usize));
+        for mut worker_document_lengths in worker_lengths {
+            if let Some(worker_document_length) = worker_document_lengths.next() {
+                heap.push(DocIdAndFieldLengthsComparator(worker_document_length, worker_document_lengths));
             }
         }
 
+        // Heap sort by doc id
         while !heap.is_empty() {
-            let top = heap.pop().unwrap();
+            let mut top = heap.pop().unwrap();
 
-            let worker_document_lengths = worker_lengths.get_mut(top.1).unwrap();
-            if !worker_document_lengths.is_empty() {
-                heap.push(DocIdAndFieldLengthsComparator(worker_document_lengths.pop().unwrap(), top.1));
+            if let Some(worker_document_length) = top.1.next() {
+                heap.push(DocIdAndFieldLengthsComparator(worker_document_length, top.1));
             }
 
             sorted_doc_infos.push(top.0);
         }
-        sorted_doc_infos.reverse();
 
         // Store field texts
         let mut count = total_num_docs;
@@ -157,30 +155,33 @@ fn combine_and_sort(
             // delete
         }
 
-        doc_infos.lock().unwrap().extend_with(sorted_doc_infos);
+        {
+            doc_infos.lock().unwrap().extend_with(sorted_doc_infos);
+        }
     }
 
-    // Sort
+    // Sort and aggregate worker docIds of each term into one vector
     let mut sorted_entries: Vec<(String, Vec<TermDoc>)> = combined_terms.into_iter()
-        .map(|mut tup| {
-            // Sort and aggregate worker docIds into one vector
+        .map(|tup| {
             let mut output: Vec<TermDoc> = Vec::new();
 
             let mut heap: BinaryHeap<TermDocComparator> = BinaryHeap::new();
 
-            for i in 0..tup.1.len() {
-                heap.push(TermDocComparator { val: tup.1.get_mut(i).unwrap().pop().unwrap(), idx: i });
+            for term_docs in tup.1 {
+                let mut iter = term_docs.into_iter();
+                if let Some(term_doc) = iter.next() {
+                    heap.push(TermDocComparator(term_doc, iter));
+                }
             }
 
             while !heap.is_empty() {
-                let top = heap.pop().unwrap();
+                let mut top = heap.pop().unwrap();
 
-                let worker_term_docs = tup.1.get_mut(top.idx).unwrap();
-                if !worker_term_docs.is_empty() {
-                    heap.push(TermDocComparator { val: worker_term_docs.pop().unwrap(), idx: top.idx });
+                if let Some(term_doc) = top.1.next() {
+                    heap.push(TermDocComparator(term_doc, top.1));
                 }
 
-                output.push(top.val);
+                output.push(top.0);
             }
             
             (tup.0, output)
@@ -217,7 +218,7 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: Pa
         // doc id (4 bytes) - number of fields (1 byte)
         //   field id (1 byte) - field term frequency (4 bytes)
         //     field term position (4 bytes)
-        for term_doc in term_docs.into_iter().rev() {
+        for term_doc in term_docs.into_iter() {
             buffered_writer.write_all(&term_doc.doc_id.to_le_bytes()).unwrap();
 
             let num_fields = term_doc.doc_fields
