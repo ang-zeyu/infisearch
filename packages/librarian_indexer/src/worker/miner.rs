@@ -11,14 +11,9 @@ use rustc_hash::FxHashMap;
 
 use crate::FieldInfos;
 
-pub struct DocField {
-    pub field_id: u8,
-    pub field_positions: Vec<u32>
-}
-
 pub struct TermDoc {
     pub doc_id: u32,
-    pub doc_fields: Vec<DocField>
+    pub doc_fields: Vec<Vec<u32>>
 }
 
 pub struct WorkerMinerDocInfo {
@@ -152,27 +147,19 @@ impl WorkerMiner {
                 let term_docs = self.terms.entry(field_term)
                     .or_insert_with(|| vec![TermDoc {
                         doc_id,
-                        doc_fields: Vec::with_capacity(num_scored_fields)
+                        doc_fields: vec![Vec::new(); num_scored_fields]
                     }]);
 
                 let mut term_doc = term_docs.last_mut().unwrap();
                 if term_doc.doc_id != doc_id {
                     term_docs.push(TermDoc {
                         doc_id,
-                        doc_fields: Vec::with_capacity(num_scored_fields)
+                        doc_fields: vec![Vec::new(); num_scored_fields]
                     });
                     term_doc = term_docs.last_mut().unwrap();
                 }
 
-                for field_id in term_doc.doc_fields.len() as u8..field_id + 1 {
-                    term_doc.doc_fields.push(DocField {
-                        field_id,
-                        field_positions: Vec::new()
-                    });
-                }
-
-                term_doc.doc_fields.get_mut(field_id as usize).unwrap()
-                    .field_positions.push(pos);
+                term_doc.doc_fields.get_mut(field_id as usize).unwrap().push(pos);
             }
 
             pos += 120; // to "split up zones"

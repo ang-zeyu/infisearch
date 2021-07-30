@@ -194,7 +194,11 @@ fn combine_and_sort(
     sorted_entries
 }
 
-fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: PathBuf, bsbi_block_number: u32) {
+fn write_to_disk(
+    bsbi_block: Vec<(String, Vec<TermDoc>)>,
+    output_folder_path: PathBuf,
+    bsbi_block_number: u32,
+) {
     let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", bsbi_block_number));
     let output_file_path = output_folder_path.join(format!("bsbi_block_{}", bsbi_block_number));
 
@@ -224,20 +228,20 @@ fn write_to_disk(bsbi_block: Vec<(String, Vec<TermDoc>)>, output_folder_path: Pa
 
             let num_fields = term_doc.doc_fields
                 .iter()
-                .filter(|doc_field| doc_field.field_positions.len() > 0)
+                .filter(|doc_field| doc_field.len() > 0)
                 .count() as u8;
             buffered_writer.write_all(&[num_fields]).unwrap();
 
-            for doc_field in term_doc.doc_fields {
-                let tf = doc_field.field_positions.len() as u32;
+            for (field_id, doc_field) in term_doc.doc_fields.into_iter().enumerate() {
+                let tf = doc_field.len() as u32;
                 if tf == 0 {
                     continue;
                 }
 
-                buffered_writer.write_all(&[doc_field.field_id]).unwrap();
+                buffered_writer.write_all(&[field_id as u8]).unwrap();
                 buffered_writer.write_all(&tf.to_le_bytes()).unwrap();
 
-                for pos in doc_field.field_positions {
+                for pos in doc_field {
                     buffered_writer.write_all(&pos.to_le_bytes()).unwrap();
                 }
             }
