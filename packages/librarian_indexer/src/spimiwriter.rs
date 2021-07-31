@@ -84,7 +84,7 @@ fn combine_and_sort(
 ) -> Vec<(String, Vec<TermDoc>)> {
     let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
 
-    let mut worker_lengths: Vec<std::vec::IntoIter<WorkerMinerDocInfo>> = Vec::with_capacity(num_docs as usize);
+    let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::with_capacity(worker_miners.len());
 
     // Combine
     for worker_miner in worker_miners {
@@ -95,20 +95,14 @@ fn combine_and_sort(
                 .push(worker_term_docs);
         }
 
-        worker_lengths.push(worker_miner.doc_infos.into_iter());
+        let mut doc_infos_iter = worker_miner.doc_infos.into_iter();
+        if let Some(worker_document_length) = doc_infos_iter.next() {
+            heap.push(DocIdAndFieldLengthsComparator(worker_document_length, doc_infos_iter));
+        }
     }
-
     
     {
         let mut sorted_doc_infos: Vec<WorkerMinerDocInfo> = Vec::with_capacity(num_docs as usize);
-
-        let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::new();
-
-        for mut worker_document_lengths in worker_lengths {
-            if let Some(worker_document_length) = worker_document_lengths.next() {
-                heap.push(DocIdAndFieldLengthsComparator(worker_document_length, worker_document_lengths));
-            }
-        }
 
         // Heap sort by doc id
         while !heap.is_empty() {
