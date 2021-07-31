@@ -36,7 +36,9 @@ async function update(
     throw ex;
   } finally {
     if (nextUpdate) {
-      await nextUpdate();
+      const nextUpdateTemp = nextUpdate;
+      nextUpdate = undefined;
+      await nextUpdateTemp();
     } else {
       isUpdating = false;
     }
