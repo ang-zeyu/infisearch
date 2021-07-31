@@ -70,7 +70,7 @@ impl Searcher {
 
                 for field_id in 0..self.num_scored_fields as u8 {
                     let mut result_doc_field = DocField {
-                        field_id,
+                        field_tf: 0.0,
                         field_positions: Vec::new(),
                     };
 
@@ -124,6 +124,8 @@ impl Searcher {
                             break;
                         }
                     }
+
+                    result_doc_field.field_tf = result_doc_field.field_positions.len() as f32;
 
                     td.fields.push(result_doc_field);
                 }

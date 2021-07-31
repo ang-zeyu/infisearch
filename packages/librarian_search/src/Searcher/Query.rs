@@ -279,16 +279,15 @@ impl Searcher {
                 if td.doc_id == pivot_doc_id {
                     let mut doc_term_score = 0.0;
 
-                    for field in td.fields.iter() {
-                        let field_tf = field.field_positions.len() as f32;
-                        if field_tf > 0.0 {
-                            let field_info = self.field_infos.get(field.field_id as usize).unwrap();
+                    for (field_id, field) in td.fields.iter().enumerate() {
+                        if field.field_tf > 0.0 {
+                            let field_info = self.field_infos.get(field_id).unwrap();
                             let field_len_factor = self.doc_info.doc_length_factors
                                 [pivot_doc_id as usize]
-                                [field.field_id as usize] as f32;
+                                [field_id as usize] as f32;
                             
-                            doc_term_score += ((field_tf * (field_info.k + 1.0))
-                                / (field_tf + field_info.k * (1.0 - field_info.b + field_info.b * field_len_factor)))
+                            doc_term_score += ((field.field_tf * (field_info.k + 1.0))
+                                / (field.field_tf + field_info.k * (1.0 - field_info.b + field_info.b * field_len_factor)))
                                 * field_info.weight;
                         }
                     }

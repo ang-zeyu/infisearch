@@ -10,14 +10,14 @@ use librarian_common::tokenize::TermInfo;
 use crate::utils::varint::decode_var_int;
 
 pub struct DocField {
-    pub field_id: u8,
+    pub field_tf: f32,
     pub field_positions: Vec<u32>,
 }
 
 impl Clone for DocField {
     fn clone(&self) -> Self {
         DocField {
-            field_id: self.field_id,
+            field_tf: self.field_tf,
             field_positions: self.field_positions.clone(),
         }
     }
@@ -118,7 +118,7 @@ impl PostingsList {
                 let term_doc_1_field = term_doc_1_field_opt.unwrap();
                 let term_doc_2_field = term_doc_2_field_opt.unwrap();
                 let mut doc_field = DocField {
-                    field_id: field_id as u8,
+                    field_tf: term_doc_1_field.field_tf + term_doc_2_field.field_tf,
                     field_positions: Vec::new(),
                 };
 
@@ -145,15 +145,9 @@ impl PostingsList {
 
                 td.fields.push(doc_field);
             } else if let Option::Some(term_doc_1_field) = term_doc_1_field_opt {
-                td.fields.push(DocField {
-                    field_id: field_id as u8,
-                    field_positions: term_doc_1_field.field_positions.clone(),
-                });
+                td.fields.push(term_doc_1_field.clone());
             } else if let Option::Some(term_doc_2_field) = term_doc_2_field_opt {
-                td.fields.push(DocField {
-                    field_id: field_id as u8,
-                    field_positions: term_doc_2_field.field_positions.clone(),
-                });
+                td.fields.push(term_doc_2_field.clone());
             }
         }
 
@@ -207,15 +201,15 @@ impl PostingsList {
                     field_positions.push(prev_pos);
                 }
 
-                for field_id_before in term_doc.fields.len() as u8..field_id {
+                for _field_id_before in term_doc.fields.len() as u8..field_id {
                     term_doc.fields.push(DocField {
-                        field_id: field_id_before,
+                        field_tf: 0.0,
                         field_positions: Vec::new(),
                     });
                 }
                 
                 term_doc.fields.push(DocField {
-                    field_id,
+                    field_tf: field_positions.len() as f32,
                     field_positions,
                 });
             }
