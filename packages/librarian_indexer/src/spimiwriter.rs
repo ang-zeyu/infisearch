@@ -41,7 +41,7 @@ impl Indexer {
             let worker_msg = self.rx_main.recv();
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
-                    println!("Received worker {} data!", worker_msg_unwrapped.id);
+                    println!("Worker {} data received!", worker_msg_unwrapped.id);
                     worker_miners.push(worker_msg_unwrapped.doc_miner.expect("Received non doc miner message!"));
                 },
                 Err(e) => panic!("Failed to receive idle message from worker! {}", e)
