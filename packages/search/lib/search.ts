@@ -7,7 +7,7 @@ import Query from './results/Query';
 
 const { h } = domUtils;
 
-let previousQuery: Query;
+let query: Query;
 
 let isUpdating = false;
 let nextUpdate: () => Promise<void>;
@@ -19,12 +19,12 @@ async function update(
 ): Promise<void> {
   try {
     const now = performance.now();
-    const query = await searcher.getQuery(queryString);
 
-    if (previousQuery) {
-      previousQuery.free();
+    if (query) {
+      query.free();
     }
-    previousQuery = query;
+
+    query = await searcher.getQuery(queryString);
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
