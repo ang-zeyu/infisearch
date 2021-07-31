@@ -125,35 +125,34 @@ fn combine_and_sort(
         let mut count = total_num_docs;
         let mut block_count = 0;
         let mut writer = BufWriter::new(
-            File::create(field_infos.field_output_folder_path.join(format!("{}.json", count / field_infos.field_store_block_size))).unwrap()
+            File::create(field_infos.field_output_folder_path.join(format!("_unused_{}", count))).unwrap()
         );
-        writer.write_all(b"[").unwrap();
         for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
-            if block_count != 0 {
-                writer.write_all(b",").unwrap();
-            }
-            writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
-
             block_count += 1;
-            if block_count == field_infos.field_store_block_size {
-                count += block_count;
-                block_count = 0;
-                writer.write_all(b"]").unwrap();
-                writer.flush().unwrap();
 
+            if block_count == 1 {
                 writer = BufWriter::new(
                     File::create(field_infos.field_output_folder_path.join(format!("{}.json", count / field_infos.field_store_block_size))).unwrap()
                 );
                 writer.write_all(b"[").unwrap();
+            } else {
+                writer.write_all(b",").unwrap();
+            }
+
+            writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
+
+            if block_count == field_infos.field_store_block_size {
+                writer.write_all(b"]").unwrap();
+                writer.flush().unwrap();
+
+                count += block_count;
+                block_count = 0;
             }
         }
 
         if block_count != 0 {
             writer.write_all(b"]").unwrap();
             writer.flush().unwrap();
-        } else {
-            writer.flush().unwrap();
-            // delete
         }
 
         {
