@@ -253,7 +253,6 @@ function displayTermInfo(query: Query): HTMLElement[] {
  Main transform function
  */
 
-let previousQuery: Query;
 export default async function transformResults(
   query: Query,
   isFirst: boolean,
@@ -315,11 +314,6 @@ export default async function transformResults(
   }
   const sentinel = h('li', {});
   fragment.appendChild(sentinel);
-
-  if (previousQuery) {
-    previousQuery.free();
-  }
-  previousQuery = query;
 
   if (isFirst) {
     container.innerHTML = '';

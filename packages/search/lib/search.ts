@@ -3,8 +3,11 @@ import './styles/search.css';
 import Searcher from './results/Searcher';
 import domUtils from './utils/dom';
 import transformResults from './searchResultTransform';
+import Query from './results/Query';
 
 const { h } = domUtils;
+
+let previousQuery: Query;
 
 let isUpdating = false;
 let nextUpdate: () => Promise<void>;
@@ -17,6 +20,11 @@ async function update(
   try {
     const now = performance.now();
     const query = await searcher.getQuery(queryString);
+
+    if (previousQuery) {
+      previousQuery.free();
+    }
+    previousQuery = query;
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
