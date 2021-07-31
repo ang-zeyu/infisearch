@@ -1,4 +1,7 @@
 export interface LibrarianConfig {
+  indexingConfig: {
+    withPositions: boolean,
+  },
   language: {
     lang: string,
   },
@@ -8,6 +11,9 @@ export interface LibrarianConfig {
 }
 
 export interface LibrarianConfigRaw {
+  indexing_config: {
+    with_positions: boolean,
+  },
   language: {
     lang: string,
   },

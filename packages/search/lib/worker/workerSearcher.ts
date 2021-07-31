@@ -1,4 +1,4 @@
-import { FieldInfo, LibrarianConfig } from '../results/FieldInfo';
+import { LibrarianConfig } from '../results/FieldInfo';
 import { SearcherOptions } from '../results/SearcherOptions';
 import WorkerQuery from './workerQuery';
 
@@ -61,12 +61,14 @@ export default class WorkerSearcher {
     this.wasmSearcher = await this.wasmModule.get_new_searcher(
       this.baseUrl,
       this.config.numScoredFields,
-      this.config.language,
       this.config.fieldInfos,
+      this.config.indexingConfig,
+      this.config.language,
       {
         url: this.baseUrl,
         use_query_term_expansion: this.searcherOptions.useQueryTermExpansion,
-        use_query_term_proximity: this.searcherOptions.useQueryTermProximity,
+        use_query_term_proximity: this.config.indexingConfig.withPositions
+            && this.searcherOptions.useQueryTermProximity,
       },
     );
   }

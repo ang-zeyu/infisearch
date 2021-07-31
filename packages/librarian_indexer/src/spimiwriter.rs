@@ -25,7 +25,7 @@ impl Indexer {
     pub fn write_block (&mut self) {
         // Don't block on threads that are still writing blocks (long running)
         let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
-        let num_workers_to_collect = self.num_threads as usize - *num_workers_writing_blocks;
+        let num_workers_to_collect = self.indexing_config.num_threads - *num_workers_writing_blocks;
         let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_workers_to_collect);
 
         let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_workers_to_collect));
@@ -221,20 +221,19 @@ fn write_to_disk(
 
             let num_fields = term_doc.doc_fields
                 .iter()
-                .filter(|doc_field| doc_field.len() > 0)
+                .filter(|doc_field| doc_field.field_tf > 0)
                 .count() as u8;
             buffered_writer.write_all(&[num_fields]).unwrap();
 
             for (field_id, doc_field) in term_doc.doc_fields.into_iter().enumerate() {
-                let tf = doc_field.len() as u32;
-                if tf == 0 {
+                if doc_field.field_tf == 0 {
                     continue;
                 }
 
                 buffered_writer.write_all(&[field_id as u8]).unwrap();
-                buffered_writer.write_all(&tf.to_le_bytes()).unwrap();
+                buffered_writer.write_all(&doc_field.field_tf.to_le_bytes()).unwrap();
 
-                for pos in doc_field {
+                for pos in doc_field.positions {
                     buffered_writer.write_all(&pos.to_le_bytes()).unwrap();
                 }
             }

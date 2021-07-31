@@ -10,9 +10,32 @@ use rustc_hash::FxHashMap;
 
 use crate::FieldInfos;
 
+pub struct DocField {
+    pub field_tf: u32,
+    pub positions: Vec<u32>,
+}
+
+impl Clone for DocField {
+    fn clone(&self) -> Self {
+        DocField {
+            field_tf: self.field_tf,
+            positions: self.positions.clone(),
+        }
+    }
+}
+
+impl Default for DocField {
+    fn default() -> Self {
+        DocField {
+            field_tf: 0,
+            positions: Vec::new(),
+        }
+    }
+}
+
 pub struct TermDoc {
     pub doc_id: u32,
-    pub doc_fields: Vec<Vec<u32>>
+    pub doc_fields: Vec<DocField>
 }
 
 pub struct WorkerMinerDocInfo {
@@ -25,6 +48,7 @@ pub struct WorkerMinerDocInfo {
 // Outputs (termID, docID, fieldId, fieldTf, positions ...., fieldId, fieldTf, positions ....) tuples
 pub struct WorkerMiner {
     pub field_infos: Arc<FieldInfos>,
+    pub with_positions: bool,
     pub terms: FxHashMap<String, Vec<TermDoc>>,
     pub doc_infos: Vec<WorkerMinerDocInfo>,
     pub tokenizer: Arc<dyn Tokenizer + Send + Sync>,
@@ -148,19 +172,23 @@ impl WorkerMiner {
                 let term_docs = self.terms.entry(field_term)
                     .or_insert_with(|| vec![TermDoc {
                         doc_id,
-                        doc_fields: vec![Vec::new(); num_scored_fields]
+                        doc_fields: vec![DocField::default(); num_scored_fields]
                     }]);
 
                 let mut term_doc = term_docs.last_mut().unwrap();
                 if term_doc.doc_id != doc_id {
                     term_docs.push(TermDoc {
                         doc_id,
-                        doc_fields: vec![Vec::new(); num_scored_fields]
+                        doc_fields: vec![DocField::default(); num_scored_fields]
                     });
                     term_doc = term_docs.last_mut().unwrap();
                 }
 
-                term_doc.doc_fields.get_mut(field_id as usize).unwrap().push(pos);
+                let doc_field = term_doc.doc_fields.get_mut(field_id as usize).unwrap();
+                doc_field.field_tf += 1;
+                if self.with_positions {
+                    doc_field.positions.push(pos);
+                }
             }
 
             pos += 120; // to "split up zones"

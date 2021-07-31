@@ -27,6 +27,12 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::{wasm_bindgen};
 
 #[derive(Deserialize)]
+struct IndexingConfig {
+  #[serde(rename = "withPositions")]
+  with_positions: bool,
+}
+
+#[derive(Deserialize)]
 pub struct FieldInfo {
   pub id: u8,
   pub name: String,
@@ -50,6 +56,7 @@ pub struct Searcher {
     tokenizer: Box<dyn Tokenizer>,
     num_scored_fields: usize,
     field_infos: Vec<FieldInfo>,
+    indexing_config: IndexingConfig,
     doc_info: DocInfo,
     searcher_options: SearcherOptions,
 }
@@ -76,8 +83,9 @@ fn get_tokenizer(language_config: LibrarianLanguageConfig) -> Box<dyn Tokenizer>
 pub async fn get_new_searcher(
     base_url: String,
     num_scored_fields: usize,
-    language_config: JsValue,
     field_infos_js: JsValue,
+    indexing_config: JsValue,
+    language_config: JsValue,
     searcher_options: JsValue,
 ) -> Result<Searcher, JsValue> {
   let doc_info = DocInfo::create(base_url.clone(), num_scored_fields).await?;
@@ -89,6 +97,7 @@ pub async fn get_new_searcher(
   let dictionary = setup_dictionary(SmartString::from(&base_url), doc_info.num_docs, build_trigram).await?;
 
   let field_infos: Vec<FieldInfo> = field_infos_js.into_serde().unwrap();
+  let indexing_config: IndexingConfig = indexing_config.into_serde().unwrap();
   let searcher_options: SearcherOptions = searcher_options.into_serde().unwrap();
 
   Ok(Searcher {
@@ -97,6 +106,7 @@ pub async fn get_new_searcher(
     tokenizer,
     num_scored_fields,
     field_infos,
+    indexing_config,
     doc_info,
     searcher_options,
   })

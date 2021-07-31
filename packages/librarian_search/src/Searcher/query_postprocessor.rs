@@ -62,7 +62,9 @@ impl Searcher {
 
                 let window: web_sys::Window = js_sys::global().unchecked_into();
                 join_all(
-                    expanded_postings_lists.iter_mut().map(|pl| (*pl).fetch_term(&self.base_url, &window, self.num_scored_fields))
+                    expanded_postings_lists.iter_mut().map(|pl| (*pl).fetch_term(
+                        &self.base_url, &window, self.num_scored_fields, self.indexing_config.with_positions
+                    ))
                 ).await;
 
                 postings_lists.append(&mut expanded_postings_lists.into_iter().map(|pl| Rc::new(pl)).collect());

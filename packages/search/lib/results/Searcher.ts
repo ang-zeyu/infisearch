@@ -82,6 +82,9 @@ class Searcher {
     console.log(fieldInfos);
 
     this.librarianConfig = {
+      indexingConfig: {
+        withPositions: json.indexing_config.with_positions,
+      },
       language: json.language,
       fieldInfos,
       numScoredFields: fieldInfosRaw.num_scored_fields,

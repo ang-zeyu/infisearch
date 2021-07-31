@@ -45,12 +45,20 @@ fn get_default_num_docs_per_block() -> u32 {
     1000
 }
 
-#[derive(Deserialize)]
+fn get_default_with_positions() -> bool {
+    true
+}
+
+#[derive(Serialize, Deserialize)]
 struct LibrarianIndexingConfig {
     #[serde(default = "get_default_num_threads")]
+    #[serde(skip_serializing)]
     num_threads: usize,
     #[serde(default = "get_default_num_docs_per_block")]
+    #[serde(skip_serializing)]
     num_docs_per_block: u32,
+    #[serde(default = "get_default_with_positions")]
+    with_positions: bool,
 }
 
 impl Default for LibrarianIndexingConfig {
@@ -58,6 +66,7 @@ impl Default for LibrarianIndexingConfig {
         LibrarianIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
+            with_positions: get_default_with_positions(),
         }
     }
 }
@@ -73,6 +82,7 @@ pub struct LibrarianConfig {
 
 #[derive(Serialize)]
 pub struct LibrarianOutputConfig<'a> {
+    indexing_config: &'a LibrarianIndexingConfig,
     language: &'a LibrarianLanguageConfig,
     field_infos: &'a FieldInfos,
 }
@@ -132,8 +142,7 @@ impl Default for LibrarianConfig {
 
 
 pub struct Indexer {
-    num_docs: u32,
-    num_threads: usize,
+    indexing_config: LibrarianIndexingConfig,
     expected_num_docs_per_thread: usize,
     doc_id_counter: u32,
     spimi_counter: u32,
@@ -163,19 +172,19 @@ impl Indexer {
         let expected_num_docs_per_thread = (
             config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2
         ) as usize;
+        let num_threads = config.indexing_config.num_threads;
 
         let tokenizer = Indexer::resolve_tokenizer(&config.language);
 
         let mut indexer = Indexer {
-            num_docs: config.indexing_config.num_docs_per_block,
-            num_threads: config.indexing_config.num_threads,
+            indexing_config: config.indexing_config,
             expected_num_docs_per_thread,
             doc_id_counter: 0,
             spimi_counter: 0,
             field_store_block_size: config.fields_config.field_store_block_size,
             field_infos: Option::None,
             output_folder_path: output_folder_path.to_path_buf(),
-            workers: Vec::with_capacity(config.indexing_config.num_threads as usize),
+            workers: Vec::with_capacity(num_threads),
             doc_infos: Option::None,
             tx_main,
             rx_main,
@@ -255,7 +264,8 @@ impl Indexer {
         
         // Construct worker threads
         let num_docs_per_thread = self.expected_num_docs_per_thread;
-        for i in 0..self.num_threads {
+        let with_positions = self.indexing_config.with_positions;
+        for i in 0..self.indexing_config.num_threads {
             let tx_worker_clone = self.tx_worker.clone();
             let rx_worker_clone = self.rx_worker.clone();
             let tokenize_clone = Arc::clone(&self.tokenizer);
@@ -271,6 +281,7 @@ impl Indexer {
                         rx_worker_clone,
                         tokenize_clone,
                         field_info_clone,
+                        with_positions,
                         num_docs_per_thread,
                         num_workers_writing_blocks_clone,
                     )),
@@ -278,6 +289,7 @@ impl Indexer {
         }
 
         let serialized = serde_json::to_string(&LibrarianOutputConfig {
+            indexing_config: &self.indexing_config,
             language: &self.language_config,
             field_infos: self.field_infos.as_ref().unwrap(),
         }).unwrap();
@@ -289,7 +301,7 @@ impl Indexer {
     }
 
     fn block_number(&self) -> u32 {
-        ((self.doc_id_counter as f64) / (self.num_docs as f64)).ceil() as u32
+        ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).ceil() as u32
     }
 
     pub fn index_document(&mut self, field_texts: Vec<(&'static str, String)>) {
@@ -301,7 +313,7 @@ impl Indexer {
         self.doc_id_counter += 1;
         self.spimi_counter += 1;
 
-        if self.spimi_counter == self.num_docs {
+        if self.spimi_counter == self.indexing_config.num_docs_per_block {
             self.write_block();
         }
     }
@@ -316,19 +328,19 @@ impl Indexer {
         self.doc_id_counter += 1;
         self.spimi_counter += 1;
 
-        if self.spimi_counter == self.num_docs {
+        if self.spimi_counter == self.indexing_config.num_docs_per_block {
             self.write_block();
         }
     }
 
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
-        if self.spimi_counter != 0 && self.spimi_counter != self.num_docs {
+        if self.spimi_counter != 0 && self.spimi_counter != self.indexing_config.num_docs_per_block {
             println!("Writing last spimi block");
             self.write_block();
         }
         
         // Wait on all workers
-        Worker::wait_on_all_workers(&self.tx_main, self.num_threads);
+        Worker::wait_on_all_workers(&self.tx_main, self.indexing_config.num_threads);
         println!("Number of docs: {}", self.doc_id_counter);
         if let Some(now) = instant {
             print_time_elapsed(now, "Block indexing done!");

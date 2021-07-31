@@ -138,12 +138,14 @@ pub fn worker (
     /* Immutable shared data structures... */
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     field_infos: Arc<FieldInfos>,
+    with_positions: bool,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
 ) {
     // Initialize data structures...
     let mut doc_miner = WorkerMiner {
         field_infos: Arc::clone(&field_infos),
+        with_positions,
         terms: FxHashMap::default(),
         doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
         tokenizer: Arc::clone(&tokenizer),
@@ -206,6 +208,7 @@ pub fn worker (
                 // reset local variables...
                 doc_miner = WorkerMiner {
                     field_infos: Arc::clone(&field_infos),
+                    with_positions,
                     terms: FxHashMap::default(),
                     doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
                     tokenizer: Arc::clone(&tokenizer),
@@ -254,12 +257,14 @@ pub fn worker (
                                  then write it out in the main thread later.
                                 */
                                 
-                                let mut prev_pos = 0;
-                                for _k in 0..field_tf {
-                                    pl_reader.read_exact(u32_buf).unwrap();
-                                    let curr_pos = LittleEndian::read_u32(u32_buf);
-                                    varint::get_var_int_vec(curr_pos - prev_pos, combined_var_ints);
-                                    prev_pos = curr_pos;
+                                if with_positions {
+                                    let mut prev_pos = 0;
+                                    for _k in 0..field_tf {
+                                        pl_reader.read_exact(u32_buf).unwrap();
+                                        let curr_pos = LittleEndian::read_u32(u32_buf);
+                                        varint::get_var_int_vec(curr_pos - prev_pos, combined_var_ints);
+                                        prev_pos = curr_pos;
+                                    }
                                 }
 
                                 let field_info = field_infos.field_infos_by_id.get(field_id as usize).unwrap();

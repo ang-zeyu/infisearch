@@ -154,7 +154,13 @@ impl PostingsList {
         td
     }
 
-    pub async fn fetch_term(&mut self, base_url: &str, window: &web_sys::Window, num_scored_fields: usize) -> Result<(), JsValue> {
+    pub async fn fetch_term(
+        &mut self,
+        base_url: &str,
+        window: &web_sys::Window,
+        num_scored_fields: usize,
+        with_positions: bool,
+    ) -> Result<(), JsValue> {
         if let Option::None = self.term_info {
             return Ok(());
         }
@@ -191,15 +197,22 @@ impl PostingsList {
                 let field_tf_val_and_length = decode_var_int(&pl_vec[pos..]);
                 pos += field_tf_val_and_length.1;
 
-                let mut field_positions = Vec::with_capacity(field_tf_val_and_length.0 as usize);
-                let mut prev_pos = 0;
-                for _j in 0..field_tf_val_and_length.0 {
-                    let posgap_val_and_length = decode_var_int(&pl_vec[pos..]);
-                    pos += posgap_val_and_length.1;
+                let field_positions = if with_positions {
+                    let mut field_positions = Vec::with_capacity(field_tf_val_and_length.0 as usize);
 
-                    prev_pos += posgap_val_and_length.0;
-                    field_positions.push(prev_pos);
-                }
+                    let mut prev_pos = 0;
+                    for _j in 0..field_tf_val_and_length.0 {
+                        let posgap_val_and_length = decode_var_int(&pl_vec[pos..]);
+                        pos += posgap_val_and_length.1;
+    
+                        prev_pos += posgap_val_and_length.0;
+                        field_positions.push(prev_pos);
+                    }
+
+                    field_positions
+                } else {
+                    Vec::new()
+                };
 
                 for _field_id_before in term_doc.fields.len() as u8..field_id {
                     term_doc.fields.push(DocField {
@@ -209,7 +222,7 @@ impl PostingsList {
                 }
                 
                 term_doc.fields.push(DocField {
-                    field_tf: field_positions.len() as f32,
+                    field_tf: field_tf_val_and_length.0 as f32,
                     field_positions,
                 });
             }
