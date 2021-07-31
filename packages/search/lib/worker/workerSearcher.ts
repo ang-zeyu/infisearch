@@ -63,13 +63,7 @@ export default class WorkerSearcher {
       this.config.numScoredFields,
       this.config.fieldInfos,
       this.config.indexingConfig,
-      this.config.language,
-      {
-        url: this.baseUrl,
-        use_query_term_expansion: this.searcherOptions.useQueryTermExpansion,
-        use_query_term_proximity: this.config.indexingConfig.withPositions
-            && this.searcherOptions.useQueryTermProximity,
-      },
+      this.config.language, this.searcherOptions,
     );
   }
 

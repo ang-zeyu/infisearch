@@ -50,7 +50,10 @@ class Searcher {
       };
     });
 
-    this.setupPromise = this.setupFieldInfo().then(() => {
+    this.setupPromise = this.retrieveConfig().then(() => {
+      options.useQueryTermProximity = options.useQueryTermProximity
+          && this.librarianConfig.indexingConfig.withPositions;
+
       const message: WorkerSearcherSetup = {
         url: options.url,
         config: this.librarianConfig,
@@ -62,7 +65,7 @@ class Searcher {
     });
   }
 
-  async setupFieldInfo(): Promise<void> {
+  async retrieveConfig(): Promise<void> {
     const json: LibrarianConfigRaw = await (await fetch(`${this.options.url}/_librarian_config.json`, {
       method: 'GET',
       headers: {

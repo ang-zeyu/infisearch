@@ -42,7 +42,9 @@ struct FieldInfo {
 #[derive(Deserialize)]
 struct SearcherOptions {
     url: String,
+    #[serde(rename = "useQueryTermExpansion")]
     use_query_term_expansion: bool,
+    #[serde(rename = "useQueryTermProximity")]
     pub use_query_term_proximity: bool,
 }
 
