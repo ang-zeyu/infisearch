@@ -2,7 +2,6 @@ use librarian_common::tokenize::Tokenizer;
 use std::borrow::Cow;
 use regex::Regex;
 use std::cmp::Ordering;
-use std::io::BufWriter;
 use std::io::Write;
 use std::str;
 use std::sync::Arc;
@@ -112,7 +111,9 @@ impl WorkerMiner {
 
         let num_scored_fields = self.field_infos.num_scored_fields;
         let mut field_lengths = vec![0; num_scored_fields];
-        let mut field_store_buffered_writer = BufWriter::new(Vec::new());
+        let mut field_store_buffered_writer = Vec::with_capacity(
+            ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize
+        );
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
         for (field_name, field_text) in field_texts {
@@ -170,7 +171,7 @@ impl WorkerMiner {
         self.doc_infos.push(WorkerMinerDocInfo {
             doc_id,
             field_lengths,
-            field_texts: field_store_buffered_writer.into_inner().unwrap(),
+            field_texts: field_store_buffered_writer,
         });
     }
 }
