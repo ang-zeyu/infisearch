@@ -10,7 +10,7 @@ const { h } = domUtils;
 let query: Query;
 
 let isUpdating = false;
-let nextUpdate: () => Promise<void>;
+let nextUpdate: () => any;
 async function update(
   queryString: string,
   container: HTMLElement,
@@ -97,7 +97,15 @@ function initLibrarian(
         }
       }, 200);
     } else {
-      hide(container);
+      clearTimeout(inputTimer);
+      if (isUpdating) {
+        nextUpdate = () => {
+          hide(container);
+          isUpdating = false;
+        };
+      } else {
+        hide(container);
+      }
     }
   });
 
