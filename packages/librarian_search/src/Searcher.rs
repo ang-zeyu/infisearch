@@ -33,13 +33,10 @@ struct IndexingConfig {
 }
 
 #[derive(Deserialize)]
-pub struct FieldInfo {
-  pub id: u8,
-  pub name: String,
-  pub do_store: bool,
-  pub weight: f32,
-  pub k: f32,
-  pub b: f32,
+struct FieldInfo {
+  weight: f32,
+  k: f32,
+  b: f32,
 }
 
 #[derive(Deserialize)]
