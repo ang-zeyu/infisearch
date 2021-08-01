@@ -17,10 +17,10 @@ onmessage = async function worker(ev) {
     if (isFree) {
       workerSearcher.freeQuery(query);
     } else if (isGetNextN) {
-      const nextDocIds = workerSearcher.getQueryNextN(query, n);
+      const nextResults = workerSearcher.getQueryNextN(query, n);
       postMessage({
         query,
-        nextDocIds,
+        nextResults,
       });
     } else {
       const workerQuery = await workerSearcher.processQuery(query);

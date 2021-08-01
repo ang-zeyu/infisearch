@@ -6,10 +6,13 @@ use crate::PostingsList::PlIterator;
 use crate::Searcher::Searcher;
 use crate::PostingsList::PostingsList;
 use crate::Searcher::query_parser::QueryPart;
+
+use serde::Serialize;
 use std::collections::BinaryHeap;
 use std::cmp::Ordering;
 use wasm_bindgen::prelude::{wasm_bindgen};
 
+#[derive(Serialize)]
 struct DocResult(u32, f32);
 
 impl Eq for DocResult {}
@@ -95,13 +98,13 @@ pub struct Query {
 #[wasm_bindgen]
 impl Query {
     pub fn get_next_n(&mut self, n: usize) -> JsValue {
-        let mut doc_ids: Vec<u32> = Vec::with_capacity(n);
+        let mut doc_ids: Vec<DocResult> = Vec::with_capacity(n);
         while !self.result_heap.is_empty() && doc_ids.len() < n {
-            doc_ids.push(self.result_heap.pop().unwrap().0);
+            doc_ids.push(self.result_heap.pop().unwrap());
         }
 
         while !self.wand_leftovers.is_empty() && doc_ids.len() < n {
-            doc_ids.push(self.wand_leftovers.pop().unwrap());
+            doc_ids.push(DocResult(self.wand_leftovers.pop().unwrap(), 0.0));
         }
 
         JsValue::from_serde(&doc_ids).unwrap()

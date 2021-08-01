@@ -31,14 +31,14 @@ class Searcher {
         } else if (ev.data.query) {
           const {
             query,
-            nextDocIds,
+            nextResults,
             aggregatedTerms,
             queryParts,
           } = ev.data;
 
           this.workerQueryPromises[query].resolve({
             query,
-            nextDocIds,
+            nextResults,
             aggregatedTerms,
             queryParts,
           });
@@ -126,21 +126,21 @@ class Searcher {
       if (this.workerQueryPromises[query]) {
         await this.workerQueryPromises[query].promise;
       }
-      const getNextNPromise: Promise<{ nextDocIds: number[] }> = new Promise((resolve) => {
+      const getNextNPromise: Promise<{ nextResults: [number, number][] }> = new Promise((resolve) => {
         this.workerQueryPromises[query] = { promise: getNextNPromise, resolve };
         this.worker.postMessage({ query, isGetNextN: true, n });
       });
-      const getNextNResult: { nextDocIds: number[] } = await getNextNPromise;
+      const getNextNResult: { nextResults: [number, number][] } = await getNextNPromise;
       if (!getNextNResult) {
         console.error('Worker error promise resolved with undefined');
         return [];
       }
 
-      const { nextDocIds } = getNextNResult;
+      const { nextResults } = getNextNResult;
 
       // console.log(retrievedResults);
-      const retrievedResults = nextDocIds.map((docId) => new Result(
-        docId, 0, this.librarianConfig.fieldInfos,
+      const retrievedResults = nextResults.map(([docId, score]) => new Result(
+        docId, score, this.librarianConfig.fieldInfos,
       ));
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url, this.librarianConfig.fieldStoreBlockSize,
