@@ -41,7 +41,12 @@ fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
 pub struct EnglishTokenizer {
   pub stop_words: HashSet<String>,
   use_stemmer: bool,
-  stemmer: Stemmer
+  stemmer: Stemmer,
+  max_term_len: usize,
+}
+
+fn get_default_max_term_len() -> usize {
+  80
 }
 
 impl Default for EnglishTokenizer {
@@ -50,6 +55,7 @@ impl Default for EnglishTokenizer {
       stop_words: get_stop_words_set(get_default_stop_words()),
       use_stemmer: false,
       stemmer: Stemmer::create(Algorithm::English),
+      max_term_len: get_default_max_term_len(),
     }
   }
 }
@@ -58,6 +64,8 @@ impl Default for EnglishTokenizer {
 pub struct EnglishTokenizerOptions {
   stop_words: Option<Vec<String>>,
   stemmer: Option<String>,
+  #[serde(default = "get_default_max_term_len")]
+  max_term_len: usize,
 }
 
 pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
@@ -99,6 +107,7 @@ pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
     stop_words,
     use_stemmer,
     stemmer,
+    max_term_len: options.max_term_len,
   }
 }
 
@@ -115,8 +124,8 @@ impl Tokenizer for EnglishTokenizer {
           if self.use_stemmer { self.stemmer.stem(&folded).into_owned() } else { filtered.into_owned() }
         })
         .filter(|term| {
-          let term_byte_len = term.as_bytes().len();
-          term_byte_len > 0 && term_byte_len <= 120
+          let term_byte_len = term.len();
+          term_byte_len > 0 && term_byte_len <= self.max_term_len
         })
       )
       .collect()
