@@ -1,5 +1,4 @@
 
-use std::collections::HashSet;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use crate::PostingsList::PlIterator;
@@ -93,6 +92,7 @@ pub struct Query {
     pub is_free_text_query: bool,
     result_heap: BinaryHeap<DocResult>,
     wand_leftovers: Vec<u32>,
+    did_dedup_wand: bool,
 }
 
 #[wasm_bindgen]
@@ -104,6 +104,11 @@ impl Query {
         }
 
         while !self.wand_leftovers.is_empty() && doc_ids.len() < n {
+            if !self.did_dedup_wand {
+                self.did_dedup_wand = true;
+                self.wand_leftovers.sort();
+                self.wand_leftovers.dedup();
+            }
             doc_ids.push(DocResult(self.wand_leftovers.pop().unwrap(), 0.0));
         }
 
@@ -130,7 +135,7 @@ impl Searcher {
     ) -> Query {
         let mut result_heap: BinaryHeap<DocResult> = BinaryHeap::new();
         let mut top_n_min_heap: BinaryHeap<DocResult> = BinaryHeap::new();
-        let mut wand_leftovers: HashSet<u32> = HashSet::default();
+        let mut wand_leftovers: Vec<u32> = Vec::new();
 
         let mut pl_its: Vec<PlIterator> = postings_lists
             .iter()
@@ -175,7 +180,7 @@ impl Searcher {
                     loop {
                         if let Some(term_doc) = curr_it.td {
                             if term_doc.doc_id < pivot_doc_id {
-                                // wand_leftovers.insert(term_doc.doc_id);
+                                wand_leftovers.push(term_doc.doc_id);
                                 curr_it.next();
                             } else {
                                 break;
@@ -325,7 +330,8 @@ impl Searcher {
             query_parts,
             is_free_text_query,
             result_heap,
-            wand_leftovers: wand_leftovers.into_iter().collect(),
+            wand_leftovers,
+            did_dedup_wand: false,
         }
     }
 }
