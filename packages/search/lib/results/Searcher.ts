@@ -158,7 +158,6 @@ class Searcher {
       query,
       result.aggregatedTerms,
       result.queryParts,
-      this.options,
       getNextN,
       free,
     );
