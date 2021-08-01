@@ -26,7 +26,7 @@ onmessage = async function worker(ev) {
       const workerQuery = await workerSearcher.processQuery(query);
       postMessage({
         query,
-        aggregatedTerms: workerQuery.aggregatedTerms,
+        searchedTerms: workerQuery.searchedTerms,
         queryParts: workerQuery.queryParts,
       });
     }

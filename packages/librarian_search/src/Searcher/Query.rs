@@ -87,7 +87,7 @@ impl PartialOrd for Position {
 
 #[wasm_bindgen]
 pub struct Query {
-    aggregated_terms: Vec<String>,
+    searched_terms: Vec<String>,
     query_parts: Vec<QueryPart>,
     pub is_free_text_query: bool,
     result_heap: BinaryHeap<DocResult>,
@@ -119,8 +119,8 @@ impl Query {
         JsValue::from_serde(&self.query_parts).unwrap()
     }
 
-    pub fn get_aggregated_terms(&self) -> JsValue {
-        JsValue::from_serde(&self.aggregated_terms).unwrap()
+    pub fn get_searched_terms(&self) -> JsValue {
+        JsValue::from_serde(&self.searched_terms).unwrap()
     }
 }
 
@@ -128,7 +128,7 @@ impl Searcher {
     pub fn create_query(
         &self,
         n: usize,
-        aggregated_terms: Vec<String>,
+        searched_terms: Vec<String>,
         query_parts: Vec<QueryPart>,
         postings_lists: Vec<Rc<PostingsList>>,
         is_free_text_query: bool,
@@ -326,7 +326,7 @@ impl Searcher {
         }
 
         Query {
-            aggregated_terms,
+            searched_terms,
             query_parts,
             is_free_text_query,
             result_heap,

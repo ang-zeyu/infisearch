@@ -33,7 +33,7 @@ export default class WorkerSearcher {
     const wasmQuery: any = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
 
     this.workerQueries[query] = new WorkerQuery(
-      wasmQuery.get_aggregated_terms(),
+      wasmQuery.get_searched_terms(),
       wasmQuery.get_query_parts(),
       wasmQuery,
     );

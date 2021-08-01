@@ -2,7 +2,7 @@ import { QueryPart } from '../parser/queryParser';
 
 export default class WorkerQuery {
   constructor(
-    public aggregatedTerms: string[],
+    public searchedTerms: string[],
     public queryParts: QueryPart[],
     private query: any,
   ) {}

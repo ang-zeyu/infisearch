@@ -125,7 +125,7 @@ impl Searcher {
   }
 }
 
-fn get_aggregated_terms(query_parts: &Vec<QueryPart>, seen: &mut HashSet<String>, result: &mut Vec<String>) {
+fn get_searched_terms(query_parts: &Vec<QueryPart>, seen: &mut HashSet<String>, result: &mut Vec<String>) {
   for query_part in query_parts {
     if let Some(terms) = &query_part.terms {
       if query_part.isStopWordRemoved {
@@ -140,7 +140,7 @@ fn get_aggregated_terms(query_parts: &Vec<QueryPart>, seen: &mut HashSet<String>
         result.push(term.clone());
       }
     } else if let Some(children) = &query_part.children {
-      get_aggregated_terms(children, seen, result);
+      get_searched_terms(children, seen, result);
     }
   }
 }
@@ -183,10 +183,10 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query
 
   web_sys::console::log_1(&format!("Post process took {}", performance.now() - start).into());
 
-  let mut aggregated_terms: Vec<String> = Vec::new();
-  get_aggregated_terms(&query_parts, &mut HashSet::new(), &mut aggregated_terms);
+  let mut searched_terms: Vec<String> = Vec::new();
+  get_searched_terms(&query_parts, &mut HashSet::new(), &mut searched_terms);
   
-  let query = searcher_val.create_query(10, aggregated_terms, query_parts, pls, is_free_text_query);
+  let query = searcher_val.create_query(10, searched_terms, query_parts, pls, is_free_text_query);
   
   web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());
 

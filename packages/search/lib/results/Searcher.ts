@@ -32,14 +32,14 @@ class Searcher {
           const {
             query,
             nextResults,
-            aggregatedTerms,
+            searchedTerms,
             queryParts,
           } = ev.data;
 
           this.workerQueryPromises[query].resolve({
             query,
             nextResults,
-            aggregatedTerms,
+            searchedTerms,
             queryParts,
           });
         }
@@ -100,7 +100,7 @@ class Searcher {
     await this.setupPromise;
 
     const promise: Promise<{
-      aggregatedTerms: string[],
+      searchedTerms: string[],
       queryParts: QueryPart[],
     }> = new Promise(async (resolve) => {
       if (this.workerQueryPromises[query]) {
@@ -112,7 +112,7 @@ class Searcher {
     });
 
     const result: {
-      aggregatedTerms: string[],
+      searchedTerms: string[],
       queryParts: QueryPart[],
     } = await promise;
     delete this.workerQueryPromises[query];
@@ -156,7 +156,7 @@ class Searcher {
     // eslint-disable-next-line consistent-return
     return new Query(
       query,
-      result.aggregatedTerms,
+      result.searchedTerms,
       result.queryParts,
       getNextN,
       free,

@@ -260,7 +260,7 @@ export default async function transformResults(
   sourceHtmlFilesUrl: string,
 ): Promise<void> {
   const termRegex = new RegExp(
-    `(^|\\W)(${query.aggregatedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
+    `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
     'gi',
   );
 
@@ -285,7 +285,7 @@ export default async function transformResults(
     const nonTitleFields = fields.filter((v) => v[0] !== 'title');
     let bodies = transformText(
       nonTitleFields,
-      query.aggregatedTerms,
+      query.searchedTerms,
       termRegex,
       rawLink,
     );
@@ -299,7 +299,7 @@ export default async function transformResults(
         title = titles[0].innerText || title;
       }
 
-      bodies = transformHtml(doc, query.aggregatedTerms, termRegex, rawLink);
+      bodies = transformHtml(doc, query.searchedTerms, termRegex, rawLink);
     }
 
     return h('li', { class: 'librarian-dropdown-item' },
