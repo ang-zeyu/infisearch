@@ -138,11 +138,11 @@ impl Tokenizer for EnglishTokenizer {
     return true;
   }
 
-  fn get_best_corrected_term(&self, _term: &String, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String> {
+  fn get_best_corrected_term(&self, _term: &str, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String> {
     return None;
   }
 
-  fn get_expanded_terms(&self, _term: &String, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
+  fn get_expanded_terms(&self, _term: &str, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
     return FxHashMap::default();
   }
 }

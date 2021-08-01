@@ -1,4 +1,4 @@
-use crate::tokenize::Tokenizer;
+use librarian_common::tokenize::Tokenizer;
 use serde::{Serialize};
 
 #[derive(Serialize)]

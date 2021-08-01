@@ -20,9 +20,9 @@ pub trait Tokenizer {
     // If true, simply return Option::None / An empty hashmap for the below two methods
     fn use_default_trigram(&self) -> bool;
 
-    fn get_best_corrected_term(&self, term: &String, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String>;
+    fn get_best_corrected_term(&self, term: &str, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String>;
 
-    fn get_expanded_terms(&self, term: &String, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32>;
+    fn get_expanded_terms(&self, term: &str, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32>;
 }
 
 pub struct SearchTokenizeResult {

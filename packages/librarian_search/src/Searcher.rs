@@ -10,8 +10,8 @@ use librarian_lang_latin::english;
 #[cfg(feature = "lang_chinese")]
 use librarian_lang_chinese::chinese;
 use librarian_common::LibrarianLanguageConfig;
-use crate::tokenize::Tokenizer;
-use crate::Searcher::query_parser::QueryPart;
+use librarian_common::tokenize::Tokenizer;
+use query_parser::QueryPart;
 use crate::docinfo::DocInfo;
 use std::collections::HashSet;
 

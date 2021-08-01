@@ -13,7 +13,6 @@ use trigrams::get_tri_grams;
 use byteorder::{ByteOrder, LittleEndian};
 
 use wasm_bindgen::JsCast;
-use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::Response;
 
