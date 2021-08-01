@@ -1,3 +1,4 @@
+use crate::LibrarianIndexingConfig;
 use crate::MainToWorkerMessage;
 use crate::docinfo::DocInfos;
 use dashmap::DashMap;
@@ -182,6 +183,7 @@ fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
 pub fn merge_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
+    indexing_config: &mut LibrarianIndexingConfig,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path
@@ -376,6 +378,10 @@ pub fn merge_blocks(
             // --------------------------------
 
             pl_writer.flush().unwrap();
+
+            if curr_pl_offset > indexing_config.pl_cache_threshold {
+                indexing_config.pl_names_to_cache.push(curr_pl);
+            }
 
             curr_pl += 1;
             curr_pl_offset = 0;

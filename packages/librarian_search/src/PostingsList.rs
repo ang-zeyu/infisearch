@@ -7,6 +7,7 @@ use wasm_bindgen::JsValue;
 use web_sys::Response;
 
 use librarian_common::tokenize::TermInfo;
+use crate::PostingsListFileCache::PostingsListFileCache;
 use crate::utils::varint::decode_var_int;
 
 pub struct DocField {
@@ -154,9 +155,20 @@ impl PostingsList {
         td
     }
 
+    #[inline]
+    pub async fn fetch_pl_to_vec(window: &web_sys::Window, base_url: &str, pl_num: u32) -> Result<Vec<u8>, JsValue> {
+        let pl_resp_value = JsFuture::from(
+            window.fetch_with_str(&(base_url.to_owned() + "/pl_" + &pl_num.to_string()[..]))
+        ).await?;
+        let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
+        let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
+        Ok(js_sys::Uint8Array::new(&pl_array_buffer).to_vec())
+    }
+
     pub async fn fetch_term(
         &mut self,
         base_url: &str,
+        pl_file_cache: &PostingsListFileCache,
         window: &web_sys::Window,
         num_scored_fields: usize,
         with_positions: bool,
@@ -167,12 +179,13 @@ impl PostingsList {
 
         let term_info = self.term_info.as_ref().unwrap();
         
-        let pl_resp_value = JsFuture::from(
-            window.fetch_with_str(&(base_url.to_owned() + "/pl_" + &term_info.postings_file_name.to_string()[..]))
-        ).await?;
-        let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
-        let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
-        let pl_vec = js_sys::Uint8Array::new(&pl_array_buffer).to_vec();
+        let mut fetched_pl = None;
+        let pl_vec = if let Some(pl_vec) = pl_file_cache.get(term_info.postings_file_name) {
+            pl_vec
+        } else {
+            fetched_pl = Some(PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name).await?);
+            fetched_pl.as_ref().unwrap()
+        };
 
         let mut prev_doc_id = 0;
         let mut pos: usize = term_info.postings_file_offset as usize;

@@ -13,7 +13,7 @@ use librarian_common::LibrarianLanguageConfig;
 use librarian_common::tokenize::Tokenizer;
 use query_parser::QueryPart;
 use crate::docinfo::DocInfo;
-use std::collections::HashSet;
+use crate::PostingsListFileCache::PostingsListFileCache;
 
 use query_parser::QueryPartType;
 use query_parser::parse_query;
@@ -21,6 +21,7 @@ use crate::dictionary::Dictionary;
 use crate::dictionary::setup_dictionary;
 
 use serde::{Deserialize};
+use std::collections::HashSet;
 use smartstring::alias::String as SmartString;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
@@ -30,6 +31,8 @@ use wasm_bindgen::prelude::{wasm_bindgen};
 struct IndexingConfig {
   #[serde(rename = "withPositions")]
   with_positions: bool,
+  #[serde(rename = "plNamesToCache")]
+  pl_names_to_cache: Vec<u32>
 }
 
 #[derive(Deserialize)]
@@ -58,6 +61,7 @@ pub struct Searcher {
     indexing_config: IndexingConfig,
     doc_info: DocInfo,
     searcher_options: SearcherOptions,
+    pl_file_cache: PostingsListFileCache,
 }
 
 #[cfg(feature = "lang_latin")]
@@ -99,6 +103,8 @@ pub async fn get_new_searcher(
   let indexing_config: IndexingConfig = indexing_config.into_serde().unwrap();
   let searcher_options: SearcherOptions = searcher_options.into_serde().unwrap();
 
+  let pl_file_cache = PostingsListFileCache::create(&base_url, &indexing_config.pl_names_to_cache).await;
+
   Ok(Searcher {
     base_url,
     dictionary,
@@ -108,6 +114,7 @@ pub async fn get_new_searcher(
     indexing_config,
     doc_info,
     searcher_options,
+    pl_file_cache,
   })
 }
 

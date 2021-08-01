@@ -45,18 +45,27 @@ fn get_default_num_docs_per_block() -> u32 {
     1000
 }
 
+fn get_default_pl_cache_threshold() -> u32 {
+    1048576
+}
+
 fn get_default_with_positions() -> bool {
     true
 }
 
 #[derive(Serialize, Deserialize)]
-struct LibrarianIndexingConfig {
+pub struct LibrarianIndexingConfig {
     #[serde(default = "get_default_num_threads")]
     #[serde(skip_serializing)]
     num_threads: usize,
     #[serde(default = "get_default_num_docs_per_block")]
     #[serde(skip_serializing)]
     num_docs_per_block: u32,
+    #[serde(default = "get_default_pl_cache_threshold")]
+    #[serde(skip_serializing)]
+    pl_cache_threshold: u32,
+    #[serde(default = "Vec::new")]
+    pl_names_to_cache: Vec<u32>,
     #[serde(default = "get_default_with_positions")]
     with_positions: bool,
 }
@@ -66,6 +75,8 @@ impl Default for LibrarianIndexingConfig {
         LibrarianIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
+            pl_cache_threshold: get_default_pl_cache_threshold(),
+            pl_names_to_cache: Vec::new(),
             with_positions: get_default_with_positions(),
         }
     }
@@ -287,17 +298,6 @@ impl Indexer {
                     )),
             });
         }
-
-        let serialized = serde_json::to_string(&LibrarianOutputConfig {
-            indexing_config: &self.indexing_config,
-            language: &self.language_config,
-            field_infos: self.field_infos.as_ref().unwrap(),
-        }).unwrap();
-
-        File::create(self.output_folder_path.join("_librarian_config.json"))
-            .unwrap()
-            .write_all(serialized.as_bytes())
-            .unwrap();
     }
 
     fn block_number(&self) -> u32 {
@@ -333,6 +333,19 @@ impl Indexer {
         }
     }
 
+    fn write_librarian_config(&self) {
+        let serialized = serde_json::to_string(&LibrarianOutputConfig {
+            indexing_config: &self.indexing_config,
+            language: &self.language_config,
+            field_infos: self.field_infos.as_ref().unwrap(),
+        }).unwrap();
+
+        File::create(self.output_folder_path.join("_librarian_config.json"))
+            .unwrap()
+            .write_all(serialized.as_bytes())
+            .unwrap();
+    }
+
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
         if self.spimi_counter != 0 && self.spimi_counter != self.indexing_config.num_docs_per_block {
             println!("Writing last spimi block");
@@ -349,7 +362,16 @@ impl Indexer {
         // Merge spimi blocks
         // Go through all blocks at once
         let num_blocks = self.block_number();
-        spimireader::merge_blocks(self.doc_id_counter, num_blocks, self.doc_infos.unwrap(), &self.tx_main, &self.output_folder_path);
+        spimireader::merge_blocks(
+            self.doc_id_counter,
+            num_blocks,
+            &mut self.indexing_config,
+            std::mem::take(&mut self.doc_infos).unwrap(),
+            &self.tx_main,
+            &self.output_folder_path
+        );
+
+        self.write_librarian_config();
 
         spimireader::cleanup_blocks(num_blocks, &self.output_folder_path);
 

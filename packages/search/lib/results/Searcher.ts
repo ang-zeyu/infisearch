@@ -87,6 +87,7 @@ class Searcher {
     this.librarianConfig = {
       indexingConfig: {
         withPositions: json.indexing_config.with_positions,
+        plNamesToCache: json.indexing_config.pl_names_to_cache,
       },
       language: json.language,
       fieldInfos,

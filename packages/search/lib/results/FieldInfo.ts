@@ -1,6 +1,7 @@
 export interface LibrarianConfig {
   indexingConfig: {
     withPositions: boolean,
+    plNamesToCache: number[],
   },
   language: {
     lang: string,
@@ -13,6 +14,7 @@ export interface LibrarianConfig {
 export interface LibrarianConfigRaw {
   indexing_config: {
     with_positions: boolean,
+    pl_names_to_cache: number[],
   },
   language: {
     lang: string,
