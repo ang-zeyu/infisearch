@@ -4,8 +4,8 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    main: './lib/search.ts',
-    worker: './lib/worker/worker.ts',
+    main: './packages/search/lib/search.ts',
+    worker: './packages/search/lib/worker/worker.ts',
   },
   experiments: {
     asyncWebAssembly: true,
@@ -44,16 +44,16 @@ module.exports = {
   },
   plugins: [
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, '../librarian_search'),
+      crateDirectory: path.resolve(__dirname, './packages/librarian_search'),
       extraArgs: '-- --no-default-features --features lang_latin',
       forceMode: 'production',
-      outDir: 'pkg/lang_latin',
+      outDir: path.resolve(__dirname, './packages/librarian_search/pkg/lang_latin'),
     }),
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, '../librarian_search'),
+      crateDirectory: path.resolve(__dirname, './packages/librarian_search'),
       extraArgs: '-- --no-default-features --features lang_chinese',
       forceMode: 'production',
-      outDir: 'pkg/lang_chinese',
+      outDir: path.resolve(__dirname, './packages/librarian_search/pkg/lang_chinese'),
     }),
   ],
 };

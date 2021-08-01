@@ -1,8 +1,0 @@
-{
-  "parserOptions": {
-    "project": ["tsconfig.json"]
-  },
-  "rules": {
-    "no-continue": "off"
-  }
-}

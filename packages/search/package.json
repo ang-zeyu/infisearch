@@ -14,27 +14,9 @@
     "lib"
   ],
   "scripts": {
-    "dev": "webpack-cli serve --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js",
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@types/heap": "^0.2.28",
-    "escape-string-regexp": "^4.0.0",
-    "heap": "^0.2.6",
-    "fast-levenshtein": "^3.0.0"
-  },
-  "devDependencies": {
-    "css-loader": "^5.0.2",
-    "file-loader": "^6.2.0",
-    "html-loader": "^1.3.2",
-    "html-webpack-plugin": "^5.0.0",
-    "style-loader": "^2.0.0",
-    "ts-loader": "^8.0.17",
-    "@wasm-tool/wasm-pack-plugin": "^1.4.0",
-    "webpack": "^5.21.2",
-    "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^3.11.2",
-    "webpack-merge": "^5.7.3"
+    "escape-string-regexp": "^4.0.0"
   }
 }

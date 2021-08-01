@@ -20,7 +20,7 @@ module.exports = merge(common, {
   plugins: [
     new HtmlWebpackPlugin({
       excludeChunks: ['worker'],
-      template: './public/template.html',
+      template: './packages/search/public/template.html',
     }),
   ],
 });
