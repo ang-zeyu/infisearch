@@ -82,9 +82,6 @@ pub async fn setup_dictionary(url: String, num_docs: u32, build_trigram: bool) -
     let postings_file_offset = LittleEndian::read_u16(&table_vec[dict_table_pos..]);
     dict_table_pos += 2;
 
-    let max_term_score = LittleEndian::read_f32(&table_vec[dict_table_pos..]);
-    dict_table_pos += 4;
-
     let prefix_len = string_vec[dict_string_pos] as usize;
     dict_string_pos += 1;
 
@@ -100,7 +97,6 @@ pub async fn setup_dictionary(url: String, num_docs: u32, build_trigram: bool) -
     term_infos.insert(Rc::clone(&term), Rc::new(TermInfo {
       doc_freq,
       idf: (1.0 + (num_docs as f64 - doc_freq as f64 + 0.5) / (doc_freq as f64 + 0.5)).ln(),
-      max_term_score,
       postings_file_name,
       postings_file_offset,
     }));

@@ -47,6 +47,7 @@ impl Searcher {
                                 idf: term_info.idf,
                                 term: Option::None,
                                 term_info: Option::None,
+                                max_term_score: 0.0,
                             };
 
                             last_query_part.terms.as_mut().unwrap().push(term);

@@ -34,6 +34,7 @@ impl Searcher {
                             idf,
                             term: Option::from(term.clone()),
                             term_info,
+                            max_term_score: 0.0,
                         };
                         postings_lists.insert(term.to_owned(), postings_list);
                     }

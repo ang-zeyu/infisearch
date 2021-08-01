@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::rc::Rc;
 
+use byteorder::{ByteOrder, LittleEndian};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::JsValue;
@@ -86,6 +87,7 @@ pub struct PostingsList {
     // For postings lists representing raw terms
     pub term: Option<String>,
     pub term_info: Option<Rc<TermInfo>>,
+    pub max_term_score: f32,
 }
 
 impl PostingsList {
@@ -187,8 +189,10 @@ impl PostingsList {
             fetched_pl.as_ref().unwrap()
         };
 
+        self.max_term_score = LittleEndian::read_f32(&pl_vec);
+
         let mut prev_doc_id = 0;
-        let mut pos: usize = term_info.postings_file_offset as usize;
+        let mut pos = (term_info.postings_file_offset as usize) + 4;
         for _i in 0..term_info.doc_freq {
             let docfreq_and_len = decode_var_int(&pl_vec[pos..]);
             pos += docfreq_and_len.1;

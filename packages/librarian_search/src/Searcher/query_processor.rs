@@ -36,6 +36,7 @@ impl Searcher {
             idf: 0.0,
             term: Option::None,
             term_info: Option::None,
+            max_term_score: 0.0,
         };
 
         let mut curr_doc_id = self.doc_info.num_docs + 1;
@@ -174,6 +175,7 @@ impl Searcher {
             idf: 0.0,
             term: Option::None,
             term_info: Option::None,
+            max_term_score: 0.0,
         };
 
         let mut curr_doc_id: u32 = self.doc_info.num_docs + 1;
@@ -232,6 +234,7 @@ impl Searcher {
             idf: 0.0,
             term: Option::None,
             term_info: Option::None,
+            max_term_score: 0.0,
         };
 
         let mut prev = 0;
@@ -287,6 +290,7 @@ impl Searcher {
             idf: 0.0,
             term: Option::None,
             term_info: Option::None,
+            max_term_score: 0.0,
         };
 
         let mut curr_doc_id: u32 = self.doc_info.num_docs + 1;

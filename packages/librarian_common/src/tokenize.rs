@@ -5,7 +5,6 @@ use smartstring::alias::String as SmartString;
 pub struct TermInfo {
     pub doc_freq: u32,
     pub idf: f64,
-    pub max_term_score: f32,
     pub postings_file_name: u32,
     pub postings_file_offset: u16,
 }

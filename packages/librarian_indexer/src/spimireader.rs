@@ -327,6 +327,16 @@ pub fn merge_blocks(
         // ---------------------------------------------
         // Postings writing
 
+        // Max term score for any document (f32)
+
+        let doc_freq_double = doc_freq as f64;
+        let max_doc_term_score: f32 = curr_term_max_score
+            * (1.0 + (doc_id_counter_float - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
+        pl_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
+        curr_pl_offset += 4;
+
+        // Postings
+
         let mut prev_block_last_doc_id = 0;
         for term_docs in curr_combined_term_docs.iter_mut() {
             // Link up the gap between the first doc id of the current block and the previous block
@@ -341,14 +351,6 @@ pub fn merge_blocks(
         }
 
         // ---------------------------------------------
-
-        // ---------------------------------------------
-        // Dictionary table writing: max term score for any document (f32)
-
-        let doc_freq_double = doc_freq as f64;
-        let max_doc_term_score: f32 = curr_term_max_score
-            * (1.0 + (doc_id_counter_float - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
-        dict_table_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
 
         // ---------------------------------------------
         // Dictionary string writing

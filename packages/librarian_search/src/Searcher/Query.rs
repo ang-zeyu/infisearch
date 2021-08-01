@@ -161,7 +161,7 @@ impl Searcher {
                 let mut pivot_list_idx = 0;
 
                 while pivot_list_idx < pl_its.len() {
-                    wand_acc += pl_its[pivot_list_idx].pl.term_info.as_ref().unwrap().max_term_score;
+                    wand_acc += pl_its[pivot_list_idx].pl.max_term_score;
                     if wand_acc > nth_highest_score {
                         pivot_doc_id = pl_its[pivot_list_idx].td.unwrap().doc_id;
                         break;
