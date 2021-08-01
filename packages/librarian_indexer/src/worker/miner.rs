@@ -1,3 +1,5 @@
+mod html;
+
 use librarian_common::tokenize::Tokenizer;
 use std::borrow::Cow;
 use regex::Regex;
@@ -128,6 +130,10 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
 }
 
 impl WorkerMiner {
+    pub fn index_html_doc(&mut self, doc_id: u32, link: String, html_text: String) {
+        self.index_doc(doc_id, html::get_html_field_texts(link, html_text));
+    }
+
     pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(&str, String)>) {
         let mut is_first_stored_field = true;
         
