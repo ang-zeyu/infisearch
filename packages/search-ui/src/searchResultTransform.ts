@@ -1,6 +1,6 @@
 import * as escapeRegex from 'escape-string-regexp';
+import { Query } from 'librarian-search-lib';
 import domUtils from './utils/dom';
-import Query from './results/Query';
 
 const { h } = domUtils;
 

@@ -1,9 +1,8 @@
 import './styles/search.css';
 
-import Searcher from './results/Searcher';
+import { Searcher, Query } from 'librarian-search-lib';
 import domUtils from './utils/dom';
 import transformResults from './searchResultTransform';
-import Query from './results/Query';
 
 const { h } = domUtils;
 

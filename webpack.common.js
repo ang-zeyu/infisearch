@@ -4,7 +4,7 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    main: './packages/search/lib/search.ts',
+    main: './packages/search-ui/src/search.ts',
     worker: './packages/search/lib/worker/worker.ts',
   },
   experiments: {

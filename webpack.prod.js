@@ -3,7 +3,6 @@ const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
 const { merge } = require('webpack-merge');
 const TerserPlugin = require('terser-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const common = require('./webpack.common');
 
 module.exports = merge(common, {
@@ -15,14 +14,6 @@ module.exports = merge(common, {
   optimization: {
     minimizer: [
       new TerserPlugin(),
-      new HtmlWebpackPlugin({
-        template: './packages/search/public/template.html',
-        minify: {
-          removeAttributeQuotes: true,
-          collapseWhitespace: true,
-          removeComments: true,
-        },
-      }),
     ],
   },
 });

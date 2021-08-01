@@ -1,6 +1,7 @@
 {
   "packages": [
-    "packages/search"
+    "packages/search",
+    "packages/search-ui"
   ],
   "version": "0.0.0"
 }
