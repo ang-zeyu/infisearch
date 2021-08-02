@@ -189,10 +189,11 @@ impl PostingsList {
             fetched_pl.as_ref().unwrap()
         };
 
-        self.max_term_score = LittleEndian::read_f32(&pl_vec);
+        let mut pos = term_info.postings_file_offset as usize;
+        self.max_term_score = LittleEndian::read_f32(&pl_vec[pos..]);
+        pos += 4;
 
         let mut prev_doc_id = 0;
-        let mut pos = (term_info.postings_file_offset as usize) + 4;
         for _i in 0..term_info.doc_freq {
             let docfreq_and_len = decode_var_int(&pl_vec[pos..]);
             pos += docfreq_and_len.1;
