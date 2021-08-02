@@ -31,19 +31,19 @@ impl PartialOrd for BlockDocLengths {
 pub struct DocInfos {
     doc_lengths: Vec<WorkerMinerDocInfo>,
     pub all_block_doc_lengths: Vec<BlockDocLengths>, // store doc lengths from each block and sort later
-    average_lengths: Vec<u64>,
+    average_lengths: Vec<f64>,
 }
 
 impl DocInfos {
     pub fn get_field_len_factor(&self, doc_id: usize, field_id: usize) -> f32 {
-        (self.doc_lengths[doc_id].field_lengths[field_id]) as f32 / self.average_lengths[field_id] as f32
+        ((self.doc_lengths[doc_id].field_lengths[field_id]) as f64 / self.average_lengths[field_id]) as f32
     }
 
     pub fn init_doc_infos(num_scored_fields: usize) -> DocInfos {
         DocInfos {
             doc_lengths: Vec::new(),
             all_block_doc_lengths: Vec::new(),
-            average_lengths: vec![0; num_scored_fields],
+            average_lengths: vec![0.0; num_scored_fields],
         }
     }
 
@@ -58,13 +58,13 @@ impl DocInfos {
     fn calculate_field_average_lengths(&mut self, writer: &mut BufWriter<std::fs::File>) {
         for worker_miner_doc_info in self.doc_lengths.iter() {
             for (field_id, field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {
-                *self.average_lengths.get_mut(field_id).unwrap() += (*field_length) as u64;
+                *self.average_lengths.get_mut(field_id).unwrap() += (*field_length) as f64;
             }
         }
 
         let num_docs = self.doc_lengths.len() as u64;
         for total_length in self.average_lengths.iter_mut() {
-            *total_length /= num_docs;
+            *total_length /= num_docs as f64;
             writer.write_all(&(*total_length as u32).to_le_bytes()).unwrap();
         }
     }
