@@ -16,8 +16,10 @@ class Searcher {
 
   private workerQueryPromises: {
     [query: string]: {
-      promise: Promise<any>,
-      resolve: any,
+      [timestamp: number]: {
+        promise: Promise<any>,
+        resolve: any,
+      }
     }
   } = Object.create(null);
 
@@ -31,12 +33,13 @@ class Searcher {
         } else if (ev.data.query) {
           const {
             query,
+            timestamp,
             nextResults,
             searchedTerms,
             queryParts,
           } = ev.data;
 
-          this.workerQueryPromises[query].resolve({
+          this.workerQueryPromises[query][timestamp].resolve({
             query,
             nextResults,
             searchedTerms,
@@ -96,26 +99,37 @@ class Searcher {
     };
   }
 
+  private deleteQuery(query: string, timestamp: number) {
+    delete this.workerQueryPromises[query][timestamp];
+    if (Object.keys(this.workerQueryPromises[query]).length === 0) {
+      delete this.workerQueryPromises[query];
+    }
+  }
+
   async getQuery(query: string): Promise<Query> {
     await this.setupPromise;
+
+    const timestamp = new Date().getTime();
 
     const promise: Promise<{
       searchedTerms: string[],
       queryParts: QueryPart[],
-    }> = new Promise(async (resolve) => {
-      if (this.workerQueryPromises[query]) {
-        await this.workerQueryPromises[query].promise;
-      }
+    }> = new Promise((resolve) => {
+      this.workerQueryPromises[query] = this.workerQueryPromises[query] || {};
+      this.workerQueryPromises[query][timestamp] = {
+        promise,
+        resolve,
+      };
 
-      this.workerQueryPromises[query] = { promise, resolve };
-      this.worker.postMessage({ query });
+      this.worker.postMessage({ query, timestamp });
     });
 
     const result: {
       searchedTerms: string[],
       queryParts: QueryPart[],
     } = await promise;
-    delete this.workerQueryPromises[query];
+    this.deleteQuery(query, timestamp);
+
     console.log(result);
     if (!result) {
       console.error('Worker error promise resolved with undefined');
@@ -123,25 +137,33 @@ class Searcher {
     }
 
     const getNextN = async (n: number) => {
-      if (this.workerQueryPromises[query]) {
-        await this.workerQueryPromises[query].promise;
+      if (this.workerQueryPromises[query] && this.workerQueryPromises[query][timestamp]) {
+        await this.workerQueryPromises[query][timestamp].promise;
       }
+
       const getNextNPromise: Promise<{ nextResults: [number, number][] }> = new Promise((resolve) => {
-        this.workerQueryPromises[query] = { promise: getNextNPromise, resolve };
-        this.worker.postMessage({ query, isGetNextN: true, n });
+        this.workerQueryPromises[query] = this.workerQueryPromises[query] || {};
+        this.workerQueryPromises[query][timestamp] = {
+          promise: getNextNPromise,
+          resolve,
+        };
+
+        this.worker.postMessage({
+          query, timestamp, isGetNextN: true, n,
+        });
       });
+
       const getNextNResult: { nextResults: [number, number][] } = await getNextNPromise;
+      this.deleteQuery(query, timestamp);
       if (!getNextNResult) {
         console.error('Worker error promise resolved with undefined');
         return [];
       }
 
-      const { nextResults } = getNextNResult;
-
-      // console.log(retrievedResults);
-      const retrievedResults = nextResults.map(([docId, score]) => new Result(
+      const retrievedResults = getNextNResult.nextResults.map(([docId, score]) => new Result(
         docId, score, this.librarianConfig.fieldInfos,
       ));
+
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url, this.librarianConfig.fieldStoreBlockSize,
       )));

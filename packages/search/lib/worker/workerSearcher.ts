@@ -9,7 +9,11 @@ export interface WorkerSearcherSetup {
 }
 
 export default class WorkerSearcher {
-  workerQueries: { [query: string]: WorkerQuery } = Object.create(null);
+  workerQueries: {
+    [query: string]: {
+      [timestamp: number]: WorkerQuery
+    }
+  } = Object.create(null);
 
   wasmModule;
 
@@ -27,29 +31,31 @@ export default class WorkerSearcher {
     this.searcherOptions = data.searcherOptions;
   }
 
-  async processQuery(query: string): Promise<WorkerQuery> {
-    this.freeQuery(query);
-
+  async processQuery(query: string, timestamp: number): Promise<WorkerQuery> {
     const wasmQuery: any = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
 
-    this.workerQueries[query] = new WorkerQuery(
+    this.workerQueries[query] = this.workerQueries[query] || {};
+    this.workerQueries[query][timestamp] = new WorkerQuery(
       wasmQuery.get_searched_terms(),
       wasmQuery.get_query_parts(),
       wasmQuery,
     );
 
-    return this.workerQueries[query];
+    return this.workerQueries[query][timestamp];
   }
 
-  getQueryNextN(query: string, n: number): number[] {
-    return this.workerQueries[query].getNextN(n);
+  getQueryNextN(query: string, timestamp: number, n: number): number[] {
+    return this.workerQueries[query][timestamp].getNextN(n);
   }
 
-  freeQuery(query: string) {
-    if (this.workerQueries[query]) {
-      this.workerQueries[query].free();
+  freeQuery(query: string, timestamp: number) {
+    if (this.workerQueries[query][timestamp]) {
+      this.workerQueries[query][timestamp].free();
     }
-    delete this.workerQueries[query];
+    delete this.workerQueries[query][timestamp];
+    if (Object.keys(this.workerQueries[query]).length === 0) {
+      delete this.workerQueries[query];
+    }
   }
 
   private async setupWasm() {
