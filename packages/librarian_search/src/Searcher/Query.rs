@@ -1,4 +1,5 @@
 
+use std::cmp::Reverse;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use crate::PostingsList::PlIterator;
@@ -134,7 +135,7 @@ impl Searcher {
         is_free_text_query: bool,
     ) -> Query {
         let mut result_heap: BinaryHeap<DocResult> = BinaryHeap::new();
-        let mut top_n_min_heap: BinaryHeap<DocResult> = BinaryHeap::new();
+        let mut top_n_min_heap: BinaryHeap<Reverse<DocResult>> = BinaryHeap::new();
         let mut wand_leftovers: Vec<u32> = Vec::new();
 
         let mut pl_its: Vec<PlIterator> = postings_lists
@@ -156,7 +157,7 @@ impl Searcher {
             // ------------------------------------------
             // WAND
             if is_free_text_query && top_n_min_heap.len() >= n {
-                let nth_highest_score = top_n_min_heap.peek().unwrap().1;
+                let nth_highest_score = top_n_min_heap.peek().unwrap().0.1;
                 let mut wand_acc = 0.0;
                 let mut pivot_list_idx = 0;
 
@@ -308,10 +309,10 @@ impl Searcher {
             }
 
             if top_n_min_heap.len() < n {
-                top_n_min_heap.push(DocResult(result.0, result.1));
-            } else if result.1 > top_n_min_heap.peek().unwrap().1 {
+                top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
+            } else if result.1 > top_n_min_heap.peek().unwrap().0.1 {
                 top_n_min_heap.pop();
-                top_n_min_heap.push(DocResult(result.0, result.1));
+                top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
             }
 
             result.1 *= scaling_factor;
