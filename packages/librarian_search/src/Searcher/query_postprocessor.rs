@@ -16,11 +16,11 @@ impl Searcher {
         let query_parts_len = query_parts.len();
         if let Some(last_query_part) = query_parts.get_mut(query_parts_len - 1) {
             if self.searcher_options.use_query_term_expansion
-              && matches!(last_query_part.partType, QueryPartType::TERM)
-              && last_query_part.shouldExpand
-              && !last_query_part.isCorrected {
-                if let None = last_query_part.originalTerms {
-                    last_query_part.originalTerms = Option::from(last_query_part.terms.clone());
+              && matches!(last_query_part.part_type, QueryPartType::TERM)
+              && last_query_part.should_expand
+              && !last_query_part.is_corrected {
+                if let None = last_query_part.original_terms {
+                    last_query_part.original_terms = Option::from(last_query_part.terms.clone());
                 }
 
                 let expanded_terms = if self.tokenizer.use_default_trigram() {
@@ -34,7 +34,7 @@ impl Searcher {
                     )
                 };
 
-                last_query_part.isExpanded = expanded_terms.len() > 0;
+                last_query_part.is_expanded = expanded_terms.len() > 0;
 
                 let mut expanded_postings_lists: Vec<PostingsList> = expanded_terms
                     .into_iter()

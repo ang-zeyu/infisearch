@@ -13,13 +13,19 @@ pub enum QueryPartType {
 
 #[derive(Serialize)]
 pub struct QueryPart {
-  pub isCorrected: bool,
-  pub isStopWordRemoved: bool,
-  pub shouldExpand: bool,
-  pub isExpanded: bool,
-  pub originalTerms: Option<Vec<String>>,
+  #[serde(rename = "isCorrected")]
+  pub is_corrected: bool,
+  #[serde(rename = "isStopWordRemoved")]
+  pub is_stop_word_removed: bool,
+  #[serde(rename = "shouldExpand")]
+  pub should_expand: bool,
+  #[serde(rename = "isExpanded")]
+  pub is_expanded: bool,
+  #[serde(rename = "originalTerms")]
+  pub original_terms: Option<Vec<String>>,
   pub terms: Option<Vec<String>>,
-  pub partType: QueryPartType,
+  #[serde(rename = "partType")]
+  pub part_type: QueryPartType,
   pub children: Option<Vec<QueryPart>>,
 }
 
@@ -44,13 +50,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
     if *did_encounter_not {
       *did_encounter_not = false;
       QueryPart {
-        isCorrected: false,
-        isStopWordRemoved: false,
-        shouldExpand: false,
-        isExpanded: false,
-        originalTerms: Option::None,
+        is_corrected: false,
+        is_stop_word_removed: false,
+        should_expand: false,
+        is_expanded: false,
+        original_terms: Option::None,
         terms: Option:: None,
-        partType: QueryPartType::NOT,
+        part_type: QueryPartType::NOT,
         children: Option::from(vec![query_part]),
       }
     } else {
@@ -74,24 +80,24 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
         is_first = false;
 
         query_parts.push(wrap_in_not(QueryPart {
-          isCorrected: false,
-          isStopWordRemoved: false,
-          shouldExpand: tokenize_result.should_expand,
-          isExpanded: false,
-          originalTerms: Option::None,
+          is_corrected: false,
+          is_stop_word_removed: false,
+          should_expand: tokenize_result.should_expand,
+          is_expanded: false,
+          original_terms: Option::None,
           terms: Option::from(vec![term]),
-          partType: QueryPartType::TERM,
+          part_type: QueryPartType::TERM,
           children: Option::None,
         }, did_encounter_not));
       } else {
         query_parts.push(QueryPart {
-          isCorrected: false,
-          isStopWordRemoved: false,
-          shouldExpand: tokenize_result.should_expand,
-          isExpanded: false,
-          originalTerms: Option::None,
+          is_corrected: false,
+          is_stop_word_removed: false,
+          should_expand: tokenize_result.should_expand,
+          is_expanded: false,
+          original_terms: Option::None,
           terms: Option::from(vec![term]),
-          partType: QueryPartType::TERM,
+          part_type: QueryPartType::TERM,
           children: Option::None,
         });
       }
@@ -109,15 +115,15 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           query_parse_state = QueryParseState::NONE;
           
           let terms = tokenizer.wasm_tokenize(query_chars[i..j].iter().collect()).terms;
-          let partType = if terms.len() <= 1 { QueryPartType::TERM } else { QueryPartType::PHRASE };
+          let part_type = if terms.len() <= 1 { QueryPartType::TERM } else { QueryPartType::PHRASE };
           let phrase_query_part: QueryPart = wrap_in_not(QueryPart {
-            isCorrected: false,
-            isStopWordRemoved: false,
-            shouldExpand: false,
-            isExpanded: false,
-            originalTerms: Option::None,
+            is_corrected: false,
+            is_stop_word_removed: false,
+            should_expand: false,
+            is_expanded: false,
+            original_terms: Option::None,
             terms: Option::from(terms),
-            partType,
+            part_type,
             children: Option::None,
           }, &mut did_encounter_not);
 
@@ -142,13 +148,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           
           let content: String = query_chars[i..j].iter().collect();
           let child_query_part: QueryPart = wrap_in_not(QueryPart {
-            isCorrected: false,
-            isStopWordRemoved: false,
-            shouldExpand: false,
-            isExpanded: false,
-            originalTerms: Option::None,
+            is_corrected: false,
+            is_stop_word_removed: false,
+            should_expand: false,
+            is_expanded: false,
+            original_terms: Option::None,
             terms: Option::None,
-            partType: QueryPartType::BRACKET,
+            part_type: QueryPartType::BRACKET,
             children: Option::from(parse_query(content, tokenizer)?),
           }, &mut did_encounter_not);
 
@@ -218,31 +224,31 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
                 let last_curr_query_part = curr_query_parts.pop().unwrap();
                 query_parts.append(&mut curr_query_parts);
                 query_parts.push(QueryPart {
-                  isCorrected: false,
-                  isStopWordRemoved: false,
-                  shouldExpand: false,
-                  isExpanded: false,
-                  originalTerms: Option::None,
+                  is_corrected: false,
+                  is_stop_word_removed: false,
+                  should_expand: false,
+                  is_expanded: false,
+                  original_terms: Option::None,
                   terms: Option::None,
-                  partType: QueryPartType::AND,
+                  part_type: QueryPartType::AND,
                   children: Option::from(vec![last_curr_query_part]),
                 });
               }
             } else if query_parts.len() > 0 && !is_expecting_and {
               // e.g. (lorem) AND ipsum
               let last_curr_query_part = query_parts.pop().unwrap();
-              if let QueryPartType::AND = last_curr_query_part.partType {
+              if let QueryPartType::AND = last_curr_query_part.part_type {
                 // Reuse last AND group
                 query_parts.push(last_curr_query_part);
               } else {
                 query_parts.push(QueryPart {
-                  isCorrected: false,
-                  isStopWordRemoved: false,
-                  shouldExpand: false,
-                  isExpanded: false,
-                  originalTerms: Option::None,
+                  is_corrected: false,
+                  is_stop_word_removed: false,
+                  should_expand: false,
+                  is_expanded: false,
+                  original_terms: Option::None,
                   terms: Option::None,
-                  partType: QueryPartType::AND,
+                  part_type: QueryPartType::AND,
                   children: Option::from(vec![last_curr_query_part]),
                 });
               }

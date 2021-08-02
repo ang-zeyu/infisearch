@@ -15,18 +15,18 @@ impl Searcher {
                 while term_idx < terms.len() {
                     let term = terms.get(term_idx).unwrap();
                     if allow_stop_word_removal && self.tokenizer.is_stop_word(term) {
-                        query_part.isStopWordRemoved = true;
-                        if let None = query_part.originalTerms {
-                            query_part.originalTerms = Option::from(terms.clone());
+                        query_part.is_stop_word_removed = true;
+                        if let None = query_part.original_terms {
+                            query_part.original_terms = Option::from(terms.clone());
                         }
                         terms.remove(term_idx);
                         continue;
                     }
 
                     if let Option::None = self.dictionary.get_term_info(term) {
-                        query_part.isCorrected = true;
-                        if let None = query_part.originalTerms {
-                            query_part.originalTerms = Option::from(terms.clone());
+                        query_part.is_corrected = true;
+                        if let None = query_part.original_terms {
+                            query_part.original_terms = Option::from(terms.clone());
                         }
 
                         let best_corrected_term = if self.tokenizer.use_default_trigram() {

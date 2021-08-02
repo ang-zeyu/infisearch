@@ -128,8 +128,8 @@ impl Searcher {
 fn get_searched_terms(query_parts: &Vec<QueryPart>, seen: &mut HashSet<String>, result: &mut Vec<String>) {
   for query_part in query_parts {
     if let Some(terms) = &query_part.terms {
-      if query_part.isStopWordRemoved {
-        result.push(query_part.originalTerms.as_ref().unwrap()[0].clone());
+      if query_part.is_stop_word_removed {
+        result.push(query_part.original_terms.as_ref().unwrap()[0].clone());
       }
 
       for term in terms {
@@ -159,7 +159,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query
 
   web_sys::console::log_1(&JsValue::from_serde(&query_parts).unwrap());
 
-  let is_free_text_query = query_parts.iter().all(|query_part| if let QueryPartType::TERM = query_part.partType { true } else { false });
+  let is_free_text_query = query_parts.iter().all(|query_part| if let QueryPartType::TERM = query_part.part_type { true } else { false });
 
   searcher_val.preprocess(&mut query_parts, is_free_text_query);
 
