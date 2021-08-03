@@ -25,6 +25,15 @@ impl Clone for DocField {
     }
 }
 
+impl Default for DocField {
+    fn default() -> Self {
+        DocField {
+            field_tf: 0.0,
+            field_positions: Vec::new(),
+        }
+    }
+}
+
 pub struct TermDoc {
     pub doc_id: u32,
     pub fields: Vec<DocField>,
@@ -233,10 +242,7 @@ impl PostingsList {
                 };
 
                 for _field_id_before in term_doc.fields.len() as u8..field_id {
-                    term_doc.fields.push(DocField {
-                        field_tf: 0.0,
-                        field_positions: Vec::new(),
-                    });
+                    term_doc.fields.push(DocField::default());
                 }
                 
                 term_doc.fields.push(DocField {

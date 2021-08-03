@@ -37,6 +37,7 @@ struct IndexingConfig {
 
 #[derive(Deserialize)]
 struct FieldInfo {
+  name: String,
   weight: f32,
   k: f32,
   b: f32,
@@ -157,9 +158,11 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query
   
   web_sys::console::log_1(&format!("parse query took {}", performance.now() - start).into());
 
-  web_sys::console::log_1(&JsValue::from_serde(&query_parts).unwrap());
-
-  let is_free_text_query = query_parts.iter().all(|query_part| if let QueryPartType::TERM = query_part.part_type { true } else { false });
+  let is_free_text_query = query_parts.iter().all(|query_part| if let QueryPartType::TERM = query_part.part_type {
+    query_part.field_name.is_none()
+  } else {
+    false
+  });
 
   searcher_val.preprocess(&mut query_parts, is_free_text_query);
 

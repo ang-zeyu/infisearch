@@ -26,6 +26,8 @@ pub struct QueryPart {
   pub terms: Option<Vec<String>>,
   #[serde(rename = "partType")]
   pub part_type: QueryPartType,
+  #[serde(rename = "fieldName")]
+  pub field_name: Option<String>,
   pub children: Option<Vec<QueryPart>>,
 }
 
@@ -42,11 +44,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
   let mut is_expecting_and = false;
   let mut is_unary_operator_allowed = true;
   let mut did_encounter_not = false;
+  let mut field_name: Option<String> = None;
 
   let mut i = 0;
   let mut j = 0;
+  let mut last_whitespace_idx = 0;
 
-  let wrap_in_not = |query_part: QueryPart, did_encounter_not: &mut bool| -> QueryPart {
+  let wrap_in_not = |mut query_part: QueryPart, did_encounter_not: &mut bool, field_name: &mut Option<String>| -> QueryPart {
     if *did_encounter_not {
       *did_encounter_not = false;
       QueryPart {
@@ -57,14 +61,16 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
         original_terms: Option::None,
         terms: Option:: None,
         part_type: QueryPartType::NOT,
+        field_name: std::mem::take(field_name),
         children: Option::from(vec![query_part]),
       }
     } else {
+      query_part.field_name = std::mem::take(field_name);
       query_part
     }
   };
 
-  let handle_free_text = |query_parts: &mut Vec<QueryPart>, chars: &Vec<char>, i: usize, j: usize, did_encounter_not: &mut bool| {
+  let handle_free_text = |query_parts: &mut Vec<QueryPart>, chars: &Vec<char>, i: usize, j: usize, did_encounter_not: &mut bool, field_name: &mut Option<String>| {
     if i == j {
       return;
     }
@@ -87,8 +93,9 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           original_terms: Option::None,
           terms: Option::from(vec![term]),
           part_type: QueryPartType::TERM,
+          field_name: None,
           children: Option::None,
-        }, did_encounter_not));
+        }, did_encounter_not, field_name));
       } else {
         query_parts.push(QueryPart {
           is_corrected: false,
@@ -98,6 +105,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           original_terms: Option::None,
           terms: Option::from(vec![term]),
           part_type: QueryPartType::TERM,
+          field_name: None,
           children: Option::None,
         });
       }
@@ -124,8 +132,9 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             original_terms: Option::None,
             terms: Option::from(terms),
             part_type,
+            field_name: None,
             children: Option::None,
-          }, &mut did_encounter_not);
+          }, &mut did_encounter_not, &mut field_name);
 
           if is_expecting_and {
             let last_query_part_idx = query_parts.len() - 1;
@@ -155,8 +164,9 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             original_terms: Option::None,
             terms: Option::None,
             part_type: QueryPartType::BRACKET,
+            field_name: None,
             children: Option::from(parse_query(content, tokenizer)?),
-          }, &mut did_encounter_not);
+          }, &mut did_encounter_not, &mut field_name);
 
           if is_expecting_and {
             let last_query_part_idx = query_parts.len() - 1;
@@ -182,16 +192,35 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
               let last_query_part_idx = query_parts.len() - 1;
               query_parts.get_mut(last_query_part_idx).unwrap()
                 .children.as_mut().unwrap()
-                .push(wrap_in_not(curr_query_parts.remove(0), &mut did_encounter_not));
+                .push(wrap_in_not(curr_query_parts.remove(0), &mut did_encounter_not, &mut field_name));
               query_parts.append(&mut curr_query_parts);
               is_expecting_and = false;
             }
             // i === j: the phrase / parentheses is part of the AND (e.g. lorem AND (ipsum))
           } else {
-            handle_free_text(&mut query_parts, &query_chars, i, j, &mut did_encounter_not);
+            handle_free_text(&mut query_parts, &query_chars, i, j, &mut did_encounter_not, &mut field_name);
           }
 
           query_parse_state = if c == '"' { QueryParseState::QUOTE } else { QueryParseState::PARENTHESES };
+          i = j + 1;
+        } else if c == ':' && last_whitespace_idx >= i && j > i {
+          if is_expecting_and {
+            if i != last_whitespace_idx {
+              let mut curr_query_parts = parse_query(query_chars[i..last_whitespace_idx].iter().collect(), tokenizer)?;
+  
+              let last_query_part_idx = query_parts.len() - 1;
+              query_parts.get_mut(last_query_part_idx).unwrap()
+                .children.as_mut().unwrap()
+                .push(wrap_in_not(curr_query_parts.remove(0), &mut did_encounter_not, &mut field_name));
+              query_parts.append(&mut curr_query_parts);
+              is_expecting_and = false;
+            }
+          } else {
+            handle_free_text(&mut query_parts, &query_chars, i, last_whitespace_idx, &mut did_encounter_not, &mut field_name);
+          }
+          
+          field_name = Some(query_chars[last_whitespace_idx..j].iter().collect());
+
           i = j + 1;
         } else if c.is_ascii_whitespace() {
           let initial_j = j;
@@ -207,7 +236,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             let mut curr_query_parts = parse_query(query_chars[i..initial_j].iter().collect(), tokenizer)?;
 
             if curr_query_parts.len() > 0 {
-              let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not);
+              let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not, &mut field_name);
               curr_query_parts.push(first_query_part);
               let last_query_part = curr_query_parts.swap_remove(0);
               curr_query_parts.push(last_query_part);
@@ -231,6 +260,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
                   original_terms: Option::None,
                   terms: Option::None,
                   part_type: QueryPartType::AND,
+                  field_name: std::mem::take(&mut field_name),
                   children: Option::from(vec![last_curr_query_part]),
                 });
               }
@@ -249,6 +279,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
                   original_terms: Option::None,
                   terms: Option::None,
                   part_type: QueryPartType::AND,
+                  field_name: std::mem::take(&mut field_name),
                   children: Option::from(vec![last_curr_query_part]),
                 });
               }
@@ -264,6 +295,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             i = j;
           }
 
+          last_whitespace_idx = j;
           j -= 1;
           is_unary_operator_allowed = true;
         } else if is_unary_operator_allowed
@@ -273,7 +305,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           && query_chars[j + 3].is_ascii_whitespace() {
           let mut curr_query_parts = parse_query(query_chars[i..j].iter().collect(), tokenizer)?;
           if curr_query_parts.len() > 0 {
-            let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not);
+            let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not, &mut field_name);
             curr_query_parts.push(first_query_part);
             let last_query_part = curr_query_parts.swap_remove(0);
             curr_query_parts.push(last_query_part);
@@ -312,13 +344,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
       let last_query_part_idx = query_parts.len() - 1;
       query_parts.get_mut(last_query_part_idx).unwrap()
         .children.as_mut().unwrap()
-        .push(wrap_in_not(curr_query_parts.remove(0), &mut did_encounter_not));
+        .push(wrap_in_not(curr_query_parts.remove(0), &mut did_encounter_not, &mut field_name));
       query_parts.append(&mut curr_query_parts);
     } else {
       return Err("Query parsing error: no token found after AND operator");
     }
   } else {
-    handle_free_text(&mut query_parts, &query_chars, i, j, &mut did_encounter_not);
+    handle_free_text(&mut query_parts, &query_chars, i, j, &mut did_encounter_not, &mut field_name);
   }
 
   Ok(query_parts)

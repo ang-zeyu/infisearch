@@ -336,6 +336,40 @@ impl Searcher {
         Option::from(Rc::new(new_pl))
     }
 
+    fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
+        if let Some(tup) = self.field_infos.iter().enumerate().find(|(_id, field_info)| &field_info.name == field_name) {
+            let mut new_pl = PostingsList {
+                weight: pl.weight,
+                include_in_proximity_ranking: pl.include_in_proximity_ranking,
+                term_docs: Vec::new(),
+                idf: pl.idf,
+                term: pl.term.clone(),
+                term_info: pl.term_info.clone(),
+                max_term_score: pl.max_term_score,
+            };
+
+            let field_id = tup.0 as usize;
+            let fields_before = vec![DocField::default(); field_id];
+            for term_doc in &pl.term_docs {
+                if let Some(doc_field) = term_doc.fields.get(field_id) {
+                    if doc_field.field_tf == 0.0 {
+                        continue;
+                    }
+
+                    let mut fields: Vec<DocField> = fields_before.clone();
+                    fields.push(doc_field.clone()); // TODO reduce potential allocations?
+
+                    new_pl.term_docs.push(TermDoc {
+                        doc_id: term_doc.doc_id,
+                        fields,
+                    })
+                }
+            }
+
+            *pl = Rc::new(new_pl);
+        }
+    }
+
     fn populate_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
@@ -344,29 +378,38 @@ impl Searcher {
         let mut result: Vec<Rc<PostingsList>> = Vec::new();
 
         for query_part in query_parts {
+            let mut pl_opt: Option<Rc<PostingsList>> = None;
             match query_part.part_type {
                 QueryPartType::TERM => {
                     if let Some(term) = query_part.terms.as_ref().unwrap().get(0) {
                         if let Some(term_pl) = term_postings_lists.get(term) {
-                            result.push(Rc::clone(term_pl));
+                            pl_opt = Some(Rc::clone(term_pl));
                         }
                     }
                 },
                 QueryPartType::PHRASE => {
-                    result.push(self.populate_phrasal_postings_lists(query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_phrasal_postings_lists(query_part, term_postings_lists));
                 },
                 QueryPartType::AND => {
-                    result.push(self.populate_and_postings_lists(query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_and_postings_lists(query_part, term_postings_lists));
                 },
                 QueryPartType::NOT => {
-                    result.push(self.populate_not_postings_list(query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_not_postings_list(query_part, term_postings_lists));
                 },
                 QueryPartType::BRACKET => {
                     if let Some(bracket_postings_list) = self.populate_bracket_postings_list(query_part, term_postings_lists) {
-                        result.push(bracket_postings_list);
+                        pl_opt = Some(bracket_postings_list);
                     }
                 }
                 _ => {}
+            }
+
+            if let Some(mut pl) = pl_opt {
+                if let Some(field_name) = &query_part.field_name {
+                    self.filter_field_postings_list(&field_name, &mut pl);
+                }
+
+                result.push(pl);
             }
         }
 
