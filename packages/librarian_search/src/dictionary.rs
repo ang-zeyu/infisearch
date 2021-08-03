@@ -1,5 +1,7 @@
 mod trigrams;
 
+use std::collections::BinaryHeap;
+use std::cmp::Ordering;
 use std::rc::Rc;
 
 use wasm_bindgen::JsValue;
@@ -26,6 +28,40 @@ static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;
 pub struct Dictionary {
     pub term_infos: FxHashMap<Rc<String>, Rc<TermInfo>>,
     trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
+}
+
+struct TermWeightPair(String, f64, f32);
+
+impl Eq for TermWeightPair {}
+
+impl PartialEq for TermWeightPair {
+  fn eq(&self, other: &Self) -> bool {
+    self.0 == other.0
+  }
+}
+
+impl Ord for TermWeightPair {
+  fn cmp(&self, other: &Self) -> Ordering {
+    if self.1 > other.1 {
+      Ordering::Greater
+    } else if self.1 < other.1 {
+      Ordering::Less
+    } else {
+      Ordering::Equal
+    }
+  }
+}
+
+impl PartialOrd for TermWeightPair {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    if self.1 > other.1 {
+      Some(Ordering::Greater)
+    } else if self.1 < other.1 {
+      Some(Ordering::Less)
+    } else {
+      Some(Ordering::Equal)
+    }
+  }
 }
 
 pub async fn setup_dictionary(url: String, num_docs: u32, build_trigram: bool) -> Result<Dictionary, JsValue> {
@@ -196,15 +232,29 @@ impl Dictionary {
 
     let prefix_check_candidates = self.get_term_candidates(base_term, false);
 
+    let max_expanded_terms = 3; // TODO make amount configurable
+    // 3 lowest idf (most common) terms
+    let mut top_3_min_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(max_expanded_terms);
+
     let min_baseterm_substring = &base_term[0..((CORRECTION_ALPHA * base_term_char_count as f32).floor() as usize)];
     for term in prefix_check_candidates {
       if term.starts_with(min_baseterm_substring) && term != base_term {
         let score = 1.0 / ((term.chars().count() - min_baseterm_substring.chars().count() + 1) as f32);
         if score >= 0.2 {
-          expanded_terms.insert(term.into(), score);
+          let idf = self.term_infos.get(&term).unwrap().idf;
+          if top_3_min_heap.len() < max_expanded_terms {
+            top_3_min_heap.push(TermWeightPair(term.into(), idf, score));
+          } else if idf < top_3_min_heap.peek().unwrap().1 {
+            top_3_min_heap.pop();
+            top_3_min_heap.push(TermWeightPair(term.into(), idf, score));
+          }
         }
       }
     };
+
+    for term_weight_triple in top_3_min_heap {
+      expanded_terms.insert(term_weight_triple.0.into(), term_weight_triple.2);
+    }
 
     return expanded_terms;
   }
