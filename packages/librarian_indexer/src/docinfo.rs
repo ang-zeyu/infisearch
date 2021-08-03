@@ -56,16 +56,19 @@ impl DocInfos {
     }
 
     fn calculate_field_average_lengths(&mut self, writer: &mut BufWriter<std::fs::File>) {
+        let num_fields = if let Some(first) = self.doc_lengths.get(0) { first.field_lengths.len() } else { 0 };
+        let mut total_field_lengths: Vec<u64> = vec![0; num_fields];
         for worker_miner_doc_info in self.doc_lengths.iter() {
             for (field_id, field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {
-                *self.average_lengths.get_mut(field_id).unwrap() += (*field_length) as f64;
+                *total_field_lengths.get_mut(field_id).unwrap() += (*field_length) as u64;
             }
         }
 
         let num_docs = self.doc_lengths.len() as u64;
-        for total_length in self.average_lengths.iter_mut() {
-            *total_length /= num_docs as f64;
-            writer.write_all(&(*total_length as u32).to_le_bytes()).unwrap();
+        for (field_id, total_length) in total_field_lengths.into_iter().enumerate() {
+            let average_length = self.average_lengths.get_mut(field_id).unwrap();
+            *average_length = total_length as f64 / num_docs as f64;
+            writer.write_all(&(*average_length).to_le_bytes()).unwrap();
         }
     }
 

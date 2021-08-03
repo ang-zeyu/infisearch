@@ -31,8 +31,8 @@ impl DocInfo {
         let mut doc_length_factors: Vec<Vec<f64>> = Vec::new();
 
         for _i in 0..num_fields {
-            avg_doc_lengths.push(LittleEndian::read_u32(&doc_info_vec[byte_offset..]) as f64);
-            byte_offset += 4;
+            avg_doc_lengths.push(LittleEndian::read_f64(&doc_info_vec[byte_offset..]));
+            byte_offset += 8;
         }
 
         let total_bytes = doc_info_vec.len();
