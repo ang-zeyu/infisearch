@@ -8,9 +8,77 @@ use wasm_bindgen::JsCast;
 
 use crate::Searcher::Searcher;
 use crate::Searcher::query_parser::QueryPart;
+use crate::Searcher::query_parser::QueryPartType;
 
 
 impl Searcher {
+    fn expand_term_postings_lists(
+        &self,
+        query_parts: &mut Vec<QueryPart>,
+        postings_lists_map: &mut FxHashMap<String, PostingsList>,
+    ) {
+        if query_parts.len() == 0 {
+            return;
+        }
+
+        let last_query_part = query_parts.last_mut().unwrap();
+        if self.searcher_options.use_query_term_expansion
+            && matches!(last_query_part.part_type, QueryPartType::TERM)
+            && last_query_part.should_expand
+            && !last_query_part.is_corrected {
+            if let None = last_query_part.original_terms {
+                last_query_part.original_terms = Option::from(last_query_part.terms.clone());
+            }
+
+            let expanded_terms = if self.tokenizer.use_default_trigram() {
+                self.dictionary.get_expanded_terms(
+                    last_query_part.terms.as_ref().unwrap().get(0).unwrap()
+                )
+            } else {
+                self.tokenizer.get_expanded_terms(
+                    last_query_part.terms.as_ref().unwrap().get(0).unwrap(),
+                    &self.dictionary.term_infos
+                )
+            };
+
+            last_query_part.is_expanded = expanded_terms.len() > 0;
+
+            let mut new_query_parts: Vec<QueryPart> = Vec::with_capacity(expanded_terms.len());
+            for (term, weight) in expanded_terms {
+                if let Some(term_info) = self.dictionary.get_term_info(&term) {
+                    if let None = postings_lists_map.get(&term) {
+                        last_query_part.terms.as_mut().unwrap().push(term.clone());
+
+                        new_query_parts.push(QueryPart {
+                            is_corrected: false,
+                            is_stop_word_removed: false,
+                            should_expand: false,
+                            is_expanded: false,
+                            original_terms: None,
+                            terms: Option::from(vec![term.clone()]),
+                            part_type: QueryPartType::TERM,
+                            field_name: last_query_part.field_name.clone(),
+                            children: None,
+                        });
+
+                        postings_lists_map.insert(term.clone(), PostingsList {
+                            weight,
+                            include_in_proximity_ranking: false,
+                            term_docs: Vec::new(),
+                            idf: term_info.idf,
+                            term: Some(term),
+                            term_info: Some(Rc::clone(term_info)),
+                            max_term_score: 0.0,
+                        });
+                    }
+                }
+            }
+
+            drop(last_query_part);
+            query_parts.append(&mut new_query_parts);
+        }
+    }
+
     fn populate_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
@@ -52,7 +120,9 @@ impl Searcher {
         let mut postings_lists_map: FxHashMap<String, PostingsList> = FxHashMap::default(); 
         self.populate_term_postings_lists(query_parts, &mut postings_lists_map);
 
-        let mut postings_lists: Vec<&mut PostingsList> = postings_lists_map.values_mut().collect();
+        self.expand_term_postings_lists(query_parts, &mut postings_lists_map);
+
+        let postings_lists: Vec<&mut PostingsList> = postings_lists_map.values_mut().collect();
 
         /* let urls = format!("[\"{}/dictionaryTable\",\"{}/dictionaryString\"]", url, url);
         let ptrs: Vec<u32> = vec![0, 0];
@@ -64,7 +134,7 @@ impl Searcher {
 
         let window: web_sys::Window = js_sys::global().unchecked_into();
         join_all(
-            postings_lists.iter_mut().map(|pl| (*pl).fetch_term(
+            postings_lists.into_iter().map(|pl| (*pl).fetch_term(
                 &self.base_url, &self.pl_file_cache, &window, self.num_scored_fields, self.indexing_config.with_positions
             ))
         ).await;

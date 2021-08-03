@@ -199,7 +199,7 @@ impl PostingsList {
         };
 
         let mut pos = term_info.postings_file_offset as usize;
-        self.max_term_score = LittleEndian::read_f32(&pl_vec[pos..]);
+        self.max_term_score = LittleEndian::read_f32(&pl_vec[pos..]) * self.weight;
         pos += 4;
 
         let mut prev_doc_id = 0;

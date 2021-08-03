@@ -2,7 +2,6 @@ pub mod query_parser;
 pub mod query_preprocessor;
 pub mod query_retriever;
 pub mod query_processor;
-pub mod query_postprocessor;
 pub mod Query;
 
 #[cfg(feature = "lang_latin")]
@@ -172,7 +171,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query
 
   web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
-  let mut pls = searcher_val.process(&mut query_parts, term_pls);
+  let pls = searcher_val.process(&mut query_parts, term_pls);
 
   /* for pl in pls.iter() {
     web_sys::console::log_1(&format!("num term docs {} {}",
@@ -181,10 +180,6 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query
     ).into());
   } */
   web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
-
-  searcher_val.postprocess(&mut query_parts, &mut pls).await?;
-
-  web_sys::console::log_1(&format!("Post process took {}", performance.now() - start).into());
 
   let mut searched_terms: Vec<String> = Vec::new();
   get_searched_terms(&query_parts, &mut HashSet::new(), &mut searched_terms);
