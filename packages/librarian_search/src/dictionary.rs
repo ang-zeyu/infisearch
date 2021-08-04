@@ -4,20 +4,18 @@ use std::collections::BinaryHeap;
 use std::cmp::Ordering;
 use std::rc::Rc;
 
-use wasm_bindgen::JsValue;
-use rustc_hash::FxHashMap;
+use byteorder::{ByteOrder, LittleEndian};
 use futures::join;
+use rustc_hash::FxHashMap;
 use strsim::levenshtein;
 use smartstring::alias::String;
 use smartstring::alias::String as SmartString;
-use trigrams::get_tri_grams;
-
-use byteorder::{ByteOrder, LittleEndian};
-
 use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::Response;
 
+use trigrams::get_tri_grams;
 use crate::utils::varint::decode_var_int;
 use librarian_common::tokenize::TermInfo;
 

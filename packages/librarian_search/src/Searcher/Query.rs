@@ -1,16 +1,16 @@
-
+use std::cmp::Ordering;
 use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::rc::Rc;
-use wasm_bindgen::JsValue;
-use crate::PostingsList::PlIterator;
-use crate::Searcher::Searcher;
-use crate::PostingsList::PostingsList;
-use crate::Searcher::query_parser::QueryPart;
 
 use serde::Serialize;
-use std::collections::BinaryHeap;
-use std::cmp::Ordering;
+use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::{wasm_bindgen};
+
+use crate::PostingsList::PlIterator;
+use crate::PostingsList::PostingsList;
+use crate::Searcher::query_parser::QueryPart;
+use crate::Searcher::Searcher;
 
 #[derive(Serialize)]
 struct DocResult(u32, f32);

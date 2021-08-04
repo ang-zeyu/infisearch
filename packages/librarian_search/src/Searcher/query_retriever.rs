@@ -1,11 +1,11 @@
 use std::rc::Rc;
-use crate::PostingsList::PostingsList;
+
 use futures::future::join_all;
 use rustc_hash::FxHashMap;
-
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
 
+use crate::PostingsList::PostingsList;
 use crate::Searcher::Searcher;
 use crate::Searcher::query_parser::QueryPart;
 use crate::Searcher::query_parser::QueryPartType;

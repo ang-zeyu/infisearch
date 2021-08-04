@@ -1,12 +1,14 @@
-use std::cmp::Reverse;
-use crate::PostingsList::DocField;
-use std::cell::RefCell;
-use crate::PostingsList::TermDoc;
 use std::collections::BinaryHeap;
-use crate::PostingsList::PlIterator;
+use std::cell::RefCell;
+use std::cmp::Reverse;
 use std::rc::Rc;
-use crate::PostingsList::PostingsList;
+
 use rustc_hash::FxHashMap;
+
+use crate::PostingsList::DocField;
+use crate::PostingsList::TermDoc;
+use crate::PostingsList::PlIterator;
+use crate::PostingsList::PostingsList;
 use crate::Searcher::query_parser::QueryPart;
 use crate::Searcher::query_parser::QueryPartType;
 use crate::Searcher::Searcher;

@@ -4,27 +4,27 @@ pub mod query_retriever;
 pub mod query_processor;
 pub mod Query;
 
-#[cfg(feature = "lang_latin")]
-use librarian_lang_latin::english;
-#[cfg(feature = "lang_chinese")]
-use librarian_lang_chinese::chinese;
-use librarian_common::LibrarianLanguageConfig;
-use librarian_common::tokenize::Tokenizer;
-use query_parser::QueryPart;
-use crate::docinfo::DocInfo;
-use crate::PostingsListFileCache::PostingsListFileCache;
-
-use query_parser::QueryPartType;
-use query_parser::parse_query;
-use crate::dictionary::Dictionary;
-use crate::dictionary::setup_dictionary;
+use std::collections::HashSet;
 
 use serde::{Deserialize};
-use std::collections::HashSet;
 use smartstring::alias::String as SmartString;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::{wasm_bindgen};
+
+use crate::docinfo::DocInfo;
+use crate::dictionary::Dictionary;
+use crate::dictionary::setup_dictionary;
+use crate::PostingsListFileCache::PostingsListFileCache;
+
+#[cfg(feature = "lang_latin")]
+use librarian_lang_latin::english;
+#[cfg(feature = "lang_chinese")]
+use librarian_lang_chinese::chinese;
+
+use librarian_common::LibrarianLanguageConfig;
+use librarian_common::tokenize::Tokenizer;
+use query_parser::{QueryPart, QueryPartType, parse_query};
 
 #[derive(Deserialize)]
 struct IndexingConfig {

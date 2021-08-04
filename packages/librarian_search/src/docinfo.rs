@@ -1,10 +1,7 @@
 use byteorder::{ByteOrder, LittleEndian};
-
-use web_sys::Response;
 use wasm_bindgen_futures::JsFuture;
-use wasm_bindgen::JsCast;
-use web_sys::Request;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{JsCast, JsValue};
+use web_sys::{Request, Response};
 
 pub struct DocInfo {
     pub doc_length_factors: Vec<Vec<f64>>,
