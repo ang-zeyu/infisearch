@@ -42,7 +42,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
 
   let mut query_parse_state: QueryParseState = QueryParseState::NONE;
   let mut is_expecting_and = false;
-  let mut is_unary_operator_allowed = true;
+  let mut is_not_allowed = true;
   let mut did_encounter_not = false;
   let mut field_name: Option<String> = None;
 
@@ -148,7 +148,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
 
           i = j + 1;
 
-          is_unary_operator_allowed = true;
+          is_not_allowed = true;
         }
       },
       QueryParseState::PARENTHESES => {
@@ -180,7 +180,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
 
           i = j + 1;
 
-          is_unary_operator_allowed = true;
+          is_not_allowed = true;
         }
       },
       QueryParseState::NONE => {
@@ -297,8 +297,8 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
 
           last_whitespace_idx = j;
           j -= 1;
-          is_unary_operator_allowed = true;
-        } else if is_unary_operator_allowed
+          is_not_allowed = true;
+        } else if is_not_allowed
           && query_chars_len > 5 // overflow
           && j < query_chars_len - 4
           && query_chars[j] == 'N' && query_chars[j + 1] == 'O' && query_chars[j + 2] == 'T'
@@ -329,7 +329,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           i = j;
           j -= 1;
         } else {
-          is_unary_operator_allowed = false;
+          is_not_allowed = false;
         }
       }
     }
