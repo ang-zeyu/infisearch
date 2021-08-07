@@ -22,7 +22,7 @@ impl Searcher {
         }
 
         let last_query_part = query_parts.last_mut().unwrap();
-        if self.searcher_options.use_query_term_expansion
+        if self.searcher_config.searcher_options.use_query_term_expansion
             && matches!(last_query_part.part_type, QueryPartType::TERM)
             && last_query_part.should_expand
             && !last_query_part.is_corrected {
@@ -135,7 +135,11 @@ impl Searcher {
         let window: web_sys::Window = js_sys::global().unchecked_into();
         join_all(
             postings_lists.into_iter().map(|pl| (*pl).fetch_term(
-                &self.base_url, &self.pl_file_cache, &window, self.num_scored_fields, self.indexing_config.with_positions
+                &self.searcher_config.searcher_options.url,
+                &self.pl_file_cache,
+                &window,
+                self.searcher_config.num_scored_fields,
+                self.searcher_config.indexing_config.with_positions
             ))
         ).await;
 

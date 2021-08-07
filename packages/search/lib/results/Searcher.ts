@@ -4,7 +4,6 @@ import {
 } from './FieldInfo';
 import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
-import { WorkerSearcherSetup } from '../worker/workerSearcher';
 import { QueryPart } from '../parser/queryParser';
 
 class Searcher {
@@ -57,12 +56,7 @@ class Searcher {
       options.useQueryTermProximity = options.useQueryTermProximity
           && this.librarianConfig.indexingConfig.withPositions;
 
-      const message: WorkerSearcherSetup = {
-        url: options.url,
-        config: this.librarianConfig,
-        searcherOptions: options,
-      };
-      this.worker.postMessage(message);
+      this.worker.postMessage(this.librarianConfig);
 
       return workerSetup;
     });
@@ -96,6 +90,7 @@ class Searcher {
       fieldInfos,
       numScoredFields: fieldInfosRaw.num_scored_fields,
       fieldStoreBlockSize: fieldInfosRaw.field_store_block_size,
+      searcherOptions: this.options,
     };
   }
 

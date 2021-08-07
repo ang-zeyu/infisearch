@@ -62,7 +62,7 @@ impl PartialOrd for TermWeightPair {
   }
 }
 
-pub async fn setup_dictionary(url: String, num_docs: u32, build_trigram: bool) -> Result<Dictionary, JsValue> {
+pub async fn setup_dictionary(url: &str, num_docs: u32, build_trigram: bool) -> Result<Dictionary, JsValue> {
   let window: web_sys::Window = js_sys::global().unchecked_into();
 
   let performance = window.performance().unwrap();
@@ -78,8 +78,8 @@ pub async fn setup_dictionary(url: String, num_docs: u32, build_trigram: bool) -
 
 
   let (table_resp_value, string_resp_value) = join!(
-    JsFuture::from(window.fetch_with_str(&(url.clone() + "/dictionaryTable"))),
-    JsFuture::from(window.fetch_with_str(&(url + "/dictionaryString")))
+    JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/dictionaryTable"))),
+    JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/dictionaryString")))
   );
 
   let table_resp: Response = table_resp_value.unwrap().dyn_into().unwrap();

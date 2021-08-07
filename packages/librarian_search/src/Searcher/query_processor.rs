@@ -71,7 +71,7 @@ impl Searcher {
                     .map(|pl_it| pl_it.borrow().peek_prev().unwrap())
                     .collect();
 
-                for field_id in 0..self.num_scored_fields as u8 {
+                for field_id in 0..self.searcher_config.num_scored_fields as u8 {
                     let mut result_doc_field = DocField {
                         field_tf: 0.0,
                         field_positions: Vec::new(),
@@ -339,7 +339,7 @@ impl Searcher {
     }
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
-        if let Some(tup) = self.field_infos.iter().enumerate().find(|(_id, field_info)| &field_info.name == field_name) {
+        if let Some(tup) = self.searcher_config.field_infos.iter().enumerate().find(|(_id, field_info)| &field_info.name == field_name) {
             let mut new_pl = PostingsList {
                 weight: pl.weight,
                 include_in_proximity_ranking: pl.include_in_proximity_ranking,

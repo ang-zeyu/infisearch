@@ -1,12 +1,5 @@
 import { LibrarianConfig } from '../results/FieldInfo';
-import { SearcherOptions } from '../results/SearcherOptions';
 import WorkerQuery from './workerQuery';
-
-export interface WorkerSearcherSetup {
-  url: string,
-  config: LibrarianConfig,
-  searcherOptions: SearcherOptions,
-}
 
 export default class WorkerSearcher {
   workerQueries: {
@@ -15,21 +8,11 @@ export default class WorkerSearcher {
     }
   } = Object.create(null);
 
-  wasmModule;
+  wasmModule: any;
 
   wasmSearcher: any;
 
-  private baseUrl: string;
-
-  private config: LibrarianConfig;
-
-  private searcherOptions: SearcherOptions;
-
-  constructor(data: WorkerSearcherSetup) {
-    this.baseUrl = data.url;
-    this.config = data.config;
-    this.searcherOptions = data.searcherOptions;
-  }
+  constructor(private config: LibrarianConfig) {}
 
   async processQuery(query: string, timestamp: number): Promise<WorkerQuery> {
     const wasmQuery: any = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
@@ -60,20 +43,11 @@ export default class WorkerSearcher {
 
   private async setupWasm() {
     const language = this.config.language.lang;
-    this.wasmModule = await import(
-      /* webpackChunkName: "librarian_search_wasm.[index]" */
-      `../../../librarian_search/pkg/lang_${language}/index.js`
-    );
-    this.wasmSearcher = await this.wasmModule.get_new_searcher(
-      this.baseUrl,
-      this.config.numScoredFields,
-      this.config.fieldInfos,
-      this.config.indexingConfig,
-      this.config.language, this.searcherOptions,
-    );
+    this.wasmModule = await import(`../../../librarian_search/pkg/lang_${language}/index.js`);
+    this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config);
   }
 
-  static async setup(data: WorkerSearcherSetup): Promise<WorkerSearcher> {
+  static async setup(data: LibrarianConfig): Promise<WorkerSearcher> {
     const workerSearcher = new WorkerSearcher(data);
 
     await workerSearcher.setupWasm();

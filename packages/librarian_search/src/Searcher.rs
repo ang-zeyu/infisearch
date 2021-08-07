@@ -27,6 +27,19 @@ use librarian_common::tokenize::Tokenizer;
 use query_parser::{QueryPart, QueryPartType, parse_query};
 
 #[derive(Deserialize)]
+struct SearcherConfig {
+  #[serde(rename = "indexingConfig")]
+  indexing_config: IndexingConfig,
+  language: LibrarianLanguageConfig,
+  #[serde(rename = "fieldInfos")]
+  field_infos: Vec<FieldInfo>,
+  #[serde(rename = "numScoredFields")]
+  num_scored_fields: usize,
+  #[serde(rename = "searcherOptions")]
+  searcher_options: SearcherOptions,
+}
+
+#[derive(Deserialize)]
 struct IndexingConfig {
   #[serde(rename = "withPositions")]
   with_positions: bool,
@@ -53,68 +66,59 @@ struct SearcherOptions {
 
 #[wasm_bindgen]
 pub struct Searcher {
-    base_url: String,
-    dictionary: Dictionary,
-    tokenizer: Box<dyn Tokenizer>,
-    num_scored_fields: usize,
-    field_infos: Vec<FieldInfo>,
-    indexing_config: IndexingConfig,
-    doc_info: DocInfo,
-    searcher_options: SearcherOptions,
-    pl_file_cache: PostingsListFileCache,
+  dictionary: Dictionary,
+  tokenizer: Box<dyn Tokenizer>,
+  doc_info: DocInfo,
+  pl_file_cache: PostingsListFileCache,
+  searcher_config: SearcherConfig,
 }
 
 #[cfg(feature = "lang_latin")]
-fn get_tokenizer(language_config: LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
-  if let Some(options) = language_config.options {
-    Box::new(english::new_with_options(serde_json::from_value(options).unwrap()))
+fn get_tokenizer(language_config: &mut LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
+  if let Some(options) = &mut language_config.options {
+    Box::new(english::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
   } else {
     Box::new(english::EnglishTokenizer::default())
   }
 }
 
 #[cfg(feature = "lang_chinese")]
-fn get_tokenizer(language_config: LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
-  if let Some(options) = language_config.options {
-    Box::new(chinese::new_with_options(serde_json::from_value(options).unwrap()))
+fn get_tokenizer(language_config: &mut LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
+  if let Some(options) = &mut language_config.options {
+    Box::new(chinese::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
   } else {
     Box::new(chinese::ChineseTokenizer::default())
   }
 }
 
 #[wasm_bindgen]
-pub async fn get_new_searcher(
-    base_url: String,
-    num_scored_fields: usize,
-    field_infos_js: JsValue,
-    indexing_config: JsValue,
-    language_config: JsValue,
-    searcher_options: JsValue,
-) -> Result<Searcher, JsValue> {
-  let doc_info = DocInfo::create(base_url.clone(), num_scored_fields).await?;
-  
-  let language_config: LibrarianLanguageConfig = language_config.into_serde().unwrap();
-  let tokenizer = get_tokenizer(language_config);
+pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
+  let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Librarian config does not match schema");
+  let doc_info = DocInfo::create(
+    &searcher_config.searcher_options.url,
+    searcher_config.num_scored_fields
+  ).await?;
+
+  let tokenizer = get_tokenizer(&mut searcher_config.language);
   let build_trigram = tokenizer.use_default_trigram();
 
-  let dictionary = setup_dictionary(SmartString::from(&base_url), doc_info.num_docs, build_trigram).await?;
+  let dictionary = setup_dictionary(
+    &searcher_config.searcher_options.url,
+    doc_info.num_docs,
+    build_trigram,
+  ).await?;
 
-  let field_infos: Vec<FieldInfo> = field_infos_js.into_serde().unwrap();
-  let indexing_config: IndexingConfig = indexing_config.into_serde().unwrap();
-  let searcher_options: SearcherOptions = searcher_options.into_serde().unwrap();
-
-  let pl_file_cache = PostingsListFileCache::create(&base_url, &indexing_config.pl_names_to_cache).await;
+  let pl_file_cache = PostingsListFileCache::create(
+    &searcher_config.searcher_options.url,
+    &searcher_config.indexing_config.pl_names_to_cache
+  ).await;
 
   Ok(Searcher {
-    base_url,
     dictionary,
     tokenizer,
-    num_scored_fields,
-    field_infos,
-    indexing_config,
     doc_info,
-    searcher_options,
     pl_file_cache,
+    searcher_config,
   })
 }
 

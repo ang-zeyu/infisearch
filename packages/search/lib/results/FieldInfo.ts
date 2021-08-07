@@ -1,3 +1,5 @@
+import { SearcherOptions } from './SearcherOptions';
+
 export interface LibrarianConfig {
   indexingConfig: {
     withPositions: boolean,
@@ -5,10 +7,12 @@ export interface LibrarianConfig {
   },
   language: {
     lang: string,
+    options: any,
   },
   fieldInfos: FieldInfo[],
   numScoredFields: number,
   fieldStoreBlockSize: number,
+  searcherOptions: SearcherOptions
 }
 
 export interface LibrarianConfigRaw {
@@ -18,6 +22,7 @@ export interface LibrarianConfigRaw {
   },
   language: {
     lang: string,
+    options: any,
   },
   field_infos: FieldInfosRaw,
 }

@@ -201,7 +201,7 @@ impl Searcher {
 
             // ------------------------------------------
             // Query term proximity ranking
-            if self.searcher_options.use_query_term_proximity {
+            if self.searcher_config.searcher_options.use_query_term_proximity {
                 let mut pl_its_for_proximity_ranking: Vec<&mut PlIterator> = pl_its
                     .iter_mut()
                     .filter(|pl_it| pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == pivot_doc_id)
@@ -290,7 +290,7 @@ impl Searcher {
 
                     for (field_id, field) in td.fields.iter().enumerate() {
                         if field.field_tf > 0.0 {
-                            let field_info = self.field_infos.get(field_id).unwrap();
+                            let field_info = self.searcher_config.field_infos.get(field_id).unwrap();
                             let field_len_factor = self.doc_info.doc_length_factors
                                 [pivot_doc_id as usize]
                                 [field_id as usize] as f32;
