@@ -187,8 +187,6 @@ fn main() {
                 let path = dir_entry.path();
                 let extension = path.extension().unwrap();
                 if extension == "csv" {
-                    println!("Reading {}", path.display());
-
                     let mut rdr = Reader::from_path(path).unwrap();
                     
                     for result in rdr.records() {
@@ -203,8 +201,6 @@ fn main() {
                         );
                     }
                 } else if extension == "html" {
-                    println!("Reading {}", path.strip_prefix(&input_folder_path_clone).unwrap().to_slash().unwrap());
-
                     indexer.index_html_document(
                         path.strip_prefix(&input_folder_path_clone).unwrap().to_slash().unwrap(),
                         std::fs::read_to_string(path).expect("Failed to read file!")
