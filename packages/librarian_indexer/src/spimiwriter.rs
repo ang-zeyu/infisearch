@@ -71,17 +71,6 @@ pub fn combine_worker_results_and_write_block(
     num_docs: u32,
     total_num_docs: u32,
 ) {
-    let spimi_block = combine_and_sort(worker_index_results, doc_infos, num_docs, total_num_docs, field_infos);
-    write_to_disk(spimi_block, output_folder_path, block_number);
-}
-
-fn combine_and_sort(
-    worker_index_results: Vec<WorkerBlockIndexResults>,
-    doc_infos: Arc<Mutex<DocInfos>>,
-    num_docs: u32,
-    total_num_docs: u32,
-    field_infos: &Arc<FieldInfos>,
-) -> Vec<(String, Vec<TermDoc>)> {
     let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
 
     let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::with_capacity(worker_index_results.len());
@@ -154,92 +143,71 @@ fn combine_and_sort(
         }
     }
 
-    // Sort and aggregate worker docIds of each term into one vector
-    let mut sorted_entries: Vec<(String, Vec<TermDoc>)> = combined_terms.into_iter()
-        .map(|tup| {
-            let mut output: Vec<TermDoc> = Vec::new();
+    {
+        let mut combined_terms_vec: Vec<_> = combined_terms.into_iter().collect();
+        // Sort by lexicographical order
+        combined_terms_vec.sort_by(|a, b| a.0.cmp(&b.0));
+        
+        let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
+        let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
 
+        println!("Writing bsbi block {} to {}, num terms {}", block_number, output_file_path.to_str().unwrap(), combined_terms_vec.len());
+
+        let df = File::create(dict_output_file_path).expect("Failed to open temporary dictionary table for writing.");
+        let mut buffered_writer_dict = BufWriter::new(df);
+
+        let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");
+        let mut buffered_writer = BufWriter::with_capacity(819200, f);
+    
+        // Sort and aggregate worker docIds of each term into one vector
+        for (term, workers_term_docs) in combined_terms_vec {
+            buffered_writer_dict.write_all(&(term.len() as u8).to_le_bytes()).unwrap();
+            buffered_writer_dict.write_all(term.as_bytes()).unwrap();
+            let mut doc_freq = 0;
+
+            // Initialise heap sort
             let mut heap: BinaryHeap<TermDocComparator> = BinaryHeap::new();
-
-            for term_docs in tup.1 {
+            for term_docs in workers_term_docs {
+                doc_freq += term_docs.len() as u32;
                 let mut iter = term_docs.into_iter();
                 if let Some(term_doc) = iter.next() {
                     heap.push(TermDocComparator(term_doc, iter));
                 }
             }
+            
+            buffered_writer_dict.write_all(&doc_freq.to_le_bytes()).unwrap();
 
             while !heap.is_empty() {
-                let mut top = heap.pop().unwrap();
+                let mut term_doc_and_iter = heap.pop().unwrap();
 
-                if let Some(term_doc) = top.1.next() {
-                    heap.push(TermDocComparator(term_doc, top.1));
+                buffered_writer.write_all(&term_doc_and_iter.0.doc_id.to_le_bytes()).unwrap();
+
+                let num_fields = term_doc_and_iter.0.doc_fields
+                    .iter()
+                    .filter(|doc_field| doc_field.field_tf > 0)
+                    .count() as u8;
+                buffered_writer.write_all(&[num_fields]).unwrap();
+
+                for (field_id, doc_field) in term_doc_and_iter.0.doc_fields.into_iter().enumerate() {
+                    if doc_field.field_tf == 0 {
+                        continue;
+                    }
+
+                    buffered_writer.write_all(&[field_id as u8]).unwrap();
+                    buffered_writer.write_all(&doc_field.field_tf.to_le_bytes()).unwrap();
+
+                    for pos in doc_field.positions {
+                        buffered_writer.write_all(&pos.to_le_bytes()).unwrap();
+                    }
                 }
 
-                output.push(top.0);
-            }
-            
-            (tup.0, output)
-        }).collect();
-
-    // Sort terms by lexicographical order
-    sorted_entries.sort_by(|a, b| a.0.cmp(&b.0));
-
-    sorted_entries
-}
-
-fn write_to_disk(
-    bsbi_block: Vec<(String, Vec<TermDoc>)>,
-    output_folder_path: PathBuf,
-    bsbi_block_number: u32,
-) {
-    let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", bsbi_block_number));
-    let output_file_path = output_folder_path.join(format!("bsbi_block_{}", bsbi_block_number));
-
-    println!("Writing bsbi block {} to {}, num terms {}", bsbi_block_number, output_file_path.to_str().unwrap(), bsbi_block.len());
-
-    let df = File::create(dict_output_file_path).expect("Failed to open temporary dictionary table for writing.");
-    let mut buffered_writer_dict = BufWriter::new(df);
-
-    let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");
-    let mut buffered_writer = BufWriter::with_capacity(819200, f);
-    
-    for (term, term_docs) in bsbi_block {
-        // println!("Writing {}", term);
-
-        // Write **temporary** dict table
-        // Term len (1 byte) - term (term len bytes) - doc freq (4 bytes) - postings_file_offset (4 bytes)
-        buffered_writer_dict.write_all(&(term.len() as u8).to_le_bytes()).unwrap();
-        buffered_writer_dict.write_all(term.as_bytes()).unwrap();
-        buffered_writer_dict.write_all(&(term_docs.len() as u32).to_le_bytes()).unwrap();
-
-        // Write pl
-        // doc id (4 bytes) - number of fields (1 byte)
-        //   field id (1 byte) - field term frequency (4 bytes)
-        //     field term position (4 bytes)
-        for term_doc in term_docs.into_iter() {
-            buffered_writer.write_all(&term_doc.doc_id.to_le_bytes()).unwrap();
-
-            let num_fields = term_doc.doc_fields
-                .iter()
-                .filter(|doc_field| doc_field.field_tf > 0)
-                .count() as u8;
-            buffered_writer.write_all(&[num_fields]).unwrap();
-
-            for (field_id, doc_field) in term_doc.doc_fields.into_iter().enumerate() {
-                if doc_field.field_tf == 0 {
-                    continue;
-                }
-
-                buffered_writer.write_all(&[field_id as u8]).unwrap();
-                buffered_writer.write_all(&doc_field.field_tf.to_le_bytes()).unwrap();
-
-                for pos in doc_field.positions {
-                    buffered_writer.write_all(&pos.to_le_bytes()).unwrap();
+                if let Some(term_doc) = term_doc_and_iter.1.next() {
+                    heap.push(TermDocComparator(term_doc, term_doc_and_iter.1));
                 }
             }
         }
-    }
 
-    buffered_writer.flush().unwrap();
-    buffered_writer_dict.flush().unwrap();
+        buffered_writer.flush().unwrap();
+        buffered_writer_dict.flush().unwrap();
+    }
 }
