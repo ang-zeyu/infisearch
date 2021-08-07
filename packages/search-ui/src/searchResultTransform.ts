@@ -264,6 +264,11 @@ export default async function transformResults(
     'gi',
   );
 
+  const loader = h('span', { class: 'librarian-loading-indicator' });
+  if (!isFirst) {
+    container.appendChild(loader);
+  }
+
   const fragment = document.createDocumentFragment();
   const termInfoEls = isFirst ? displayTermInfo(query) : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
@@ -319,7 +324,7 @@ export default async function transformResults(
     container.innerHTML = '';
     container.appendChild(fragment);
   } else {
-    container.appendChild(fragment);
+    loader.replaceWith(fragment);
   }
 
   console.log(`Result transformation took ${performance.now() - now} milliseconds`);

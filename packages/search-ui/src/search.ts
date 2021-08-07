@@ -23,13 +23,15 @@ async function update(
       query.free();
     }
 
+    container.innerHTML = '';
+    container.appendChild(h('span', { class: 'librarian-loading-indicator' }));
+    show(container);
+
     query = await searcher.getQuery(queryString);
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
     await transformResults(query, true, container, sourceHtmlFilesUrl);
-
-    show(container);
   } catch (ex) {
     container.innerHTML = ex.message;
     throw ex;
