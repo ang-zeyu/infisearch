@@ -44,6 +44,8 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
   let mut is_expecting_and = false;
   let mut is_not_allowed = true;
   let mut did_encounter_not = false;
+  let mut did_encounter_escape = false;
+  let mut escape_indices: Vec<usize> = Vec::new();
   let mut field_name: Option<String> = None;
 
   let mut i = 0;
@@ -70,12 +72,22 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
     }
   };
 
-  let handle_free_text = |query_parts: &mut Vec<QueryPart>, chars: &Vec<char>, i: usize, j: usize, did_encounter_not: &mut bool, field_name: &mut Option<String>| {
+  let query_chars: Vec<char> = query.chars().collect();
+  let query_chars_len = query_chars.len();
+
+  let collect_slice = |i, j, escape_indices: &Vec<usize>| -> String {
+    query_chars[i..j].iter().enumerate()
+      .filter(|(idx, _char)| escape_indices.iter().find(|escape_idx| **escape_idx == (*idx + i)).is_none())
+      .map(|(_idx, c)| c)
+      .collect()
+  };
+
+  let handle_free_text = |query_parts: &mut Vec<QueryPart>, escape_indices: &Vec<usize>, i: usize, j: usize, did_encounter_not: &mut bool, field_name: &mut Option<String>| {
     if i == j {
       return;
     }
 
-    let tokenize_result = tokenizer.wasm_tokenize(chars[i..j].iter().collect());
+    let tokenize_result = tokenizer.wasm_tokenize(collect_slice(i, j, &escape_indices));
     if tokenize_result.terms.len() == 0 {
       return;
     }
@@ -112,8 +124,6 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
     }
   };
 
-  let query_chars: Vec<char> = query.chars().collect();
-  let query_chars_len = query_chars.len();
   while j < query_chars_len {
     let c = query_chars[j];
 
@@ -122,7 +132,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
         if c == '"' {
           query_parse_state = QueryParseState::NONE;
           
-          let terms = tokenizer.wasm_tokenize(query_chars[i..j].iter().collect()).terms;
+          let terms = tokenizer.wasm_tokenize(collect_slice(i, j, &escape_indices)).terms;
           let part_type = if terms.len() <= 1 { QueryPartType::TERM } else { QueryPartType::PHRASE };
           let phrase_query_part: QueryPart = wrap_in_not(QueryPart {
             is_corrected: false,
@@ -155,7 +165,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
         if c == ')' {
           query_parse_state = QueryParseState::NONE;
           
-          let content: String = query_chars[i..j].iter().collect();
+          let content: String = collect_slice(i, j, &escape_indices);
           let child_query_part: QueryPart = wrap_in_not(QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
@@ -184,10 +194,10 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
         }
       },
       QueryParseState::NONE => {
-        if c == '"' || c == '(' {
+        if !did_encounter_escape && (c == '"' || c == '(') {
           if is_expecting_and {
             if i != j {
-              let mut curr_query_parts = parse_query(query_chars[i..j].iter().collect(), tokenizer)?;
+              let mut curr_query_parts = parse_query(collect_slice(i, j, &escape_indices), tokenizer)?;
 
               let last_query_part_idx = query_parts.len() - 1;
               query_parts.get_mut(last_query_part_idx).unwrap()
@@ -198,15 +208,15 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             }
             // i === j: the phrase / parentheses is part of the AND (e.g. lorem AND (ipsum))
           } else {
-            handle_free_text(&mut query_parts, &query_chars, i, j, &mut did_encounter_not, &mut field_name);
+            handle_free_text(&mut query_parts, &escape_indices, i, j, &mut did_encounter_not, &mut field_name);
           }
 
           query_parse_state = if c == '"' { QueryParseState::QUOTE } else { QueryParseState::PARENTHESES };
           i = j + 1;
-        } else if c == ':' && last_whitespace_idx >= i && j > i {
+        } else if c == ':' && !did_encounter_escape && last_whitespace_idx >= i && j > i {
           if is_expecting_and {
             if i != last_whitespace_idx {
-              let mut curr_query_parts = parse_query(query_chars[i..last_whitespace_idx].iter().collect(), tokenizer)?;
+              let mut curr_query_parts = parse_query(collect_slice(i, last_whitespace_idx, &escape_indices), tokenizer)?;
   
               let last_query_part_idx = query_parts.len() - 1;
               query_parts.get_mut(last_query_part_idx).unwrap()
@@ -216,10 +226,10 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
               is_expecting_and = false;
             }
           } else {
-            handle_free_text(&mut query_parts, &query_chars, i, last_whitespace_idx, &mut did_encounter_not, &mut field_name);
+            handle_free_text(&mut query_parts, &escape_indices, i, last_whitespace_idx, &mut did_encounter_not, &mut field_name);
           }
           
-          field_name = Some(query_chars[last_whitespace_idx..j].iter().collect());
+          field_name = Some(collect_slice(last_whitespace_idx, j, &escape_indices));
 
           i = j + 1;
         } else if c.is_ascii_whitespace() {
@@ -228,12 +238,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             j += 1;
           }
 
-          if query_chars_len > 6 // overflow
+          if !did_encounter_escape
+            && query_chars_len > 6 // overflow
             &&  j < query_chars_len - 4
             && query_chars[j] == 'A' && query_chars[j + 1] == 'N' && query_chars[j + 2] == 'D'
             && query_chars[j + 3].is_ascii_whitespace() {
             
-            let mut curr_query_parts = parse_query(query_chars[i..initial_j].iter().collect(), tokenizer)?;
+            let mut curr_query_parts = parse_query(collect_slice(i, initial_j, &escape_indices), tokenizer)?;
 
             if curr_query_parts.len() > 0 {
               let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not, &mut field_name);
@@ -299,11 +310,12 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           j -= 1;
           is_not_allowed = true;
         } else if is_not_allowed
+          && !did_encounter_escape
           && query_chars_len > 5 // overflow
           && j < query_chars_len - 4
           && query_chars[j] == 'N' && query_chars[j + 1] == 'O' && query_chars[j + 2] == 'T'
           && query_chars[j + 3].is_ascii_whitespace() {
-          let mut curr_query_parts = parse_query(query_chars[i..j].iter().collect(), tokenizer)?;
+          let mut curr_query_parts = parse_query(collect_slice(i, j, &escape_indices), tokenizer)?;
           if curr_query_parts.len() > 0 {
             let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not, &mut field_name);
             curr_query_parts.push(first_query_part);
@@ -328,7 +340,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           }
           i = j;
           j -= 1;
+        } else if c == '\\' {
+          did_encounter_escape = !did_encounter_escape;
+          if did_encounter_escape {
+            escape_indices.push(j);
+          }
         } else {
+          did_encounter_escape = false;
           is_not_allowed = false;
         }
       }
@@ -339,7 +357,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
 
   if is_expecting_and {
     if i != j {
-      let mut curr_query_parts = parse_query(query_chars[i..j].iter().collect(), tokenizer)?;
+      let mut curr_query_parts = parse_query(collect_slice(i, j, &escape_indices), tokenizer)?;
 
       let last_query_part_idx = query_parts.len() - 1;
       query_parts.get_mut(last_query_part_idx).unwrap()
@@ -350,7 +368,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
       return Err("Query parsing error: no token found after AND operator");
     }
   } else {
-    handle_free_text(&mut query_parts, &query_chars, i, j, &mut did_encounter_not, &mut field_name);
+    handle_free_text(&mut query_parts, &escape_indices, i, j, &mut did_encounter_not, &mut field_name);
   }
 
   Ok(query_parts)
