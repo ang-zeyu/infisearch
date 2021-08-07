@@ -1,5 +1,6 @@
 pub mod miner;
 
+use crate::worker::miner::WorkerMinerDocInfo;
 use librarian_common::tokenize::Tokenizer;
 use std::sync::Barrier;
 use std::sync::Mutex;
@@ -25,6 +26,7 @@ use crate::FieldInfos;
 use crate::spimireader::TermDocsForMerge;
 use crate::spimireader::PostingsStreamDecoder;
 use crate::spimireader::PostingsStreamReader;
+use crate::worker::miner::TermDoc;
 
 static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
 
@@ -58,7 +60,7 @@ pub enum MainToWorkerMessage {
     Reset(Arc<Barrier>),
     Terminate,
     Combine {
-        worker_miners: Vec<WorkerMiner>,
+        worker_index_results: Vec<WorkerBlockIndexResults>,
         output_folder_path: PathBuf,
         block_number: u32,
         num_docs: u32,
@@ -81,9 +83,14 @@ pub enum MainToWorkerMessage {
     }
 }
 
+pub struct WorkerBlockIndexResults {
+    pub terms: FxHashMap<String, Vec<TermDoc>>,
+    pub doc_infos: Vec<WorkerMinerDocInfo>,
+}
+
 pub struct WorkerToMainMessage {
     pub id: usize,
-    pub doc_miner: Option<WorkerMiner>,
+    pub block_index_results: Option<WorkerBlockIndexResults>,
 }
 
 pub fn worker (
@@ -116,7 +123,7 @@ pub fn worker (
                 doc_miner.index_html_doc(doc_id, link, html_text);
             },
             MainToWorkerMessage::Combine {
-                worker_miners,
+                worker_index_results,
                 output_folder_path,
                 block_number,
                 num_docs,
@@ -124,7 +131,7 @@ pub fn worker (
                 doc_infos,
             } => {
                 spimiwriter::combine_worker_results_and_write_block(
-                    worker_miners,
+                    worker_index_results,
                     doc_infos,
                     output_folder_path,
                     &field_infos,
@@ -144,17 +151,15 @@ pub fn worker (
                 // return the indexed documents...
                 sndr.send(WorkerToMainMessage {
                     id,
-                    doc_miner: Option::from(doc_miner),
+                    block_index_results: Option::from(WorkerBlockIndexResults {
+                        terms: std::mem::replace(
+                            &mut doc_miner.terms, FxHashMap::default()
+                        ),
+                        doc_infos: std::mem::replace(
+                            &mut doc_miner.doc_infos, Vec::with_capacity(expected_num_docs_per_reset)
+                        ),
+                    }),
                 }).expect("Failed to send message back to main thread!");
-                
-                // reset local variables...
-                doc_miner = WorkerMiner {
-                    field_infos: Arc::clone(&field_infos),
-                    with_positions,
-                    terms: FxHashMap::default(),
-                    doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
-                    tokenizer: Arc::clone(&tokenizer),
-                };
 
                 barrier.wait();
             },

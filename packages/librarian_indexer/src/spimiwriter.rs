@@ -17,8 +17,8 @@ use rustc_hash::FxHashMap;
 
 use crate::docinfo::BlockDocLengths;
 use crate::DocInfos;
-use crate::worker::miner::WorkerMiner;
 use crate::worker::miner::TermDoc;
+use crate::worker::WorkerBlockIndexResults;
 
 
 impl Indexer {
@@ -26,7 +26,7 @@ impl Indexer {
         // Don't block on threads that are still writing blocks (long running)
         let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
         let num_workers_to_collect = self.indexing_config.num_threads - *num_workers_writing_blocks;
-        let mut worker_miners: Vec<WorkerMiner> = Vec::with_capacity(num_workers_to_collect);
+        let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect);
 
         let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_workers_to_collect));
         
@@ -42,7 +42,7 @@ impl Indexer {
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
                     println!("Worker {} data received!", worker_msg_unwrapped.id);
-                    worker_miners.push(worker_msg_unwrapped.doc_miner.expect("Received non doc miner message!"));
+                    worker_index_results.push(worker_msg_unwrapped.block_index_results.expect("Received non doc miner message!"));
                 },
                 Err(e) => panic!("Failed to receive idle message from worker! {}", e)
             }
@@ -50,7 +50,7 @@ impl Indexer {
 
         *num_workers_writing_blocks += 1;
         self.tx_main.send(MainToWorkerMessage::Combine {
-            worker_miners,
+            worker_index_results,
             output_folder_path: PathBuf::from(&self.output_folder_path),
             block_number: self.block_number(),
             num_docs: self.spimi_counter,
@@ -63,7 +63,7 @@ impl Indexer {
 }
 
 pub fn combine_worker_results_and_write_block(
-    worker_miners: Vec<WorkerMiner>,
+    worker_index_results: Vec<WorkerBlockIndexResults>,
     doc_infos: Arc<Mutex<DocInfos>>,
     output_folder_path: PathBuf,
     field_infos: &Arc<FieldInfos>,
@@ -71,12 +71,12 @@ pub fn combine_worker_results_and_write_block(
     num_docs: u32,
     total_num_docs: u32,
 ) {
-    let spimi_block = combine_and_sort(worker_miners, doc_infos, num_docs, total_num_docs, field_infos);
+    let spimi_block = combine_and_sort(worker_index_results, doc_infos, num_docs, total_num_docs, field_infos);
     write_to_disk(spimi_block, output_folder_path, block_number);
 }
 
 fn combine_and_sort(
-    worker_miners: Vec<WorkerMiner>,
+    worker_index_results: Vec<WorkerBlockIndexResults>,
     doc_infos: Arc<Mutex<DocInfos>>,
     num_docs: u32,
     total_num_docs: u32,
@@ -84,18 +84,18 @@ fn combine_and_sort(
 ) -> Vec<(String, Vec<TermDoc>)> {
     let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
 
-    let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::with_capacity(worker_miners.len());
+    let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::with_capacity(worker_index_results.len());
 
     // Combine
-    for worker_miner in worker_miners {
-        for (worker_term, worker_term_docs) in worker_miner.terms {
+    for worker_result in worker_index_results {
+        for (worker_term, worker_term_docs) in worker_result.terms {
             combined_terms
                 .entry(worker_term)
                 .or_insert_with(Vec::new)
                 .push(worker_term_docs);
         }
 
-        let mut doc_infos_iter = worker_miner.doc_infos.into_iter();
+        let mut doc_infos_iter = worker_result.doc_infos.into_iter();
         if let Some(worker_document_length) = doc_infos_iter.next() {
             heap.push(DocIdAndFieldLengthsComparator(worker_document_length, doc_infos_iter));
         }
