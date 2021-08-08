@@ -139,6 +139,7 @@ impl Searcher {
                 &self.pl_file_cache,
                 &window,
                 self.searcher_config.num_scored_fields,
+                self.searcher_config.indexing_config.num_pls_per_dir,
                 self.searcher_config.indexing_config.with_positions
             ))
         ).await;

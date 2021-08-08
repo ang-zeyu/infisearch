@@ -161,6 +161,23 @@ impl PostingsStream {
     }
 }
 
+#[inline(always)]
+fn get_pl_writer(
+    output_folder_path: &Path,
+    curr_pl: u32,
+    num_pls_per_dir: u32,
+) -> BufWriter<File> {
+    let dir_output_folder_path = output_folder_path.join(format!("pl_{}", curr_pl / num_pls_per_dir));
+    if (curr_pl % num_pls_per_dir == 0) && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir()) {
+        std::fs::create_dir(&dir_output_folder_path).expect("Failed to create pl output dir!");
+    }
+
+    BufWriter::new(
+        File::create(
+            dir_output_folder_path.join(Path::new(&format!("pl_{}", curr_pl)))
+        ).expect("Failed to open postings list for writing.")
+    )
+}
 
 fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
     let mut byte_len = 0;
@@ -264,11 +281,7 @@ pub fn merge_blocks(
             Path::new(output_folder_path).join("dictionaryString")
         ).expect("Failed to open final dictionary string for writing.")
     );
-    let mut pl_writer = BufWriter::new(
-        File::create(
-            Path::new(output_folder_path).join("pl_0")
-        ).expect("Failed to open first postings list for writing.")
-    );
+    let mut pl_writer = get_pl_writer(output_folder_path, 0, indexing_config.num_pls_per_dir);
 
     // Preallocate some things
     let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);
@@ -388,11 +401,7 @@ pub fn merge_blocks(
 
             curr_pl += 1;
             curr_pl_offset = 0;
-            pl_writer = BufWriter::new(
-                File::create(
-                    Path::new(output_folder_path).join(format!("pl_{}", curr_pl))
-                ).expect("Failed to create new buffered writer for new postings list.")
-            );
+            pl_writer = get_pl_writer(output_folder_path, curr_pl, indexing_config.num_pls_per_dir);
         }
         // ---------------------------------------------
     }

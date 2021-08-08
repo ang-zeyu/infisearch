@@ -49,6 +49,10 @@ fn get_default_pl_cache_threshold() -> u32 {
     1048576
 }
 
+fn get_default_num_pls_per_dir() -> u32 {
+    1000
+}
+
 fn get_default_with_positions() -> bool {
     true
 }
@@ -58,14 +62,21 @@ pub struct LibrarianIndexingConfig {
     #[serde(default = "get_default_num_threads")]
     #[serde(skip_serializing)]
     num_threads: usize,
+
     #[serde(default = "get_default_num_docs_per_block")]
     #[serde(skip_serializing)]
     num_docs_per_block: u32,
+
     #[serde(default = "get_default_pl_cache_threshold")]
     #[serde(skip_serializing)]
     pl_cache_threshold: u32,
+
     #[serde(default = "Vec::new")]
     pl_names_to_cache: Vec<u32>,
+
+    #[serde(default = "get_default_num_pls_per_dir")]
+    num_pls_per_dir: u32,
+
     #[serde(default = "get_default_with_positions")]
     with_positions: bool,
 }
@@ -77,6 +88,7 @@ impl Default for LibrarianIndexingConfig {
             num_docs_per_block: get_default_num_docs_per_block(),
             pl_cache_threshold: get_default_pl_cache_threshold(),
             pl_names_to_cache: Vec::new(),
+            num_pls_per_dir: get_default_num_pls_per_dir(),
             with_positions: get_default_with_positions(),
         }
     }

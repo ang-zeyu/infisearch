@@ -41,10 +41,12 @@ struct SearcherConfig {
 
 #[derive(Deserialize)]
 struct IndexingConfig {
+  #[serde(rename = "plNamesToCache")]
+  pl_names_to_cache: Vec<u32>,
+  #[serde(rename = "numPlsPerDir")]
+  num_pls_per_dir: u32,
   #[serde(rename = "withPositions")]
   with_positions: bool,
-  #[serde(rename = "plNamesToCache")]
-  pl_names_to_cache: Vec<u32>
 }
 
 #[derive(Deserialize)]
@@ -110,7 +112,8 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
 
   let pl_file_cache = PostingsListFileCache::create(
     &searcher_config.searcher_options.url,
-    &searcher_config.indexing_config.pl_names_to_cache
+    &searcher_config.indexing_config.pl_names_to_cache,
+    searcher_config.indexing_config.num_pls_per_dir
   ).await;
 
   Ok(Searcher {

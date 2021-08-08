@@ -2,8 +2,9 @@ import { SearcherOptions } from './SearcherOptions';
 
 export interface LibrarianConfig {
   indexingConfig: {
-    withPositions: boolean,
     plNamesToCache: number[],
+    numPlsPerDir: number,
+    withPositions: boolean,
   },
   language: {
     lang: string,
@@ -17,8 +18,9 @@ export interface LibrarianConfig {
 
 export interface LibrarianConfigRaw {
   indexing_config: {
-    with_positions: boolean,
     pl_names_to_cache: number[],
+    num_pls_per_dir: number,
+    with_positions: boolean,
   },
   language: {
     lang: string,

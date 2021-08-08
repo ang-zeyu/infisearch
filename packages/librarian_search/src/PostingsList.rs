@@ -167,9 +167,14 @@ impl PostingsList {
     }
 
     #[inline]
-    pub async fn fetch_pl_to_vec(window: &web_sys::Window, base_url: &str, pl_num: u32) -> Result<Vec<u8>, JsValue> {
+    pub async fn fetch_pl_to_vec(window: &web_sys::Window, base_url: &str, pl_num: u32, num_pls_per_dir: u32) -> Result<Vec<u8>, JsValue> {
         let pl_resp_value = JsFuture::from(
-            window.fetch_with_str(&(base_url.to_owned() + "/pl_" + &pl_num.to_string()[..]))
+            window.fetch_with_str(
+                &(base_url.to_owned()
+                    + "/pl_" + &(pl_num / num_pls_per_dir).to_string()[..] 
+                    + "/pl_" + &pl_num.to_string()[..]
+                )
+            )
         ).await?;
         let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
         let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
@@ -182,6 +187,7 @@ impl PostingsList {
         pl_file_cache: &PostingsListFileCache,
         window: &web_sys::Window,
         num_scored_fields: usize,
+        num_pls_per_dir: u32,
         with_positions: bool,
     ) -> Result<(), JsValue> {
         if let Option::None = self.term_info {
@@ -194,7 +200,7 @@ impl PostingsList {
         let pl_vec = if let Some(pl_vec) = pl_file_cache.get(term_info.postings_file_name) {
             pl_vec
         } else {
-            fetched_pl = Some(PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name).await?);
+            fetched_pl = Some(PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name, num_pls_per_dir).await?);
             fetched_pl.as_ref().unwrap()
         };
 
