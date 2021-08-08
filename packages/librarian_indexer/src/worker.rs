@@ -1,6 +1,5 @@
 pub mod miner;
 
-use crate::worker::miner::WorkerMinerDocInfo;
 use librarian_common::tokenize::Tokenizer;
 use std::sync::Barrier;
 use std::sync::Mutex;
@@ -23,9 +22,11 @@ use crate::spimiwriter;
 use crate::utils::varint;
 use crate::DocInfos;
 use crate::FieldInfos;
+use crate::loader::LoaderResult;
 use crate::spimireader::TermDocsForMerge;
 use crate::spimireader::PostingsStreamDecoder;
 use crate::spimireader::PostingsStreamReader;
+use crate::worker::miner::WorkerMinerDocInfo;
 use crate::worker::miner::TermDoc;
 
 static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
@@ -69,12 +70,7 @@ pub enum MainToWorkerMessage {
     },
     Index {
         doc_id: u32,
-        field_texts: Vec<(&'static str, String)>,
-    },
-    IndexHtml {
-        doc_id: u32,
-        link: String,
-        html_text: String
+        loader_result: Box<dyn LoaderResult + Send>,
     },
     Decode {
         n: u32,
@@ -116,11 +112,8 @@ pub fn worker (
     loop {
         let msg = rcvr.recv().expect("Failed to receive message on worker side!");
         match msg {
-            MainToWorkerMessage::Index { doc_id, field_texts } => {
-                doc_miner.index_doc(doc_id, field_texts);
-            },
-            MainToWorkerMessage::IndexHtml { doc_id, link, html_text } => {
-                doc_miner.index_html_doc(doc_id, link, html_text);
+            MainToWorkerMessage::Index { doc_id, mut loader_result } => {
+                doc_miner.index_doc(doc_id, loader_result.get_field_texts());
             },
             MainToWorkerMessage::Combine {
                 worker_index_results,

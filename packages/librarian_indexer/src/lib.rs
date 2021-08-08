@@ -1,25 +1,11 @@
 
 mod docinfo;
 pub mod fieldinfo;
+pub mod loader;
 mod spimireader;
 mod spimiwriter;
 mod utils;
 mod worker;
-
-use librarian_common::LibrarianLanguageConfig;
-use librarian_common::tokenize::Tokenizer;
-use librarian_lang_chinese::chinese;
-use librarian_lang_latin::english;
-
-use crate::docinfo::DocInfos;
-use crate::fieldinfo::FieldConfig;
-use crate::fieldinfo::FieldsConfig;
-use crate::worker::MainToWorkerMessage;
-use crate::worker::WorkerToMainMessage;
-use crate::worker::Worker;
-use crate::fieldinfo::FieldInfo;
-use crate::fieldinfo::FieldInfos;
-use rustc_hash::FxHashMap;
 
 use std::cmp::Ordering;
 use std::fs::File;
@@ -30,8 +16,27 @@ use std::sync::Arc;
 use std::path::Path;
 use std::path::PathBuf;
 
+use librarian_common::LibrarianLanguageConfig;
+use librarian_common::tokenize::Tokenizer;
+use librarian_lang_chinese::chinese;
+use librarian_lang_latin::english;
+
+use crate::docinfo::DocInfos;
+use crate::fieldinfo::FieldConfig;
+use crate::fieldinfo::FieldsConfig;
+use crate::fieldinfo::FieldInfo;
+use crate::fieldinfo::FieldInfos;
+use crate::loader::csv::CsvLoader;
+use crate::loader::html::HtmlLoader;
+use crate::loader::Loader;
+use crate::loader::LoaderResult;
+use crate::worker::MainToWorkerMessage;
+use crate::worker::WorkerToMainMessage;
+use crate::worker::Worker;
+
 use crossbeam::Sender;
 use crossbeam::Receiver;
+use rustc_hash::FxHashMap;
 use serde::{Serialize,Deserialize};
 
 #[macro_use]
@@ -47,6 +52,36 @@ fn get_default_num_docs_per_block() -> u32 {
 
 fn get_default_pl_cache_threshold() -> u32 {
     1048576
+}
+
+fn get_default_loader_configs() -> FxHashMap<String, serde_json::Value> {
+    let mut configs = FxHashMap::default();
+
+    configs.insert("HtmlLoader".to_owned(), serde_json::json!({}));
+
+    configs
+}
+
+pub fn get_loaders_from_config(config: &mut LibrarianConfig) -> Vec<Box<dyn Loader>> {
+    let mut loaders: Vec<Box<dyn Loader>> = Vec::new();
+
+    for (key, value) in std::mem::take(&mut config.indexing_config.loader_configs) {
+        match &key[..] {
+            "HtmlLoader" => {
+                loaders.push(Box::new(HtmlLoader {
+                    options: serde_json::from_value(value).expect("HtmlLoader options did not match schema!"),
+                }))
+            },
+            "CsvLoader" => {
+                loaders.push(Box::new(CsvLoader {
+                    options: serde_json::from_value(value).expect("CsvLoader options did not match schema!"),
+                }))
+            },
+            _ => panic!("Unknown loader type encountered in config")
+        }
+    }
+
+    loaders
 }
 
 fn get_default_num_pls_per_dir() -> u32 {
@@ -71,6 +106,10 @@ pub struct LibrarianIndexingConfig {
     #[serde(skip_serializing)]
     pl_cache_threshold: u32,
 
+    #[serde(default = "get_default_loader_configs")]
+    #[serde(skip_serializing)]
+    loader_configs: FxHashMap<String, serde_json::Value>,
+
     #[serde(default = "Vec::new")]
     pl_names_to_cache: Vec<u32>,
 
@@ -87,6 +126,7 @@ impl Default for LibrarianIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
             pl_cache_threshold: get_default_pl_cache_threshold(),
+            loader_configs: get_default_loader_configs(),
             pl_names_to_cache: Vec::new(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
             with_positions: get_default_with_positions(),
@@ -316,26 +356,11 @@ impl Indexer {
         ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).ceil() as u32
     }
 
-    pub fn index_document(&mut self, field_texts: Vec<(&'static str, String)>) {
+    pub fn index_document(&mut self, loader_result: Box<dyn LoaderResult + Send>) {
         self.tx_main.send(MainToWorkerMessage::Index {
             doc_id: self.doc_id_counter,
-            field_texts,
+            loader_result,
         }).expect("Failed to send work message to worker!");
-    
-        self.doc_id_counter += 1;
-        self.spimi_counter += 1;
-
-        if self.spimi_counter == self.indexing_config.num_docs_per_block {
-            self.write_block();
-        }
-    }
-
-    pub fn index_html_document(&mut self, link: String, html_text: String) {
-        self.tx_main.send(MainToWorkerMessage::IndexHtml {
-            doc_id: self.doc_id_counter,
-            link,
-            html_text,
-        }).expect("Failed to send html work message to worker!");
     
         self.doc_id_counter += 1;
         self.spimi_counter += 1;

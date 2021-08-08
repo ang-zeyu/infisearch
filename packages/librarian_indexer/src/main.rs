@@ -2,11 +2,10 @@ use std::time::Instant;
 use std::env;
 use std::path::Path;
 use std::path::PathBuf;
-use path_slash::PathExt;
 
 use librarian_indexer::LibrarianConfig;
+use librarian_indexer::loader::Loader;
 
-use csv::Reader;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 
@@ -61,18 +60,20 @@ fn main() {
         args.config_file_path.as_ref(),
     );
 
-    println!("Resolved Paths: {} {} {}",
+    println!("Resolved Paths:\n{}\n{}\n{}",
         input_folder_path.to_str().unwrap(),
         output_folder_path.to_str().unwrap(),
         config_file_path.to_str().unwrap(),
     );
 
-    let config: LibrarianConfig = if config_file_path.exists() && config_file_path.is_file() {
+    let mut config: LibrarianConfig = if config_file_path.exists() && config_file_path.is_file() {
         let config_raw = std::fs::read_to_string(config_file_path).unwrap();
         serde_json::from_str(&config_raw).expect("_librarian_config.json does not match schema!")
     } else {
         LibrarianConfig::default()
     };
+    
+    let loaders: Vec<Box<dyn Loader>> = librarian_indexer::get_loaders_from_config(&mut config);
 
     let mut indexer = librarian_indexer::Indexer::new(
         &output_folder_path,
@@ -81,7 +82,7 @@ fn main() {
 
     let now = Instant::now();
 
-    let input_folder_path_clone = input_folder_path.to_str().unwrap().to_owned();
+    let input_folder_path_clone = input_folder_path.clone();
 
     for entry in WalkDir::new(input_folder_path) {
         match entry {
@@ -91,26 +92,13 @@ fn main() {
                 }
 
                 let path = dir_entry.path();
-                let extension = path.extension().unwrap();
-                if extension == "csv" {
-                    let mut rdr = Reader::from_path(path).unwrap();
-                    
-                    for result in rdr.records() {
-                        let record = result.expect("Failed to unwrap csv record result!");
-
-                        indexer.index_document(
-                            vec![
-                                ("title", record[1].to_string()),
-                                ("body", record[2].to_string()),
-                                ("link", record[0].to_string()),
-                            ]
-                        );
+                for loader in loaders.iter() {
+                    if let Some(loader_results) = loader.try_index_file(&input_folder_path_clone, &path) {
+                        for loader_result in loader_results {
+                            indexer.index_document(loader_result);
+                        }
+                        break;
                     }
-                } else if extension == "html" {
-                    indexer.index_html_document(
-                        path.strip_prefix(&input_folder_path_clone).unwrap().to_slash().unwrap(),
-                        std::fs::read_to_string(path).expect("Failed to read file!")
-                    );
                 }
             },
             Err(e) => {
