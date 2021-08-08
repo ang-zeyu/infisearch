@@ -73,9 +73,7 @@ pub fn get_loaders_from_config(config: &mut LibrarianConfig) -> Vec<Box<dyn Load
                 }))
             },
             "CsvLoader" => {
-                loaders.push(Box::new(CsvLoader {
-                    options: serde_json::from_value(value).expect("CsvLoader options did not match schema!"),
-                }))
+                loaders.push(CsvLoader::get_new_csv_loader(value))
             },
             _ => panic!("Unknown loader type encountered in config")
         }

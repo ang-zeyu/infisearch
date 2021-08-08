@@ -44,14 +44,14 @@ impl Loader for HtmlLoader {
 }
 
 impl LoaderResult for HtmlLoaderResult {
-    fn get_field_texts(&mut self) -> Vec<(&'static str, String)> {
-        let mut field_texts: Vec<(&str, String)> = Vec::with_capacity(20);
+    fn get_field_texts(&mut self) -> Vec<(String, String)> {
+        let mut field_texts: Vec<(String, String)> = Vec::with_capacity(20);
         let document = Html::parse_document(&self.text);
 
-        field_texts.push(("link", std::mem::take(&mut self.link)));
+        field_texts.push(("link".to_owned(), std::mem::take(&mut self.link)));
 
         if let Some(title) = document.select(&TITLE_SELECTOR).next() {
-            field_texts.push(("title", title.text().collect()));
+            field_texts.push(("title".to_owned(), title.text().collect()));
         }
 
         if let Some(body) = document.select(&BODY_SELECTOR).next() {
@@ -67,7 +67,7 @@ lazy_static! {
     static ref BODY_SELECTOR: Selector = Selector::parse("body").unwrap();
 }
 
-fn traverse_node(node: ElementRef, field_texts: &mut Vec<(&str, String)>) {
+fn traverse_node(node: ElementRef, field_texts: &mut Vec<(String, String)>) {
     match node.value().name() {
         "h1"
         | "h2"
@@ -75,7 +75,7 @@ fn traverse_node(node: ElementRef, field_texts: &mut Vec<(&str, String)>) {
         | "h4"
         | "h5"
         | "h6" => {
-            field_texts.push(("heading", node.text().collect()));
+            field_texts.push(("heading".to_owned(), node.text().collect()));
         }
         _ => {
             if !node.has_children() {
@@ -92,10 +92,10 @@ fn traverse_node(node: ElementRef, field_texts: &mut Vec<(&str, String)>) {
                             if last.0 == "body" {
                                 last.1 += text;
                             } else {
-                                field_texts.push(("body", text.to_string()));
+                                field_texts.push(("body".to_owned(), text.to_string()));
                             }
                         } else {
-                            field_texts.push(("body", text.to_string()));
+                            field_texts.push(("body".to_owned(), text.to_string()));
                         }
                     }
                 }

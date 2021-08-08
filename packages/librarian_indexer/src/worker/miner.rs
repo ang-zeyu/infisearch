@@ -128,7 +128,7 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
 }
 
 impl WorkerMiner {
-    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(&str, String)>) {
+    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>) {
         let mut is_first_stored_field = true;
         
         let mut pos = 0;
@@ -141,7 +141,7 @@ impl WorkerMiner {
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
         for (field_name, field_text) in field_texts {
-            let field_info = self.field_infos.field_infos_map.get(field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
+            let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or_else(|| panic!("Inexistent field: {}", field_name));
             let field_id = field_info.id;
 
             // Store raw text

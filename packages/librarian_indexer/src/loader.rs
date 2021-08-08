@@ -10,15 +10,15 @@ pub trait Loader {
 }
 
 pub trait LoaderResult {
-    fn get_field_texts(&mut self) -> Vec<(&'static str, String)>;
+    fn get_field_texts(&mut self) -> Vec<(String, String)>;
 }
 
 pub struct BasicLoaderResult {
-    field_texts: Vec<(&'static str, String)>,
+    field_texts: Vec<(String, String)>,
 }
 
 impl LoaderResult for BasicLoaderResult {
-    fn get_field_texts(&mut self) -> Vec<(&'static str, String)> {
+    fn get_field_texts(&mut self) -> Vec<(String, String)> {
         std::mem::take(&mut self.field_texts)
     }
 }
