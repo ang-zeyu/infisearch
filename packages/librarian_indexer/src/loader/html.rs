@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::Arc;
 
 use path_slash::PathExt;
 use scraper::ElementRef;
@@ -12,16 +13,36 @@ use crate::loader::LoaderResultIterator;
 
 #[derive(Deserialize)]
 pub struct HtmlLoaderOptions {
-
+    #[serde(default = "Vec::new")]
+    exclude_selectors: Vec<String>
 }
 
 pub struct HtmlLoader {
     pub options: HtmlLoaderOptions,
+
+    pub exclude_selectors: Arc<Vec<Selector>>,
 }
 
 struct HtmlLoaderResult {
     link: String,
     text: String,
+    exclude_selectors: Arc<Vec<Selector>>,
+}
+
+impl HtmlLoader {
+    pub fn get_new_html_loader(config: serde_json::Value) -> Box<Self> {
+        let html_loader_options: HtmlLoaderOptions = serde_json::from_value(config).expect("HtmlLoader options did not match schema!");
+
+        let exclude_selectors = Arc::new(html_loader_options.exclude_selectors
+            .iter()
+            .map(|selector| Selector::parse(&selector).expect("Invalid exclude selector specified!"))
+            .collect());
+
+        Box::new(HtmlLoader {
+            options: html_loader_options,
+            exclude_selectors,
+        })
+    }
 }
 
 impl Loader for HtmlLoader {
@@ -32,7 +53,8 @@ impl Loader for HtmlLoader {
                     vec![
                         Box::new(HtmlLoaderResult {
                             link: path.strip_prefix(input_folder_path).unwrap().to_slash().unwrap(),
-                            text: std::fs::read_to_string(path).expect("Failed to read file!")
+                            text: std::fs::read_to_string(path).expect("Failed to read file!"),
+                            exclude_selectors: self.exclude_selectors.clone(),
                         }) as Box<dyn LoaderResult + Send>
                     ].into_iter()
                 ));
@@ -46,9 +68,16 @@ impl Loader for HtmlLoader {
 impl LoaderResult for HtmlLoaderResult {
     fn get_field_texts(&mut self) -> Vec<(String, String)> {
         let mut field_texts: Vec<(String, String)> = Vec::with_capacity(20);
-        let document = Html::parse_document(&self.text);
+        let mut document = Html::parse_document(&self.text);
 
         field_texts.push(("link".to_owned(), std::mem::take(&mut self.link)));
+
+        for selector in self.exclude_selectors.iter() {
+            let ids: Vec<_> = document.select(selector).map(|selected| selected.id()).collect();
+            for id in ids {
+                document.tree.get_mut(id).unwrap().detach();
+            }
+        }
 
         if let Some(title) = document.select(&TITLE_SELECTOR).next() {
             field_texts.push(("title".to_owned(), title.text().collect()));

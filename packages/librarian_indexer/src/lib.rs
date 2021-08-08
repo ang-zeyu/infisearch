@@ -67,14 +67,8 @@ pub fn get_loaders_from_config(config: &mut LibrarianConfig) -> Vec<Box<dyn Load
 
     for (key, value) in std::mem::take(&mut config.indexing_config.loader_configs) {
         match &key[..] {
-            "HtmlLoader" => {
-                loaders.push(Box::new(HtmlLoader {
-                    options: serde_json::from_value(value).expect("HtmlLoader options did not match schema!"),
-                }))
-            },
-            "CsvLoader" => {
-                loaders.push(CsvLoader::get_new_csv_loader(value))
-            },
+            "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
+            "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
             _ => panic!("Unknown loader type encountered in config")
         }
     }
