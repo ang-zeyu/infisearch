@@ -189,20 +189,19 @@ pub fn merge_blocks(
     output_folder_path: &Path
 ) {
     /*
-     Threading algorithm:
+     Gist of this function:
+
      Whenever a postings stream's primary buffer depletes below a certain count,
      request a worker to decode more terms and postings lists into the secondary buffer.
 
-     Once the primary buffer is fully depleted, wait for the decoding to complete if not yet done, then swap the two buffers.
+     Once the primary buffer is fully depleted, wait for the decoding to complete **if not yet done**, then swap the two buffers.
 
-     Thus, we'll need to keep track of postings streams being decoded by threads... (secondary buffers being filled)
-     using a simple hashset...
+     We keep track of postings streams being decoded by threads... (secondary buffers being filled)
+     using a concurrent HashMap (DashMap)...
      */
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
     let postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>> = Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::bounded(1);
-
-    // let (tx_stream, rx_stream) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = std::sync::mpsc::channel();
 
     // Unwrap the inner mutex to avoid locks as it is now read-only
     let doc_infos_unlocked_arc = if let Ok(doc_infos_mutex) = Arc::try_unwrap(doc_infos) {
@@ -236,7 +235,7 @@ pub fn merge_blocks(
         }).read_next_batch(tx_main, Arc::clone(&postings_stream_decoders));
     }
 
-    // Wait for all initial decoding to finish...
+    // Wait for all initial decoding to finish (for the heap to have initialised)
     for idx in 1..(num_blocks + 1) {
         let mut postings_stream = PostingsStream {
             idx,
@@ -250,8 +249,10 @@ pub fn merge_blocks(
     }
     println!("Initialized postings streams...");
 
-    // N-way merge according to lexicographical order
-    // Sort and aggregate worker docIds into one vector
+    /*
+     N-way merge according to lexicographical order
+     Sort and aggregate worker docIds into one vector
+     */
     
     let mut dict_table_writer = BufWriter::new(
         File::create(
@@ -261,12 +262,12 @@ pub fn merge_blocks(
     let mut dict_string_writer = BufWriter::new(
         File::create(
             Path::new(output_folder_path).join("dictionaryString")
-        ).expect("Failed to final dictionary string for writing.")
+        ).expect("Failed to open final dictionary string for writing.")
     );
     let mut pl_writer = BufWriter::new(
         File::create(
             Path::new(output_folder_path).join("pl_0")
-        ).expect("Failed to final dictionary string for writing.")
+        ).expect("Failed to open first postings list for writing.")
     );
 
     // Preallocate some things
