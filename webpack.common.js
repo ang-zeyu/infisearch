@@ -4,7 +4,7 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    main: {
+    'search-ui': {
       import: './packages/search-ui/src/search.ts',
       filename: 'search-ui.bundle.js',
       library: {
@@ -28,25 +28,8 @@ module.exports = {
         use: ['html-loader'],
       },
       {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-        ],
-      },
-      {
         test: /\.tsx?$/,
         use: ['ts-loader'],
-      },
-      {
-        test: /\.(svg|png|jpg|gif)$/,
-        use: {
-          loader: 'file-loader',
-          options: {
-            name: '[name].[hash].[ext]',
-            outputPath: 'imgs',
-          },
-        },
       },
     ],
   },
