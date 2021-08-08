@@ -1,5 +1,5 @@
-use crate::Searcher::Searcher;
-use crate::Searcher::query_parser::QueryPart;
+use crate::searcher::Searcher;
+use crate::searcher::query_parser::QueryPart;
 
 
 impl Searcher {

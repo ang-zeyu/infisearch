@@ -2,7 +2,7 @@ use futures::future::join_all;
 use rustc_hash::FxHashMap;
 use wasm_bindgen::JsCast;
 
-use crate::PostingsList::PostingsList;
+use crate::postings_list::PostingsList;
 
 pub struct PostingsListFileCache {
     pl_bytes: FxHashMap<u32, Vec<u8>>,

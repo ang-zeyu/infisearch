@@ -2,7 +2,7 @@ pub mod query_parser;
 pub mod query_preprocessor;
 pub mod query_retriever;
 pub mod query_processor;
-pub mod Query;
+pub mod query;
 
 use std::collections::HashSet;
 
@@ -15,7 +15,7 @@ use wasm_bindgen::prelude::{wasm_bindgen};
 use crate::docinfo::DocInfo;
 use crate::dictionary::Dictionary;
 use crate::dictionary::setup_dictionary;
-use crate::PostingsListFileCache::PostingsListFileCache;
+use crate::postings_list_file_cache::PostingsListFileCache;
 
 #[cfg(feature = "lang_latin")]
 use librarian_lang_latin::english;
@@ -153,7 +153,7 @@ fn get_searched_terms(query_parts: &Vec<QueryPart>, seen: &mut HashSet<String>, 
 }
 
 #[wasm_bindgen]
-pub async fn get_query(searcher: *const Searcher, query: String) -> Result<Query::Query, JsValue> {
+pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query::Query, JsValue> {
   
   let window: web_sys::Window = js_sys::global().unchecked_into();
   let performance = window.performance().unwrap();

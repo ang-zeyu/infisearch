@@ -8,7 +8,7 @@ use wasm_bindgen::JsValue;
 use web_sys::Response;
 
 use librarian_common::tokenize::TermInfo;
-use crate::PostingsListFileCache::PostingsListFileCache;
+use crate::postings_list_file_cache::PostingsListFileCache;
 use crate::utils::varint::decode_var_int;
 
 pub struct DocField {

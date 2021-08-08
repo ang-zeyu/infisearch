@@ -5,13 +5,13 @@ use std::rc::Rc;
 
 use rustc_hash::FxHashMap;
 
-use crate::PostingsList::DocField;
-use crate::PostingsList::TermDoc;
-use crate::PostingsList::PlIterator;
-use crate::PostingsList::PostingsList;
-use crate::Searcher::query_parser::QueryPart;
-use crate::Searcher::query_parser::QueryPartType;
-use crate::Searcher::Searcher;
+use crate::postings_list::DocField;
+use crate::postings_list::TermDoc;
+use crate::postings_list::PlIterator;
+use crate::postings_list::PostingsList;
+use crate::searcher::query_parser::QueryPart;
+use crate::searcher::query_parser::QueryPartType;
+use crate::searcher::Searcher;
 
 impl Searcher {
     fn populate_phrasal_postings_lists(

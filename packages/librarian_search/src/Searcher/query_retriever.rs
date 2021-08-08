@@ -5,10 +5,10 @@ use rustc_hash::FxHashMap;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
 
-use crate::PostingsList::PostingsList;
-use crate::Searcher::Searcher;
-use crate::Searcher::query_parser::QueryPart;
-use crate::Searcher::query_parser::QueryPartType;
+use crate::postings_list::PostingsList;
+use crate::searcher::Searcher;
+use crate::searcher::query_parser::QueryPart;
+use crate::searcher::query_parser::QueryPartType;
 
 
 impl Searcher {
