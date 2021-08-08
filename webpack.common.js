@@ -4,7 +4,15 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    main: './packages/search-ui/src/search.ts',
+    main: {
+      import: './packages/search-ui/src/search.ts',
+      filename: 'search-ui.bundle.js',
+      library: {
+        name: 'initLibrarian',
+        type: 'umd',
+        export: 'default',
+      },
+    },
     worker: './packages/search/lib/worker/worker.ts',
   },
   experiments: {

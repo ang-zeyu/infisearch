@@ -133,8 +133,4 @@ function initLibrarian(
   });
 }
 
-initLibrarian(
-  'http://192.168.10.132:3000/output',
-  '/worker.bundle.js',
-  'http://192.168.10.132:3000/source',
-);
+export default initLibrarian;
