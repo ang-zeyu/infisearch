@@ -1,5 +1,7 @@
-use std::time::Instant;
 use std::env;
+use std::fs::File;
+use std::io::Write;
+use std::time::Instant;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -18,6 +20,8 @@ struct CliArgs {
     output_folder_path: PathBuf,
     #[structopt(short, long, parse(from_os_str))]
     config_file_path: Option<PathBuf>,
+    #[structopt(short, long)]
+    init: bool,
 }
 
 fn get_relative_or_absolute_path(from_path: &Path, path: &Path) -> PathBuf {
@@ -72,6 +76,18 @@ fn main() {
     } else {
         LibrarianConfig::default()
     };
+
+    if args.init {
+        File::create(input_folder_path.join("_librarian_config.json"))
+            .unwrap()
+            .write_all(
+                serde_json::to_string_pretty(&config)
+                    .expect("Failed to serialize librarian config for --init!")
+                    .as_bytes()
+            )
+            .unwrap();
+        return;
+    }
     
     let loaders: Vec<Box<dyn Loader>> = librarian_indexer::get_loaders_from_config(&mut config);
 

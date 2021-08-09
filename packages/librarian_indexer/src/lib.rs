@@ -87,19 +87,15 @@ fn get_default_with_positions() -> bool {
 #[derive(Serialize, Deserialize)]
 pub struct LibrarianIndexingConfig {
     #[serde(default = "get_default_num_threads")]
-    #[serde(skip_serializing)]
     num_threads: usize,
 
     #[serde(default = "get_default_num_docs_per_block")]
-    #[serde(skip_serializing)]
     num_docs_per_block: u32,
 
     #[serde(default = "get_default_pl_cache_threshold")]
-    #[serde(skip_serializing)]
     pl_cache_threshold: u32,
 
     #[serde(default = "get_default_loader_configs")]
-    #[serde(skip_serializing)]
     loader_configs: FxHashMap<String, serde_json::Value>,
 
     #[serde(default = "Vec::new")]
@@ -126,7 +122,7 @@ impl Default for LibrarianIndexingConfig {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct LibrarianConfig {
     #[serde(default)]
     indexing_config: LibrarianIndexingConfig,
@@ -135,9 +131,22 @@ pub struct LibrarianConfig {
     fields_config: FieldsConfig,
 }
 
+// Separate struct to support serializing for --init option but not output config
+#[derive(Serialize)]
+struct LibrarianIndexingOutputConfig {
+    #[serde(default = "Vec::new")]
+    pl_names_to_cache: Vec<u32>,
+
+    #[serde(default = "get_default_num_pls_per_dir")]
+    num_pls_per_dir: u32,
+
+    #[serde(default = "get_default_with_positions")]
+    with_positions: bool,
+}
+
 #[derive(Serialize)]
 pub struct LibrarianOutputConfig<'a> {
-    indexing_config: &'a LibrarianIndexingConfig,
+    indexing_config: LibrarianIndexingOutputConfig,
     language: &'a LibrarianLanguageConfig,
     field_infos: &'a FieldInfos,
 }
@@ -362,9 +371,13 @@ impl Indexer {
         }
     }
 
-    fn write_librarian_config(&self) {
+    fn write_librarian_config(&mut self) {
         let serialized = serde_json::to_string(&LibrarianOutputConfig {
-            indexing_config: &self.indexing_config,
+            indexing_config: LibrarianIndexingOutputConfig {
+                pl_names_to_cache: std::mem::take(&mut self.indexing_config.pl_names_to_cache),
+                num_pls_per_dir: self.indexing_config.num_pls_per_dir,
+                with_positions: self.indexing_config.with_positions,
+            },
             language: &self.language_config,
             field_infos: self.field_infos.as_ref().unwrap(),
         }).unwrap();

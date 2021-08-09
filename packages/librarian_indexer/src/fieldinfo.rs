@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 
 use serde::{Serialize, Deserialize};
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct FieldsConfig {
     pub field_store_block_size: u32,
     pub fields: Vec<FieldConfig>,
@@ -20,7 +20,7 @@ impl Default for FieldsConfig {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct FieldConfig {
     pub name: String,
     pub do_store: bool,
