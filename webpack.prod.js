@@ -4,6 +4,7 @@ const path = require('path');
 const { merge } = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const common = require('./webpack.common');
 
 module.exports = merge(common, {
@@ -30,5 +31,11 @@ module.exports = merge(common, {
   },
   plugins: [
     new MiniCssExtractPlugin(),
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, './packages/librarian_search'),
+      extraArgs: '-- --no-default-features --features lang_chinese',
+      forceMode: 'production',
+      outDir: path.resolve(__dirname, './packages/librarian_search/pkg/lang_chinese'),
+    }),
   ],
 });

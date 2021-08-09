@@ -39,11 +39,5 @@ module.exports = {
       forceMode: 'production',
       outDir: path.resolve(__dirname, './packages/librarian_search/pkg/lang_latin'),
     }),
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, './packages/librarian_search'),
-      extraArgs: '-- --no-default-features --features lang_chinese',
-      forceMode: 'production',
-      outDir: path.resolve(__dirname, './packages/librarian_search/pkg/lang_chinese'),
-    }),
   ],
 };
