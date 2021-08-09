@@ -132,7 +132,7 @@ impl Tokenizer for EnglishTokenizer {
   }
 
   fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult {
-    let should_expand = !text.ends_with(" ");
+    let should_expand = !text.ends_with(' ');
     SearchTokenizeResult {
       terms: self.tokenize(text),
       should_expand,
@@ -140,18 +140,18 @@ impl Tokenizer for EnglishTokenizer {
   }
 
   fn is_stop_word(&self, term: &str) -> bool {
-    return self.stop_words.contains(term);
+    self.stop_words.contains(term)
   }
 
   fn use_default_trigram(&self) -> bool {
-    return true;
+    true
   }
 
   fn get_best_corrected_term(&self, _term: &str, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String> {
-    return None;
+    None
   }
 
   fn get_expanded_terms(&self, _term: &str, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
-    return FxHashMap::default();
+    FxHashMap::default()
   }
 }

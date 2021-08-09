@@ -115,17 +115,15 @@ fn traverse_node(node: ElementRef, field_texts: &mut Vec<(String, String)>) {
             for child in node.children() {
                 if let Some(el_child) = ElementRef::wrap(child) {
                     traverse_node(el_child, field_texts);
-                } else {
-                    if let Some(text) = child.value().as_text() {
-                        if let Some(last) = field_texts.last_mut() {
-                            if last.0 == "body" {
-                                last.1 += text;
-                            } else {
-                                field_texts.push(("body".to_owned(), text.to_string()));
-                            }
+                } else if let Some(text) = child.value().as_text() {
+                    if let Some(last) = field_texts.last_mut() {
+                        if last.0 == "body" {
+                            last.1 += text;
                         } else {
                             field_texts.push(("body".to_owned(), text.to_string()));
                         }
+                    } else {
+                        field_texts.push(("body".to_owned(), text.to_string()));
                     }
                 }
             }

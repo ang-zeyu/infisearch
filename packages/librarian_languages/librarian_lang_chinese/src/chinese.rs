@@ -70,7 +70,7 @@ impl Tokenizer for ChineseTokenizer {
   fn wasm_tokenize(&self, mut text: String) -> SearchTokenizeResult {
     text.make_ascii_lowercase();
 
-    let should_expand = !text.ends_with(" ");
+    let should_expand = !text.ends_with(' ');
 
     let terms = self.jieba.cut_for_search(&text, false).into_iter()
       .map(|s| PUNCTUATION_FILTER.replace_all(s, "").into_owned())
@@ -84,18 +84,18 @@ impl Tokenizer for ChineseTokenizer {
   }
 
   fn is_stop_word(&self, term: &str) -> bool {
-    return self.stop_words.contains(term);
+    self.stop_words.contains(term)
   }
 
   fn use_default_trigram(&self) -> bool {
-    return false;
+    false
   }
 
   fn get_best_corrected_term(&self, _term: &str, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String> {
-    return None;
+    None
   }
 
   fn get_expanded_terms(&self, _term: &str, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
-    return FxHashMap::default();
+    FxHashMap::default()
   }
 }

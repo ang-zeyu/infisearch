@@ -93,14 +93,12 @@ pub fn worker (
     id: usize,
     sndr: Sender<WorkerToMainMessage>, 
     rcvr: Receiver<MainToWorkerMessage>,
-    /* Immutable shared data structures... */
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     field_infos: Arc<FieldInfos>,
     with_positions: bool,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
 ) {
-    // Initialize data structures...
     let mut doc_miner = WorkerMiner {
         field_infos: Arc::clone(&field_infos),
         with_positions,
@@ -145,9 +143,7 @@ pub fn worker (
                 sndr.send(WorkerToMainMessage {
                     id,
                     block_index_results: Option::from(WorkerBlockIndexResults {
-                        terms: std::mem::replace(
-                            &mut doc_miner.terms, FxHashMap::default()
-                        ),
+                        terms: std::mem::take(&mut doc_miner.terms),
                         doc_infos: std::mem::replace(
                             &mut doc_miner.doc_infos, Vec::with_capacity(expected_num_docs_per_reset)
                         ),
