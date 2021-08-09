@@ -23,7 +23,10 @@ class Searcher {
   } = Object.create(null);
 
   constructor(private options: SearcherOptions) {
-    this.worker = new Worker(options.workerUrl);
+    this.worker = new Worker(new URL(
+      /* webpackChunkName: "search.worker" */
+      '../worker/worker.ts', import.meta.url,
+    ));
 
     const workerSetup: Promise<void> = new Promise((resolve) => {
       this.worker.onmessage = (ev) => {

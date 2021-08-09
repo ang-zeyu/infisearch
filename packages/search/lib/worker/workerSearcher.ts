@@ -43,7 +43,10 @@ export default class WorkerSearcher {
 
   private async setupWasm() {
     const language = this.config.language.lang;
-    this.wasmModule = await import(`../../../librarian_search/pkg/lang_${language}/index.js`);
+    this.wasmModule = await import(
+      /* webpackChunkName: "wasm.[request]" */
+      `../../../librarian_search/pkg/lang_${language}/index.js`
+    );
     this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config);
   }
 

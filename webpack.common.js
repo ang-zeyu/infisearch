@@ -13,7 +13,6 @@ module.exports = {
         export: 'default',
       },
     },
-    worker: './packages/search/lib/worker/worker.ts',
   },
   experiments: {
     asyncWebAssembly: true,

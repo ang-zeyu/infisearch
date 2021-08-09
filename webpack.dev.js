@@ -31,7 +31,6 @@ module.exports = merge(common, {
   plugins: [
     new HtmlWebpackPlugin({
       scriptLoading: 'blocking',
-      excludeChunks: ['worker'],
       template: './packages/search-ui/public/template.html',
     }),
   ],
