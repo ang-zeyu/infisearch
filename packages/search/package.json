@@ -20,6 +20,10 @@
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
+  "dependencies": {
+    "@morsels/lang-latin": "0.0.0",
+    "@morsels/lang-chinese": "0.0.0"
+  },
   "bugs": {
     "url": "https://github.com/ang-zeyu/librarian/issues"
   }

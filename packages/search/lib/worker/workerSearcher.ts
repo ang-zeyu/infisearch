@@ -45,7 +45,7 @@ export default class WorkerSearcher {
     const language = this.config.language.lang;
     this.wasmModule = await import(
       /* webpackChunkName: "wasm.[request]" */
-      `../../../librarian_search/pkg/lang_${language}/index.js`
+      `@morsels/lang-${language}/index.js`
     );
     this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config);
   }
