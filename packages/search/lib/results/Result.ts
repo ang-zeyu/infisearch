@@ -9,9 +9,10 @@ class Result {
     private fieldInfos: FieldInfo[],
   ) {}
 
-  async populate(baseUrl: string, fieldStoreBlockSize: number): Promise<void> {
+  async populate(baseUrl: string, fieldStoreBlockSize: number, numStoresPerDir: number): Promise<void> {
     const fileNumber = Math.floor(this.docId / fieldStoreBlockSize);
-    const fileUrl = `${baseUrl}/field_store/${fileNumber}.json`;
+    const dirNumber = Math.floor(fileNumber / numStoresPerDir);
+    const fileUrl = `${baseUrl}/field_store/${dirNumber}/${fileNumber}.json`;
     try {
       const rawJson = await (await fetch(fileUrl)).json();
       this.storage = rawJson[this.docId % fieldStoreBlockSize];

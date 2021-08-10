@@ -80,6 +80,10 @@ fn get_default_num_pls_per_dir() -> u32 {
     1000
 }
 
+fn get_default_num_field_stores_per_dir() -> u32 {
+    1000
+}
+
 fn get_default_with_positions() -> bool {
     true
 }
@@ -104,6 +108,9 @@ pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_num_pls_per_dir")]
     num_pls_per_dir: u32,
 
+    #[serde(default = "get_default_num_field_stores_per_dir")]
+    num_stores_per_dir: u32,
+
     #[serde(default = "get_default_with_positions")]
     with_positions: bool,
 }
@@ -117,6 +124,7 @@ impl Default for MorselsIndexingConfig {
             loader_configs: get_default_loader_configs(),
             pl_names_to_cache: Vec::new(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
+            num_stores_per_dir: get_default_num_field_stores_per_dir(),
             with_positions: get_default_with_positions(),
         }
     }
@@ -134,13 +142,9 @@ pub struct MorselsConfig {
 // Separate struct to support serializing for --init option but not output config
 #[derive(Serialize)]
 struct MorselsIndexingOutputConfig {
-    #[serde(default = "Vec::new")]
     pl_names_to_cache: Vec<u32>,
-
-    #[serde(default = "get_default_num_pls_per_dir")]
     num_pls_per_dir: u32,
-
-    #[serde(default = "get_default_with_positions")]
+    num_stores_per_dir: u32,
     with_positions: bool,
 }
 
@@ -328,6 +332,7 @@ impl Indexer {
         
         // Construct worker threads
         let num_docs_per_thread = self.expected_num_docs_per_thread;
+        let num_stores_per_dir = self.indexing_config.num_stores_per_dir;
         let with_positions = self.indexing_config.with_positions;
         for i in 0..self.indexing_config.num_threads {
             let tx_worker_clone = self.tx_worker.clone();
@@ -345,6 +350,7 @@ impl Indexer {
                         rx_worker_clone,
                         tokenize_clone,
                         field_info_clone,
+                        num_stores_per_dir,
                         with_positions,
                         num_docs_per_thread,
                         num_workers_writing_blocks_clone,
@@ -376,6 +382,7 @@ impl Indexer {
             indexing_config: MorselsIndexingOutputConfig {
                 pl_names_to_cache: std::mem::take(&mut self.indexing_config.pl_names_to_cache),
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
+                num_stores_per_dir: self.indexing_config.num_stores_per_dir,
                 with_positions: self.indexing_config.with_positions,
             },
             language: &self.language_config,

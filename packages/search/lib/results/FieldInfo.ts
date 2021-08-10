@@ -4,6 +4,7 @@ export interface MorselsConfig {
   indexingConfig: {
     plNamesToCache: number[],
     numPlsPerDir: number,
+    numStoresPerDir: number,
     withPositions: boolean,
   },
   language: {
@@ -20,6 +21,7 @@ export interface MorselsConfigRaw {
   indexing_config: {
     pl_names_to_cache: number[],
     num_pls_per_dir: number,
+    num_stores_per_dir: number,
     with_positions: boolean,
   },
   language: {

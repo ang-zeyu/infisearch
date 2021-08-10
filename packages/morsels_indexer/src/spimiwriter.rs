@@ -1,24 +1,25 @@
-use crate::Indexer;
-use crate::FieldInfos;
-use crate::worker::miner::WorkerMinerDocInfo;
-use crate::MainToWorkerMessage;
 use std::sync::Barrier;
 use std::sync::Arc;
 use std::sync::Mutex;
-use crate::worker::miner::DocIdAndFieldLengthsComparator;
-use crate::worker::miner::TermDocComparator;
 use std::collections::BinaryHeap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
+use std::path::Path;
 use std::path::PathBuf;
 
 use rustc_hash::FxHashMap;
 
 use crate::docinfo::BlockDocLengths;
 use crate::DocInfos;
+use crate::FieldInfos;
+use crate::Indexer;
+use crate::MainToWorkerMessage;
+use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
+use crate::worker::miner::TermDocComparator;
 use crate::worker::WorkerBlockIndexResults;
+use crate::worker::miner::WorkerMinerDocInfo;
 
 
 impl Indexer {
@@ -62,12 +63,33 @@ impl Indexer {
     }
 }
 
+#[inline(always)]
+fn get_field_store_writer(
+    field_output_folder_path: &Path,
+    count: u32,
+    field_store_block_size: u32,
+    num_stores_per_dir: u32,
+) -> BufWriter<File> {
+    let store_num = count / field_store_block_size;
+    let dir_output_folder_path = field_output_folder_path.join((store_num / num_stores_per_dir).to_string());
+    if (store_num % num_stores_per_dir == 0) && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir()) {
+        std::fs::create_dir(&dir_output_folder_path).expect("Failed to create field store output dir!");
+    }
+
+    BufWriter::new(
+        File::create(
+            dir_output_folder_path.join(format!("{}.json", store_num))
+        ).expect("Failed to open field store for writing.")
+    )
+}
+
 pub fn combine_worker_results_and_write_block(
     worker_index_results: Vec<WorkerBlockIndexResults>,
     doc_infos: Arc<Mutex<DocInfos>>,
     output_folder_path: PathBuf,
     field_infos: &Arc<FieldInfos>,
     block_number: u32,
+    num_stores_per_dir: u32,
     num_docs: u32,
     total_num_docs: u32,
 ) {
@@ -107,15 +129,16 @@ pub fn combine_worker_results_and_write_block(
         // Store field texts
         let mut count = total_num_docs;
         let mut block_count = 0;
-        let mut writer = BufWriter::new(
-            File::create(field_infos.field_output_folder_path.join(format!("_unused_{}", count))).unwrap()
-        );
+        let mut writer = BufWriter::new(File::create(field_infos.field_output_folder_path.join("nul")).unwrap());
         for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
             block_count += 1;
 
             if block_count == 1 {
-                writer = BufWriter::new(
-                    File::create(field_infos.field_output_folder_path.join(format!("{}.json", count / field_infos.field_store_block_size))).unwrap()
+                writer = get_field_store_writer(
+                    &field_infos.field_output_folder_path,
+                    count,
+                    field_infos.field_store_block_size,
+                    num_stores_per_dir,
                 );
                 writer.write_all(b"[").unwrap();
             } else {

@@ -95,6 +95,7 @@ pub fn worker (
     rcvr: Receiver<MainToWorkerMessage>,
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     field_infos: Arc<FieldInfos>,
+    num_stores_per_dir: u32,
     with_positions: bool,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
@@ -127,6 +128,7 @@ pub fn worker (
                     output_folder_path,
                     &field_infos,
                     block_number,
+                    num_stores_per_dir,
                     num_docs,
                     total_num_docs,
                 );
