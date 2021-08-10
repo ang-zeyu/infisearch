@@ -7,7 +7,6 @@ pub mod query;
 use std::collections::HashSet;
 
 use serde::{Deserialize};
-use smartstring::alias::String as SmartString;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::{wasm_bindgen};
