@@ -1,5 +1,5 @@
 [package]
-name = "librarian_search"
+name = "morsels_search"
 version = "0.1.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
@@ -9,16 +9,16 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["lang_latin"]
-lang_latin = ["librarian_lang_latin"]
-lang_chinese = ["librarian_lang_chinese"]
+lang_latin = ["morsels_lang_latin"]
+lang_chinese = ["morsels_lang_chinese"]
 
 [dependencies]
 byteorder = "1"
 futures = "0.3.15"
 js-sys = "0.3.51"
-librarian_common = { path = "../librarian_common" }
-librarian_lang_chinese = { path = "../librarian_languages/librarian_lang_chinese", optional = true }
-librarian_lang_latin = { path = "../librarian_languages/librarian_lang_latin", optional = true }
+morsels_common = { path = "../morsels_common" }
+morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", optional = true }
+morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", optional = true }
 rustc-hash = "1.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"

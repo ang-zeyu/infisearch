@@ -2,7 +2,7 @@
   "packages": [
     "packages/search",
     "packages/search-ui",
-    "packages/librarian_search/pkg/*"
+    "packages/morsels_search/pkg/*"
   ],
   "version": "0.0.0"
 }

@@ -16,10 +16,10 @@ use std::sync::Arc;
 use std::path::Path;
 use std::path::PathBuf;
 
-use librarian_common::LibrarianLanguageConfig;
-use librarian_common::tokenize::Tokenizer;
-use librarian_lang_chinese::chinese;
-use librarian_lang_latin::english;
+use morsels_common::MorselsLanguageConfig;
+use morsels_common::tokenize::Tokenizer;
+use morsels_lang_chinese::chinese;
+use morsels_lang_latin::english;
 
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldConfig;
@@ -62,7 +62,7 @@ fn get_default_loader_configs() -> FxHashMap<String, serde_json::Value> {
     configs
 }
 
-pub fn get_loaders_from_config(config: &mut LibrarianConfig) -> Vec<Box<dyn Loader>> {
+pub fn get_loaders_from_config(config: &mut MorselsConfig) -> Vec<Box<dyn Loader>> {
     let mut loaders: Vec<Box<dyn Loader>> = Vec::new();
 
     for (key, value) in std::mem::take(&mut config.indexing_config.loader_configs) {
@@ -85,7 +85,7 @@ fn get_default_with_positions() -> bool {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LibrarianIndexingConfig {
+pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_num_threads")]
     num_threads: usize,
 
@@ -108,9 +108,9 @@ pub struct LibrarianIndexingConfig {
     with_positions: bool,
 }
 
-impl Default for LibrarianIndexingConfig {
+impl Default for MorselsIndexingConfig {
     fn default() -> Self {
-        LibrarianIndexingConfig {
+        MorselsIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
             pl_cache_threshold: get_default_pl_cache_threshold(),
@@ -123,17 +123,17 @@ impl Default for LibrarianIndexingConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LibrarianConfig {
+pub struct MorselsConfig {
     #[serde(default)]
-    indexing_config: LibrarianIndexingConfig,
+    indexing_config: MorselsIndexingConfig,
     #[serde(default)]
-    language: LibrarianLanguageConfig,
+    language: MorselsLanguageConfig,
     fields_config: FieldsConfig,
 }
 
 // Separate struct to support serializing for --init option but not output config
 #[derive(Serialize)]
-struct LibrarianIndexingOutputConfig {
+struct MorselsIndexingOutputConfig {
     #[serde(default = "Vec::new")]
     pl_names_to_cache: Vec<u32>,
 
@@ -145,18 +145,18 @@ struct LibrarianIndexingOutputConfig {
 }
 
 #[derive(Serialize)]
-pub struct LibrarianOutputConfig<'a> {
-    indexing_config: LibrarianIndexingOutputConfig,
-    language: &'a LibrarianLanguageConfig,
+pub struct MorselsOutputConfig<'a> {
+    indexing_config: MorselsIndexingOutputConfig,
+    language: &'a MorselsLanguageConfig,
     field_infos: &'a FieldInfos,
 }
 
-impl Default for LibrarianConfig {
+impl Default for MorselsConfig {
     fn default() -> Self {
 
-        LibrarianConfig {
-            indexing_config: LibrarianIndexingConfig::default(),
-            language: LibrarianLanguageConfig {
+        MorselsConfig {
+            indexing_config: MorselsIndexingConfig::default(),
+            language: MorselsLanguageConfig {
                 lang: "english".to_owned(),
                 options: Option::None,
             },
@@ -206,7 +206,7 @@ impl Default for LibrarianConfig {
 
 
 pub struct Indexer {
-    indexing_config: LibrarianIndexingConfig,
+    indexing_config: MorselsIndexingConfig,
     expected_num_docs_per_thread: usize,
     doc_id_counter: u32,
     spimi_counter: u32,
@@ -221,14 +221,14 @@ pub struct Indexer {
     rx_worker: Receiver<MainToWorkerMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
-    language_config: LibrarianLanguageConfig,
+    language_config: MorselsLanguageConfig,
 }
 
 
 impl Indexer {
     pub fn new(
         output_folder_path: &Path,
-        config: LibrarianConfig,
+        config: MorselsConfig,
     ) -> Indexer {
         let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
         let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
@@ -268,7 +268,7 @@ impl Indexer {
         indexer
     }
 
-    fn resolve_tokenizer(language_config: &LibrarianLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
+    fn resolve_tokenizer(language_config: &MorselsLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
         match language_config.lang.as_str() {
             "latin" => {
                 if let Some(options) = language_config.options.as_ref() {
@@ -371,9 +371,9 @@ impl Indexer {
         }
     }
 
-    fn write_librarian_config(&mut self) {
-        let serialized = serde_json::to_string(&LibrarianOutputConfig {
-            indexing_config: LibrarianIndexingOutputConfig {
+    fn write_morsels_config(&mut self) {
+        let serialized = serde_json::to_string(&MorselsOutputConfig {
+            indexing_config: MorselsIndexingOutputConfig {
                 pl_names_to_cache: std::mem::take(&mut self.indexing_config.pl_names_to_cache),
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
                 with_positions: self.indexing_config.with_positions,
@@ -382,7 +382,7 @@ impl Indexer {
             field_infos: self.field_infos.as_ref().unwrap(),
         }).unwrap();
 
-        File::create(self.output_folder_path.join("_librarian_config.json"))
+        File::create(self.output_folder_path.join("_morsels_config.json"))
             .unwrap()
             .write_all(serialized.as_bytes())
             .unwrap();
@@ -413,7 +413,7 @@ impl Indexer {
             &self.output_folder_path
         );
 
-        self.write_librarian_config();
+        self.write_morsels_config();
 
         spimireader::cleanup_blocks(num_blocks, &self.output_folder_path);
 

@@ -1,6 +1,6 @@
 import { SearcherOptions } from './SearcherOptions';
 
-export interface LibrarianConfig {
+export interface MorselsConfig {
   indexingConfig: {
     plNamesToCache: number[],
     numPlsPerDir: number,
@@ -16,7 +16,7 @@ export interface LibrarianConfig {
   searcherOptions: SearcherOptions
 }
 
-export interface LibrarianConfigRaw {
+export interface MorselsConfigRaw {
   indexing_config: {
     pl_names_to_cache: number[],
     num_pls_per_dir: number,

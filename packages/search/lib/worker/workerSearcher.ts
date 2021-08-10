@@ -1,4 +1,4 @@
-import { LibrarianConfig } from '../results/FieldInfo';
+import { MorselsConfig } from '../results/FieldInfo';
 import WorkerQuery from './workerQuery';
 
 export default class WorkerSearcher {
@@ -12,7 +12,7 @@ export default class WorkerSearcher {
 
   wasmSearcher: any;
 
-  constructor(private config: LibrarianConfig) {}
+  constructor(private config: MorselsConfig) {}
 
   async processQuery(query: string, timestamp: number): Promise<WorkerQuery> {
     const wasmQuery: any = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
@@ -50,7 +50,7 @@ export default class WorkerSearcher {
     this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config);
   }
 
-  static async setup(data: LibrarianConfig): Promise<WorkerSearcher> {
+  static async setup(data: MorselsConfig): Promise<WorkerSearcher> {
     const workerSearcher = new WorkerSearcher(data);
 
     await workerSearcher.setupWasm();

@@ -5,8 +5,8 @@ use std::time::Instant;
 use std::path::Path;
 use std::path::PathBuf;
 
-use librarian_indexer::LibrarianConfig;
-use librarian_indexer::loader::Loader;
+use morsels_indexer::MorselsConfig;
+use morsels_indexer::loader::Loader;
 
 use structopt::StructOpt;
 use walkdir::WalkDir;
@@ -44,7 +44,7 @@ fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path, co
             let config_return = if let Some(config_raw_file_path) = config_file_path {
                 get_relative_or_absolute_path(&cwd, &config_raw_file_path)
             } else {
-                source_return.join("_librarian_config.json")
+                source_return.join("_morsels_config.json")
             };
 
             (source_return, output_return, config_return)
@@ -70,28 +70,28 @@ fn main() {
         config_file_path.to_str().unwrap(),
     );
 
-    let mut config: LibrarianConfig = if config_file_path.exists() && config_file_path.is_file() {
+    let mut config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
         let config_raw = std::fs::read_to_string(config_file_path).unwrap();
-        serde_json::from_str(&config_raw).expect("_librarian_config.json does not match schema!")
+        serde_json::from_str(&config_raw).expect("_morsels_config.json does not match schema!")
     } else {
-        LibrarianConfig::default()
+        MorselsConfig::default()
     };
 
     if args.init {
-        File::create(input_folder_path.join("_librarian_config.json"))
+        File::create(input_folder_path.join("_morsels_config.json"))
             .unwrap()
             .write_all(
                 serde_json::to_string_pretty(&config)
-                    .expect("Failed to serialize librarian config for --init!")
+                    .expect("Failed to serialize morsels config for --init!")
                     .as_bytes()
             )
             .unwrap();
         return;
     }
     
-    let loaders: Vec<Box<dyn Loader>> = librarian_indexer::get_loaders_from_config(&mut config);
+    let loaders: Vec<Box<dyn Loader>> = morsels_indexer::get_loaders_from_config(&mut config);
 
-    let mut indexer = librarian_indexer::Indexer::new(
+    let mut indexer = morsels_indexer::Indexer::new(
         &output_folder_path,
         config,
     );

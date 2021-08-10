@@ -8,7 +8,7 @@ module.exports = {
       import: './packages/search-ui/src/search.ts',
       filename: 'search-ui.bundle.js',
       library: {
-        name: 'initLibrarian',
+        name: 'initMorsels',
         type: 'umd',
         export: 'default',
       },
@@ -34,10 +34,10 @@ module.exports = {
   },
   plugins: [
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, './packages/librarian_search'),
+      crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
       extraArgs: '-- --no-default-features --features lang_latin',
       forceMode: 'production',
-      outDir: path.resolve(__dirname, './packages/librarian_search/pkg/lang_latin'),
+      outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_latin'),
     }),
   ],
 };

@@ -7,7 +7,7 @@ use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::JsValue;
 use web_sys::Response;
 
-use librarian_common::tokenize::TermInfo;
+use morsels_common::tokenize::TermInfo;
 use crate::postings_list_file_cache::PostingsListFileCache;
 use crate::utils::varint::decode_var_int;
 

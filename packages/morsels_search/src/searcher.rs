@@ -18,19 +18,19 @@ use crate::dictionary::setup_dictionary;
 use crate::postings_list_file_cache::PostingsListFileCache;
 
 #[cfg(feature = "lang_latin")]
-use librarian_lang_latin::english;
+use morsels_lang_latin::english;
 #[cfg(feature = "lang_chinese")]
-use librarian_lang_chinese::chinese;
+use morsels_lang_chinese::chinese;
 
-use librarian_common::LibrarianLanguageConfig;
-use librarian_common::tokenize::Tokenizer;
+use morsels_common::MorselsLanguageConfig;
+use morsels_common::tokenize::Tokenizer;
 use query_parser::{QueryPart, QueryPartType, parse_query};
 
 #[derive(Deserialize)]
 struct SearcherConfig {
   #[serde(rename = "indexingConfig")]
   indexing_config: IndexingConfig,
-  language: LibrarianLanguageConfig,
+  language: MorselsLanguageConfig,
   #[serde(rename = "fieldInfos")]
   field_infos: Vec<FieldInfo>,
   #[serde(rename = "numScoredFields")]
@@ -76,7 +76,7 @@ pub struct Searcher {
 }
 
 #[cfg(feature = "lang_latin")]
-fn get_tokenizer(language_config: &mut LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
+fn get_tokenizer(language_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
   if let Some(options) = &mut language_config.options {
     Box::new(english::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
   } else {
@@ -85,7 +85,7 @@ fn get_tokenizer(language_config: &mut LibrarianLanguageConfig) -> Box<dyn Token
 }
 
 #[cfg(feature = "lang_chinese")]
-fn get_tokenizer(language_config: &mut LibrarianLanguageConfig) -> Box<dyn Tokenizer> {
+fn get_tokenizer(language_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
   if let Some(options) = &mut language_config.options {
     Box::new(chinese::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
   } else {
@@ -95,7 +95,7 @@ fn get_tokenizer(language_config: &mut LibrarianLanguageConfig) -> Box<dyn Token
 
 #[wasm_bindgen]
 pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
-  let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Librarian config does not match schema");
+  let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Morsels config does not match schema");
   let doc_info = DocInfo::create(
     &searcher_config.searcher_options.url,
     searcher_config.num_scored_fields

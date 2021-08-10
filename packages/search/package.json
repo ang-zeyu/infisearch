@@ -1,7 +1,7 @@
 {
-  "name": "librarian-search-lib",
+  "name": "@morsels/search-lib",
   "version": "0.0.0",
-  "description": "frontend search module for Librarian",
+  "description": "frontend search module for morsels",
   "author": "Ze Yu <angzeyu@gmail.com>",
   "homepage": "",
   "license": "MIT",
@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ang-zeyu/librarian.git"
+    "url": "git+https://github.com/ang-zeyu/morsels.git"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
@@ -25,6 +25,6 @@
     "@morsels/lang-chinese": "0.0.0"
   },
   "bugs": {
-    "url": "https://github.com/ang-zeyu/librarian/issues"
+    "url": "https://github.com/ang-zeyu/morsels/issues"
   }
 }

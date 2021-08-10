@@ -7,9 +7,9 @@ use rust_stemmers::{Algorithm, Stemmer};
 use serde::{Deserialize};
 use smartstring::alias::String as SmartString;
 
-use librarian_common::tokenize::TermInfo;
-use librarian_common::tokenize::SearchTokenizeResult;
-use librarian_common::tokenize::Tokenizer;
+use morsels_common::tokenize::TermInfo;
+use morsels_common::tokenize::SearchTokenizeResult;
+use morsels_common::tokenize::Tokenizer;
 use crate::ascii_folding_filter;
 
 lazy_static! {

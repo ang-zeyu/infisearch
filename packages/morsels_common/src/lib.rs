@@ -7,16 +7,16 @@ fn get_default_language() -> String {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LibrarianLanguageConfig {
+pub struct MorselsLanguageConfig {
     #[serde(default = "get_default_language")]
     pub lang: String,
 
     pub options: Option<serde_json::Value>
 }
 
-impl Default for LibrarianLanguageConfig {
+impl Default for MorselsLanguageConfig {
     fn default() -> Self {
-        LibrarianLanguageConfig {
+        MorselsLanguageConfig {
             lang: get_default_language(),
             options: Option::None,
         }

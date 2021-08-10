@@ -7,9 +7,9 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize};
 use smartstring::alias::String as SmartString;
 
-use librarian_common::tokenize::TermInfo;
-use librarian_common::tokenize::SearchTokenizeResult;
-use librarian_common::tokenize::Tokenizer;
+use morsels_common::tokenize::TermInfo;
+use morsels_common::tokenize::SearchTokenizeResult;
+use morsels_common::tokenize::Tokenizer;
 
 lazy_static! {
   static ref PUNCTUATION_FILTER: Regex = Regex::new(r#"[\[\](){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.]"#).unwrap();

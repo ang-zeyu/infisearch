@@ -1,5 +1,5 @@
 import * as escapeRegex from 'escape-string-regexp';
-import { Query } from 'librarian-search-lib';
+import { Query } from '@morsels/search-lib';
 import domUtils from './utils/dom';
 
 const { h } = domUtils;
@@ -79,12 +79,12 @@ function transformText(
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
         result.push(' ... ');
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
-        result.push(h('span', { class: 'librarian-highlight' }, term));
+        result.push(h('span', { class: 'morsels-highlight' }, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       } else {
         result.pop();
         result.push(str.substring(prevHighlightEndPos, pos));
-        result.push(h('span', { class: 'librarian-highlight' }, term));
+        result.push(h('span', { class: 'morsels-highlight' }, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       }
       prevHighlightEndPos = highlightEndPos;
@@ -120,17 +120,17 @@ function transformText(
         const href = (i - 1 >= 0) && texts[i - 1][0] === 'headingLink'
           ? `${baseUrl}${texts[i - 1][1]}`
           : undefined;
-        finalMatchResult.result = h('a', { class: 'librarian-heading-body', href },
-          h('div', { class: 'librarian-heading' }, texts[i][1]),
-          h('div', { class: 'librarian-bodies' },
-            h('div', { class: 'librarian-body' }, ...result)));
+        finalMatchResult.result = h('a', { class: 'morsels-heading-body', href },
+          h('div', { class: 'morsels-heading' }, texts[i][1]),
+          h('div', { class: 'morsels-bodies' },
+            h('div', { class: 'morsels-body' }, ...result)));
         break;
       }
     }
 
     // Insert without heading
     if (!finalMatchResult.result) {
-      finalMatchResult.result = h('div', { class: 'librarian-body' }, ...result);
+      finalMatchResult.result = h('div', { class: 'morsels-body' }, ...result);
     }
   }
 
@@ -196,13 +196,13 @@ function displayTermInfo(query: Query): HTMLElement[] {
   const misspelledTerms: string[] = [];
   const correctedTerms: string[] = [];
   const returnVal: HTMLElement[] = [];
-  const correctedTermsContainer = h('div', { class: 'librarian-suggestion-container-corrected' },
-    h('div', { class: 'librarian-suggestion-buttons' },
+  const correctedTermsContainer = h('div', { class: 'morsels-suggestion-container-corrected' },
+    h('div', { class: 'morsels-suggestion-buttons' },
       h('button', {
-        class: 'librarian-suggestion-button-dismiss',
+        class: 'morsels-suggestion-button-dismiss',
         onclick: '() => console.log(\'hi\')',
       }),
-      h('button', { class: 'librarian-suggestion-button-dismiss-tip' })));
+      h('button', { class: 'morsels-suggestion-button-dismiss-tip' })));
 
   query.queryParts.forEach((queryPart) => {
     if (queryPart.isCorrected) {
@@ -216,31 +216,31 @@ function displayTermInfo(query: Query): HTMLElement[] {
       }
     } else if (queryPart.isExpanded) {
       returnVal.push(
-        h('div', { class: 'librarian-suggestion-container-expanded' },
-          h('div', { class: 'librarian-suggestion-content' },
+        h('div', { class: 'morsels-suggestion-container-expanded' },
+          h('div', { class: 'morsels-suggestion-content' },
             'Also searched for... ',
             h('small', {}, '(add a space to the last term to finalise the search)'),
             h('br', {}),
             ...queryPart.terms.map((expandedTerm, idx) => (idx === 0 ? '' : h(
-              'span', { class: 'librarian-suggestion-expanded' }, `${expandedTerm} `,
+              'span', { class: 'morsels-suggestion-expanded' }, `${expandedTerm} `,
             )))),
-          h('div', { class: 'librarian-suggestion-buttons' },
-            h('button', { class: 'librarian-suggestion-button-dismiss' }),
-            h('button', { class: 'librarian-suggestion-button-dismiss-tip' }))),
+          h('div', { class: 'morsels-suggestion-buttons' },
+            h('button', { class: 'morsels-suggestion-button-dismiss' }),
+            h('button', { class: 'morsels-suggestion-button-dismiss-tip' }))),
       );
     }
   });
 
   if (misspelledTerms.length) {
     correctedTermsContainer.prepend(
-      h('div', { class: 'librarian-suggestion-content' },
+      h('div', { class: 'morsels-suggestion-content' },
         'Could not find any matches for',
         ...misspelledTerms.map((term) => h(
-          'span', { class: 'librarian-suggestion-wrong' }, ` "${term}"`,
+          'span', { class: 'morsels-suggestion-wrong' }, ` "${term}"`,
         )),
         correctedTerms.length ? ', searched for: ' : '',
         ...correctedTerms.map((correctedTerm) => h(
-          'span', { class: 'librarian-suggestion-corrected' }, `${correctedTerm} `,
+          'span', { class: 'morsels-suggestion-corrected' }, `${correctedTerm} `,
         ))),
     );
     returnVal.push(correctedTermsContainer);
@@ -264,7 +264,7 @@ export default async function transformResults(
     'gi',
   );
 
-  const loader = h('span', { class: 'librarian-loading-indicator' });
+  const loader = h('span', { class: 'morsels-loading-indicator' });
   if (!isFirst) {
     container.appendChild(loader);
   }
@@ -307,15 +307,15 @@ export default async function transformResults(
       bodies = transformHtml(doc, query.searchedTerms, termRegex, rawLink);
     }
 
-    return h('li', { class: 'librarian-dropdown-item' },
-      h('a', { class: 'librarian-link', href: fullLink },
-        h('div', { class: 'librarian-title' }, title),
+    return h('li', { class: 'morsels-dropdown-item' },
+      h('a', { class: 'morsels-link', href: fullLink },
+        h('div', { class: 'morsels-title' }, title),
         ...bodies));
   }));
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
   } else if (isFirst) {
-    fragment.appendChild(h('div', { class: 'librarian-no-results' }, 'no results found'));
+    fragment.appendChild(h('div', { class: 'morsels-no-results' }, 'no results found'));
   }
   const sentinel = h('li', {});
   fragment.appendChild(sentinel);

@@ -1,13 +1,13 @@
 import Query from './Query';
 import {
-  FieldInfo, LibrarianConfigRaw, LibrarianConfig,
+  FieldInfo, MorselsConfigRaw, MorselsConfig,
 } from './FieldInfo';
 import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
 
 class Searcher {
-  private librarianConfig: LibrarianConfig;
+  private morselsConfig: MorselsConfig;
 
   private readonly setupPromise: Promise<any>;
 
@@ -57,16 +57,16 @@ class Searcher {
 
     this.setupPromise = this.retrieveConfig().then(() => {
       options.useQueryTermProximity = options.useQueryTermProximity
-          && this.librarianConfig.indexingConfig.withPositions;
+          && this.morselsConfig.indexingConfig.withPositions;
 
-      this.worker.postMessage(this.librarianConfig);
+      this.worker.postMessage(this.morselsConfig);
 
       return workerSetup;
     });
   }
 
   async retrieveConfig(): Promise<void> {
-    const json: LibrarianConfigRaw = await (await fetch(`${this.options.url}/_librarian_config.json`, {
+    const json: MorselsConfigRaw = await (await fetch(`${this.options.url}/_morsels_config.json`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ class Searcher {
 
     console.log(fieldInfos);
 
-    this.librarianConfig = {
+    this.morselsConfig = {
       indexingConfig: {
         plNamesToCache: json.indexing_config.pl_names_to_cache,
         numPlsPerDir: json.indexing_config.num_pls_per_dir,
@@ -145,11 +145,11 @@ class Searcher {
       } = await this.workerQueryPromises[query][timestamp].promise;
 
       const retrievedResults = getNextNResult.nextResults.map(([docId, score]) => new Result(
-        docId, score, this.librarianConfig.fieldInfos,
+        docId, score, this.morselsConfig.fieldInfos,
       ));
 
       await Promise.all(retrievedResults.map((res) => res.populate(
-        this.options.url, this.librarianConfig.fieldStoreBlockSize,
+        this.options.url, this.morselsConfig.fieldStoreBlockSize,
       )));
 
       return retrievedResults;

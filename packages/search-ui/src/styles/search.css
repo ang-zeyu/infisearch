@@ -1,10 +1,10 @@
-.librarian-input-wrapper {
+.morsels-input-wrapper {
     display: inline-block;
     position: relative;
     box-sizing: border-box;
 }
 
-.librarian-input-dropdown-separator {
+.morsels-input-dropdown-separator {
     position: absolute;
     top: 100%;
     right: 16px;
@@ -16,7 +16,7 @@
     border-bottom: 9px solid white;
 }
 
-.librarian-dropdown {
+.morsels-dropdown {
     padding: 0;
     border: 1px solid rgba(67, 67, 67, 0.3);
     border-radius: 5px;
@@ -34,44 +34,44 @@
 }
 
 @media screen and (max-width: 1024px) {
-    .librarian-input-wrapper {
+    .morsels-input-wrapper {
         width: 100%;
     }
 
-    .librarian-dropdown {
+    .morsels-dropdown {
         font-size: 36px;
         max-height: 800px;
     }
 }
 
 @media screen and (min-width: 1025px) {
-    .librarian-dropdown {
+    .morsels-dropdown {
         width: 512px;
     }
 }
 
-.librarian-dropdown::-webkit-scrollbar-track {
+.morsels-dropdown::-webkit-scrollbar-track {
     border-radius: 5px;
     background-color: rgba(213, 177, 137, 0.15);
 }
 
-.librarian-dropdown::-webkit-scrollbar {
+.morsels-dropdown::-webkit-scrollbar {
     width: 6px;
     background-color: transparent;
 }
 
-.librarian-dropdown::-webkit-scrollbar-thumb {
+.morsels-dropdown::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background-color: rgba(213, 177, 137, 0.5);
 }
 
-.librarian-no-results {
+.morsels-no-results {
     color: rgba(0, 0, 0, 0.6);
     padding: 5px;
 }
 
-.librarian-suggestion-container-corrected,
-.librarian-suggestion-container-expanded {
+.morsels-suggestion-container-corrected,
+.morsels-suggestion-container-expanded {
     display: flex;
     width: 100%;
     padding: 3px;
@@ -79,24 +79,24 @@
     color: #000000;
 }
 
-.librarian-suggestion-container-corrected {
+.morsels-suggestion-container-corrected {
     background: linear-gradient(90deg, rgba(255,0,0,0.0559882689058111) 0%, rgba(255,255,255,1) 100%);
 }
 
-.librarian-suggestion-content {
+.morsels-suggestion-content {
     flex: 1 0 0;
     padding: 5px;
     font-size: 1em;
 }
 
-.librarian-suggestion-buttons {
+.morsels-suggestion-buttons {
     flex: 0 0 10%;
     display: flex;
     flex-direction: column;
 }
 
-.librarian-suggestion-button-dismiss,
-.librarian-suggestion-button-dismiss-tip {
+.morsels-suggestion-button-dismiss,
+.morsels-suggestion-button-dismiss-tip {
     border: none;
     background-color: transparent;
     transition: all 0.3s ease-out;
@@ -104,69 +104,69 @@
     color: #ff4545;
 }
 
-.librarian-suggestion-button-dismiss:before {
+.morsels-suggestion-button-dismiss:before {
     content: 'x';
     font-weight: 700;
     font-size: 1.2em;
 }
 
-.librarian-suggestion-button-dismiss:hover {
+.morsels-suggestion-button-dismiss:hover {
     color: #ff1414;
     transform: scale(1.5);
 }
 
-.librarian-suggestion-button-dismiss-tip {
+.morsels-suggestion-button-dismiss-tip {
 
 }
 
-.librarian-suggestion-content > hr {
+.morsels-suggestion-content > hr {
     border: none;
     border-top: 1px solid rgba(175, 175, 175, 0.3);
 }
 
-.librarian-suggestion-content > small {
+.morsels-suggestion-content > small {
     font-size: 0.9em;
 }
 
-.librarian-suggestion-corrected,
-.librarian-suggestion-expanded {
+.morsels-suggestion-corrected,
+.morsels-suggestion-expanded {
     padding-right: 4px;
     color: #000000;
     font-size: 1em;
 }
 
-.librarian-suggestion-wrong {
+.morsels-suggestion-wrong {
     color: red;
 }
 
-.librarian-suggestion-corrected {
+.morsels-suggestion-corrected {
     color: #13c215;
     text-decoration: underline;
 }
 
-.librarian-suggestion-expanded {
+.morsels-suggestion-expanded {
     color: #13c215;
     text-decoration: underline;
 }
 
-.librarian-dropdown-item {
+.morsels-dropdown-item {
     border: 1px solid rgba(67, 67, 67, 0.3);
     border-radius: 10px;
     margin: 7px 10px;
 }
 
 @media screen and (max-width: 1024px) {
-    .librarian-dropdown-item {
+    .morsels-dropdown-item {
         margin: 25px 15px;
     }
 }
 
-.librarian-link {
+.morsels-link {
     color: black;
     text-decoration: none;
 }
 
-.librarian-title {
+.morsels-title {
     word-break: break-word;
     border-radius: 10px 10px 0 0;
     padding: 3px 3px 3px 5px;
@@ -177,27 +177,27 @@
     transition: background-color 0.1s ease-in-out;
 }
 
-.librarian-title:hover {
+.morsels-title:hover {
     background-color: rgba(213, 177, 137, 0.5);
 }
 
-.librarian-heading-body {
+.morsels-heading-body {
     display: flex;
     grid-template-columns: 35% 65%;
     grid-row-gap: 2px;
     text-decoration: none;
 }
 
-.librarian-heading-body:not(:nth-child(2)) {
+.morsels-heading-body:not(:nth-child(2)) {
     border-top: 1px solid #949494;
     transition: background-color 0.1s ease-in-out;
 }
 
-.librarian-heading-body:hover {
+.morsels-heading-body:hover {
     background-color: rgba(213, 177, 137, 0.2);
 }
 
-.librarian-heading {
+.morsels-heading {
     width: 30%;
     word-break: break-word;
     box-sizing: border-box;
@@ -209,11 +209,11 @@
     color: #3d3f42;
 }
 
-.librarian-bodies {
+.morsels-bodies {
     flex: 1 0 70%;
 }
 
-.librarian-body {
+.morsels-body {
     word-break: break-word;
     grid-column-start: 2;
     box-sizing: border-box;
@@ -222,11 +222,11 @@
     transition: background-color 0.1s ease-in-out;
 }
 
-.librarian-link > .librarian-body:hover {
+.morsels-link > .morsels-body:hover {
     background-color: rgba(213, 177, 137, 0.1);
 }
 
-.librarian-highlight {
+.morsels-highlight {
     color: #0679e2;
     border-radius: 3px;
     padding: 0.1rem 0.2rem;
@@ -235,13 +235,13 @@
 }
 
 /* https://loading.io/css/ */
-.librarian-loading-indicator {
+.morsels-loading-indicator {
     display: flex;
     justify-content: center;
     width: 100%;
     margin: 10px 0;
 }
-.librarian-loading-indicator:after {
+.morsels-loading-indicator:after {
     content: " ";
     display: block;
     width: 40px;
@@ -250,10 +250,10 @@
     border-radius: 50%;
     border: 6px solid #fed;
     border-color: #fed transparent #fed transparent;
-    animation: librarian-loading-indicator 1.2s linear infinite;
+    animation: morsels-loading-indicator 1.2s linear infinite;
 }
 
-@keyframes librarian-loading-indicator {
+@keyframes morsels-loading-indicator {
     0% {
         transform: rotate(0deg);
     }
@@ -263,7 +263,7 @@
 }
 
 @media screen and (max-width: 1024px) {
-    .librarian-loading-indicator:after {
+    .morsels-loading-indicator:after {
         width: 80px;
         height: 80px;
     }

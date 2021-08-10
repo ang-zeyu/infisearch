@@ -1,9 +1,9 @@
 {
-  "name": "librarian-search-ui",
+  "name": "@morsels/search-ui",
   "version": "0.0.0",
   "description": "> TODO: description",
   "author": "Ze Yu <angzeyu@gmail.com>",
-  "homepage": "https://github.com/ang-zeyu/librarian#readme",
+  "homepage": "https://github.com/ang-zeyu/morsels#readme",
   "license": "MIT",
   "main": "src/search-ui.ts",
   "directories": {
@@ -15,16 +15,16 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ang-zeyu/librarian.git"
+    "url": "git+https://github.com/ang-zeyu/morsels.git"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
     "escape-string-regexp": "^4.0.0",
-    "librarian-search-lib": "0.0.0"
+    "@morsels/search-lib": "0.0.0"
   },
   "bugs": {
-    "url": "https://github.com/ang-zeyu/librarian/issues"
+    "url": "https://github.com/ang-zeyu/morsels/issues"
   }
 }

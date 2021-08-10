@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "packages/librarian_indexer",
-    "packages/librarian_common",
-    "packages/librarian_search",
+    "packages/morsels_indexer",
+    "packages/morsels_common",
+    "packages/morsels_search",
 ]

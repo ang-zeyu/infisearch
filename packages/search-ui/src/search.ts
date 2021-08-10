@@ -1,6 +1,6 @@
 import './styles/search.css';
 
-import { Searcher, Query } from 'librarian-search-lib';
+import { Searcher, Query } from '@morsels/search-lib';
 import domUtils from './utils/dom';
 import transformResults from './searchResultTransform';
 
@@ -24,7 +24,7 @@ async function update(
     }
 
     container.innerHTML = '';
-    container.appendChild(h('span', { class: 'librarian-loading-indicator' }));
+    container.appendChild(h('span', { class: 'morsels-loading-indicator' }));
     show(container);
 
     query = await searcher.getQuery(queryString);
@@ -56,28 +56,28 @@ function show(container: HTMLElement): void {
   container.style.display = 'block';
 }
 
-function initLibrarian(
-  librarianOutputUrl: string,
+function initMorsels(
+  morselsOutputUrl: string,
   workerUrl: string,
   sourceHtmlFilesUrl: string,
 ): void {
-  const input = document.getElementById('librarian-search');
+  const input = document.getElementById('morsels-search');
   if (!input) {
     return;
   }
 
-  const container = h('ul', { class: 'librarian-dropdown', style: 'display: none;' });
+  const container = h('ul', { class: 'morsels-dropdown', style: 'display: none;' });
   const parent = input.parentElement;
   input.remove();
-  parent.appendChild(h('div', { class: 'librarian-input-wrapper' },
+  parent.appendChild(h('div', { class: 'morsels-input-wrapper' },
     input,
-    h('div', { class: 'librarian-input-dropdown-separator', style: 'display: none;' }),
+    h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }),
     container));
 
   const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
 
   const searcher = new Searcher({
-    url: librarianOutputUrl,
+    url: morselsOutputUrl,
     workerUrl,
     useQueryTermExpansion: !isMobile,
     useQueryTermProximity: !isMobile,
@@ -133,4 +133,4 @@ function initLibrarian(
   });
 }
 
-export default initLibrarian;
+export default initMorsels;

@@ -1,5 +1,5 @@
 [package]
-name = "librarian_lang_chinese"
+name = "morsels_lang_chinese"
 version = "0.1.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
@@ -9,7 +9,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 lazy_static = "1.4"
-librarian_common = { path = "../../librarian_common" }
+morsels_common = { path = "../../morsels_common" }
 regex = "1"
 rustc-hash = "1.1"
 jieba-rs = { version = "0.6.5", default-features = false }

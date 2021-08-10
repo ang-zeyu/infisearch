@@ -17,7 +17,7 @@ use web_sys::Response;
 
 use trigrams::get_tri_grams;
 use crate::utils::varint::decode_var_int;
-use librarian_common::tokenize::TermInfo;
+use morsels_common::tokenize::TermInfo;
 
 static CORRECTION_ALPHA: f32 = 0.85;
 static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;

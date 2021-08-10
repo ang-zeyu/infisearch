@@ -1,6 +1,6 @@
 pub mod miner;
 
-use librarian_common::tokenize::Tokenizer;
+use morsels_common::tokenize::Tokenizer;
 use std::sync::Barrier;
 use std::sync::Mutex;
 use dashmap::DashMap;

@@ -1,7 +1,7 @@
 {
-  "name": "librarian",
+  "name": "morsels",
   "version": "1.0.0",
-  "description": "Librarian",
+  "description": "morsels",
   "main": "index.js",
   "scripts": {
     "dev": "webpack-cli serve --config ./webpack.dev.js",

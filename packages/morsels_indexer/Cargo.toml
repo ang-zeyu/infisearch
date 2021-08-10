@@ -1,5 +1,5 @@
 [package]
-name = "librarian_indexer"
+name = "morsels_indexer"
 version = "0.0.1"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
@@ -14,9 +14,9 @@ byteorder = "1"
 csv = "1.1"
 dashmap = "4"
 lazy_static = "1.4"
-librarian_common = { path = "../librarian_common" }
-librarian_lang_chinese = { path = "../librarian_languages/librarian_lang_chinese" }
-librarian_lang_latin = { path = "../librarian_languages/librarian_lang_latin" }
+morsels_common = { path = "../morsels_common" }
+morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese" }
+morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin" }
 num_cpus = "1.13.0"
 path-slash = "0.1.4"
 regex = "1"

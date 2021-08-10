@@ -1,4 +1,4 @@
-use librarian_common::tokenize::Tokenizer;
+use morsels_common::tokenize::Tokenizer;
 use std::borrow::Cow;
 use regex::Regex;
 use std::cmp::Ordering;
