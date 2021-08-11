@@ -50,13 +50,13 @@ impl Loader for HtmlLoader {
         if let Some(extension) = path.extension() {
             if extension == "html" {
                 return Some(Box::new(
-                    vec![
+                    std::iter::once(
                         Box::new(HtmlLoaderResult {
                             link: path.strip_prefix(input_folder_path).unwrap().to_slash().unwrap(),
                             text: std::fs::read_to_string(path).expect("Failed to read file!"),
                             exclude_selectors: self.exclude_selectors.clone(),
                         }) as Box<dyn LoaderResult + Send>
-                    ].into_iter()
+                    )
                 ));
             }
         }
