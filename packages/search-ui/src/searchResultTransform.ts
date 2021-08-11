@@ -1,6 +1,7 @@
 import * as escapeRegex from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
 import domUtils from './utils/dom';
+import { MorselsSearchOptions } from './search';
 
 const { h } = domUtils;
 
@@ -257,7 +258,7 @@ export default async function transformResults(
   query: Query,
   isFirst: boolean,
   container: HTMLElement,
-  sourceHtmlFilesUrl: string,
+  options: MorselsSearchOptions,
 ): Promise<void> {
   const termRegex = new RegExp(
     `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
@@ -275,7 +276,7 @@ export default async function transformResults(
 
   let now = performance.now();
 
-  const results = await query.retrieve(10);
+  const results = await query.retrieve(options.resultsPerPage);
 
   console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   now = performance.now();
@@ -284,7 +285,7 @@ export default async function transformResults(
     console.log(result);
 
     const rawLink = result.getSingleField('link');
-    const fullLink = `${sourceHtmlFilesUrl}/${rawLink}`;
+    const fullLink = `${options.sourceHtmlFilesUrl}/${rawLink}`;
     let title = result.getSingleField('title') || rawLink;
     const fields = result.getStorageWithFieldNames();
     const nonTitleFields = fields.filter((v) => v[0] !== 'title');
@@ -295,7 +296,7 @@ export default async function transformResults(
       rawLink,
     );
 
-    if (!fields.find((v) => v[0] !== 'link')) {
+    if (!fields.find((v) => v[0] !== 'link') && options.sourceHtmlFilesUrl) {
       const asText = await (await fetch(fullLink)).text();
       const doc = domParser.parseFromString(asText, 'text/html');
 
@@ -338,7 +339,7 @@ export default async function transformResults(
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, false, container, sourceHtmlFilesUrl);
+    await transformResults(query, false, container, options);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }

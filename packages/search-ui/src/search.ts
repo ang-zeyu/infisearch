@@ -1,6 +1,7 @@
 import './styles/search.css';
 
 import { Searcher, Query } from '@morsels/search-lib';
+import { SearcherOptions } from '@morsels/search-lib/lib/results/SearcherOptions';
 import domUtils from './utils/dom';
 import transformResults from './searchResultTransform';
 
@@ -14,7 +15,7 @@ async function update(
   queryString: string,
   container: HTMLElement,
   searcher: Searcher,
-  sourceHtmlFilesUrl: string,
+  options: MorselsSearchOptions,
 ): Promise<void> {
   try {
     const now = performance.now();
@@ -31,7 +32,7 @@ async function update(
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
-    await transformResults(query, true, container, sourceHtmlFilesUrl);
+    await transformResults(query, true, container, options);
   } catch (ex) {
     container.innerHTML = ex.message;
     throw ex;
@@ -56,11 +57,34 @@ function show(container: HTMLElement): void {
   container.style.display = 'block';
 }
 
-function initMorsels(
-  morselsOutputUrl: string,
-  workerUrl: string,
-  sourceHtmlFilesUrl: string,
-): void {
+export interface MorselsSearchOptions {
+  searcherOptions: SearcherOptions,
+  resultsPerPage?: number,
+  sourceHtmlFilesUrl?: string
+}
+
+function prepareOptions(options: MorselsSearchOptions) {
+  if (!('useQueryTermExpansion' in options.searcherOptions)) {
+    options.searcherOptions.useQueryTermExpansion = true;
+  }
+
+  const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
+  if (!('useQueryTermProximity' in options.searcherOptions)) {
+    options.searcherOptions.useQueryTermProximity = !isMobile;
+  }
+
+  if (!('resultsPerPage' in options)) {
+    options.resultsPerPage = isMobile ? 8 : 10;
+  }
+
+  if (!('sourceHtmlFilesUrl' in options)) {
+    options.sourceHtmlFilesUrl = '';
+  }
+}
+
+function initMorsels(options: MorselsSearchOptions): void {
+  prepareOptions(options);
+
   const input = document.getElementById('morsels-search');
   if (!input) {
     return;
@@ -74,14 +98,7 @@ function initMorsels(
     h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }),
     container));
 
-  const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
-
-  const searcher = new Searcher({
-    url: morselsOutputUrl,
-    workerUrl,
-    useQueryTermExpansion: !isMobile,
-    useQueryTermProximity: !isMobile,
-  });
+  const searcher = new Searcher(options.searcherOptions);
 
   let inputTimer: any = -1;
   input.addEventListener('input', (ev) => {
@@ -91,10 +108,10 @@ function initMorsels(
       clearTimeout(inputTimer);
       inputTimer = setTimeout(() => {
         if (isUpdating) {
-          nextUpdate = () => update(query, container, searcher, sourceHtmlFilesUrl);
+          nextUpdate = () => update(query, container, searcher, options);
         } else {
           isUpdating = true;
-          update(query, container, searcher, sourceHtmlFilesUrl);
+          update(query, container, searcher, options);
         }
       }, 200);
     } else {
