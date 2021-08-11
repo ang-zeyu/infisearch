@@ -28,6 +28,7 @@ use crate::fieldinfo::FieldInfo;
 use crate::fieldinfo::FieldInfos;
 use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
+use crate::loader::json::JsonLoader;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::worker::MainToWorkerMessage;
@@ -69,6 +70,7 @@ pub fn get_loaders_from_config(config: &mut MorselsConfig) -> Vec<Box<dyn Loader
         match &key[..] {
             "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
             "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
+            "JsonLoader" => loaders.push(JsonLoader::get_new_json_loader(value)),
             _ => panic!("Unknown loader type encountered in config")
         }
     }
