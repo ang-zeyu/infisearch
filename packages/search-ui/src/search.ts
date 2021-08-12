@@ -32,7 +32,7 @@ async function update(
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
-    await transformResults(query, true, container, options);
+    await transformResults(query, searcher, true, container, options);
   } catch (ex) {
     container.innerHTML = ex.message;
     throw ex;
@@ -60,7 +60,7 @@ function show(container: HTMLElement): void {
 export interface MorselsSearchOptions {
   searcherOptions: SearcherOptions,
   resultsPerPage?: number,
-  sourceHtmlFilesUrl?: string
+  sourceFilesUrl?: string
 }
 
 function prepareOptions(options: MorselsSearchOptions) {
@@ -77,8 +77,8 @@ function prepareOptions(options: MorselsSearchOptions) {
     options.resultsPerPage = isMobile ? 8 : 10;
   }
 
-  if (!('sourceHtmlFilesUrl' in options)) {
-    options.sourceHtmlFilesUrl = '';
+  if (!('sourceFilesUrl' in options)) {
+    options.sourceFilesUrl = '';
   }
 }
 

@@ -2,6 +2,7 @@ import { SearcherOptions } from './SearcherOptions';
 
 export interface MorselsConfig {
   indexingConfig: {
+    loaderConfigs: { [loader: string]: any },
     plNamesToCache: number[],
     numPlsPerDir: number,
     numStoresPerDir: number,
@@ -19,6 +20,7 @@ export interface MorselsConfig {
 
 export interface MorselsConfigRaw {
   indexing_config: {
+    loader_configs: { [loader: string]: any },
     pl_names_to_cache: number[],
     num_pls_per_dir: number,
     num_stores_per_dir: number,

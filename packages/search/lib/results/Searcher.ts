@@ -7,7 +7,7 @@ import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
 
 class Searcher {
-  private morselsConfig: MorselsConfig;
+  morselsConfig: MorselsConfig;
 
   private readonly setupPromise: Promise<any>;
 
@@ -86,6 +86,7 @@ class Searcher {
 
     this.morselsConfig = {
       indexingConfig: {
+        loaderConfigs: json.indexing_config.loader_configs,
         plNamesToCache: json.indexing_config.pl_names_to_cache,
         numPlsPerDir: json.indexing_config.num_pls_per_dir,
         numStoresPerDir: json.indexing_config.num_stores_per_dir,

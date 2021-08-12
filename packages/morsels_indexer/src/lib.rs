@@ -66,7 +66,7 @@ fn get_default_loader_configs() -> FxHashMap<String, serde_json::Value> {
 pub fn get_loaders_from_config(config: &mut MorselsConfig) -> Vec<Box<dyn Loader>> {
     let mut loaders: Vec<Box<dyn Loader>> = Vec::new();
 
-    for (key, value) in std::mem::take(&mut config.indexing_config.loader_configs) {
+    for (key, value) in config.indexing_config.loader_configs.clone() {
         match &key[..] {
             "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
             "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
@@ -144,6 +144,7 @@ pub struct MorselsConfig {
 // Separate struct to support serializing for --init option but not output config
 #[derive(Serialize)]
 struct MorselsIndexingOutputConfig {
+    loader_configs: FxHashMap<String, serde_json::Value>,
     pl_names_to_cache: Vec<u32>,
     num_pls_per_dir: u32,
     num_stores_per_dir: u32,
@@ -382,6 +383,7 @@ impl Indexer {
     fn write_morsels_config(&mut self) {
         let serialized = serde_json::to_string(&MorselsOutputConfig {
             indexing_config: MorselsIndexingOutputConfig {
+                loader_configs: std::mem::take(&mut self.indexing_config.loader_configs),
                 pl_names_to_cache: std::mem::take(&mut self.indexing_config.pl_names_to_cache),
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
                 num_stores_per_dir: self.indexing_config.num_stores_per_dir,

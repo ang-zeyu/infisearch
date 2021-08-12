@@ -1,5 +1,5 @@
 import * as escapeRegex from 'escape-string-regexp';
-import { Query } from '@morsels/search-lib';
+import { Query, Searcher } from '@morsels/search-lib';
 import domUtils from './utils/dom';
 import { MorselsSearchOptions } from './search';
 
@@ -141,6 +141,36 @@ function transformText(
     .slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
 
+function transformJson(
+  json: any,
+  loaderConfig: any,
+  sortedQueryTerms: string[],
+  termRegex: RegExp,
+  baseUrl: string,
+) {
+  const fields: [string, string][] = [];
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { field_map, field_order } = loaderConfig;
+
+  const titleEntry = Object.entries(field_map).find(([, indexedFieldName]) => indexedFieldName === 'title');
+  const titleKey = titleEntry && titleEntry[0];
+
+  for (const field of field_order) {
+    if (field !== titleKey) {
+      fields.push([
+        field_map[field],
+        json[field],
+      ]);
+    }
+  }
+
+  return {
+    title: titleKey && json[titleKey],
+    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl),
+  };
+}
+
 /*
  Transforms a html document into field name - field content pairs
  ready for highlighting.
@@ -151,8 +181,14 @@ function transformHtml(
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
-): (string | HTMLElement)[] {
+): { title: string, bodies: (string | HTMLElement)[] } {
   const fields: [string, string][] = [];
+
+  let title;
+  const titles = doc.getElementsByTagName('title');
+  if (titles.length) {
+    title = titles[0].innerText || title;
+  }
 
   function traverseBody(el: HTMLElement) {
     switch (el.tagName.toLowerCase()) {
@@ -186,7 +222,10 @@ function transformHtml(
     traverseBody(body[0]);
   }
 
-  return transformText(fields, sortedQueryTerms, termRegex, baseUrl);
+  return {
+    title,
+    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl),
+  };
 }
 
 /*
@@ -256,6 +295,7 @@ function displayTermInfo(query: Query): HTMLElement[] {
 
 export default async function transformResults(
   query: Query,
+  searcher: Searcher,
   isFirst: boolean,
   container: HTMLElement,
   options: MorselsSearchOptions,
@@ -285,7 +325,7 @@ export default async function transformResults(
     console.log(result);
 
     const rawLink = result.getSingleField('link');
-    const fullLink = `${options.sourceHtmlFilesUrl}/${rawLink}`;
+    let fullLink;
     let title = result.getSingleField('title') || rawLink;
     const fields = result.getStorageWithFieldNames();
     const nonTitleFields = fields.filter((v) => v[0] !== 'title');
@@ -296,16 +336,29 @@ export default async function transformResults(
       rawLink,
     );
 
-    if (!fields.find((v) => v[0] !== 'link') && options.sourceHtmlFilesUrl) {
-      const asText = await (await fetch(fullLink)).text();
-      const doc = domParser.parseFromString(asText, 'text/html');
+    if (!fields.find((v) => v[0] !== 'link') && options.sourceFilesUrl) {
+      fullLink = `${options.sourceFilesUrl}/${rawLink}`;
 
-      const titles = doc.getElementsByTagName('title');
-      if (titles.length) {
-        title = titles[0].innerText || title;
+      if (fullLink.endsWith('.html')) {
+        const asText = await (await fetch(fullLink)).text();
+        const doc = domParser.parseFromString(asText, 'text/html');
+
+        const { title: newTitle, bodies: newBodies } = transformHtml(
+          doc, query.searchedTerms, termRegex, rawLink,
+        );
+        title = newTitle || title;
+        bodies = newBodies;
+      } else if (fullLink.endsWith('.json')) {
+        const asJson = await (await fetch(fullLink)).json();
+
+        const { title: newTitle, bodies: newBodies } = transformJson(
+          asJson,
+          searcher.morselsConfig.indexingConfig.loaderConfigs,
+          query.searchedTerms, termRegex, rawLink,
+        );
+        title = newTitle || title;
+        bodies = newBodies;
       }
-
-      bodies = transformHtml(doc, query.searchedTerms, termRegex, rawLink);
     }
 
     return h('li', { class: 'morsels-dropdown-item' },
@@ -339,7 +392,7 @@ export default async function transformResults(
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, false, container, options);
+    await transformResults(query, searcher, false, container, options);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
