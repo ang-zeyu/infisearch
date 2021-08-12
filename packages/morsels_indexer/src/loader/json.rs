@@ -56,12 +56,14 @@ impl JsonLoader {
 }
 
 impl Loader for JsonLoader {
-    fn try_index_file<'a> (&'a self, input_folder_path: &Path, path: &Path) -> Option<LoaderResultIterator<'a>> {
-        if let Some(extension) = path.extension() {
+    fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
+        if let Some(extension) = relative_path.extension() {
             if extension == "json" {
-                let as_value: Value = serde_json::from_str(&std::fs::read_to_string(path).expect("Failed to read json file!")).expect("Invalid json!");
+                let as_value: Value = serde_json::from_str(
+                    &std::fs::read_to_string(absolute_path).expect("Failed to read json file!")
+                ).expect("Invalid json!");
 
-                let link = path.strip_prefix(input_folder_path).unwrap().to_slash().unwrap();
+                let link = relative_path.to_slash().unwrap();
                 if as_value.is_array() {
                     let documents: Vec<FxHashMap<String, String>> = serde_json::from_value(as_value).unwrap();
                     return Some(Box::new({

@@ -130,8 +130,8 @@ impl CsvLoader {
 }
 
 impl Loader for CsvLoader {
-    fn try_index_file<'a> (&'a self, _input_folder_path: &Path, path: &Path) -> Option<LoaderResultIterator<'a>> {
-        if let Some(extension) = path.extension() {
+    fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
+        if let Some(extension) = relative_path.extension() {
             if extension == "csv" {
                 let num_fields = if self.options.use_headers {
                     self.options.header_field_map.len()
@@ -141,11 +141,11 @@ impl Loader for CsvLoader {
 
                 return Some(
                     if self.options.use_headers {
-                        Box::new(self.reader_builder.from_path(path).unwrap().into_deserialize().map(move |result| {
+                        Box::new(self.reader_builder.from_path(absolute_path).unwrap().into_deserialize().map(move |result| {
                             self.unwrap_csv_deserialize_result(result.unwrap(), num_fields)
                         }))
                     } else {
-                        Box::new(self.reader_builder.from_path(path).unwrap().into_records().map(move |result| {
+                        Box::new(self.reader_builder.from_path(absolute_path).unwrap().into_records().map(move |result| {
                             self.unwrap_csv_read_result(result, num_fields)
                         }))
                     }

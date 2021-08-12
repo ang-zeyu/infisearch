@@ -8,6 +8,8 @@ use std::path::PathBuf;
 use morsels_indexer::MorselsConfig;
 use morsels_indexer::loader::Loader;
 
+use glob::Pattern;
+use path_slash::PathExt;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 
@@ -89,7 +91,8 @@ fn main() {
         return;
     }
     
-    let loaders: Vec<Box<dyn Loader>> = morsels_indexer::get_loaders_from_config(&mut config);
+    let loaders = config.indexing_config.get_loaders_from_config();
+    let exclude_patterns = config.indexing_config.get_excludes_from_config();
 
     let mut indexer = morsels_indexer::Indexer::new(
         &output_folder_path,
@@ -108,8 +111,13 @@ fn main() {
                 }
 
                 let path = dir_entry.path();
+                let relative_path = path.strip_prefix(&input_folder_path_clone).unwrap();
+                if let Some(_match) = exclude_patterns.iter().find(|pat| pat.matches_path(relative_path)) {
+                    continue;
+                }
+
                 for loader in loaders.iter() {
-                    if let Some(loader_results) = loader.try_index_file(&input_folder_path_clone, &path) {
+                    if let Some(loader_results) = loader.try_index_file(&input_folder_path_clone, &path, relative_path) {
                         for loader_result in loader_results {
                             indexer.index_document(loader_result);
                         }

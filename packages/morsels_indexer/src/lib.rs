@@ -37,6 +37,7 @@ use crate::worker::Worker;
 
 use crossbeam::Sender;
 use crossbeam::Receiver;
+use glob::Pattern;
 use rustc_hash::FxHashMap;
 use serde::{Serialize,Deserialize};
 
@@ -55,27 +56,16 @@ fn get_default_pl_cache_threshold() -> u32 {
     1048576
 }
 
+fn get_default_exclude_patterns() -> Vec<String> {
+    vec!["_morsels_config.json".to_owned()]
+}
+
 fn get_default_loader_configs() -> FxHashMap<String, serde_json::Value> {
     let mut configs = FxHashMap::default();
 
     configs.insert("HtmlLoader".to_owned(), serde_json::json!({}));
 
     configs
-}
-
-pub fn get_loaders_from_config(config: &mut MorselsConfig) -> Vec<Box<dyn Loader>> {
-    let mut loaders: Vec<Box<dyn Loader>> = Vec::new();
-
-    for (key, value) in config.indexing_config.loader_configs.clone() {
-        match &key[..] {
-            "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
-            "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
-            "JsonLoader" => loaders.push(JsonLoader::get_new_json_loader(value)),
-            _ => panic!("Unknown loader type encountered in config")
-        }
-    }
-
-    loaders
 }
 
 fn get_default_num_pls_per_dir() -> u32 {
@@ -101,6 +91,9 @@ pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_pl_cache_threshold")]
     pl_cache_threshold: u32,
 
+    #[serde(default = "get_default_exclude_patterns")]
+    exclude: Vec<String>,
+
     #[serde(default = "get_default_loader_configs")]
     loader_configs: FxHashMap<String, serde_json::Value>,
 
@@ -123,6 +116,7 @@ impl Default for MorselsIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
             pl_cache_threshold: get_default_pl_cache_threshold(),
+            exclude: get_default_exclude_patterns(),
             loader_configs: get_default_loader_configs(),
             pl_names_to_cache: Vec::new(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
@@ -132,10 +126,31 @@ impl Default for MorselsIndexingConfig {
     }
 }
 
+impl MorselsIndexingConfig {
+    pub fn get_loaders_from_config(&self) -> Vec<Box<dyn Loader>> {
+        let mut loaders: Vec<Box<dyn Loader>> = Vec::new();
+    
+        for (key, value) in self.loader_configs.clone() {
+            match &key[..] {
+                "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
+                "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
+                "JsonLoader" => loaders.push(JsonLoader::get_new_json_loader(value)),
+                _ => panic!("Unknown loader type encountered in config")
+            }
+        }
+    
+        loaders
+    }
+
+    pub fn get_excludes_from_config(&self) -> Vec<Pattern> {
+        self.exclude.iter().map(|pat_str| Pattern::new(pat_str).expect("Invalid exclude glob pattern!")).collect()
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct MorselsConfig {
     #[serde(default)]
-    indexing_config: MorselsIndexingConfig,
+    pub indexing_config: MorselsIndexingConfig,
     #[serde(default)]
     language: MorselsLanguageConfig,
     fields_config: FieldsConfig,

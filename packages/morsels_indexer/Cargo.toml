@@ -13,6 +13,7 @@ serde_json = "1"
 byteorder = "1"
 csv = "1.1"
 dashmap = "4"
+glob = "0.3"
 lazy_static = "1.4"
 morsels_common = { path = "../morsels_common" }
 morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese" }

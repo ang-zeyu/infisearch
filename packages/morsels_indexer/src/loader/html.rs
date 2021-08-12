@@ -46,14 +46,14 @@ impl HtmlLoader {
 }
 
 impl Loader for HtmlLoader {
-    fn try_index_file<'a> (&'a self, input_folder_path: &Path, path: &Path) -> Option<LoaderResultIterator<'a>> {
-        if let Some(extension) = path.extension() {
+    fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
+        if let Some(extension) = relative_path.extension() {
             if extension == "html" {
                 return Some(Box::new(
                     std::iter::once(
                         Box::new(HtmlLoaderResult {
-                            link: path.strip_prefix(input_folder_path).unwrap().to_slash().unwrap(),
-                            text: std::fs::read_to_string(path).expect("Failed to read file!"),
+                            link: relative_path.to_slash().unwrap(),
+                            text: std::fs::read_to_string(absolute_path).expect("Failed to read file!"),
                             exclude_selectors: self.exclude_selectors.clone(),
                         }) as Box<dyn LoaderResult + Send>
                     )
