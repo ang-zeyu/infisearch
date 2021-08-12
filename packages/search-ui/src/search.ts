@@ -67,6 +67,10 @@ function prepareOptions(options: SearchUiOptions) {
     options.searcherOptions.useQueryTermProximity = !isMobile;
   }
 
+  if (!('inputId' in options)) {
+    options.inputId = 'morsels-search';
+  }
+
   if (!('resultsPerPage' in options)) {
     options.resultsPerPage = isMobile ? 8 : 10;
   }
@@ -79,7 +83,7 @@ function prepareOptions(options: SearchUiOptions) {
 function initMorsels(options: SearchUiOptions): void {
   prepareOptions(options);
 
-  const input = document.getElementById('morsels-search');
+  const input = document.getElementById(options.inputId);
   if (!input) {
     return;
   }
