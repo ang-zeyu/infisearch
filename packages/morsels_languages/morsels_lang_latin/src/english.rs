@@ -78,7 +78,7 @@ pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
   let use_stemmer = options.stemmer.is_some();
 
   let stemmer = if let Some(stemmer_lang) = options.stemmer {
-    match stemmer_lang.as_str() {
+    match stemmer_lang.to_lowercase().as_str() {
       "arabic" => Stemmer::create(Algorithm::Arabic),
       "danish" => Stemmer::create(Algorithm::Danish),
       "dutch" => Stemmer::create(Algorithm::Dutch),
