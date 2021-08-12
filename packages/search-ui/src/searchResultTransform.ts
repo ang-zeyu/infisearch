@@ -119,13 +119,13 @@ function transformText(
     for (; i > lastIncludedHeading; i -= 1) {
       if (texts[i][0] === 'heading') {
         lastIncludedHeading = i;
-        const href = (i - 1 >= 0) && texts[i - 1][0] === 'headingLink'
-          ? `${baseUrl}${texts[i - 1][1]}`
-          : undefined;
-        finalMatchResult.result = h('a', { class: 'morsels-heading-body', href },
+        finalMatchResult.result = h('a', { class: 'morsels-heading-body' },
           h('div', { class: 'morsels-heading' }, texts[i][1]),
           h('div', { class: 'morsels-bodies' },
             h('div', { class: 'morsels-body' }, ...result)));
+        if ((i - 1 >= 0) && texts[i - 1][0] === 'headingLink') {
+          finalMatchResult.result.setAttribute('href', `${baseUrl}${texts[i - 1][1]}`);
+        }
         break;
       }
     }
