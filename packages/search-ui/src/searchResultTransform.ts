@@ -1,5 +1,6 @@
 import * as escapeRegex from 'escape-string-regexp';
 import { Query, Searcher } from '@morsels/search-lib';
+import { MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import domUtils from './utils/dom';
 import { MorselsSearchOptions } from './search';
 
@@ -157,7 +158,7 @@ function transformJson(
   const titleKey = titleEntry && titleEntry[0];
 
   for (const field of field_order) {
-    if (field !== titleKey) {
+    if (field !== titleKey && json[field]) {
       fields.push([
         field_map[field],
         json[field],
@@ -295,7 +296,7 @@ function displayTermInfo(query: Query): HTMLElement[] {
 
 export default async function transformResults(
   query: Query,
-  searcher: Searcher,
+  config: MorselsConfig,
   isFirst: boolean,
   container: HTMLElement,
   options: MorselsSearchOptions,
@@ -321,6 +322,7 @@ export default async function transformResults(
   console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   now = performance.now();
 
+  const { loaderConfigs } = config.indexingConfig;
   const resultsEls = await Promise.all(results.map(async (result) => {
     console.log(result);
 
@@ -339,7 +341,7 @@ export default async function transformResults(
     if (!fields.find((v) => v[0] !== 'link') && options.sourceFilesUrl) {
       fullLink = `${options.sourceFilesUrl}/${rawLink}`;
 
-      if (fullLink.endsWith('.html')) {
+      if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
         const asText = await (await fetch(fullLink)).text();
         const doc = domParser.parseFromString(asText, 'text/html');
 
@@ -348,12 +350,12 @@ export default async function transformResults(
         );
         title = newTitle || title;
         bodies = newBodies;
-      } else if (fullLink.endsWith('.json')) {
+      } else if (fullLink.endsWith('.json') && loaderConfigs.JsonLoader) {
         const asJson = await (await fetch(fullLink)).json();
 
         const { title: newTitle, bodies: newBodies } = transformJson(
           asJson,
-          searcher.morselsConfig.indexingConfig.loaderConfigs,
+          loaderConfigs.JsonLoader,
           query.searchedTerms, termRegex, rawLink,
         );
         title = newTitle || title;
@@ -392,7 +394,7 @@ export default async function transformResults(
 
     observer.unobserve(sentinel);
     sentinel.remove();
-    await transformResults(query, searcher, false, container, options);
+    await transformResults(query, config, false, container, options);
   }, { root: container, rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }

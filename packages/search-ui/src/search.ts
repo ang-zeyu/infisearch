@@ -32,7 +32,7 @@ async function update(
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
-    await transformResults(query, searcher, true, container, options);
+    await transformResults(query, searcher.morselsConfig, true, container, options);
   } catch (ex) {
     container.innerHTML = ex.message;
     throw ex;
