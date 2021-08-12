@@ -1,13 +1,23 @@
 import './styles/search.css';
 
 import { Searcher, Query } from '@morsels/search-lib';
-import { SearcherOptions } from '@morsels/search-lib/lib/results/SearcherOptions';
 import domUtils from './utils/dom';
 import transformResults from './searchResultTransform';
+import { SearchUiOptions } from './SearchUiOptions';
 
 const { h } = domUtils;
 
 let query: Query;
+
+function hide(container: HTMLElement): void {
+  (container.previousSibling as HTMLElement).style.display = 'none';
+  container.style.display = 'none';
+}
+
+function show(container: HTMLElement): void {
+  (container.previousSibling as HTMLElement).style.display = 'block';
+  container.style.display = 'block';
+}
 
 let isUpdating = false;
 let nextUpdate: () => any;
@@ -15,7 +25,7 @@ async function update(
   queryString: string,
   container: HTMLElement,
   searcher: Searcher,
-  options: MorselsSearchOptions,
+  options: SearchUiOptions,
 ): Promise<void> {
   try {
     const now = performance.now();
@@ -47,23 +57,7 @@ async function update(
   }
 }
 
-function hide(container: HTMLElement): void {
-  (container.previousSibling as HTMLElement).style.display = 'none';
-  container.style.display = 'none';
-}
-
-function show(container: HTMLElement): void {
-  (container.previousSibling as HTMLElement).style.display = 'block';
-  container.style.display = 'block';
-}
-
-export interface MorselsSearchOptions {
-  searcherOptions: SearcherOptions,
-  resultsPerPage?: number,
-  sourceFilesUrl?: string
-}
-
-function prepareOptions(options: MorselsSearchOptions) {
+function prepareOptions(options: SearchUiOptions) {
   if (!('useQueryTermExpansion' in options.searcherOptions)) {
     options.searcherOptions.useQueryTermExpansion = true;
   }
@@ -82,7 +76,7 @@ function prepareOptions(options: MorselsSearchOptions) {
   }
 }
 
-function initMorsels(options: MorselsSearchOptions): void {
+function initMorsels(options: SearchUiOptions): void {
   prepareOptions(options);
 
   const input = document.getElementById('morsels-search');

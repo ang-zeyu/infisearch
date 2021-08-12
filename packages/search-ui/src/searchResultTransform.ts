@@ -1,8 +1,8 @@
 import * as escapeRegex from 'escape-string-regexp';
-import { Query, Searcher } from '@morsels/search-lib';
+import { Query } from '@morsels/search-lib';
 import { MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import domUtils from './utils/dom';
-import { MorselsSearchOptions } from './search';
+import { SearchUiOptions } from './SearchUiOptions';
 
 const { h } = domUtils;
 
@@ -299,7 +299,7 @@ export default async function transformResults(
   config: MorselsConfig,
   isFirst: boolean,
   container: HTMLElement,
-  options: MorselsSearchOptions,
+  options: SearchUiOptions,
 ): Promise<void> {
   const termRegex = new RegExp(
     `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
