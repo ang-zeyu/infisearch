@@ -97,9 +97,6 @@ pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_loader_configs")]
     loader_configs: FxHashMap<String, serde_json::Value>,
 
-    #[serde(default = "Vec::new")]
-    pl_names_to_cache: Vec<u32>,
-
     #[serde(default = "get_default_num_pls_per_dir")]
     num_pls_per_dir: u32,
 
@@ -118,7 +115,6 @@ impl Default for MorselsIndexingConfig {
             pl_cache_threshold: get_default_pl_cache_threshold(),
             exclude: get_default_exclude_patterns(),
             loader_configs: get_default_loader_configs(),
-            pl_names_to_cache: Vec::new(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
             num_stores_per_dir: get_default_num_field_stores_per_dir(),
             with_positions: get_default_with_positions(),
@@ -232,6 +228,7 @@ pub struct Indexer {
     expected_num_docs_per_thread: usize,
     doc_id_counter: u32,
     spimi_counter: u32,
+    pl_names_to_cache: Vec<u32>,
     field_store_block_size: u32,
     field_infos: Option<Arc<FieldInfos>>,
     output_folder_path: PathBuf,
@@ -267,6 +264,7 @@ impl Indexer {
             expected_num_docs_per_thread,
             doc_id_counter: 0,
             spimi_counter: 0,
+            pl_names_to_cache: Vec::new(),
             field_store_block_size: config.fields_config.field_store_block_size,
             field_infos: Option::None,
             output_folder_path: output_folder_path.to_path_buf(),
@@ -399,7 +397,7 @@ impl Indexer {
         let serialized = serde_json::to_string(&MorselsOutputConfig {
             indexing_config: MorselsIndexingOutputConfig {
                 loader_configs: std::mem::take(&mut self.indexing_config.loader_configs),
-                pl_names_to_cache: std::mem::take(&mut self.indexing_config.pl_names_to_cache),
+                pl_names_to_cache: std::mem::take(&mut self.pl_names_to_cache),
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
                 num_stores_per_dir: self.indexing_config.num_stores_per_dir,
                 with_positions: self.indexing_config.with_positions,
@@ -434,6 +432,7 @@ impl Indexer {
             self.doc_id_counter,
             num_blocks,
             &mut self.indexing_config,
+            &mut self.pl_names_to_cache,
             std::mem::take(&mut self.doc_infos).unwrap(),
             &self.tx_main,
             &self.output_folder_path

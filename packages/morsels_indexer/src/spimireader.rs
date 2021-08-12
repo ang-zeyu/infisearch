@@ -201,6 +201,7 @@ pub fn merge_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
     indexing_config: &mut MorselsIndexingConfig,
+    pl_names_to_cache: &mut Vec<u32>,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path
@@ -396,7 +397,7 @@ pub fn merge_blocks(
             pl_writer.flush().unwrap();
 
             if curr_pl_offset > indexing_config.pl_cache_threshold {
-                indexing_config.pl_names_to_cache.push(curr_pl);
+                pl_names_to_cache.push(curr_pl);
             }
 
             curr_pl += 1;
