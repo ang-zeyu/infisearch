@@ -13,9 +13,46 @@ pub struct FieldsConfig {
 
 impl Default for FieldsConfig {
     fn default() -> Self {
+        // The default configuration required for @morsels/search-ui
         FieldsConfig {
             field_store_block_size: 1,
-            fields: Vec::new(),
+            fields: vec![
+                FieldConfig {
+                    name: "title".to_owned(),
+                    do_store: false,
+                    weight: 0.2,
+                    k: 1.2,
+                    b: 0.25
+                },
+                FieldConfig {
+                    name: "heading".to_owned(),
+                    do_store: false,
+                    weight: 0.3,
+                    k: 1.2,
+                    b: 0.3
+                },
+                FieldConfig {
+                    name: "body".to_owned(),
+                    do_store: false,
+                    weight: 0.5,
+                    k: 1.2,
+                    b: 0.75
+                },
+                FieldConfig {
+                    name: "headingLink".to_owned(),
+                    do_store: false,
+                    weight: 0.0,
+                    k: 1.2,
+                    b: 0.75
+                },
+                FieldConfig {
+                    name: "link".to_owned(),
+                    do_store: true,
+                    weight: 0.0,
+                    k: 1.2,
+                    b: 0.75
+                },
+            ]
         }
     }
 }
