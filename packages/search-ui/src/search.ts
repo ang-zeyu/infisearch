@@ -1,11 +1,9 @@
 import './styles/search.css';
 
 import { Searcher, Query } from '@morsels/search-lib';
-import domUtils from './utils/dom';
+import createElement from './utils/dom';
 import transformResults from './searchResultTransform';
 import { SearchUiOptions } from './SearchUiOptions';
-
-const { h } = domUtils;
 
 let query: Query;
 
@@ -35,7 +33,7 @@ async function update(
     }
 
     container.innerHTML = '';
-    container.appendChild(h('span', { class: 'morsels-loading-indicator' }));
+    container.appendChild(options.render.loadingIndicatorRender(createElement));
     show(container);
 
     query = await searcher.getQuery(queryString);
@@ -78,6 +76,108 @@ function prepareOptions(options: SearchUiOptions) {
   if (!('sourceFilesUrl' in options)) {
     options.sourceFilesUrl = '';
   }
+
+  if (!('render' in options)) {
+    options.render = {};
+  }
+
+  if (!('inputWrapperRender' in options.render)) {
+    options.render.inputWrapperRender = (h, inputEl) => h(
+      'div', { class: 'morsels-input-wrapper' },
+      inputEl,
+      h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }),
+    );
+  }
+
+  if (!('noResultsRender' in options.render)) {
+    options.render.noResultsRender = (h) => h('div', { class: 'morsels-no-results' }, 'no results found');
+  }
+
+  if (!('listRender' in options.render)) {
+    options.render.listRender = (h) => h('ul', { class: 'morsels-dropdown', style: 'display: none;' });
+  }
+
+  if (!('listItemRender' in options.render)) {
+    options.render.listItemRender = (h, fullLink, title, bodies) => {
+      const linkEl = h('a', { class: 'morsels-link' },
+        h('div', { class: 'morsels-title' }, title),
+        ...bodies);
+      if (fullLink) {
+        linkEl.setAttribute('href', fullLink);
+      }
+
+      return h(
+        'li', { class: 'morsels-dropdown-item' },
+        linkEl,
+      );
+    };
+  }
+
+  if (!('loadingIndicatorRender' in options.render)) {
+    options.render.loadingIndicatorRender = (h) => h('span', { class: 'morsels-loading-indicator' });
+  }
+
+  if (!('highlightRender' in options.render)) {
+    options.render.highlightRender = (h, matchedPart) => h(
+      'span', { class: 'morsels-highlight' }, matchedPart,
+    );
+  }
+
+  if (!('headingBodyRender' in options.render)) {
+    options.render.headingBodyRender = (h, heading, bodyHighlights, href) => {
+      const el = h('a', { class: 'morsels-heading-body' },
+        h('div', { class: 'morsels-heading' }, heading),
+        h('div', { class: 'morsels-bodies' },
+          h('div', { class: 'morsels-body' }, ...bodyHighlights)));
+      if (href) {
+        el.setAttribute('href', href);
+      }
+      return el;
+    };
+  }
+
+  if (!('bodyOnlyRender' in options.render)) {
+    options.render.bodyOnlyRender = (h, bodyHighlights) => h(
+      'div', { class: 'morsels-body' }, ...bodyHighlights,
+    );
+  }
+
+  if (!('termInfoRender' in options.render)) {
+    options.render.termInfoRender = (h, misspelledTerms, correctedTerms, expandedTerms) => {
+      const returnVal: HTMLElement[] = [];
+      const correctedTermsContainer = h('div', { class: 'morsels-suggestion-container-corrected' });
+
+      if (expandedTerms.length) {
+        returnVal.push(
+          h('div', { class: 'morsels-suggestion-container-expanded' },
+            h('div', { class: 'morsels-suggestion-content' },
+              'Also searched for... ',
+              h('small', {}, '(add a space to the last term to finalise the search)'),
+              h('br', {}),
+              ...expandedTerms.map((expandedTerm, idx) => (idx === 0 ? '' : h(
+                'span', { class: 'morsels-suggestion-expanded' }, `${expandedTerm} `,
+              ))))),
+        );
+      }
+
+      if (misspelledTerms.length) {
+        correctedTermsContainer.prepend(
+          h('div', { class: 'morsels-suggestion-content' },
+            'Could not find any matches for',
+            ...misspelledTerms.map((term) => h(
+              'span', { class: 'morsels-suggestion-wrong' }, ` "${term}"`,
+            )),
+            correctedTerms.length ? ', searched for: ' : '',
+            ...correctedTerms.map((correctedTerm) => h(
+              'span', { class: 'morsels-suggestion-corrected' }, `${correctedTerm} `,
+            ))),
+        );
+        returnVal.push(correctedTermsContainer);
+      }
+
+      return returnVal;
+    };
+  }
 }
 
 function initMorsels(options: SearchUiOptions): void {
@@ -88,13 +188,12 @@ function initMorsels(options: SearchUiOptions): void {
     return;
   }
 
-  const container = h('ul', { class: 'morsels-dropdown', style: 'display: none;' });
   const parent = input.parentElement;
   input.remove();
-  parent.appendChild(h('div', { class: 'morsels-input-wrapper' },
-    input,
-    h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }),
-    container));
+  const inputWrapper = options.render.inputWrapperRender(createElement, input);
+  const container = options.render.listRender(createElement);
+  inputWrapper.appendChild(container);
+  parent.appendChild(inputWrapper);
 
   const searcher = new Searcher(options.searcherOptions);
 

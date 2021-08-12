@@ -1,10 +1,9 @@
 import * as escapeRegex from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
 import { MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
-import domUtils from './utils/dom';
-import { SearchUiOptions } from './SearchUiOptions';
-
-const { h } = domUtils;
+import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
+import { SearchUiOptions, SearchUiRenderOptions } from './SearchUiOptions';
+import createElement from './utils/dom';
 
 const domParser = new DOMParser();
 
@@ -29,6 +28,7 @@ function transformText(
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
+  render: SearchUiRenderOptions,
 ): (string | HTMLElement)[] {
   const lowerCasedSortedQueryTermsIndices: { [term: string]: number } = Object.create(null);
   sortedQueryTerms.forEach((term, idx) => {
@@ -81,12 +81,12 @@ function transformText(
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
         result.push(' ... ');
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
-        result.push(h('span', { class: 'morsels-highlight' }, term));
+        result.push(render.highlightRender(createElement, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       } else {
         result.pop();
         result.push(str.substring(prevHighlightEndPos, pos));
-        result.push(h('span', { class: 'morsels-highlight' }, term));
+        result.push(render.highlightRender(createElement, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       }
       prevHighlightEndPos = highlightEndPos;
@@ -119,20 +119,19 @@ function transformText(
     for (; i > lastIncludedHeading; i -= 1) {
       if (texts[i][0] === 'heading') {
         lastIncludedHeading = i;
-        finalMatchResult.result = h('a', { class: 'morsels-heading-body' },
-          h('div', { class: 'morsels-heading' }, texts[i][1]),
-          h('div', { class: 'morsels-bodies' },
-            h('div', { class: 'morsels-body' }, ...result)));
-        if ((i - 1 >= 0) && texts[i - 1][0] === 'headingLink') {
-          finalMatchResult.result.setAttribute('href', `${baseUrl}${texts[i - 1][1]}`);
-        }
+        finalMatchResult.result = render.headingBodyRender(
+          createElement,
+          texts[i][1],
+          result,
+          (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}${texts[i - 1][1]}`,
+        );
         break;
       }
     }
 
     // Insert without heading
     if (!finalMatchResult.result) {
-      finalMatchResult.result = h('div', { class: 'morsels-body' }, ...result);
+      finalMatchResult.result = render.bodyOnlyRender(createElement, result);
     }
   }
 
@@ -148,6 +147,7 @@ function transformJson(
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
+  renderOptions: SearchUiRenderOptions,
 ) {
   const fields: [string, string][] = [];
 
@@ -168,7 +168,7 @@ function transformJson(
 
   return {
     title: titleKey && json[titleKey],
-    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl),
+    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl, renderOptions),
   };
 }
 
@@ -182,6 +182,7 @@ function transformHtml(
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
+  renderOptions: SearchUiRenderOptions,
 ): { title: string, bodies: (string | HTMLElement)[] } {
   const fields: [string, string][] = [];
 
@@ -225,7 +226,7 @@ function transformHtml(
 
   return {
     title,
-    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl),
+    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl, renderOptions),
   };
 }
 
@@ -233,19 +234,12 @@ function transformHtml(
  Corrected / "also searched for..." terms
  */
 
-function displayTermInfo(query: Query): HTMLElement[] {
+function displayTermInfo(queryParts: QueryPart[], render: SearchUiRenderOptions): HTMLElement[] {
   const misspelledTerms: string[] = [];
   const correctedTerms: string[] = [];
-  const returnVal: HTMLElement[] = [];
-  const correctedTermsContainer = h('div', { class: 'morsels-suggestion-container-corrected' },
-    h('div', { class: 'morsels-suggestion-buttons' },
-      h('button', {
-        class: 'morsels-suggestion-button-dismiss',
-        onclick: '() => console.log(\'hi\')',
-      }),
-      h('button', { class: 'morsels-suggestion-button-dismiss-tip' })));
+  let expandedTerms: string[] = [];
 
-  query.queryParts.forEach((queryPart) => {
+  queryParts.forEach((queryPart) => {
     if (queryPart.isCorrected) {
       for (const misspelledTerm of queryPart.originalTerms) {
         if (!queryPart.terms.includes(misspelledTerm)) {
@@ -256,38 +250,11 @@ function displayTermInfo(query: Query): HTMLElement[] {
         correctedTerms.push(term);
       }
     } else if (queryPart.isExpanded) {
-      returnVal.push(
-        h('div', { class: 'morsels-suggestion-container-expanded' },
-          h('div', { class: 'morsels-suggestion-content' },
-            'Also searched for... ',
-            h('small', {}, '(add a space to the last term to finalise the search)'),
-            h('br', {}),
-            ...queryPart.terms.map((expandedTerm, idx) => (idx === 0 ? '' : h(
-              'span', { class: 'morsels-suggestion-expanded' }, `${expandedTerm} `,
-            )))),
-          h('div', { class: 'morsels-suggestion-buttons' },
-            h('button', { class: 'morsels-suggestion-button-dismiss' }),
-            h('button', { class: 'morsels-suggestion-button-dismiss-tip' }))),
-      );
+      expandedTerms = queryPart.terms;
     }
   });
 
-  if (misspelledTerms.length) {
-    correctedTermsContainer.prepend(
-      h('div', { class: 'morsels-suggestion-content' },
-        'Could not find any matches for',
-        ...misspelledTerms.map((term) => h(
-          'span', { class: 'morsels-suggestion-wrong' }, ` "${term}"`,
-        )),
-        correctedTerms.length ? ', searched for: ' : '',
-        ...correctedTerms.map((correctedTerm) => h(
-          'span', { class: 'morsels-suggestion-corrected' }, `${correctedTerm} `,
-        ))),
-    );
-    returnVal.push(correctedTermsContainer);
-  }
-
-  return returnVal;
+  return render.termInfoRender(createElement, misspelledTerms, correctedTerms, expandedTerms);
 }
 
 /*
@@ -306,13 +273,13 @@ export default async function transformResults(
     'gi',
   );
 
-  const loader = h('span', { class: 'morsels-loading-indicator' });
+  const loader = options.render.loadingIndicatorRender(createElement);
   if (!isFirst) {
     container.appendChild(loader);
   }
 
   const fragment = document.createDocumentFragment();
-  const termInfoEls = isFirst ? displayTermInfo(query) : [];
+  const termInfoEls = isFirst ? displayTermInfo(query.queryParts, options.render) : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
   let now = performance.now();
@@ -336,6 +303,7 @@ export default async function transformResults(
       query.searchedTerms,
       termRegex,
       rawLink,
+      options.render,
     );
 
     if (!fields.find((v) => v[0] !== 'link') && options.sourceFilesUrl) {
@@ -346,7 +314,7 @@ export default async function transformResults(
         const doc = domParser.parseFromString(asText, 'text/html');
 
         const { title: newTitle, bodies: newBodies } = transformHtml(
-          doc, query.searchedTerms, termRegex, rawLink,
+          doc, query.searchedTerms, termRegex, rawLink, options.render,
         );
         title = newTitle || title;
         bodies = newBodies;
@@ -356,24 +324,21 @@ export default async function transformResults(
         const { title: newTitle, bodies: newBodies } = transformJson(
           asJson,
           loaderConfigs.JsonLoader,
-          query.searchedTerms, termRegex, rawLink,
+          query.searchedTerms, termRegex, rawLink, options.render,
         );
         title = newTitle || title;
         bodies = newBodies;
       }
     }
 
-    return h('li', { class: 'morsels-dropdown-item' },
-      h('a', { class: 'morsels-link', href: fullLink },
-        h('div', { class: 'morsels-title' }, title),
-        ...bodies));
+    return options.render.listItemRender(createElement, fullLink, title, bodies);
   }));
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
   } else if (isFirst) {
-    fragment.appendChild(h('div', { class: 'morsels-no-results' }, 'no results found'));
+    fragment.appendChild(options.render.noResultsRender(createElement));
   }
-  const sentinel = h('li', {});
+  const sentinel = createElement('li', {});
   fragment.appendChild(sentinel);
 
   if (isFirst) {

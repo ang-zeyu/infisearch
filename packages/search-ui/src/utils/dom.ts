@@ -22,6 +22,10 @@ function h(
   return el;
 }
 
-export default {
-  h,
-};
+export default h;
+
+export type CreateElement = (
+  name: string,
+  attrs: { [attrName: string]: string },
+  ...children: (string | HTMLElement)[]
+) => HTMLElement;
