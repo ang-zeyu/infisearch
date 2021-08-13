@@ -20,7 +20,7 @@
     align-items: center;
     position: sticky;
     top: 0;
-    padding: 1em;
+    padding: 1.5em 1em;
     background-color: rgb(245, 200, 155);
 }
 
@@ -31,7 +31,7 @@
     width: calc(100% - 80px);
     border: 2px solid rgba(253, 202, 144, 0.37);
     border-radius: 30px;
-    font-size: 40px;
+    font-size: 48px;
     box-sizing: border-box;
 }
 
@@ -212,6 +212,7 @@
 }
 
 .morsels-body {
+    height: 100%;
     word-break: break-word;
     grid-column-start: 2;
     box-sizing: border-box;
