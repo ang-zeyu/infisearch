@@ -123,7 +123,7 @@ function transformText(
           createElement,
           texts[i][1],
           result,
-          (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}${texts[i - 1][1]}`,
+          (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}#${texts[i - 1][1]}`,
         );
         break;
       }
@@ -204,7 +204,7 @@ function transformHtml(
         if (selector.attr_map) {
           Object.entries(selector.attr_map).forEach(([attrName, attrFieldName]) => {
             if (el.attributes[attrName]) {
-              fields.push([attrFieldName as any, el.attributes[attrName]]);
+              fields.push([attrFieldName as any, el.attributes[attrName].value]);
             }
           });
         }
