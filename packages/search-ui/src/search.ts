@@ -15,6 +15,7 @@ async function update(
   queryString: string,
   root: HTMLElement,
   listContainer: HTMLElement,
+  isFirstQueryFromBlank: boolean,
   forPortal: boolean,
   searcher: Searcher,
   options: SearchUiOptions,
@@ -26,9 +27,11 @@ async function update(
       query.free();
     }
 
-    listContainer.innerHTML = '';
-    listContainer.appendChild(options.render.loadingIndicatorRender(createElement));
-    options.render.show(root, forPortal);
+    if (isFirstQueryFromBlank) {
+      listContainer.innerHTML = '';
+      listContainer.appendChild(options.render.loadingIndicatorRender(createElement));
+      options.render.show(root, forPortal);
+    }
 
     query = await searcher.getQuery(queryString);
 
@@ -185,6 +188,7 @@ function initMorsels(options: SearchUiOptions): () => void {
   const searcher = new Searcher(options.searcherOptions);
 
   let inputTimer: any = -1;
+  let isFirstQueryFromBlank = true;
   const inputListener = (root: HTMLElement, listContainer: HTMLElement, forPortal: boolean) => (ev) => {
     const query = (ev.target as HTMLInputElement).value;
 
@@ -192,22 +196,29 @@ function initMorsels(options: SearchUiOptions): () => void {
       clearTimeout(inputTimer);
       inputTimer = setTimeout(() => {
         if (isUpdating) {
-          nextUpdate = () => update(query, root, listContainer, forPortal, searcher, options);
+          nextUpdate = () => update(
+            query, root, listContainer, isFirstQueryFromBlank, forPortal, searcher, options,
+          );
         } else {
           isUpdating = true;
-          update(query, root, listContainer, forPortal, searcher, options);
+          update(query, root, listContainer, isFirstQueryFromBlank, forPortal, searcher, options);
         }
+        isFirstQueryFromBlank = false;
       }, 200);
-    } else if (!autoPortalControlFlag) {
-      clearTimeout(inputTimer);
-      if (isUpdating) {
-        nextUpdate = () => {
+    } else {
+      if (!autoPortalControlFlag) {
+        clearTimeout(inputTimer);
+        if (isUpdating) {
+          nextUpdate = () => {
+            options.render.hide(root, forPortal);
+            isUpdating = false;
+          };
+        } else {
           options.render.hide(root, forPortal);
-          isUpdating = false;
-        };
-      } else {
-        options.render.hide(root, forPortal);
+        }
       }
+
+      isFirstQueryFromBlank = true;
     }
   };
 
