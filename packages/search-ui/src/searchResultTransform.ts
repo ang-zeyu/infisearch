@@ -311,7 +311,11 @@ export default async function transformResults(
   console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   now = performance.now();
 
-  const { loaderConfigs } = config.indexingConfig;
+  const { fieldInfos, indexingConfig } = config;
+  const { loaderConfigs } = indexingConfig;
+  const hasStoredContentField = fieldInfos.find((info) => info.do_store
+      && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
+
   const resultsEls = await Promise.all(results.map(async (result) => {
     console.log(result);
 
@@ -323,7 +327,7 @@ export default async function transformResults(
     let resultTitle = (titleField && titleField[1]) || relativeLink;
 
     let resultHeadingsAndTexts: (string | HTMLElement)[];
-    if (!linkField || !options.sourceFilesUrl) {
+    if (hasStoredContentField) {
       resultHeadingsAndTexts = transformText(
         fields.filter((v) => v[0] !== 'link' && v[0] !== 'title'),
         query.searchedTerms,
@@ -331,6 +335,9 @@ export default async function transformResults(
         relativeLink,
         options.render,
       );
+    } else if (!linkField || !options.sourceFilesUrl) {
+      // Unable to retrieve and load from source file
+      resultHeadingsAndTexts = [];
     } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
       const asText = await (await fetch(fullLink)).text();
       const doc = domParser.parseFromString(asText, 'text/html');
