@@ -4,10 +4,16 @@ import { CreateElement } from './utils/dom';
 export interface SearchUiRenderOptions {
   manualPortalControl?: boolean,
   portalTo?: HTMLElement,
+  show?: (root: HTMLElement, isPortal: boolean) => void,
+  hide?: (root: HTMLElement, isPortal: boolean) => void,
+  rootRender?: (
+    h: CreateElement, inputEl: HTMLElement, portalCloseHandler?: () => void
+  ) => ({ root: HTMLElement, listContainer: HTMLElement }),
   portalInputRender?: (h: CreateElement) => HTMLInputElement,
-  inputWrapperRender?: (h: CreateElement, inputEl: HTMLElement, portalCloseHandler?: () => void) => HTMLElement,
   loadingIndicatorRender?: (h: CreateElement) => HTMLElement,
-  listRender?: (h: CreateElement) => HTMLElement,
+  termInfoRender?: (
+    h: CreateElement, misspelledTerms: string[], correctedTerms: string[], expandedTerms: string[]
+  ) => HTMLElement[],
   listItemRender?: (
     h: CreateElement, fullLink: string, title: string, bodies: (HTMLElement | string)[]
   ) => HTMLElement,
@@ -16,9 +22,6 @@ export interface SearchUiRenderOptions {
     h: CreateElement, heading: string, bodyHighlights: (HTMLElement | string)[], href?: string
   ) => HTMLElement,
   bodyOnlyRender?: (h: CreateElement, bodyHighlights: (HTMLElement | string)[]) => HTMLElement,
-  termInfoRender?: (
-    h: CreateElement, misspelledTerms: string[], correctedTerms: string[], expandedTerms: string[]
-  ) => HTMLElement[],
   noResultsRender?: (h: CreateElement) => HTMLElement,
 }
 

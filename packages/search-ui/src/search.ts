@@ -7,31 +7,15 @@ import { SearchUiOptions } from './SearchUiOptions';
 
 let query: Query;
 
-let usePortal = false;
-
-function hide(container: HTMLElement): void {
-  if (usePortal) {
-    container.parentElement.style.display = 'none';
-  } else {
-    (container.previousSibling as HTMLElement).style.display = 'none';
-    container.style.display = 'none';
-  }
-}
-
-function show(container: HTMLElement): void {
-  if (usePortal) {
-    container.parentElement.style.display = 'block';
-  } else {
-    (container.previousSibling as HTMLElement).style.display = 'block';
-    container.style.display = 'block';
-  }
-}
+let autoPortalControlFlag = false;
 
 let isUpdating = false;
 let nextUpdate: () => any;
 async function update(
   queryString: string,
-  container: HTMLElement,
+  root: HTMLElement,
+  listContainer: HTMLElement,
+  forPortal: boolean,
   searcher: Searcher,
   options: SearchUiOptions,
 ): Promise<void> {
@@ -42,17 +26,17 @@ async function update(
       query.free();
     }
 
-    container.innerHTML = '';
-    container.appendChild(options.render.loadingIndicatorRender(createElement));
-    show(container);
+    listContainer.innerHTML = '';
+    listContainer.appendChild(options.render.loadingIndicatorRender(createElement));
+    options.render.show(root, forPortal);
 
     query = await searcher.getQuery(queryString);
 
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
-    await transformResults(query, searcher.morselsConfig, true, container, options);
+    await transformResults(query, searcher.morselsConfig, true, listContainer, options);
   } catch (ex) {
-    container.innerHTML = ex.message;
+    listContainer.innerHTML = ex.message;
     throw ex;
   } finally {
     if (nextUpdate) {
@@ -90,130 +74,143 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.render = {};
   }
 
-  usePortal = isMobile;
+  autoPortalControlFlag = isMobile;
 
-  if (!('manualPortalControl' in options.render)) {
-    options.render.manualPortalControl = false;
-  }
+  options.render.manualPortalControl = options.render.manualPortalControl || false;
 
-  if (!('portalTo' in options.render)) {
-    // eslint-disable-next-line prefer-destructuring
-    options.render.portalTo = document.getElementsByTagName('body')[0];
-  }
+  options.render.portalTo = options.render.portalTo || document.getElementsByTagName('body')[0];
 
-  if (!('portalInputRender' in options.render)) {
-    options.render.portalInputRender = (h) => h(
-      'input', { class: 'morsels-portal-input', type: 'text' },
-    ) as HTMLInputElement;
-  }
+  options.render.show = options.render.show || ((root, forPortal) => {
+    if (forPortal) {
+      root.style.display = 'block';
+    } else {
+      (root.lastElementChild as HTMLElement).style.display = 'block';
+      (root.lastElementChild.previousSibling as HTMLElement).style.display = 'block';
+    }
+  });
 
-  if (!('inputWrapperRender' in options.render)) {
-    options.render.inputWrapperRender = (h, inputEl, portalCloseHandler) => {
-      const portalCloseButton = portalCloseHandler
-        ? h('button', { class: 'morsels-input-close-portal' }, 'X')
-        : '';
-      if (portalCloseButton) {
-        portalCloseButton.addEventListener('click', portalCloseHandler);
-      }
+  options.render.hide = options.render.hide || ((root, forPortal) => {
+    if (forPortal) {
+      root.style.display = 'none';
+    } else {
+      (root.lastElementChild as HTMLElement).style.display = 'none';
+      (root.lastElementChild.previousSibling as HTMLElement).style.display = 'none';
+    }
+  });
 
-      return h(
-        'div', { class: `morsels-input-wrapper${portalCloseHandler ? ' morsels-input-wrapper-portal' : ''}` },
+  options.render.rootRender = options.render.rootRender || ((h, inputEl, portalCloseHandler) => {
+    const portalCloseButton = portalCloseHandler
+      ? h('button', { class: 'morsels-input-close-portal' }, 'X')
+      : '';
+    if (portalCloseButton) {
+      portalCloseButton.addEventListener('click', portalCloseHandler);
+    }
+
+    const dropdownSeparator = portalCloseHandler
+      ? ''
+      : h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' });
+
+    const listContainer = h('ul', {
+      class: 'morsels-list',
+      style: portalCloseHandler ? '' : 'display: none;',
+    });
+
+    return {
+      root: h(
+        'div',
+        {
+          class: `morsels-input-wrapper${portalCloseHandler ? ' morsels-input-wrapper-portal' : ''}`,
+        },
         inputEl,
         portalCloseButton,
-        h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }),
-      );
+        dropdownSeparator,
+        listContainer,
+      ),
+      listContainer,
     };
-  }
+  });
 
-  if (!('noResultsRender' in options.render)) {
-    options.render.noResultsRender = (h) => h('div', { class: 'morsels-no-results' }, 'no results found');
-  }
+  options.render.portalInputRender = options.render.portalInputRender || ((h) => h(
+    'input', { class: 'morsels-portal-input', type: 'text' },
+  ) as HTMLInputElement);
 
-  if (!('listRender' in options.render)) {
-    options.render.listRender = (h) => h('ul', { class: 'morsels-dropdown', style: 'display: none;' });
-  }
+  options.render.listItemRender = options.render.listItemRender || ((h, fullLink, title, bodies) => {
+    const linkEl = h('a', { class: 'morsels-link' },
+      h('div', { class: 'morsels-title' }, title),
+      ...bodies);
+    if (fullLink) {
+      linkEl.setAttribute('href', fullLink);
+    }
 
-  if (!('listItemRender' in options.render)) {
-    options.render.listItemRender = (h, fullLink, title, bodies) => {
-      const linkEl = h('a', { class: 'morsels-link' },
-        h('div', { class: 'morsels-title' }, title),
-        ...bodies);
-      if (fullLink) {
-        linkEl.setAttribute('href', fullLink);
-      }
-
-      return h(
-        'li', { class: 'morsels-dropdown-item' },
-        linkEl,
-      );
-    };
-  }
-
-  if (!('loadingIndicatorRender' in options.render)) {
-    options.render.loadingIndicatorRender = (h) => h('span', { class: 'morsels-loading-indicator' });
-  }
-
-  if (!('highlightRender' in options.render)) {
-    options.render.highlightRender = (h, matchedPart) => h(
-      'span', { class: 'morsels-highlight' }, matchedPart,
+    return h(
+      'li', { class: 'morsels-list-item' },
+      linkEl,
     );
-  }
+  });
 
-  if (!('headingBodyRender' in options.render)) {
-    options.render.headingBodyRender = (h, heading, bodyHighlights, href) => {
-      const el = h('a', { class: 'morsels-heading-body' },
-        h('div', { class: 'morsels-heading' }, heading),
-        h('div', { class: 'morsels-bodies' },
-          h('div', { class: 'morsels-body' }, ...bodyHighlights)));
-      if (href) {
-        el.setAttribute('href', href);
-      }
-      return el;
-    };
-  }
+  options.render.loadingIndicatorRender = options.render.loadingIndicatorRender
+        || ((h) => h('span', { class: 'morsels-loading-indicator' }));
 
-  if (!('bodyOnlyRender' in options.render)) {
-    options.render.bodyOnlyRender = (h, bodyHighlights) => h(
-      'div', { class: 'morsels-body' }, ...bodyHighlights,
-    );
-  }
+  options.render.highlightRender = options.render.highlightRender || ((h, matchedPart) => h(
+    'span', { class: 'morsels-highlight' }, matchedPart,
+  ));
 
-  if (!('termInfoRender' in options.render)) {
-    options.render.termInfoRender = (h, misspelledTerms, correctedTerms, expandedTerms) => {
-      const returnVal: HTMLElement[] = [];
-      const correctedTermsContainer = h('div', { class: 'morsels-suggestion-container-corrected' });
+  options.render.headingBodyRender = options.render.headingBodyRender || ((
+    h, heading, bodyHighlights, href,
+  ) => {
+    const el = h('a', { class: 'morsels-heading-body' },
+      h('div', { class: 'morsels-heading' }, heading),
+      h('div', { class: 'morsels-bodies' },
+        h('div', { class: 'morsels-body' }, ...bodyHighlights)));
+    if (href) {
+      el.setAttribute('href', href);
+    }
+    return el;
+  });
 
-      if (expandedTerms.length) {
-        returnVal.push(
-          h('div', { class: 'morsels-suggestion-container-expanded' },
-            h('div', { class: 'morsels-suggestion-content' },
-              'Also searched for... ',
-              h('small', {}, '(add a space to the last term to finalise the search)'),
-              h('br', {}),
-              ...expandedTerms.map((expandedTerm, idx) => (idx === 0 ? '' : h(
-                'span', { class: 'morsels-suggestion-expanded' }, `${expandedTerm} `,
-              ))))),
-        );
-      }
+  options.render.bodyOnlyRender = options.render.bodyOnlyRender || ((h, bodyHighlights) => h(
+    'div', { class: 'morsels-body' }, ...bodyHighlights,
+  ));
 
-      if (misspelledTerms.length) {
-        correctedTermsContainer.prepend(
+  options.render.termInfoRender = options.render.termInfoRender || ((
+    h, misspelledTerms, correctedTerms, expandedTerms,
+  ) => {
+    const returnVal: HTMLElement[] = [];
+    const correctedTermsContainer = h('div', { class: 'morsels-suggestion-container-corrected' });
+
+    if (expandedTerms.length) {
+      returnVal.push(
+        h('div', { class: 'morsels-suggestion-container-expanded' },
           h('div', { class: 'morsels-suggestion-content' },
-            'Could not find any matches for',
-            ...misspelledTerms.map((term) => h(
-              'span', { class: 'morsels-suggestion-wrong' }, ` "${term}"`,
-            )),
-            correctedTerms.length ? ', searched for: ' : '',
-            ...correctedTerms.map((correctedTerm) => h(
-              'span', { class: 'morsels-suggestion-corrected' }, `${correctedTerm} `,
-            ))),
-        );
-        returnVal.push(correctedTermsContainer);
-      }
+            'Also searched for... ',
+            h('small', {}, '(add a space to the last term to finalise the search)'),
+            h('br', {}),
+            ...expandedTerms.map((expandedTerm, idx) => (idx === 0 ? '' : h(
+              'span', { class: 'morsels-suggestion-expanded' }, `${expandedTerm} `,
+            ))))),
+      );
+    }
 
-      return returnVal;
-    };
-  }
+    if (misspelledTerms.length) {
+      correctedTermsContainer.prepend(
+        h('div', { class: 'morsels-suggestion-content' },
+          'Could not find any matches for',
+          ...misspelledTerms.map((term) => h(
+            'span', { class: 'morsels-suggestion-wrong' }, ` "${term}"`,
+          )),
+          correctedTerms.length ? ', searched for: ' : '',
+          ...correctedTerms.map((correctedTerm) => h(
+            'span', { class: 'morsels-suggestion-corrected' }, `${correctedTerm} `,
+          ))),
+      );
+      returnVal.push(correctedTermsContainer);
+    }
+
+    return returnVal;
+  });
+
+  options.render.noResultsRender = options.render.noResultsRender
+        || ((h) => h('div', { class: 'morsels-no-results' }, 'no results found'));
 }
 
 function initMorsels(options: SearchUiOptions): () => void {
@@ -223,51 +220,49 @@ function initMorsels(options: SearchUiOptions): () => void {
   const searcher = new Searcher(options.searcherOptions);
 
   let inputTimer: any = -1;
-  const inputListener = (listContainer: HTMLElement) => (ev) => {
+  const inputListener = (root: HTMLElement, listContainer: HTMLElement, forPortal: boolean) => (ev) => {
     const query = (ev.target as HTMLInputElement).value;
 
     if (query.length) {
       clearTimeout(inputTimer);
       inputTimer = setTimeout(() => {
         if (isUpdating) {
-          nextUpdate = () => update(query, listContainer, searcher, options);
+          nextUpdate = () => update(query, root, listContainer, forPortal, searcher, options);
         } else {
           isUpdating = true;
-          update(query, listContainer, searcher, options);
+          update(query, root, listContainer, forPortal, searcher, options);
         }
       }, 200);
-    } else if (!usePortal) {
+    } else if (!autoPortalControlFlag) {
       clearTimeout(inputTimer);
       if (isUpdating) {
         nextUpdate = () => {
-          hide(listContainer);
+          options.render.hide(root, forPortal);
           isUpdating = false;
         };
       } else {
-        hide(listContainer);
+        options.render.hide(root, forPortal);
       }
     }
   };
 
   // Fullscreen portal-ed version
   const mobileInput: HTMLInputElement = options.render.portalInputRender(createElement);
-  const mobileListContainer = options.render.listRender(createElement);
-  const mobileInputWrapper = options.render.inputWrapperRender(
-    createElement, mobileInput, () => hide(mobileListContainer),
+  const { root: portalRoot, listContainer: portalListContainer } = options.render.rootRender(
+    createElement, mobileInput, () => options.render.hide(portalRoot, true),
   );
-  mobileInputWrapper.appendChild(mobileListContainer);
-  mobileInputWrapper.style.display = 'none';
+  portalRoot.style.display = 'none';
 
   let didAttachPortalContainer = false;
   const showPortalUI = () => {
     if (!didAttachPortalContainer) {
       didAttachPortalContainer = true;
-      options.render.portalTo.appendChild(mobileInputWrapper);
-      mobileInput.addEventListener('input', inputListener(mobileListContainer));
+      options.render.portalTo.appendChild(portalRoot);
+      mobileInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
     }
 
-    usePortal = true;
-    show(mobileListContainer);
+    autoPortalControlFlag = true;
+    options.render.show(portalRoot, true);
     mobileInput.focus();
   };
 
@@ -276,15 +271,15 @@ function initMorsels(options: SearchUiOptions): () => void {
   if (input) {
     const parent = input.parentElement;
     input.remove();
-    const listContainer = options.render.listRender(createElement);
-    const inputWrapper = options.render.inputWrapperRender(createElement, input);
-    inputWrapper.appendChild(listContainer);
-    parent.appendChild(inputWrapper);
+    const {
+      root, listContainer,
+    } = options.render.rootRender(createElement, input);
+    parent.appendChild(root);
 
-    input.addEventListener('input', inputListener(listContainer));
+    input.addEventListener('input', inputListener(root, listContainer, false));
 
     input.addEventListener('blur', () => {
-      if (usePortal) {
+      if (autoPortalControlFlag) {
         return;
       }
 
@@ -297,17 +292,17 @@ function initMorsels(options: SearchUiOptions): () => void {
             return;
           }
         }
-        hide(listContainer);
+        options.render.hide(root, false);
       }, 100);
     });
 
     input.addEventListener('focus', () => {
-      if (usePortal) {
+      if (autoPortalControlFlag) {
         if (!options.render.manualPortalControl) {
           showPortalUI();
         }
       } else if (listContainer.childElementCount) {
-        show(listContainer);
+        options.render.show(root, false);
       }
     });
   }
@@ -318,7 +313,7 @@ function initMorsels(options: SearchUiOptions): () => void {
       clearTimeout(debounce);
       debounce = setTimeout(() => {
         if (window.matchMedia('only screen and (max-width: 1024px)').matches) {
-          usePortal = true;
+          autoPortalControlFlag = true;
         }
       }, 200);
     });

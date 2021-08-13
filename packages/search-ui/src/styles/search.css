@@ -62,11 +62,7 @@
     border-bottom: 9px solid white;
 }
 
-.morsels-input-wrapper-portal .morsels-input-dropdown-separator {
-    display: none;
-}
-
-.morsels-dropdown {
+.morsels-list {
     padding: 0;
     border: 1px solid rgba(67, 67, 67, 0.3);
     border-radius: 5px;
@@ -83,7 +79,7 @@
     font-size: 16px;
 }
 
-.morsels-input-wrapper-portal .morsels-dropdown {
+.morsels-input-wrapper-portal .morsels-list {
     border: none;
     background-color: transparent;
     position: static;
@@ -94,22 +90,22 @@
 }
 
 @media screen and (min-width: 1025px) {
-    .morsels-dropdown {
+    .morsels-list {
         width: 512px;
     }
 }
 
-.morsels-dropdown::-webkit-scrollbar-track {
+.morsels-list::-webkit-scrollbar-track {
     border-radius: 5px;
     background-color: rgba(213, 177, 137, 0.15);
 }
 
-.morsels-dropdown::-webkit-scrollbar {
+.morsels-list::-webkit-scrollbar {
     width: 6px;
     background-color: transparent;
 }
 
-.morsels-dropdown::-webkit-scrollbar-thumb {
+.morsels-list::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background-color: rgba(213, 177, 137, 0.5);
 }
@@ -198,14 +194,14 @@
     text-decoration: underline;
 }
 
-.morsels-dropdown-item {
+.morsels-list-item {
     border: 1px solid rgba(67, 67, 67, 0.3);
     border-radius: 10px;
     margin: 7px 10px;
 }
 
 @media screen and (max-width: 1024px) {
-    .morsels-dropdown-item {
+    .morsels-list-item {
         margin: 25px 15px;
     }
 }
