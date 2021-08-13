@@ -2,7 +2,10 @@ import { SearcherOptions } from '@morsels/search-lib/lib/results/SearcherOptions
 import { CreateElement } from './utils/dom';
 
 export interface SearchUiRenderOptions {
-  inputWrapperRender?: (h: CreateElement, inputEl: HTMLElement) => HTMLElement,
+  manualPortalControl?: boolean,
+  portalTo?: HTMLElement,
+  portalInputRender?: (h: CreateElement) => HTMLInputElement,
+  inputWrapperRender?: (h: CreateElement, inputEl: HTMLElement, portalCloseHandler?: () => void) => HTMLElement,
   loadingIndicatorRender?: (h: CreateElement) => HTMLElement,
   listRender?: (h: CreateElement) => HTMLElement,
   listItemRender?: (

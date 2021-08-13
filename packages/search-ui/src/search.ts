@@ -7,14 +7,24 @@ import { SearchUiOptions } from './SearchUiOptions';
 
 let query: Query;
 
+let usePortal = false;
+
 function hide(container: HTMLElement): void {
-  (container.previousSibling as HTMLElement).style.display = 'none';
-  container.style.display = 'none';
+  if (usePortal) {
+    container.parentElement.style.display = 'none';
+  } else {
+    (container.previousSibling as HTMLElement).style.display = 'none';
+    container.style.display = 'none';
+  }
 }
 
 function show(container: HTMLElement): void {
-  (container.previousSibling as HTMLElement).style.display = 'block';
-  container.style.display = 'block';
+  if (usePortal) {
+    container.parentElement.style.display = 'block';
+  } else {
+    (container.previousSibling as HTMLElement).style.display = 'block';
+    container.style.display = 'block';
+  }
 }
 
 let isUpdating = false;
@@ -55,12 +65,11 @@ async function update(
   }
 }
 
-function prepareOptions(options: SearchUiOptions) {
+function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   if (!('useQueryTermExpansion' in options.searcherOptions)) {
     options.searcherOptions.useQueryTermExpansion = true;
   }
 
-  const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
   if (!('useQueryTermProximity' in options.searcherOptions)) {
     options.searcherOptions.useQueryTermProximity = !isMobile;
   }
@@ -81,12 +90,39 @@ function prepareOptions(options: SearchUiOptions) {
     options.render = {};
   }
 
+  usePortal = isMobile;
+
+  if (!('manualPortalControl' in options.render)) {
+    options.render.manualPortalControl = false;
+  }
+
+  if (!('portalTo' in options.render)) {
+    // eslint-disable-next-line prefer-destructuring
+    options.render.portalTo = document.getElementsByTagName('body')[0];
+  }
+
+  if (!('portalInputRender' in options.render)) {
+    options.render.portalInputRender = (h) => h(
+      'input', { class: 'morsels-portal-input', type: 'text' },
+    ) as HTMLInputElement;
+  }
+
   if (!('inputWrapperRender' in options.render)) {
-    options.render.inputWrapperRender = (h, inputEl) => h(
-      'div', { class: 'morsels-input-wrapper' },
-      inputEl,
-      h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }),
-    );
+    options.render.inputWrapperRender = (h, inputEl, portalCloseHandler) => {
+      const portalCloseButton = portalCloseHandler
+        ? h('button', { class: 'morsels-input-close-portal' }, 'X')
+        : '';
+      if (portalCloseButton) {
+        portalCloseButton.addEventListener('click', portalCloseHandler);
+      }
+
+      return h(
+        'div', { class: `morsels-input-wrapper${portalCloseHandler ? ' morsels-input-wrapper-portal' : ''}` },
+        inputEl,
+        portalCloseButton,
+        h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }),
+      );
+    };
   }
 
   if (!('noResultsRender' in options.render)) {
@@ -180,71 +216,115 @@ function prepareOptions(options: SearchUiOptions) {
   }
 }
 
-function initMorsels(options: SearchUiOptions): void {
-  prepareOptions(options);
-
-  const input = document.getElementById(options.inputId);
-  if (!input) {
-    return;
-  }
-
-  const parent = input.parentElement;
-  input.remove();
-  const inputWrapper = options.render.inputWrapperRender(createElement, input);
-  const container = options.render.listRender(createElement);
-  inputWrapper.appendChild(container);
-  parent.appendChild(inputWrapper);
+function initMorsels(options: SearchUiOptions): () => void {
+  const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
+  prepareOptions(options, isMobile);
 
   const searcher = new Searcher(options.searcherOptions);
 
   let inputTimer: any = -1;
-  input.addEventListener('input', (ev) => {
+  const inputListener = (listContainer: HTMLElement) => (ev) => {
     const query = (ev.target as HTMLInputElement).value;
 
     if (query.length) {
       clearTimeout(inputTimer);
       inputTimer = setTimeout(() => {
         if (isUpdating) {
-          nextUpdate = () => update(query, container, searcher, options);
+          nextUpdate = () => update(query, listContainer, searcher, options);
         } else {
           isUpdating = true;
-          update(query, container, searcher, options);
+          update(query, listContainer, searcher, options);
         }
       }, 200);
-    } else {
+    } else if (!usePortal) {
       clearTimeout(inputTimer);
       if (isUpdating) {
         nextUpdate = () => {
-          hide(container);
+          hide(listContainer);
           isUpdating = false;
         };
       } else {
-        hide(container);
+        hide(listContainer);
       }
     }
-  });
-
-  const blurListener = () => {
-    setTimeout(() => {
-      let activeEl = document.activeElement;
-      while (activeEl) {
-        activeEl = activeEl.parentElement;
-        if (activeEl === container) {
-          input.focus();
-          return;
-        }
-      }
-      hide(container);
-    }, 100);
   };
 
-  input.addEventListener('blur', blurListener);
+  // Fullscreen portal-ed version
+  const mobileInput: HTMLInputElement = options.render.portalInputRender(createElement);
+  const mobileListContainer = options.render.listRender(createElement);
+  const mobileInputWrapper = options.render.inputWrapperRender(
+    createElement, mobileInput, () => hide(mobileListContainer),
+  );
+  mobileInputWrapper.appendChild(mobileListContainer);
+  mobileInputWrapper.style.display = 'none';
 
-  input.addEventListener('focus', () => {
-    if (container.childElementCount) {
-      show(container);
+  let didAttachPortalContainer = false;
+  const showPortalUI = () => {
+    if (!didAttachPortalContainer) {
+      didAttachPortalContainer = true;
+      options.render.portalTo.appendChild(mobileInputWrapper);
+      mobileInput.addEventListener('input', inputListener(mobileListContainer));
     }
-  });
+
+    usePortal = true;
+    show(mobileListContainer);
+    mobileInput.focus();
+  };
+
+  // Dropdown version
+  const input = document.getElementById(options.inputId);
+  if (input) {
+    const parent = input.parentElement;
+    input.remove();
+    const listContainer = options.render.listRender(createElement);
+    const inputWrapper = options.render.inputWrapperRender(createElement, input);
+    inputWrapper.appendChild(listContainer);
+    parent.appendChild(inputWrapper);
+
+    input.addEventListener('input', inputListener(listContainer));
+
+    input.addEventListener('blur', () => {
+      if (usePortal) {
+        return;
+      }
+
+      setTimeout(() => {
+        let activeEl = document.activeElement;
+        while (activeEl) {
+          activeEl = activeEl.parentElement;
+          if (activeEl === listContainer) {
+            input.focus();
+            return;
+          }
+        }
+        hide(listContainer);
+      }, 100);
+    });
+
+    input.addEventListener('focus', () => {
+      if (usePortal) {
+        if (!options.render.manualPortalControl) {
+          showPortalUI();
+        }
+      } else if (listContainer.childElementCount) {
+        show(listContainer);
+      }
+    });
+  }
+
+  if (!options.render.manualPortalControl && input) {
+    let debounce;
+    window.addEventListener('resize', () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        if (window.matchMedia('only screen and (max-width: 1024px)').matches) {
+          usePortal = true;
+        }
+      }, 200);
+    });
+  }
+
+  return showPortalUI;
 }
 
 export default initMorsels;
