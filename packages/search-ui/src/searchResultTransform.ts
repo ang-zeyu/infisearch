@@ -360,8 +360,7 @@ export default async function transformResults(
   } else if (isFirst) {
     fragment.appendChild(options.render.noResultsRender(createElement));
   }
-  const sentinel = createElement('li', {});
-  fragment.appendChild(sentinel);
+  const sentinel = fragment.lastElementChild;
 
   if (isFirst) {
     container.innerHTML = '';
@@ -382,6 +381,6 @@ export default async function transformResults(
     observer.unobserve(sentinel);
     sentinel.remove();
     await transformResults(query, config, false, container, options);
-  }, { root: container, rootMargin: '10px 10px 10px 10px' });
+  }, { rootMargin: '10px 10px 10px 10px' });
   iObserver.observe(sentinel);
 }
