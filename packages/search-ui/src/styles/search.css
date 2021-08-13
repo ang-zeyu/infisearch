@@ -36,25 +36,48 @@
 }
 
 .morsels-portal-input:focus {
-    border-color: rgba(253, 202, 144, 0.8);
-    box-shadow: 0 0 5px rgba(253, 202, 144, 0.8);
+    border: 3px solid rgba(255, 169, 66, 0.8);
+    box-shadow: 0 0 5px rgba(255, 169, 66, 0.8);
 }
 
 .morsels-input-close-portal {
+    position: relative;
     border: none;
-    background: transparent;
+    padding: 0;
+    border-radius: 40px;
+    width: 80px;
+    height: 80px;
     margin-left: 10px;
-    font-size: 60px;
-    font-weight: bold;
-    color: rgba(246, 170, 73, 0.8);
-    transition: 0.3s linear color;
+    background-color: rgba(255, 210, 144, 0.8);
+    transition: 0.2s linear background-color;
+}
+
+.morsels-input-close-portal::before, .morsels-input-close-portal::after {
+    content: ' ';
+    position: absolute;
+    top: 10px;
+    left: 35px;
+    border-radius: 8px;
+    width: 8px;
+    height: 60px;
+    background-color: rgba(246, 170, 73, 0.8);
+    transition: 0.2s linear background-color;
+}
+.morsels-input-close-portal::before {
+    transform: rotate(45deg);
+}
+.morsels-input-close-portal::after {
+    transform: rotate(-45deg);
 }
 
 .morsels-input-close-portal:active {
     border: none;
-    background: transparent;
-    font-weight: bold;
-    color: rgba(255, 190, 108, 1);
+    background-color: rgba(246, 170, 73, 0.8);
+}
+
+.morsels-input-close-portal:active::before,
+.morsels-input-close-portal:active::after {
+    background-color: rgb(255, 241, 226);
 }
 
 .morsels-input-dropdown-separator {
@@ -167,10 +190,6 @@
     transition: background-color 0.1s ease-in-out;
 }
 
-.morsels-heading-body:hover {
-    background-color: rgba(213, 177, 137, 0.2);
-}
-
 .morsels-heading {
     width: 30%;
     word-break: break-word;
@@ -178,9 +197,14 @@
     padding: 0.2em;
     display: inline-block;
     vertical-align: top;
-    background-color: rgba(243, 243, 243, 0.7);
+    background-color: rgba(255, 204, 147, 0.2);
     font-weight: 600;
     color: #3d3f42;
+    transition: background-color 0.1s ease-in-out;
+}
+
+.morsels-heading-body:hover .morsels-heading {
+    background-color: rgb(255, 226, 201);
 }
 
 .morsels-bodies {
@@ -193,11 +217,12 @@
     box-sizing: border-box;
     padding: 3px 3px 3px 2px;
     color: #4d5156;
+    background-color: rgba(255, 255, 255, 0.3);
     transition: background-color 0.1s ease-in-out;
 }
 
-.morsels-link > .morsels-body:hover {
-    background-color: rgba(213, 177, 137, 0.1);
+.morsels-heading-body:hover .morsels-body {
+    background-color: rgba(255, 234, 217, 0.8);
 }
 
 .morsels-highlight {

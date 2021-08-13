@@ -103,7 +103,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     );
 
     if (portalCloseHandler) {
-      const buttonEl = h('button', { class: 'morsels-input-close-portal' }, 'X');
+      const buttonEl = h('button', { class: 'morsels-input-close-portal' });
       buttonEl.onclick = portalCloseHandler;
       root.appendChild(h('div', { class: 'morsels-portal-input-button-wrapper' },
         inputEl, buttonEl));
