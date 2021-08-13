@@ -352,13 +352,25 @@ impl Indexer {
                 
                     self.doc_id_counter += 1;
                     self.spimi_counter += 1;
+            
+                    if self.spimi_counter == self.indexing_config.num_docs_per_block {
+                        let block_number = self.block_number();
+                        Indexer::write_block(
+                            &self.num_workers_writing_blocks,
+                            self.indexing_config.num_threads,
+                            &mut self.tx_main,
+                            &mut self.rx_main,
+                            PathBuf::from(&self.output_folder_path),
+                            block_number,
+                            self.spimi_counter,
+                            self.doc_id_counter - self.spimi_counter,
+                            &self.doc_infos,
+                        );
+                        self.spimi_counter = 0;
+                    }
                 }
                 break;
             }
-        }
-            
-        if self.spimi_counter == self.indexing_config.num_docs_per_block {
-            self.write_block();
         }
     }
 
@@ -400,7 +412,19 @@ impl Indexer {
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
         if self.spimi_counter != 0 && self.spimi_counter != self.indexing_config.num_docs_per_block {
             println!("Writing last spimi block");
-            self.write_block();
+            let block_number = self.block_number();
+            Indexer::write_block(
+                &self.num_workers_writing_blocks,
+                self.indexing_config.num_threads,
+                &mut self.tx_main,
+                &mut self.rx_main,
+                PathBuf::from(&self.output_folder_path),
+                block_number,
+                self.spimi_counter,
+                self.doc_id_counter - self.spimi_counter,
+                &self.doc_infos,
+            );
+            self.spimi_counter = 0;
         }
         
         // Wait on all workers

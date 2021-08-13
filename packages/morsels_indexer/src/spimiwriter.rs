@@ -15,6 +15,7 @@ use crate::DocInfos;
 use crate::FieldInfos;
 use crate::Indexer;
 use crate::MainToWorkerMessage;
+use crate::WorkerToMainMessage;
 use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::TermDocComparator;
@@ -23,23 +24,33 @@ use crate::worker::miner::WorkerMinerDocInfo;
 
 
 impl Indexer {
-    pub fn write_block (&mut self) {
+    pub fn write_block(
+        num_workers_writing_blocks: &Arc<Mutex<usize>>,
+        num_threads: usize,
+        tx_main: &mut crossbeam::Sender<MainToWorkerMessage>,
+        rx_main: &mut crossbeam::Receiver<WorkerToMainMessage>,
+        output_folder_path: PathBuf,
+        block_number: u32,
+        spimi_counter: u32,
+        total_num_docs: u32, //self.doc_id_counter - self.spimi_counter
+        doc_infos: &Option<Arc<Mutex<DocInfos>>>,
+    ) {
         // Don't block on threads that are still writing blocks (long running)
-        let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
-        let num_workers_to_collect = self.indexing_config.num_threads - *num_workers_writing_blocks;
+        let mut num_workers_writing_blocks = num_workers_writing_blocks.lock().unwrap();
+        let num_workers_to_collect = num_threads - *num_workers_writing_blocks;
         let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect);
 
         let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_workers_to_collect));
         
         // Request all workers for doc miners
         for _i in 0..num_workers_to_collect {
-            self.tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier)))
+            tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier)))
                 .expect("Failed to send reset message!");
         }
         
         // Receive doc miners
         for _i in 0..num_workers_to_collect {
-            let worker_msg = self.rx_main.recv();
+            let worker_msg = rx_main.recv();
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
                     println!("Worker {} data received!", worker_msg_unwrapped.id);
@@ -50,16 +61,14 @@ impl Indexer {
         }
 
         *num_workers_writing_blocks += 1;
-        self.tx_main.send(MainToWorkerMessage::Combine {
+        tx_main.send(MainToWorkerMessage::Combine {
             worker_index_results,
-            output_folder_path: PathBuf::from(&self.output_folder_path),
-            block_number: self.block_number(),
-            num_docs: self.spimi_counter,
-            total_num_docs: self.doc_id_counter - self.spimi_counter,
-            doc_infos: Arc::clone(&self.doc_infos.as_ref().unwrap()),
+            output_folder_path,
+            block_number,
+            num_docs: spimi_counter,
+            total_num_docs,
+            doc_infos: Arc::clone(doc_infos.as_ref().unwrap()),
         }).expect("Failed to send work message to worker!");
-    
-        self.spimi_counter = 0;
     }
 }
 
