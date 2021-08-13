@@ -72,26 +72,18 @@ fn main() {
         config_file_path.to_str().unwrap(),
     );
 
-    let mut config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
-        let config_raw = std::fs::read_to_string(config_file_path).unwrap();
+    let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
+        let config_raw = std::fs::read_to_string(&config_file_path).unwrap();
         serde_json::from_str(&config_raw).expect("_morsels_config.json does not match schema!")
     } else {
         MorselsConfig::default()
     };
 
     if args.init {
-        File::create(input_folder_path.join("_morsels_config.json"))
-            .unwrap()
-            .write_all(
-                serde_json::to_string_pretty(&config)
-                    .expect("Failed to serialize morsels config for --init!")
-                    .as_bytes()
-            )
-            .unwrap();
+        morsels_indexer::Indexer::write_morsels_source_config(config, &config_file_path);
         return;
     }
     
-    let loaders = config.indexing_config.get_loaders_from_config();
     let exclude_patterns = config.indexing_config.get_excludes_from_config();
 
     let mut indexer = morsels_indexer::Indexer::new(
@@ -116,14 +108,7 @@ fn main() {
                     continue;
                 }
 
-                for loader in loaders.iter() {
-                    if let Some(loader_results) = loader.try_index_file(&input_folder_path_clone, &path, relative_path) {
-                        for loader_result in loader_results {
-                            indexer.index_document(loader_result);
-                        }
-                        break;
-                    }
-                }
+                indexer.index_file(&input_folder_path_clone, &path, &relative_path);
             },
             Err(e) => {
                 eprintln!("Error processing entry. {}", e)

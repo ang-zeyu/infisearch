@@ -2,7 +2,7 @@ use std::path::Path;
 
 use csv::{ReaderBuilder};
 use rustc_hash::FxHashMap;
-use serde::Deserialize;
+use serde::{Serialize, Serializer, Deserialize, Deserializer};
 
 use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
@@ -15,7 +15,7 @@ fn get_default_quote() -> u8 { b"\""[0] }
 
 fn get_true() -> bool { true }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct CsvLoaderParseOptions {
     #[serde(default = "get_true")]
     has_headers: bool,
@@ -44,7 +44,7 @@ impl Default for CsvLoaderParseOptions {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CsvLoaderOptions {
     #[serde(default = "CsvLoaderParseOptions::default")]
     parse_options: CsvLoaderParseOptions,
@@ -129,6 +129,7 @@ impl CsvLoader {
     }
 }
 
+#[typetag::serde]
 impl Loader for CsvLoader {
     fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
@@ -154,5 +155,22 @@ impl Loader for CsvLoader {
         }
 
         None
+    }
+
+    fn get_name(&self) -> String {
+        "CsvLoader".to_owned()
+    }
+}
+
+impl Serialize for CsvLoader {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        self.options.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for CsvLoader {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de> {
+        panic!("Called deserialize for CsvLoader")
     }
 }

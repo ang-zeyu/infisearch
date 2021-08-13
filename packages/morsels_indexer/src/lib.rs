@@ -156,7 +156,7 @@ pub struct MorselsConfig {
 // Separate struct to support serializing for --init option but not output config
 #[derive(Serialize)]
 struct MorselsIndexingOutputConfig {
-    loader_configs: FxHashMap<String, serde_json::Value>,
+    loader_configs: FxHashMap<String, Box<dyn Loader>>,
     pl_names_to_cache: Vec<u32>,
     num_pls_per_dir: u32,
     num_stores_per_dir: u32,
@@ -191,6 +191,7 @@ pub struct Indexer {
     field_infos: Option<Arc<FieldInfos>>,
     output_folder_path: PathBuf,
     workers: Vec<Worker>,
+    loaders: Vec<Box<dyn Loader>>,
     doc_infos: Option<Arc<Mutex<DocInfos>>>,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
@@ -215,6 +216,8 @@ impl Indexer {
         ) as usize;
         let num_threads = config.indexing_config.num_threads;
 
+        let loaders = config.indexing_config.get_loaders_from_config();
+
         let tokenizer = Indexer::resolve_tokenizer(&config.language);
 
         let mut indexer = Indexer {
@@ -227,6 +230,7 @@ impl Indexer {
             field_infos: Option::None,
             output_folder_path: output_folder_path.to_path_buf(),
             workers: Vec::with_capacity(num_threads),
+            loaders,
             doc_infos: Option::None,
             tx_main,
             rx_main,
@@ -337,24 +341,47 @@ impl Indexer {
         ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).ceil() as u32
     }
 
-    pub fn index_document(&mut self, loader_result: Box<dyn LoaderResult + Send>) {
-        self.tx_main.send(MainToWorkerMessage::Index {
-            doc_id: self.doc_id_counter,
-            loader_result,
-        }).expect("Failed to send work message to worker!");
-    
-        self.doc_id_counter += 1;
-        self.spimi_counter += 1;
-
+    pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
+        for loader in self.loaders.iter() {
+            if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path) {
+                for loader_result in loader_results {
+                    self.tx_main.send(MainToWorkerMessage::Index {
+                        doc_id: self.doc_id_counter,
+                        loader_result,
+                    }).expect("Failed to send work message to worker!");
+                
+                    self.doc_id_counter += 1;
+                    self.spimi_counter += 1;
+                }
+                break;
+            }
+        }
+            
         if self.spimi_counter == self.indexing_config.num_docs_per_block {
             self.write_block();
         }
     }
 
+    pub fn write_morsels_source_config(mut config: MorselsConfig, config_file_path: &Path) {
+        config.indexing_config.loader_configs = config.indexing_config.get_loaders_from_config()
+            .into_iter()
+            .map(|loader| (loader.get_name(), serde_json::to_value(loader).unwrap()))
+            .collect();
+
+        File::create(config_file_path)
+            .unwrap()
+            .write_all(
+                serde_json::to_string_pretty(&config)
+                    .expect("Failed to serialize morsels config for --init!")
+                    .as_bytes()
+            )
+            .unwrap();
+    }
+
     fn write_morsels_config(&mut self) {
         let serialized = serde_json::to_string(&MorselsOutputConfig {
             indexing_config: MorselsIndexingOutputConfig {
-                loader_configs: std::mem::take(&mut self.indexing_config.loader_configs),
+                loader_configs: std::mem::take(&mut self.loaders).into_iter().map(|loader| (loader.get_name(), loader)).collect(),
                 pl_names_to_cache: std::mem::take(&mut self.pl_names_to_cache),
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
                 num_stores_per_dir: self.indexing_config.num_stores_per_dir,
@@ -399,7 +426,7 @@ impl Indexer {
         self.write_morsels_config();
 
         spimireader::cleanup_blocks(num_blocks, &self.output_folder_path);
-
+    
         if let Some(now) = instant {
             print_time_elapsed(now, "Blocks merged!");
         }

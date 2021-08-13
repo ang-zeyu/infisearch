@@ -5,7 +5,7 @@ use path_slash::PathExt;
 use scraper::ElementRef;
 use scraper::Selector;
 use scraper::Html;
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use rustc_hash::FxHashMap;
 
 use crate::loader::Loader;
@@ -19,7 +19,7 @@ pub struct HtmlLoaderSelector {
     attr_map: FxHashMap<String, String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct HtmlLoaderSelectorRaw {
     selector: String,
     field_name: String,
@@ -49,7 +49,7 @@ fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
     ]
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct HtmlLoaderOptionsRaw {
     #[serde(default = "get_default_html_loader_selectors")]
     selectors: Vec<HtmlLoaderSelectorRaw>,
@@ -63,6 +63,7 @@ pub struct HtmlLoaderOptions {
 }
 
 pub struct HtmlLoader {
+    pub raw_options: HtmlLoaderOptionsRaw,
     pub options: Arc<HtmlLoaderOptions>,
 }
 
@@ -77,25 +78,29 @@ impl HtmlLoader {
         let html_loader_options_raw: HtmlLoaderOptionsRaw = serde_json::from_value(config)
             .expect("HtmlLoader options did not match schema!");
 
+        let options = Arc::new(HtmlLoaderOptions {
+            selectors: html_loader_options_raw.selectors
+                .iter()
+                .map(|opt| HtmlLoaderSelector {
+                    selector: Selector::parse(&opt.selector).expect("Invalid selector!"),
+                    field_name: opt.field_name.clone(),
+                    attr_map: opt.attr_map.clone()
+                })
+                .collect(),
+            exclude_selectors: html_loader_options_raw.exclude_selectors
+                .iter()
+                .map(|selector| Selector::parse(&selector).expect("Invalid exclude selector!"))
+                .collect(),
+        });
+
         Box::new(HtmlLoader {
-            options: Arc::new(HtmlLoaderOptions {
-                selectors: html_loader_options_raw.selectors
-                .into_iter()
-                    .map(|opt| HtmlLoaderSelector {
-                        selector: Selector::parse(&opt.selector).expect("Invalid selector!"),
-                        field_name: opt.field_name,
-                        attr_map: opt.attr_map
-                    })
-                    .collect(),
-                exclude_selectors: html_loader_options_raw.exclude_selectors
-                .into_iter()
-                    .map(|selector| Selector::parse(&selector).expect("Invalid exclude selector!"))
-                    .collect(),
-            }),
+            raw_options: html_loader_options_raw,
+            options,
         })
     }
 }
 
+#[typetag::serde]
 impl Loader for HtmlLoader {
     fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
@@ -113,6 +118,23 @@ impl Loader for HtmlLoader {
         }
 
         None
+    }
+
+    fn get_name(&self) -> String {
+        "HtmlLoader".to_owned()
+    }
+}
+
+impl Serialize for HtmlLoader {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        self.raw_options.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for HtmlLoader {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de> {
+        panic!("Called deserialize for CsvLoader")
     }
 }
 

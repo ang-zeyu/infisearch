@@ -2,7 +2,7 @@ use std::path::Path;
 
 use path_slash::PathExt;
 use rustc_hash::FxHashMap;
-use serde::Deserialize;
+use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use serde_json::value::Value;
 
 use crate::loader::BasicLoaderResult;
@@ -10,7 +10,7 @@ use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct JsonLoaderOptions {
     #[serde(default = "FxHashMap::default")]
     field_map: FxHashMap<String, String>,
@@ -55,6 +55,7 @@ impl JsonLoader {
     }
 }
 
+#[typetag::serde]
 impl Loader for JsonLoader {
     fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
@@ -81,5 +82,22 @@ impl Loader for JsonLoader {
         }
 
         None
+    }
+
+    fn get_name(&self) -> String {
+        "JsonLoader".to_owned()
+    }
+}
+
+impl Serialize for JsonLoader {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        self.options.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for JsonLoader {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de> {
+        panic!("Called deserialize for CsvLoader")
     }
 }
