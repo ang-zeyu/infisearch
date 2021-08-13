@@ -25,18 +25,18 @@ impl Searcher {
         if self.searcher_config.searcher_options.use_query_term_expansion
             && matches!(last_query_part.part_type, QueryPartType::TERM)
             && last_query_part.should_expand
-            && !last_query_part.is_corrected {
+            && !last_query_part.is_stop_word_removed {
             if let None = last_query_part.original_terms {
                 last_query_part.original_terms = Option::from(last_query_part.terms.clone());
             }
 
             let expanded_terms = if self.tokenizer.use_default_trigram() {
                 self.dictionary.get_expanded_terms(
-                    last_query_part.terms.as_ref().unwrap().get(0).unwrap()
+                    last_query_part.original_terms.as_ref().unwrap().get(0).unwrap()
                 )
             } else {
                 self.tokenizer.get_expanded_terms(
-                    last_query_part.terms.as_ref().unwrap().get(0).unwrap(),
+                    last_query_part.original_terms.as_ref().unwrap().get(0).unwrap(),
                     &self.dictionary.term_infos
                 )
             };
