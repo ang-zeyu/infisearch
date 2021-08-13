@@ -19,6 +19,7 @@ export interface SearchUiRenderOptions {
     fullLink: string,
     resultTitle: string,
     resultHeadingsAndTexts: (HTMLElement | string)[],
+    fields: [string, string][],
   ) => HTMLElement,
   highlightRender?: (h: CreateElement, matchedPart: string) => HTMLElement,
   headingBodyRender?: (

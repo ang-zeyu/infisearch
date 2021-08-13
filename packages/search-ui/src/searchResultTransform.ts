@@ -359,7 +359,13 @@ export default async function transformResults(
       resultHeadingsAndTexts = newBodies;
     }
 
-    return options.render.listItemRender(createElement, fullLink, resultTitle, resultHeadingsAndTexts);
+    return options.render.listItemRender(
+      createElement,
+      fullLink,
+      resultTitle,
+      resultHeadingsAndTexts,
+      fields,
+    );
   }));
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
