@@ -179,6 +179,7 @@ function transformJson(
 
 function transformHtml(
   doc: Document,
+  loaderConfig: any,
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
@@ -186,47 +187,68 @@ function transformHtml(
 ): { title: string, bodies: (string | HTMLElement)[] } {
   const fields: [string, string][] = [];
 
-  let title;
-  const titles = doc.getElementsByTagName('title');
-  if (titles.length) {
-    title = titles[0].innerText || title;
+  if (loaderConfig.excludeSelectors) {
+    for (const excludeSelector of loaderConfig.exclude_selectors) {
+      const nodes = doc.querySelectorAll(excludeSelector);
+      for (let i = 0; i < nodes.length; i += 1) {
+        nodes[i].remove();
+      }
+    }
   }
 
-  function traverseBody(el: HTMLElement) {
-    switch (el.tagName.toLowerCase()) {
-      case 'h1':
-      case 'h2':
-      case 'h3':
-      case 'h4':
-      case 'h5':
-      case 'h6':
-        fields.push(['heading', el.innerText]);
-        break;
-      default: {
+  loaderConfig.selectors = loaderConfig.selectors || [];
+
+  function traverseBody(el: HTMLElement, fieldName: string) {
+    for (const selector of loaderConfig.selectors) {
+      if (el.matches(selector.selector)) {
+        if (selector.attr_map) {
+          Object.entries(selector.attr_map).forEach(([attrName, attrFieldName]) => {
+            if (el.attributes[attrName]) {
+              fields.push([attrFieldName as any, el.attributes[attrName]]);
+            }
+          });
+        }
+
         for (let i = 0; i < el.childNodes.length; i += 1) {
           const child = el.childNodes[i];
           if (child.nodeType === Node.ELEMENT_NODE) {
-            traverseBody(child as HTMLElement);
-          } else if (child.nodeType === Node.TEXT_NODE) {
-            if (fields.length && fields[fields.length - 1][0] === 'body') {
+            traverseBody(child as HTMLElement, selector.field_name);
+          } else if (child.nodeType === Node.TEXT_NODE && selector.field_name) {
+            if (fields.length && fields[fields.length - 1][0] === selector.field_name) {
               fields[fields.length - 1][1] += (child as Text).data;
             } else {
-              fields.push(['body', (child as Text).data]);
+              fields.push([selector.field_name, (child as Text).data]);
             }
           }
+        }
+        return;
+      }
+    }
+
+    for (let i = 0; i < el.childNodes.length; i += 1) {
+      const child = el.childNodes[i];
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        traverseBody(child as HTMLElement, fieldName);
+      } else if (child.nodeType === Node.TEXT_NODE && fieldName) {
+        if (fields.length && fields[fields.length - 1][0] === fieldName) {
+          fields[fields.length - 1][1] += (child as Text).data;
+        } else {
+          fields.push([fieldName, (child as Text).data]);
         }
       }
     }
   }
 
-  const body = doc.getElementsByTagName('body');
-  if (body.length) {
-    traverseBody(body[0]);
-  }
+  traverseBody(doc.getRootNode() as HTMLElement, undefined);
+
+  const titleIdx = fields.findIndex((pair) => pair[0] === 'title');
+  const title = titleIdx === -1 ? undefined : fields.splice(titleIdx, 1)[0][1];
 
   return {
     title,
-    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl, renderOptions),
+    bodies: transformText(
+      fields, sortedQueryTerms, termRegex, baseUrl, renderOptions,
+    ),
   };
 }
 
@@ -314,7 +336,7 @@ export default async function transformResults(
         const doc = domParser.parseFromString(asText, 'text/html');
 
         const { title: newTitle, bodies: newBodies } = transformHtml(
-          doc, query.searchedTerms, termRegex, rawLink, options.render,
+          doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, rawLink, options.render,
         );
         title = newTitle || title;
         bodies = newBodies;
