@@ -315,45 +315,44 @@ export default async function transformResults(
   const resultsEls = await Promise.all(results.map(async (result) => {
     console.log(result);
 
-    const rawLink = result.getSingleField('link');
-    let fullLink;
-    let title = result.getSingleField('title') || rawLink;
     const fields = result.getStorageWithFieldNames();
-    const nonTitleFields = fields.filter((v) => v[0] !== 'title');
-    let bodies = transformText(
-      nonTitleFields,
-      query.searchedTerms,
-      termRegex,
-      rawLink,
-      options.render,
-    );
+    const linkField = fields.find((v) => v[0] === 'link');
+    const relativeLink = (linkField && linkField[1]) || '';
+    const fullLink = options.sourceFilesUrl ? `${options.sourceFilesUrl}/${relativeLink}` : undefined;
+    const titleField = fields.find((v) => v[0] === 'title');
+    let resultTitle = (titleField && titleField[1]) || relativeLink;
 
-    if (!fields.find((v) => v[0] !== 'link') && options.sourceFilesUrl) {
-      fullLink = `${options.sourceFilesUrl}/${rawLink}`;
+    let resultHeadingsAndTexts: (string | HTMLElement)[];
+    if (!linkField || !options.sourceFilesUrl) {
+      resultHeadingsAndTexts = transformText(
+        fields.filter((v) => v[0] !== 'link' && v[0] !== 'title'),
+        query.searchedTerms,
+        termRegex,
+        relativeLink,
+        options.render,
+      );
+    } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
+      const asText = await (await fetch(fullLink)).text();
+      const doc = domParser.parseFromString(asText, 'text/html');
 
-      if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
-        const asText = await (await fetch(fullLink)).text();
-        const doc = domParser.parseFromString(asText, 'text/html');
+      const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
+        doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, relativeLink, options.render,
+      );
+      resultTitle = newTitle || resultTitle;
+      resultHeadingsAndTexts = newHeadingsAndTexts;
+    } else if (fullLink.endsWith('.json') && loaderConfigs.JsonLoader) {
+      const asJson = await (await fetch(fullLink)).json();
 
-        const { title: newTitle, bodies: newBodies } = transformHtml(
-          doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, rawLink, options.render,
-        );
-        title = newTitle || title;
-        bodies = newBodies;
-      } else if (fullLink.endsWith('.json') && loaderConfigs.JsonLoader) {
-        const asJson = await (await fetch(fullLink)).json();
-
-        const { title: newTitle, bodies: newBodies } = transformJson(
-          asJson,
-          loaderConfigs.JsonLoader,
-          query.searchedTerms, termRegex, rawLink, options.render,
-        );
-        title = newTitle || title;
-        bodies = newBodies;
-      }
+      const { title: newTitle, bodies: newBodies } = transformJson(
+        asJson,
+        loaderConfigs.JsonLoader,
+        query.searchedTerms, termRegex, relativeLink, options.render,
+      );
+      resultTitle = newTitle || resultTitle;
+      resultHeadingsAndTexts = newBodies;
     }
 
-    return options.render.listItemRender(createElement, fullLink, title, bodies);
+    return options.render.listItemRender(createElement, fullLink, resultTitle, resultHeadingsAndTexts);
   }));
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));

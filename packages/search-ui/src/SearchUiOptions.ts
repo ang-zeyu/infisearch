@@ -15,7 +15,10 @@ export interface SearchUiRenderOptions {
     h: CreateElement, misspelledTerms: string[], correctedTerms: string[], expandedTerms: string[]
   ) => HTMLElement[],
   listItemRender?: (
-    h: CreateElement, fullLink: string, title: string, bodies: (HTMLElement | string)[]
+    h: CreateElement,
+    fullLink: string,
+    resultTitle: string,
+    resultHeadingsAndTexts: (HTMLElement | string)[],
   ) => HTMLElement,
   highlightRender?: (h: CreateElement, matchedPart: string) => HTMLElement,
   headingBodyRender?: (
