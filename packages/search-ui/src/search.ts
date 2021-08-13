@@ -172,42 +172,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     'div', { class: 'morsels-body' }, ...bodyHighlights,
   ));
 
-  options.render.termInfoRender = options.render.termInfoRender || ((
-    h, misspelledTerms, correctedTerms, expandedTerms,
-  ) => {
-    const returnVal: HTMLElement[] = [];
-    const correctedTermsContainer = h('div', { class: 'morsels-suggestion-container-corrected' });
-
-    if (expandedTerms.length) {
-      returnVal.push(
-        h('div', { class: 'morsels-suggestion-container-expanded' },
-          h('div', { class: 'morsels-suggestion-content' },
-            'Also searched for... ',
-            h('small', {}, '(add a space to the last term to finalise the search)'),
-            h('br', {}),
-            ...expandedTerms.map((expandedTerm, idx) => (idx === 0 ? '' : h(
-              'span', { class: 'morsels-suggestion-expanded' }, `${expandedTerm} `,
-            ))))),
-      );
-    }
-
-    if (misspelledTerms.length) {
-      correctedTermsContainer.prepend(
-        h('div', { class: 'morsels-suggestion-content' },
-          'Could not find any matches for',
-          ...misspelledTerms.map((term) => h(
-            'span', { class: 'morsels-suggestion-wrong' }, ` "${term}"`,
-          )),
-          correctedTerms.length ? ', searched for: ' : '',
-          ...correctedTerms.map((correctedTerm) => h(
-            'span', { class: 'morsels-suggestion-corrected' }, `${correctedTerm} `,
-          ))),
-      );
-      returnVal.push(correctedTermsContainer);
-    }
-
-    return returnVal;
-  });
+  options.render.termInfoRender = options.render.termInfoRender || (() => []);
 
   options.render.noResultsRender = options.render.noResultsRender
         || ((h) => h('div', { class: 'morsels-no-results' }, 'no results found'));
