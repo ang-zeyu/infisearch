@@ -102,33 +102,34 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   });
 
   options.render.rootRender = options.render.rootRender || ((h, inputEl, portalCloseHandler) => {
-    const portalCloseButton = portalCloseHandler
-      ? h('button', { class: 'morsels-input-close-portal' }, 'X')
-      : '';
-    if (portalCloseButton) {
-      portalCloseButton.addEventListener('click', portalCloseHandler);
+    const root = h(
+      'div',
+      {
+        class: `morsels-root${portalCloseHandler ? ' morsels-portal-root' : ''}`,
+      },
+    );
+
+    if (portalCloseHandler) {
+      const buttonEl = h('button', { class: 'morsels-input-close-portal' }, 'X');
+      buttonEl.onclick = portalCloseHandler;
+      root.appendChild(h('div', { class: 'morsels-portal-input-button-wrapper' },
+        inputEl, buttonEl));
+    } else {
+      root.appendChild(inputEl);
     }
 
-    const dropdownSeparator = portalCloseHandler
-      ? ''
-      : h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' });
+    if (!portalCloseHandler) {
+      root.appendChild(h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }));
+    }
 
     const listContainer = h('ul', {
       class: 'morsels-list',
       style: portalCloseHandler ? '' : 'display: none;',
     });
+    root.appendChild(listContainer);
 
     return {
-      root: h(
-        'div',
-        {
-          class: `morsels-input-wrapper${portalCloseHandler ? ' morsels-input-wrapper-portal' : ''}`,
-        },
-        inputEl,
-        portalCloseButton,
-        dropdownSeparator,
-        listContainer,
-      ),
+      root,
       listContainer,
     };
   });
@@ -178,7 +179,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   options.render.termInfoRender = options.render.termInfoRender || (() => []);
 
   options.render.noResultsRender = options.render.noResultsRender
-        || ((h) => h('div', { class: 'morsels-no-results' }, 'no results found'));
+        || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
 }
 
 function initMorsels(options: SearchUiOptions): () => void {
