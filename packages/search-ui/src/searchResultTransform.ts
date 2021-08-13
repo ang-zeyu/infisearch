@@ -239,7 +239,7 @@ function transformHtml(
     }
   }
 
-  traverseBody(doc.getRootNode() as HTMLElement, undefined);
+  traverseBody(doc.documentElement, undefined);
 
   const titleIdx = fields.findIndex((pair) => pair[0] === 'title');
   const title = titleIdx === -1 ? undefined : fields.splice(titleIdx, 1)[0][1];
