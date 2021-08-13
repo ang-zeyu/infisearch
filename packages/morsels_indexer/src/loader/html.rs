@@ -200,7 +200,7 @@ impl LoaderResult for HtmlLoaderResult {
         let mut field_texts: Vec<(String, String)> = Vec::with_capacity(20);
         let mut document = Html::parse_document(&self.text);
 
-        field_texts.push(("link".to_owned(), std::mem::take(&mut self.link)));
+        field_texts.push(("_relative_fp".to_owned(), std::mem::take(&mut self.link)));
 
         for selector in self.options.exclude_selectors.iter() {
             let ids: Vec<_> = document.select(selector).map(|selected| selected.id()).collect();

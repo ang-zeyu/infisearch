@@ -38,7 +38,7 @@ impl JsonLoader {
     ) -> Box<dyn LoaderResult + Send> {
         let mut field_texts: Vec<(String, String)> = Vec::with_capacity(self.options.field_order.len() + 1);
 
-        field_texts.push(("link".to_owned(), link));
+        field_texts.push(("_relative_fp".to_owned(), link));
 
         for header_name in self.options.field_order.iter() {
             if let Some((field_name, text)) = read_result.remove_entry(header_name) {

@@ -46,7 +46,7 @@ impl Default for FieldsConfig {
                     b: 0.75
                 },
                 FieldConfig {
-                    name: "link".to_owned(),
+                    name: "_relative_fp".to_owned(),
                     do_store: true,
                     weight: 0.0,
                     k: 1.2,

@@ -7,6 +7,8 @@ import createElement from './utils/dom';
 
 const domParser = new DOMParser();
 
+const RELATIVE_LINK_FIELD_NAME = '_relative_fp';
+
 const BODY_SERP_BOUND = 40;
 const MAX_SERP_HIGHLIGHT_PARTS = 2;
 
@@ -320,8 +322,8 @@ export default async function transformResults(
     console.log(result);
 
     const fields = result.getStorageWithFieldNames();
-    const linkField = fields.find((v) => v[0] === 'link');
-    const relativeLink = (linkField && linkField[1]) || '';
+    const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
+    const relativeLink = (relativeFpField && relativeFpField[1]) || '';
     const fullLink = options.sourceFilesUrl ? `${options.sourceFilesUrl}/${relativeLink}` : undefined;
     const titleField = fields.find((v) => v[0] === 'title');
     let resultTitle = (titleField && titleField[1]) || relativeLink;
@@ -329,13 +331,13 @@ export default async function transformResults(
     let resultHeadingsAndTexts: (string | HTMLElement)[];
     if (hasStoredContentField) {
       resultHeadingsAndTexts = transformText(
-        fields.filter((v) => v[0] !== 'link' && v[0] !== 'title'),
+        fields.filter((v) => v[0] !== RELATIVE_LINK_FIELD_NAME && v[0] !== 'title'),
         query.searchedTerms,
         termRegex,
         relativeLink,
         options.render,
       );
-    } else if (!linkField || !options.sourceFilesUrl) {
+    } else if (!relativeFpField || !options.sourceFilesUrl) {
       // Unable to retrieve and load from source file
       resultHeadingsAndTexts = [];
     } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
