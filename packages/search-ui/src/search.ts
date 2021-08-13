@@ -289,9 +289,7 @@ function initMorsels(options: SearchUiOptions): () => void {
     window.addEventListener('resize', () => {
       clearTimeout(debounce);
       debounce = setTimeout(() => {
-        if (window.matchMedia('only screen and (max-width: 1024px)').matches) {
-          autoPortalControlFlag = true;
-        }
+        autoPortalControlFlag = window.matchMedia('only screen and (max-width: 1024px)').matches;
       }, 200);
     });
   }
