@@ -59,7 +59,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   }
 
   if (!('resultsPerPage' in options)) {
-    options.resultsPerPage = isMobile ? 8 : 10;
+    options.resultsPerPage = 8;
   }
 
   if (!('sourceFilesUrl' in options)) {
