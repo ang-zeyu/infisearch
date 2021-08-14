@@ -31,6 +31,9 @@ async function update(
     console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
     await transformResults(query, searcher.morselsConfig, true, listContainer, options);
+
+    root.scrollTo({ top: 0 });
+    listContainer.scrollTo({ top: 0 });
   } catch (ex) {
     listContainer.innerHTML = ex.message;
     throw ex;
