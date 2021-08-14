@@ -209,17 +209,16 @@ function transformHtml(
   }
 
   loaderConfig.selectors = loaderConfig.selectors || [];
+  const allSelectors = loaderConfig.selectors.map((s) => s.selector).join(',');
 
   function traverseBody(el: HTMLElement, fieldName: string) {
     for (const selector of loaderConfig.selectors) {
       if (el.matches(selector.selector)) {
-        if (selector.attr_map) {
-          Object.entries(selector.attr_map).forEach(([attrName, attrFieldName]) => {
-            if (el.attributes[attrName]) {
-              fields.push([attrFieldName as any, el.attributes[attrName].value]);
-            }
-          });
-        }
+        Object.entries(selector.attr_map).forEach(([attrName, attrFieldName]) => {
+          if (el.attributes[attrName]) {
+            fields.push([attrFieldName as any, el.attributes[attrName].value]);
+          }
+        });
 
         // eslint-disable-next-line no-param-reassign
         fieldName = selector.field_name;
@@ -227,24 +226,37 @@ function transformHtml(
       }
     }
 
-    for (let i = 0; i < el.childNodes.length; i += 1) {
-      const child = el.childNodes[i];
-      if (child.nodeType === Node.ELEMENT_NODE) {
-        traverseBody(child as HTMLElement, fieldName);
-      } else if (child.nodeType === Node.TEXT_NODE && fieldName) {
-        if (fields.length && fields[fields.length - 1][0] === fieldName) {
-          fields[fields.length - 1][1] += (child as Text).data;
-        } else {
-          fields.push([fieldName, (child as Text).data]);
+    if (el.querySelector(allSelectors)) {
+      for (let i = 0; i < el.childNodes.length; i += 1) {
+        const child = el.childNodes[i];
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          traverseBody(child as HTMLElement, fieldName);
+        } else if (child.nodeType === Node.TEXT_NODE && fieldName) {
+          if (fields.length && fields[fields.length - 1][0] === fieldName) {
+            fields[fields.length - 1][1] += (child as Text).data;
+          } else {
+            fields.push([fieldName, (child as Text).data]);
+          }
         }
+      }
+    } else if (fieldName) {
+      // Fast track
+      if (fields.length && fields[fields.length - 1][0] === fieldName) {
+        fields[fields.length - 1][1] += el.innerText;
+      } else {
+        fields.push([fieldName, el.innerText || '']);
       }
     }
   }
 
   traverseBody(doc.documentElement, undefined);
 
-  const titleIdx = fields.findIndex((pair) => pair[0] === 'title');
-  const title = titleIdx === -1 ? undefined : fields.splice(titleIdx, 1)[0][1];
+  const titleField = fields.find((pair) => pair[0] === 'title');
+  let title = '';
+  if (titleField) {
+    [,title] = titleField;
+    titleField[1] = '';
+  }
 
   return {
     title,
