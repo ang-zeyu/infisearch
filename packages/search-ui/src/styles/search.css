@@ -80,6 +80,13 @@
     background-color: rgb(255, 241, 226);
 }
 
+.morsels-portal-blank {
+    text-align: center;
+    font-size: 0.9em;
+    color: rgba(0, 0, 0, 0.6);
+    padding: 1em;
+}
+
 .morsels-input-dropdown-separator {
     position: absolute;
     top: 100%;

@@ -10,6 +10,7 @@ export interface SearchUiRenderOptions {
     h: CreateElement, inputEl: HTMLElement, portalCloseHandler?: () => void
   ) => ({ root: HTMLElement, listContainer: HTMLElement }),
   portalInputRender?: (h: CreateElement) => HTMLInputElement,
+  portalBlankRender?: (h: CreateElement) => HTMLElement,
   loadingIndicatorRender?: (h: CreateElement) => HTMLElement,
   termInfoRender?: (
     h: CreateElement, misspelledTerms: string[], correctedTerms: string[], expandedTerms: string[]

@@ -174,6 +174,9 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
 
   options.render.noResultsRender = options.render.noResultsRender
         || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
+
+  options.render.portalBlankRender = options.render.portalBlankRender
+    || ((h) => h('div', { class: 'morsels-portal-blank' }, 'Powered by tiny Morsels of 🧀'));
 }
 
 function initMorsels(options: SearchUiOptions): () => void {
@@ -208,6 +211,7 @@ function initMorsels(options: SearchUiOptions): () => void {
       nextUpdate = () => {
         if (forPortal) {
           listContainer.innerHTML = '';
+          listContainer.appendChild(options.render.portalBlankRender(createElement));
         } else {
           options.render.hide(root, forPortal);
         }
@@ -217,6 +221,7 @@ function initMorsels(options: SearchUiOptions): () => void {
     } else {
       if (forPortal) {
         listContainer.innerHTML = '';
+        listContainer.appendChild(options.render.portalBlankRender(createElement));
       } else {
         options.render.hide(root, forPortal);
       }
@@ -230,6 +235,7 @@ function initMorsels(options: SearchUiOptions): () => void {
     createElement, mobileInput, () => options.render.hide(portalRoot, true),
   );
   mobileInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
+  portalListContainer.appendChild(options.render.portalBlankRender(createElement));
 
   const showPortalUI = () => {
     autoPortalControlFlag = true;
