@@ -221,19 +221,9 @@ function transformHtml(
           });
         }
 
-        for (let i = 0; i < el.childNodes.length; i += 1) {
-          const child = el.childNodes[i];
-          if (child.nodeType === Node.ELEMENT_NODE) {
-            traverseBody(child as HTMLElement, selector.field_name);
-          } else if (child.nodeType === Node.TEXT_NODE && selector.field_name) {
-            if (fields.length && fields[fields.length - 1][0] === selector.field_name) {
-              fields[fields.length - 1][1] += (child as Text).data;
-            } else {
-              fields.push([selector.field_name, (child as Text).data]);
-            }
-          }
-        }
-        return;
+        // eslint-disable-next-line no-param-reassign
+        fieldName = selector.field_name;
+        break;
       }
     }
 
