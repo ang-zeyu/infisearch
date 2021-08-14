@@ -238,13 +238,13 @@ Note that there are some minor differences between the dropdown version and full
                     <div class="morsels-heading"><span>What</span></div>
                     <div class="morsels-bodies">
                         <div class="morsels-body">
-                            <span> ... </span>
+                            <span class="morsels-ellipsis"></span>
                             <span> this is text before the first highlighted term </span>
                             <!-- (highlightRender) START (the query is "software engine") -->
                             <span class="morsels-highlight"><span>software</span></span>
                             <!-- (highlightRender) END -->
                             <span> this is some text after the first highlighted term</span>
-                            <span> ... </span>
+                            <span class="morsels-ellipsis"></span>
                             <span> this is text before the second highlighted term</span>
                             <!-- (highlightRender) START (the query is "software engine") -->
                             <span class="morsels-highlight"><span>engine</span></span>
@@ -259,12 +259,12 @@ Note that there are some minor differences between the dropdown version and full
                   i.e., This match does not have a corresponding heading before it / it belongs under
                 -->
                 <div class="morsels-body">
-                    <span> ... </span>
+                    <span class="morsels-ellipsis"></span>
                     <span></span>
                     <!-- (highlightRender) START -->
                     <span class="morsels-highlight"><span>software</span></span><span> Engineering</span>
                     <!-- (highlightRender) END -->
-                    <span> ...</span>
+                    <span class="morsels-ellipsis"></span>
                 </div>
                 <!-- (bodyOnlyRender) END -->
             </a>

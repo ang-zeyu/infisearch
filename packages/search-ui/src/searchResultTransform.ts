@@ -82,7 +82,7 @@ function transformText(
       const { pos, term } = lastClosestWindowPositions[i];
       const highlightEndPos = pos + term.length;
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
-        result.push(' ... ');
+        result.push(createElement('span', { class: 'morsels-ellipsis' }));
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
         result.push(render.highlightRender(createElement, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
@@ -94,12 +94,13 @@ function transformText(
       }
       prevHighlightEndPos = highlightEndPos;
     }
-    result.push(' ...');
+    result.push(createElement('span', { class: 'morsels-ellipsis' }));
 
     return { result, numberTermsMatched: lastNumberMatchedTerms };
   }
 
   let lastIncludedHeading = -1;
+  let bestBodyMatch: FinalMatchResult = { result: undefined, numberTermsMatched: 0 };
   const finalMatchResults: FinalMatchResult[] = [];
 
   let itemIdx = -1;
@@ -114,28 +115,36 @@ function transformText(
       continue;
     }
 
-    const finalMatchResult: FinalMatchResult = { result: undefined, numberTermsMatched };
-    finalMatchResults.push(finalMatchResult);
-
     // Find a new heading this text is under
     let i = itemIdx - 1;
     for (; i > lastIncludedHeading; i -= 1) {
       if (texts[i][0] === 'heading') {
         lastIncludedHeading = i;
-        finalMatchResult.result = render.headingBodyRender(
-          createElement,
-          texts[i][1],
-          result,
-          (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}#${texts[i - 1][1]}`,
-        );
+
+        finalMatchResults.push({
+          result: render.headingBodyRender(
+            createElement,
+            texts[i][1],
+            result,
+            (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}#${texts[i - 1][1]}`,
+          ),
+          numberTermsMatched,
+        });
         break;
       }
     }
 
     // Insert without heading
-    if (!finalMatchResult.result) {
-      finalMatchResult.result = render.bodyOnlyRender(createElement, result);
+    if (!finalMatchResults.length && numberTermsMatched > bestBodyMatch.numberTermsMatched) {
+      bestBodyMatch = {
+        result: render.bodyOnlyRender(createElement, result),
+        numberTermsMatched,
+      };
     }
+  }
+
+  if (!finalMatchResults.length && bestBodyMatch.numberTermsMatched > 0) {
+    finalMatchResults.push(bestBodyMatch);
   }
 
   return finalMatchResults
