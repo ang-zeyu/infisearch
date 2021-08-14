@@ -78,7 +78,8 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
 
   options.render.show = options.render.show || ((root, forPortal) => {
     if (forPortal) {
-      root.style.display = 'block';
+      options.render.portalTo.appendChild(root);
+      (root.firstElementChild.firstElementChild as HTMLInputElement).focus();
     } else {
       (root.lastElementChild as HTMLElement).style.display = 'block';
       (root.lastElementChild.previousSibling as HTMLElement).style.display = 'block';
@@ -87,7 +88,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
 
   options.render.hide = options.render.hide || ((root, forPortal) => {
     if (forPortal) {
-      root.style.display = 'none';
+      root.remove();
     } else {
       (root.lastElementChild as HTMLElement).style.display = 'none';
       (root.lastElementChild.previousSibling as HTMLElement).style.display = 'none';
@@ -228,19 +229,11 @@ function initMorsels(options: SearchUiOptions): () => void {
   const { root: portalRoot, listContainer: portalListContainer } = options.render.rootRender(
     createElement, mobileInput, () => options.render.hide(portalRoot, true),
   );
-  portalRoot.style.display = 'none';
+  mobileInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
 
-  let didAttachPortalContainer = false;
   const showPortalUI = () => {
-    if (!didAttachPortalContainer) {
-      didAttachPortalContainer = true;
-      options.render.portalTo.appendChild(portalRoot);
-      mobileInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
-    }
-
     autoPortalControlFlag = true;
     options.render.show(portalRoot, true);
-    mobileInput.focus();
   };
 
   // Dropdown version
