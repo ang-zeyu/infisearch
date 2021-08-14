@@ -1,15 +1,10 @@
 use std::env;
-use std::fs::File;
-use std::io::Write;
 use std::time::Instant;
 use std::path::Path;
 use std::path::PathBuf;
 
 use morsels_indexer::MorselsConfig;
-use morsels_indexer::loader::Loader;
 
-use glob::Pattern;
-use path_slash::PathExt;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 

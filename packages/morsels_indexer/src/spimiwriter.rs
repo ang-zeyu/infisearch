@@ -24,6 +24,7 @@ use crate::worker::miner::WorkerMinerDocInfo;
 
 
 impl Indexer {
+    #[allow(clippy::too_many_arguments)]
     pub fn write_block(
         num_workers_writing_blocks: &Arc<Mutex<usize>>,
         num_threads: usize,
@@ -92,6 +93,7 @@ fn get_field_store_writer(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn combine_worker_results_and_write_block(
     worker_index_results: Vec<WorkerBlockIndexResults>,
     doc_infos: Arc<Mutex<DocInfos>>,

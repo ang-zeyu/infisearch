@@ -30,7 +30,6 @@ use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
 use crate::loader::Loader;
-use crate::loader::LoaderResult;
 use crate::worker::MainToWorkerMessage;
 use crate::worker::WorkerToMainMessage;
 use crate::worker::Worker;
@@ -204,6 +203,7 @@ pub struct Indexer {
 
 
 impl Indexer {
+    #[allow(clippy::mutex_atomic)]
     pub fn new(
         output_folder_path: &Path,
         config: MorselsConfig,

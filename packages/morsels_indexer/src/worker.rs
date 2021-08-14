@@ -89,6 +89,7 @@ pub struct WorkerToMainMessage {
     pub block_index_results: Option<WorkerBlockIndexResults>,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn worker (
     id: usize,
     sndr: Sender<WorkerToMainMessage>, 

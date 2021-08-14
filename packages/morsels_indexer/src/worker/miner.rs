@@ -150,7 +150,7 @@ impl WorkerMiner {
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
         for (field_name, field_text) in field_texts {
-            let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or_else(|| &NULL_FIELD);
+            let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or(&NULL_FIELD);
             let field_id = field_info.id;
 
             // Store raw text

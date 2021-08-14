@@ -169,7 +169,7 @@ impl Serialize for CsvLoader {
 }
 
 impl<'de> Deserialize<'de> for CsvLoader {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de> {
         panic!("Called deserialize for CsvLoader")
     }
