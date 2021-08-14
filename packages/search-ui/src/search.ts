@@ -243,7 +243,7 @@ function initMorsels(options: SearchUiOptions): () => void {
   };
 
   // Dropdown version
-  const input = document.getElementById(options.inputId);
+  const input = options.inputId && document.getElementById(options.inputId);
   if (input) {
     const parent = input.parentElement;
     input.remove();
