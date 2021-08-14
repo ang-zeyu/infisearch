@@ -132,6 +132,17 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     'input', { class: 'morsels-portal-input', type: 'text' },
   ) as HTMLInputElement);
 
+  options.render.noResultsRender = options.render.noResultsRender
+      || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
+
+  options.render.portalBlankRender = options.render.portalBlankRender
+      || ((h) => h('div', { class: 'morsels-portal-blank' }, 'Powered by tiny Morsels of 🧀'));
+
+  options.render.loadingIndicatorRender = options.render.loadingIndicatorRender
+      || ((h) => h('span', { class: 'morsels-loading-indicator' }));
+
+  options.render.termInfoRender = options.render.termInfoRender || (() => []);
+
   options.render.listItemRender = options.render.listItemRender || ((h, fullLink, title, bodies) => {
     const linkEl = h('a', { class: 'morsels-link' },
       h('div', { class: 'morsels-title' }, title),
@@ -145,13 +156,6 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
       linkEl,
     );
   });
-
-  options.render.loadingIndicatorRender = options.render.loadingIndicatorRender
-        || ((h) => h('span', { class: 'morsels-loading-indicator' }));
-
-  options.render.highlightRender = options.render.highlightRender || ((h, matchedPart) => h(
-    'span', { class: 'morsels-highlight' }, matchedPart,
-  ));
 
   options.render.headingBodyRender = options.render.headingBodyRender || ((
     h, heading, bodyHighlights, href,
@@ -170,13 +174,9 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     'div', { class: 'morsels-body' }, ...bodyHighlights,
   ));
 
-  options.render.termInfoRender = options.render.termInfoRender || (() => []);
-
-  options.render.noResultsRender = options.render.noResultsRender
-        || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
-
-  options.render.portalBlankRender = options.render.portalBlankRender
-    || ((h) => h('div', { class: 'morsels-portal-blank' }, 'Powered by tiny Morsels of 🧀'));
+  options.render.highlightRender = options.render.highlightRender || ((h, matchedPart) => h(
+    'span', { class: 'morsels-highlight' }, matchedPart,
+  ));
 }
 
 function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {

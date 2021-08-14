@@ -7,13 +7,19 @@ export interface SearchUiRenderOptions {
   show?: (root: HTMLElement, isPortal: boolean) => void,
   hide?: (root: HTMLElement, isPortal: boolean) => void,
   rootRender?: (
-    h: CreateElement, inputEl: HTMLElement, portalCloseHandler?: () => void
+    h: CreateElement,
+    inputEl: HTMLElement,
+    portalCloseHandler?: () => void,
   ) => ({ root: HTMLElement, listContainer: HTMLElement }),
   portalInputRender?: (h: CreateElement) => HTMLInputElement,
+  noResultsRender?: (h: CreateElement) => HTMLElement,
   portalBlankRender?: (h: CreateElement) => HTMLElement,
   loadingIndicatorRender?: (h: CreateElement) => HTMLElement,
   termInfoRender?: (
-    h: CreateElement, misspelledTerms: string[], correctedTerms: string[], expandedTerms: string[]
+    h: CreateElement,
+    misspelledTerms: string[],
+    correctedTerms: string[],
+    expandedTerms: string[],
   ) => HTMLElement[],
   listItemRender?: (
     h: CreateElement,
@@ -22,12 +28,17 @@ export interface SearchUiRenderOptions {
     resultHeadingsAndTexts: (HTMLElement | string)[],
     fields: [string, string][],
   ) => HTMLElement,
-  highlightRender?: (h: CreateElement, matchedPart: string) => HTMLElement,
   headingBodyRender?: (
-    h: CreateElement, heading: string, bodyHighlights: (HTMLElement | string)[], href?: string
+    h: CreateElement,
+    heading: string,
+    bodyHighlights: (HTMLElement | string)[],
+    href?: string
   ) => HTMLElement,
-  bodyOnlyRender?: (h: CreateElement, bodyHighlights: (HTMLElement | string)[]) => HTMLElement,
-  noResultsRender?: (h: CreateElement) => HTMLElement,
+  bodyOnlyRender?: (
+    h: CreateElement,
+    bodyHighlights: (HTMLElement | string)[],
+  ) => HTMLElement,
+  highlightRender?: (h: CreateElement, matchedPart: string) => HTMLElement,
 }
 
 export interface SearchUiOptions {
