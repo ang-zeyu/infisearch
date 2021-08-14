@@ -28,7 +28,7 @@ pub struct Dictionary {
     trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
 }
 
-struct TermWeightPair(String, f64, f32);
+struct TermWeightPair(String, f64);
 
 impl Eq for TermWeightPair {}
 
@@ -231,27 +231,39 @@ impl Dictionary {
     let prefix_check_candidates = self.get_term_candidates(base_term, false);
 
     let max_expanded_terms = 3; // TODO make amount configurable
-    // 3 lowest idf (most common) terms
+    let base_idf = if let Some(term_info) = self.term_infos.get(&String::from(base_term)) {
+      term_info.idf
+    } else {
+      0.0
+    };
+
+    // 3 terms with the closest idfs
     let mut top_3_min_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(max_expanded_terms);
+    let mut max_idf_difference: f64 = 0.0;
 
     let min_baseterm_substring = &base_term[0..((CORRECTION_ALPHA * base_term_char_count as f32).floor() as usize)];
     for term in prefix_check_candidates {
       if term.starts_with(min_baseterm_substring) && term != base_term {
-        let score = 1.0 / ((term.chars().count() - min_baseterm_substring.chars().count() + 1) as f32);
-        if score >= 0.2 {
-          let idf = self.term_infos.get(&term).unwrap().idf;
-          if top_3_min_heap.len() < max_expanded_terms {
-            top_3_min_heap.push(TermWeightPair(term.into(), idf, score));
-          } else if idf < top_3_min_heap.peek().unwrap().1 {
-            top_3_min_heap.pop();
-            top_3_min_heap.push(TermWeightPair(term.into(), idf, score));
-          }
+        let term_info = self.term_infos.get(&term).unwrap();
+        let idf_difference = (term_info.idf - base_idf).abs();
+        if idf_difference > max_idf_difference {
+          max_idf_difference = idf_difference;
+        }
+        
+        let idf = self.term_infos.get(&term).unwrap().idf;
+        if top_3_min_heap.len() < max_expanded_terms {
+          top_3_min_heap.push(TermWeightPair(term.into(), idf_difference));
+        } else if idf < top_3_min_heap.peek().unwrap().1 {
+          top_3_min_heap.pop();
+          top_3_min_heap.push(TermWeightPair(term.into(), idf_difference));
         }
       }
     };
 
-    for term_weight_triple in top_3_min_heap {
-      expanded_terms.insert(term_weight_triple.0.into(), term_weight_triple.2);
+    for term_weight_pair in top_3_min_heap {
+      let idf_proportion = term_weight_pair.1 / max_idf_difference;
+      let weight = if idf_proportion > 0.3 { 0.3 } else { idf_proportion };
+      expanded_terms.insert(term_weight_pair.0.into(), weight as f32);
     }
 
     return expanded_terms;
