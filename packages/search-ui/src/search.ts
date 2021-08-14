@@ -209,8 +209,8 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
         }
         isFirstQueryFromBlank = false;
       }, 200);
-    } else if (isUpdating) {
-      nextUpdate = () => {
+    } else {
+      const reset = () => {
         if (forPortal) {
           listContainer.innerHTML = '';
           listContainer.appendChild(options.render.portalBlankRender(createElement));
@@ -220,14 +220,12 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
         isUpdating = false;
         isFirstQueryFromBlank = true;
       };
-    } else {
-      if (forPortal) {
-        listContainer.innerHTML = '';
-        listContainer.appendChild(options.render.portalBlankRender(createElement));
+
+      if (isUpdating) {
+        nextUpdate = reset;
       } else {
-        options.render.hide(root, forPortal);
+        reset();
       }
-      isFirstQueryFromBlank = true;
     }
   };
 
