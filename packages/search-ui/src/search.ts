@@ -70,7 +70,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.render = {};
   }
 
-  autoPortalControlFlag = options.render.manualPortalControl && isMobile;
+  autoPortalControlFlag = !options.render.manualPortalControl && isMobile;
 
   options.render.manualPortalControl = options.render.manualPortalControl || false;
 
