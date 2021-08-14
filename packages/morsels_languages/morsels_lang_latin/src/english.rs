@@ -151,7 +151,12 @@ impl Tokenizer for EnglishTokenizer {
     None
   }
 
-  fn get_expanded_terms(&self, _term: &str, _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32> {
+  fn get_expanded_terms(
+    &self,
+    _number_of_expanded_terms: usize,
+    _term: &str,
+    _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>,
+  ) -> FxHashMap<String, f32> {
     FxHashMap::default()
   }
 }

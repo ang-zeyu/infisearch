@@ -1,5 +1,5 @@
 export interface SearcherOptions {
   url: string,
-  useQueryTermExpansion?: boolean,
+  numberOfExpandedTerms?: number,
   useQueryTermProximity?: boolean,
 }

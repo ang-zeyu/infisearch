@@ -46,8 +46,8 @@ async function update(
 }
 
 function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
-  if (!('useQueryTermExpansion' in options.searcherOptions)) {
-    options.searcherOptions.useQueryTermExpansion = true;
+  if (!('numberOfExpandedTerms' in options.searcherOptions)) {
+    options.searcherOptions.numberOfExpandedTerms = 3;
   }
 
   if (!('useQueryTermProximity' in options.searcherOptions)) {

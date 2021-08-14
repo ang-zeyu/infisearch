@@ -21,7 +21,12 @@ pub trait Tokenizer {
 
     fn get_best_corrected_term(&self, term: &str, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String>;
 
-    fn get_expanded_terms(&self, term: &str, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> FxHashMap<String, f32>;
+    fn get_expanded_terms(
+        &self,
+        number_of_expanded_terms: usize,
+        term: &str,
+        dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>,
+    ) -> FxHashMap<String, f32>;
 }
 
 pub struct SearchTokenizeResult {

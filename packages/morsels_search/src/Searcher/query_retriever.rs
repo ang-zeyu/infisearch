@@ -22,7 +22,7 @@ impl Searcher {
         }
 
         let last_query_part = query_parts.last_mut().unwrap();
-        if self.searcher_config.searcher_options.use_query_term_expansion
+        if self.searcher_config.searcher_options.number_of_expanded_terms > 0
             && matches!(last_query_part.part_type, QueryPartType::TERM)
             && last_query_part.should_expand
             && !last_query_part.is_stop_word_removed {
@@ -32,10 +32,12 @@ impl Searcher {
 
             let expanded_terms = if self.tokenizer.use_default_trigram() {
                 self.dictionary.get_expanded_terms(
+                    self.searcher_config.searcher_options.number_of_expanded_terms,
                     last_query_part.original_terms.as_ref().unwrap().get(0).unwrap()
                 )
             } else {
                 self.tokenizer.get_expanded_terms(
+                    self.searcher_config.searcher_options.number_of_expanded_terms,
                     last_query_part.original_terms.as_ref().unwrap().get(0).unwrap(),
                     &self.dictionary.term_infos
                 )
