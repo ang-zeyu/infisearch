@@ -1,4 +1,7 @@
 import { SearcherOptions } from '@morsels/search-lib/lib/results/SearcherOptions';
+import { MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
+import Result from '@morsels/search-lib/lib/results/Result';
+import { Query } from '@morsels/search-lib';
 import { CreateElement } from './utils/dom';
 
 export interface SearchUiRenderOptions {
@@ -21,6 +24,13 @@ export interface SearchUiRenderOptions {
     correctedTerms: string[],
     expandedTerms: string[],
   ) => HTMLElement[],
+  resultsRender?: (
+    h: CreateElement,
+    options: SearchUiOptions,
+    config: MorselsConfig,
+    results: Result[],
+    query: Query,
+  ) => Promise<HTMLElement[]>,
   listItemRender?: (
     h: CreateElement,
     fullLink: string,

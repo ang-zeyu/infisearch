@@ -1,9 +1,10 @@
 import * as escapeRegex from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
-import { MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
+import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
+import Result from '@morsels/search-lib/lib/results/Result';
 import { SearchUiOptions, SearchUiRenderOptions } from './SearchUiOptions';
-import createElement from './utils/dom';
+import createElement, { CreateElement } from './utils/dom';
 
 const domParser = new DOMParser();
 
@@ -285,6 +286,86 @@ function displayTermInfo(queryParts: QueryPart[], render: SearchUiRenderOptions)
  Main transform function
  */
 
+async function singleResultRender(
+  result: Result,
+  options: SearchUiOptions,
+  configs: MorselsConfig,
+  hasStoredContentField: FieldInfo,
+  query: Query,
+  termRegex: RegExp,
+) {
+  const { loaderConfigs } = configs.indexingConfig;
+  console.log(result);
+
+  const fields = result.getStorageWithFieldNames();
+  const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
+  const relativeLink = (relativeFpField && relativeFpField[1]) || '';
+  const fullLink = options.sourceFilesUrl ? `${options.sourceFilesUrl}/${relativeLink}` : undefined;
+  const titleField = fields.find((v) => v[0] === 'title');
+  let resultTitle = (titleField && titleField[1]) || relativeLink;
+
+  let resultHeadingsAndTexts: (string | HTMLElement)[];
+  if (hasStoredContentField) {
+    resultHeadingsAndTexts = transformText(
+      fields.filter((v) => v[0] !== RELATIVE_LINK_FIELD_NAME && v[0] !== 'title'),
+      query.searchedTerms,
+      termRegex,
+      relativeLink,
+      options.render,
+    );
+  } else if (!relativeFpField || !options.sourceFilesUrl) {
+    // Unable to retrieve and load from source file
+    resultHeadingsAndTexts = [];
+  } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
+    const asText = await (await fetch(fullLink)).text();
+    const doc = domParser.parseFromString(asText, 'text/html');
+
+    const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
+      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, relativeLink, options.render,
+    );
+    resultTitle = newTitle || resultTitle;
+    resultHeadingsAndTexts = newHeadingsAndTexts;
+  } else if (fullLink.endsWith('.json') && loaderConfigs.JsonLoader) {
+    const asJson = await (await fetch(fullLink)).json();
+
+    const { title: newTitle, bodies: newBodies } = transformJson(
+      asJson,
+      loaderConfigs.JsonLoader,
+      query.searchedTerms, termRegex, relativeLink, options.render,
+    );
+    resultTitle = newTitle || resultTitle;
+    resultHeadingsAndTexts = newBodies;
+  }
+
+  return options.render.listItemRender(
+    createElement,
+    fullLink,
+    resultTitle,
+    resultHeadingsAndTexts,
+    fields,
+  );
+}
+
+export function resultsRender(
+  h: CreateElement,
+  options: SearchUiOptions,
+  config: MorselsConfig,
+  results: Result[],
+  query: Query,
+): Promise<HTMLElement[]> {
+  const termRegex = new RegExp(
+    `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
+    'gi',
+  );
+
+  const hasStoredContentField = config.fieldInfos.find((info) => info.do_store
+      && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
+
+  return Promise.all(results.map(
+    (result) => singleResultRender(result, options, config, hasStoredContentField, query, termRegex),
+  ));
+}
+
 export default async function transformResults(
   query: Query,
   config: MorselsConfig,
@@ -292,11 +373,6 @@ export default async function transformResults(
   container: HTMLElement,
   options: SearchUiOptions,
 ): Promise<void> {
-  const termRegex = new RegExp(
-    `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
-    'gi',
-  );
-
   const loader = options.render.loadingIndicatorRender(createElement);
   if (!isFirst) {
     container.appendChild(loader);
@@ -313,62 +389,8 @@ export default async function transformResults(
   console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   now = performance.now();
 
-  const { fieldInfos, indexingConfig } = config;
-  const { loaderConfigs } = indexingConfig;
-  const hasStoredContentField = fieldInfos.find((info) => info.do_store
-      && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
+  const resultsEls = await resultsRender(createElement, options, config, results, query);
 
-  const resultsEls = await Promise.all(results.map(async (result) => {
-    console.log(result);
-
-    const fields = result.getStorageWithFieldNames();
-    const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
-    const relativeLink = (relativeFpField && relativeFpField[1]) || '';
-    const fullLink = options.sourceFilesUrl ? `${options.sourceFilesUrl}/${relativeLink}` : undefined;
-    const titleField = fields.find((v) => v[0] === 'title');
-    let resultTitle = (titleField && titleField[1]) || relativeLink;
-
-    let resultHeadingsAndTexts: (string | HTMLElement)[];
-    if (hasStoredContentField) {
-      resultHeadingsAndTexts = transformText(
-        fields.filter((v) => v[0] !== RELATIVE_LINK_FIELD_NAME && v[0] !== 'title'),
-        query.searchedTerms,
-        termRegex,
-        relativeLink,
-        options.render,
-      );
-    } else if (!relativeFpField || !options.sourceFilesUrl) {
-      // Unable to retrieve and load from source file
-      resultHeadingsAndTexts = [];
-    } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
-      const asText = await (await fetch(fullLink)).text();
-      const doc = domParser.parseFromString(asText, 'text/html');
-
-      const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
-        doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, relativeLink, options.render,
-      );
-      resultTitle = newTitle || resultTitle;
-      resultHeadingsAndTexts = newHeadingsAndTexts;
-    } else if (fullLink.endsWith('.json') && loaderConfigs.JsonLoader) {
-      const asJson = await (await fetch(fullLink)).json();
-
-      const { title: newTitle, bodies: newBodies } = transformJson(
-        asJson,
-        loaderConfigs.JsonLoader,
-        query.searchedTerms, termRegex, relativeLink, options.render,
-      );
-      resultTitle = newTitle || resultTitle;
-      resultHeadingsAndTexts = newBodies;
-    }
-
-    return options.render.listItemRender(
-      createElement,
-      fullLink,
-      resultTitle,
-      resultHeadingsAndTexts,
-      fields,
-    );
-  }));
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
   } else if (isFirst) {

@@ -2,7 +2,7 @@ import './styles/search.css';
 
 import { Searcher, Query } from '@morsels/search-lib';
 import createElement from './utils/dom';
-import transformResults from './searchResultTransform';
+import transformResults, { resultsRender } from './searchResultTransform';
 import { SearchUiOptions } from './SearchUiOptions';
 
 let query: Query;
@@ -70,7 +70,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.render = {};
   }
 
-  autoPortalControlFlag = isMobile;
+  autoPortalControlFlag = options.render.manualPortalControl && isMobile;
 
   options.render.manualPortalControl = options.render.manualPortalControl || false;
 
@@ -142,6 +142,8 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
       || ((h) => h('span', { class: 'morsels-loading-indicator' }));
 
   options.render.termInfoRender = options.render.termInfoRender || (() => []);
+
+  options.render.resultsRender = options.render.resultsRender || resultsRender;
 
   options.render.listItemRender = options.render.listItemRender || ((h, fullLink, title, bodies) => {
     const linkEl = h('a', { class: 'morsels-link' },
