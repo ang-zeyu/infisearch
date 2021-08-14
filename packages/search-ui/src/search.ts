@@ -179,7 +179,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     || ((h) => h('div', { class: 'morsels-portal-blank' }, 'Powered by tiny Morsels of 🧀'));
 }
 
-function initMorsels(options: SearchUiOptions): () => void {
+function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
   const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
   prepareOptions(options, isMobile);
 
@@ -293,7 +293,7 @@ function initMorsels(options: SearchUiOptions): () => void {
     });
   }
 
-  return showPortalUI;
+  return { showPortalUI };
 }
 
 export default initMorsels;
