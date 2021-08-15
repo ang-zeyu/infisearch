@@ -5,7 +5,7 @@ import { Query } from '@morsels/search-lib';
 import { CreateElement } from './utils/dom';
 
 export interface SearchUiRenderOptions {
-  manualPortalControl?: boolean,
+  enablePortal?: boolean | 'auto',
   portalTo?: HTMLElement,
   show?: (root: HTMLElement, isPortal: boolean) => void,
   hide?: (root: HTMLElement, isPortal: boolean) => void,

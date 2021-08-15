@@ -71,37 +71,37 @@ Some use cases for this include:
 - You need to attach additional event listeners to elements 
 - You want to override or insert additional content sourced from custom fields / static content (e.g. a footer).
 
-### Default behaviour of fullscreen popup UI version
-
-By default, on desktop devices, a search dropdown is attached to the `<input>` element as specified by `inputId`.
-
-On mobile devices however, a "portal-ed" (attached to the `<body>` element), fullscreen version of the UI is used instead.
-This is shown when the original `<input>` element is focused.
-
-You may customise this behaviour with the following 2 configuration properties under the `render` key, and the `showPortalUI` return value of the `initMorsels` function.
+### Switching between fullscreen popup or dropdown UI versions
 
 ```ts
 interface SearchUiRenderOptions {
-    manualPortalControl?: boolean,
+    enablePortal?: boolean | 'auto',
     portalTo?: HTMLElement,
     // ...
 }
 ```
 
-```ts
-const { showPortalUI } = initMorsels(/* ... */);
-```
+**`enablePortal = 'auto'`**
 
-**`manualPortalControl = false` & `showPortalUI`**
+The `enablePortal` parameter tells search-ui whether to use the fullscreen search UI for mobile devices when the original `<input>` is focused.
 
-The `manualPortalControl` parameter tells search-ui whether to automatically active the fullscreen search UI for mobile devices when the original `<input>` is focused.
-If this is undesirable, this can be set to `true`.
+The default value of `'auto'` configures this according to mobile device detection (`true` if it is a mobile device), and also adds a simple window resize handler to automatically hide the corresponding UI if the window is resized.
 
-In order to show the fullscreen search UI then, you may simply call `showPortalUI()` without any parameters.
+You can set this to `true` / `false` to always prefer the fullscreen or dropdown version instead when the original `<input>` is focused.
 
 **`portalTo = document.getElementsByTagName('body')[0]`**
 
 This parameter tells morsels which element to attach the fullscreen search UI to, which uses `fixed` positioning.
+
+**`showPortalUI(): void`**
+
+```ts
+const { showPortalUI } = initMorsels(/* ... */);
+```
+
+The default behaviour of showing the fullscreen search UI may be insufficient in some cases, for example showing the UI when clicking a search icon.
+
+You may simply call `showPortalUI()` function returned by the initMorsels call in such a case.
 
 ### Renderers
 

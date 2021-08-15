@@ -7,8 +7,6 @@ import { SearchUiOptions } from './SearchUiOptions';
 
 let query: Query;
 
-let autoPortalControlFlag = false;
-
 let isUpdating = false;
 let nextUpdate: () => any;
 async function update(
@@ -69,9 +67,9 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.render = {};
   }
 
-  autoPortalControlFlag = !options.render.manualPortalControl && isMobile;
-
-  options.render.manualPortalControl = options.render.manualPortalControl || false;
+  if (!('enablePortal' in options.render)) {
+    options.render.enablePortal = 'auto';
+  }
 
   options.render.portalTo = options.render.portalTo || document.getElementsByTagName('body')[0];
 
@@ -237,7 +235,6 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
   portalListContainer.appendChild(options.render.portalBlankRender(createElement));
 
   const showPortalUI = () => {
-    autoPortalControlFlag = true;
     options.render.show(portalRoot, true);
   };
 
@@ -254,7 +251,7 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
     input.addEventListener('input', inputListener(root, listContainer, false));
 
     input.addEventListener('blur', () => {
-      if (autoPortalControlFlag) {
+      if (options.render.enablePortal) {
         return;
       }
 
@@ -272,24 +269,33 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
     });
 
     input.addEventListener('focus', () => {
-      if (autoPortalControlFlag) {
-        if (!options.render.manualPortalControl) {
-          showPortalUI();
-        }
+      if (options.render.enablePortal) {
+        showPortalUI();
       } else if (listContainer.childElementCount) {
         options.render.show(root, false);
       }
     });
-  }
 
-  if (!options.render.manualPortalControl && input) {
-    let debounce;
-    window.addEventListener('resize', () => {
-      clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        autoPortalControlFlag = window.matchMedia('only screen and (max-width: 1024px)').matches;
-      }, 200);
-    });
+    if (options.render.enablePortal === 'auto') {
+      options.render.enablePortal = isMobile;
+
+      let debounce;
+      window.addEventListener('resize', () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+          const oldEnablePortal = options.render.enablePortal;
+          options.render.enablePortal = window.matchMedia('only screen and (max-width: 1024px)').matches;
+
+          if (oldEnablePortal !== options.render.enablePortal) {
+            if (options.render.enablePortal) {
+              options.render.hide(root, false);
+            } else {
+              options.render.hide(portalRoot, true);
+            }
+          }
+        }, 250);
+      });
+    }
   }
 
   return { showPortalUI };
