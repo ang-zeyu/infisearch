@@ -23,7 +23,7 @@ struct CliArgs {
 
 fn get_relative_or_absolute_path(from_path: &Path, path: &Path) -> PathBuf {
     if path.is_relative() {
-        from_path.join(path).canonicalize().unwrap()
+        from_path.join(path)
     } else {
         PathBuf::from(path)
     }
@@ -37,6 +37,7 @@ fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path, co
             let source_return = get_relative_or_absolute_path(&cwd, &source_folder_path);
         
             let output_return = get_relative_or_absolute_path(&cwd, &output_folder_path);
+            std::fs::create_dir_all(&output_return).expect("Failed to create output directory!");
 
             let config_return = if let Some(config_raw_file_path) = config_file_path {
                 get_relative_or_absolute_path(&cwd, &config_raw_file_path)
