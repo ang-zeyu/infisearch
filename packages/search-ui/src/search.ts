@@ -65,10 +65,6 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.resultsPerPage = 8;
   }
 
-  if (!('sourceFilesUrl' in options)) {
-    options.sourceFilesUrl = '';
-  }
-
   if (!('render' in options)) {
     options.render = {};
   }

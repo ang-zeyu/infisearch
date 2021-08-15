@@ -311,7 +311,8 @@ async function singleResultRender(
   const fields = result.getStorageWithFieldNames();
   const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
   const relativeLink = (relativeFpField && relativeFpField[1]) || '';
-  const fullLink = options.sourceFilesUrl ? `${options.sourceFilesUrl}/${relativeLink}` : undefined;
+  const hasSourceFilesUrl = typeof options.sourceFilesUrl === 'string';
+  const fullLink = hasSourceFilesUrl ? `${options.sourceFilesUrl}/${relativeLink}` : undefined;
   const titleField = fields.find((v) => v[0] === 'title');
   let resultTitle = (titleField && titleField[1]) || relativeLink;
 
@@ -324,7 +325,7 @@ async function singleResultRender(
       relativeLink,
       options.render,
     );
-  } else if (!relativeFpField || !options.sourceFilesUrl) {
+  } else if (!relativeFpField || !hasSourceFilesUrl) {
     // Unable to retrieve and load from source file
     resultHeadingsAndTexts = [];
   } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
