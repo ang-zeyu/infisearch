@@ -5,6 +5,10 @@ authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 license = "MIT"
 
+[[bin]]
+name = "morsels"
+path = "src/main.rs"
+
 [dependencies]
 structopt = "0.3"
 crossbeam = "0.5"
