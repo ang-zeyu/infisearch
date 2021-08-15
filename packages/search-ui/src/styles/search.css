@@ -223,8 +223,9 @@
     }
 }
 
-.morsels-link {
-    text-decoration: none;
+.morsels-link,
+.morsels-heading-body {
+    text-decoration: none !important;
 }
 
 .morsels-title {
