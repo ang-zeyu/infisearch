@@ -429,5 +429,8 @@ export default async function transformResults(
     sentinel.remove();
     await transformResults(query, config, false, container, options);
   }, { rootMargin: '10px 10px 10px 10px' });
-  iObserver.observe(sentinel);
+
+  if (sentinel) {
+    iObserver.observe(sentinel);
+  }
 }
