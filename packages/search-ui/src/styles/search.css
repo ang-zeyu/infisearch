@@ -21,6 +21,7 @@
     background-color: rgb(239, 216, 194);
     box-sizing: border-box;
     overflow-y: scroll;
+    z-index: 1000;
 }
 
 .morsels-portal-input-button-wrapper {
@@ -29,8 +30,9 @@
     position: sticky;
     top: 0;
     padding: 0.5em 0.33em;
-    font-size: 48px;
+    font-size: 24px;
     background-color: rgb(245, 200, 155);
+    z-index: 1000;
 }
 
 .morsels-portal-input {
@@ -41,6 +43,7 @@
     border: 2px solid rgba(253, 202, 144, 0.37);
     border-radius: 30px;
     box-sizing: border-box;
+    font-size: inherit;
 }
 
 .morsels-portal-input:focus {
@@ -56,6 +59,8 @@
     width: 1.65em;
     height: 1.65em;
     margin-left: 20px;
+    font-size: inherit;
+    cursor: pointer;
     background-color: rgba(255, 210, 144, 0.8);
     transition: 0.2s linear background-color;
 }
@@ -97,7 +102,6 @@
 }
 
 .morsels-portal-blank {
-    width: 100%;
     text-align: center;
     font-size: 0.9em;
     color: rgba(0, 0, 0, 0.6);
@@ -168,17 +172,9 @@
     padding: 0 0.5em 1em 0.5em;
     background-color: transparent;
     position: static;
-    font-size: 36px;
+    font-size: 18px;
     max-height: none;
     overflow-y: auto;
-}
-
-@media screen and (min-width: 1025px) {
-    .morsels-portal-root .morsels-list {
-        font-size: 20px;
-        max-height: none;
-        overflow-y: auto;
-    }
 }
 
 .morsels-portal-root::-webkit-scrollbar-track,
@@ -219,7 +215,7 @@
 
 @media screen and (max-width: 1024px) {
     .morsels-list-item {
-        margin: 25px 15px;
+        margin: 18px 5px;
     }
 }
 
@@ -332,9 +328,3 @@
     }
 }
 
-@media screen and (max-width: 1024px) {
-    .morsels-loading-indicator:after {
-        width: 80px;
-        height: 80px;
-    }
-}
