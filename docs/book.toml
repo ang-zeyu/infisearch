@@ -7,3 +7,9 @@ title = "Morsels Documentation"
 
 [output.html.search]
 enable = false
+
+[preprocessor.morsels]
+command = "mdbook-morsels"
+renderer = ["html"]
+
+[output.morsels]
