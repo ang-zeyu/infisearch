@@ -192,13 +192,14 @@ Note that there are some minor differences between the dropdown version and full
 <div class="morsels-portal-backdrop">
 <!-- fullscreen version end -->
     
-<div class="morsels-input-wrapper">
+<div class="morsels-root"> <!-- fullscreen version has an additional "morsels-portal-root" class -->
+
     <!-- dropdown version -->
     <input id="morsels-search" placeholder="Search">
     <div class="morsels-input-dropdown-separator" style="display: none;"></div>
     <!-- dropdown version end -->
 
-    <!-- fullscreen version -->
+    <!-- fullscreen version only, wrap search box & close button in a sticky header -->
     <div class="morsels-portal-input-button-wrapper">
         <!-- (portalInputRender) START -->
         <input class="morsels-portal-input" type="text">
