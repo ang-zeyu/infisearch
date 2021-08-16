@@ -184,7 +184,10 @@ The below sections shows the available loaders and configuration options availab
 ```json
 {
   "HtmlLoader": {
-    "exclude_selectors": [], // list of selectors to exclude from indexing. Empty by default.
+    // list of selectors to exclude from indexing
+    "exclude_selectors": [
+      "script,style"
+    ],
     "selectors": [
       {
         "attr_map": {},

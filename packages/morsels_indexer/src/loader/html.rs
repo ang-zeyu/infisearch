@@ -49,11 +49,15 @@ fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
     ]
 }
 
+fn get_default_exclude_selectors() -> Vec<String> {
+    vec!["script,style".to_owned()]
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct HtmlLoaderOptionsRaw {
     #[serde(default = "get_default_html_loader_selectors")]
     selectors: Vec<HtmlLoaderSelectorRaw>,
-    #[serde(default = "Vec::new")]
+    #[serde(default = "get_default_exclude_selectors")]
     exclude_selectors: Vec<String>
 }
 
