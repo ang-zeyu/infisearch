@@ -8,8 +8,8 @@ use wasm_bindgen::JsValue;
 use web_sys::Response;
 
 use morsels_common::tokenize::TermInfo;
+use morsels_common::utils::varint::decode_var_int;
 use crate::postings_list_file_cache::PostingsListFileCache;
-use crate::utils::varint::decode_var_int;
 
 pub struct DocField {
     pub field_tf: f32,

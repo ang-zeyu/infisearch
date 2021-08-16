@@ -5,6 +5,7 @@ use rustc_hash::FxHashMap;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
 
+use crate::dictionary::SearchDictionary;
 use crate::postings_list::PostingsList;
 use crate::searcher::Searcher;
 use crate::searcher::query_parser::QueryPart;

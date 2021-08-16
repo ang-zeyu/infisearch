@@ -1254,6 +1254,7 @@ dependencies = [
 name = "morsels_common"
 version = "0.1.0"
 dependencies = [
+ "byteorder",
  "rustc-hash",
  "serde",
  "serde_json",

@@ -1,3 +1,4 @@
+use crate::dictionary::SearchDictionary;
 use crate::searcher::Searcher;
 use crate::searcher::query_parser::QueryPart;
 
