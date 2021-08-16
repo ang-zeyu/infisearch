@@ -100,6 +100,13 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
       },
     );
 
+    let backdropEl;
+    if (portalCloseHandler) {
+      backdropEl = h('div', { class: 'morsels-portal-backdrop' }, root);
+      root.onclick = (ev) => ev.stopPropagation();
+      backdropEl.onclick = () => backdropEl.remove();
+    }
+
     if (portalCloseHandler) {
       const buttonEl = h('button', { class: 'morsels-input-close-portal' });
       buttonEl.onclick = portalCloseHandler;
@@ -120,7 +127,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     root.appendChild(listContainer);
 
     return {
-      root,
+      root: portalCloseHandler ? backdropEl : root,
       listContainer,
     };
   });
@@ -227,11 +234,11 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
   };
 
   // Fullscreen portal-ed version
-  const mobileInput: HTMLInputElement = options.render.portalInputRender(createElement);
+  const portalInput: HTMLInputElement = options.render.portalInputRender(createElement);
   const { root: portalRoot, listContainer: portalListContainer } = options.render.rootRender(
-    createElement, mobileInput, () => options.render.hide(portalRoot, true),
+    createElement, portalInput, () => options.render.hide(portalRoot, true),
   );
-  mobileInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
+  portalInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
   portalListContainer.appendChild(options.render.portalBlankRender(createElement));
 
   const showPortalUI = () => {

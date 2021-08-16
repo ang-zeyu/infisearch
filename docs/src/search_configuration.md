@@ -187,6 +187,11 @@ Note that there are some minor differences between the dropdown version and full
 
 ```html
 <!-- (rootRender) START -->
+
+<!-- fullscreen version only - root element is a backdrop to facilitate backdrop dismiss -->
+<div class="morsels-portal-backdrop">
+<!-- fullscreen version end -->
+    
 <div class="morsels-input-wrapper">
     <!-- dropdown version -->
     <input id="morsels-search" placeholder="Search">
@@ -279,6 +284,8 @@ Note that there are some minor differences between the dropdown version and full
         <li class="morsels-list-item">...</li>
         <!-- (resultsRender) END -->
     </ul>
+</div>
+    
 </div>
 ```
 
