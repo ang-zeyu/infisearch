@@ -199,7 +199,7 @@ function transformHtml(
 ): { title: string, bodies: (string | HTMLElement)[] } {
   const fields: [string, string][] = [];
 
-  if (loaderConfig.excludeSelectors) {
+  if (loaderConfig.exclude_selectors) {
     for (const excludeSelector of loaderConfig.exclude_selectors) {
       const nodes = doc.querySelectorAll(excludeSelector);
       for (let i = 0; i < nodes.length; i += 1) {
