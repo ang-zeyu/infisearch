@@ -227,10 +227,6 @@ impl Searcher {
         query_part: &mut QueryPart,
         term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
     ) -> Rc<PostingsList> {
-        let not_child_postings_list = self.populate_postings_lists(
-            query_part.children.as_mut().unwrap(),
-            term_postings_lists,
-        ).remove(0);
         let mut result_pl = PostingsList {
             weight: 1.0,
             include_in_proximity_ranking: false,
@@ -241,17 +237,26 @@ impl Searcher {
             max_term_score: 0.0,
         };
 
+        let mut not_child_postings_lists = self.populate_postings_lists(
+            query_part.children.as_mut().unwrap(),
+            term_postings_lists,
+        );
+
         let mut prev = 0;
-        for td in not_child_postings_list.term_docs.iter() {
-            for doc_id in prev..td.doc_id {
-                if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                    result_pl.term_docs.push(TermDoc {
-                        doc_id,
-                        fields: Vec::new(),
-                    });
+        if !not_child_postings_lists.is_empty() {
+            let not_child_postings_list = not_child_postings_lists.remove(0);
+
+            for td in not_child_postings_list.term_docs.iter() {
+                for doc_id in prev..td.doc_id {
+                    if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
+                        result_pl.term_docs.push(TermDoc {
+                            doc_id,
+                            fields: Vec::new(),
+                        });
+                    }
                 }
+                prev = td.doc_id + 1;
             }
-            prev = td.doc_id + 1;
         }
 
         for doc_id in prev..self.doc_info.doc_length_factors_len {
