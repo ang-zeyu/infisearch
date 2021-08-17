@@ -140,6 +140,7 @@ impl Searcher {
             postings_lists.into_iter().map(|pl| (*pl).fetch_term(
                 &self.searcher_config.searcher_options.url,
                 &self.pl_file_cache,
+                &self.invalidation_vector,
                 &window,
                 self.searcher_config.num_scored_fields,
                 self.searcher_config.indexing_config.num_pls_per_dir,

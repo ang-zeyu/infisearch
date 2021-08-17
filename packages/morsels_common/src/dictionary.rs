@@ -17,6 +17,7 @@ pub struct Dictionary {
     pub trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
 }
 
+#[inline(always)]
 pub fn setup_dictionary(
     table_vec: Vec<u8>,
     string_vec: Vec<u8>,
@@ -32,18 +33,17 @@ pub fn setup_dictionary(
 
   let table_vec_len = table_vec.len();
   while dict_table_pos < table_vec_len {
-    let val_and_length = varint::decode_var_int(&table_vec[dict_table_pos..]);
-    dict_table_pos += val_and_length.1;
+    let (doc_freq, doc_freq_len) = varint::decode_var_int(&table_vec[dict_table_pos..]);
+    dict_table_pos += doc_freq_len;
 
     // new postings list delimiter
-    let doc_freq = val_and_length.0;
     if doc_freq == 0 {
       postings_file_name += 1;
       continue;
     }
     
-    let postings_file_offset = LittleEndian::read_u16(&table_vec[dict_table_pos..]);
-    dict_table_pos += 2;
+    let postings_file_offset = LittleEndian::read_u32(&table_vec[dict_table_pos..]);
+    dict_table_pos += 4;
 
     let prefix_len = string_vec[dict_string_pos] as usize;
     dict_string_pos += 1;

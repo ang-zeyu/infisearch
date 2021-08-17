@@ -1,4 +1,5 @@
-pub fn get_tri_grams<'a> (term: &'a str) -> impl Iterator<Item = &'a str> {
+#[inline(always)]
+pub fn get_tri_grams(term: &str) -> impl Iterator<Item = &str> {
   let chars = term.char_indices();
 
   chars.enumerate()

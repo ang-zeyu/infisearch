@@ -6,7 +6,7 @@ pub struct TermInfo {
     pub doc_freq: u32,
     pub idf: f64,
     pub postings_file_name: u32,
-    pub postings_file_offset: u16,
+    pub postings_file_offset: u32,
 }
 
 pub trait Tokenizer {

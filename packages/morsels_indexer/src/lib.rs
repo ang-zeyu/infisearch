@@ -1,5 +1,6 @@
 
 mod docinfo;
+mod dynamic_index_info;
 pub mod fieldinfo;
 pub mod loader;
 mod spimireader;
@@ -9,20 +10,21 @@ mod worker;
 
 use std::cmp::Ordering;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::sync::Mutex;
 use std::time::Instant;
 use std::sync::Arc;
 use std::path::Path;
 use std::path::PathBuf;
 
+use morsels_common::dictionary::Dictionary;
 use morsels_common::MorselsLanguageConfig;
 use morsels_common::tokenize::Tokenizer;
 use morsels_lang_chinese::chinese;
 use morsels_lang_latin::english;
 
 use crate::docinfo::DocInfos;
-use crate::fieldinfo::FieldConfig;
+use crate::dynamic_index_info::DynamicIndexInfo;
 use crate::fieldinfo::FieldsConfig;
 use crate::fieldinfo::FieldInfo;
 use crate::fieldinfo::FieldInfos;
@@ -199,6 +201,10 @@ pub struct Indexer {
     num_workers_writing_blocks: Arc<Mutex<usize>>,
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     language_config: MorselsLanguageConfig,
+    dictionary: Dictionary,
+    is_dynamic: bool,
+    start_doc_id: u32,
+    dynamic_index_info: DynamicIndexInfo,
 }
 
 
@@ -207,6 +213,7 @@ impl Indexer {
     pub fn new(
         output_folder_path: &Path,
         config: MorselsConfig,
+        mut is_dynamic: bool,
     ) -> Indexer {
         let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
         let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
@@ -219,6 +226,29 @@ impl Indexer {
         let loaders = config.indexing_config.get_loaders_from_config();
 
         let tokenizer = Indexer::resolve_tokenizer(&config.language);
+
+        is_dynamic = is_dynamic
+          && if let Ok(meta) = std::fs::metadata(output_folder_path.join("dictionaryTable")) { meta.is_file() } else { false };
+
+        let dictionary = if is_dynamic {
+            let mut dictionary_table_vec: Vec<u8> = Vec::new();
+            let mut dictionary_string_vec: Vec<u8> = Vec::new();
+            File::open(output_folder_path.join("dictionaryTable")).unwrap().read_to_end(&mut dictionary_table_vec).unwrap();
+            File::open(output_folder_path.join("dictionaryString")).unwrap().read_to_end(&mut dictionary_string_vec).unwrap();
+
+            morsels_common::dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false)
+        } else {
+            Dictionary {
+                term_infos: FxHashMap::default(),
+                trigrams: FxHashMap::default(),
+            }
+        };
+
+        let dynamic_index_info = if is_dynamic {
+            dynamic_index_info::DynamicIndexInfo::new_from_output_folder(&output_folder_path)
+        } else {
+            dynamic_index_info::DynamicIndexInfo::empty()
+        };
 
         let mut indexer = Indexer {
             indexing_config: config.indexing_config,
@@ -239,11 +269,24 @@ impl Indexer {
             num_workers_writing_blocks: Arc::from(Mutex::from(0)),
             tokenizer,
             language_config: config.language,
+            dictionary,
+            is_dynamic,
+            start_doc_id: 0,
+            dynamic_index_info,
         };
 
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
         for field_config in config.fields_config.fields {
-            indexer.add_field(&mut field_infos_by_name, field_config);
+            field_infos_by_name.insert(
+                field_config.name.to_owned(),
+                FieldInfo {
+                    id: 0,
+                    do_store: field_config.do_store,
+                    weight: field_config.weight,
+                    k: field_config.k,
+                    b: field_config.b,
+                }
+            );
         }
         indexer.finalise_fields(field_infos_by_name);
 
@@ -272,19 +315,6 @@ impl Indexer {
         }
     }
 
-    fn add_field(&mut self, field_infos_by_name: &mut FxHashMap<String, FieldInfo>, field_config: FieldConfig) {
-        field_infos_by_name.insert(
-            field_config.name.to_owned(),
-            FieldInfo {
-                id: 0,
-                do_store: field_config.do_store,
-                weight: field_config.weight,
-                k: field_config.k,
-                b: field_config.b,
-            }
-        );
-    }
-
     fn finalise_fields(&mut self, mut field_infos_by_name: FxHashMap<String, FieldInfo>) {
         let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
         field_entries.sort_by(|a, b| {
@@ -304,14 +334,25 @@ impl Indexer {
         let field_infos = FieldInfos::init(field_infos_by_name, self.field_store_block_size, &self.output_folder_path);
         self.field_infos = Option::from(Arc::new(field_infos));
         
-        self.doc_infos = Option::from(
-            Arc::from(Mutex::from(DocInfos::init_doc_infos(self.field_infos.as_ref().unwrap().num_scored_fields)))
-        );
-        
+        self.doc_infos = Some(Arc::from(Mutex::from(
+            if self.is_dynamic {
+                let mut doc_infos_vec: Vec<u8> = Vec::new();
+                File::open(self.output_folder_path.join("docInfo")).unwrap().read_to_end(&mut doc_infos_vec).unwrap();
+
+                DocInfos::from_search_docinfo(doc_infos_vec, self.field_infos.as_ref().unwrap().num_scored_fields)
+            } else {
+                DocInfos::init_doc_infos(self.field_infos.as_ref().unwrap().num_scored_fields)
+            }
+        )));
+
+        self.doc_id_counter = self.doc_infos.as_ref().unwrap().lock().unwrap().doc_lengths.len() as u32;
+        self.start_doc_id = self.doc_id_counter;
+
         // Construct worker threads
         let num_docs_per_thread = self.expected_num_docs_per_thread;
         let num_stores_per_dir = self.indexing_config.num_stores_per_dir;
         let with_positions = self.indexing_config.with_positions;
+        let is_dynamic = self.is_dynamic;
         for i in 0..self.indexing_config.num_threads {
             let tx_worker_clone = self.tx_worker.clone();
             let rx_worker_clone = self.rx_worker.clone();
@@ -332,16 +373,30 @@ impl Indexer {
                         with_positions,
                         num_docs_per_thread,
                         num_workers_writing_blocks_clone,
+                        is_dynamic,
                     )),
             });
         }
     }
 
     fn block_number(&self) -> u32 {
-        ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).ceil() as u32
+        ((self.doc_id_counter - self.start_doc_id) as f64 / (self.indexing_config.num_docs_per_block as f64)).ceil() as u32
     }
 
     pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
+        let modified = if let Ok(metadata) = std::fs::metadata(path) {
+            if let Ok(modified) = metadata.modified() {
+                if !self.dynamic_index_info.invalidate_path_if_needed(relative_path, modified) && self.is_dynamic {
+                    return;
+                }
+                Some(modified)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path) {
                 for loader_result in loader_results {
@@ -349,6 +404,10 @@ impl Indexer {
                         doc_id: self.doc_id_counter,
                         loader_result,
                     }).expect("Failed to send work message to worker!");
+
+                    if let Some(modified) = modified {
+                        self.dynamic_index_info.add_doc_to_path(relative_path, &modified, self.doc_id_counter);
+                    }
                 
                     self.doc_id_counter += 1;
                     self.spimi_counter += 1;
@@ -437,17 +496,34 @@ impl Indexer {
         // Merge spimi blocks
         // Go through all blocks at once
         let num_blocks = self.block_number();
-        spimireader::merge_blocks(
-            self.doc_id_counter,
-            num_blocks,
-            &mut self.indexing_config,
-            &mut self.pl_names_to_cache,
-            std::mem::take(&mut self.doc_infos).unwrap(),
-            &self.tx_main,
-            &self.output_folder_path
-        );
+        if self.is_dynamic {
+            spimireader::modify_blocks(
+                self.doc_id_counter,
+                num_blocks,
+                &mut self.indexing_config,
+                &mut self.pl_names_to_cache,
+                std::mem::take(&mut self.doc_infos).unwrap(),
+                &self.tx_main,
+                &self.output_folder_path,
+                &mut self.dictionary,
+                &mut self.dynamic_index_info,
+            );
+        } else {
+            spimireader::merge_blocks(
+                self.doc_id_counter,
+                num_blocks,
+                &mut self.indexing_config,
+                &mut self.pl_names_to_cache,
+                std::mem::take(&mut self.doc_infos).unwrap(),
+                &self.tx_main,
+                &self.output_folder_path,
+                &mut self.dynamic_index_info,
+            );
+        }
 
         self.write_morsels_config();
+
+        self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter - 1);
 
         spimireader::cleanup_blocks(num_blocks, &self.output_folder_path);
     

@@ -185,6 +185,7 @@ impl PostingsList {
         &mut self,
         base_url: &str,
         pl_file_cache: &PostingsListFileCache,
+        invalidation_vector: &Vec<u8>,
         window: &web_sys::Window,
         num_scored_fields: usize,
         num_pls_per_dir: u32,
@@ -205,8 +206,6 @@ impl PostingsList {
         };
 
         let mut pos = term_info.postings_file_offset as usize;
-        self.max_term_score = LittleEndian::read_f32(&pl_vec[pos..]) * self.weight;
-        pos += 4;
 
         let mut prev_doc_id = 0;
         for _i in 0..term_info.doc_freq {
@@ -257,8 +256,12 @@ impl PostingsList {
                 });
             }
 
-            self.term_docs.push(term_doc);
+            if !morsels_common::bitmap::check(invalidation_vector, prev_doc_id as usize) {
+                self.term_docs.push(term_doc);
+            }
         }
+
+        self.max_term_score = LittleEndian::read_f32(&pl_vec[pos..]) * self.weight;
 
         Ok(())
     }

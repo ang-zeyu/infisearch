@@ -10,6 +10,8 @@ use serde::{Deserialize};
 use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::{wasm_bindgen};
+use wasm_bindgen_futures::JsFuture;
+use web_sys::Response;
 
 use crate::docinfo::DocInfo;
 use crate::dictionary::Dictionary;
@@ -72,6 +74,7 @@ pub struct Searcher {
   doc_info: DocInfo,
   pl_file_cache: PostingsListFileCache,
   searcher_config: SearcherConfig,
+  invalidation_vector: Vec<u8>,
 }
 
 #[cfg(feature = "lang_latin")]
@@ -103,11 +106,16 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
   let tokenizer = get_tokenizer(&mut searcher_config.language);
   let build_trigram = tokenizer.use_default_trigram();
 
+  let window: web_sys::Window = js_sys::global().unchecked_into();
   let dictionary = setup_dictionary(
     &searcher_config.searcher_options.url,
     doc_info.num_docs,
     build_trigram,
   ).await?;
+
+  let invalidation_vector_future = JsFuture::from(
+    window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + "/_invalidation_vector"))
+  );
 
   let pl_file_cache = PostingsListFileCache::create(
     &searcher_config.searcher_options.url,
@@ -115,12 +123,17 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     searcher_config.indexing_config.num_pls_per_dir
   ).await;
 
+  let invalidation_vec_resp: Response = invalidation_vector_future.await?.dyn_into().unwrap();
+  let invalidation_vec_buf = JsFuture::from(invalidation_vec_resp.array_buffer()?).await?;
+  let invalidation_vector = js_sys::Uint8Array::new(&invalidation_vec_buf).to_vec();
+
   Ok(Searcher {
     dictionary,
     tokenizer,
     doc_info,
     pl_file_cache,
     searcher_config,
+    invalidation_vector,
   })
 }
 

@@ -1,5 +1,6 @@
 use serde::{Serialize,Deserialize};
 
+pub mod bitmap;
 pub mod dictionary;
 pub mod tokenize;
 pub mod utils;

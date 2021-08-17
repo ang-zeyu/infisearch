@@ -5,6 +5,8 @@ use std::rc::Rc;
 
 use rustc_hash::FxHashMap;
 
+use morsels_common::bitmap;
+
 use crate::postings_list::DocField;
 use crate::postings_list::TermDoc;
 use crate::postings_list::PlIterator;
@@ -41,7 +43,7 @@ impl Searcher {
             max_term_score: 0.0,
         };
 
-        let mut curr_doc_id = self.doc_info.num_docs + 1;
+        let mut curr_doc_id = self.doc_info.doc_length_factors_len + 1;
         let mut curr_num_docs = 0;
         while !iterator_heap.is_empty() {
             let min_pl_iterator_rc = iterator_heap.pop().unwrap();
@@ -133,7 +135,7 @@ impl Searcher {
                     td.fields.push(result_doc_field);
                 }
 
-                curr_doc_id = self.doc_info.num_docs + 1;
+                curr_doc_id = self.doc_info.doc_length_factors_len + 1;
                 curr_num_docs = 0;
 
                 if has_match {
@@ -180,7 +182,7 @@ impl Searcher {
             max_term_score: 0.0,
         };
 
-        let mut curr_doc_id: u32 = self.doc_info.num_docs + 1;
+        let mut curr_doc_id: u32 = self.doc_info.doc_length_factors_len + 1;
         let mut curr_num_docs = 0;
         while !doc_heap.is_empty() {
             let mut min_pl_iterator = doc_heap.pop().unwrap();
@@ -202,7 +204,7 @@ impl Searcher {
                     }
                     result_pl.term_docs.push(acc);
                     
-                    curr_doc_id = self.doc_info.num_docs + 1;
+                    curr_doc_id = self.doc_info.doc_length_factors_len + 1;
                     curr_num_docs = 0;
                 }
             } else {
@@ -242,18 +244,23 @@ impl Searcher {
         let mut prev = 0;
         for td in not_child_postings_list.term_docs.iter() {
             for doc_id in prev..td.doc_id {
+                if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
+                    result_pl.term_docs.push(TermDoc {
+                        doc_id,
+                        fields: Vec::new(),
+                    });
+                }
+            }
+            prev = td.doc_id + 1;
+        }
+
+        for doc_id in prev..self.doc_info.doc_length_factors_len {
+            if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
                 result_pl.term_docs.push(TermDoc {
                     doc_id,
                     fields: Vec::new(),
                 });
             }
-            prev = td.doc_id + 1;
-        }
-        for doc_id in prev..self.doc_info.num_docs {
-            result_pl.term_docs.push(TermDoc {
-                doc_id,
-                fields: Vec::new(),
-            });
         }
 
         result_pl.calc_pseudo_idf(self.doc_info.num_docs);
@@ -295,7 +302,7 @@ impl Searcher {
             max_term_score: 0.0,
         };
 
-        let mut curr_doc_id: u32 = self.doc_info.num_docs + 1;
+        let mut curr_doc_id: u32 = self.doc_info.doc_length_factors_len + 1;
         let mut curr_pl_iterators: Vec<Reverse<PlIterator>> = Vec::with_capacity(num_pls);
 
         let mut merge_curr_termdocs = |curr_pl_iterators: &Vec<Reverse<PlIterator>>| {

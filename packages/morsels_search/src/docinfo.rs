@@ -5,6 +5,7 @@ use web_sys::{Request, Response};
 
 pub struct DocInfo {
     pub doc_length_factors: Vec<Vec<f64>>,
+    pub doc_length_factors_len: u32,
     pub num_docs: u32,
 }
 
@@ -22,8 +23,11 @@ impl DocInfo {
         let doc_info_vec: Vec<u8> = doc_info_typebuf.to_vec();
 
         let mut byte_offset = 0;
+
+        // num_docs =/= doc_length_factors.len() due to dynamic indexing
         let num_docs = LittleEndian::read_u32(&doc_info_vec);
         byte_offset += 4;
+
         let mut avg_doc_lengths: Vec<f64> = Vec::new();
         let mut doc_length_factors: Vec<Vec<f64>> = Vec::new();
 
@@ -43,8 +47,10 @@ impl DocInfo {
             doc_length_factors.push(doc_field_lengths);
         }
 
+        let doc_length_factors_len = doc_length_factors.len() as u32;
         Ok(DocInfo {
             doc_length_factors,
+            doc_length_factors_len,
             num_docs,
         })
     }

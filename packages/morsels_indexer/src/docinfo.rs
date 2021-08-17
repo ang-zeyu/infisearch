@@ -6,6 +6,8 @@ use std::io::BufWriter;
 use std::io::Write;
 use std::path::PathBuf;
 
+use byteorder::{ByteOrder, LittleEndian};
+
 pub struct BlockDocLengths(pub Vec<WorkerMinerDocInfo>);
 
 impl Eq for BlockDocLengths {}
@@ -29,12 +31,47 @@ impl PartialOrd for BlockDocLengths {
 }
 
 pub struct DocInfos {
-    doc_lengths: Vec<WorkerMinerDocInfo>,
+    pub doc_lengths: Vec<WorkerMinerDocInfo>,
     pub all_block_doc_lengths: Vec<BlockDocLengths>, // store doc lengths from each block and sort later
     average_lengths: Vec<f64>,
 }
 
 impl DocInfos {
+    pub fn from_search_docinfo(doc_info_vec: Vec<u8>, num_fields: usize) -> DocInfos {
+        let mut byte_offset = 4; // first 4 bytes is number of documents
+
+        let mut average_lengths: Vec<f64> = Vec::new();
+        for _i in 0..num_fields {
+            average_lengths.push(LittleEndian::read_f64(&doc_info_vec[byte_offset..]));
+            byte_offset += 8;
+        }
+
+        let total_bytes = doc_info_vec.len();
+        let mut doc_lengths = Vec::new();
+        let mut doc_id = 0;
+        while byte_offset < total_bytes {
+            let mut doc_info = WorkerMinerDocInfo {
+                doc_id,
+                field_lengths: vec![0; num_fields],
+                field_texts: Vec::new(),
+            };
+            doc_id += 1;
+
+            for i in 0..num_fields {
+                doc_info.field_lengths[i] = LittleEndian::read_u32(&doc_info_vec[byte_offset..]);
+                byte_offset += 4;
+            }
+
+            doc_lengths.push(doc_info);
+        }
+
+        DocInfos {
+            doc_lengths,
+            all_block_doc_lengths: Vec::new(),
+            average_lengths,
+        }
+    }
+
     pub fn get_field_len_factor(&self, doc_id: usize, field_id: usize) -> f32 {
         ((self.doc_lengths[doc_id].field_lengths[field_id]) as f64 / self.average_lengths[field_id]) as f32
     }
@@ -50,9 +87,8 @@ impl DocInfos {
     fn sort_and_merge_block_doclengths(&mut self) {
         self.all_block_doc_lengths.sort();
 
-        self.doc_lengths = std::mem::take(&mut self.all_block_doc_lengths).into_iter()
-            .flat_map(|block_doc_lengths| block_doc_lengths.0)
-            .collect();
+        self.doc_lengths.extend(std::mem::take(&mut self.all_block_doc_lengths).into_iter()
+            .flat_map(|block_doc_lengths| block_doc_lengths.0));
     }
 
     fn calculate_field_average_lengths(&mut self, writer: &mut BufWriter<std::fs::File>) {
@@ -72,12 +108,12 @@ impl DocInfos {
         }
     }
 
-    pub fn finalize_and_flush(&mut self, output_file_path: PathBuf) {
+    pub fn finalize_and_flush(&mut self, output_file_path: PathBuf, num_docs: u32) {
         self.sort_and_merge_block_doclengths();
 
         let mut doc_info_writer = BufWriter::new(File::create(output_file_path).unwrap());
 
-        doc_info_writer.write_all(&(self.doc_lengths.len() as u32).to_le_bytes()).unwrap();
+        doc_info_writer.write_all(&num_docs.to_le_bytes()).unwrap();
 
         self.calculate_field_average_lengths(&mut doc_info_writer);
 

@@ -1281,6 +1281,7 @@ dependencies = [
  "scraper",
  "serde",
  "serde_json",
+ "smartstring",
  "structopt",
  "typetag",
  "walkdir",

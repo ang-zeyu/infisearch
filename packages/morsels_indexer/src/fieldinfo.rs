@@ -99,10 +99,7 @@ impl FieldInfos {
 
         let field_output_folder_path = output_folder_path.join("field_store");
 
-        if field_output_folder_path.exists() {
-            std::fs::remove_dir_all(&field_output_folder_path).unwrap();
-        }
-        std::fs::create_dir(&field_output_folder_path).unwrap();
+        std::fs::create_dir_all(&field_output_folder_path).unwrap();
 
         FieldInfos {
             field_infos_map,

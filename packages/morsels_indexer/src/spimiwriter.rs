@@ -3,9 +3,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::collections::BinaryHeap;
 use std::fs::File;
-use std::io::BufWriter;
-use std::io::Write;
-use std::path::Path;
+use std::fs::OpenOptions;
+use std::io::{BufWriter, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 
 use rustc_hash::FxHashMap;
@@ -73,26 +72,6 @@ impl Indexer {
     }
 }
 
-#[inline(always)]
-fn get_field_store_writer(
-    field_output_folder_path: &Path,
-    count: u32,
-    field_store_block_size: u32,
-    num_stores_per_dir: u32,
-) -> BufWriter<File> {
-    let store_num = count / field_store_block_size;
-    let dir_output_folder_path = field_output_folder_path.join((store_num / num_stores_per_dir).to_string());
-    if (store_num % num_stores_per_dir == 0) && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir()) {
-        std::fs::create_dir(&dir_output_folder_path).expect("Failed to create field store output dir!");
-    }
-
-    BufWriter::new(
-        File::create(
-            dir_output_folder_path.join(format!("{}.json", store_num))
-        ).expect("Failed to open field store for writing.")
-    )
-}
-
 #[allow(clippy::too_many_arguments)]
 pub fn combine_worker_results_and_write_block(
     worker_index_results: Vec<WorkerBlockIndexResults>,
@@ -100,6 +79,7 @@ pub fn combine_worker_results_and_write_block(
     output_folder_path: PathBuf,
     field_infos: &Arc<FieldInfos>,
     block_number: u32,
+    is_dynamic: bool,
     num_stores_per_dir: u32,
     num_docs: u32,
     total_num_docs: u32,
@@ -140,18 +120,37 @@ pub fn combine_worker_results_and_write_block(
         // Store field texts
         let mut count = total_num_docs;
         let mut block_count = 0;
-        let mut writer = BufWriter::new(File::create(field_infos.field_output_folder_path.join("nul")).unwrap());
+        let mut writer = BufWriter::new(File::create(field_infos.field_output_folder_path.join(".nul")).unwrap());
         for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
             block_count += 1;
 
             if block_count == 1 {
-                writer = get_field_store_writer(
-                    &field_infos.field_output_folder_path,
-                    count,
-                    field_infos.field_store_block_size,
-                    num_stores_per_dir,
-                );
-                writer.write_all(b"[").unwrap();
+                let store_num = count / field_infos.field_store_block_size;
+                let dir_output_folder_path = field_infos.field_output_folder_path.join((store_num / num_stores_per_dir).to_string());
+                if (store_num % num_stores_per_dir == 0) && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir()) {
+                    std::fs::create_dir(&dir_output_folder_path).expect("Failed to create field store output dir!");
+                }
+
+                let output_file_path = dir_output_folder_path.join(format!("{}.json", store_num));
+                if is_dynamic && block_number == 1 && output_file_path.exists() {
+                    // The first block for dynamic indexing might have been left halfway through somewhere before
+                    let mut field_store_file = OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(output_file_path)
+                        .expect("Failed to open existing field store for editing");
+                    field_store_file.seek(SeekFrom::End(-1)).expect("Failed to seek to existing field store end");
+
+                    // Override ']' with ','
+                    field_store_file.write_all(b",").expect("Failed to override existing field store ] with ,");
+                    
+                    writer = BufWriter::new(field_store_file);
+                } else {
+                    writer = BufWriter::new(
+                        File::create(output_file_path).expect("Failed to open field store for writing.")
+                    );
+                    writer.write_all(b"[").unwrap();
+                }
             } else {
                 writer.write_all(b",").unwrap();
             }
