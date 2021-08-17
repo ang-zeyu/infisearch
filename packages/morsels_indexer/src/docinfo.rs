@@ -126,3 +126,13 @@ impl DocInfos {
         doc_info_writer.flush().unwrap();
     }
 }
+
+impl Default for DocInfos {
+    fn default() -> Self {
+        DocInfos {
+            doc_lengths: Vec::new(),
+            all_block_doc_lengths: Vec::new(),
+            average_lengths: vec![0.0; 0],
+        }
+    }
+}

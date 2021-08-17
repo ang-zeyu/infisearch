@@ -24,7 +24,7 @@ use morsels_lang_chinese::chinese;
 use morsels_lang_latin::english;
 
 use crate::docinfo::DocInfos;
-use crate::dynamic_index_info::DynamicIndexInfo;
+use crate::dynamic_index_info::{DynamicIndexInfo, DYNAMIC_INDEX_INFO_FILE_NAME};
 use crate::fieldinfo::FieldsConfig;
 use crate::fieldinfo::FieldInfo;
 use crate::fieldinfo::FieldInfos;
@@ -184,22 +184,17 @@ impl Default for MorselsConfig {
 
 pub struct Indexer {
     indexing_config: MorselsIndexingConfig,
-    expected_num_docs_per_thread: usize,
     doc_id_counter: u32,
     spimi_counter: u32,
     pl_names_to_cache: Vec<u32>,
-    field_store_block_size: u32,
-    field_infos: Option<Arc<FieldInfos>>,
+    field_infos: Arc<FieldInfos>,
     output_folder_path: PathBuf,
     workers: Vec<Worker>,
     loaders: Vec<Box<dyn Loader>>,
-    doc_infos: Option<Arc<Mutex<DocInfos>>>,
+    doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
-    tx_worker: Sender<WorkerToMainMessage>,
-    rx_worker: Receiver<MainToWorkerMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
-    tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     language_config: MorselsLanguageConfig,
     dictionary: Dictionary,
     is_dynamic: bool,
@@ -215,20 +210,16 @@ impl Indexer {
         config: MorselsConfig,
         mut is_dynamic: bool,
     ) -> Indexer {
-        let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
-        let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
-
-        let expected_num_docs_per_thread = (
-            config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2
-        ) as usize;
-        let num_threads = config.indexing_config.num_threads;
-
-        let loaders = config.indexing_config.get_loaders_from_config();
-
-        let tokenizer = Indexer::resolve_tokenizer(&config.language);
-
         is_dynamic = is_dynamic
-          && if let Ok(meta) = std::fs::metadata(output_folder_path.join("dictionaryTable")) { meta.is_file() } else { false };
+          && if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) { meta.is_file() } else { false };
+
+        let dynamic_index_info = if is_dynamic {
+            dynamic_index_info::DynamicIndexInfo::new_from_output_folder(&output_folder_path)
+        } else {
+            dynamic_index_info::DynamicIndexInfo::empty()
+        };
+        
+        let loaders = config.indexing_config.get_loaders_from_config();
 
         let dictionary = if is_dynamic {
             let mut dictionary_table_vec: Vec<u8> = Vec::new();
@@ -238,59 +229,122 @@ impl Indexer {
 
             morsels_common::dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false)
         } else {
+            // Not needed, don't load / decode it
             Dictionary {
                 term_infos: FxHashMap::default(),
                 trigrams: FxHashMap::default(),
             }
         };
 
-        let dynamic_index_info = if is_dynamic {
-            dynamic_index_info::DynamicIndexInfo::new_from_output_folder(&output_folder_path)
-        } else {
-            dynamic_index_info::DynamicIndexInfo::empty()
-        };
+        let field_infos = {
+            let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
+            for field_config in config.fields_config.fields {
+                field_infos_by_name.insert(
+                    field_config.name.to_owned(),
+                    FieldInfo {
+                        id: 0,
+                        do_store: field_config.do_store,
+                        weight: field_config.weight,
+                        k: field_config.k,
+                        b: field_config.b,
+                    }
+                );
+            }
 
-        let mut indexer = Indexer {
+            // Assign field ids according to weight
+
+            let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
+            field_entries.sort_by(|a, b| {
+                if a.1.weight < b.1.weight {
+                    Ordering::Greater
+                } else if a.1.weight > b.1.weight {
+                    Ordering::Less
+                } else {
+                    Ordering::Equal
+                }
+            });
+    
+            for (field_id, tup) in field_entries.iter_mut().enumerate() {
+                tup.1.id = field_id as u8;
+            }
+
+            Arc::new(FieldInfos::init(field_infos_by_name, config.fields_config.field_store_block_size, output_folder_path))
+        };
+        
+        let doc_infos = Arc::from(Mutex::from(
+            if is_dynamic {
+                let mut doc_infos_vec: Vec<u8> = Vec::new();
+                File::open(output_folder_path.join("docInfo")).unwrap().read_to_end(&mut doc_infos_vec).unwrap();
+
+                DocInfos::from_search_docinfo(doc_infos_vec, field_infos.num_scored_fields)
+            } else {
+                DocInfos::init_doc_infos(field_infos.num_scored_fields)
+            }
+        ));
+
+        let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;
+        let start_doc_id = doc_id_counter;
+
+        // Construct worker threads
+        let (tx_worker, rx_main) : (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
+        let (tx_main, rx_worker) : (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) = crossbeam::bounded(config.indexing_config.num_threads);
+
+        let expected_num_docs_per_thread = (
+            config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2
+        ) as usize;
+        let num_threads = config.indexing_config.num_threads;
+
+        let num_workers_writing_blocks = Arc::from(Mutex::from(0));
+
+        let tokenizer = Indexer::resolve_tokenizer(&config.language);
+
+        let mut workers = Vec::with_capacity(num_threads);
+        let num_stores_per_dir = config.indexing_config.num_stores_per_dir;
+        let with_positions = config.indexing_config.with_positions;
+        for i in 0..num_threads {
+            let tx_worker_clone = tx_worker.clone();
+            let rx_worker_clone = rx_worker.clone();
+            let tokenize_clone = Arc::clone(&tokenizer);
+            let field_info_clone = Arc::clone(&field_infos);
+            let num_workers_writing_blocks_clone = Arc::clone(&num_workers_writing_blocks);
+
+            workers.push(Worker {
+                id: i as usize,
+                join_handle: std::thread::spawn(move ||
+                    worker::worker(
+                        i as usize,
+                        tx_worker_clone,
+                        rx_worker_clone,
+                        tokenize_clone,
+                        field_info_clone,
+                        num_stores_per_dir,
+                        with_positions,
+                        expected_num_docs_per_thread,
+                        num_workers_writing_blocks_clone,
+                        is_dynamic,
+                    )),
+            });
+        }
+
+        Indexer {
             indexing_config: config.indexing_config,
-            expected_num_docs_per_thread,
-            doc_id_counter: 0,
+            doc_id_counter,
             spimi_counter: 0,
             pl_names_to_cache: Vec::new(),
-            field_store_block_size: config.fields_config.field_store_block_size,
-            field_infos: Option::None,
+            field_infos,
             output_folder_path: output_folder_path.to_path_buf(),
-            workers: Vec::with_capacity(num_threads),
+            workers,
             loaders,
-            doc_infos: Option::None,
+            doc_infos,
             tx_main,
             rx_main,
-            tx_worker,
-            rx_worker,
-            num_workers_writing_blocks: Arc::from(Mutex::from(0)),
-            tokenizer,
+            num_workers_writing_blocks,
             language_config: config.language,
             dictionary,
             is_dynamic,
-            start_doc_id: 0,
+            start_doc_id,
             dynamic_index_info,
-        };
-
-        let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
-        for field_config in config.fields_config.fields {
-            field_infos_by_name.insert(
-                field_config.name.to_owned(),
-                FieldInfo {
-                    id: 0,
-                    do_store: field_config.do_store,
-                    weight: field_config.weight,
-                    k: field_config.k,
-                    b: field_config.b,
-                }
-            );
         }
-        indexer.finalise_fields(field_infos_by_name);
-
-        indexer
     }
 
     fn resolve_tokenizer(language_config: &MorselsLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
@@ -312,70 +366,6 @@ impl Indexer {
             _ => {
                 panic!("Unsupported language {}", language_config.lang)
             }
-        }
-    }
-
-    fn finalise_fields(&mut self, mut field_infos_by_name: FxHashMap<String, FieldInfo>) {
-        let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
-        field_entries.sort_by(|a, b| {
-            if a.1.weight < b.1.weight {
-                Ordering::Greater
-            } else if a.1.weight > b.1.weight {
-                Ordering::Less
-            } else {
-                Ordering::Equal
-            }
-        });
-
-        for (field_id, tup) in field_entries.iter_mut().enumerate() {
-            tup.1.id = field_id as u8;
-        }
-
-        let field_infos = FieldInfos::init(field_infos_by_name, self.field_store_block_size, &self.output_folder_path);
-        self.field_infos = Option::from(Arc::new(field_infos));
-        
-        self.doc_infos = Some(Arc::from(Mutex::from(
-            if self.is_dynamic {
-                let mut doc_infos_vec: Vec<u8> = Vec::new();
-                File::open(self.output_folder_path.join("docInfo")).unwrap().read_to_end(&mut doc_infos_vec).unwrap();
-
-                DocInfos::from_search_docinfo(doc_infos_vec, self.field_infos.as_ref().unwrap().num_scored_fields)
-            } else {
-                DocInfos::init_doc_infos(self.field_infos.as_ref().unwrap().num_scored_fields)
-            }
-        )));
-
-        self.doc_id_counter = self.doc_infos.as_ref().unwrap().lock().unwrap().doc_lengths.len() as u32;
-        self.start_doc_id = self.doc_id_counter;
-
-        // Construct worker threads
-        let num_docs_per_thread = self.expected_num_docs_per_thread;
-        let num_stores_per_dir = self.indexing_config.num_stores_per_dir;
-        let with_positions = self.indexing_config.with_positions;
-        let is_dynamic = self.is_dynamic;
-        for i in 0..self.indexing_config.num_threads {
-            let tx_worker_clone = self.tx_worker.clone();
-            let rx_worker_clone = self.rx_worker.clone();
-            let tokenize_clone = Arc::clone(&self.tokenizer);
-            let field_info_clone = Arc::clone(self.field_infos.as_ref().unwrap());
-            let num_workers_writing_blocks_clone = Arc::clone(&self.num_workers_writing_blocks);
-
-            self.workers.push(Worker {
-                id: i as usize,
-                join_handle: std::thread::spawn(move ||
-                    worker::worker(
-                        i as usize,
-                        tx_worker_clone,
-                        rx_worker_clone,
-                        tokenize_clone,
-                        field_info_clone,
-                        num_stores_per_dir,
-                        with_positions,
-                        num_docs_per_thread,
-                        num_workers_writing_blocks_clone,
-                        is_dynamic,
-                    )),
-            });
         }
     }
 
@@ -459,7 +449,7 @@ impl Indexer {
                 with_positions: self.indexing_config.with_positions,
             },
             language: &self.language_config,
-            field_infos: self.field_infos.as_ref().unwrap(),
+            field_infos: &self.field_infos,
         }).unwrap();
 
         File::create(self.output_folder_path.join("_morsels_config.json"))
@@ -502,7 +492,7 @@ impl Indexer {
                 num_blocks,
                 &mut self.indexing_config,
                 &mut self.pl_names_to_cache,
-                std::mem::take(&mut self.doc_infos).unwrap(),
+                std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
                 &mut self.dictionary,
@@ -514,7 +504,7 @@ impl Indexer {
                 num_blocks,
                 &mut self.indexing_config,
                 &mut self.pl_names_to_cache,
-                std::mem::take(&mut self.doc_infos).unwrap(),
+                std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
                 &mut self.dynamic_index_info,

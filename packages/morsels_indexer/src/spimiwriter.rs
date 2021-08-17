@@ -33,7 +33,7 @@ impl Indexer {
         block_number: u32,
         spimi_counter: u32,
         total_num_docs: u32, //self.doc_id_counter - self.spimi_counter
-        doc_infos: &Option<Arc<Mutex<DocInfos>>>,
+        doc_infos: &Arc<Mutex<DocInfos>>,
     ) {
         // Don't block on threads that are still writing blocks (long running)
         let mut num_workers_writing_blocks = num_workers_writing_blocks.lock().unwrap();
@@ -67,7 +67,7 @@ impl Indexer {
             block_number,
             num_docs: spimi_counter,
             total_num_docs,
-            doc_infos: Arc::clone(doc_infos.as_ref().unwrap()),
+            doc_infos: Arc::clone(doc_infos),
         }).expect("Failed to send work message to worker!");
     }
 }

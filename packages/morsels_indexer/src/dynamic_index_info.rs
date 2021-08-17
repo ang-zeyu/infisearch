@@ -7,7 +7,7 @@ use serde::{Serialize, Deserialize};
 use rustc_hash::FxHashMap;
 
 // Not used for search
-static FILE_NAME: &str = "_dynamic_index_info.json";
+pub static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
 
 // Used during search and indexing
 static BITMAP_FILE_NAME: &str = "_invalidation_vector";
@@ -42,7 +42,7 @@ impl DynamicIndexInfo {
     }
 
     pub fn new_from_output_folder(output_folder_path: &Path) -> DynamicIndexInfo {
-        let info_file = File::open(output_folder_path.join(FILE_NAME)).unwrap();
+        let info_file = File::open(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)).unwrap();
 
         let mut info: DynamicIndexInfo = serde_json::from_reader(BufReader::new(info_file))
             .expect("dynamic index info deserialization failed!");
@@ -90,7 +90,7 @@ impl DynamicIndexInfo {
     pub fn write(&mut self, output_folder_path: &Path, doc_id_counter: u32) {
         let serialized = serde_json::to_string(self).unwrap();
 
-        File::create(output_folder_path.join(FILE_NAME))
+        File::create(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME))
             .unwrap()
             .write_all(serialized.as_bytes())
             .unwrap();
