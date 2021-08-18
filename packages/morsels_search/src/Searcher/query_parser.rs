@@ -114,6 +114,34 @@ fn handle_free_text(
   }
 }
 
+fn handle_terminator(
+  tokenizer: &Box<dyn Tokenizer>,
+  query_chars: &Vec<char>,
+  i: usize, j: usize,
+  escape_indices: &Vec<usize>,
+  query_parts: &mut Vec<QueryPart>,
+  is_expecting_and: &mut bool,
+  did_encounter_not: &mut bool,
+  field_name: &mut Option<String>,
+) -> Result<(), &'static str> {
+  if *is_expecting_and {
+    if i != j {
+      let mut curr_query_parts = parse_query(collect_slice(query_chars, i, j, escape_indices), tokenizer)?;
+
+      let last_query_part_idx = query_parts.len() - 1;
+      query_parts.get_mut(last_query_part_idx).unwrap()
+        .children.as_mut().unwrap()
+        .push(wrap_in_not(curr_query_parts.remove(0), did_encounter_not, field_name));
+      query_parts.append(&mut curr_query_parts);
+      *is_expecting_and = false;
+    }
+  } else {
+    handle_free_text(tokenizer, &query_chars, query_parts, &escape_indices, i, j, did_encounter_not, field_name);
+  }
+
+  Ok(())
+}
+
 pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<QueryPart>, &'static str> {
   let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
 
@@ -203,21 +231,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
       },
       QueryParseState::NONE => {
         if !did_encounter_escape && (c == '"' || c == '(') {
-          if is_expecting_and {
-            if i != j {
-              let mut curr_query_parts = parse_query(collect_slice(&query_chars, i, j, &escape_indices), tokenizer)?;
-
-              let last_query_part_idx = query_parts.len() - 1;
-              query_parts.get_mut(last_query_part_idx).unwrap()
-                .children.as_mut().unwrap()
-                .push(wrap_in_not(curr_query_parts.remove(0), &mut did_encounter_not, &mut field_name));
-              query_parts.append(&mut curr_query_parts);
-              is_expecting_and = false;
-            }
-            // i === j: the phrase / parentheses is part of the AND (e.g. lorem AND (ipsum))
-          } else {
-            handle_free_text(tokenizer, &query_chars, &mut query_parts, &escape_indices, i, j, &mut did_encounter_not, &mut field_name);
-          }
+          handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name)?;
 
           query_parse_state = if c == '"' { QueryParseState::QUOTE } else { QueryParseState::PARENTHESES };
           i = j + 1;
@@ -363,21 +377,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
     j += 1;
   }
 
-  if is_expecting_and {
-    if i != j {
-      let mut curr_query_parts = parse_query(collect_slice(&query_chars, i, j, &escape_indices), tokenizer)?;
-
-      let last_query_part_idx = query_parts.len() - 1;
-      query_parts.get_mut(last_query_part_idx).unwrap()
-        .children.as_mut().unwrap()
-        .push(wrap_in_not(curr_query_parts.remove(0), &mut did_encounter_not, &mut field_name));
-      query_parts.append(&mut curr_query_parts);
-    } else {
-      return Err("Query parsing error: no token found after AND operator");
-    }
-  } else {
-    handle_free_text(tokenizer, &query_chars, &mut query_parts, &escape_indices, i, j, &mut did_encounter_not, &mut field_name);
-  }
+  handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name)?;
 
   Ok(query_parts)
 }
