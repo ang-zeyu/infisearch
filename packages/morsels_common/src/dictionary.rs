@@ -11,6 +11,8 @@ use trigrams::get_tri_grams;
 use crate::tokenize::TermInfo;
 use crate::utils::varint;
 
+pub static DICTIONARY_TABLE_FILE_NAME: &str = "_dictionary_table";
+pub static DICTIONARY_STRING_FILE_NAME: &str = "_dictionary_string";
 
 pub struct Dictionary {
     pub term_infos: FxHashMap<Rc<String>, Rc<TermInfo>>,

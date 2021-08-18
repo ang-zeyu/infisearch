@@ -3,6 +3,8 @@ use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Request, Response};
 
+use morsels_common::DOC_INFO_FILE_NAME;
+
 pub struct DocInfo {
     pub doc_length_factors: Vec<Vec<f64>>,
     pub doc_length_factors_len: u32,
@@ -13,7 +15,7 @@ impl DocInfo {
     pub async fn create(url: &str, num_fields: usize) -> Result<DocInfo, JsValue> {
         let window: web_sys::Window = js_sys::global().unchecked_into();
         
-        let doc_info_request = Request::new_with_str(&(url.to_owned() + "/docInfo"))?;
+        let doc_info_request = Request::new_with_str(&(url.to_owned() + "/" + DOC_INFO_FILE_NAME))?;
         let doc_info_fetch_future = JsFuture::from(window.fetch_with_request(&doc_info_request));
         let doc_info_resp_value = doc_info_fetch_future.await?;
         let doc_info_resp: Response = doc_info_resp_value.dyn_into().unwrap();

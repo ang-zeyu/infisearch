@@ -18,7 +18,8 @@ use std::sync::Arc;
 use std::path::Path;
 use std::path::PathBuf;
 
-use morsels_common::dictionary::Dictionary;
+use morsels_common::dictionary::{Dictionary, DICTIONARY_TABLE_FILE_NAME, DICTIONARY_STRING_FILE_NAME};
+use morsels_common::DOC_INFO_FILE_NAME;
 use morsels_common::MorselsLanguageConfig;
 use morsels_common::tokenize::Tokenizer;
 use morsels_lang_chinese::chinese;
@@ -230,8 +231,8 @@ impl Indexer {
         let dictionary = if is_dynamic {
             let mut dictionary_table_vec: Vec<u8> = Vec::new();
             let mut dictionary_string_vec: Vec<u8> = Vec::new();
-            File::open(output_folder_path.join("dictionaryTable")).unwrap().read_to_end(&mut dictionary_table_vec).unwrap();
-            File::open(output_folder_path.join("dictionaryString")).unwrap().read_to_end(&mut dictionary_string_vec).unwrap();
+            File::open(output_folder_path.join(DICTIONARY_TABLE_FILE_NAME)).unwrap().read_to_end(&mut dictionary_table_vec).unwrap();
+            File::open(output_folder_path.join(DICTIONARY_STRING_FILE_NAME)).unwrap().read_to_end(&mut dictionary_string_vec).unwrap();
 
             morsels_common::dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false)
         } else {
@@ -280,7 +281,7 @@ impl Indexer {
         let doc_infos = Arc::from(Mutex::from(
             if is_dynamic {
                 let mut doc_infos_vec: Vec<u8> = Vec::new();
-                File::open(output_folder_path.join("docInfo")).unwrap().read_to_end(&mut doc_infos_vec).unwrap();
+                File::open(output_folder_path.join(DOC_INFO_FILE_NAME)).unwrap().read_to_end(&mut doc_infos_vec).unwrap();
 
                 DocInfos::from_search_docinfo(doc_infos_vec, field_infos.num_scored_fields)
             } else {

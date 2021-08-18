@@ -13,6 +13,8 @@ use wasm_bindgen::prelude::{wasm_bindgen};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::Response;
 
+use morsels_common::BITMAP_FILE_NAME;
+
 use crate::docinfo::DocInfo;
 use crate::dictionary::Dictionary;
 use crate::dictionary::setup_dictionary;
@@ -114,7 +116,7 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
   ).await?;
 
   let invalidation_vector_future = JsFuture::from(
-    window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + "/_invalidation_vector"))
+    window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + "/" + BITMAP_FILE_NAME))
   );
 
   let pl_file_cache = PostingsListFileCache::create(

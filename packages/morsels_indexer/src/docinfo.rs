@@ -8,6 +8,7 @@ use std::path::PathBuf;
 
 use byteorder::{ByteOrder, LittleEndian};
 
+#[derive(Debug)]
 pub struct BlockDocLengths(pub Vec<WorkerMinerDocInfo>);
 
 impl Eq for BlockDocLengths {}
@@ -30,6 +31,7 @@ impl PartialOrd for BlockDocLengths {
     }
 }
 
+#[derive(Debug)]
 pub struct DocInfos {
     pub doc_lengths: Vec<WorkerMinerDocInfo>,
     pub all_block_doc_lengths: Vec<BlockDocLengths>, // store doc lengths from each block and sort later

@@ -10,7 +10,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::Response;
 
-use morsels_common::dictionary;
+use morsels_common::dictionary::{self, DICTIONARY_TABLE_FILE_NAME, DICTIONARY_STRING_FILE_NAME};
 
 pub type Dictionary = dictionary::Dictionary;
 
@@ -68,8 +68,8 @@ pub async fn setup_dictionary(url: &str, num_docs: u32, build_trigram: bool) -> 
 
 
   let (table_resp_value, string_resp_value) = join!(
-    JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/dictionaryTable"))),
-    JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/dictionaryString")))
+    JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/" + DICTIONARY_TABLE_FILE_NAME))),
+    JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/" + DICTIONARY_STRING_FILE_NAME)))
   );
 
   let table_resp: Response = table_resp_value.unwrap().dyn_into().unwrap();

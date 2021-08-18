@@ -39,6 +39,7 @@ pub struct TermDoc {
     pub doc_fields: Vec<DocField>
 }
 
+#[derive(Debug)]
 pub struct WorkerMinerDocInfo {
     pub doc_id: u32,
     pub field_lengths: Vec<u32>,

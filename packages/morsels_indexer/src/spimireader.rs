@@ -18,6 +18,8 @@ use smartstring::LazyCompact;
 use smartstring::SmartString;
 
 use morsels_common::bitmap;
+use morsels_common::dictionary::{DICTIONARY_TABLE_FILE_NAME, DICTIONARY_STRING_FILE_NAME};
+use morsels_common::DOC_INFO_FILE_NAME;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::varint::decode_var_int;
 
@@ -257,12 +259,12 @@ fn initialise_postings_streams(
 fn get_dict_writers(output_folder_path: &Path) -> (BufWriter<File>, BufWriter<File>) {
     let dict_table_writer = BufWriter::new(
         File::create(
-            Path::new(output_folder_path).join("dictionaryTable")
+            Path::new(output_folder_path).join(DICTIONARY_TABLE_FILE_NAME)
         ).expect("Failed to open final dictionary table for writing.")
     );
     let dict_string_writer = BufWriter::new(
         File::create(
-            Path::new(output_folder_path).join("dictionaryString")
+            Path::new(output_folder_path).join(DICTIONARY_STRING_FILE_NAME)
         ).expect("Failed to open final dictionary string for writing.")
     );
 
@@ -414,13 +416,14 @@ pub fn merge_blocks(
     let num_docs_double = doc_id_counter as f64;
 
     // Unwrap the inner mutex to avoid locks as it is now read-only
-    let doc_infos_unlocked_arc = if let Ok(doc_infos_mutex) = Arc::try_unwrap(doc_infos) {
-        let mut doc_infos_unwrapped_inner = doc_infos_mutex.into_inner().unwrap();
-        doc_infos_unwrapped_inner.finalize_and_flush(output_folder_path.join("docInfo"), doc_id_counter);
+    let doc_infos_unlocked_arc = {
+        let mut doc_infos_unwrapped_inner = Arc::try_unwrap(doc_infos)
+            .expect("No thread should be holding doc infos arc when merging blocks")
+            .into_inner()
+            .expect("No thread should be holding doc infos mutex when merging blocks");
+        doc_infos_unwrapped_inner.finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), doc_id_counter);
     
         Arc::from(doc_infos_unwrapped_inner)
-    } else {
-        panic!("Failed to unwrap doc info mutex from arc.");
     };
 
     initialise_postings_streams(
@@ -665,8 +668,8 @@ fn get_existing_pl_writer(
 // - Updates existing postings lists of terms (add new doc ids / delete)
 //   No new postings lists are created for existing terms
 // - Adds new postings lists for terms that did not exist before
-// - Update dictionaryTable / String info along the way,
-// - But only write the dictionaryTable / dictionaryString only at the end
+// - Update dictionary table / string info along the way,
+// - But only write the dictionary table / string only at the end
 
 #[allow(clippy::too_many_arguments)]
 pub fn modify_blocks(
@@ -688,13 +691,14 @@ pub fn modify_blocks(
     let new_num_docs = (doc_id_counter - dynamic_index_info.num_deleted_docs) as f64;
 
     // Unwrap the inner mutex to avoid locks as it is now read-only
-    let doc_infos_unlocked_arc = if let Ok(doc_infos_mutex) = Arc::try_unwrap(doc_infos) {
-        let mut doc_infos_unwrapped_inner = doc_infos_mutex.into_inner().unwrap();
-        doc_infos_unwrapped_inner.finalize_and_flush(output_folder_path.join("docInfo"), new_num_docs as u32);
+    let doc_infos_unlocked_arc = {
+        let mut doc_infos_unwrapped_inner = Arc::try_unwrap(doc_infos)
+            .expect("No thread should be holding doc infos arc when merging blocks")
+            .into_inner()
+            .expect("No thread should be holding doc infos mutex when merging blocks");
+        doc_infos_unwrapped_inner.finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), new_num_docs as u32);
     
         Arc::from(doc_infos_unwrapped_inner)
-    } else {
-        panic!("Failed to unwrap doc info mutex from arc.");
     };
 
     initialise_postings_streams(

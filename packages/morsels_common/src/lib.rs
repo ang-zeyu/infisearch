@@ -5,6 +5,9 @@ pub mod dictionary;
 pub mod tokenize;
 pub mod utils;
 
+pub static DOC_INFO_FILE_NAME: &str = "_doc_info";
+pub static BITMAP_FILE_NAME: &str = "_invalidation_vector";
+
 fn get_default_language() -> String {
     "latin".to_owned()
 }

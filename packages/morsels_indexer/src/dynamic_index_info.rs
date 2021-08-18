@@ -5,11 +5,12 @@ use std::path::Path;
 use serde::{Serialize, Deserialize};
 use rustc_hash::FxHashMap;
 
+use morsels_common::BITMAP_FILE_NAME;
+
 // Not used for search
 pub static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
 
 // Used during search and indexing
-static BITMAP_FILE_NAME: &str = "_invalidation_vector";
 
 #[derive(Serialize, Deserialize)]
 struct DocIdsAndFileHash(
