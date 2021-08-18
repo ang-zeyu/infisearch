@@ -156,65 +156,37 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
     let c = query_chars[j];
 
     match query_parse_state {
-      QueryParseState::QUOTE => {
-        if c == '"' {
-          query_parse_state = QueryParseState::NONE;
-          
-          let terms = tokenizer.wasm_tokenize(collect_slice(&query_chars, i, j, &escape_indices)).terms;
-          let part_type = if terms.len() <= 1 { QueryPartType::TERM } else { QueryPartType::PHRASE };
-          let phrase_query_part: QueryPart = wrap_in_not(QueryPart {
-            is_corrected: false,
-            is_stop_word_removed: false,
-            should_expand: false,
-            is_expanded: false,
-            original_terms: Option::None,
-            terms: Option::from(terms),
-            part_type,
-            field_name: None,
-            children: Option::None,
-          }, &mut did_encounter_not, &mut field_name);
-
-          if is_expecting_and {
-            let last_query_part_idx = query_parts.len() - 1;
-            query_parts.get_mut(last_query_part_idx).unwrap()
-              .children.as_mut().unwrap()
-              .push(phrase_query_part);
-            is_expecting_and = false;
-          } else {
-            query_parts.push(phrase_query_part);
-          }
-
-          i = j + 1;
-          last_possible_fieldname_idx = i;
-
-          is_not_allowed = true;
-        }
-      },
-      QueryParseState::PARENTHESES => {
-        if c == ')' {
-          query_parse_state = QueryParseState::NONE;
-          
+      QueryParseState::QUOTE | QueryParseState::PARENTHESES => {
+        let char_to_match = if let QueryParseState::QUOTE = query_parse_state { '"' } else { ')' };
+        if c == char_to_match {
           let content: String = collect_slice(&query_chars, i, j, &escape_indices);
-          let child_query_part: QueryPart = wrap_in_not(QueryPart {
+          let term_parttype_children = if let QueryParseState::QUOTE = query_parse_state {
+            (Some(tokenizer.wasm_tokenize(content).terms), QueryPartType::PHRASE, None)
+          } else {
+            (None, QueryPartType::BRACKET, Some(parse_query(content, tokenizer)?))
+          };
+          query_parse_state = QueryParseState::NONE;
+
+          let query_part: QueryPart = wrap_in_not(QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
             should_expand: false,
             is_expanded: false,
-            original_terms: Option::None,
-            terms: Option::None,
-            part_type: QueryPartType::BRACKET,
+            original_terms: None,
+            terms: term_parttype_children.0,
+            part_type: term_parttype_children.1,
             field_name: None,
-            children: Option::from(parse_query(content, tokenizer)?),
+            children: term_parttype_children.2
           }, &mut did_encounter_not, &mut field_name);
 
           if is_expecting_and {
             let last_query_part_idx = query_parts.len() - 1;
             query_parts.get_mut(last_query_part_idx).unwrap()
               .children.as_mut().unwrap()
-              .push(child_query_part);
+              .push(query_part);
             is_expecting_and = false;
           } else {
-            query_parts.push(child_query_part);
+            query_parts.push(query_part);
           }
 
           i = j + 1;
@@ -222,7 +194,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
 
           is_not_allowed = true;
         }
-      },
+      }
       QueryParseState::NONE => {
         if !did_encounter_escape && (c == '"' || c == '(') {
           handle_terminator(

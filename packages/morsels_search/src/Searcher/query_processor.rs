@@ -405,7 +405,13 @@ impl Searcher {
                     }
                 },
                 QueryPartType::PHRASE => {
-                    pl_opt = Some(self.populate_phrasal_postings_lists(query_part, term_postings_lists));
+                    if query_part.terms.as_ref().unwrap().len() == 1 {
+                        if let Some(term_pl) = term_postings_lists.get(query_part.terms.as_ref().unwrap().get(0).unwrap()) {
+                            pl_opt = Some(Rc::clone(term_pl));
+                        }
+                    } else {
+                        pl_opt = Some(self.populate_phrasal_postings_lists(query_part, term_postings_lists));
+                    }
                 },
                 QueryPartType::AND => {
                     pl_opt = Some(self.populate_and_postings_lists(query_part, term_postings_lists));
