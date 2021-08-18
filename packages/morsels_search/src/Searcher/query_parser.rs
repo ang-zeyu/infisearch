@@ -64,56 +64,6 @@ fn collect_slice(query_chars: &Vec<char>, i: usize, j: usize, escape_indices: &V
     .collect()
 }
 
-fn handle_free_text(
-  tokenizer: &Box<dyn Tokenizer>,
-  query_chars: &Vec<char>,
-  query_parts: &mut Vec<QueryPart>,
-  escape_indices: &Vec<usize>,
-  i: usize, j: usize,
-  did_encounter_not: &mut bool,
-  field_name: &mut Option<String>
-) {
-  if i == j {
-    return;
-  }
-
-  let tokenize_result = tokenizer.wasm_tokenize(collect_slice(query_chars, i, j, &escape_indices));
-  if tokenize_result.terms.len() == 0 {
-    return;
-  }
-
-  let mut is_first = true;
-  for term in tokenize_result.terms {
-    if is_first {
-      is_first = false;
-
-      query_parts.push(wrap_in_not(QueryPart {
-        is_corrected: false,
-        is_stop_word_removed: false,
-        should_expand: tokenize_result.should_expand,
-        is_expanded: false,
-        original_terms: Option::None,
-        terms: Option::from(vec![term]),
-        part_type: QueryPartType::TERM,
-        field_name: None,
-        children: Option::None,
-      }, did_encounter_not, field_name));
-    } else {
-      query_parts.push(QueryPart {
-        is_corrected: false,
-        is_stop_word_removed: false,
-        should_expand: tokenize_result.should_expand,
-        is_expanded: false,
-        original_terms: Option::None,
-        terms: Option::from(vec![term]),
-        part_type: QueryPartType::TERM,
-        field_name: None,
-        children: Option::None,
-      });
-    }
-  }
-}
-
 fn handle_terminator(
   tokenizer: &Box<dyn Tokenizer>,
   query_chars: &Vec<char>,
@@ -124,6 +74,10 @@ fn handle_terminator(
   did_encounter_not: &mut bool,
   field_name: &mut Option<String>,
 ) -> Result<(), &'static str> {
+  if i == j {
+    return Ok(());
+  }
+
   if *is_expecting_and {
     if i != j {
       let mut curr_query_parts = parse_query(collect_slice(query_chars, i, j, escape_indices), tokenizer)?;
@@ -136,7 +90,41 @@ fn handle_terminator(
       *is_expecting_and = false;
     }
   } else {
-    handle_free_text(tokenizer, &query_chars, query_parts, &escape_indices, i, j, did_encounter_not, field_name);
+    let tokenize_result = tokenizer.wasm_tokenize(collect_slice(query_chars, i, j, &escape_indices));
+    if tokenize_result.terms.len() == 0 {
+      return Ok(());
+    }
+  
+    let mut is_first = true;
+    for term in tokenize_result.terms {
+      if is_first {
+        is_first = false;
+  
+        query_parts.push(wrap_in_not(QueryPart {
+          is_corrected: false,
+          is_stop_word_removed: false,
+          should_expand: tokenize_result.should_expand,
+          is_expanded: false,
+          original_terms: Option::None,
+          terms: Option::from(vec![term]),
+          part_type: QueryPartType::TERM,
+          field_name: None,
+          children: Option::None,
+        }, did_encounter_not, field_name));
+      } else {
+        query_parts.push(QueryPart {
+          is_corrected: false,
+          is_stop_word_removed: false,
+          should_expand: tokenize_result.should_expand,
+          is_expanded: false,
+          original_terms: Option::None,
+          terms: Option::from(vec![term]),
+          part_type: QueryPartType::TERM,
+          field_name: None,
+          children: Option::None,
+        });
+      }
+    }
   }
 
   Ok(())
@@ -333,23 +321,12 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           && j < query_chars_len - 4
           && query_chars[j] == 'N' && query_chars[j + 1] == 'O' && query_chars[j + 2] == 'T'
           && query_chars[j + 3].is_ascii_whitespace() {
-          let mut curr_query_parts = parse_query(collect_slice(&query_chars, i, j, &escape_indices), tokenizer)?;
-          if curr_query_parts.len() > 0 {
-            let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not, &mut field_name);
-            curr_query_parts.push(first_query_part);
-            let last_query_part = curr_query_parts.swap_remove(0);
-            curr_query_parts.push(last_query_part);
-
-            if is_expecting_and {
-              let last_query_part_idx = query_parts.len() - 1;
-              query_parts.get_mut(last_query_part_idx).unwrap()
-                .children.as_mut().unwrap()
-                .push(curr_query_parts.remove(0));
-              is_expecting_and = false;
-            }
-
-            query_parts.append(&mut curr_query_parts);
-          }
+          handle_terminator(
+            tokenizer, &query_chars,
+            i, j, &escape_indices,
+            &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name
+          )?;
+          
           did_encounter_not = true;
 
           j += 4;
