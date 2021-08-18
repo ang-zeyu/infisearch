@@ -82,11 +82,14 @@ fn handle_terminator(
     if i != j {
       let mut curr_query_parts = parse_query(collect_slice(query_chars, i, j, escape_indices), tokenizer)?;
 
-      let last_query_part_idx = query_parts.len() - 1;
-      query_parts.get_mut(last_query_part_idx).unwrap()
-        .children.as_mut().unwrap()
-        .push(wrap_in_not(curr_query_parts.remove(0), did_encounter_not, field_name));
-      query_parts.append(&mut curr_query_parts);
+      if curr_query_parts.len() > 0 {
+        let last_query_part_idx = query_parts.len() - 1;
+        query_parts.get_mut(last_query_part_idx).unwrap()
+          .children.as_mut().unwrap()
+          .push(wrap_in_not(curr_query_parts.remove(0), did_encounter_not, field_name));
+        query_parts.append(&mut curr_query_parts);
+      }
+
       *is_expecting_and = false;
     }
   } else {
@@ -281,12 +284,14 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
                   children: Option::from(vec![last_curr_query_part]),
                 });
               }
-            } else if query_parts.len() > 0 && !is_expecting_and {
+            } else if !is_expecting_and {
               // e.g. (lorem) AND ipsum
-              let last_curr_query_part = query_parts.pop().unwrap();
-              if let QueryPartType::AND = last_curr_query_part.part_type {
+              
+              let last_curr_query_part = query_parts.pop();
+              if last_curr_query_part.is_some()
+                && matches!(last_curr_query_part.as_ref().unwrap().part_type, QueryPartType::AND) {
                 // Reuse last AND group
-                query_parts.push(last_curr_query_part);
+                query_parts.push(last_curr_query_part.unwrap());
               } else {
                 query_parts.push(QueryPart {
                   is_corrected: false,
@@ -297,11 +302,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
                   terms: Option::None,
                   part_type: QueryPartType::AND,
                   field_name: std::mem::take(&mut field_name),
-                  children: Option::from(vec![last_curr_query_part]),
+                  children: Option::from(if let Some(last_curr_query_part) = last_curr_query_part {
+                    vec![last_curr_query_part]
+                  } else {
+                    vec![]
+                  }),
                 });
               }
-            } else {
-              return Err("Query parsing error: no token found before AND operator");
             }
             is_expecting_and = true;
 

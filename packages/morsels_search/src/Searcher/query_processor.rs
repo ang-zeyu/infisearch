@@ -162,7 +162,10 @@ impl Searcher {
         query_part: &mut QueryPart,
         term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
     ) -> Rc<PostingsList> {
-        let pl_vecs = self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
+        let mut pl_vecs = self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
+        if pl_vecs.len() == 1 {
+            return pl_vecs.remove(0);
+        }
         
         let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = pl_vecs
             .iter()
