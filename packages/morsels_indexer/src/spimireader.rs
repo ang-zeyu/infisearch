@@ -495,7 +495,7 @@ pub fn merge_blocks(
         );
     }
 
-    dynamic_index_info.last_pl_number = if curr_pl_offset != 0 { curr_pl } else { std::cmp::min(curr_pl - 1, 0) };
+    dynamic_index_info.last_pl_number = if curr_pl_offset != 0 || curr_pl == 0 { curr_pl } else { curr_pl - 1 };
     dynamic_index_info.num_docs = doc_id_counter;
 
     dict_table_writer.flush().unwrap();
@@ -889,6 +889,6 @@ pub fn modify_blocks(
     dict_table_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
 
-    dynamic_index_info.last_pl_number = if new_pls_offset != 0 { new_pl } else { std::cmp::min(new_pl - 1, 0) };
+    dynamic_index_info.last_pl_number = if new_pls_offset != 0 || new_pl == 0 { new_pl } else { new_pl - 1 };
     dynamic_index_info.num_docs = new_num_docs as u32;
 }
