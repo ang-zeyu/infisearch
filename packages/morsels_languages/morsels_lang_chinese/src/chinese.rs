@@ -12,7 +12,7 @@ use morsels_common::tokenize::SearchTokenizeResult;
 use morsels_common::tokenize::Tokenizer;
 
 lazy_static! {
-  static ref PUNCTUATION_FILTER: Regex = Regex::new(r#"[\[\](){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.]"#).unwrap();
+  static ref PUNCTUATION_FILTER: Regex = Regex::new(r#"[\[\]\\(){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.]"#).unwrap();
 }
 
 fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {

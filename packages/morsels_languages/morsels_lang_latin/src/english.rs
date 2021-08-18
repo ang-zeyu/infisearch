@@ -13,7 +13,7 @@ use morsels_common::tokenize::Tokenizer;
 use crate::ascii_folding_filter;
 
 lazy_static! {
-  static ref TERM_FILTER: Regex = Regex::new(r#"(^\W+)|(\W+$)|([\[\](){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.])"#).unwrap();
+  static ref TERM_FILTER: Regex = Regex::new(r#"(^\W+)|(\W+$)|([\[\]\\(){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.])"#).unwrap();
   static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.?!](\s+|$)"#).unwrap();
 }
 
