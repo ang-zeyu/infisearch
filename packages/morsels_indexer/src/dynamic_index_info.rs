@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Serialize, Deserialize};
 use rustc_hash::FxHashMap;
@@ -13,7 +12,12 @@ pub static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
 static BITMAP_FILE_NAME: &str = "_invalidation_vector";
 
 #[derive(Serialize, Deserialize)]
-struct DocIdsAndFileHash(Vec<u32>, u128);
+struct DocIdsAndFileHash(
+    Vec<u32>, // doc ids
+    u128,     // millis timestamp
+    #[serde(skip)]
+    bool,     // false by default, detect if files were encountered in the current run (delete if not)
+);
 
 #[derive(Serialize, Deserialize)]
 pub struct DynamicIndexInfo {
@@ -53,38 +57,57 @@ impl DynamicIndexInfo {
         info
     }
 
-    pub fn add_doc_to_path(&mut self, path: &Path, modified: &SystemTime, doc_id: u32) {
+    pub fn add_doc_to_path(&mut self, path: &Path, doc_id: u32) {
         let path = path.to_str().unwrap();
-        if let Some(pair) = self.mappings.get_mut(path) {
-            pair.0.push(doc_id);
-        } else {
-            self.mappings.insert(
-                path.to_owned(),
-                DocIdsAndFileHash(vec![doc_id], modified.duration_since(UNIX_EPOCH).unwrap().as_millis())
-            );
-        }
+        self.mappings.get_mut(path)
+            .expect("Get path for index file should always have an entry when adding doc id")
+            .0.push(doc_id);
     }
 
-    pub fn invalidate_path_if_needed(&mut self, path: &Path, new_modified: SystemTime) -> bool {
+    pub fn update_path_if_modified(&mut self, path: &Path, new_modified: u128) -> bool {
         let path = path.to_str().unwrap();
-        if let Some(old_modified) = self.mappings.get(path) {
-            let new_modified = new_modified.duration_since(UNIX_EPOCH).unwrap().as_millis();
+        if let Some(old_modified) = self.mappings.get_mut(path) {
+            // Old document
+
+            // Set encountered flag to know which files were deleted later on
+            old_modified.2 = true;
 
             if old_modified.1 != new_modified {
-                let DocIdsAndFileHash(prev_doc_ids, hash) = self.mappings.get_mut(path).unwrap();
-                *hash = new_modified;
+                old_modified.1 = new_modified;
 
-                self.num_deleted_docs += prev_doc_ids.len() as u32;
-                for doc_id in prev_doc_ids.drain(..) {
+                self.num_deleted_docs += old_modified.0.len() as u32;
+                for doc_id in old_modified.0.drain(..) {
                     let byte_num = (doc_id / 8) as usize;
                     self.invalidation_vector[byte_num] |= 1_u8 << (doc_id % 8) as u8;
                 }
 
                 return true;
             }
-        }
 
-        false
+            false
+        } else {
+            // New document
+            self.mappings.insert(path.to_owned(), DocIdsAndFileHash(Vec::new(), new_modified, true));
+
+            true
+        }
+    }
+
+    // Delete file paths that were not encountered at all (assume they were deleted)
+    pub fn delete_unencountered_paths(&mut self) {
+        self.mappings = std::mem::take(&mut self.mappings).into_iter()
+            .filter(|(_path, docids_and_filehash)| {
+                if !docids_and_filehash.2 {
+                    for doc_id in docids_and_filehash.0.iter() {
+                        let byte_num = ((*doc_id) / 8) as usize;
+                        self.invalidation_vector[byte_num] |= 1_u8 << ((*doc_id) % 8) as u8;
+                        self.num_deleted_docs += 1;
+                    }
+                }
+
+                docids_and_filehash.2
+            })
+            .collect();
     }
 
     pub fn write(&mut self, output_folder_path: &Path, doc_id_counter: u32) {

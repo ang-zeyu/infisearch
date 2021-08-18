@@ -8,6 +8,7 @@ mod spimiwriter;
 mod utils;
 mod worker;
 
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::cmp::Ordering;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -44,6 +45,11 @@ use serde::{Serialize,Deserialize};
 
 #[macro_use]
 extern crate lazy_static;
+
+
+lazy_static! {
+    static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+}
 
 fn get_default_num_threads() -> usize {
     std::cmp::max(num_cpus::get_physical() - 1, 1)
@@ -374,18 +380,23 @@ impl Indexer {
     }
 
     pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
-        let modified = if let Ok(metadata) = std::fs::metadata(path) {
+        let timestamp = if let Ok(metadata) = std::fs::metadata(path) {
             if let Ok(modified) = metadata.modified() {
-                if !self.dynamic_index_info.invalidate_path_if_needed(relative_path, modified) && self.is_dynamic {
-                    return;
-                }
-                Some(modified)
+                modified.duration_since(UNIX_EPOCH).unwrap().as_millis()
             } else {
-                None
+                /*
+                 Use program execution time if metadata unavailable.
+                 This results in the path always being updated.
+                */
+                *CURRENT_MILLIS
             }
         } else {
-            None
+            *CURRENT_MILLIS
         };
+
+        if !self.dynamic_index_info.update_path_if_modified(relative_path, timestamp) && self.is_dynamic {
+            return;
+        }
 
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path) {
@@ -395,9 +406,7 @@ impl Indexer {
                         loader_result,
                     }).expect("Failed to send work message to worker!");
 
-                    if let Some(modified) = modified {
-                        self.dynamic_index_info.add_doc_to_path(relative_path, &modified, self.doc_id_counter);
-                    }
+                    self.dynamic_index_info.add_doc_to_path(relative_path, self.doc_id_counter);
                 
                     self.doc_id_counter += 1;
                     self.spimi_counter += 1;
@@ -487,6 +496,8 @@ impl Indexer {
         // Go through all blocks at once
         let num_blocks = self.block_number();
         if self.is_dynamic {
+            self.dynamic_index_info.delete_unencountered_paths();
+
             spimireader::modify_blocks(
                 self.doc_id_counter,
                 num_blocks,
