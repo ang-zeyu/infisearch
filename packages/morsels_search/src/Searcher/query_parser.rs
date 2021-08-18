@@ -158,7 +158,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
     match query_parse_state {
       QueryParseState::QUOTE | QueryParseState::PARENTHESES => {
         let char_to_match = if let QueryParseState::QUOTE = query_parse_state { '"' } else { ')' };
-        if c == char_to_match {
+        if !did_encounter_escape && c == char_to_match {
           let content: String = collect_slice(&query_chars, i, j, &escape_indices);
           let term_parttype_children = if let QueryParseState::QUOTE = query_parse_state {
             (Some(tokenizer.wasm_tokenize(content).terms), QueryPartType::PHRASE, None)
@@ -193,6 +193,10 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           last_possible_fieldname_idx = i;
 
           is_not_allowed = true;
+        } else if c == '\\' {
+          did_encounter_escape = true;
+        } else {
+          did_encounter_escape = false;
         }
       }
       QueryParseState::NONE => {
