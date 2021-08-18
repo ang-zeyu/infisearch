@@ -38,6 +38,8 @@ enum QueryParseState {
 }
 
 fn wrap_in_not(mut query_part: QueryPart, did_encounter_not: &mut bool, field_name: &mut Option<String>) -> QueryPart {
+  query_part.field_name = std::mem::take(field_name);
+
   if *did_encounter_not {
     *did_encounter_not = false;
     QueryPart {
@@ -48,11 +50,10 @@ fn wrap_in_not(mut query_part: QueryPart, did_encounter_not: &mut bool, field_na
       original_terms: Option::None,
       terms: Option:: None,
       part_type: QueryPartType::NOT,
-      field_name: std::mem::take(field_name),
+      field_name: None,
       children: Option::from(vec![query_part]),
     }
   } else {
-    query_part.field_name = std::mem::take(field_name);
     query_part
   }
 }
