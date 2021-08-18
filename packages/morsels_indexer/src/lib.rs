@@ -524,7 +524,7 @@ impl Indexer {
 
         self.write_morsels_config();
 
-        self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter - 1);
+        self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter);
 
         spimireader::cleanup_blocks(num_blocks, &self.output_folder_path);
     
