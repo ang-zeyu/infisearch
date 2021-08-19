@@ -431,7 +431,7 @@ export default async function transformResults(
     await transformResults(query, config, false, container, options);
   }, { rootMargin: '10px 10px 10px 10px' });
 
-  if (sentinel) {
+  if (resultsEls.length) {
     iObserver.observe(sentinel);
   }
 }
