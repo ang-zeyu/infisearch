@@ -6,10 +6,6 @@ This section briefly details some future plans for this project:
 
 The plan is for the morsels_indexer package to also formalise its API. This is still a WIP at this point, and I'm not exactly sure if there would even be a demand for this given the very specific nature of this tool -- raise an issue if so!
 
-## Dynamic / Incremental Indexing
-
-Some form of simple dynamic or incremental indexing also needs to be worked on (some simple method like file metadata detection). Although, the indexer is pretty fast, so this shouldn't be a problem most of the time for now.
-
 ## Dynamic Linking for Language Modules
 
 Language modules are "bundled" into the `morsels_search` wasm module at the moment. In order to reduce binary size, each module is configured via feature flags and bundled separately. This however does mean that any and all language modules have to be PR-ed to the upstream module (otherwise, one would have to maintain a separate fork of morsels on its own distribution channels).

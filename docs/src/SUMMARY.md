@@ -6,4 +6,5 @@
 - [Getting Started](./getting_started.md)
 - [Indexing Configuration](./indexing_configuration.md)
 - [Search UI Configuration](./search_configuration.md)
+- [Dynamic Indexing](./dynamic_indexing.md)
 - [Future Plans](./future_plans.md)
