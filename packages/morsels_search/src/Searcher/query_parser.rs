@@ -74,14 +74,14 @@ fn handle_terminator(
   is_expecting_and: &mut bool,
   did_encounter_not: &mut bool,
   field_name: &mut Option<String>,
-) -> Result<(), &'static str> {
+) {
   if i == j {
-    return Ok(());
+    return;
   }
 
   if *is_expecting_and {
     if i != j {
-      let mut curr_query_parts = parse_query(collect_slice(query_chars, i, j, escape_indices), tokenizer)?;
+      let mut curr_query_parts = parse_query(collect_slice(query_chars, i, j, escape_indices), tokenizer);
 
       if curr_query_parts.len() > 0 {
         let last_query_part_idx = query_parts.len() - 1;
@@ -96,7 +96,7 @@ fn handle_terminator(
   } else {
     let tokenize_result = tokenizer.wasm_tokenize(collect_slice(query_chars, i, j, &escape_indices));
     if tokenize_result.terms.len() == 0 {
-      return Ok(());
+      return;
     }
   
     let mut is_first = true;
@@ -130,11 +130,9 @@ fn handle_terminator(
       }
     }
   }
-
-  Ok(())
 }
 
-pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<QueryPart>, &'static str> {
+pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPart> {
   let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
 
   let mut query_parse_state: QueryParseState = QueryParseState::NONE;
@@ -163,7 +161,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
           let term_parttype_children = if let QueryParseState::QUOTE = query_parse_state {
             (Some(tokenizer.wasm_tokenize(content).terms), QueryPartType::PHRASE, None)
           } else {
-            (None, QueryPartType::BRACKET, Some(parse_query(content, tokenizer)?))
+            (None, QueryPartType::BRACKET, Some(parse_query(content, tokenizer)))
           };
           query_parse_state = QueryParseState::NONE;
 
@@ -205,7 +203,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             tokenizer, &query_chars,
             i, j, &escape_indices,
             &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name
-          )?;
+          );
 
           query_parse_state = if c == '"' { QueryParseState::QUOTE } else { QueryParseState::PARENTHESES };
           i = j + 1;
@@ -214,7 +212,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             tokenizer, &query_chars,
             i, last_possible_fieldname_idx,
             &escape_indices, &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name
-          )?;
+          );
           
           field_name = Some(collect_slice(&query_chars, last_possible_fieldname_idx, j, &escape_indices));
           i = j + 1;
@@ -233,7 +231,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
               tokenizer, &query_chars,
               i, initial_j, &escape_indices,
               &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name
-            )?;
+            );
               
             let last_curr_query_part = query_parts.pop();
             if last_curr_query_part.is_some()
@@ -279,7 +277,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             tokenizer, &query_chars,
             i, j, &escape_indices,
             &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name
-          )?;
+          );
           
           did_encounter_not = true;
 
@@ -305,7 +303,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
     j += 1;
   }
 
-  handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name)?;
+  handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name);
 
-  Ok(query_parts)
+  query_parts
 }

@@ -174,7 +174,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
   let start = performance.now();
 
   let searcher_val = unsafe { &*searcher };
-  let mut query_parts = parse_query(query, &searcher_val.tokenizer)?;
+  let mut query_parts = parse_query(query, &searcher_val.tokenizer);
   
   web_sys::console::log_1(&format!("parse query took {}", performance.now() - start).into());
 
