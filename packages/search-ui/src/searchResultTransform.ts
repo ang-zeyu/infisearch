@@ -84,12 +84,12 @@ function transformText(
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
         result.push(createElement('span', { class: 'morsels-ellipsis' }));
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
-        result.push(render.highlightRender(createElement, render.opts, term));
+        result.push(render.resultsRenderOpts.highlightRender(createElement, render.opts, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       } else {
         result.pop();
         result.push(str.substring(prevHighlightEndPos, pos));
-        result.push(render.highlightRender(createElement, render.opts, term));
+        result.push(render.resultsRenderOpts.highlightRender(createElement, render.opts, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       }
       prevHighlightEndPos = highlightEndPos;
@@ -122,7 +122,7 @@ function transformText(
         lastIncludedHeading = i;
 
         finalMatchResults.push({
-          result: render.headingBodyRender(
+          result: render.resultsRenderOpts.headingBodyRender(
             createElement,
             render.opts,
             texts[i][1],
@@ -138,7 +138,7 @@ function transformText(
     // Insert without heading
     if (!finalMatchResults.length && numberTermsMatched > bestBodyMatch.numberTermsMatched) {
       bestBodyMatch = {
-        result: render.bodyOnlyRender(createElement, render.opts, result),
+        result: render.resultsRenderOpts.bodyOnlyRender(createElement, render.opts, result),
         numberTermsMatched,
       };
     }
@@ -350,7 +350,7 @@ async function singleResultRender(
     resultHeadingsAndTexts = newBodies;
   }
 
-  return options.render.listItemRender(
+  return options.render.resultsRenderOpts.listItemRender(
     createElement,
     options.render.opts,
     fullLink,
@@ -398,7 +398,7 @@ export default async function transformResults(
 
   let now = performance.now();
 
-  const results = await query.retrieve(options.resultsPerPage);
+  const results = await query.retrieve(options.render.resultsRenderOpts.resultsPerPage);
 
   console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   now = performance.now();

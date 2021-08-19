@@ -19,9 +19,6 @@ initMorsels({
     // Id of input element to attach the search dropdown to
     inputId: 'morsels-search',
     
-    // Optional, by default, this is 8 for mobile devices and 10 otherwise
-    resultsPerPage: 10,
-    
     // Mandatory, by default - base url for sourcing .html / .json files
     sourceFilesUrl: 'http://192.168.10.132:3000/source',
     
@@ -108,12 +105,6 @@ You may simply call `showPortalUI()` function returned by the initMorsels call i
 The other properties under the `render` key allow you to customise the html output structure to some degree.
 
 ```ts
-// Any options you want to pass to any of the render functions below, from the initMorsels call
-interface ArbitraryRenderOptions {
-    [key: string]: any,
-    dropdownAlignment?: 'left' | 'right',
-}
-
 interface SearchUiRenderOptions {
     // ...
     show?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) => void,
@@ -142,28 +133,43 @@ interface SearchUiRenderOptions {
         results: Result[],
         query: Query,
     ) => Promise<HTMLElement[]>,
-    listItemRender?: (
-        h: CreateElement,
-        opts: ArbitraryRenderOptions,
-        fullLink: string,
-        resultTitle: string,
-        resultHeadingsAndTexts: (HTMLElement | string)[],
-        fields: [string, string][],
-    ) => HTMLElement,
-    headingBodyRender?: (
-        h: CreateElement,
-        opts: ArbitraryRenderOptions,
-        heading: string,
-        bodyHighlights: (HTMLElement | string)[],
-        href?: string
-    ) => HTMLElement,
-    bodyOnlyRender?: (
-        h: CreateElement,
-        opts: ArbitraryRenderOptions,
-        bodyHighlights: (HTMLElement | string)[],
-    ) => HTMLElement,
-    highlightRender?: (h: CreateElement, opts: ArbitraryRenderOptions, matchedPart: string) => HTMLElement,
+    // Options / more renderers for the default implementation of resultsRender
+    resultsRenderOpts?: {
+        resultsPerPage: 8,
+
+        listItemRender?: (
+            h: CreateElement,
+            opts: ArbitraryRenderOptions,
+            fullLink: string,
+            resultTitle: string,
+            resultHeadingsAndTexts: (HTMLElement | string)[],
+            fields: [string, string][],
+        ) => HTMLElement,
+        headingBodyRender?: (
+            h: CreateElement,
+            opts: ArbitraryRenderOptions,
+            heading: string,
+            bodyHighlights: (HTMLElement | string)[],
+            href?: string,
+        ) => HTMLElement,
+        bodyOnlyRender?: (
+            h: CreateElement,
+            opts: ArbitraryRenderOptions,
+            bodyHighlights: (HTMLElement | string)[],
+        ) => HTMLElement,
+        highlightRender?: (
+            h: CreateElement,
+            opts: ArbitraryRenderOptions,
+            matchedPart: string,
+        ) => HTMLElement,
+    }
+    // Any options you want to pass to any of the render functions below, from the initMorsels call
     opts?: ArbitraryRenderOptions,
+}
+
+interface ArbitraryRenderOptions {
+    [key: string]: any,
+    dropdownAlignment?: 'left' | 'right',
 }
 ```
 
@@ -344,9 +350,9 @@ For example, you may render `<div>Did you mean <u>corrected</u>?</div>` for the 
 
 ---
 
-The 2 sets of remaining APIs are mutually exclusive. Use only one or the other.
+The 2 remaining sets of APIs are mutually exclusive. Use only one or the other.
 
-**`async resultsRender(h, initMorselsOptions, config, results, query)`** <span style="color: red">(advanced)</span>
+**1. `async resultsRender(h, initMorselsOptions, config, results, query)`** <span style="color: red">(advanced)</span>
 
 This API renders the results for all document matches.
 
@@ -360,6 +366,17 @@ For example, the default implementation does the following:
 3. Transform and highlight the field stores using the `listItemRender` set of APIs below.
 
 <br>
+
+**2. `resultsRenderOpts`**
+
+The renderers and options under this key are based on the **default implementation** of `resultsRender`.
+If overriding `resultsRender` above, these options will not be used.
+
+**`resultsPerPage = 8`**
+
+This option controls how many result previews are generated per trigger of the infinite scrolling intersection observer.
+
+If none of the `body / title / heading` fields are stored, lowering this has a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed.
 
 **`listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)`** & co.
 

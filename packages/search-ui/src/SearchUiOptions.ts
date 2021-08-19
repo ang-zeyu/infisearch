@@ -46,34 +46,36 @@ export interface SearchUiRenderOptions {
     results: Result[],
     query: Query,
   ) => Promise<HTMLElement[]>,
-  listItemRender?: (
-    h: CreateElement,
-    opts: ArbitraryRenderOptions,
-    fullLink: string,
-    resultTitle: string,
-    resultHeadingsAndTexts: (HTMLElement | string)[],
-    fields: [string, string][],
-  ) => HTMLElement,
-  headingBodyRender?: (
-    h: CreateElement,
-    opts: ArbitraryRenderOptions,
-    heading: string,
-    bodyHighlights: (HTMLElement | string)[],
-    href?: string
-  ) => HTMLElement,
-  bodyOnlyRender?: (
-    h: CreateElement,
-    opts: ArbitraryRenderOptions,
-    bodyHighlights: (HTMLElement | string)[],
-  ) => HTMLElement,
-  highlightRender?: (h: CreateElement, opts: ArbitraryRenderOptions, matchedPart: string) => HTMLElement,
+  resultsRenderOpts?: {
+    resultsPerPage?: number,
+    listItemRender?: (
+      h: CreateElement,
+      opts: ArbitraryRenderOptions,
+      fullLink: string,
+      resultTitle: string,
+      resultHeadingsAndTexts: (HTMLElement | string)[],
+      fields: [string, string][],
+    ) => HTMLElement,
+    headingBodyRender?: (
+      h: CreateElement,
+      opts: ArbitraryRenderOptions,
+      heading: string,
+      bodyHighlights: (HTMLElement | string)[],
+      href?: string
+    ) => HTMLElement,
+    bodyOnlyRender?: (
+      h: CreateElement,
+      opts: ArbitraryRenderOptions,
+      bodyHighlights: (HTMLElement | string)[],
+    ) => HTMLElement,
+    highlightRender?: (h: CreateElement, opts: ArbitraryRenderOptions, matchedPart: string) => HTMLElement,
+  },
   opts?: ArbitraryRenderOptions,
 }
 
 export interface SearchUiOptions {
   searcherOptions: SearcherOptions,
   inputId: string,
-  resultsPerPage?: number,
   sourceFilesUrl?: string,
   render?: SearchUiRenderOptions
 }
