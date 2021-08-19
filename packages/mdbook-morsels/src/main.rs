@@ -44,7 +44,7 @@ fn main() {
 
         Command::new("morsels")
             .current_dir(html_renderer_path)
-            .args(&["./", "./morsels_output"])
+            .args(&["./", "./morsels_output", "--dynamic"])
             .output()
             .expect("failed to execute indexer process");
     } else {
@@ -113,15 +113,7 @@ impl Preprocessor for Morsels {
 
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
-                if let Some(css_file) = SEARCH_UI_DIST.get_file("search-ui.css") {
-                    ch.content = SCRIPT_EL.to_owned()
-                        + "\n\n<style>" + css_file.contents_utf8().unwrap() + "</style>\n\n"
-                        + INPUT_EL
-                        + &ch.content + get_initialise_script_el();
-                } else {
-                    ch.content = SCRIPT_EL.to_owned() + INPUT_EL + &ch.content + get_initialise_script_el();
-                };
-
+                ch.content = SCRIPT_EL.to_owned() + CSS_EL + INPUT_EL + &ch.content + get_initialise_script_el();
             }
         });
 
