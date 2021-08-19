@@ -3,20 +3,22 @@
     --morsels-dropdown-max-height: 30em;
     --morsels-font-size: 16px;
     --morsels-border: 3px solid rgb(243, 243, 243);
+    --morsels-fg: black;
     --morsels-bg: white;
     --morsels-dropdown-input-separator-bg: white;
     --morsels-item-border: 1px solid rgba(67, 67, 67, 0.3);
-    --morsels-title-fg: black;
+    --morsels-item-sub-border: 1px solid #949494;
+    --morsels-title-fg: var(--morsels-fg);
     --morsels-title-bg: rgba(245, 169, 86, 0.33);
-    --morsels-title-hover-fg: black;
+    --morsels-title-hover-fg: var(--morsels-fg);
     --morsels-title-hover-bg: rgba(213, 177, 137, 0.5);
-    --morsels-heading-fg: #3d3f42;
-    --morsels-heading-hover-fg: #3d3f42;
+    --morsels-heading-fg: var(--morsels-fg);
     --morsels-heading-bg: rgba(255, 204, 147, 0.2);
+    --morsels-heading-hover-fg: var(--morsels-fg);
     --morsels-heading-hover-bg: rgb(255, 226, 201);
-    --morsels-body-fg: #4d5156;
-    --morsels-body-hover-fg: #4d5156;
-    --morsels-body-bg: rgba(255, 255, 255, 0.3);
+    --morsels-body-fg: var(--morsels-fg);
+    --morsels-body-bg: var(--morsels-bg);
+    --morsels-body-hover-fg: var(--morsels-fg);
     --morsels-body-hover-bg: rgba(255, 234, 217, 0.8);
     --morsels-highlight: #ef9001;
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
@@ -203,6 +205,7 @@
     list-style: none;
     background-color: var(--morsels-bg);
     font-size: inherit;
+    z-index: 1000;
     scrollbar-color: var(--morsels-scrollbar-thumb-bg) var(--morsels-scrollbar-bg);
     scrollbar-width: thin;
 }
@@ -216,10 +219,16 @@
     width: auto;
     max-height: calc(100% - 20px - 2.7em);
     border: none;
-    /* Generous amount of bottom padding for device navigation bar. The alternative is dynamic style detection. */
-    padding: 0 0.5em 100px 0.5em;
+    padding: 0 0.5em 0.5em 0.5em;
     background-color: transparent;
     position: static;
+}
+
+@media screen and (max-width: 1025px) {
+    .morsels-portal-root .morsels-list {
+        /* Generous amount of bottom padding for device navigation bar. The alternative is dynamic style detection. */
+        padding-bottom: 100px;
+    }
 }
 
 .morsels-portal-root::-webkit-scrollbar-track,
@@ -273,11 +282,11 @@
     color: var(--morsels-title-fg);
     word-break: break-word;
     border-radius: 10px 10px 0 0;
-    padding: 3px 3px 3px 5px;
+    padding: 3px 0.5em;
     background: var(--morsels-title-bg);
     font-size: 1.1em;
     font-weight: 600;
-    transition: background 0.1s ease-in-out;
+    transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
 
 .morsels-title:hover {
@@ -288,20 +297,20 @@
 .morsels-heading-body {
     display: flex;
     text-decoration: none;
-    border-top: 1px solid #949494;
-    transition: background 0.1s ease-in-out;
+    border-top: var(--morsels-item-sub-border);
+    transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
 
 .morsels-heading {
     width: 30%;
     word-break: break-word;
-    padding: 0.2em;
+    padding: 0.2em 0.5em;
     display: inline-block;
     vertical-align: top;
     background: var(--morsels-heading-bg);
     font-weight: 600;
     color: var(--morsels-heading-fg);
-    transition: background 0.1s ease-in-out;
+    transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
 
 .morsels-heading-body:hover .morsels-heading {
@@ -318,10 +327,10 @@
     font-size: inherit;
     word-break: break-word;
     grid-column-start: 2;
-    padding: 0.3em;
+    padding: 0.3em 0.4em;
     color: var(--morsels-body-fg);
     background: var(--morsels-body-bg);
-    transition: background 0.1s ease-in-out;
+    transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
 
 .morsels-heading-body:hover .morsels-body {
