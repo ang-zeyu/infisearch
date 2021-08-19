@@ -4,6 +4,11 @@ import Result from '@morsels/search-lib/lib/results/Result';
 import { Query } from '@morsels/search-lib';
 import { CreateElement } from './utils/dom';
 
+export interface ArbitraryRenderOptions {
+  [key: string]: any,
+  dropdownAlignment?: 'left' | 'right',
+}
+
 export interface SearchUiRenderOptions {
   enablePortal?: boolean | 'auto',
   portalTo?: HTMLElement,
@@ -11,6 +16,7 @@ export interface SearchUiRenderOptions {
   hide?: (root: HTMLElement, isPortal: boolean) => void,
   rootRender?: (
     h: CreateElement,
+    opts: ArbitraryRenderOptions,
     inputEl: HTMLElement,
     portalCloseHandler?: () => void,
   ) => ({ root: HTMLElement, listContainer: HTMLElement }),
@@ -49,6 +55,7 @@ export interface SearchUiRenderOptions {
     bodyHighlights: (HTMLElement | string)[],
   ) => HTMLElement,
   highlightRender?: (h: CreateElement, matchedPart: string) => HTMLElement,
+  opts?: ArbitraryRenderOptions,
 }
 
 export interface SearchUiOptions {

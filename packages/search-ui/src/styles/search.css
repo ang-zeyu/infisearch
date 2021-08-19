@@ -176,6 +176,11 @@
     border-bottom: 9px solid var(--morsels-dropdown-input-separator-bg);
 }
 
+.morsels-input-dropdown-separator.left {
+    left: 16px;
+    right: unset;
+}
+
 /*
  Both versions
  */
@@ -194,6 +199,11 @@
     list-style: none;
     background-color: var(--morsels-bg);
     font-size: 16px;
+}
+
+.morsels-list.left {
+    left: 0;
+    right: unset;
 }
 
 .morsels-portal-root .morsels-list {

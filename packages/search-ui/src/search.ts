@@ -95,7 +95,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     }
   });
 
-  options.render.rootRender = options.render.rootRender || ((h, inputEl, portalCloseHandler) => {
+  options.render.rootRender = options.render.rootRender || ((h, opts, inputEl, portalCloseHandler) => {
     const root = h(
       'div',
       {
@@ -120,11 +120,14 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     }
 
     if (!portalCloseHandler) {
-      root.appendChild(h('div', { class: 'morsels-input-dropdown-separator', style: 'display: none;' }));
+      root.appendChild(h('div', {
+        class: `morsels-input-dropdown-separator ${opts.dropdownAlignment || 'right'}`,
+        style: 'display: none;',
+      }));
     }
 
     const listContainer = h('ul', {
-      class: 'morsels-list',
+      class: `morsels-list ${portalCloseHandler ? '' : (opts.dropdownAlignment || 'right')}`,
       style: portalCloseHandler ? '' : 'display: none;',
     });
     root.appendChild(listContainer);
@@ -186,6 +189,8 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   options.render.highlightRender = options.render.highlightRender || ((h, matchedPart) => h(
     'span', { class: 'morsels-highlight' }, matchedPart,
   ));
+
+  options.render.opts = options.render.opts || {};
 }
 
 function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
@@ -239,7 +244,7 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
   // Fullscreen portal-ed version
   const portalInput: HTMLInputElement = options.render.portalInputRender(createElement);
   const { root: portalRoot, listContainer: portalListContainer } = options.render.rootRender(
-    createElement, portalInput, () => options.render.hide(portalRoot, true),
+    createElement, options.render.opts, portalInput, () => options.render.hide(portalRoot, true),
   );
   portalInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
   portalListContainer.appendChild(options.render.portalBlankRender(createElement));
@@ -255,7 +260,7 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
     input.remove();
     const {
       root, listContainer,
-    } = options.render.rootRender(createElement, input);
+    } = options.render.rootRender(createElement, options.render.opts, input);
     parent.appendChild(root);
 
     input.addEventListener('input', inputListener(root, listContainer, false));
