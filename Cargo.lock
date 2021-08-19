@@ -1146,6 +1146,7 @@ dependencies = [
  "include_dir",
  "mdbook",
  "serde_json",
+ "toml",
 ]
 
 [[package]]

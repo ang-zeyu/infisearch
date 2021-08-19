@@ -16,6 +16,7 @@ use mdbook::book::BookItem;
 use mdbook::preprocess::Preprocessor;
 use mdbook::preprocess::PreprocessorContext;
 use mdbook::renderer::RenderContext;
+use toml::value::Value::{Boolean, String};
 
 const SEARCH_UI_DIST: Dir = include_dir!("../search-ui/dist");
 
@@ -42,11 +43,18 @@ fn main() {
             output_file.write_all(file.contents()).expect("Failed to copy search-ui assets!");
         }
 
-        Command::new("morsels")
-            .current_dir(html_renderer_path)
-            .args(&["./", "./morsels_output", "--dynamic"])
-            .output()
-            .expect("failed to execute indexer process");
+        let mut command = Command::new("morsels");
+        command.current_dir(html_renderer_path)
+            .args(&["./", "./morsels_output", "--dynamic"]);
+
+        if let Some(morsels_config_file_path_toml) = ctx.config.get("output.morsels.config") {
+            if let String(morsels_config_file_path) = morsels_config_file_path_toml {
+                command.arg("-c");
+                command.arg(morsels_config_file_path);
+            }
+        }
+
+        command.output().expect("failed to execute indexer process");
     } else {
         let morsels_preprocessor = Morsels::new();
 
@@ -111,9 +119,25 @@ impl Preprocessor for Morsels {
             }
         } */
 
+        let css_el = if let Some(morsels_config_file_path_toml) = ctx.config.get("output.morsels.no-css") {
+            if let Boolean(no_css) = morsels_config_file_path_toml {
+                if *no_css {
+                    ""
+                } else {
+                    CSS_EL
+                }
+            } else {
+                CSS_EL
+            }
+        } else {
+            CSS_EL
+        };
+
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
-                ch.content = SCRIPT_EL.to_owned() + CSS_EL + INPUT_EL + &ch.content + get_initialise_script_el();
+                ch.content = SCRIPT_EL.to_owned()
+                    + css_el
+                    + INPUT_EL + &ch.content + get_initialise_script_el();
             }
         });
 
