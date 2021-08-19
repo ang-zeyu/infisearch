@@ -218,7 +218,9 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
         if (isFirstQueryFromBlank) {
           listContainer.innerHTML = '';
           listContainer.appendChild(options.render.loadingIndicatorRender(createElement, options.render.opts));
-          options.render.show(root, options.render.opts, forPortal);
+          if (!forPortal) {
+            options.render.show(root, options.render.opts, forPortal);
+          }
         }
 
         if (isUpdating) {
