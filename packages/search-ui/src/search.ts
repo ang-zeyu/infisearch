@@ -76,7 +76,10 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   options.render.show = options.render.show || ((root, forPortal) => {
     if (forPortal) {
       options.render.portalTo.appendChild(root);
-      (root.firstElementChild.firstElementChild as HTMLInputElement).focus();
+      const input: HTMLInputElement = root.querySelector('input.morsels-portal-input');
+      if (input) {
+        input.focus();
+      }
     } else {
       (root.lastElementChild as HTMLElement).style.display = 'block';
       (root.lastElementChild.previousSibling as HTMLElement).style.display = 'block';
