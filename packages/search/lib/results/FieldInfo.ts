@@ -19,6 +19,7 @@ export interface MorselsConfig {
 }
 
 export interface MorselsConfigRaw {
+  ver: string,
   indexing_config: {
     loader_configs: { [loader: string]: any },
     pl_names_to_cache: number[],

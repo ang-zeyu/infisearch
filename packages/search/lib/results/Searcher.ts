@@ -6,6 +6,8 @@ import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
 
+declare const MORSELS_VERSION;
+
 class Searcher {
   morselsConfig: MorselsConfig;
 
@@ -72,6 +74,10 @@ class Searcher {
         'Content-Type': 'application/json',
       },
     })).json();
+
+    if (json.ver !== MORSELS_VERSION) {
+      throw new Error('Morsels search version not equal to indexer version!');
+    }
 
     const { field_infos: fieldInfosRaw } = json;
 

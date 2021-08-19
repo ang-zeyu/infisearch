@@ -1,6 +1,9 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+/* eslint-disable import/no-extraneous-dependencies */
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+const { DefinePlugin } = require('webpack');
 const path = require('path');
+
+const { version } = require('./packages/search/package.json');
 
 module.exports = {
   entry: {
@@ -38,6 +41,9 @@ module.exports = {
       extraArgs: '-- --no-default-features --features lang_latin',
       forceMode: 'production',
       outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_latin'),
+    }),
+    new DefinePlugin({
+      MORSELS_VERSION: `'${version}'`,
     }),
   ],
 };

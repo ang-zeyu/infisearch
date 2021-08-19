@@ -47,6 +47,7 @@ use serde::{Serialize,Deserialize};
 #[macro_use]
 extern crate lazy_static;
 
+const MORSELS_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
@@ -173,6 +174,7 @@ struct MorselsIndexingOutputConfig {
 
 #[derive(Serialize)]
 pub struct MorselsOutputConfig<'a> {
+    ver: &'static str,
     indexing_config: MorselsIndexingOutputConfig,
     language: &'a MorselsLanguageConfig,
     field_infos: &'a FieldInfos,
@@ -451,6 +453,7 @@ impl Indexer {
 
     fn write_morsels_config(&mut self) {
         let serialized = serde_json::to_string(&MorselsOutputConfig {
+            ver: MORSELS_VERSION,
             indexing_config: MorselsIndexingOutputConfig {
                 loader_configs: std::mem::take(&mut self.loaders).into_iter().map(|loader| (loader.get_name(), loader)).collect(),
                 pl_names_to_cache: std::mem::take(&mut self.pl_names_to_cache),
