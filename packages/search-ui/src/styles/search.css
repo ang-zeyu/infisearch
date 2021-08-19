@@ -1,10 +1,7 @@
 .morsels-root {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    box-sizing: border-box;
     --morsels-dropdown-width: 512px;
     --morsels-dropdown-max-height: 30em;
+    --morsels-font-size: 16px;
     --morsels-border: 3px solid rgb(243, 243, 243);
     --morsels-bg: white;
     --morsels-dropdown-input-separator-bg: white;
@@ -38,6 +35,11 @@
     --morsels-fullscreen-header-close-hover-fg: rgb(252, 224, 197);
     --morsels-fullscreen-header-close-active-bg: rgba(246, 170, 73, 0.9);
     --morsels-fullscreen-header-close-active-fg: rgb(255, 241, 226);
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: var(--morsels-font-size);
 }
 
 .morsels-root * {
@@ -65,23 +67,23 @@
     height: 100%;
     background: var(--morsels-bg);
     z-index: 1000;
-    overflow-y: hidden;
 }
 
 .morsels-portal-input-button-wrapper {
     display: flex;
     align-items: center;
-    padding: 0.5em 0.33em;
-    font-size: 24px;
+    justify-content: space-between;
+    padding: 10px;
+    font-size: 1.3em;
     background: var(--morsels-fullscreen-header-bg);
     z-index: 1000;
 }
 
 .morsels-portal-input {
-    display: inline-block;
+    flex: 1 0 0;
+    width: 0;
     padding: 0.2em 0.8em;
     outline: none;
-    width: calc(100% - 80px);
     border: var(--morsels-fullscreen-input-border);
     border-radius: 30px;
     font-size: inherit;
@@ -99,7 +101,8 @@
     border-radius: 0.825em;
     width: 1.65em;
     height: 1.65em;
-    margin-left: 20px;
+    margin-left: 8px;
+    margin-right: 5px;
     font-size: inherit;
     cursor: pointer;
     background: var(--morsels-fullscreen-header-close-bg);
@@ -195,10 +198,10 @@
     right: 0;
     width: var(--morsels-dropdown-width);
     max-height: var(--morsels-dropdown-max-height);
-    overflow-y: scroll;
+    overflow-y: auto;
     list-style: none;
     background-color: var(--morsels-bg);
-    font-size: 16px;
+    font-size: inherit;
     scrollbar-color: var(--morsels-scrollbar-thumb-bg) var(--morsels-scrollbar-bg);
     scrollbar-width: thin;
 }
@@ -210,12 +213,12 @@
 
 .morsels-portal-root .morsels-list {
     width: auto;
-    max-height: calc(100% - 5em);
+    max-height: calc(100% - 20px - 2.7em);
     border: none;
-    padding: 0 0.5em 1em 0.5em;
+    /* Generous amount of bottom padding for device navigation bar. The alternative is dynamic style detection. */
+    padding: 0 0.5em 100px 0.5em;
     background-color: transparent;
     position: static;
-    font-size: 18px;
 }
 
 .morsels-portal-root::-webkit-scrollbar-track,
@@ -236,24 +239,31 @@
 
 .morsels-no-results {
     text-align: center;
+    font-size: 0.9em;
     color: var(--morsels-fine-print-fg);
     padding: 1em;
 }
 
 .morsels-list-item {
+    font-size: inherit;
     border: var(--morsels-item-border);
     border-radius: 10px;
     margin: 18px 5px;
 }
 
 @media screen and (min-width: 1025px) {
-    .morsels-portal-root .morsels-list-item {
+    .morsels-list-item {
         margin: 15px 10px;
+    }
+
+    .morsels-list-item:first-child {
+        margin-top: 10px;
     }
 }
 
 .morsels-link,
 .morsels-heading-body {
+    font-size: inherit;
     text-decoration: none !important;
 }
 
@@ -303,6 +313,7 @@
 
 .morsels-body {
     height: 100%;
+    font-size: inherit;
     word-break: break-word;
     grid-column-start: 2;
     padding: 0.3em;
