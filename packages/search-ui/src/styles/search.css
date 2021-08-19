@@ -5,8 +5,40 @@
     box-sizing: border-box;
     --morsels-dropdown-width: 512px;
     --morsels-dropdown-max-height: 30em;
+    --morsels-border: 3px solid rgb(243, 243, 243);
+    --morsels-bg: white;
+    --morsels-dropdown-input-separator-bg: white;
+    --morsels-item-border: 1px solid rgba(67, 67, 67, 0.3);
+    --morsels-title-fg: black;
+    --morsels-title-bg: rgba(245, 169, 86, 0.33);
+    --morsels-title-hover-fg: black;
+    --morsels-title-hover-bg: rgba(213, 177, 137, 0.5);
+    --morsels-heading-fg: #3d3f42;
+    --morsels-heading-hover-fg: #3d3f42;
+    --morsels-heading-bg: rgba(255, 204, 147, 0.2);
+    --morsels-heading-hover-bg: rgb(255, 226, 201);
+    --morsels-body-fg: #4d5156;
+    --morsels-body-hover-fg: #4d5156;
+    --morsels-body-bg: rgba(255, 255, 255, 0.3);
+    --morsels-body-hover-bg: rgba(255, 234, 217, 0.8);
+    --morsels-highlight: #ef9001;
+    --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
+    --morsels-loading-bg: #fed;
+    --morsels-scrollbar-bg: rgba(213, 177, 137, 0.15);
+    --morsels-scrollbar-thumb-bg: rgba(213, 177, 137, 0.5);
     --morsels-fullscreen-desktop-width: 700px;
     --morsels-fullscreen-desktop-height: 70%;
+    --morsels-fullscreen-backdrop-bg: rgba(0, 0, 0, 0.2);
+    --morsels-fullscreen-header-bg: rgb(245, 200, 155);
+    --morsels-fullscreen-input-border: 2px solid rgba(253, 202, 144, 0.37);
+    --morsels-fullscreen-input-focus-border: 2px solid rgba(255, 169, 66, 0.8);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px rgba(255, 169, 66, 0.8);
+    --morsels-fullscreen-header-close-bg: rgba(255, 210, 144, 0.8);
+    --morsels-fullscreen-header-close-fg: rgba(246, 170, 73, 0.8);
+    --morsels-fullscreen-header-close-hover-bg: rgba(248, 168, 65, 0.5);
+    --morsels-fullscreen-header-close-hover-fg: rgb(252, 224, 197);
+    --morsels-fullscreen-header-close-active-bg: rgba(246, 170, 73, 0.9);
+    --morsels-fullscreen-header-close-active-fg: rgb(255, 241, 226);
 }
 
 .morsels-root * {
@@ -23,7 +55,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.2);
+    background: var(--morsels-fullscreen-backdrop-bg);
     z-index: 1000;
 }
 
@@ -31,7 +63,7 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background-color: rgb(239, 216, 194);
+    background: var(--morsels-bg);
     z-index: 1000;
     overflow-y: hidden;
 }
@@ -41,7 +73,7 @@
     align-items: center;
     padding: 0.5em 0.33em;
     font-size: 24px;
-    background-color: rgb(245, 200, 155);
+    background: var(--morsels-fullscreen-header-bg);
     z-index: 1000;
 }
 
@@ -50,14 +82,14 @@
     padding: 0.2em 0.8em;
     outline: none;
     width: calc(100% - 80px);
-    border: 2px solid rgba(253, 202, 144, 0.37);
+    border: var(--morsels-fullscreen-input-border);
     border-radius: 30px;
     font-size: inherit;
 }
 
 .morsels-portal-input:focus {
-    border: 3px solid rgba(255, 169, 66, 0.8);
-    box-shadow: 0 0 5px rgba(255, 169, 66, 0.8);
+    border: var(--morsels-fullscreen-input-focus-border);
+    box-shadow: var(--morsels-fullscreen-input-focus-box-shadow);
 }
 
 .morsels-input-close-portal {
@@ -70,8 +102,8 @@
     margin-left: 20px;
     font-size: inherit;
     cursor: pointer;
-    background-color: rgba(255, 210, 144, 0.8);
-    transition: 0.2s linear background-color;
+    background: var(--morsels-fullscreen-header-close-bg);
+    transition: 0.2s linear background;
 }
 
 .morsels-input-close-portal::before, .morsels-input-close-portal::after {
@@ -82,8 +114,8 @@
     border-radius: 8px;
     width: 0.18em;
     height: 1.25em;
-    background-color: rgba(246, 170, 73, 0.8);
-    transition: 0.2s linear background-color;
+    background: var(--morsels-fullscreen-header-close-fg);
+    transition: 0.2s linear background;
 }
 .morsels-input-close-portal::before {
     transform: rotate(45deg);
@@ -93,34 +125,34 @@
 }
 
 .morsels-input-close-portal:hover {
-    background-color: rgba(248, 168, 65, 0.5);
+    background: var(--morsels-fullscreen-header-close-hover-bg);
 }
 
 .morsels-input-close-portal:hover::before,
 .morsels-input-close-portal:hover::after {
-    background-color: rgb(252, 224, 197);
+    background: var(--morsels-fullscreen-header-close-hover-fg);
 }
 
 .morsels-input-close-portal:active {
-    background-color: rgba(246, 170, 73, 0.9);
+    background: var(--morsels-fullscreen-header-close-active-bg);
 }
 
 .morsels-input-close-portal:active::before,
 .morsels-input-close-portal:active::after {
-    background-color: rgb(255, 241, 226);
+    background: var(--morsels-fullscreen-header-close-active-fg);
 }
 
 .morsels-portal-blank {
     text-align: center;
     font-size: 0.9em;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--morsels-fine-print-fg);
     padding: 1em;
 }
 
 @media screen and (min-width: 1025px) {
     .morsels-portal-root {
         border-radius: 10px;
-        border: 2px solid rgba(40, 40, 40, 0.2);
+        border: var(--morsels-border);
         top: 15%;
         left: calc(50% - (var(--morsels-fullscreen-desktop-width) / 2));
         width: var(--morsels-fullscreen-desktop-width);
@@ -141,7 +173,7 @@
     height: 0;
     border-left: 9px solid transparent;
     border-right: 9px solid transparent;
-    border-bottom: 9px solid white;
+    border-bottom: 9px solid var(--morsels-dropdown-input-separator-bg);
 }
 
 /*
@@ -150,7 +182,7 @@
 
 .morsels-list {
     padding: 0;
-    border: 1px solid rgba(67, 67, 67, 0.3);
+    border: var(--morsels-border);
     border-radius: 8px;
     margin: 0;
     position: absolute;
@@ -160,7 +192,7 @@
     max-height: var(--morsels-dropdown-max-height);
     overflow-y: scroll;
     list-style: none;
-    background-color: white;
+    background-color: var(--morsels-bg);
     font-size: 16px;
 }
 
@@ -177,7 +209,7 @@
 .morsels-portal-root::-webkit-scrollbar-track,
 .morsels-list::-webkit-scrollbar-track {
     border-radius: 5px;
-    background-color: rgba(213, 177, 137, 0.15);
+    background: var(--morsels-scrollbar-bg);
 }
 
 .morsels-portal-root::-webkit-scrollbar,
@@ -189,17 +221,17 @@
 .morsels-portal-root::-webkit-scrollbar-thumb,
 .morsels-list::-webkit-scrollbar-thumb {
     border-radius: 5px;
-    background-color: rgba(213, 177, 137, 0.5);
+    background: var(--morsels-scrollbar-thumb-bg);
 }
 
 .morsels-no-results {
     text-align: center;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--morsels-fine-print-fg);
     padding: 1em;
 }
 
 .morsels-list-item {
-    border: 1px solid rgba(67, 67, 67, 0.3);
+    border: var(--morsels-item-border);
     border-radius: 10px;
     margin: 18px 5px;
 }
@@ -216,25 +248,26 @@
 }
 
 .morsels-title {
-    color: black;
+    color: var(--morsels-title-fg);
     word-break: break-word;
     border-radius: 10px 10px 0 0;
     padding: 3px 3px 3px 5px;
-    background-color: rgba(245, 169, 86, 0.33);
+    background: var(--morsels-title-bg);
     font-size: 1.1em;
     font-weight: 600;
-    transition: background-color 0.1s ease-in-out;
+    transition: background 0.1s ease-in-out;
 }
 
 .morsels-title:hover {
-    background-color: rgba(213, 177, 137, 0.5);
+    color: var(--morsels-title-hover-fg);
+    background: var(--morsels-title-hover-bg);
 }
 
 .morsels-heading-body {
     display: flex;
     text-decoration: none;
     border-top: 1px solid #949494;
-    transition: background-color 0.1s ease-in-out;
+    transition: background 0.1s ease-in-out;
 }
 
 .morsels-heading {
@@ -243,14 +276,15 @@
     padding: 0.2em;
     display: inline-block;
     vertical-align: top;
-    background-color: rgba(255, 204, 147, 0.2);
+    background: var(--morsels-heading-bg);
     font-weight: 600;
-    color: #3d3f42;
-    transition: background-color 0.1s ease-in-out;
+    color: var(--morsels-heading-fg);
+    transition: background 0.1s ease-in-out;
 }
 
 .morsels-heading-body:hover .morsels-heading {
-    background-color: rgb(255, 226, 201);
+    color: var(--morsels-heading-hover-fg);
+    background: var(--morsels-heading-hover-bg);
 }
 
 .morsels-bodies {
@@ -262,17 +296,18 @@
     word-break: break-word;
     grid-column-start: 2;
     padding: 0.3em;
-    color: #4d5156;
-    background-color: rgba(255, 255, 255, 0.3);
-    transition: background-color 0.1s ease-in-out;
+    color: var(--morsels-body-fg);
+    background: var(--morsels-body-bg);
+    transition: background 0.1s ease-in-out;
 }
 
 .morsels-heading-body:hover .morsels-body {
-    background-color: rgba(255, 234, 217, 0.8);
+    color: var(--morsels-body-hover-fg);
+    background-color: var(--morsels-body-hover-bg);
 }
 
 .morsels-highlight {
-    color: #ef9001;
+    color: var(--morsels-highlight);
     border-radius: 3px;
     font-weight: bold;
 }
@@ -298,7 +333,7 @@
     margin: 4px;
     border-radius: 50%;
     border: 6px solid;
-    border-color: #fed transparent #fed transparent;
+    border-color: var(--morsels-loading-bg) transparent var(--morsels-loading-bg) transparent;
     animation: morsels-loading-indicator 1.2s linear infinite;
 }
 
