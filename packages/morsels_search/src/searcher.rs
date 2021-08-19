@@ -30,25 +30,20 @@ use morsels_common::tokenize::Tokenizer;
 use query_parser::{QueryPart, QueryPartType, parse_query};
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct SearcherConfig {
-  #[serde(rename = "indexingConfig")]
   indexing_config: IndexingConfig,
   language: MorselsLanguageConfig,
-  #[serde(rename = "fieldInfos")]
   field_infos: Vec<FieldInfo>,
-  #[serde(rename = "numScoredFields")]
   num_scored_fields: usize,
-  #[serde(rename = "searcherOptions")]
   searcher_options: SearcherOptions,
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct IndexingConfig {
-  #[serde(rename = "plNamesToCache")]
   pl_names_to_cache: Vec<u32>,
-  #[serde(rename = "numPlsPerDir")]
   num_pls_per_dir: u32,
-  #[serde(rename = "withPositions")]
   with_positions: bool,
 }
 
@@ -61,11 +56,10 @@ struct FieldInfo {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct SearcherOptions {
     url: String,
-    #[serde(rename = "numberOfExpandedTerms")]
     number_of_expanded_terms: usize,
-    #[serde(rename = "useQueryTermProximity")]
     pub use_query_term_proximity: bool,
 }
 

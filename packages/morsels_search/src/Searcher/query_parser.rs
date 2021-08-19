@@ -12,21 +12,15 @@ pub enum QueryPartType {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryPart {
-  #[serde(rename = "isCorrected")]
   pub is_corrected: bool,
-  #[serde(rename = "isStopWordRemoved")]
   pub is_stop_word_removed: bool,
-  #[serde(rename = "shouldExpand")]
   pub should_expand: bool,
-  #[serde(rename = "isExpanded")]
   pub is_expanded: bool,
-  #[serde(rename = "originalTerms")]
   pub original_terms: Option<Vec<String>>,
   pub terms: Option<Vec<String>>,
-  #[serde(rename = "partType")]
   pub part_type: QueryPartType,
-  #[serde(rename = "fieldName")]
   pub field_name: Option<String>,
   pub children: Option<Vec<QueryPart>>,
 }
