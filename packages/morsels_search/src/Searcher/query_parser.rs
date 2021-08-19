@@ -229,63 +229,33 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Result<Vec<
             &&  j < query_chars_len - 4
             && query_chars[j] == 'A' && query_chars[j + 1] == 'N' && query_chars[j + 2] == 'D'
             && query_chars[j + 3].is_ascii_whitespace() {
-            
-            let mut curr_query_parts = parse_query(collect_slice(&query_chars, i, initial_j, &escape_indices), tokenizer)?;
-
-            if curr_query_parts.len() > 0 {
-              let first_query_part = wrap_in_not(curr_query_parts.swap_remove(0), &mut did_encounter_not, &mut field_name);
-              curr_query_parts.push(first_query_part);
-              let last_query_part = curr_query_parts.swap_remove(0);
-              curr_query_parts.push(last_query_part);
-
-              if is_expecting_and {
-                let last_query_part_idx = query_parts.len() - 1;
-                query_parts.get_mut(last_query_part_idx).unwrap()
-                  .children.as_mut().unwrap()
-                  .push(curr_query_parts.remove(0));
-              }
-
-              if curr_query_parts.len() > 0 {
-                // A new, disjoint AND group from the previous (if any)
-                let last_curr_query_part = curr_query_parts.pop().unwrap();
-                query_parts.append(&mut curr_query_parts);
-                query_parts.push(QueryPart {
-                  is_corrected: false,
-                  is_stop_word_removed: false,
-                  should_expand: false,
-                  is_expanded: false,
-                  original_terms: Option::None,
-                  terms: Option::None,
-                  part_type: QueryPartType::AND,
-                  field_name: std::mem::take(&mut field_name),
-                  children: Option::from(vec![last_curr_query_part]),
-                });
-              }
-            } else if !is_expecting_and {
-              // e.g. (lorem) AND ipsum
+            handle_terminator(
+              tokenizer, &query_chars,
+              i, initial_j, &escape_indices,
+              &mut query_parts, &mut is_expecting_and, &mut did_encounter_not, &mut field_name
+            )?;
               
-              let last_curr_query_part = query_parts.pop();
-              if last_curr_query_part.is_some()
-                && matches!(last_curr_query_part.as_ref().unwrap().part_type, QueryPartType::AND) {
-                // Reuse last AND group
-                query_parts.push(last_curr_query_part.unwrap());
-              } else {
-                query_parts.push(QueryPart {
-                  is_corrected: false,
-                  is_stop_word_removed: false,
-                  should_expand: false,
-                  is_expanded: false,
-                  original_terms: Option::None,
-                  terms: Option::None,
-                  part_type: QueryPartType::AND,
-                  field_name: std::mem::take(&mut field_name),
-                  children: Option::from(if let Some(last_curr_query_part) = last_curr_query_part {
-                    vec![last_curr_query_part]
-                  } else {
-                    vec![]
-                  }),
-                });
-              }
+            let last_curr_query_part = query_parts.pop();
+            if last_curr_query_part.is_some()
+              && matches!(last_curr_query_part.as_ref().unwrap().part_type, QueryPartType::AND) {
+              // Reuse last AND group
+              query_parts.push(last_curr_query_part.unwrap());
+            } else {
+              query_parts.push(QueryPart {
+                is_corrected: false,
+                is_stop_word_removed: false,
+                should_expand: false,
+                is_expanded: false,
+                original_terms: Option::None,
+                terms: Option::None,
+                part_type: QueryPartType::AND,
+                field_name: std::mem::take(&mut field_name),
+                children: Option::from(if let Some(last_curr_query_part) = last_curr_query_part {
+                  vec![last_curr_query_part]
+                } else {
+                  vec![]
+                }),
+              });
             }
             is_expecting_and = true;
 
