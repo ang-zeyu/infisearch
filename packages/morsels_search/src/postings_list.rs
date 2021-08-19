@@ -197,12 +197,12 @@ impl PostingsList {
 
         let term_info = self.term_info.as_ref().unwrap();
         
-        let mut fetched_pl = None;
+        let fetched_pl;
         let pl_vec = if let Some(pl_vec) = pl_file_cache.get(term_info.postings_file_name) {
             pl_vec
         } else {
-            fetched_pl = Some(PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name, num_pls_per_dir).await?);
-            fetched_pl.as_ref().unwrap()
+            fetched_pl = PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name, num_pls_per_dir).await?;
+            &fetched_pl
         };
 
         let mut pos = term_info.postings_file_offset as usize;
