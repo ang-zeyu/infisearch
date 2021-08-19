@@ -66,6 +66,7 @@
     width: 100%;
     height: 100%;
     background: var(--morsels-bg);
+    overflow: hidden;
     z-index: 1000;
 }
 
@@ -249,6 +250,7 @@
     border: var(--morsels-item-border);
     border-radius: 10px;
     margin: 18px 5px;
+    overflow: hidden;
 }
 
 @media screen and (min-width: 1025px) {
