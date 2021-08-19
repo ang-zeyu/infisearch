@@ -199,6 +199,8 @@
     list-style: none;
     background-color: var(--morsels-bg);
     font-size: 16px;
+    scrollbar-color: var(--morsels-scrollbar-thumb-bg) var(--morsels-scrollbar-bg);
+    scrollbar-width: thin;
 }
 
 .morsels-list.left {
@@ -222,13 +224,11 @@
     background: var(--morsels-scrollbar-bg);
 }
 
-.morsels-portal-root::-webkit-scrollbar,
 .morsels-list::-webkit-scrollbar {
     width: 6px;
     background-color: transparent;
 }
 
-.morsels-portal-root::-webkit-scrollbar-thumb,
 .morsels-list::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background: var(--morsels-scrollbar-thumb-bg);
