@@ -54,10 +54,6 @@
       }
 
       @media screen and (max-width: 1024px) {
-        .morsels-root {
-          width: 100%;
-        }
-
         #morsels-search {
           width: 100%;
         }
@@ -67,7 +63,9 @@
   <body>
     <div id="app">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark app-navbar">
-        <input id="morsels-search" placeholder="Search" />
+        <div class="d-flex justify-content-end">
+          <input id="morsels-search" placeholder="Search" />
+        </div>
       </nav>
       <h1 class="app-heading">Morsels Dev Site</h1>
     </div>
