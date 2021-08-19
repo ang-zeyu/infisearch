@@ -12,20 +12,29 @@ export interface ArbitraryRenderOptions {
 export interface SearchUiRenderOptions {
   enablePortal?: boolean | 'auto',
   portalTo?: HTMLElement,
-  show?: (root: HTMLElement, isPortal: boolean) => void,
-  hide?: (root: HTMLElement, isPortal: boolean) => void,
+  show?: (
+    root: HTMLElement,
+    opts: ArbitraryRenderOptions,
+    isPortal: boolean
+  ) => void,
+  hide?: (
+    root: HTMLElement,
+    opts: ArbitraryRenderOptions,
+    isPortal: boolean
+  ) => void,
   rootRender?: (
     h: CreateElement,
     opts: ArbitraryRenderOptions,
     inputEl: HTMLElement,
     portalCloseHandler?: () => void,
   ) => ({ root: HTMLElement, listContainer: HTMLElement }),
-  portalInputRender?: (h: CreateElement) => HTMLInputElement,
-  noResultsRender?: (h: CreateElement) => HTMLElement,
-  portalBlankRender?: (h: CreateElement) => HTMLElement,
-  loadingIndicatorRender?: (h: CreateElement) => HTMLElement,
+  portalInputRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLInputElement,
+  noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+  portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+  loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
   termInfoRender?: (
     h: CreateElement,
+    opts: ArbitraryRenderOptions,
     misspelledTerms: string[],
     correctedTerms: string[],
     expandedTerms: string[],
@@ -39,6 +48,7 @@ export interface SearchUiRenderOptions {
   ) => Promise<HTMLElement[]>,
   listItemRender?: (
     h: CreateElement,
+    opts: ArbitraryRenderOptions,
     fullLink: string,
     resultTitle: string,
     resultHeadingsAndTexts: (HTMLElement | string)[],
@@ -46,15 +56,17 @@ export interface SearchUiRenderOptions {
   ) => HTMLElement,
   headingBodyRender?: (
     h: CreateElement,
+    opts: ArbitraryRenderOptions,
     heading: string,
     bodyHighlights: (HTMLElement | string)[],
     href?: string
   ) => HTMLElement,
   bodyOnlyRender?: (
     h: CreateElement,
+    opts: ArbitraryRenderOptions,
     bodyHighlights: (HTMLElement | string)[],
   ) => HTMLElement,
-  highlightRender?: (h: CreateElement, matchedPart: string) => HTMLElement,
+  highlightRender?: (h: CreateElement, opts: ArbitraryRenderOptions, matchedPart: string) => HTMLElement,
   opts?: ArbitraryRenderOptions,
 }
 

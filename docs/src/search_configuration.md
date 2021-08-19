@@ -108,34 +108,43 @@ You may simply call `showPortalUI()` function returned by the initMorsels call i
 The other properties under the `render` key allow you to customise the html output structure to some degree.
 
 ```ts
+// Any options you want to pass to any of the render functions below, from the initMorsels call
+interface ArbitraryRenderOptions {
+    [key: string]: any,
+    dropdownAlignment?: 'left' | 'right',
+}
+
 interface SearchUiRenderOptions {
     // ...
-    show?: (root: HTMLElement, isPortal: boolean) => void,
-    hide?: (root: HTMLElement, isPortal: boolean) => void,
+    show?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) => void,
+    hide?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) => void,
     rootRender?: (
         h: CreateElement,
+        opts: ArbitraryRenderOptions,
         inputEl: HTMLElement,
         portalCloseHandler?: () => void,
     ) => ({ root: HTMLElement, listContainer: HTMLElement }),
-    portalInputRender?: (h: CreateElement) => HTMLInputElement,
-    noResultsRender?: (h: CreateElement) => HTMLElement,
-    portalBlankRender?: (h: CreateElement) => HTMLElement,
-    loadingIndicatorRender?: (h: CreateElement) => HTMLElement,
+    portalInputRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLInputElement,
+    noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+    portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+    loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
     termInfoRender?: (
         h: CreateElement,
+        opts: ArbitraryRenderOptions,
         misspelledTerms: string[],
         correctedTerms: string[],
         expandedTerms: string[],
     ) => HTMLElement[],
     resultsRender?: (
         h: CreateElement,
-        options: SearchUiOptions,
+        initMorselsOptions: SearchUiOptions,
         config: MorselsConfig,
         results: Result[],
         query: Query,
     ) => Promise<HTMLElement[]>,
     listItemRender?: (
         h: CreateElement,
+        opts: ArbitraryRenderOptions,
         fullLink: string,
         resultTitle: string,
         resultHeadingsAndTexts: (HTMLElement | string)[],
@@ -143,15 +152,18 @@ interface SearchUiRenderOptions {
     ) => HTMLElement,
     headingBodyRender?: (
         h: CreateElement,
+        opts: ArbitraryRenderOptions,
         heading: string,
         bodyHighlights: (HTMLElement | string)[],
         href?: string
     ) => HTMLElement,
     bodyOnlyRender?: (
         h: CreateElement,
+        opts: ArbitraryRenderOptions,
         bodyHighlights: (HTMLElement | string)[],
     ) => HTMLElement,
-    highlightRender?: (h: CreateElement, matchedPart: string) => HTMLElement,
+    highlightRender?: (h: CreateElement, opts: ArbitraryRenderOptions, matchedPart: string) => HTMLElement,
+    opts?: ArbitraryRenderOptions,
 }
 ```
 
@@ -290,7 +302,7 @@ Note that there are some minor differences between the dropdown version and full
 </div>
 ```
 
-**`rootRender(h, inputEl, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement }`**
+**`rootRender(h, opts, inputEl, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement }`**
 
 - `inputEl`: Input element found by the `inputId` configuration, or created from the `portalInputRender` API below
 - `portalCloseHandler`: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.
@@ -299,32 +311,32 @@ It should return two elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.
 - `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
 
-**`hide / show (root, isPortal): void`**
+**`hide / show (root, opts, isPortal): void`**
 
 These two APIs are not responsible for html output, but rather, hiding and showing the fullscreen or dropdown UIs (e.g. via `style="display: none"`).
 
 - `root`: root element returned by `rootRender`
 - `isPortal`: whether the function call is for the fullscreen / dropdown UI version
 
-**`portalInputRender(h): HTMLInputElement`**
+**`portalInputRender(h, opts): HTMLInputElement`**
 
 This API renders the new `<input>` element wen using the fullscreen UI.
 
-**`noResultsRender(h): HTMLElement`**
+**`noResultsRender(h, opts): HTMLElement`**
 
 This API renders the element attached under the `listContainer` when there are no results found for a given query.
 
-**`portalBlankRender(h): HTMLElement`**
+**`portalBlankRender(h, opts): HTMLElement`**
 
 This API renders the element attached under the `listContainer` when the search box is empty for the fullscreen UI.
 
 The dropdown UI is hidden in such a case.
 
-**`loadingIndicatorRender(h): HTMLElement`**
+**`loadingIndicatorRender(h, opts): HTMLElement`**
 
 This API renders the loading indicator attached under the `listContainer`. The loading indicator is shown when making the initial search (the first search from an empty search box).
 
-**`termInfoRender(h, misspelledTerms, correctedTerms, expandedTerms): HTMLElement[]`**
+**`termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms): HTMLElement[]`**
 
 This API renders elements attached under the `listContainer` related to the searched terms, and is blank by default.
 
@@ -334,7 +346,7 @@ For example, you may render `<div>Did you mean <u>corrected</u>?</div>` for the 
 
 The 2 sets of remaining APIs are mutually exclusive. Use only one or the other.
 
-**`async resultsRender(h, options, config, results, query)`** <span style="color: red">(advanced)</span>
+**`async resultsRender(h, initMorselsOptions, config, results, query)`** <span style="color: red">(advanced)</span>
 
 This API renders the results for all document matches.
 

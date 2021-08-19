@@ -3,7 +3,7 @@ import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { SearchUiOptions, SearchUiRenderOptions } from './SearchUiOptions';
+import { ArbitraryRenderOptions, SearchUiOptions, SearchUiRenderOptions } from './SearchUiOptions';
 import createElement, { CreateElement } from './utils/dom';
 
 const domParser = new DOMParser();
@@ -84,12 +84,12 @@ function transformText(
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
         result.push(createElement('span', { class: 'morsels-ellipsis' }));
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
-        result.push(render.highlightRender(createElement, term));
+        result.push(render.highlightRender(createElement, render.opts, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       } else {
         result.pop();
         result.push(str.substring(prevHighlightEndPos, pos));
-        result.push(render.highlightRender(createElement, term));
+        result.push(render.highlightRender(createElement, render.opts, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       }
       prevHighlightEndPos = highlightEndPos;
@@ -124,6 +124,7 @@ function transformText(
         finalMatchResults.push({
           result: render.headingBodyRender(
             createElement,
+            render.opts,
             texts[i][1],
             result,
             (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}#${texts[i - 1][1]}`,
@@ -137,7 +138,7 @@ function transformText(
     // Insert without heading
     if (!finalMatchResults.length && numberTermsMatched > bestBodyMatch.numberTermsMatched) {
       bestBodyMatch = {
-        result: render.bodyOnlyRender(createElement, result),
+        result: render.bodyOnlyRender(createElement, render.opts, result),
         numberTermsMatched,
       };
     }
@@ -290,7 +291,7 @@ function displayTermInfo(queryParts: QueryPart[], render: SearchUiRenderOptions)
     }
   });
 
-  return render.termInfoRender(createElement, misspelledTerms, correctedTerms, expandedTerms);
+  return render.termInfoRender(createElement, render.opts, misspelledTerms, correctedTerms, expandedTerms);
 }
 
 /*
@@ -351,6 +352,7 @@ async function singleResultRender(
 
   return options.render.listItemRender(
     createElement,
+    options.render.opts,
     fullLink,
     resultTitle,
     resultHeadingsAndTexts,
@@ -385,7 +387,7 @@ export default async function transformResults(
   container: HTMLElement,
   options: SearchUiOptions,
 ): Promise<void> {
-  const loader = options.render.loadingIndicatorRender(createElement);
+  const loader = options.render.loadingIndicatorRender(createElement, options.render.opts);
   if (!isFirst) {
     container.appendChild(loader);
   }
@@ -401,12 +403,12 @@ export default async function transformResults(
   console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   now = performance.now();
 
-  const resultsEls = await resultsRender(createElement, options, config, results, query);
+  const resultsEls = await options.render.resultsRender(createElement, options, config, results, query);
 
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
   } else if (isFirst) {
-    fragment.appendChild(options.render.noResultsRender(createElement));
+    fragment.appendChild(options.render.noResultsRender(createElement, options.render.opts));
   }
   const sentinel = fragment.lastElementChild;
 

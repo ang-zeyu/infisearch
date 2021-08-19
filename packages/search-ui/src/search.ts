@@ -73,7 +73,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
 
   options.render.portalTo = options.render.portalTo || document.getElementsByTagName('body')[0];
 
-  options.render.show = options.render.show || ((root, forPortal) => {
+  options.render.show = options.render.show || ((root, opts, forPortal) => {
     if (forPortal) {
       options.render.portalTo.appendChild(root);
       const input: HTMLInputElement = root.querySelector('input.morsels-portal-input');
@@ -86,7 +86,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     }
   });
 
-  options.render.hide = options.render.hide || ((root, forPortal) => {
+  options.render.hide = options.render.hide || ((root, opts, forPortal) => {
     if (forPortal) {
       root.remove();
     } else {
@@ -155,7 +155,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
 
   options.render.resultsRender = options.render.resultsRender || resultsRender;
 
-  options.render.listItemRender = options.render.listItemRender || ((h, fullLink, title, bodies) => {
+  options.render.listItemRender = options.render.listItemRender || ((h, opts, fullLink, title, bodies) => {
     const linkEl = h('a', { class: 'morsels-link' },
       h('div', { class: 'morsels-title' }, title),
       ...bodies);
@@ -170,7 +170,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   });
 
   options.render.headingBodyRender = options.render.headingBodyRender || ((
-    h, heading, bodyHighlights, href,
+    h, opts, heading, bodyHighlights, href,
   ) => {
     const el = h('a', { class: 'morsels-heading-body' },
       h('div', { class: 'morsels-heading' }, heading),
@@ -182,11 +182,11 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     return el;
   });
 
-  options.render.bodyOnlyRender = options.render.bodyOnlyRender || ((h, bodyHighlights) => h(
+  options.render.bodyOnlyRender = options.render.bodyOnlyRender || ((h, opts, bodyHighlights) => h(
     'div', { class: 'morsels-body' }, ...bodyHighlights,
   ));
 
-  options.render.highlightRender = options.render.highlightRender || ((h, matchedPart) => h(
+  options.render.highlightRender = options.render.highlightRender || ((h, opts, matchedPart) => h(
     'span', { class: 'morsels-highlight' }, matchedPart,
   ));
 
@@ -209,8 +209,8 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
       inputTimer = setTimeout(() => {
         if (isFirstQueryFromBlank) {
           listContainer.innerHTML = '';
-          listContainer.appendChild(options.render.loadingIndicatorRender(createElement));
-          options.render.show(root, forPortal);
+          listContainer.appendChild(options.render.loadingIndicatorRender(createElement, options.render.opts));
+          options.render.show(root, options.render.opts, forPortal);
         }
 
         if (isUpdating) {
@@ -225,9 +225,9 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
       const reset = () => {
         if (forPortal) {
           listContainer.innerHTML = '';
-          listContainer.appendChild(options.render.portalBlankRender(createElement));
+          listContainer.appendChild(options.render.portalBlankRender(createElement, options.render.opts));
         } else {
-          options.render.hide(root, forPortal);
+          options.render.hide(root, options.render.opts, forPortal);
         }
         isUpdating = false;
         isFirstQueryFromBlank = true;
@@ -242,15 +242,16 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
   };
 
   // Fullscreen portal-ed version
-  const portalInput: HTMLInputElement = options.render.portalInputRender(createElement);
+  const portalInput: HTMLInputElement = options.render.portalInputRender(createElement, options.render.opts);
   const { root: portalRoot, listContainer: portalListContainer } = options.render.rootRender(
-    createElement, options.render.opts, portalInput, () => options.render.hide(portalRoot, true),
+    createElement, options.render.opts, portalInput,
+    () => options.render.hide(portalRoot, options.render.opts, true),
   );
   portalInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
-  portalListContainer.appendChild(options.render.portalBlankRender(createElement));
+  portalListContainer.appendChild(options.render.portalBlankRender(createElement, options.render.opts));
 
   const showPortalUI = () => {
-    options.render.show(portalRoot, true);
+    options.render.show(portalRoot, options.render.opts, true);
   };
 
   // Dropdown version
@@ -279,7 +280,7 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
             return;
           }
         }
-        options.render.hide(root, false);
+        options.render.hide(root, options.render.opts, false);
       }, 100);
     });
 
@@ -287,7 +288,7 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
       if (options.render.enablePortal) {
         showPortalUI();
       } else if (listContainer.childElementCount) {
-        options.render.show(root, false);
+        options.render.show(root, options.render.opts, false);
       }
     });
 
@@ -303,9 +304,9 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
 
           if (oldEnablePortal !== options.render.enablePortal) {
             if (options.render.enablePortal) {
-              options.render.hide(root, false);
+              options.render.hide(root, options.render.opts, false);
             } else {
-              options.render.hide(portalRoot, true);
+              options.render.hide(portalRoot, options.render.opts, true);
             }
           }
         }, 250);
