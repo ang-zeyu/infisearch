@@ -69,8 +69,9 @@ impl Loader for JsonLoader {
                     let documents: Vec<FxHashMap<String, String>> = serde_json::from_value(as_value).unwrap();
                     return Some(Box::new({
                         let doc_count = documents.len();
-                        documents.into_iter().zip(vec![link; doc_count]).map(move |(document, link)| {
-                            self.unwrap_json_deserialize_result(document, link)
+                        let links = vec![link; doc_count];
+                        documents.into_iter().zip(links).zip(0..doc_count).map(move |((document, link), idx)| {
+                            self.unwrap_json_deserialize_result(document, format!("{}#{}", link, idx))
                         })
                     }));
                 } else {               

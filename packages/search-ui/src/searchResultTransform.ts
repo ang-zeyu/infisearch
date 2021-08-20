@@ -341,16 +341,19 @@ async function singleResultRender(
     );
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
-  } else if (fullLink.endsWith('.json') && loaderConfigs.JsonLoader) {
-    const asJson = await (await fetch(fullLink)).json();
+  } else {
+    const fullLinkUrl = new URL(fullLink);
+    if (fullLinkUrl.pathname.endsWith('.json') && loaderConfigs.JsonLoader) {
+      const asJson = await (await fetch(fullLink)).json();
 
-    const { title: newTitle, bodies: newBodies } = transformJson(
-      asJson,
-      loaderConfigs.JsonLoader,
-      query.searchedTerms, termRegex, relativeLink, options.render,
-    );
-    resultTitle = newTitle || resultTitle;
-    resultHeadingsAndTexts = newBodies;
+      const { title: newTitle, bodies: newBodies } = transformJson(
+        fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
+        loaderConfigs.JsonLoader,
+        query.searchedTerms, termRegex, relativeLink, options.render,
+      );
+      resultTitle = newTitle || resultTitle;
+      resultHeadingsAndTexts = newBodies;
+    }
   }
 
   return options.render.resultsRenderOpts.listItemRender(
