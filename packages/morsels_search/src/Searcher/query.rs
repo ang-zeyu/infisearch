@@ -248,16 +248,15 @@ impl Searcher {
 
                     let mut next_expected = 0;
                     let mut min_window_len = std::u32::MAX;
-                    let mut curr_window: Vec<u32> = vec![0; pl_its_for_proximity_ranking.len()];
-                    for merged_position in merged_positions {
-                        if next_expected == merged_position.1 {
-                            // Continue the match
-                            curr_window[next_expected] = merged_position.0;
-                            next_expected += 1;
-                        } else if next_expected != 0 && merged_position.1 == 0 {
-                            // Restart the match from 1
-                            curr_window[0] = merged_position.0;
+                    let mut min_pos = std::u32::MAX;
+                    for (pos, pl_it_idx) in merged_positions {
+                        if pl_it_idx == 0 {
+                            // (Re)start the match from 1
+                            min_pos = pos;
                             next_expected = 1;
+                        } else if next_expected == pl_it_idx {
+                            // Continue the match
+                            next_expected += 1;
                         } else {
                             // Restart the match from 0
                             next_expected = 0;
@@ -265,10 +264,10 @@ impl Searcher {
 
                         if next_expected >= pl_its_for_proximity_ranking.len() {
                             next_expected = 0;
-                            min_window_len = std::cmp::min(
-                                curr_window.iter().max().unwrap() - curr_window.iter().min().unwrap(),
-                                min_window_len
-                            );
+                            let curr_window_len = pos - min_pos;
+                            if curr_window_len < min_window_len {
+                                min_window_len = curr_window_len;
+                            }
                         }
                     }
 
