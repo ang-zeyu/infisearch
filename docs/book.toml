@@ -13,3 +13,4 @@ command = "mdbook-morsels"
 renderer = ["html"]
 
 [output.morsels]
+portal = true

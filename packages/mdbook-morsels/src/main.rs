@@ -16,7 +16,7 @@ use mdbook::book::BookItem;
 use mdbook::preprocess::Preprocessor;
 use mdbook::preprocess::PreprocessorContext;
 use mdbook::renderer::RenderContext;
-use toml::value::Value::{Boolean, String};
+use toml::value::Value::{self, Boolean as TomlBoolean, String as TomlString};
 
 const SEARCH_UI_DIST: Dir = include_dir!("../search-ui/dist");
 
@@ -48,7 +48,7 @@ fn main() {
             .args(&["./", "./morsels_output", "--dynamic"]);
 
         if let Some(morsels_config_file_path_toml) = ctx.config.get("output.morsels.config") {
-            if let String(morsels_config_file_path) = morsels_config_file_path_toml {
+            if let TomlString(morsels_config_file_path) = morsels_config_file_path_toml {
                 command.arg("-c");
                 command.arg(morsels_config_file_path);
             }
@@ -126,18 +126,30 @@ static CSS_EL: &str = r#"<link rel="stylesheet" href="search-ui.css">
 }
 </style>"#;
 
-fn get_initialise_script_el() -> &'static str {
-    "\n\n<script>
-    initMorsels({
-        searcherOptions: {
-          url: 'morsels_output',
-        },
-        sourceFilesUrl: '',
-        render: {
-            enablePortal: true,
+fn get_initialise_script_el(enable_portal: Option<&Value>) -> String {
+    let enable_portal = if let Some(enable_portal) = enable_portal {
+        if let TomlString(_str) = enable_portal {
+            "'auto'"
+        } else if let TomlBoolean(do_enable) = enable_portal {
+            if *do_enable { "true" } else { " false " }
+        } else {
+            "'auto'"
         }
-    });
-</script>"
+    } else {
+        "'auto'"
+    };
+
+    format!("\n\n<script>
+    initMorsels({{
+        searcherOptions: {{
+          url: 'morsels_output',
+        }},
+        sourceFilesUrl: '',
+        render: {{
+            enablePortal: {}
+        }}
+    }});
+</script>", enable_portal)
 }
 
 impl Preprocessor for Morsels {
@@ -153,7 +165,7 @@ impl Preprocessor for Morsels {
         } */
 
         let css_el = if let Some(morsels_config_file_path_toml) = ctx.config.get("output.morsels.no-css") {
-            if let Boolean(no_css) = morsels_config_file_path_toml {
+            if let TomlBoolean(no_css) = morsels_config_file_path_toml {
                 if *no_css {
                     ""
                 } else {
@@ -166,11 +178,13 @@ impl Preprocessor for Morsels {
             CSS_EL
         };
 
+        let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.portal"));
+
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
                 ch.content = SCRIPT_EL.to_owned()
                     + css_el
-                    + INPUT_EL + &ch.content + get_initialise_script_el();
+                    + INPUT_EL + &ch.content + &init_morsels_el;
             }
         });
 
