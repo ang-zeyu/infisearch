@@ -88,8 +88,6 @@ class Searcher {
     });
     fieldInfos.sort((a, b) => a.id - b.id);
 
-    console.log(fieldInfos);
-
     this.morselsConfig = {
       indexingConfig: {
         loaderConfigs: json.indexing_config.loader_configs,
@@ -134,8 +132,6 @@ class Searcher {
       searchedTerms: string[],
       queryParts: QueryPart[],
     } = await this.workerQueryPromises[query][timestamp].promise;
-
-    console.log(result);
 
     const getNextN = async (n: number) => {
       await this.workerQueryPromises[query][timestamp].promise;

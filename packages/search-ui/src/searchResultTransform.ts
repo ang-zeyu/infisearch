@@ -311,7 +311,6 @@ async function singleResultRender(
   termRegex: RegExp,
 ) {
   const { loaderConfigs } = configs.indexingConfig;
-  console.log(result);
 
   const fields = result.getStorageWithFieldNames();
   const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
@@ -400,12 +399,12 @@ export default async function transformResults(
   const termInfoEls = isFirst ? displayTermInfo(query.queryParts, options.render) : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
-  let now = performance.now();
+  // let now = performance.now();
 
   const results = await query.retrieve(options.render.resultsRenderOpts.resultsPerPage);
 
-  console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
-  now = performance.now();
+  // console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
+  // now = performance.now();
 
   const resultsEls = await options.render.resultsRender(createElement, options, config, results, query);
 
@@ -423,7 +422,7 @@ export default async function transformResults(
     loader.replaceWith(fragment);
   }
 
-  console.log(`Result transformation took ${performance.now() - now} milliseconds`);
+  // console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
   let firstRun = true;
   const iObserver = new IntersectionObserver(async (entries, observer) => {

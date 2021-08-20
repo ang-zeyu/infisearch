@@ -87,7 +87,6 @@ impl Dictionary {
 
     for term in term_infos.keys() {
       for term_trigram in get_tri_grams(term) {
-        // web_sys::console::log_1(&format!("trigram {}", term_trigram).into());
         match trigrams.get_mut(term_trigram) {
           Some(terms) => {
             terms.push(Rc::clone(term));

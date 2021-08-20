@@ -55,17 +55,8 @@ impl PartialOrd for TermWeightPair {
 pub async fn setup_dictionary(url: &str, num_docs: u32, build_trigram: bool) -> Result<Dictionary, JsValue> {
   let window: web_sys::Window = js_sys::global().unchecked_into();
 
-  let performance = window.performance().unwrap();
-  let start = performance.now();
-
-  /* let urls = format!("[\"{}/dictionaryTable\",\"{}/dictionaryString\"]", url, url);
-  let ptrs: Vec<u32> = vec![0, 0];
-  web_sys::console::log_1(&format!("urls {} {}", urls, ptrs.as_ptr() as u32).into());
-  
-  fetchMultipleArrayBuffers(urls, ptrs.as_ptr() as u32).await?;
-
-  web_sys::console::log_1(&format!("ptrs {} {} took {}", ptrs[0], ptrs[1], performance.now() - start).into()); */
-
+  /* let performance = window.performance().unwrap();
+  let start = performance.now(); */
 
   let (table_resp_value, string_resp_value) = join!(
     JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/" + DICTIONARY_TABLE_FILE_NAME))),
@@ -82,11 +73,11 @@ pub async fn setup_dictionary(url: &str, num_docs: u32, build_trigram: bool) -> 
   let table_vec = js_sys::Uint8Array::new(&table_array_buffer.unwrap()).to_vec();
   let string_vec = js_sys::Uint8Array::new(&string_array_buffer.unwrap()).to_vec();
 
-  web_sys::console::log_1(&format!("Dictionary table and string retrieval took {} {} {}", performance.now() - start, table_vec.len(), string_vec.len()).into());
+  // web_sys::console::log_1(&format!("Dictionary table and string retrieval took {} {} {}", performance.now() - start, table_vec.len(), string_vec.len()).into());
 
   let dictionary = dictionary::setup_dictionary(table_vec, string_vec, num_docs, build_trigram);
 
-  web_sys::console::log_1(&format!("Dictionary initial setup took {}", performance.now() - start).into());
+  // web_sys::console::log_1(&format!("Dictionary initial setup took {}", performance.now() - start).into());
 
   Ok(dictionary)
 }

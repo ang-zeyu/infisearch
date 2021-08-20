@@ -17,7 +17,6 @@ class Result {
       const rawJson = await (await fetch(fileUrl)).json();
       this.storage = rawJson[this.docId % fieldStoreBlockSize];
     } catch (ex) {
-      console.log(this.docId);
       console.log(ex);
     }
   }

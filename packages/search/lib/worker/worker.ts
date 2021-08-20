@@ -4,12 +4,12 @@ let workerSearcher: WorkerSearcher;
 
 onmessage = async function worker(ev) {
   if (ev.data.searcherOptions) {
-    const now = performance.now();
+    // const now = performance.now();
 
     workerSearcher = await WorkerSearcher.setup(ev.data);
     postMessage({ isSetupDone: true });
 
-    console.log(`Worker setup took ${performance.now() - now} ms`);
+    // console.log(`Worker setup took ${performance.now() - now} ms`);
   } else if (ev.data.query) {
     const {
       query, timestamp, n, isFree, isGetNextN,

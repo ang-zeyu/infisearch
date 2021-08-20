@@ -18,7 +18,7 @@ async function update(
   options: SearchUiOptions,
 ): Promise<void> {
   try {
-    const now = performance.now();
+    // const now = performance.now();
 
     if (query) {
       query.free();
@@ -26,7 +26,7 @@ async function update(
 
     query = await searcher.getQuery(queryString);
 
-    console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
+    // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
     await transformResults(query, searcher.morselsConfig, true, listContainer, options);
 

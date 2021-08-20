@@ -127,14 +127,6 @@ impl Searcher {
 
         let postings_lists: Vec<&mut PostingsList> = postings_lists_map.values_mut().collect();
 
-        /* let urls = format!("[\"{}/dictionaryTable\",\"{}/dictionaryString\"]", url, url);
-        let ptrs: Vec<u32> = vec![0, 0];
-        web_sys::console::log_1(&format!("urls {} {}", urls, ptrs.as_ptr() as u32).into());
-        
-        fetchMultipleArrayBuffers(urls, ptrs.as_ptr() as u32).await?;
-
-        web_sys::console::log_1(&format!("ptrs {} {} took {}", ptrs[0], ptrs[1], performance.now() - start).into()); */
-
         let window: web_sys::Window = js_sys::global().unchecked_into();
         join_all(
             postings_lists.into_iter().map(|pl| (*pl).fetch_term(
