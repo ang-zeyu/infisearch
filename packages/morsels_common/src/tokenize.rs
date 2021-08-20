@@ -10,7 +10,7 @@ pub struct TermInfo {
 }
 
 pub trait Tokenizer {
-    fn tokenize(&self, text: String) -> Vec<String>;
+    fn tokenize(&self, text: String) -> Vec<Vec<String>>;
 
     fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult;
 

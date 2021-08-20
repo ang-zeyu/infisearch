@@ -14,7 +14,7 @@ use crate::ascii_folding_filter;
 
 lazy_static! {
   static ref TERM_FILTER: Regex = Regex::new(r#"(^\W+)|(\W+$)|([\[\]\\(){}&|'"`<>#:;~_^=\-‑+*/‘’“”，。《》…—‐•?!,.])"#).unwrap();
-  static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.?!](\s+|$)"#).unwrap();
+  static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.,;?!]\s+"#).unwrap();
 }
 
 fn get_default_stop_words() -> Vec<String> {
@@ -111,30 +111,37 @@ pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
   }
 }
 
+impl EnglishTokenizer {
+  #[inline(always)]
+  fn tokenize_slice(&self, slice: &str) -> Vec<String> {
+    slice.split_whitespace()
+      .map(|term_slice| {
+        let folded = ascii_folding_filter::to_ascii(term_slice);
+        let filtered = TERM_FILTER.replace_all(&folded, "");
+  
+        if self.use_stemmer { self.stemmer.stem(&folded).into_owned() } else { filtered.into_owned() }
+      })
+      .filter(|term| {
+        let term_byte_len = term.len();
+        term_byte_len > 0 && term_byte_len <= self.max_term_len
+      })
+      .collect()
+  }
+}
+
 impl Tokenizer for EnglishTokenizer {
-  fn tokenize(&self, mut text: String) -> Vec<String> {
+  fn tokenize(&self, mut text: String) -> Vec<Vec<String>> {
     text.make_ascii_lowercase();
     SENTENCE_SPLITTER
       .split(&text)
-      .flat_map(|sent_slice| sent_slice.split_whitespace()
-        .map(|term_slice| {
-          let folded = ascii_folding_filter::to_ascii(term_slice);
-          let filtered = TERM_FILTER.replace_all(&folded, "");
-
-          if self.use_stemmer { self.stemmer.stem(&folded).into_owned() } else { filtered.into_owned() }
-        })
-        .filter(|term| {
-          let term_byte_len = term.len();
-          term_byte_len > 0 && term_byte_len <= self.max_term_len
-        })
-      )
+      .map(|sent_slice| self.tokenize_slice(sent_slice))
       .collect()
   }
 
   fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult {
     let should_expand = !text.ends_with(' ');
     SearchTokenizeResult {
-      terms: self.tokenize(text),
+      terms: self.tokenize_slice(&text),
       should_expand,
     }
   }

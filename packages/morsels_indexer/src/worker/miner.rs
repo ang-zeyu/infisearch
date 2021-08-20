@@ -172,33 +172,38 @@ impl WorkerMiner {
                 continue;
             }
 
-            let field_terms = self.tokenizer.tokenize(field_text);
+            let sentences = self.tokenizer.tokenize(field_text);
+            let field_lengths = field_lengths.get_mut(field_id as usize).unwrap();
 
-            *field_lengths.get_mut(field_id as usize).unwrap() += field_terms.len() as u32;
+            for sent_terms in sentences {
+                *field_lengths += sent_terms.len() as u32;
+    
+                for field_term in sent_terms {
+                    let term_docs = self.terms.entry(field_term)
+                        .or_insert_with(|| vec![TermDoc {
+                            doc_id,
+                            doc_fields: vec![DocField::default(); num_scored_fields]
+                        }]);
+    
+                    let mut term_doc = term_docs.last_mut().unwrap();
+                    if term_doc.doc_id != doc_id {
+                        term_docs.push(TermDoc {
+                            doc_id,
+                            doc_fields: vec![DocField::default(); num_scored_fields]
+                        });
+                        term_doc = term_docs.last_mut().unwrap();
+                    }
+    
+                    let doc_field = term_doc.doc_fields.get_mut(field_id as usize).unwrap();
+                    doc_field.field_tf += 1;
+                    if self.with_positions {
+                        doc_field.positions.push(pos);
+                    }
 
-            for field_term in field_terms {
+                    pos += 1;
+                }
+
                 pos += 1;
-
-                let term_docs = self.terms.entry(field_term)
-                    .or_insert_with(|| vec![TermDoc {
-                        doc_id,
-                        doc_fields: vec![DocField::default(); num_scored_fields]
-                    }]);
-
-                let mut term_doc = term_docs.last_mut().unwrap();
-                if term_doc.doc_id != doc_id {
-                    term_docs.push(TermDoc {
-                        doc_id,
-                        doc_fields: vec![DocField::default(); num_scored_fields]
-                    });
-                    term_doc = term_docs.last_mut().unwrap();
-                }
-
-                let doc_field = term_doc.doc_fields.get_mut(field_id as usize).unwrap();
-                doc_field.field_tf += 1;
-                if self.with_positions {
-                    doc_field.positions.push(pos);
-                }
             }
 
             pos += 120; // to "split up zones"
