@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::rc::Rc;
 use std::collections::HashSet;
 
@@ -59,11 +60,11 @@ pub fn new_with_options(options: ChineseTokenizerOptions) -> ChineseTokenizer {
 }
 
 impl Tokenizer for ChineseTokenizer {
-  fn tokenize(&self, mut text: String) -> Vec<Vec<String>> {
+  fn tokenize<'a> (&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
     text.make_ascii_lowercase();
-    self.jieba.cut(&text, false).into_iter()
+    self.jieba.cut(text, false).into_iter()
       .filter(|cut| !cut.trim().is_empty())
-      .map(|s| PUNCTUATION_FILTER.replace_all(s, "").into_owned())
+      .map(|s| PUNCTUATION_FILTER.replace_all(s, ""))
       .fold(vec![Vec::new()], |mut acc, next| {
         if next.trim().is_empty() {
           acc.push(Vec::new()); // Split on punctuation 

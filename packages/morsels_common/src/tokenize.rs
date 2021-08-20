@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::rc::Rc;
 use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
@@ -10,7 +11,7 @@ pub struct TermInfo {
 }
 
 pub trait Tokenizer {
-    fn tokenize(&self, text: String) -> Vec<Vec<String>>;
+    fn tokenize<'a> (&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>>;
 
     fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult;
 

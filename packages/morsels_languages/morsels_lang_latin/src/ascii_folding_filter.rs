@@ -1,6 +1,8 @@
 // This file is from tantivy, in turn partially derived from lucene
 
 
+use std::borrow::Cow;
+
 /// This class converts alphabetic, numeric, and symbolic Unicode characters
 /// which are not in the first 127 ASCII characters (the "Basic Latin" Unicode
 /// block) into their ASCII equivalents, if one exists.
@@ -1488,16 +1490,21 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
 }
 
 // https://github.com/apache/lucene-solr/blob/master/lucene/analysis/common/src/java/org/apache/lucene/analysis/miscellaneous/ASCIIFoldingFilter.java#L187
-pub fn to_ascii(text: &str) -> String {
+pub fn to_ascii<'a> (text: &'a str) -> Cow<'a, str> {
     let mut output: String = "".to_owned();
 
+    let mut encountered = false;
     for c in text.chars() {
         if let Some(folded) = fold_non_ascii_char(c) {
+            if !encountered {
+                output.push_str("");
+                encountered = true;
+            }
             output.push_str(folded);
         } else {
             output.push(c);
         }
     }
 
-    output
+    if encountered { Cow::Owned(output) } else { Cow::Borrowed(text) }
 }

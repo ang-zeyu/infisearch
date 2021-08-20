@@ -150,7 +150,7 @@ impl WorkerMiner {
         );
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
-        for (field_name, field_text) in field_texts {
+        for (field_name, mut field_text) in field_texts {
             let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or(&NULL_FIELD);
             let field_id = field_info.id;
 
@@ -172,19 +172,23 @@ impl WorkerMiner {
                 continue;
             }
 
-            let sentences = self.tokenizer.tokenize(field_text);
+            let sentences = self.tokenizer.tokenize(&mut field_text);
             let field_lengths = field_lengths.get_mut(field_id as usize).unwrap();
 
             for sent_terms in sentences {
                 *field_lengths += sent_terms.len() as u32;
     
                 for field_term in sent_terms {
-                    let term_docs = self.terms.entry(field_term)
-                        .or_insert_with(|| vec![TermDoc {
-                            doc_id,
-                            doc_fields: vec![DocField::default(); num_scored_fields]
-                        }]);
-    
+                    let term_docs = if let Some(existing) = self.terms.get_mut(&field_term[..]) {
+                        existing
+                    } else {
+                        self.terms.entry(field_term.into_owned())
+                            .or_insert(vec![TermDoc {
+                                doc_id,
+                                doc_fields: vec![DocField::default(); num_scored_fields]
+                            }])
+                    };
+
                     let mut term_doc = term_docs.last_mut().unwrap();
                     if term_doc.doc_id != doc_id {
                         term_docs.push(TermDoc {

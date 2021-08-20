@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::rc::Rc;
 use std::collections::HashSet;
 
@@ -111,15 +112,46 @@ pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
   }
 }
 
+// Custom replace_all regex implementation accepting cow to make lifetimes comply
+// See https://github.com/rust-lang/regex/issues/676
+fn term_filter<'a>(input: Cow<'a, str>) -> Cow<'a, str> {
+  let mut match_iter = TERM_FILTER.find_iter(&input);
+  if let Some(first) = match_iter.next() {
+      let mut output:Vec<u8> = Vec::with_capacity(input.len());
+      output.extend_from_slice(input[..first.start()].as_bytes());
+      let mut start = first.end();
+
+      loop {
+        if let Some(next) = match_iter.next() {
+          output.extend_from_slice(input[start..next.start()].as_bytes());
+          start = next.end();
+        } else {
+          output.extend_from_slice(input[start..].as_bytes());
+          return Cow::Owned(unsafe { String::from_utf8_unchecked(output) })
+        }
+      }
+  } else {
+      input
+  }
+}
+
 impl EnglishTokenizer {
   #[inline(always)]
-  fn tokenize_slice(&self, slice: &str) -> Vec<String> {
+  fn tokenize_slice<'a> (&self, slice: &'a str) -> Vec<Cow<'a, str>> {
     slice.split_whitespace()
       .map(|term_slice| {
-        let folded = ascii_folding_filter::to_ascii(term_slice);
-        let filtered = TERM_FILTER.replace_all(&folded, "");
+        let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
+        let filtered = term_filter(ascii_folded); 
   
-        if self.use_stemmer { self.stemmer.stem(&folded).into_owned() } else { filtered.into_owned() }
+        if self.use_stemmer {
+          if let Cow::Owned(v) = self.stemmer.stem(&filtered) {
+            Cow::Owned(v)
+          } else {
+            filtered // unchanged
+          }
+        } else {
+          filtered
+        }
       })
       .filter(|term| {
         let term_byte_len = term.len();
@@ -130,10 +162,10 @@ impl EnglishTokenizer {
 }
 
 impl Tokenizer for EnglishTokenizer {
-  fn tokenize(&self, mut text: String) -> Vec<Vec<String>> {
+  fn tokenize<'a> (&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
     text.make_ascii_lowercase();
     SENTENCE_SPLITTER
-      .split(&text)
+      .split(text)
       .map(|sent_slice| self.tokenize_slice(sent_slice))
       .collect()
   }
@@ -141,7 +173,7 @@ impl Tokenizer for EnglishTokenizer {
   fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult {
     let should_expand = !text.ends_with(' ');
     SearchTokenizeResult {
-      terms: self.tokenize_slice(&text),
+      terms: self.tokenize_slice(&text).into_iter().map(|cow| cow.into_owned()).collect(),
       should_expand,
     }
   }
