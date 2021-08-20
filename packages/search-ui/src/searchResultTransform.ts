@@ -50,6 +50,10 @@ function transformText(
 
       const matchedQueryTermIdx = lowerCasedSortedQueryTermsIndices[matchedText];
       lastTermPositions[matchedQueryTermIdx] = match.index + match[1].length;
+      if (match[1].length > 0) {
+        // For non whitespace tokenized languages, need to backtrack to allow capturing consecutive terms
+        termRegex.lastIndex = lastTermPositions[matchedQueryTermIdx];
+      }
 
       const validLastTermPositions = lastTermPositions.filter((p) => p >= 0);
       const windowLen = Math.max(...validLastTermPositions) - Math.min(...validLastTermPositions);
