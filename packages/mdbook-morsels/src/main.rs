@@ -87,11 +87,44 @@ impl Morsels {
 static INPUT_EL: &str = "\n<input
     type=\"text\"
     id=\"morsels-search\"
-    style=\"width: 100%; border-radius: 5px; font-size: 22px; border: 1px solid #d2e9ff; outline: none; padding: 0.3em;\"
+    placeholder=\"Search\"
+    style=\"width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;\"
 />\n\n";
 
 static SCRIPT_EL: &str = r#"<script src="search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>"#;
-static CSS_EL: &str = r#"<link rel="stylesheet" href="search-ui.css">"#;
+static CSS_EL: &str = r#"<link rel="stylesheet" href="search-ui.css">
+
+<style>
+.morsels-root {
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-fg: var(--fg);
+    --morsels-bg: var(--bg);
+    --morsels-item-border: 1px solid var(--table-border-color);
+    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--bg);
+    --morsels-title-hover-bg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-bg: var(--sidebar-bg);
+    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
+    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
+    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
+    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+</style>"#;
 
 fn get_initialise_script_el() -> &'static str {
     "\n\n<script>
