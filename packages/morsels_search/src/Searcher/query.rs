@@ -150,6 +150,7 @@ impl Searcher {
             .iter()
             .filter(|pl| pl.include_in_proximity_ranking)
             .count() as f32;
+        let proximity_ranking_max_scale = total_proximity_ranking_terms * 1.8;
 
         while pl_its.len() > 0 {
             let mut pivot_doc_id = pl_its.get(0).unwrap().td.unwrap().doc_id;
@@ -209,6 +210,8 @@ impl Searcher {
                 pl_its_for_proximity_ranking.sort_by(|a, b| a.original_idx.cmp(&b.original_idx));
 
                 if pl_its_for_proximity_ranking.len() > 1 {
+                    let num_pl_its_float = pl_its_for_proximity_ranking.len() as f32;
+
                     let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
                     for i in 0..pl_its_for_proximity_ranking.len() {
                         let curr_fields = &pl_its_for_proximity_ranking[i].td.as_ref().unwrap().fields;
@@ -271,9 +274,10 @@ impl Searcher {
                         }
                     }
 
-                    if min_window_len < 1000 {
-                        scaling_factor = 1.0 + (7.0 / (10.0 + min_window_len as f32))
-                            * (pl_its_for_proximity_ranking.len() as f32 / total_proximity_ranking_terms);
+                    if min_window_len < 300 {
+                        min_window_len += 1;
+                        scaling_factor = 1.0 + (proximity_ranking_max_scale / (total_proximity_ranking_terms + min_window_len as f32))
+                            * (num_pl_its_float / total_proximity_ranking_terms);
                     }
                 }
             }
