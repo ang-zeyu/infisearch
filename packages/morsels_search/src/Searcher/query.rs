@@ -65,11 +65,11 @@ impl PartialEq for Position {
 impl Ord for Position {
     fn cmp(&self, other: &Self) -> Ordering {
         if self.pos < other.pos {
-            Ordering::Less
+            Ordering::Greater
         } else if self.pos == other.pos {
             Ordering::Equal
         } else {
-            Ordering::Greater
+            Ordering::Less
         }
     }
 }
@@ -77,11 +77,11 @@ impl Ord for Position {
 impl PartialOrd for Position {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.pos < other.pos {
-            Option::from(Ordering::Less)
+            Option::from(Ordering::Greater)
         } else if self.pos == other.pos {
             Option::from(Ordering::Equal)
         } else {
-            Option::from(Ordering::Greater)
+            Option::from(Ordering::Less)
         }
     }
 }
