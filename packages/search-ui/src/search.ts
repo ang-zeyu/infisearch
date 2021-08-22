@@ -139,10 +139,10 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   ) as HTMLInputElement);
 
   options.render.noResultsRender = options.render.noResultsRender
-      || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
+      || ((h) => h('div', { class: 'morsels-no-results' }));
 
   options.render.portalBlankRender = options.render.portalBlankRender
-      || ((h) => h('div', { class: 'morsels-portal-blank' }, 'Powered by tiny Morsels of 🧀'));
+      || ((h) => h('div', { class: 'morsels-portal-blank' }));
 
   options.render.loadingIndicatorRender = options.render.loadingIndicatorRender
       || ((h) => h('span', { class: 'morsels-loading-indicator' }));

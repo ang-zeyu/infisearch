@@ -155,6 +155,10 @@
     padding: 1em;
 }
 
+.morsels-portal-blank::before {
+    content: 'Powered by tiny Morsels of 🧀';
+}
+
 @media screen and (min-width: 1025px) {
     .morsels-portal-root {
         border-radius: 10px;
@@ -252,6 +256,10 @@
     font-size: 0.9em;
     color: var(--morsels-fine-print-fg);
     padding: 1em;
+}
+
+.morsels-no-results::before {
+    content: 'No results found';
 }
 
 .morsels-list-item {
