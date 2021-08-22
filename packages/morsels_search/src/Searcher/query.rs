@@ -270,6 +270,7 @@ impl Searcher {
                             let curr_window_len = pos - min_pos;
                             if curr_window_len < min_window_len {
                                 min_window_len = curr_window_len;
+                                // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
                             }
                         }
                     }
