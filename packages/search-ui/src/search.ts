@@ -201,7 +201,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   options.render.opts = options.render.opts || {};
 }
 
-function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
+function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => void } {
   const isMobile = window.matchMedia('only screen and (max-width: 1024px)').matches;
   prepareOptions(options, isMobile);
 
@@ -260,10 +260,6 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
   portalInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
   portalListContainer.appendChild(options.render.portalBlankRender(createElement, options.render.opts));
 
-  const showPortalUI = () => {
-    options.render.show(portalRoot, options.render.opts, true);
-  };
-
   // Dropdown version
   const input = options.inputId && document.getElementById(options.inputId);
   if (input) {
@@ -296,7 +292,7 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
 
     input.addEventListener('focus', () => {
       if (options.render.enablePortal) {
-        showPortalUI();
+        options.render.show(portalRoot, options.render.opts, true);
       } else if (listContainer.childElementCount) {
         options.render.show(root, options.render.opts, false);
       }
@@ -324,7 +320,14 @@ function initMorsels(options: SearchUiOptions): { showPortalUI: () => void } {
     }
   }
 
-  return { showPortalUI };
+  return {
+    show: () => {
+      options.render.show(portalRoot, options.render.opts, true);
+    },
+    hide: () => {
+      options.render.hide(portalRoot, options.render.opts, true);
+    },
+  };
 }
 
 export default initMorsels;

@@ -88,34 +88,45 @@ For mobile devices, the fullscreen popup version is used instead.
 This section details the available options to customise this behaviour.
 
 ```ts
-interface SearchUiRenderOptions {
-    enablePortal?: boolean | 'auto',
-    portalTo?: HTMLElement,
-    // ...
+{
+    inputId?: string,
+    render: {
+        enablePortal?: boolean | 'auto',
+        portalTo?: HTMLElement,
+        // ...
+    }
 }
 ```
 
+**`inputId`**
+
+This option tells morsels which input element to use for the dropdown version of its search ui.
+
+If this is unspecified, the `show / hide` APIs below must be used to bring up the popup UI.
+
 **`enablePortal = 'auto'`**
 
-This parameter tells search-ui whether to use the fullscreen search UI for mobile devices when the original `<input>` is focused.
+This parameter tells search-ui whether to use the fullscreen search UI for mobile devices when the original `<input>` specified by `inputId` is focused.
 
 The default value of `'auto'` configures this according to mobile device detection (`true` if it is a mobile device), and also adds a simple window resize handler to automatically hide the corresponding UI if the window is resized.
 
 You can set this to `true` / `false` to always prefer the fullscreen or dropdown version instead when the original `<input>` is focused.
 
+If `inputId` is unspecified, this option will not do anything.
+
 **`portalTo = document.getElementsByTagName('body')[0]`**
 
 This parameter tells morsels which element to attach the fullscreen search UI to, which uses `fixed` positioning.
 
-**`showPortalUI(): void`**
+**`show() / hide()`**
 
 ```ts
-const { showPortalUI } = initMorsels(/* ... */);
+const { show, hide } = initMorsels(/* ... */);
 ```
 
-The default behaviour of showing the fullscreen search UI may be insufficient in some cases, for example showing the UI when clicking a search icon.
+The default behaviour of showing the fullscreen search UI on focusing the input may be insufficient in some cases, for example showing the UI when clicking a search icon.
 
-You may call the `showPortalUI()` function returned by the initMorsels call in such a case for manual control.
+You may call the `show()` function returned by the initMorsels call in such a case for manual control. Correspondingly, the `hide()` method hides the fullscreen interface, although, this shouldn't be needed since there's a close button.
 
 ### Renderers
 
