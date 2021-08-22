@@ -126,7 +126,7 @@ static CSS_EL: &str = r#"<link rel="stylesheet" href="search-ui.css">
 }
 </style>"#;
 
-fn get_initialise_script_el(enable_portal: Option<&Value>) -> String {
+fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> String {
     let enable_portal = if let Some(enable_portal) = enable_portal {
         if let TomlString(_str) = enable_portal {
             "'auto'"
@@ -142,14 +142,14 @@ fn get_initialise_script_el(enable_portal: Option<&Value>) -> String {
     format!("\n\n<script>
     initMorsels({{
         searcherOptions: {{
-          url: 'morsels_output',
+          url: '{}morsels_output',
         }},
         sourceFilesUrl: '',
         render: {{
             enablePortal: {}
         }}
     }});
-</script>", enable_portal)
+</script>", base_url, enable_portal)
 }
 
 impl Preprocessor for Morsels {
@@ -178,7 +178,17 @@ impl Preprocessor for Morsels {
             CSS_EL
         };
 
-        let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.portal"));
+        let site_url = if let Some(html_site_url) = ctx.config.get("output.html.site-url") {
+            if let TomlString(site_url) = html_site_url {
+                site_url
+            } else {
+                "/"
+            }
+        } else {
+            "/"
+        };
+
+        let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.portal"), site_url);
 
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
