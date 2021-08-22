@@ -43,7 +43,8 @@ The default configurations are as follows, already setup for interfacing with th
         "k": 1.2,
         "b": 0.75
       },
-      // Internal field sourced from the relative file path of the file from the root directory
+      // Internal, hardcoded field sourced from the relative file path of the file from the root directory
+      // If omitted, the field will not be stored
       {
         "name": "_relative_fp",
         "do_store": true,
@@ -60,7 +61,7 @@ The default configurations are as follows, already setup for interfacing with th
 
 Morsels stores fields that have `do_store: true` specified in the field configuration into a json file in the output folder.
 
-At search time, the search-lib package populates fields saved in this manner through the json files.
+At search time, the search-lib package retrieves and populates fields saved in this manner from the json files.
 
 The `field_store_block_size` parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.
 
@@ -97,9 +98,9 @@ Note that these options are also applied to the search library, which uses the s
 
 ### Latin Tokenizer
 
-The default tokenizer splits on sentences, then whitespaces into terms.
+The default tokenizer splits on sentences, then whitespaces to obtain tokens.
 
-*Tantivy*'s [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied, followed by punctuation and non-word boundary removal.
+*Tantivy*'s [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to these tokens, followed by punctuation and non-word boundary removal.
 
 If specified, a stemmer is also applied.
 
@@ -109,7 +110,7 @@ If specified, a stemmer is also applied.
   "stop_words": ["a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
     "is", "it", "no", "not", "of", "on", "or", "such", "that", "the", "their", "then",
     "there", "these", "they", "this", "to", "was", "will", "with"],
-  // any of the languages here https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
+  // Any of the languages here https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
   // for example, "english"
   "stemmer": null,
   "max_term_len": 80
@@ -120,6 +121,8 @@ If specified, a stemmer is also applied.
 
 A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieba-rs) is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.
 
+This tokenizer applies jieba's `cut` method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.
+
 ```json
 "options": {
   "stop_words": []
@@ -127,13 +130,15 @@ A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieb
 ```
 
 
-### Size Considerations for Language Modules
+### Remark on Language Modules' Flexibility
 
 While using the same tokenizer for both indexing / search unifies the codebase, one downside is that code size has to be taken into account.
 
 The chinese tokenizer for example, which uses *jieba-rs*, accounts for half of the wasm binary size alone.
 
-Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that wasm size dosen't blow up. At least, until dynamic linking in wasm ala llvm / rust reaches maturity.
+Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen't blow up.
+
+Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn't, feel free to open up an issue! Might just be that I haven't gotten around to it yet =P.
 
 ## `indexing_config`
 
@@ -144,7 +149,7 @@ The snippet below shows the default values, which need not be altered if you are
 ```json
 {
   "indexing_config": {
-    "num_threads": 5,              // by default, this is num physical cores - 1
+    "num_threads": 5,              // when unspecified, this is num physical cores - 1
     "num_docs_per_block": 1000,    // this roughly controls the memory usage of the indexer
     "exclude": [
       "_morsels_config.json"       // glob patterns to exclude from indexing
@@ -164,8 +169,8 @@ The snippet below shows the default values, which need not be altered if you are
     "num_stores_per_dir": 1000,
 
     // Whether positions will be stored.
-    // Phrase queries / related features will be unavailable if this is false.
-    // You'll want this for obscenely large collections.
+    // Phrase queries / Query Term Proximity Ranking will be unavailable if this is false.
+    // You'll want to turn this off for obscenely large collections.
     "with_positions": true
   }
 }
@@ -211,7 +216,9 @@ The below sections shows the available loaders and configuration options availab
 }
 ```
 
-Each **selector** configuration above has a mandatory `field_name`. All nodes (text / elements) under this selector will be indexed under the specified field name.
+The html loader traverses the document depth-first. At each element, it checks if any of the selectors under the `selectors.selector` key above matches the element. If so, all children (elements, text) under this element will then be indexed under the `field_name` specified, until an "overriding" element that matched another selector is found.
+
+The `attr_map` allows indexing attributes of elements under fields as well.
 
 `JsonLoader`
 
@@ -235,11 +242,19 @@ Each **selector** configuration above has a mandatory `field_name`. All nodes (t
 }
 ```
 
+Json files can also be indexed. To do this, the `field_map` key must be specified, which contains a mapping of *json file field name* -> *morsels field name*.
+The `field_order` controls in which order these fields are indexed, which can influence position based functions such as query term proximity ranking.
+
+The json files itself can be either
+1. An object, following the schema set out in `field_map`
+2. An array of objects following the schema set out in `field_map`
+
 `CsvLoader`
 
 ```json
 {
   "CsvLoader": {
+    "use_headers": false,
     "header_field_map": {},
     "header_field_order": [],
     "index_field_map": {
@@ -262,13 +277,12 @@ Each **selector** configuration above has a mandatory `field_name`. All nodes (t
       "has_headers": true,
       "quote": 34
     },
-    "type": "CsvLoader",
-    "use_headers": false
+    "type": "CsvLoader"
   }
 }
 ```
 
-Field mappings for csv can be configured using one of the `field_map / field_order` pairs, and the `use_headers` parameter.
+Field mappings for csv can be configured using one of the `field_map / field_order` key pairs. The `use_headers` parameter specifies which of the two pairs of settings to use.
 
 
 

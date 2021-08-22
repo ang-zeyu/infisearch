@@ -4,7 +4,7 @@ All search time related options can be provided through the `initMorsels` functi
 
 ```js
 initMorsels({
-    // options belonging to @morsels/search-lib
+    // Options belonging to @morsels/search-lib, the search library package
     searcherOptions: {
         // Base url of output directory from cli tool
         url: 'http://192.168.10.132:3000/output',
@@ -15,6 +15,8 @@ initMorsels({
         // Override for using query term proximity ranking or not. Disabled for mobile devices by default
         useQueryTermProximity: true,
     },
+    
+    // Options for @morsels/search-ui, the user interface package
     
     // Id of input element to attach the search dropdown to
     inputId: 'morsels-search',
@@ -31,11 +33,15 @@ initMorsels({
 
 ## Mobile Device Detection
 
-Mobile devices are detected through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query at initialisation time, which may not be accurate
+Mobile devices are detected through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query at initialisation time, which may not be accurate.
 
-This is only used for some default settings, such as deciding whether to use query term proximity ranking.
+This is only used for some default settings, such as deciding whether to use query term proximity ranking. Overrides may be provided through the options above if this detection method is inadequate.
 
-## Query Term Expansion
+## url
+
+This parameter must be specified, and tells Morsels where to find the output from the indexer.
+
+## numberOfExpandedTerms
 
 By default, stemming is turned off in the [language modules](indexing_configuration.md#language). This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.
 
@@ -44,12 +50,14 @@ To provide a compromise for recall, query terms that are similar to the searched
 This is only applied for the last term (if any) of a query, and if the query string immediately ends with that term (e.g. no whitespace after it).
 You may also think of this as implicit wildcard search for the last query term.
 
-## Query Term Proximity Ranking
+## useQueryTermProximity
 
 Document scores are also scaled by how close query expressions or terms are to each other, if positions are indexed.
-This may be costly for mobile devices however, and is disabled by default for them.
+This may be costly for mobile devices however, and is disabled by default in such cases.
 
-## Source Files Url
+## sourceFilesUrl
+
+This option is only applicable for indexed html and json files.
 
 You will need to specify this in the default setup, and / or if you did not specify `do_store: true` for any of the necessary fields listed [here](./indexing_configuration.md#fields-needed-for-morselssearch-ui).
 
@@ -68,7 +76,16 @@ Some use cases for this include:
 - You need to attach additional event listeners to elements 
 - You want to override or insert additional content sourced from custom fields / static content (e.g. a footer).
 
+If you only need to theme the dropdown or search popup, you can include your own css file to do so, or override the variables exposed by the default css bundle.
+
 ### Switching between fullscreen popup or dropdown UI versions
+
+The search UI provides 2 different interfaces, a dropdown and fullscreen / "popup" version.
+
+The dropdown version is used for desktop devices by default, which is attached to the element specified by `inputId`.
+For mobile devices, the fullscreen popup version is used instead.
+
+This section details the available options to customise this behaviour.
 
 ```ts
 interface SearchUiRenderOptions {
@@ -80,7 +97,7 @@ interface SearchUiRenderOptions {
 
 **`enablePortal = 'auto'`**
 
-The `enablePortal` parameter tells search-ui whether to use the fullscreen search UI for mobile devices when the original `<input>` is focused.
+This parameter tells search-ui whether to use the fullscreen search UI for mobile devices when the original `<input>` is focused.
 
 The default value of `'auto'` configures this according to mobile device detection (`true` if it is a mobile device), and also adds a simple window resize handler to automatically hide the corresponding UI if the window is resized.
 
@@ -98,7 +115,7 @@ const { showPortalUI } = initMorsels(/* ... */);
 
 The default behaviour of showing the fullscreen search UI may be insufficient in some cases, for example showing the UI when clicking a search icon.
 
-You may simply call `showPortalUI()` function returned by the initMorsels call in such a case.
+You may call the `showPortalUI()` function returned by the initMorsels call in such a case for manual control.
 
 ### Renderers
 

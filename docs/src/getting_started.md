@@ -17,11 +17,11 @@ If not, the cli binaries are also available [here](https://github.com/ang-zeyu/m
 ## Running the indexer
 
 ```
-morsels_indexer <source-folder-path> <output-folder-path>
+morsels <source-folder-path> <output-folder-path>
 ```
 
-If it is your first time running the tool, first run the below command with the `--init` or `-i` flag, then run the command again without the flag.
-This option outputs a default [`_morsels_config.json`](./chapter_5.md) that can be used to configure the indexer later on.
+While optional, if it is your first time running the tool, first run the below command with the `--init` or `-i` flag, then run the command again without the flag.
+This option outputs the default [`_morsels_config.json`](./indexing_configuration.md) that can be used to configure the indexer later on.
 
 You may also change the config file location (relative to the `source-folder-path`) using the `-c <config-file-path>` option.
 
