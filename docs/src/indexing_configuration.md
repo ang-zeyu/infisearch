@@ -96,6 +96,17 @@ Note that these options are also applied to the search library, which uses the s
 }
 ```
 
+### Note on Stop Words
+
+Morsels takes a slightly different approach with stop words in that stop words are only filtered at **query time** for certain types of queries (currently this is for free-text queries with more than two terms).
+
+This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:
+- For processing phrase queries (eg. `for tomorrow`)
+- Boolean queries (eg. `if AND forecast AND sunny`)
+- One or two term free text queries (not strictly necessary, but it is nice having some results showing up for queries like `"for"` than none)
+
+
+
 ### Latin Tokenizer
 
 The default tokenizer splits on sentences, then whitespaces to obtain tokens.
@@ -105,15 +116,22 @@ The default tokenizer splits on sentences, then whitespaces to obtain tokens.
 If specified, a stemmer is also applied.
 
 ```json
-"options": {
-  // Stop words are only filtered at query time, allowing phrase queries and such to function
-  "stop_words": ["a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
-    "is", "it", "no", "not", "of", "on", "or", "such", "that", "the", "their", "then",
-    "there", "these", "they", "this", "to", "was", "will", "with"],
-  // Any of the languages here https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
-  // for example, "english"
-  "stemmer": null,
-  "max_term_len": 80
+"language": {
+  "lang": "latin",
+  "options": {
+    "stop_words": [
+      "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
+      "is", "it", "no", "not", "of", "on", "or", "such", "that", "the", "their", "then",
+      "there", "these", "they", "this", "to", "was", "will", "with"
+    ],
+
+    // Any of the languages here
+    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
+    // For example, "english"
+    "stemmer": null,
+
+    "max_term_len": 80
+  }
 }
 ```
 
@@ -124,8 +142,11 @@ A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieb
 This tokenizer applies jieba's `cut` method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.
 
 ```json
-"options": {
-  "stop_words": []
+"language": {
+  "lang": "chinese",
+  "options": {
+    "stop_words": []
+  }
 }
 ```
 

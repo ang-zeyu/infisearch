@@ -1,6 +1,6 @@
 # How it Works
 
-The core idea of this tool is to split up a monolithic postings list into many smaller files (hence *"Morsels"*), organised by the indexed terms. Multiple postings lists are batched into the same file as long as the starting point of the last postings list dosen't exceed `65535` bytes.
+The core idea of this tool is to split up a monolithic postings list into many smaller files (hence *"Morsels"*), organised by the indexed terms. Multiple postings lists are batched into the same file, keeping to `65535` bytes as much as possible.
 
 On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (`< 1gb`).
 
