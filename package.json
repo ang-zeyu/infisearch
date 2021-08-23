@@ -5,14 +5,15 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-cli serve --config ./webpack.dev.js",
-    "devdocs": "cd docs && mdbook serve -p 8000",
+    "devdocs": "cargo install --path packages/mdbook-morsels && cd docs && mdbook serve -p 8000",
     "build": "webpack --config ./webpack.prod.js",
     "devServer1": "http-server ./test_files/1 -p 3000 --cors",
     "devServer2": "http-server ./test_files/2 -p 3000 --cors",
     "lint": "cd packages/indexer && eslint . --ext .ts && cd ../.. && eslint packages/search --ext .js",
     "lintfix": "eslint packages/indexer --ext .ts --fix && eslint packages/search --ext .js --fix",
     "setup": "npm install && lerna bootstrap",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "installIndexer": "cargo install --path packages/morsels_indexer"
   },
   "author": "",
   "license": "MIT",
