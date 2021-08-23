@@ -1,5 +1,6 @@
 use std::collections::BinaryHeap;
 use std::cmp::Ordering;
+use std::rc::Rc;
 
 use futures::join;
 use rustc_hash::FxHashMap;
@@ -18,7 +19,7 @@ static CORRECTION_ALPHA: f32 = 0.85;
 static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;
 
 
-struct TermWeightPair(String, f64);
+struct TermWeightPair(Rc<String>, f64);
 
 impl Eq for TermWeightPair {}
 
@@ -85,11 +86,11 @@ pub async fn setup_dictionary(url: &str, num_docs: u32, build_trigram: bool) -> 
 pub trait SearchDictionary {
   fn get_best_corrected_term(&self, misspelled_term: &str) -> Option<std::string::String>;
 
-  fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<String>;
+  fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<Rc<String>>;
 
   fn get_expanded_terms(&self, number_of_expanded_terms: usize, base_term: &str) -> FxHashMap<std::string::String, f32>;
 
-  fn get_term_candidates(&self, base_term: &str, use_jacard: bool) -> Vec<String>;
+  fn get_term_candidates(&self, base_term: &str, use_jacard: bool) -> Vec<Rc<String>>;
 }
 
 impl SearchDictionary for Dictionary {
@@ -105,14 +106,14 @@ impl SearchDictionary for Dictionary {
     };
 
     if let Some(best_term) = best_term {
-      let normal_string: std::string::String = best_term.into();
+      let normal_string: std::string::String = std::string::String::from(&best_term[..]);
       Option::from(normal_string)
     } else {
       Option::None
     }
   }
   
-  fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<String> {
+  fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<Rc<String>> {
     let levenshtein_candidates = self.get_term_candidates(misspelled_term, true);
     let mut min_edit_distance_terms = Vec::new();
     let mut min_edit_distance = 3;
@@ -156,7 +157,7 @@ impl SearchDictionary for Dictionary {
 
     let min_baseterm_substring = &base_term[0..((CORRECTION_ALPHA * base_term_char_count as f32).floor() as usize)];
     for term in prefix_check_candidates {
-      if term.starts_with(min_baseterm_substring) && term != base_term {
+      if term.starts_with(min_baseterm_substring) && &term[..] != base_term {
         let term_info = self.term_infos.get(&term).unwrap();
         let idf_difference = (term_info.idf - base_idf).abs();
         if idf_difference > max_idf_difference {
@@ -176,16 +177,16 @@ impl SearchDictionary for Dictionary {
     for term_weight_pair in top_n_min_heap {
       let idf_proportion = term_weight_pair.1 / max_idf_difference;
       let weight = if idf_proportion > 0.3 { 0.3 } else { idf_proportion };
-      expanded_terms.insert(term_weight_pair.0.into(), weight as f32);
+      expanded_terms.insert(std::string::String::from(&term_weight_pair.0[..]), weight as f32);
     }
 
     return expanded_terms;
   }
   
-  fn get_term_candidates(&self, base_term: &str, use_jacard: bool) -> Vec<String> {
+  fn get_term_candidates(&self, base_term: &str, use_jacard: bool) -> Vec<Rc<String>> {
     let mut num_base_term_trigrams: usize = 0;
 
-    let mut candidates: FxHashMap<String, usize> = FxHashMap::default();
+    let mut candidates: FxHashMap<Rc<String>, usize> = FxHashMap::default();
     for tri_gram in morsels_common::dictionary::trigrams::get_tri_grams(base_term) {
       match self.trigrams.get(tri_gram) {
         Some(terms) => {
@@ -195,7 +196,7 @@ impl SearchDictionary for Dictionary {
                 *val += 1;
               },
               None => {
-                candidates.insert((**term).to_owned(), 1);
+                candidates.insert(Rc::clone(term), 1);
               }
             }
           }
