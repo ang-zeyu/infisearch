@@ -15,7 +15,7 @@ use morsels_common::dictionary::{self, DICTIONARY_TABLE_FILE_NAME, DICTIONARY_ST
 
 pub type Dictionary = dictionary::Dictionary;
 
-static CORRECTION_ALPHA: f32 = 0.85;
+static TERM_EXPANSION_ALPHA: f32 = 0.85;
 static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.6;
 
 
@@ -90,7 +90,7 @@ pub trait SearchDictionary {
 
   fn get_expanded_terms(&self, number_of_expanded_terms: usize, base_term: &str) -> FxHashMap<std::string::String, f32>;
 
-  fn get_term_candidates(&self, base_term: &str, use_jacard: bool) -> Vec<Rc<String>>;
+  fn get_term_candidates(&self, base_term: &str) -> FxHashMap<Rc<String>, usize>;
 }
 
 impl SearchDictionary for Dictionary {
@@ -114,11 +114,19 @@ impl SearchDictionary for Dictionary {
   }
   
   fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<Rc<String>> {
-    let levenshtein_candidates = self.get_term_candidates(misspelled_term, true);
+    let levenshtein_candidates = self.get_term_candidates(misspelled_term);
+    let base_term_char_count = misspelled_term.chars().count();
     let mut min_edit_distance_terms = Vec::new();
     let mut min_edit_distance = 3;
 
-    for term in levenshtein_candidates {
+    for (term, score) in levenshtein_candidates {
+      // (A intersect B) / (A union B)
+      // For n-gram string, there are n - 2 tri-grams
+      // Filter edit distance candidates by jacard coefficient first
+      if ((score as f32) / ((term.chars().count() + base_term_char_count - 4 - score) as f32)) < SPELLING_CORRECTION_BASE_ALPHA {
+        continue;
+      }
+
       let edit_distance = levenshtein(&term, misspelled_term);
       if edit_distance >= 3 {
         continue;
@@ -143,7 +151,8 @@ impl SearchDictionary for Dictionary {
       return expanded_terms;
     }
 
-    let prefix_check_candidates = self.get_term_candidates(base_term, false);
+    let prefix_check_candidates = self.get_term_candidates(base_term);
+    let min_matching_trigrams = (TERM_EXPANSION_ALPHA * (base_term.chars().count() - 2) as f32).floor() as usize;
 
     let base_idf = if let Some(term_info) = self.term_infos.get(&String::from(base_term)) {
       term_info.idf
@@ -155,8 +164,13 @@ impl SearchDictionary for Dictionary {
     let mut top_n_min_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(number_of_expanded_terms);
     let mut max_idf_difference: f64 = 0.0;
 
-    let min_baseterm_substring = &base_term[0..((CORRECTION_ALPHA * base_term_char_count as f32).floor() as usize)];
-    for term in prefix_check_candidates {
+    let min_baseterm_substring = &base_term[0..((TERM_EXPANSION_ALPHA * base_term_char_count as f32).floor() as usize)];
+    for (term, score) in prefix_check_candidates {
+      // Filter away candidates that quite match in terms of number of trigrams first
+      if score < min_matching_trigrams {
+        continue;
+      }
+
       if term.starts_with(min_baseterm_substring) && &term[..] != base_term {
         let term_info = self.term_infos.get(&term).unwrap();
         let idf_difference = (term_info.idf - base_idf).abs();
@@ -183,9 +197,7 @@ impl SearchDictionary for Dictionary {
     return expanded_terms;
   }
   
-  fn get_term_candidates(&self, base_term: &str, use_jacard: bool) -> Vec<Rc<String>> {
-    let mut num_base_term_trigrams: usize = 0;
-
+  fn get_term_candidates(&self, base_term: &str) -> FxHashMap<Rc<String>, usize> {
     let mut candidates: FxHashMap<Rc<String>, usize> = FxHashMap::default();
     for tri_gram in morsels_common::dictionary::trigrams::get_tri_grams(base_term) {
       match self.trigrams.get(tri_gram) {
@@ -203,24 +215,8 @@ impl SearchDictionary for Dictionary {
         },
         None => {}
       }
-
-      num_base_term_trigrams += 1;
     };
 
-    let min_matching_trigrams = (CORRECTION_ALPHA * num_base_term_trigrams as f32).floor() as usize;
-
-    let base_term_char_count = base_term.chars().count();
-    return candidates.into_iter()
-      .filter(|(term, score)| {
-        if use_jacard {
-          // (A intersect B) / (A union B)
-          // For n-gram string, there are n - 2 tri-grams
-          ((*score as f32) / ((term.chars().count() + base_term_char_count - 4 - score) as f32)) >= SPELLING_CORRECTION_BASE_ALPHA
-        } else {
-          *score >= min_matching_trigrams
-        }
-      })
-      .map(|(term, _score)| term)
-      .collect();
+    return candidates;
   }
 }
