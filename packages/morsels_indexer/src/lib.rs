@@ -47,7 +47,7 @@ use serde::{Serialize,Deserialize};
 #[macro_use]
 extern crate lazy_static;
 
-const MORSELS_VERSION: &'static str = env!("CARGO_PKG_VERSION");
+pub const MORSELS_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
@@ -223,7 +223,14 @@ impl Indexer {
           && if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) { meta.is_file() } else { false };
 
         let dynamic_index_info = if is_dynamic {
-            dynamic_index_info::DynamicIndexInfo::new_from_output_folder(&output_folder_path)
+            let existing = dynamic_index_info::DynamicIndexInfo::new_from_output_folder(&output_folder_path);
+
+            if &existing.ver[..] != MORSELS_VERSION {
+                is_dynamic = false;
+                dynamic_index_info::DynamicIndexInfo::empty()
+            } else {
+                existing
+            }
         } else {
             dynamic_index_info::DynamicIndexInfo::empty()
         };

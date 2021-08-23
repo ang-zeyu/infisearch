@@ -7,6 +7,8 @@ use rustc_hash::FxHashMap;
 
 use morsels_common::BITMAP_FILE_NAME;
 
+use crate::MORSELS_VERSION;
+
 // Not used for search
 pub static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
 
@@ -22,6 +24,8 @@ struct DocIdsAndFileHash(
 
 #[derive(Serialize, Deserialize)]
 pub struct DynamicIndexInfo {
+    pub ver: String,
+
     // Mapping of file path -> doc id(s) / file hases, used for dynamic indexing
     mappings: FxHashMap<String, DocIdsAndFileHash>,
 
@@ -38,6 +42,7 @@ pub struct DynamicIndexInfo {
 impl DynamicIndexInfo {
     pub fn empty() -> DynamicIndexInfo {
         DynamicIndexInfo {
+            ver: MORSELS_VERSION.to_owned(),
             mappings: FxHashMap::default(),
             last_pl_number: 0,
             num_docs: 0,
