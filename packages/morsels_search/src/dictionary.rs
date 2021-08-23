@@ -16,7 +16,7 @@ use morsels_common::dictionary::{self, DICTIONARY_TABLE_FILE_NAME, DICTIONARY_ST
 pub type Dictionary = dictionary::Dictionary;
 
 static CORRECTION_ALPHA: f32 = 0.85;
-static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.625;
+static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.6;
 
 
 struct TermWeightPair(Rc<String>, f64);
@@ -215,8 +215,7 @@ impl SearchDictionary for Dictionary {
         if use_jacard {
           // (A intersect B) / (A union B)
           // For n-gram string, there are n - 2 tri-grams
-          ((*score as f32) / ((term.chars().count() + base_term_char_count - 4 - score) as f32))
-          >= SPELLING_CORRECTION_BASE_ALPHA
+          ((*score as f32) / ((term.chars().count() + base_term_char_count - 4 - score) as f32)) >= SPELLING_CORRECTION_BASE_ALPHA
         } else {
           *score >= min_matching_trigrams
         }
