@@ -18,16 +18,16 @@ impl Searcher {
                     if allow_stop_word_removal && self.tokenizer.is_stop_word(term) {
                         query_part.is_stop_word_removed = true;
                         if let None = query_part.original_terms {
-                            query_part.original_terms = Option::from(terms.clone());
+                            query_part.original_terms = Some(terms.clone());
                         }
                         terms.remove(term_idx);
                         continue;
                     }
 
-                    if let Option::None = self.dictionary.get_term_info(term) {
+                    if let None = self.dictionary.get_term_info(term) {
                         query_part.is_corrected = true;
                         if let None = query_part.original_terms {
-                            query_part.original_terms = Option::from(terms.clone());
+                            query_part.original_terms = Some(terms.clone());
                         }
 
                         let best_corrected_term = if self.tokenizer.use_default_trigram() {

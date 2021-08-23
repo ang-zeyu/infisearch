@@ -115,5 +115,5 @@ fn main() {
         }
     }
     
-    indexer.finish_writing_docs(Option::from(now));
+    indexer.finish_writing_docs(Some(now));
 }

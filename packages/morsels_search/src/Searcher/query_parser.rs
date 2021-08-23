@@ -50,7 +50,7 @@ fn handle_unary_op(mut query_part: QueryPart, operator_stack: &mut Vec<UnaryOp>)
           terms: None,
           part_type: QueryPartType::NOT,
           field_name: None,
-          children: Option::from(vec![query_part]),
+          children: Some(vec![query_part]),
         }
       },
       UnaryOp::FIELD(field_name) => {
@@ -111,11 +111,11 @@ fn handle_terminator(
           is_stop_word_removed: false,
           should_expand: tokenize_result.should_expand,
           is_expanded: false,
-          original_terms: Option::None,
-          terms: Option::from(vec![term]),
+          original_terms: None,
+          terms: Some(vec![term]),
           part_type: QueryPartType::TERM,
           field_name: None,
-          children: Option::None,
+          children: None,
         }, operator_stack));
       } else {
         query_parts.push(QueryPart {
@@ -123,11 +123,11 @@ fn handle_terminator(
           is_stop_word_removed: false,
           should_expand: tokenize_result.should_expand,
           is_expanded: false,
-          original_terms: Option::None,
-          terms: Option::from(vec![term]),
+          original_terms: None,
+          terms: Some(vec![term]),
           part_type: QueryPartType::TERM,
           field_name: None,
-          children: Option::None,
+          children: None,
         });
       }
     }
@@ -157,7 +157,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
       QueryParseState::QUOTE | QueryParseState::PARENTHESES => {
         let char_to_match = if let QueryParseState::QUOTE = query_parse_state { '"' } else { ')' };
         if !did_encounter_escape && c == char_to_match {
-          let content: String = collect_slice(&query_chars, i, j, &escape_indices);
+          let content = collect_slice(&query_chars, i, j, &escape_indices);
           let term_parttype_children = if let QueryParseState::QUOTE = query_parse_state {
             (Some(tokenizer.wasm_tokenize(content).terms), QueryPartType::PHRASE, None)
           } else {
@@ -243,11 +243,11 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
                 is_stop_word_removed: false,
                 should_expand: false,
                 is_expanded: false,
-                original_terms: Option::None,
-                terms: Option::None,
+                original_terms: None,
+                terms: None,
                 part_type: QueryPartType::AND,
                 field_name: None,
-                children: Option::from(if let Some(last_curr_query_part) = last_curr_query_part {
+                children: Some(if let Some(last_curr_query_part) = last_curr_query_part {
                   vec![last_curr_query_part]
                 } else {
                   vec![]

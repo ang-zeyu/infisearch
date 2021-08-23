@@ -38,11 +38,11 @@ impl Ord for DocResult {
 impl PartialOrd for DocResult {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.1 < other.1 {
-            Option::from(Ordering::Less)
+            Some(Ordering::Less)
         } else if self.1 > other.1 {
-            Option::from(Ordering::Greater)
+            Some(Ordering::Greater)
         } else {
-            Option::from(Ordering::Equal)
+            Some(Ordering::Equal)
         }
     }
 }
@@ -77,11 +77,11 @@ impl Ord for Position {
 impl PartialOrd for Position {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.pos < other.pos {
-            Option::from(Ordering::Greater)
+            Some(Ordering::Greater)
         } else if self.pos == other.pos {
-            Option::from(Ordering::Equal)
+            Some(Ordering::Equal)
         } else {
-            Option::from(Ordering::Less)
+            Some(Ordering::Less)
         }
     }
 }

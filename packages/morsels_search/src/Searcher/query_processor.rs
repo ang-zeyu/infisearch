@@ -38,8 +38,8 @@ impl Searcher {
             include_in_proximity_ranking: true,
             term_docs: Vec::new(),
             idf: 0.0,
-            term: Option::None,
-            term_info: Option::None,
+            term: None,
+            term_info: None,
             max_term_score: 0.0,
         };
 
@@ -180,8 +180,8 @@ impl Searcher {
             include_in_proximity_ranking: true,
             term_docs: Vec::new(),
             idf: 0.0,
-            term: Option::None,
-            term_info: Option::None,
+            term: None,
+            term_info: None,
             max_term_score: 0.0,
         };
 
@@ -235,8 +235,8 @@ impl Searcher {
             include_in_proximity_ranking: false,
             term_docs: Vec::new(),
             idf: 0.0,
-            term: Option::None,
-            term_info: Option::None,
+            term: None,
+            term_info: None,
             max_term_score: 0.0,
         };
 
@@ -287,9 +287,9 @@ impl Searcher {
         );
 
         if child_postings_lists.len() == 0 {
-            return Option::None;
+            return None;
         } else if child_postings_lists.len() == 1 {
-            return Option::from(child_postings_lists.pop().unwrap());
+            return Some(child_postings_lists.pop().unwrap());
         }
         
         let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = child_postings_lists
@@ -305,8 +305,8 @@ impl Searcher {
             include_in_proximity_ranking: true,
             term_docs: Vec::new(),
             idf: 0.0,
-            term: Option::None,
-            term_info: Option::None,
+            term: None,
+            term_info: None,
             max_term_score: 0.0,
         };
 
@@ -350,7 +350,7 @@ impl Searcher {
 
         new_pl.calc_pseudo_idf(self.doc_info.num_docs);
 
-        Option::from(Rc::new(new_pl))
+        Some(Rc::new(new_pl))
     }
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {

@@ -17,7 +17,7 @@ pub trait Tokenizer {
 
     fn is_stop_word(&self, term: &str) -> bool;
 
-    // If true, simply return Option::None / An empty hashmap for the below two methods
+    // If true, simply return None / An empty hashmap for the below two methods
     fn use_default_trigram(&self) -> bool;
 
     fn get_best_corrected_term(&self, term: &str, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String>;

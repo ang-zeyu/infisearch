@@ -28,7 +28,7 @@ impl Searcher {
             && last_query_part.should_expand
             && !last_query_part.is_stop_word_removed {
             if let None = last_query_part.original_terms {
-                last_query_part.original_terms = Option::from(last_query_part.terms.clone());
+                last_query_part.original_terms = last_query_part.terms.clone();
             }
 
             let expanded_terms = if self.tokenizer.use_default_trigram() {
@@ -58,7 +58,7 @@ impl Searcher {
                             should_expand: false,
                             is_expanded: false,
                             original_terms: None,
-                            terms: Option::from(vec![term.clone()]),
+                            terms: Some(vec![term.clone()]),
                             part_type: QueryPartType::TERM,
                             field_name: last_query_part.field_name.clone(),
                             children: None,
@@ -94,16 +94,16 @@ impl Searcher {
                         let mut idf = 0.0;
                         let term_info = if let Some(term_info_rc) = self.dictionary.get_term_info(term) {
                             idf = term_info_rc.idf;
-                            Option::from(Rc::clone(term_info_rc))
+                            Some(Rc::clone(term_info_rc))
                         } else {
-                            Option::None
+                            None
                         };
                         let postings_list = PostingsList {
                             weight: 1.0,
                             include_in_proximity_ranking: true,
                             term_docs: Vec::new(),
                             idf,
-                            term: Option::from(term.clone()),
+                            term: Some(term.clone()),
                             term_info,
                             max_term_score: 0.0,
                         };

@@ -95,21 +95,21 @@ pub trait SearchDictionary {
 
 impl SearchDictionary for Dictionary {
   fn get_best_corrected_term(&self, misspelled_term: &str) -> Option<std::string::String> {
-    let mut best_term = Option::None;
+    let mut best_term = None;
     let mut min_idf = f64::MAX;
     for term in self.get_corrected_terms(misspelled_term) {
       let term_info = self.term_infos.get(&term).unwrap();
       if term_info.idf < min_idf {
         min_idf = term_info.idf;
-        best_term = Option::from(term);
+        best_term = Some(term);
       }
     };
 
     if let Some(best_term) = best_term {
       let normal_string: std::string::String = std::string::String::from(&best_term[..]);
-      Option::from(normal_string)
+      Some(normal_string)
     } else {
-      Option::None
+      None
     }
   }
   

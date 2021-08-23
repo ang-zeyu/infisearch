@@ -147,7 +147,7 @@ pub fn worker (
                 // return the indexed documents...
                 sndr.send(WorkerToMainMessage {
                     id,
-                    block_index_results: Option::from(WorkerBlockIndexResults {
+                    block_index_results: Some(WorkerBlockIndexResults {
                         terms: std::mem::take(&mut doc_miner.terms),
                         doc_infos: std::mem::replace(
                             &mut doc_miner.doc_infos, Vec::with_capacity(expected_num_docs_per_reset)

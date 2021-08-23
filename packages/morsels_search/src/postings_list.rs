@@ -84,7 +84,7 @@ impl<'a> Ord for PlIterator<'a> {
 
 impl<'a> PartialOrd for PlIterator<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Option::from(self.td.unwrap().doc_id.cmp(&other.td.unwrap().doc_id))
+        Some(self.td.unwrap().doc_id.cmp(&other.td.unwrap().doc_id))
     }
 }
 
@@ -191,7 +191,7 @@ impl PostingsList {
         num_pls_per_dir: u32,
         with_positions: bool,
     ) -> Result<(), JsValue> {
-        if let Option::None = self.term_info {
+        if let None = self.term_info {
             return Ok(());
         }
 

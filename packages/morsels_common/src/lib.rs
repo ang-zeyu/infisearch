@@ -24,7 +24,7 @@ impl Default for MorselsLanguageConfig {
     fn default() -> Self {
         MorselsLanguageConfig {
             lang: get_default_language(),
-            options: Option::None,
+            options: None,
         }
     }
 }
