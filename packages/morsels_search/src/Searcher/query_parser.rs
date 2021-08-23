@@ -209,6 +209,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
           );
           
           field_name = Some(collect_slice(&query_chars, last_possible_fieldname_idx, j, &escape_indices));
+          is_not_allowed = true;
           i = j + 1;
         } else if c.is_ascii_whitespace() {
           let initial_j = j;
