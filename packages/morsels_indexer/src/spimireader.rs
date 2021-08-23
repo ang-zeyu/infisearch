@@ -315,12 +315,48 @@ fn aggregate_block_terms(
 fn write_new_term_postings(
     curr_combined_term_docs: &mut Vec<TermDocsForMerge>,
     varint_buf: &mut[u8],
+    dict_table_writer: Option<&mut BufWriter<File>>,
+    curr_pl: &mut u32,
     pl_writer: &mut BufWriter<File>,
     pl_offset: &mut u32,
     doc_freq: u32,
     curr_term_max_score: f32,
     num_docs: f64,
-) {
+    pl_names_to_cache: &mut Vec<u32>,
+    indexing_config: &MorselsIndexingConfig,
+    output_folder_path: &Path,
+) -> u32 {
+    // ---------------------------------------------
+    // Split to new postings file if necessary
+
+    // 16 is maximum varint size for the block_doc_id_gap_varint
+    let curr_postings_max_size = curr_combined_term_docs.iter().fold(0, |acc, next| acc + next.combined_var_ints.len() as u32 + 16);
+    let end = *pl_offset + curr_postings_max_size;
+
+    if end > POSTINGS_FILE_LIMIT {
+        // --------------------------------
+        // Dictionary table writing
+        // (1 byte varint = 0 in place of the docFreq varint, delimiting a new postings list)
+
+        if let Some(dict_table_writer) = dict_table_writer {
+            dict_table_writer.write_all(&[128_u8]).unwrap();
+        }
+        // --------------------------------
+
+        pl_writer.flush().unwrap();
+
+        if *pl_offset > indexing_config.pl_cache_threshold {
+            pl_names_to_cache.push(*curr_pl);
+        }
+
+        *curr_pl += 1;
+        *pl_offset = 0;
+        *pl_writer = get_pl_writer(output_folder_path, *curr_pl, indexing_config.num_pls_per_dir);
+    }
+    // ---------------------------------------------
+
+    let start_pl_offset = *pl_offset;
+
     let mut prev_block_last_doc_id = 0;
     for term_docs in curr_combined_term_docs.iter_mut() {
         // Link up the gap between the first doc id of the current block and the previous block
@@ -339,41 +375,8 @@ fn write_new_term_postings(
         * (1.0 + (num_docs - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
     pl_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
     *pl_offset += 4;
-}
 
-#[inline(always)]
-fn forward_postings_list_if_needed(
-    dict_table_writer: Option<&mut BufWriter<File>>,
-    pl_writer: &mut BufWriter<File>,
-    curr_pl: &mut u32,
-    curr_pl_offset: &mut u32,
-    pl_names_to_cache: &mut Vec<u32>,
-    indexing_config: &MorselsIndexingConfig,
-    output_folder_path: &Path,
-) {
-    // ---------------------------------------------
-    // Split postings file if necessary
-    if *curr_pl_offset > POSTINGS_FILE_LIMIT {
-        // --------------------------------
-        // Dictionary table writing
-        // (1 byte varint = 0 in place of the docFreq varint, delimiting a new postings list)
-
-        if let Some(dict_table_writer) = dict_table_writer {
-            dict_table_writer.write_all(&[128_u8]).unwrap();
-        }
-        // --------------------------------
-
-        pl_writer.flush().unwrap();
-
-        if *curr_pl_offset > indexing_config.pl_cache_threshold {
-            pl_names_to_cache.push(*curr_pl);
-        }
-
-        *curr_pl += 1;
-        *curr_pl_offset = 0;
-        *pl_writer = get_pl_writer(output_folder_path, *curr_pl, indexing_config.num_pls_per_dir);
-    }
-    // ---------------------------------------------
+    start_pl_offset
 }
 
 #[inline(always)]
@@ -464,23 +467,27 @@ pub fn merge_blocks(
         // and dictionary table, dictionary-as-a-string for the term.
 
         // ---------------------------------------------
-        // Dictionary table writing: doc freq (var-int), pl offset (u32)
-        
-        dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
-
-        dict_table_writer.write_all(&curr_pl_offset.to_le_bytes()).unwrap();
-
-        // ---------------------------------------------
         // Postings writing
 
         // Postings
 
-        write_new_term_postings(
-            &mut curr_combined_term_docs, &mut varint_buf, &mut pl_writer, &mut curr_pl_offset,
+        let start_pl_offset = write_new_term_postings(
+            &mut curr_combined_term_docs, &mut varint_buf,
+            Some(&mut dict_table_writer),
+            &mut curr_pl, &mut pl_writer, &mut curr_pl_offset,
             doc_freq, curr_term_max_score, num_docs_double,
+            pl_names_to_cache, indexing_config, output_folder_path,
         );
 
         // ---------------------------------------------
+
+        // ---------------------------------------------
+        // Dictionary table writing: doc freq (var-int), pl offset (u32)
+        
+        dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
+
+        dict_table_writer.write_all(&start_pl_offset.to_le_bytes()).unwrap();
+
 
         // ---------------------------------------------
         // Dictionary string writing
@@ -490,12 +497,6 @@ pub fn merge_blocks(
         prev_term = curr_term;
 
         // ---------------------------------------------
-
-        forward_postings_list_if_needed(
-            Some(&mut dict_table_writer), &mut pl_writer,
-            &mut curr_pl, &mut curr_pl_offset,
-            pl_names_to_cache, indexing_config, output_folder_path,
-        );
     }
 
     dynamic_index_info.last_pl_number = if curr_pl_offset != 0 || curr_pl == 0 { curr_pl } else { curr_pl - 1 };
@@ -763,24 +764,21 @@ pub fn modify_blocks(
 
             existing_pl_writer = Some(term_pl_writer);
         } else {
+            let start_pl_offset = write_new_term_postings(
+                &mut curr_combined_term_docs, &mut varint_buf,
+                None,
+                &mut new_pl, &mut new_pl_writer, &mut new_pls_offset,
+                doc_freq, curr_term_max_score, new_num_docs,
+                pl_names_to_cache, indexing_config, output_folder_path,
+            );
+
             // New term
             new_term_infos.push((curr_term, TermInfo {
                 doc_freq,
                 idf: 0.0,
                 postings_file_name: new_pl,
-                postings_file_offset: new_pls_offset,
+                postings_file_offset: start_pl_offset,
             }));
-
-            write_new_term_postings(
-                &mut curr_combined_term_docs, &mut varint_buf, &mut new_pl_writer, &mut new_pls_offset,
-                doc_freq, curr_term_max_score, new_num_docs,
-            );
-            
-            forward_postings_list_if_needed(
-                None, &mut new_pl_writer,
-                &mut new_pl, &mut new_pls_offset,
-                pl_names_to_cache, indexing_config, output_folder_path,
-            );
         }
     }
 
