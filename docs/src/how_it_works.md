@@ -1,10 +1,10 @@
 # How it Works
 
-The core idea of this tool is to split up a monolithic postings list into many smaller files (hence *"Morsels"*), organised by the indexed terms. Multiple postings lists are batched into the same file, keeping to `65535` bytes as much as possible.
+The core idea of this tool is to split up a monolithic postings list into many smaller files (hence *"Morsels"*), organised by the indexed terms. Multiple index files are batched into the same file, keeping to `65535` bytes as much as possible.
 
 On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (`< 1gb`).
 
-The postings lists of searched terms will be requested only on-demand from a static file server.
+The index files of searched terms will be requested only on-demand from a static file server.
 
 ## Limits
 
@@ -36,7 +36,7 @@ Device capabilities is also another concern (e.g. performance when ranking and p
 
 Most of the search library operates on a WebWorker, so you don't have to worry about blocking the UI thread.
 
-Document field population is however, is done on the main thread, as copy large documents to-fro WebWorker interfaces is costly (messages) and / or awkward (SharedArrayBuffer) at the moment.
+Document field store population is however, done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.
 
 ### Wasm / Rust for the searcher
 

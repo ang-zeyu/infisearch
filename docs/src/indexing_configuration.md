@@ -179,11 +179,11 @@ The snippet below shows the default values, which need not be altered if you are
       "HtmlLoader": {}
     },
 
-    // Any postings lists ("morsels") above this size (in bytes)
+    // Any index files ("morsels") above this size (in bytes)
     // will be pre-loaded on initialisation of the search library
     "pl_cache_threshold": 1048576,
     
-    // Number of postings lists ("morsels") to store per directory
+    // Number of index files ("morsels") to store per directory
     "num_pls_per_dir": 1000,
 
     // Number of field stores (`.json` files) to store per directory
