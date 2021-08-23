@@ -139,14 +139,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
 
   let mut query_parse_state: QueryParseState = QueryParseState::NONE;
   let mut is_expecting_and = false;
-  let mut is_not_allowed = true;
   let mut did_encounter_escape = false;
   let mut escape_indices: Vec<usize> = Vec::new();
   let mut op_stack: Vec<UnaryOp> = Vec::new();
 
   let mut i = 0;
   let mut j = 0;
-  let mut last_possible_fieldname_idx = 0;
+  let mut last_possible_unaryop_idx = 0;
 
   let query_chars: Vec<char> = query.chars().collect();
   let query_chars_len = query_chars.len();
@@ -189,9 +188,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
           }
 
           i = j + 1;
-          last_possible_fieldname_idx = i;
-
-          is_not_allowed = true;
+          last_possible_unaryop_idx = i;
         } else if c == '\\' {
           did_encounter_escape = true;
         } else {
@@ -208,16 +205,16 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
 
           query_parse_state = if c == '"' { QueryParseState::QUOTE } else { QueryParseState::PARENTHESES };
           i = j + 1;
-        } else if c == ':' && !did_encounter_escape && last_possible_fieldname_idx >= i && j > i {
+        } else if c == ':' && !did_encounter_escape && last_possible_unaryop_idx >= i && j > i {
           handle_terminator(
             tokenizer, &query_chars,
-            i, last_possible_fieldname_idx,
+            i, last_possible_unaryop_idx,
             &escape_indices, &mut query_parts, &mut is_expecting_and, &mut op_stack
           );
           
-          op_stack.push(UnaryOp::FIELD(collect_slice(&query_chars, last_possible_fieldname_idx, j, &escape_indices)));
-          is_not_allowed = true;
+          op_stack.push(UnaryOp::FIELD(collect_slice(&query_chars, last_possible_unaryop_idx, j, &escape_indices)));
           i = j + 1;
+          last_possible_unaryop_idx = i;
         } else if c.is_ascii_whitespace() {
           let initial_j = j;
           while j < query_chars_len && query_chars[j].is_ascii_whitespace() {
@@ -266,10 +263,9 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
             i = j;
           }
 
-          last_possible_fieldname_idx = j;
+          last_possible_unaryop_idx = j;
           j -= 1;
-          is_not_allowed = true;
-        } else if is_not_allowed
+        } else if j == last_possible_unaryop_idx
           && !did_encounter_escape
           && query_chars_len > 5 // overflow
           && j < query_chars_len - 4
@@ -288,7 +284,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
             j += 1;
           }
           i = j;
-          last_possible_fieldname_idx = i;
+          last_possible_unaryop_idx = i;
           j -= 1;
         } else if c == '\\' {
           did_encounter_escape = !did_encounter_escape;
@@ -297,7 +293,6 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
           }
         } else {
           did_encounter_escape = false;
-          is_not_allowed = false;
         }
       }
     }
