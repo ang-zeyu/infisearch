@@ -63,10 +63,10 @@ impl Default for EnglishTokenizer {
 
 #[derive(Deserialize)]
 pub struct EnglishTokenizerOptions {
-  stop_words: Option<Vec<String>>,
-  stemmer: Option<String>,
+  pub stop_words: Option<Vec<String>>,
+  pub stemmer: Option<String>,
   #[serde(default = "get_default_max_term_len")]
-  max_term_len: usize,
+  pub max_term_len: usize,
 }
 
 pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {

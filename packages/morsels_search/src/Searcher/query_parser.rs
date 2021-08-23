@@ -1,7 +1,7 @@
 use morsels_common::tokenize::Tokenizer;
 use serde::{Serialize};
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, Eq, PartialEq)]
 pub enum QueryPartType {
   TERM,
   PHRASE,
@@ -11,7 +11,7 @@ pub enum QueryPartType {
   ADDED,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryPart {
   pub is_corrected: bool,
@@ -308,4 +308,211 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
   handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut is_expecting_and, &mut op_stack);
 
   query_parts
+}
+
+#[cfg(test)]
+mod test {
+  use pretty_assertions::{assert_eq};
+
+  use morsels_common::tokenize::Tokenizer;
+  use morsels_lang_latin::english::{self, EnglishTokenizerOptions};
+
+  use super::{QueryPart, QueryPartType};
+
+  impl QueryPart {
+    fn no_expand(mut self) -> QueryPart {
+      if let QueryPartType::TERM = self.part_type {
+        self.should_expand = false;
+        self
+      } else {
+        panic!("Tried to call toggle_should_expand test function on non-term query part");
+      }
+    }
+
+    fn with_field(mut self, field_name: &str) -> QueryPart {
+      self.field_name = Some(field_name.to_owned());
+      self
+    }
+  }
+
+  fn wrap_in_not(query_part: QueryPart) -> QueryPart {
+    QueryPart {
+      is_corrected: false,
+      is_stop_word_removed: false,
+      should_expand: false,
+      is_expanded: false,
+      original_terms: None,
+      terms: None,
+      part_type: QueryPartType::NOT,
+      field_name: None,
+      children: Some(vec![query_part]),
+    }
+  }
+
+  fn wrap_in_and(query_parts: Vec<QueryPart>) -> QueryPart {
+    QueryPart {
+      is_corrected: false,
+      is_stop_word_removed: false,
+      should_expand: false,
+      is_expanded: false,
+      original_terms: None,
+      terms: None,
+      part_type: QueryPartType::AND,
+      field_name: None,
+      children: Some(query_parts),
+    }
+  }
+
+  fn wrap_in_parentheses(query_parts: Vec<QueryPart>) -> QueryPart {
+    QueryPart {
+      is_corrected: false,
+      is_stop_word_removed: false,
+      should_expand: false,
+      is_expanded: false,
+      original_terms: None,
+      terms: None,
+      part_type: QueryPartType::BRACKET,
+      field_name: None,
+      children: Some(query_parts),
+    }
+  }
+
+  fn get_term(term: &str) -> QueryPart {
+    QueryPart {
+      is_corrected: false,
+      is_stop_word_removed: false,
+      should_expand: true,
+      is_expanded: false,
+      original_terms: None,
+      terms: Some(vec![term.to_owned()]),
+      part_type: QueryPartType::TERM,
+      field_name: None,
+      children: None,
+    }
+  }
+
+  fn get_lorem() -> QueryPart {
+    get_term("lorem")
+  }
+
+  fn get_ipsum() -> QueryPart {
+    get_term("ipsum")
+  }
+
+  fn parse(query: &str) -> Vec<QueryPart> {
+    let tokenizer: Box<dyn Tokenizer> = Box::new(english::new_with_options(EnglishTokenizerOptions {
+      stop_words: None,
+      stemmer: None,
+      max_term_len: 80,
+    }));
+
+    super::parse_query(query.to_owned(), &tokenizer)
+  }
+
+  #[test]
+  fn free_text_test() {
+    assert_eq!(parse("lorem ipsum"), vec![get_lorem(), get_ipsum()]);
+    assert_eq!(parse("lorem ipsum "), vec![get_lorem().no_expand(), get_ipsum().no_expand()]);
+  }
+
+  #[test]
+  fn boolean_test() {
+    assert_eq!(parse("NOT lorem"), vec![wrap_in_not(get_lorem())]);
+    assert_eq!(parse("NOT NOT lorem"), vec![wrap_in_not(wrap_in_not(get_lorem()))]);
+    assert_eq!(parse("NOT lorem ipsum"), vec![wrap_in_not(get_lorem()), get_ipsum()]);
+    assert_eq!(parse("lorem NOTipsum"), vec![get_lorem(), get_term("notipsum")]);
+    assert_eq!(parse("lorem NOT ipsum"), vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]);
+    assert_eq!(parse("lorem AND ipsum"), vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]);
+    assert_eq!(parse("lorem AND ipsum AND lorem"), vec![wrap_in_and(vec![get_lorem(), get_ipsum(), get_lorem()])]);
+    assert_eq!(parse("lorem AND NOT ipsum"), vec![wrap_in_and(vec![get_lorem(), wrap_in_not(get_ipsum())])]);
+    assert_eq!(parse("NOT lorem AND NOT ipsum"), vec![wrap_in_and(vec![wrap_in_not(get_lorem()), wrap_in_not(get_ipsum())])]);
+    assert_eq!(parse("NOT lorem AND NOT ipsum lorem NOT ipsum"), vec![
+      wrap_in_and(vec![wrap_in_not(get_lorem()), wrap_in_not(get_ipsum().no_expand())]),
+      get_lorem().no_expand(),
+      wrap_in_not(get_ipsum())
+    ]);
+  }
+
+  #[test]
+  fn parentheses_test() {
+    assert_eq!(parse("(lorem ipsum)"), vec![wrap_in_parentheses(vec![get_lorem(), get_ipsum()])]);
+    assert_eq!(parse("(lorem ipsum )"), vec![wrap_in_parentheses(vec![get_lorem().no_expand(), get_ipsum().no_expand()])]);
+    assert_eq!(parse("lorem(lorem ipsum)"), vec![
+      get_lorem(),
+      wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+    ]);
+    assert_eq!(parse("(lorem ipsum)lorem(lorem ipsum)"), vec![
+      wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+      get_lorem(),
+      wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+    ]);
+    assert_eq!(parse("(lorem ipsum) lorem (lorem ipsum)"), vec![
+      wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+      get_lorem().no_expand(),
+      wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+    ]);
+  }
+
+  #[test]
+  fn field_name_test() {
+    assert_eq!(parse("title:lorem"), vec![get_lorem().with_field("title")]);
+    assert_eq!(parse("title:lorem ipsum"), vec![get_lorem().with_field("title"), get_ipsum()]);
+    assert_eq!(parse("title:lorem body:ipsum"), vec![get_lorem().with_field("title").no_expand(), get_ipsum().with_field("body")]);
+    assert_eq!(parse("title:(lorem body:ipsum)"), vec![
+      wrap_in_parentheses(
+        vec![get_lorem().no_expand(), get_ipsum().with_field("body")]
+      ).with_field("title")
+    ]);
+    assert_eq!(parse("title:lorem AND ipsum"), vec![wrap_in_and(vec![get_lorem().with_field("title"), get_ipsum()])]);
+    assert_eq!(parse("title:(lorem AND ipsum)"), vec![wrap_in_parentheses(vec![
+      wrap_in_and(vec![get_lorem(), get_ipsum()])]
+    ).with_field("title")]);
+    assert_eq!(parse("title:NOT lorem ipsum)"), vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]);
+    assert_eq!(parse("title: NOT lorem ipsum)"), vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]);
+    assert_eq!(parse("title: lorem NOT ipsum)"), vec![get_lorem().with_field("title").no_expand(), wrap_in_not(get_ipsum())]);
+  }
+
+  #[test]
+  fn misc_test() {
+    assert_eq!(parse("title:(lorem AND ipsum) AND NOT (lorem ipsum) body:(lorem NOT ipsum)"), vec![
+      wrap_in_and(vec![
+        wrap_in_parentheses(vec![
+          wrap_in_and(vec![
+            get_lorem(), get_ipsum()
+          ])
+        ]).with_field("title"),
+        wrap_in_not(wrap_in_parentheses(vec![
+          get_lorem(), get_ipsum(),
+        ]))
+      ]),
+      wrap_in_parentheses(vec![
+        get_lorem().no_expand(),
+        wrap_in_not(get_ipsum())
+      ]).with_field("body")
+    ]);
+
+    assert_eq!(parse("title:lorem AND ipsum AND NOT lorem ipsum body:lorem NOT ipsum"), vec![
+      wrap_in_and(vec![
+        get_lorem().with_field("title"),
+        get_ipsum(),
+        wrap_in_not(get_lorem().no_expand()),
+      ]),
+      get_ipsum().no_expand(),
+      get_lorem().no_expand().with_field("body"),
+      wrap_in_not(get_ipsum()),
+    ]);
+
+    assert_eq!(parse("title\\:lorem\\ AND ipsum\\ AND \\NOT lorem ipsum body\\:lorem \\NOT ipsum"), vec![
+      get_term("titlelorem"),
+      get_term("and"),
+      get_term("ipsum"),
+      get_term("and"),
+      get_term("not"),
+      get_term("lorem"),
+      get_term("ipsum"),
+      get_term("bodylorem"),
+      get_term("not"),
+      get_term("ipsum"),
+    ]);
+  }
 }

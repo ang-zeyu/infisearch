@@ -37,5 +37,8 @@ features = [
     "Window"
 ]
 
+[dev-dependencies]
+pretty_assertions = "0.7.2"
+
 [profile.release]
 lto = true
