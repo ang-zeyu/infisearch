@@ -170,7 +170,8 @@ impl Tokenizer for EnglishTokenizer {
       .collect()
   }
 
-  fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult {
+  fn wasm_tokenize(&self, mut text: String) -> SearchTokenizeResult {
+    text.make_ascii_lowercase();
     let should_expand = !text.ends_with(' ');
     SearchTokenizeResult {
       terms: self.tokenize_slice(&text).into_iter().map(|cow| cow.into_owned()).collect(),
