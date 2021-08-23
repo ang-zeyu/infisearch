@@ -435,7 +435,6 @@ export default async function transformResults(
     }
 
     observer.unobserve(sentinel);
-    sentinel.remove();
     await transformResults(query, config, false, container, options);
   }, { rootMargin: '10px 10px 10px 10px' });
 
