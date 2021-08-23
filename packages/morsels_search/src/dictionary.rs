@@ -207,7 +207,7 @@ impl SearchDictionary for Dictionary {
       num_base_term_trigrams += 1;
     };
 
-    let min_matching_trigrams = (CORRECTION_ALPHA * num_base_term_trigrams as f32).floor();
+    let min_matching_trigrams = (CORRECTION_ALPHA * num_base_term_trigrams as f32).floor() as usize;
 
     let base_term_char_count = base_term.chars().count();
     return candidates.into_iter()
@@ -218,7 +218,7 @@ impl SearchDictionary for Dictionary {
           ((*score as f32) / ((term.chars().count() + base_term_char_count - 4 - score) as f32))
           >= SPELLING_CORRECTION_BASE_ALPHA
         } else {
-          (*score as f32) >= min_matching_trigrams
+          *score >= min_matching_trigrams
         }
       })
       .map(|(term, _score)| term)
