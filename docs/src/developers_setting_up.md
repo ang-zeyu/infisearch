@@ -1,0 +1,26 @@
+# Setting Up
+
+To get your development environment setup, you'll need to have installed the following:
+- Some Rust, WebAssembly and / or Typescript knowledge 🧠
+- [cargo](https://crates.io/), the package manager for Rust
+- [wasm-pack](https://github.com/rustwasm/wasm-pack), the "one-stop shop" for working with rust generated WebAssembly
+- [mdbook](https://rust-lang.github.io/mdBook/), if working on mdbook-morsels plugin
+
+## Test Files
+
+You'll also need to source a suitable set of html, json, or csv collection that is loadable by one of the command-line [loaders](./indexing_configuration.md#Loaders). The data in the collection should be mappable to the [fields](./indexing_configuration.md#fields-needed-for-morselssearch-ui) required by `@morsels/search-ui` for easy testing.
+
+The test collection I used for the majority of development is a `380mb` csv corpus for example, in the following format.
+
+```
+"date", "title",                 "content",              "court"
+unused, mapped to 'title' field, mapped to 'body' field, mapped to 'heading' field
+```
+
+Once you have your test files, place them under the `<project-root>/test_files/1/source` directory. If using a custom file format, you will likely need to configure the data / field mapping as well. You can run `cargo run -p morsels_indexer <project-root>/test_files/1/source --init` to create the default configuration file as a template, and proceed from there.
+
+---
+
+I am unable to release my test collections I conveniently had on hand for licensing reasons, and have yet to search for a freely available one.
+
+If you are aware of a widely available and easily integrated dataset, feel free to help supplement the docs here!

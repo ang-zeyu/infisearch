@@ -18,7 +18,7 @@ This project is made up of 3 crates and 2 packages.
 
 - morsels_indexer: the cli tool providing indexing functionalities for several file formats
 - morsels_search: the rust wasm crate providing search functionalities
-- morsels_common: library containing internal common functionalities for the above 2 crates..
+- morsels_common: internal library containing common functionalities for the above 2 crates.
 
 - @morsels/search-lib: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the `morsels-searchui` package below in the future.
 - @morsels/search-ui: interfaces with @morsels/search-lib to provide basic search UI functionalities (e.g. SERP generation)

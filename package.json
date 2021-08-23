@@ -7,6 +7,8 @@
     "dev": "webpack-cli serve --config ./webpack.dev.js",
     "devdocs": "cargo install --path packages/mdbook-morsels && cd docs && mdbook serve -p 8000",
     "build": "webpack --config ./webpack.prod.js",
+    "index1": "cargo run -p morsels_indexer --release ./test_files/1/source ./test_files/1/output",
+    "index2": "cargo run -p morsels_indexer --release ./test_files/2/source ./test_files/2/output",
     "devServer1": "http-server ./test_files/1 -p 3000 --cors",
     "devServer2": "http-server ./test_files/2 -p 3000 --cors",
     "lint": "cd packages/indexer && eslint . --ext .ts && cd ../.. && eslint packages/search --ext .js",

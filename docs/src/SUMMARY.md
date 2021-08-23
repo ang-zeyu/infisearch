@@ -9,3 +9,6 @@
 - [Search UI Configuration](./search_configuration.md)
 - [Dynamic Indexing](./dynamic_indexing.md)
 - [Future Plans](./future_plans.md)
+- [Contributing](./contributing.md)
+  - [Setting Up](./developers_setting_up.md)
+  - [Developing](./developers_developing.md)
