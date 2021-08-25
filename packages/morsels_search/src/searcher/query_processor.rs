@@ -73,7 +73,7 @@ impl Searcher {
                     .map(|pl_it| pl_it.borrow().peek_prev().unwrap())
                     .collect();
 
-                for field_id in 0..self.searcher_config.num_scored_fields as u8 {
+                for field_id in 0..self.searcher_config.num_scored_fields as usize {
                     let mut result_doc_field = DocField {
                         field_tf: 0.0,
                         field_positions: Vec::new(),
@@ -83,49 +83,50 @@ impl Searcher {
                     let mut curr_pos: u32 = 0;
                     let mut term_idx = 0;
                     loop {
-                        let curr_term_termdocs = *term_termdocs.get(term_idx).unwrap();
-                        if let Some(curr_pl_field) = curr_term_termdocs.fields.get(field_id as usize) {
-                            if let Some(pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
-                                if term_idx == 0 {
-                                    term_field_position_idxes[term_idx] += 1;
+                        let curr_term_termdocs = term_termdocs.get(term_idx).unwrap();
+                        if field_id >= curr_term_termdocs.fields.len() {
+                            break;
+                        }
 
-                                    curr_pos = *pos;
-                                    term_idx += 1;
-                                } else if *pos == (curr_pos + 1) {
-                                    term_field_position_idxes[term_idx] += 1;
+                        let curr_pl_field = curr_term_termdocs.fields[field_id];
+                        if let Some(pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
+                            if term_idx == 0 {
+                                term_field_position_idxes[term_idx] += 1;
 
-                                    if term_idx == num_pls - 1 {
-                                        // Complete the match
-                                        has_match = true;
-                                        result_doc_field.field_positions.push(*pos - (num_pls as u32) + 1);
-                                        
-                                        // Reset
-                                        term_idx = 0;
-                                    } else {
-                                        // Match next term
-                                        curr_pos = *pos;
-                                        term_idx += 1;
-                                    }
-                                } else {
-                                    // Not matched
+                                curr_pos = *pos;
+                                term_idx += 1;
+                            } else if *pos == (curr_pos + 1) {
+                                term_field_position_idxes[term_idx] += 1;
 
-                                    // Forward this postings list up to currPos, try again
-                                    if *pos < curr_pos {
-                                        while term_field_position_idxes[term_idx] < curr_pl_field.field_positions.len()
-                                            && curr_pl_field.field_positions[term_field_position_idxes[term_idx]] < curr_pos {
-                                            term_field_position_idxes[term_idx] += 1;
-                                        }
-                                        continue;
-                                    }
-
+                                if term_idx == num_pls - 1 {
+                                    // Complete the match
+                                    has_match = true;
+                                    result_doc_field.field_positions.push(*pos - (num_pls as u32) + 1);
+                                    
                                     // Reset
                                     term_idx = 0;
+                                } else {
+                                    // Match next term
+                                    curr_pos = *pos;
+                                    term_idx += 1;
                                 }
                             } else {
-                                // exceeded number of positions
-                                break;
+                                // Not matched
+
+                                // Forward this postings list up to currPos, try again
+                                if *pos < curr_pos {
+                                    while term_field_position_idxes[term_idx] < curr_pl_field.field_positions.len()
+                                        && curr_pl_field.field_positions[term_field_position_idxes[term_idx]] < curr_pos {
+                                        term_field_position_idxes[term_idx] += 1;
+                                    }
+                                    continue;
+                                }
+
+                                // Reset
+                                term_idx = 0;
                             }
                         } else {
+                            // exceeded number of positions
                             break;
                         }
                     }
