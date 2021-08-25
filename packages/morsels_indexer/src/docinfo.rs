@@ -52,11 +52,8 @@ impl DocInfos {
         let mut doc_lengths = Vec::new();
         let mut doc_id = 0;
         while byte_offset < total_bytes {
-            let mut doc_info = WorkerMinerDocInfo {
-                doc_id,
-                field_lengths: vec![0; num_fields],
-                field_texts: Vec::new(),
-            };
+            let mut doc_info =
+                WorkerMinerDocInfo { doc_id, field_lengths: vec![0; num_fields], field_texts: Vec::new() };
             doc_id += 1;
 
             for i in 0..num_fields {
@@ -67,11 +64,7 @@ impl DocInfos {
             doc_lengths.push(doc_info);
         }
 
-        DocInfos {
-            doc_lengths,
-            all_block_doc_lengths: Vec::new(),
-            average_lengths,
-        }
+        DocInfos { doc_lengths, all_block_doc_lengths: Vec::new(), average_lengths }
     }
 
     pub fn get_field_len_factor(&self, doc_id: usize, field_id: usize) -> f32 {
@@ -89,8 +82,11 @@ impl DocInfos {
     fn sort_and_merge_block_doclengths(&mut self) {
         self.all_block_doc_lengths.sort();
 
-        self.doc_lengths.extend(std::mem::take(&mut self.all_block_doc_lengths).into_iter()
-            .flat_map(|block_doc_lengths| block_doc_lengths.0));
+        self.doc_lengths.extend(
+            std::mem::take(&mut self.all_block_doc_lengths)
+                .into_iter()
+                .flat_map(|block_doc_lengths| block_doc_lengths.0),
+        );
     }
 
     fn calculate_field_average_lengths(&mut self, writer: &mut BufWriter<std::fs::File>) {
@@ -131,10 +127,6 @@ impl DocInfos {
 
 impl Default for DocInfos {
     fn default() -> Self {
-        DocInfos {
-            doc_lengths: Vec::new(),
-            all_block_doc_lengths: Vec::new(),
-            average_lengths: vec![0.0; 0],
-        }
+        DocInfos { doc_lengths: Vec::new(), all_block_doc_lengths: Vec::new(), average_lengths: vec![0.0; 0] }
     }
 }

@@ -2,8 +2,8 @@ use std::fs::File;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
 
-use serde::{Serialize, Deserialize};
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 
 use morsels_common::BITMAP_FILE_NAME;
 
@@ -16,10 +16,9 @@ pub static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
 
 #[derive(Serialize, Deserialize)]
 struct DocIdsAndFileHash(
-    Vec<u32>, // doc ids
-    u128,     // millis timestamp
-    #[serde(skip)]
-    bool,     // false by default, detect if files were encountered in the current run (delete if not)
+    Vec<u32>,            // doc ids
+    u128,                // millis timestamp
+    #[serde(skip)] bool, // false by default, detect if files were encountered in the current run (delete if not)
 );
 
 #[derive(Serialize, Deserialize)]
@@ -54,20 +53,24 @@ impl DynamicIndexInfo {
     pub fn new_from_output_folder(output_folder_path: &Path) -> DynamicIndexInfo {
         let info_file = File::open(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)).unwrap();
 
-        let mut info: DynamicIndexInfo = serde_json::from_reader(BufReader::new(info_file))
-            .expect("dynamic index info deserialization failed!");
+        let mut info: DynamicIndexInfo =
+            serde_json::from_reader(BufReader::new(info_file)).expect("dynamic index info deserialization failed!");
 
-        File::open(output_folder_path.join(BITMAP_FILE_NAME)).unwrap()
-            .read_to_end(&mut info.invalidation_vector).unwrap();
+        File::open(output_folder_path.join(BITMAP_FILE_NAME))
+            .unwrap()
+            .read_to_end(&mut info.invalidation_vector)
+            .unwrap();
 
         info
     }
 
     pub fn add_doc_to_path(&mut self, path: &Path, doc_id: u32) {
         let path = path.to_str().unwrap();
-        self.mappings.get_mut(path)
+        self.mappings
+            .get_mut(path)
             .expect("Get path for index file should always have an entry when adding doc id")
-            .0.push(doc_id);
+            .0
+            .push(doc_id);
     }
 
     pub fn update_path_if_modified(&mut self, path: &Path, new_modified: u128) -> bool {
@@ -101,7 +104,8 @@ impl DynamicIndexInfo {
 
     // Delete file paths that were not encountered at all (assume they were deleted)
     pub fn delete_unencountered_paths(&mut self) {
-        self.mappings = std::mem::take(&mut self.mappings).into_iter()
+        self.mappings = std::mem::take(&mut self.mappings)
+            .into_iter()
             .filter(|(_path, docids_and_filehash)| {
                 if !docids_and_filehash.2 {
                     for doc_id in docids_and_filehash.0.iter() {
@@ -123,13 +127,10 @@ impl DynamicIndexInfo {
             .unwrap()
             .write_all(serialized.as_bytes())
             .unwrap();
-        
+
         let num_bytes = (doc_id_counter as f64 / 8.0).ceil() as usize;
         self.invalidation_vector.extend(vec![0; num_bytes - self.invalidation_vector.len()]);
 
-        File::create(output_folder_path.join(BITMAP_FILE_NAME))
-            .unwrap()
-            .write_all(&*self.invalidation_vector)
-            .unwrap();
+        File::create(output_folder_path.join(BITMAP_FILE_NAME)).unwrap().write_all(&*self.invalidation_vector).unwrap();
     }
 }

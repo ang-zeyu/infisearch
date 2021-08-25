@@ -3,13 +3,13 @@ use std::rc::Rc;
 
 use byteorder::{ByteOrder, LittleEndian};
 use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
 use web_sys::Response;
 
+use crate::postings_list_file_cache::PostingsListFileCache;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::varint::decode_var_int;
-use crate::postings_list_file_cache::PostingsListFileCache;
 
 pub struct DocField {
     pub field_tf: f32,
@@ -18,19 +18,13 @@ pub struct DocField {
 
 impl Clone for DocField {
     fn clone(&self) -> Self {
-        DocField {
-            field_tf: self.field_tf,
-            field_positions: self.field_positions.clone(),
-        }
+        DocField { field_tf: self.field_tf, field_positions: self.field_positions.clone() }
     }
 }
 
 impl Default for DocField {
     fn default() -> Self {
-        DocField {
-            field_tf: 0.0,
-            field_positions: Vec::new(),
-        }
+        DocField { field_tf: 0.0, field_positions: Vec::new() }
     }
 }
 
@@ -41,10 +35,7 @@ pub struct TermDoc {
 
 impl Clone for TermDoc {
     fn clone(&self) -> Self {
-        TermDoc {
-            doc_id: self.doc_id,
-            fields: self.fields.clone(),
-        }
+        TermDoc { doc_id: self.doc_id, fields: self.fields.clone() }
     }
 }
 
@@ -101,26 +92,19 @@ pub struct PostingsList {
 
 impl PostingsList {
     pub fn get_it(&self, original_idx: u8) -> PlIterator {
-        PlIterator {
-            td: self.term_docs.get(0),
-            pl: self,
-            idx: 0,
-            original_idx,
-        }
+        PlIterator { td: self.term_docs.get(0), pl: self, idx: 0, original_idx }
     }
 
     // Used for "processed" (e.g. phrase, bracket, AND) postings lists
     pub fn calc_pseudo_idf(&mut self, num_docs: u32) {
-        self.idf = (1.0 + (num_docs as f64 - self.term_docs.len() as f64 + 0.5) / (self.term_docs.len() as f64 + 0.5)).ln()
+        self.idf =
+            (1.0 + (num_docs as f64 - self.term_docs.len() as f64 + 0.5) / (self.term_docs.len() as f64 + 0.5)).ln()
     }
 
     pub fn merge_term_docs(term_doc_1: &TermDoc, term_doc_2: &TermDoc) -> TermDoc {
         let max_fields_length = std::cmp::max(term_doc_1.fields.len(), term_doc_2.fields.len());
 
-        let mut td = TermDoc {
-            doc_id: term_doc_1.doc_id,
-            fields: Vec::with_capacity(max_fields_length),
-        };
+        let mut td = TermDoc { doc_id: term_doc_1.doc_id, fields: Vec::with_capacity(max_fields_length) };
 
         for field_id in 0..max_fields_length {
             let term_doc_1_field_opt = term_doc_1.fields.get(field_id);
@@ -137,13 +121,15 @@ impl PostingsList {
                 let mut pos2_idx = 0;
                 for pos1_idx in 0..term_doc_1_field.field_positions.len() {
                     while pos2_idx < term_doc_2_field.field_positions.len()
-                        && term_doc_2_field.field_positions[pos2_idx] < term_doc_1_field.field_positions[pos1_idx] {
+                        && term_doc_2_field.field_positions[pos2_idx] < term_doc_1_field.field_positions[pos1_idx]
+                    {
                         doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
                         pos2_idx += 1;
                     }
 
                     if pos2_idx < term_doc_2_field.field_positions.len()
-                        && term_doc_2_field.field_positions[pos2_idx] == term_doc_1_field.field_positions[pos1_idx] {
+                        && term_doc_2_field.field_positions[pos2_idx] == term_doc_1_field.field_positions[pos1_idx]
+                    {
                         pos2_idx += 1;
                     }
 
@@ -167,15 +153,20 @@ impl PostingsList {
     }
 
     #[inline]
-    pub async fn fetch_pl_to_vec(window: &web_sys::Window, base_url: &str, pl_num: u32, num_pls_per_dir: u32) -> Result<Vec<u8>, JsValue> {
-        let pl_resp_value = JsFuture::from(
-            window.fetch_with_str(
-                &(base_url.to_owned()
-                    + "/pl_" + &(pl_num / num_pls_per_dir).to_string()[..] 
-                    + "/pl_" + &pl_num.to_string()[..]
-                )
-            )
-        ).await?;
+    pub async fn fetch_pl_to_vec(
+        window: &web_sys::Window,
+        base_url: &str,
+        pl_num: u32,
+        num_pls_per_dir: u32,
+    ) -> Result<Vec<u8>, JsValue> {
+        let pl_resp_value = JsFuture::from(window.fetch_with_str(
+            &(base_url.to_owned()
+                + "/pl_"
+                + &(pl_num / num_pls_per_dir).to_string()[..]
+                + "/pl_"
+                + &pl_num.to_string()[..]),
+        ))
+        .await?;
         let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
         let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
         Ok(js_sys::Uint8Array::new(&pl_array_buffer).to_vec())
@@ -196,12 +187,13 @@ impl PostingsList {
         }
 
         let term_info = self.term_info.as_ref().unwrap();
-        
+
         let fetched_pl;
         let pl_vec = if let Some(pl_vec) = pl_file_cache.get(term_info.postings_file_name) {
             pl_vec
         } else {
-            fetched_pl = PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name, num_pls_per_dir).await?;
+            fetched_pl =
+                PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name, num_pls_per_dir).await?;
             &fetched_pl
         };
 
@@ -212,10 +204,8 @@ impl PostingsList {
             let docfreq_and_len = decode_var_int(&pl_vec[pos..]);
             pos += docfreq_and_len.1;
 
-            let mut term_doc = TermDoc {
-                doc_id: prev_doc_id + docfreq_and_len.0,
-                fields: Vec::with_capacity(num_scored_fields),
-            };
+            let mut term_doc =
+                TermDoc { doc_id: prev_doc_id + docfreq_and_len.0, fields: Vec::with_capacity(num_scored_fields) };
             prev_doc_id = term_doc.doc_id;
 
             let mut is_last: u8 = 0;
@@ -236,7 +226,7 @@ impl PostingsList {
                     for _j in 0..field_tf_val_and_length.0 {
                         let posgap_val_and_length = decode_var_int(&pl_vec[pos..]);
                         pos += posgap_val_and_length.1;
-    
+
                         prev_pos += posgap_val_and_length.0;
                         field_positions.push(prev_pos);
                     }
@@ -249,11 +239,8 @@ impl PostingsList {
                 for _field_id_before in term_doc.fields.len() as u8..field_id {
                     term_doc.fields.push(DocField::default());
                 }
-                
-                term_doc.fields.push(DocField {
-                    field_tf: field_tf_val_and_length.0 as f32,
-                    field_positions,
-                });
+
+                term_doc.fields.push(DocField { field_tf: field_tf_val_and_length.0 as f32, field_positions });
             }
 
             if !morsels_common::bitmap::check(invalidation_vector, prev_doc_id as usize) {

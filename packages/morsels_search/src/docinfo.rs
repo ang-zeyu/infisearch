@@ -1,6 +1,6 @@
 use byteorder::{ByteOrder, LittleEndian};
-use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
 use morsels_common::DOC_INFO_FILE_NAME;
@@ -14,7 +14,7 @@ pub struct DocInfo {
 impl DocInfo {
     pub async fn create(url: &str, num_fields: usize) -> Result<DocInfo, JsValue> {
         let window: web_sys::Window = js_sys::global().unchecked_into();
-        
+
         let doc_info_request = Request::new_with_str(&(url.to_owned() + "/" + DOC_INFO_FILE_NAME))?;
         let doc_info_fetch_future = JsFuture::from(window.fetch_with_request(&doc_info_request));
         let doc_info_resp_value = doc_info_fetch_future.await?;
@@ -50,10 +50,6 @@ impl DocInfo {
         }
 
         let doc_length_factors_len = doc_length_factors.len() as u32;
-        Ok(DocInfo {
-            doc_length_factors,
-            doc_length_factors_len,
-            num_docs,
-        })
+        Ok(DocInfo { doc_length_factors, doc_length_factors_len, num_docs })
     }
 }

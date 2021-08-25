@@ -2,16 +2,15 @@ use std::path::Path;
 use std::sync::Arc;
 
 use path_slash::PathExt;
-use scraper::ElementRef;
-use scraper::Selector;
-use scraper::Html;
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use rustc_hash::FxHashMap;
+use scraper::ElementRef;
+use scraper::Html;
+use scraper::Selector;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
-
 
 pub struct HtmlLoaderSelector {
     selector: Selector,
@@ -45,7 +44,7 @@ fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
             field_name: "body".to_owned(),
             attr_map: FxHashMap::default(),
         },
-        heading_selector
+        heading_selector,
     ]
 }
 
@@ -58,12 +57,12 @@ pub struct HtmlLoaderOptionsRaw {
     #[serde(default = "get_default_html_loader_selectors")]
     selectors: Vec<HtmlLoaderSelectorRaw>,
     #[serde(default = "get_default_exclude_selectors")]
-    exclude_selectors: Vec<String>
+    exclude_selectors: Vec<String>,
 }
 
 pub struct HtmlLoaderOptions {
     selectors: Vec<HtmlLoaderSelector>,
-    exclude_selectors: Vec<Selector>
+    exclude_selectors: Vec<Selector>,
 }
 
 pub struct HtmlLoader {
@@ -79,45 +78,45 @@ struct HtmlLoaderResult {
 
 impl HtmlLoader {
     pub fn get_new_html_loader(config: serde_json::Value) -> Box<Self> {
-        let html_loader_options_raw: HtmlLoaderOptionsRaw = serde_json::from_value(config)
-            .expect("HtmlLoader options did not match schema!");
+        let html_loader_options_raw: HtmlLoaderOptionsRaw =
+            serde_json::from_value(config).expect("HtmlLoader options did not match schema!");
 
         let options = Arc::new(HtmlLoaderOptions {
-            selectors: html_loader_options_raw.selectors
+            selectors: html_loader_options_raw
+                .selectors
                 .iter()
                 .map(|opt| HtmlLoaderSelector {
                     selector: Selector::parse(&opt.selector).expect("Invalid selector!"),
                     field_name: opt.field_name.clone(),
-                    attr_map: opt.attr_map.clone()
+                    attr_map: opt.attr_map.clone(),
                 })
                 .collect(),
-            exclude_selectors: html_loader_options_raw.exclude_selectors
+            exclude_selectors: html_loader_options_raw
+                .exclude_selectors
                 .iter()
                 .map(|selector| Selector::parse(&selector).expect("Invalid exclude selector!"))
                 .collect(),
         });
 
-        Box::new(HtmlLoader {
-            raw_options: html_loader_options_raw,
-            options,
-        })
+        Box::new(HtmlLoader { raw_options: html_loader_options_raw, options })
     }
 }
 
 #[typetag::serde]
 impl Loader for HtmlLoader {
-    fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
+    fn try_index_file<'a>(
+        &'a self,
+        _input_folder_path: &Path,
+        absolute_path: &Path,
+        relative_path: &Path,
+    ) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
             if extension == "html" {
-                return Some(Box::new(
-                    std::iter::once(
-                        Box::new(HtmlLoaderResult {
-                            link: relative_path.to_slash().unwrap(),
-                            text: std::fs::read_to_string(absolute_path).expect("Failed to read file!"),
-                            options: self.options.clone(),
-                        }) as Box<dyn LoaderResult + Send>
-                    )
-                ));
+                return Some(Box::new(std::iter::once(Box::new(HtmlLoaderResult {
+                    link: relative_path.to_slash().unwrap(),
+                    text: std::fs::read_to_string(absolute_path).expect("Failed to read file!"),
+                    options: self.options.clone(),
+                }) as Box<dyn LoaderResult + Send>)));
             }
         }
 
@@ -130,14 +129,19 @@ impl Loader for HtmlLoader {
 }
 
 impl Serialize for HtmlLoader {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         self.raw_options.serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for HtmlLoader {
     fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de> {
+    where
+        D: Deserializer<'de>,
+    {
         panic!("Called deserialize for CsvLoader")
     }
 }

@@ -2,15 +2,14 @@ use std::rc::Rc;
 
 use futures::future::join_all;
 use rustc_hash::FxHashMap;
-use wasm_bindgen::JsValue;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
 
 use crate::dictionary::SearchDictionary;
 use crate::postings_list::PostingsList;
-use crate::searcher::Searcher;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
-
+use crate::searcher::Searcher;
 
 impl Searcher {
     fn expand_term_postings_lists(
@@ -26,7 +25,8 @@ impl Searcher {
         if self.searcher_config.searcher_options.number_of_expanded_terms > 0
             && matches!(last_query_part.part_type, QueryPartType::TERM)
             && last_query_part.should_expand
-            && !last_query_part.is_stop_word_removed {
+            && !last_query_part.is_stop_word_removed
+        {
             if let None = last_query_part.original_terms {
                 last_query_part.original_terms = last_query_part.terms.clone();
             }
@@ -34,13 +34,13 @@ impl Searcher {
             let expanded_terms = if self.tokenizer.use_default_trigram() {
                 self.dictionary.get_expanded_terms(
                     self.searcher_config.searcher_options.number_of_expanded_terms,
-                    last_query_part.original_terms.as_ref().unwrap().get(0).unwrap()
+                    last_query_part.original_terms.as_ref().unwrap().get(0).unwrap(),
                 )
             } else {
                 self.tokenizer.get_expanded_terms(
                     self.searcher_config.searcher_options.number_of_expanded_terms,
                     last_query_part.original_terms.as_ref().unwrap().get(0).unwrap(),
-                    &self.dictionary.term_infos
+                    &self.dictionary.term_infos,
                 )
             };
 
@@ -64,15 +64,18 @@ impl Searcher {
                             children: None,
                         });
 
-                        postings_lists_map.insert(term.clone(), PostingsList {
-                            weight,
-                            include_in_proximity_ranking: false,
-                            term_docs: Vec::new(),
-                            idf: term_info.idf,
-                            term: Some(term),
-                            term_info: Some(Rc::clone(term_info)),
-                            max_term_score: 0.0,
-                        });
+                        postings_lists_map.insert(
+                            term.clone(),
+                            PostingsList {
+                                weight,
+                                include_in_proximity_ranking: false,
+                                term_docs: Vec::new(),
+                                idf: term_info.idf,
+                                term: Some(term),
+                                term_info: Some(Rc::clone(term_info)),
+                                max_term_score: 0.0,
+                            },
+                        );
                     }
                 }
             }
@@ -120,7 +123,7 @@ impl Searcher {
         &self,
         query_parts: &mut Vec<QueryPart>,
     ) -> Result<FxHashMap<String, PostingsList>, JsValue> {
-        let mut postings_lists_map: FxHashMap<String, PostingsList> = FxHashMap::default(); 
+        let mut postings_lists_map: FxHashMap<String, PostingsList> = FxHashMap::default();
         self.populate_term_postings_lists(query_parts, &mut postings_lists_map);
 
         self.expand_term_postings_lists(query_parts, &mut postings_lists_map);
@@ -128,17 +131,18 @@ impl Searcher {
         let postings_lists: Vec<&mut PostingsList> = postings_lists_map.values_mut().collect();
 
         let window: web_sys::Window = js_sys::global().unchecked_into();
-        join_all(
-            postings_lists.into_iter().map(|pl| (*pl).fetch_term(
+        join_all(postings_lists.into_iter().map(|pl| {
+            (*pl).fetch_term(
                 &self.searcher_config.searcher_options.url,
                 &self.pl_file_cache,
                 &self.invalidation_vector,
                 &window,
                 self.searcher_config.num_scored_fields,
                 self.searcher_config.indexing_config.num_pls_per_dir,
-                self.searcher_config.indexing_config.with_positions
-            ))
-        ).await;
+                self.searcher_config.indexing_config.with_positions,
+            )
+        }))
+        .await;
 
         Ok(postings_lists_map)
     }

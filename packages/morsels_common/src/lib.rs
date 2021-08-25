@@ -1,4 +1,4 @@
-use serde::{Serialize,Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub mod bitmap;
 pub mod dictionary;
@@ -17,14 +17,11 @@ pub struct MorselsLanguageConfig {
     #[serde(default = "get_default_language")]
     pub lang: String,
 
-    pub options: Option<serde_json::Value>
+    pub options: Option<serde_json::Value>,
 }
 
 impl Default for MorselsLanguageConfig {
     fn default() -> Self {
-        MorselsLanguageConfig {
-            lang: get_default_language(),
-            options: None,
-        }
+        MorselsLanguageConfig { lang: get_default_language(), options: None }
     }
 }

@@ -1,4 +1,4 @@
-static VALUE_MASK: u32 = 127;       // 0111 1111
+static VALUE_MASK: u32 = 127; // 0111 1111
 static CONTINUATION_MASK: u8 = 128; // 1000 0000
 
 pub fn get_var_int(mut value: u32, output_buf: &mut [u8]) -> &[u8] {

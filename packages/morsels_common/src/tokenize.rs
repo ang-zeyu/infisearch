@@ -1,7 +1,7 @@
-use std::borrow::Cow;
-use std::rc::Rc;
 use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
+use std::borrow::Cow;
+use std::rc::Rc;
 
 pub struct TermInfo {
     pub doc_freq: u32,
@@ -11,7 +11,7 @@ pub struct TermInfo {
 }
 
 pub trait Tokenizer {
-    fn tokenize<'a> (&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>>;
+    fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>>;
 
     fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult;
 
@@ -20,7 +20,11 @@ pub trait Tokenizer {
     // If true, simply return None / An empty hashmap for the below two methods
     fn use_default_trigram(&self) -> bool;
 
-    fn get_best_corrected_term(&self, term: &str, dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>) -> Option<String>;
+    fn get_best_corrected_term(
+        &self,
+        term: &str,
+        dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>,
+    ) -> Option<String>;
 
     fn get_expanded_terms(
         &self,

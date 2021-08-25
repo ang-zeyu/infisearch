@@ -1,6 +1,6 @@
-use std::collections::BinaryHeap;
 use std::cell::RefCell;
 use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 use rustc_hash::FxHashMap;
@@ -8,9 +8,9 @@ use rustc_hash::FxHashMap;
 use morsels_common::bitmap;
 
 use crate::postings_list::DocField;
-use crate::postings_list::TermDoc;
 use crate::postings_list::PlIterator;
 use crate::postings_list::PostingsList;
+use crate::postings_list::TermDoc;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
@@ -19,20 +19,20 @@ impl Searcher {
     fn populate_phrasal_postings_lists(
         &self,
         query_part: &QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
+        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
-        let pl_iterators: Vec<Rc<RefCell<PlIterator>>> = query_part.terms.as_ref().unwrap()
+        let pl_iterators: Vec<Rc<RefCell<PlIterator>>> = query_part
+            .terms
+            .as_ref()
+            .unwrap()
             .iter()
             .enumerate()
-            .map(|(idx, term)| {
-                Rc::new(RefCell::new(term_postings_lists.get(term).unwrap().get_it(idx as u8)))
-            })
+            .map(|(idx, term)| Rc::new(RefCell::new(term_postings_lists.get(term).unwrap().get_it(idx as u8))))
             .collect();
-        let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> = pl_iterators.iter()
-            .map(|pl_it| Reverse(Rc::clone(pl_it)))
-            .collect();
+        let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> =
+            pl_iterators.iter().map(|pl_it| Reverse(Rc::clone(pl_it))).collect();
         let num_pls = iterator_heap.len();
-        
+
         let mut result_pl = PostingsList {
             weight: 1.0,
             include_in_proximity_ranking: true,
@@ -63,21 +63,14 @@ impl Searcher {
                     continue;
                 }
 
-                let mut td = TermDoc {
-                    doc_id: curr_doc_id,
-                    fields: Vec::new(),
-                };
+                let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new() };
                 let mut has_match = false;
 
-                let term_termdocs: Vec<_> = pl_iterators.iter()
-                    .map(|pl_it| pl_it.borrow().peek_prev().unwrap())
-                    .collect();
+                let term_termdocs: Vec<_> =
+                    pl_iterators.iter().map(|pl_it| pl_it.borrow().peek_prev().unwrap()).collect();
 
                 for field_id in 0..self.searcher_config.num_scored_fields as usize {
-                    let mut result_doc_field = DocField {
-                        field_tf: 0.0,
-                        field_positions: Vec::new(),
-                    };
+                    let mut result_doc_field = DocField { field_tf: 0.0, field_positions: Vec::new() };
 
                     let mut term_field_position_idxes = vec![0; num_pls];
                     let mut curr_pos: u32 = 0;
@@ -102,7 +95,7 @@ impl Searcher {
                                     // Complete the match
                                     has_match = true;
                                     result_doc_field.field_positions.push(*pos - (num_pls as u32) + 1);
-                                    
+
                                     // Reset
                                     term_idx = 0;
                                 } else {
@@ -116,7 +109,8 @@ impl Searcher {
                                 // Forward this postings list up to currPos, try again
                                 if *pos < curr_pos {
                                     while term_field_position_idxes[term_idx] < curr_pl_field.field_positions.len()
-                                        && curr_pl_field.field_positions[term_field_position_idxes[term_idx]] < curr_pos {
+                                        && curr_pl_field.field_positions[term_field_position_idxes[term_idx]] < curr_pos
+                                    {
                                         term_field_position_idxes[term_idx] += 1;
                                     }
                                     continue;
@@ -161,13 +155,13 @@ impl Searcher {
     fn populate_and_postings_lists(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
+        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut pl_vecs = self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
         if pl_vecs.len() == 1 {
             return pl_vecs.remove(0);
         }
-        
+
         let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = pl_vecs
             .iter()
             .enumerate()
@@ -199,15 +193,12 @@ impl Searcher {
                 curr_num_docs += 1;
 
                 if curr_num_docs == num_pls {
-                    let mut acc = TermDoc {
-                        doc_id: curr_doc_id,
-                        fields: Vec::new(),
-                    };
+                    let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new() };
                     for td in doc_heap.iter().map(|pl_it| pl_it.0.peek_prev().unwrap()) {
                         acc = PostingsList::merge_term_docs(td, &acc);
                     }
                     result_pl.term_docs.push(acc);
-                    
+
                     curr_doc_id = self.doc_info.doc_length_factors_len + 1;
                     curr_num_docs = 0;
                 }
@@ -229,7 +220,7 @@ impl Searcher {
     fn populate_not_postings_list(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
+        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut result_pl = PostingsList {
             weight: 1.0,
@@ -241,10 +232,8 @@ impl Searcher {
             max_term_score: 0.0,
         };
 
-        let mut not_child_postings_lists = self.populate_postings_lists(
-            query_part.children.as_mut().unwrap(),
-            term_postings_lists,
-        );
+        let mut not_child_postings_lists =
+            self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
 
         let mut prev = 0;
         if !not_child_postings_lists.is_empty() {
@@ -253,10 +242,7 @@ impl Searcher {
             for td in not_child_postings_list.term_docs.iter() {
                 for doc_id in prev..td.doc_id {
                     if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                        result_pl.term_docs.push(TermDoc {
-                            doc_id,
-                            fields: Vec::new(),
-                        });
+                        result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new() });
                     }
                 }
                 prev = td.doc_id + 1;
@@ -265,10 +251,7 @@ impl Searcher {
 
         for doc_id in prev..self.doc_info.doc_length_factors_len {
             if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                result_pl.term_docs.push(TermDoc {
-                    doc_id,
-                    fields: Vec::new(),
-                });
+                result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new() });
             }
         }
 
@@ -280,19 +263,17 @@ impl Searcher {
     fn populate_bracket_postings_list(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
+        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Option<Rc<PostingsList>> {
-        let mut child_postings_lists = self.populate_postings_lists(
-            query_part.children.as_mut().unwrap(),
-            term_postings_lists,
-        );
+        let mut child_postings_lists =
+            self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
 
         if child_postings_lists.len() == 0 {
             return None;
         } else if child_postings_lists.len() == 1 {
             return Some(child_postings_lists.pop().unwrap());
         }
-        
+
         let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = child_postings_lists
             .iter()
             .enumerate()
@@ -316,11 +297,9 @@ impl Searcher {
 
         let mut merge_curr_termdocs = |curr_pl_iterators: &Vec<Reverse<PlIterator>>| {
             let initial_td = curr_pl_iterators[curr_pl_iterators.len() - 1].0.td.unwrap().clone();
-            let merged_term_docs = curr_pl_iterators.iter()
-                .fold(
-                    initial_td,
-                    |acc, next| PostingsList::merge_term_docs(&acc, next.0.td.unwrap())
-                );
+            let merged_term_docs = curr_pl_iterators
+                .iter()
+                .fold(initial_td, |acc, next| PostingsList::merge_term_docs(&acc, next.0.td.unwrap()));
             new_pl.term_docs.push(merged_term_docs);
         };
 
@@ -331,7 +310,7 @@ impl Searcher {
             if min_pl_iterator_doc_id != curr_doc_id {
                 if curr_pl_iterators.len() > 0 {
                     merge_curr_termdocs(&curr_pl_iterators);
-    
+
                     for mut curr_pl_it in curr_pl_iterators.drain(..) {
                         if curr_pl_it.0.next().is_some() {
                             doc_heap.push(curr_pl_it);
@@ -344,7 +323,7 @@ impl Searcher {
 
             curr_pl_iterators.push(min_pl_iterator);
         }
-        
+
         if curr_pl_iterators.len() > 0 {
             merge_curr_termdocs(&curr_pl_iterators);
         }
@@ -355,7 +334,9 @@ impl Searcher {
     }
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
-        if let Some(tup) = self.searcher_config.field_infos.iter().enumerate().find(|(_id, field_info)| &field_info.name == field_name) {
+        if let Some(tup) =
+            self.searcher_config.field_infos.iter().enumerate().find(|(_id, field_info)| &field_info.name == field_name)
+        {
             let mut new_pl = PostingsList {
                 weight: pl.weight,
                 include_in_proximity_ranking: pl.include_in_proximity_ranking,
@@ -377,10 +358,7 @@ impl Searcher {
                     let mut fields: Vec<DocField> = fields_before.clone();
                     fields.push(doc_field.clone()); // TODO reduce potential allocations?
 
-                    new_pl.term_docs.push(TermDoc {
-                        doc_id: term_doc.doc_id,
-                        fields,
-                    })
+                    new_pl.term_docs.push(TermDoc { doc_id: term_doc.doc_id, fields })
                 }
             }
 
@@ -391,7 +369,7 @@ impl Searcher {
     fn populate_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>
+        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Vec<Rc<PostingsList>> {
         let mut result: Vec<Rc<PostingsList>> = Vec::new();
 
@@ -404,24 +382,28 @@ impl Searcher {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     }
-                },
+                }
                 QueryPartType::PHRASE => {
                     if query_part.terms.as_ref().unwrap().len() == 1 {
-                        if let Some(term_pl) = term_postings_lists.get(query_part.terms.as_ref().unwrap().get(0).unwrap()) {
+                        if let Some(term_pl) =
+                            term_postings_lists.get(query_part.terms.as_ref().unwrap().get(0).unwrap())
+                        {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     } else {
                         pl_opt = Some(self.populate_phrasal_postings_lists(query_part, term_postings_lists));
                     }
-                },
+                }
                 QueryPartType::AND => {
                     pl_opt = Some(self.populate_and_postings_lists(query_part, term_postings_lists));
-                },
+                }
                 QueryPartType::NOT => {
                     pl_opt = Some(self.populate_not_postings_list(query_part, term_postings_lists));
-                },
+                }
                 QueryPartType::BRACKET => {
-                    if let Some(bracket_postings_list) = self.populate_bracket_postings_list(query_part, term_postings_lists) {
+                    if let Some(bracket_postings_list) =
+                        self.populate_bracket_postings_list(query_part, term_postings_lists)
+                    {
                         pl_opt = Some(bracket_postings_list);
                     }
                 }
@@ -443,13 +425,11 @@ impl Searcher {
     pub fn process(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: FxHashMap<String, PostingsList>
+        term_postings_lists: FxHashMap<String, PostingsList>,
     ) -> Vec<Rc<PostingsList>> {
-        let term_rc_postings_lists: FxHashMap<String, Rc<PostingsList>> = term_postings_lists
-            .into_iter()
-            .map(|(term, pl)| (term, Rc::new(pl)))
-            .collect();
-        
+        let term_rc_postings_lists: FxHashMap<String, Rc<PostingsList>> =
+            term_postings_lists.into_iter().map(|(term, pl)| (term, Rc::new(pl))).collect();
+
         self.populate_postings_lists(query_parts, &term_rc_postings_lists)
     }
 }

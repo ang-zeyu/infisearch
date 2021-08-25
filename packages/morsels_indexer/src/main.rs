@@ -1,7 +1,7 @@
 use std::env;
-use std::time::Instant;
 use std::path::Path;
 use std::path::PathBuf;
+use std::time::Instant;
 
 use morsels_indexer::MorselsConfig;
 
@@ -31,13 +31,17 @@ fn get_relative_or_absolute_path(from_path: &Path, path: &Path) -> PathBuf {
     }
 }
 
-fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path, config_file_path: Option<&PathBuf>) -> (PathBuf, PathBuf, PathBuf) {
+fn resolve_folder_paths(
+    source_folder_path: &Path,
+    output_folder_path: &Path,
+    config_file_path: Option<&PathBuf>,
+) -> (PathBuf, PathBuf, PathBuf) {
     let cwd_result = env::current_dir();
 
     match cwd_result {
         Ok(cwd) => {
             let source_return = get_relative_or_absolute_path(&cwd, &source_folder_path);
-        
+
             let output_return = get_relative_or_absolute_path(&cwd, &output_folder_path);
             std::fs::create_dir_all(&output_return).expect("Failed to create output directory!");
 
@@ -48,7 +52,7 @@ fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path, co
             };
 
             (source_return, output_return, config_return)
-        },
+        }
         Err(e) => {
             panic!("Could not access current directory! {}", e);
         }
@@ -58,13 +62,11 @@ fn resolve_folder_paths(source_folder_path: &Path, output_folder_path: &Path, co
 fn main() {
     let args: CliArgs = CliArgs::from_args();
 
-    let (input_folder_path, output_folder_path, config_file_path) = resolve_folder_paths(
-        &args.source_folder_path,
-        &args.output_folder_path,
-        args.config_file_path.as_ref(),
-    );
+    let (input_folder_path, output_folder_path, config_file_path) =
+        resolve_folder_paths(&args.source_folder_path, &args.output_folder_path, args.config_file_path.as_ref());
 
-    println!("Resolved Paths:\n{}\n{}\n{}",
+    println!(
+        "Resolved Paths:\n{}\n{}\n{}",
         input_folder_path.to_str().unwrap(),
         output_folder_path.to_str().unwrap(),
         config_file_path.to_str().unwrap(),
@@ -81,14 +83,10 @@ fn main() {
         morsels_indexer::Indexer::write_morsels_source_config(config, &config_file_path);
         return;
     }
-    
+
     let exclude_patterns = config.indexing_config.get_excludes_from_config();
 
-    let mut indexer = morsels_indexer::Indexer::new(
-        &output_folder_path,
-        config,
-        args.dynamic,
-    );
+    let mut indexer = morsels_indexer::Indexer::new(&output_folder_path, config, args.dynamic);
 
     let now = Instant::now();
 
@@ -108,12 +106,12 @@ fn main() {
                 }
 
                 indexer.index_file(&input_folder_path_clone, &path, &relative_path);
-            },
+            }
             Err(e) => {
                 eprintln!("Error processing entry. {}", e)
             }
         }
     }
-    
+
     indexer.finish_writing_docs(Some(now));
 }

@@ -1,26 +1,25 @@
-use std::sync::Barrier;
-use std::sync::Arc;
-use std::sync::Mutex;
 use std::collections::BinaryHeap;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Seek, SeekFrom, Write};
 use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::Barrier;
+use std::sync::Mutex;
 
 use rustc_hash::FxHashMap;
 
 use crate::docinfo::BlockDocLengths;
+use crate::worker::miner::DocIdAndFieldLengthsComparator;
+use crate::worker::miner::TermDoc;
+use crate::worker::miner::TermDocComparator;
+use crate::worker::miner::WorkerMinerDocInfo;
+use crate::worker::WorkerBlockIndexResults;
 use crate::DocInfos;
 use crate::FieldInfos;
 use crate::Indexer;
 use crate::MainToWorkerMessage;
 use crate::WorkerToMainMessage;
-use crate::worker::miner::DocIdAndFieldLengthsComparator;
-use crate::worker::miner::TermDoc;
-use crate::worker::miner::TermDocComparator;
-use crate::worker::WorkerBlockIndexResults;
-use crate::worker::miner::WorkerMinerDocInfo;
-
 
 impl Indexer {
     #[allow(clippy::too_many_arguments)]
@@ -41,34 +40,38 @@ impl Indexer {
         let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect);
 
         let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_workers_to_collect));
-        
+
         // Request all workers for doc miners
         for _i in 0..num_workers_to_collect {
-            tx_main.send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier)))
+            tx_main
+                .send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier)))
                 .expect("Failed to send reset message!");
         }
-        
+
         // Receive doc miners
         for _i in 0..num_workers_to_collect {
             let worker_msg = rx_main.recv();
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
                     println!("Worker {} data received!", worker_msg_unwrapped.id);
-                    worker_index_results.push(worker_msg_unwrapped.block_index_results.expect("Received non doc miner message!"));
-                },
-                Err(e) => panic!("Failed to receive idle message from worker! {}", e)
+                    worker_index_results
+                        .push(worker_msg_unwrapped.block_index_results.expect("Received non doc miner message!"));
+                }
+                Err(e) => panic!("Failed to receive idle message from worker! {}", e),
             }
         }
 
         *num_workers_writing_blocks += 1;
-        tx_main.send(MainToWorkerMessage::Combine {
-            worker_index_results,
-            output_folder_path,
-            block_number,
-            num_docs: spimi_counter,
-            total_num_docs,
-            doc_infos: Arc::clone(doc_infos),
-        }).expect("Failed to send work message to worker!");
+        tx_main
+            .send(MainToWorkerMessage::Combine {
+                worker_index_results,
+                output_folder_path,
+                block_number,
+                num_docs: spimi_counter,
+                total_num_docs,
+                doc_infos: Arc::clone(doc_infos),
+            })
+            .expect("Failed to send work message to worker!");
     }
 }
 
@@ -91,10 +94,7 @@ pub fn combine_worker_results_and_write_block(
     // Combine
     for worker_result in worker_index_results {
         for (worker_term, worker_term_docs) in worker_result.terms {
-            combined_terms
-                .entry(worker_term)
-                .or_insert_with(Vec::new)
-                .push(worker_term_docs);
+            combined_terms.entry(worker_term).or_insert_with(Vec::new).push(worker_term_docs);
         }
 
         let mut doc_infos_iter = worker_result.doc_infos.into_iter();
@@ -102,7 +102,7 @@ pub fn combine_worker_results_and_write_block(
             heap.push(DocIdAndFieldLengthsComparator(worker_document_length, doc_infos_iter));
         }
     }
-    
+
     {
         let mut sorted_doc_infos: Vec<WorkerMinerDocInfo> = Vec::with_capacity(num_docs as usize);
 
@@ -126,8 +126,11 @@ pub fn combine_worker_results_and_write_block(
 
             if block_count == 1 {
                 let store_num = count / field_infos.field_store_block_size;
-                let dir_output_folder_path = field_infos.field_output_folder_path.join((store_num / num_stores_per_dir).to_string());
-                if (store_num % num_stores_per_dir == 0) && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir()) {
+                let dir_output_folder_path =
+                    field_infos.field_output_folder_path.join((store_num / num_stores_per_dir).to_string());
+                if (store_num % num_stores_per_dir == 0)
+                    && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
+                {
                     std::fs::create_dir(&dir_output_folder_path).expect("Failed to create field store output dir!");
                 }
 
@@ -143,11 +146,11 @@ pub fn combine_worker_results_and_write_block(
 
                     // Override ']' with ','
                     field_store_file.write_all(b",").expect("Failed to override existing field store ] with ,");
-                    
+
                     writer = BufWriter::new(field_store_file);
                 } else {
                     writer = BufWriter::new(
-                        File::create(output_file_path).expect("Failed to open field store for writing.")
+                        File::create(output_file_path).expect("Failed to open field store for writing."),
                     );
                     writer.write_all(b"[").unwrap();
                 }
@@ -180,18 +183,23 @@ pub fn combine_worker_results_and_write_block(
         let mut combined_terms_vec: Vec<_> = combined_terms.into_iter().collect();
         // Sort by lexicographical order
         combined_terms_vec.sort_by(|a, b| a.0.cmp(&b.0));
-        
+
         let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
         let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
 
-        println!("Writing bsbi block {} to {}, num terms {}", block_number, output_file_path.to_str().unwrap(), combined_terms_vec.len());
+        println!(
+            "Writing bsbi block {} to {}, num terms {}",
+            block_number,
+            output_file_path.to_str().unwrap(),
+            combined_terms_vec.len()
+        );
 
         let df = File::create(dict_output_file_path).expect("Failed to open temporary dictionary table for writing.");
         let mut buffered_writer_dict = BufWriter::new(df);
 
         let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");
         let mut buffered_writer = BufWriter::with_capacity(819200, f);
-    
+
         // Sort and aggregate worker docIds of each term into one vector
         for (term, workers_term_docs) in combined_terms_vec {
             buffered_writer_dict.write_all(&(term.len() as u8).to_le_bytes()).unwrap();
@@ -207,7 +215,7 @@ pub fn combine_worker_results_and_write_block(
                     heap.push(TermDocComparator(term_doc, iter));
                 }
             }
-            
+
             buffered_writer_dict.write_all(&doc_freq.to_le_bytes()).unwrap();
 
             while !heap.is_empty() {
@@ -215,10 +223,8 @@ pub fn combine_worker_results_and_write_block(
 
                 buffered_writer.write_all(&term_doc_and_iter.0.doc_id.to_le_bytes()).unwrap();
 
-                let num_fields = term_doc_and_iter.0.doc_fields
-                    .iter()
-                    .filter(|doc_field| doc_field.field_tf > 0)
-                    .count() as u8;
+                let num_fields =
+                    term_doc_and_iter.0.doc_fields.iter().filter(|doc_field| doc_field.field_tf > 0).count() as u8;
                 buffered_writer.write_all(&[num_fields]).unwrap();
 
                 for (field_id, doc_field) in term_doc_and_iter.0.doc_fields.into_iter().enumerate() {

@@ -1,14 +1,9 @@
 use crate::dictionary::SearchDictionary;
-use crate::searcher::Searcher;
 use crate::searcher::query_parser::QueryPart;
-
+use crate::searcher::Searcher;
 
 impl Searcher {
-    pub fn preprocess(
-        &self,
-        query_parts: &mut Vec<QueryPart>,
-        is_free_text_query: bool
-    ) {
+    pub fn preprocess(&self, query_parts: &mut Vec<QueryPart>, is_free_text_query: bool) {
         let allow_stop_word_removal = is_free_text_query && query_parts.len() > 2;
         for query_part in query_parts {
             if let Some(terms) = &mut query_part.terms {
@@ -35,7 +30,7 @@ impl Searcher {
                         } else {
                             self.tokenizer.get_best_corrected_term(term, &self.dictionary.term_infos)
                         };
-                        
+
                         if let Some(corrected_term) = best_corrected_term {
                             terms[term_idx] = corrected_term;
                         } else {
@@ -43,7 +38,7 @@ impl Searcher {
                             continue;
                         }
                     }
-                    
+
                     term_idx += 1;
                 }
             } else if let Some(children) = &mut query_part.children {

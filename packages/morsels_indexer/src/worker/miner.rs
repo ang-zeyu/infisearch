@@ -1,6 +1,6 @@
 use morsels_common::tokenize::Tokenizer;
-use std::borrow::Cow;
 use regex::Regex;
+use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::io::Write;
 use std::str;
@@ -18,25 +18,19 @@ pub struct DocField {
 
 impl Clone for DocField {
     fn clone(&self) -> Self {
-        DocField {
-            field_tf: self.field_tf,
-            positions: self.positions.clone(),
-        }
+        DocField { field_tf: self.field_tf, positions: self.positions.clone() }
     }
 }
 
 impl Default for DocField {
     fn default() -> Self {
-        DocField {
-            field_tf: 0,
-            positions: Vec::new(),
-        }
+        DocField { field_tf: 0, positions: Vec::new() }
     }
 }
 
 pub struct TermDoc {
     pub doc_id: u32,
-    pub doc_fields: Vec<DocField>
+    pub doc_fields: Vec<DocField>,
 }
 
 #[derive(Debug)]
@@ -110,7 +104,7 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
     if let Some(first) = first {
         let start = first.start();
         let len = input.len();
-        let mut output:Vec<u8> = Vec::with_capacity(len + len/2);
+        let mut output: Vec<u8> = Vec::with_capacity(len + len / 2);
         output.extend_from_slice(input[0..start].as_bytes());
         let rest = input[start..].bytes();
         for c in rest {
@@ -129,25 +123,18 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
     }
 }
 
-static NULL_FIELD: FieldInfo = FieldInfo {
-    id: 0,
-    do_store: false,
-    weight: 0.0,
-    k: 0.0,
-    b: 0.0,
-};
+static NULL_FIELD: FieldInfo = FieldInfo { id: 0, do_store: false, weight: 0.0, k: 0.0, b: 0.0 };
 
 impl WorkerMiner {
     pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>) {
         let mut is_first_stored_field = true;
-        
+
         let mut pos = 0;
 
         let num_scored_fields = self.field_infos.num_scored_fields;
         let mut field_lengths = vec![0; num_scored_fields];
-        let mut field_store_buffered_writer = Vec::with_capacity(
-            ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize
-        );
+        let mut field_store_buffered_writer =
+            Vec::with_capacity(((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize);
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
         for (field_name, mut field_text) in field_texts {
@@ -177,27 +164,23 @@ impl WorkerMiner {
 
             for sent_terms in sentences {
                 *field_lengths += sent_terms.len() as u32;
-    
+
                 for field_term in sent_terms {
                     let term_docs = if let Some(existing) = self.terms.get_mut(&field_term[..]) {
                         existing
                     } else {
-                        self.terms.entry(field_term.into_owned())
-                            .or_insert(vec![TermDoc {
-                                doc_id,
-                                doc_fields: vec![DocField::default(); num_scored_fields]
-                            }])
+                        self.terms.entry(field_term.into_owned()).or_insert(vec![TermDoc {
+                            doc_id,
+                            doc_fields: vec![DocField::default(); num_scored_fields],
+                        }])
                     };
 
                     let mut term_doc = term_docs.last_mut().unwrap();
                     if term_doc.doc_id != doc_id {
-                        term_docs.push(TermDoc {
-                            doc_id,
-                            doc_fields: vec![DocField::default(); num_scored_fields]
-                        });
+                        term_docs.push(TermDoc { doc_id, doc_fields: vec![DocField::default(); num_scored_fields] });
                         term_doc = term_docs.last_mut().unwrap();
                     }
-    
+
                     let doc_field = term_doc.doc_fields.get_mut(field_id as usize).unwrap();
                     doc_field.field_tf += 1;
                     if self.with_positions {
@@ -215,10 +198,6 @@ impl WorkerMiner {
 
         field_store_buffered_writer.write_all(b"]").unwrap();
         field_store_buffered_writer.flush().unwrap();
-        self.doc_infos.push(WorkerMinerDocInfo {
-            doc_id,
-            field_lengths,
-            field_texts: field_store_buffered_writer,
-        });
+        self.doc_infos.push(WorkerMinerDocInfo { doc_id, field_lengths, field_texts: field_store_buffered_writer });
     }
 }

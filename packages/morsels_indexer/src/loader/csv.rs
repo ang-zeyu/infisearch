@@ -1,19 +1,25 @@
 use std::path::Path;
 
-use csv::{ReaderBuilder};
+use csv::ReaderBuilder;
 use rustc_hash::FxHashMap;
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
 
-fn get_default_delimiter() -> u8 { b","[0] }
+fn get_default_delimiter() -> u8 {
+    b","[0]
+}
 
-fn get_default_quote() -> u8 { b"\""[0] }
+fn get_default_quote() -> u8 {
+    b"\""[0]
+}
 
-fn get_true() -> bool { true }
+fn get_true() -> bool {
+    true
+}
 
 #[derive(Serialize, Deserialize)]
 struct CsvLoaderParseOptions {
@@ -39,7 +45,7 @@ impl Default for CsvLoaderParseOptions {
             quote: get_default_quote(),
             double_quote: get_true(),
             escape: None,
-            comment: None
+            comment: None,
         }
     }
 }
@@ -68,24 +74,23 @@ pub struct CsvLoader {
 
 impl CsvLoader {
     pub fn get_new_csv_loader(config: serde_json::Value) -> Box<Self> {
-        let csv_loader_options: CsvLoaderOptions = serde_json::from_value(config).expect("CsvLoader options did not match schema!");
+        let csv_loader_options: CsvLoaderOptions =
+            serde_json::from_value(config).expect("CsvLoader options did not match schema!");
 
         let csv_loader_parse_opts = &csv_loader_options.parse_options;
         let mut reader_builder = ReaderBuilder::new();
-        reader_builder.has_headers(csv_loader_parse_opts.has_headers)
+        reader_builder
+            .has_headers(csv_loader_parse_opts.has_headers)
             .delimiter(csv_loader_parse_opts.delimiter)
             .quote(csv_loader_parse_opts.quote)
             .double_quote(csv_loader_parse_opts.double_quote)
             .escape(csv_loader_parse_opts.escape)
             .comment(csv_loader_parse_opts.comment);
 
-        Box::new(CsvLoader {
-            options: csv_loader_options,
-            reader_builder,
-        })
+        Box::new(CsvLoader { options: csv_loader_options, reader_builder })
     }
 
-    fn unwrap_csv_read_result (
+    fn unwrap_csv_read_result(
         &self,
         read_result: Result<csv::StringRecord, csv::Error>,
         num_fields: usize,
@@ -95,19 +100,14 @@ impl CsvLoader {
         let record = read_result.expect("Failed to unwrap csv record result!");
         for idx in self.options.index_field_order.iter() {
             if let Some(text) = record.get(*idx) {
-                field_texts.push((
-                    self.options.index_field_map.get(idx).unwrap().to_owned(),
-                    text.to_owned(),
-                ));
+                field_texts.push((self.options.index_field_map.get(idx).unwrap().to_owned(), text.to_owned()));
             }
         }
 
-        Box::new(BasicLoaderResult {
-            field_texts,
-        }) as Box<dyn LoaderResult + Send>
+        Box::new(BasicLoaderResult { field_texts }) as Box<dyn LoaderResult + Send>
     }
 
-    fn unwrap_csv_deserialize_result (
+    fn unwrap_csv_deserialize_result(
         &self,
         read_result: FxHashMap<String, String>,
         num_fields: usize,
@@ -116,22 +116,22 @@ impl CsvLoader {
 
         for header_name in self.options.header_field_order.iter() {
             if let Some(text) = read_result.get(header_name) {
-                field_texts.push((
-                    self.options.header_field_map.get(header_name).unwrap().to_owned(),
-                    text.to_owned(),
-                ));
+                field_texts.push((self.options.header_field_map.get(header_name).unwrap().to_owned(), text.to_owned()));
             }
         }
 
-        Box::new(BasicLoaderResult {
-            field_texts,
-        }) as Box<dyn LoaderResult + Send>
+        Box::new(BasicLoaderResult { field_texts }) as Box<dyn LoaderResult + Send>
     }
 }
 
 #[typetag::serde]
 impl Loader for CsvLoader {
-    fn try_index_file<'a> (&'a self, _input_folder_path: &Path, absolute_path: &Path, relative_path: &Path) -> Option<LoaderResultIterator<'a>> {
+    fn try_index_file<'a>(
+        &'a self,
+        _input_folder_path: &Path,
+        absolute_path: &Path,
+        relative_path: &Path,
+    ) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
             if extension == "csv" {
                 let num_fields = if self.options.use_headers {
@@ -140,17 +140,23 @@ impl Loader for CsvLoader {
                     self.options.index_field_map.len()
                 };
 
-                return Some(
-                    if self.options.use_headers {
-                        Box::new(self.reader_builder.from_path(absolute_path).unwrap().into_deserialize().map(move |result| {
-                            self.unwrap_csv_deserialize_result(result.unwrap(), num_fields)
-                        }))
-                    } else {
-                        Box::new(self.reader_builder.from_path(absolute_path).unwrap().into_records().map(move |result| {
-                            self.unwrap_csv_read_result(result, num_fields)
-                        }))
-                    }
-                );
+                return Some(if self.options.use_headers {
+                    Box::new(
+                        self.reader_builder
+                            .from_path(absolute_path)
+                            .unwrap()
+                            .into_deserialize()
+                            .map(move |result| self.unwrap_csv_deserialize_result(result.unwrap(), num_fields)),
+                    )
+                } else {
+                    Box::new(
+                        self.reader_builder
+                            .from_path(absolute_path)
+                            .unwrap()
+                            .into_records()
+                            .map(move |result| self.unwrap_csv_read_result(result, num_fields)),
+                    )
+                });
             }
         }
 
@@ -163,14 +169,19 @@ impl Loader for CsvLoader {
 }
 
 impl Serialize for CsvLoader {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         self.options.serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for CsvLoader {
     fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de> {
+    where
+        D: Deserializer<'de>,
+    {
         panic!("Called deserialize for CsvLoader")
     }
 }

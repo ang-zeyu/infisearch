@@ -1,18 +1,18 @@
 extern crate mdbook;
 
 use std::fs::File;
-use std::io::{self, Read};
 use std::io::Write;
+use std::io::{self, Read};
 use std::process::Command;
 
 use anyhow::Error;
+use clap::App;
 use clap::Arg;
 use clap::SubCommand;
-use clap::App;
 use include_dir::{include_dir, Dir};
-use mdbook::preprocess::CmdPreprocessor;
 use mdbook::book::Book;
 use mdbook::book::BookItem;
+use mdbook::preprocess::CmdPreprocessor;
 use mdbook::preprocess::Preprocessor;
 use mdbook::preprocess::PreprocessorContext;
 use mdbook::renderer::RenderContext;
@@ -21,13 +21,11 @@ use toml::value::Value::{self, Boolean as TomlBoolean, String as TomlString};
 const SEARCH_UI_DIST: Dir = include_dir!("../search-ui/dist");
 
 pub fn make_app() -> App<'static, 'static> {
-    App::new("morsels")
-        .about("Morsels preprocessor + renderer for mdbook")
-        .subcommand(
-            SubCommand::with_name("supports")
-                .arg(Arg::with_name("renderer").required(true))
-                .about("Check whether a renderer is supported by this preprocessor"),
-        )
+    App::new("morsels").about("Morsels preprocessor + renderer for mdbook").subcommand(
+        SubCommand::with_name("supports")
+            .arg(Arg::with_name("renderer").required(true))
+            .about("Check whether a renderer is supported by this preprocessor"),
+    )
 }
 
 fn main() {
@@ -44,8 +42,7 @@ fn main() {
         }
 
         let mut command = Command::new("morsels");
-        command.current_dir(html_renderer_path)
-            .args(&["./", "./morsels_output", "--dynamic"]);
+        command.current_dir(html_renderer_path).args(&["./", "./morsels_output", "--dynamic"]);
 
         if let Some(morsels_config_file_path_toml) = ctx.config.get("output.morsels.config") {
             if let TomlString(morsels_config_file_path) = morsels_config_file_path_toml {
@@ -131,7 +128,11 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
         if let TomlString(_str) = enable_portal {
             "'auto'"
         } else if let TomlBoolean(do_enable) = enable_portal {
-            if *do_enable { "true" } else { " false " }
+            if *do_enable {
+                "true"
+            } else {
+                " false "
+            }
         } else {
             "'auto'"
         }
@@ -139,7 +140,8 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
         "'auto'"
     };
 
-    format!("\n\n<script>
+    format!(
+        "\n\n<script>
     initMorsels({{
         searcherOptions: {{
           url: '{}morsels_output',
@@ -149,7 +151,9 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
             enablePortal: {}
         }}
     }});
-</script>", base_url, enable_portal)
+</script>",
+        base_url, enable_portal
+    )
 }
 
 impl Preprocessor for Morsels {
@@ -192,9 +196,7 @@ impl Preprocessor for Morsels {
 
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
-                ch.content = SCRIPT_EL.to_owned()
-                    + css_el
-                    + INPUT_EL + &ch.content + &init_morsels_el;
+                ch.content = SCRIPT_EL.to_owned() + css_el + INPUT_EL + &ch.content + &init_morsels_el;
             }
         });
 

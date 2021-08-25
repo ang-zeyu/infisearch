@@ -4,8 +4,8 @@ use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 use serde::Serialize;
+use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
-use wasm_bindgen::prelude::{wasm_bindgen};
 
 use crate::postings_list::PlIterator;
 use crate::postings_list::PostingsList;
@@ -146,10 +146,8 @@ impl Searcher {
             .collect();
         pl_its.sort();
 
-        let total_proximity_ranking_terms = postings_lists
-            .iter()
-            .filter(|pl| pl.include_in_proximity_ranking)
-            .count() as f32;
+        let total_proximity_ranking_terms =
+            postings_lists.iter().filter(|pl| pl.include_in_proximity_ranking).count() as f32;
         let proximity_ranking_max_scale = total_proximity_ranking_terms * 1.8;
 
         while pl_its.len() > 0 {
@@ -158,7 +156,7 @@ impl Searcher {
             // ------------------------------------------
             // WAND
             if is_free_text_query && top_n_min_heap.len() >= n {
-                let nth_highest_score = top_n_min_heap.peek().unwrap().0.1;
+                let nth_highest_score = top_n_min_heap.peek().unwrap().0 .1;
                 let mut wand_acc = 0.0;
                 let mut pivot_list_idx = 0;
 
@@ -234,9 +232,8 @@ impl Searcher {
                     while !position_heap.is_empty() {
                         let top = position_heap.pop().unwrap();
 
-                        let doc_field = &pl_its_for_proximity_ranking[top.pl_it_idx]
-                            .td.as_ref().unwrap()
-                            .fields[top.pl_it_field_idx];
+                        let doc_field = &pl_its_for_proximity_ranking[top.pl_it_idx].td.as_ref().unwrap().fields
+                            [top.pl_it_field_idx];
                         if top.pl_it_field_fieldposition_next_idx < doc_field.field_positions.len() {
                             position_heap.push(Position {
                                 pos: doc_field.field_positions[top.pl_it_field_fieldposition_next_idx],
@@ -277,8 +274,9 @@ impl Searcher {
 
                     if min_window_len < 300 {
                         min_window_len += 1;
-                        scaling_factor = 1.0 + (proximity_ranking_max_scale / (total_proximity_ranking_terms + min_window_len as f32))
-                            * (num_pl_its_float / total_proximity_ranking_terms);
+                        scaling_factor = 1.0
+                            + (proximity_ranking_max_scale / (total_proximity_ranking_terms + min_window_len as f32))
+                                * (num_pl_its_float / total_proximity_ranking_terms);
                     }
                 }
             }
@@ -295,12 +293,12 @@ impl Searcher {
                     for (field_id, field) in td.fields.iter().enumerate() {
                         if field.field_tf > 0.0 {
                             let field_info = self.searcher_config.field_infos.get(field_id).unwrap();
-                            let field_len_factor = self.doc_info.doc_length_factors
-                                [pivot_doc_id as usize]
-                                [field_id as usize] as f32;
-                            
+                            let field_len_factor =
+                                self.doc_info.doc_length_factors[pivot_doc_id as usize][field_id as usize] as f32;
+
                             doc_term_score += ((field.field_tf * (field_info.k + 1.0))
-                                / (field.field_tf + field_info.k * (1.0 - field_info.b + field_info.b * field_len_factor)))
+                                / (field.field_tf
+                                    + field_info.k * (1.0 - field_info.b + field_info.b * field_len_factor)))
                                 * field_info.weight;
                         }
                     }
@@ -314,7 +312,7 @@ impl Searcher {
 
             if top_n_min_heap.len() < n {
                 top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
-            } else if result.1 > top_n_min_heap.peek().unwrap().0.1 {
+            } else if result.1 > top_n_min_heap.peek().unwrap().0 .1 {
                 top_n_min_heap.pop();
                 top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
             }
@@ -322,21 +320,12 @@ impl Searcher {
             result.1 *= scaling_factor;
             result_heap.push(result);
 
-            pl_its = pl_its.into_iter()
-                .filter(|pl_it| pl_it.td.is_some())
-                .collect();
+            pl_its = pl_its.into_iter().filter(|pl_it| pl_it.td.is_some()).collect();
             pl_its.sort();
 
             // ------------------------------------------
         }
 
-        Query {
-            searched_terms,
-            query_parts,
-            is_free_text_query,
-            result_heap,
-            wand_leftovers,
-            did_dedup_wand: false,
-        }
+        Query { searched_terms, query_parts, is_free_text_query, result_heap, wand_leftovers, did_dedup_wand: false }
     }
 }
