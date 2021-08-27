@@ -11,9 +11,21 @@ use crate::postings_list_file_cache::PostingsListFileCache;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::varint::decode_var_int;
 
+#[cfg_attr(test, derive(Debug))]
 pub struct DocField {
     pub field_tf: f32,
     pub field_positions: Vec<u32>,
+}
+
+#[cfg(test)]
+impl Eq for DocField {}
+
+#[cfg(test)]
+impl PartialEq for DocField {
+    fn eq(&self, other: &Self) -> bool {
+        self.field_tf as u32 == other.field_tf as u32
+            && self.field_positions == other.field_positions
+    }
 }
 
 impl Clone for DocField {
@@ -28,13 +40,14 @@ impl Default for DocField {
     }
 }
 
+#[cfg_attr(test, derive(Eq, PartialEq, Debug))]
 pub struct TermDoc {
     pub doc_id: u32,
     pub fields: Vec<DocField>,
 }
 
-impl Clone for TermDoc {
-    fn clone(&self) -> Self {
+impl TermDoc {
+    pub fn to_owned(&self) -> Self {
         TermDoc { doc_id: self.doc_id, fields: self.fields.clone() }
     }
 }
@@ -88,6 +101,25 @@ pub struct PostingsList {
     pub term: Option<String>,
     pub term_info: Option<Rc<TermInfo>>,
     pub max_term_score: f32,
+}
+
+#[cfg(test)]
+impl Eq for PostingsList {}
+
+#[cfg(test)]
+impl PartialEq for PostingsList {
+    fn eq(&self, other: &Self) -> bool {
+        self.term_docs == other.term_docs
+    }
+}
+
+#[cfg(test)]
+impl std::fmt::Debug for PostingsList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PostingsList")
+         .field("term_docs", &self.term_docs)
+         .finish()
+    }
 }
 
 impl PostingsList {

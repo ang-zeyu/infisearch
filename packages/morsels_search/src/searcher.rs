@@ -187,3 +187,61 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
 
     Ok(query)
 }
+
+#[cfg(test)]
+pub mod test {
+    use rustc_hash::FxHashMap;
+
+    use morsels_common::MorselsLanguageConfig;
+    use morsels_lang_latin::english;
+
+    use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
+    use crate::dictionary::Dictionary;
+    use crate::docinfo::DocInfo;
+    use crate::postings_list_file_cache;
+
+    pub fn create_searcher(num_docs: usize, num_fields: usize) -> Searcher {
+        let mut field_infos = Vec::new();
+        for i in 0..num_fields {
+            field_infos.push(FieldInfo {
+                name: format!("field{}", i).to_owned(),
+                weight: 0.3,
+                k: 1.2,
+                b: 0.75,
+            });
+        }
+
+        Searcher {
+            dictionary: Dictionary {
+                term_infos: FxHashMap::default(),
+                trigrams: FxHashMap::default(),
+            },
+            tokenizer: Box::new(english::EnglishTokenizer::default()),
+            doc_info: DocInfo {
+                doc_length_factors: vec![vec![1.0; num_fields]; num_docs],
+                doc_length_factors_len: num_docs as u32,
+                num_docs: num_docs as u32,
+            },
+            pl_file_cache: postings_list_file_cache::test::get_empty(),
+            searcher_config: SearcherConfig {
+                indexing_config: IndexingConfig {
+                    pl_names_to_cache: Vec::new(),
+                    num_pls_per_dir: 0,
+                    with_positions: true,
+                },
+                language: MorselsLanguageConfig {
+                    lang: "latin".to_owned(),
+                    options: serde_json::from_str("{}").unwrap(),
+                },
+                field_infos,
+                num_scored_fields: num_fields,
+                searcher_options: SearcherOptions {
+                    url: "/".to_owned(),
+                    number_of_expanded_terms: 0,
+                    use_query_term_proximity: true,
+                },
+            },
+            invalidation_vector: vec![0; num_docs],
+        }
+    }
+}

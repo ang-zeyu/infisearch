@@ -354,7 +354,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
 }
 
 #[cfg(test)]
-mod test {
+pub mod test {
     use pretty_assertions::assert_eq;
 
     use morsels_common::tokenize::Tokenizer;
@@ -442,7 +442,7 @@ mod test {
         get_term("ipsum")
     }
 
-    fn parse(query: &str) -> Vec<QueryPart> {
+    pub fn parse(query: &str) -> Vec<QueryPart> {
         let tokenizer: Box<dyn Tokenizer> = Box::new(english::new_with_options(EnglishTokenizerOptions {
             stop_words: None,
             stemmer: None,

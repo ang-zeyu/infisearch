@@ -433,3 +433,313 @@ impl Searcher {
         self.populate_postings_lists(query_parts, &term_rc_postings_lists)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::rc::Rc;
+
+    use pretty_assertions::assert_eq;
+    use rustc_hash::FxHashMap;
+    use serde::{Deserialize};
+
+    use crate::dictionary::Dictionary;
+    use crate::docinfo::DocInfo;
+    use crate::postings_list::{PostingsList, TermDoc, DocField};
+    use crate::postings_list_file_cache;
+    use crate::searcher::test as searcher_test;
+    use crate::searcher::query_parser::test as query_parser_test;
+    use crate::searcher::{Searcher, SearcherConfig};
+
+    struct TermPostingsListsBuilder(FxHashMap<String, PostingsList>);
+
+    impl TermPostingsListsBuilder {
+        fn new() -> Self { TermPostingsListsBuilder(FxHashMap::default()) }
+
+        fn with(mut self, term: &str, pl_str: &str) -> Self {
+            self.0.insert(term.to_owned(), to_pl(pl_str));
+            self
+        }
+    }
+
+    // Takes a vector of "TermDoc", containing a vector of "fields", containing a tuple of (field_tf, vector of field positions)
+    // E.g. a TermDoc containing 2 fields of term frequency 2 and 1: [ [2,[1,2]], [1,[120]] ]
+    fn to_pl(text: &str) -> PostingsList {
+        let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = serde_json::from_str(&format!("[{}]", text)).unwrap();
+
+        let term_docs: Vec<TermDoc> = vec.into_iter()
+            .enumerate()
+            .filter(|doc_fields| doc_fields.1.is_some())
+            .map(|doc_fields| (doc_fields.0, doc_fields.1.unwrap()))
+            .map(|(doc_id, doc_fields)| {
+                let fields: Vec<DocField> = doc_fields.into_iter().map(|(field_tf, field_positions)| {
+                    DocField {
+                        field_tf,
+                        field_positions
+                    }
+                }).collect();
+
+                TermDoc {
+                    doc_id: doc_id as u32,
+                    fields,
+                }
+            })
+            .collect();
+
+        
+        PostingsList {
+            term_docs,
+            weight: 1.0,
+            idf: 1.0,
+            include_in_proximity_ranking: true,
+            term: None,
+            term_info: None,
+            max_term_score: 0.0,
+        }
+    }
+
+    fn to_pl_rc(text: &str) -> Rc<PostingsList> {
+        Rc::new(to_pl(text))
+    }
+
+    fn search(query: &str, term_postings_lists: FxHashMap<String, PostingsList>) -> Vec<Rc<PostingsList>> {
+        let mut parsed = query_parser_test::parse(query);
+        searcher_test::create_searcher(10, 3).process(&mut parsed, term_postings_lists)
+    }
+
+    #[test]
+    fn test_phrasal_queries() {
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[3,[1,12,31]]]")
+                    .with("ipsum", "[[3,[11,13,32]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[[2,[12,31]],[0,[]],[0,[]]]")]
+        );
+
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[0,[]],[3,[1,12,31]]]")
+                    .with("ipsum", "[[0,[]],[0,[]],[3,[11,13,32]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[[0,[]],[0,[]],[2,[12,31]]]")]
+        );
+
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null, null, [[0,[]],[0,[]],[3,[1,12,31]]]")
+                    .with("ipsum", "null, null, [[0,[]],[0,[]],[3,[11,13,32]]]")
+                    .0
+            ),
+            vec![to_pl_rc("null, null, [[0,[]],[0,[]],[2,[12,31]]]")]
+        );
+
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[4,[1,3,5,7]]]")
+                    .with("ipsum", "[[4,[2,4,6,8]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[[4,[1,3,5,7]],[0,[]],[0,[]]]")]
+        );
+    }
+
+    #[test]
+    fn test_phrasal_queries_negative() {
+        // Different positions
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[3,[1,12,31]]]")
+                    .with("ipsum", "[[3,[11,14,33]]]")
+                    .0
+            ),
+            vec![to_pl_rc("")]
+        );
+
+        // Different docs
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null,             [[3,[1,12,31]]]")
+                    .with("ipsum", "[[3,[11,13,32]]]")
+                    .0
+            ),
+            vec![to_pl_rc("")]
+        );
+
+        // Different fields
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[3,[1,12,31]]]")
+                    .with("ipsum", "[[3,[11,13,32]]]")
+                    .0
+            ),
+            vec![to_pl_rc("")]
+        );
+
+        assert_eq!(
+            search(
+                "\"lorem ipsum\"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null, null, [[0,[]],[3,[1,12,31]],         [0,[]]]")
+                    .with("ipsum", "null, null, [[0,[]],[0,[]],[3,[11,13,32]]]        ")
+                    .0
+            ),
+            vec![to_pl_rc("")]
+        );
+    }
+
+    #[test]
+    fn test_and_queries() {
+        // Different fields still match
+        assert_eq!(
+            search(
+                "lorem AND ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[]")]
+        );
+        
+        // Different fields still match
+        assert_eq!(
+            search(
+                "lorem AND ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[]")]
+        );
+    }
+
+    #[test]
+    fn test_and_queries_negative() {
+        assert_eq!(
+            search(
+                "lorem AND ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null,     [[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]]")
+                    .0
+            ),
+            vec![to_pl_rc("")]
+        );
+    }
+
+    #[test]
+    fn test_freetext_queries() {
+        assert_eq!(
+            search(
+                "lorem ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
+                    .with("ipsum", "[[4,[2,4,6,8]],[0,[]]], null, [],   null")
+                    .0
+            ),
+            vec![
+                to_pl_rc("[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]"),
+                to_pl_rc("[[4,[2,4,6,8]],[0,[]]], null, []  , null"),
+            ]
+        );
+
+        assert_eq!(
+            search(
+                "lorem lorem",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
+                    .0
+            ),
+            vec![
+                to_pl_rc("[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]"),
+                to_pl_rc("[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]"),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parentheses_queries() {
+        assert_eq!(
+            search(
+                "(lorem AND ipsum)",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[]")]
+        );
+
+        assert_eq!(
+            search(
+                "(lorem ipsum)",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
+                    .with("ipsum", "[[4,[2,4,6,8]],[0,[]]], null, [],   null")
+                    .0
+            ),
+            vec![to_pl_rc("[[4,[2,4,6,8]],[4,[1,3,5,7]]], null, [], [[0,[]],[4,[1,3,5,7]]]")]
+        );
+
+        assert_eq!(
+            search(
+                "(lorem lorem)",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[[0,[]],[8,[1,3,5,7]]], null, null, [[0,[]],[8,[1,3,5,7]]]")]
+        );
+    }
+
+    #[test]
+    fn test_not_queries() {
+        assert_eq!(
+            search(
+                "NOT lorem",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null, [[1,[1]]], null, [[1,[1]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[], null, [], null, [], [], [], [], [], []")]
+        );
+
+        assert_eq!(
+            search(
+                "NOT lorem ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null, [[1,[1]]], null, [[1,[1]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[], null, [], null, [], [], [], [], [], []")]
+        );
+
+        assert_eq!(
+            search(
+                "(NOT lorem ipsum)",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null,      [[1,[1]]], null, [[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]], [[1,[1]]], null, null")
+                    .0
+            ),
+            vec![to_pl_rc("[[1,[1]]], [[1,[1]]], [], null, [], [], [], [], [], []")]
+        );
+    }
+}

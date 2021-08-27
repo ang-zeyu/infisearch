@@ -31,3 +31,16 @@ impl PostingsListFileCache {
         self.pl_bytes.get(&pl_num)
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    use rustc_hash::FxHashMap;
+
+    use super::PostingsListFileCache;
+
+    pub fn get_empty() -> PostingsListFileCache {
+        PostingsListFileCache {
+            pl_bytes: FxHashMap::default(),
+        }
+    }
+}
