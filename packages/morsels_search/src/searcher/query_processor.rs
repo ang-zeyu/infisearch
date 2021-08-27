@@ -81,7 +81,7 @@ impl Searcher {
                             break;
                         }
 
-                        let curr_pl_field = curr_term_termdocs.fields[field_id];
+                        let curr_pl_field = &curr_term_termdocs.fields[field_id];
                         if let Some(pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
                             if term_idx == 0 {
                                 term_field_position_idxes[term_idx] += 1;
@@ -292,40 +292,40 @@ impl Searcher {
             max_term_score: 0.0,
         };
 
-        let mut curr_doc_id: u32 = self.doc_info.doc_length_factors_len + 1;
-        let mut curr_pl_iterators: Vec<Reverse<PlIterator>> = Vec::with_capacity(num_pls);
-
-        let mut merge_curr_termdocs = |curr_pl_iterators: &Vec<Reverse<PlIterator>>| {
-            let initial_td = curr_pl_iterators[curr_pl_iterators.len() - 1].0.td.unwrap().clone();
-            let merged_term_docs = curr_pl_iterators
-                .iter()
-                .fold(initial_td, |acc, next| PostingsList::merge_term_docs(&acc, next.0.td.unwrap()));
-            new_pl.term_docs.push(merged_term_docs);
-        };
-
-        while !doc_heap.is_empty() {
-            let min_pl_iterator = doc_heap.pop().unwrap();
-            let min_pl_iterator_doc_id = min_pl_iterator.0.td.unwrap().doc_id;
-
-            if min_pl_iterator_doc_id != curr_doc_id {
-                if curr_pl_iterators.len() > 0 {
-                    merge_curr_termdocs(&curr_pl_iterators);
-
-                    for mut curr_pl_it in curr_pl_iterators.drain(..) {
-                        if curr_pl_it.0.next().is_some() {
-                            doc_heap.push(curr_pl_it);
-                        }
-                    }
-                }
-
-                curr_doc_id = min_pl_iterator_doc_id;
-            }
-
-            curr_pl_iterators.push(min_pl_iterator);
+        if num_pls == 0 {
+            new_pl.calc_pseudo_idf(self.doc_info.num_docs);
+            return Some(Rc::new(new_pl));
         }
 
-        if curr_pl_iterators.len() > 0 {
-            merge_curr_termdocs(&curr_pl_iterators);
+        let mut curr_pl_iterators: Vec<Reverse<PlIterator>> = Vec::with_capacity(num_pls);
+        while !doc_heap.is_empty() {
+            let mut curr_pl_it = doc_heap.pop().unwrap();
+            let mut doc_id = curr_pl_it.0.td.unwrap().doc_id;
+
+            curr_pl_iterators.push(curr_pl_it);
+            
+            while !doc_heap.is_empty()
+                && doc_heap.peek().unwrap().0.td.unwrap().doc_id == doc_id {
+                curr_pl_iterators.push(doc_heap.pop().unwrap());
+            }
+
+            let merged_term_docs = if curr_pl_iterators.len() == 1 {
+                curr_pl_iterators[0].0.td.unwrap().to_owned()
+            } else {
+                curr_pl_iterators
+                    .iter()
+                    .fold(TermDoc {
+                        doc_id,
+                        fields: Vec::new(),
+                    }, |acc, next| PostingsList::merge_term_docs(&acc, next.0.td.unwrap()))
+            };
+            new_pl.term_docs.push(merged_term_docs);
+            
+            for mut pl_it in curr_pl_iterators.drain(..) {
+                if pl_it.0.next().is_some() {
+                    doc_heap.push(pl_it);
+                }
+            }
         }
 
         new_pl.calc_pseudo_idf(self.doc_info.num_docs);
