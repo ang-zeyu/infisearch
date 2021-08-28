@@ -417,6 +417,20 @@ pub mod test {
         get_term("ipsum")
     }
 
+    fn get_phrase(terms: Vec<&str>) -> QueryPart {
+        QueryPart {
+            is_corrected: false,
+            is_stop_word_removed: false,
+            should_expand: false,
+            is_expanded: false,
+            original_terms: None,
+            terms: Some(terms.into_iter().map(|term| term.to_owned()).collect()),
+            part_type: QueryPartType::Phrase,
+            field_name: None,
+            children: None,
+        }
+    }
+
     pub fn parse(query: &str) -> Vec<QueryPart> {
         let tokenizer = english::new_with_options(EnglishTokenizerOptions {
             stop_words: None,
@@ -453,6 +467,32 @@ pub mod test {
                 wrap_in_and(vec![wrap_in_not(get_lorem()), wrap_in_not(get_ipsum().no_expand())]),
                 get_lorem().no_expand(),
                 wrap_in_not(get_ipsum())
+            ]
+        );
+    }
+
+    #[test]
+    fn phrase_test() {
+        assert_eq!(parse("\"lorem ipsum\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
+        assert_eq!(parse("\"(lorem ipsum)\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
+        assert_eq!(
+            parse("lorem\"lorem ipsum\""),
+            vec![get_lorem(), get_phrase(vec!["lorem", "ipsum"])]
+        );
+        assert_eq!(
+            parse("\"lorem ipsum\"lorem\"lorem ipsum\""),
+            vec![
+                get_phrase(vec!["lorem", "ipsum"]),
+                get_lorem(),
+                get_phrase(vec!["lorem", "ipsum"]),
+            ]
+        );
+        assert_eq!(
+            parse("\"lorem ipsum\" lorem \"lorem ipsum\""),
+            vec![
+                get_phrase(vec!["lorem", "ipsum"]),
+                get_lorem().no_expand(),
+                get_phrase(vec!["lorem", "ipsum"]),
             ]
         );
     }
@@ -532,6 +572,15 @@ pub mod test {
             vec![
                 wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]).with_field("title"),
                 wrap_in_not(wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]).with_field("title")),
+                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
+            ]
+        );
+
+        assert_eq!(
+            parse("title:\"lorem AND ipsum\"NOT title:(\"lorem ipsum\") body:(lorem NOT ipsum)"),
+            vec![
+                get_phrase(vec!["lorem", "and", "ipsum"]).with_field("title"),
+                wrap_in_not(wrap_in_parentheses(vec![get_phrase(vec!["lorem", "ipsum"])]).with_field("title")),
                 wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
             ]
         );
