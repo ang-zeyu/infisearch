@@ -1,0 +1,15 @@
+{
+  "name": "@morsels/lang-latin",
+  "collaborators": [
+    "Ze Yu <angzeyu@gmail.com>"
+  ],
+  "version": "0.0.0",
+  "files": [
+    "index_bg.wasm",
+    "index.js",
+    "index.d.ts"
+  ],
+  "module": "index.js",
+  "types": "index.d.ts",
+  "sideEffects": false
+}
