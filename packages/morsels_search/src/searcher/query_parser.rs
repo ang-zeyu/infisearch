@@ -2,13 +2,13 @@ use morsels_common::tokenize::Tokenizer;
 use serde::Serialize;
 
 #[derive(Serialize, Debug, Eq, PartialEq)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum QueryPartType {
-    TERM,
-    PHRASE,
-    BRACKET,
-    AND,
-    NOT,
-    ADDED,
+    Term,
+    Phrase,
+    Bracket,
+    And,
+    Not,
 }
 
 #[derive(Serialize, Debug, Eq, PartialEq)]
@@ -26,21 +26,21 @@ pub struct QueryPart {
 }
 
 enum UnaryOp {
-    NOT,
-    FIELD(String),
+    Not,
+    Field(String),
 }
 
 enum QueryParseState {
-    NONE,
-    QUOTE,
-    PARENTHESES,
+    None,
+    Quote,
+    Parentheses,
 }
 
 fn handle_unary_op(mut query_part: QueryPart, operator_stack: &mut Vec<UnaryOp>) -> QueryPart {
     while !operator_stack.is_empty() {
         let op = operator_stack.pop().unwrap();
         match op {
-            UnaryOp::NOT => {
+            UnaryOp::Not => {
                 query_part = QueryPart {
                     is_corrected: false,
                     is_stop_word_removed: false,
@@ -48,12 +48,12 @@ fn handle_unary_op(mut query_part: QueryPart, operator_stack: &mut Vec<UnaryOp>)
                     is_expanded: false,
                     original_terms: None,
                     terms: None,
-                    part_type: QueryPartType::NOT,
+                    part_type: QueryPartType::Not,
                     field_name: None,
                     children: Some(vec![query_part]),
                 }
             }
-            UnaryOp::FIELD(field_name) => {
+            UnaryOp::Field(field_name) => {
                 query_part.field_name = Some(field_name);
             }
         }
@@ -61,7 +61,7 @@ fn handle_unary_op(mut query_part: QueryPart, operator_stack: &mut Vec<UnaryOp>)
     query_part
 }
 
-fn collect_slice(query_chars: &Vec<char>, i: usize, j: usize, escape_indices: &Vec<usize>) -> String {
+fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usize]) -> String {
     query_chars[i..j]
         .iter()
         .enumerate()
@@ -70,12 +70,13 @@ fn collect_slice(query_chars: &Vec<char>, i: usize, j: usize, escape_indices: &V
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn handle_terminator(
-    tokenizer: &Box<dyn Tokenizer>,
-    query_chars: &Vec<char>,
+    tokenizer: &dyn Tokenizer,
+    query_chars: &[char],
     i: usize,
     j: usize,
-    escape_indices: &Vec<usize>,
+    escape_indices: &[usize],
     query_parts: &mut Vec<QueryPart>,
     is_expecting_and: &mut bool,
     operator_stack: &mut Vec<UnaryOp>,
@@ -88,7 +89,7 @@ fn handle_terminator(
         if i != j {
             let mut curr_query_parts = parse_query(collect_slice(query_chars, i, j, escape_indices), tokenizer);
 
-            if curr_query_parts.len() > 0 {
+            if !curr_query_parts.is_empty() {
                 let last_query_part_idx = query_parts.len() - 1;
                 query_parts
                     .get_mut(last_query_part_idx)
@@ -104,7 +105,7 @@ fn handle_terminator(
         }
     } else {
         let tokenize_result = tokenizer.wasm_tokenize(collect_slice(query_chars, i, j, &escape_indices));
-        if tokenize_result.terms.len() == 0 {
+        if tokenize_result.terms.is_empty() {
             return;
         }
 
@@ -121,7 +122,7 @@ fn handle_terminator(
                         is_expanded: false,
                         original_terms: None,
                         terms: Some(vec![term]),
-                        part_type: QueryPartType::TERM,
+                        part_type: QueryPartType::Term,
                         field_name: None,
                         children: None,
                     },
@@ -135,7 +136,7 @@ fn handle_terminator(
                     is_expanded: false,
                     original_terms: None,
                     terms: Some(vec![term]),
-                    part_type: QueryPartType::TERM,
+                    part_type: QueryPartType::Term,
                     field_name: None,
                     children: None,
                 });
@@ -144,10 +145,10 @@ fn handle_terminator(
     }
 }
 
-pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPart> {
+pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
     let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
 
-    let mut query_parse_state: QueryParseState = QueryParseState::NONE;
+    let mut query_parse_state: QueryParseState = QueryParseState::None;
     let mut is_expecting_and = false;
     let mut did_encounter_escape = false;
     let mut escape_indices: Vec<usize> = Vec::new();
@@ -164,16 +165,16 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
         let c = query_chars[j];
 
         match query_parse_state {
-            QueryParseState::QUOTE | QueryParseState::PARENTHESES => {
-                let char_to_match = if let QueryParseState::QUOTE = query_parse_state { '"' } else { ')' };
+            QueryParseState::Quote | QueryParseState::Parentheses => {
+                let char_to_match = if let QueryParseState::Quote = query_parse_state { '"' } else { ')' };
                 if !did_encounter_escape && c == char_to_match {
                     let content = collect_slice(&query_chars, i, j, &escape_indices);
-                    let term_parttype_children = if let QueryParseState::QUOTE = query_parse_state {
-                        (Some(tokenizer.wasm_tokenize(content).terms), QueryPartType::PHRASE, None)
+                    let term_parttype_children = if let QueryParseState::Quote = query_parse_state {
+                        (Some(tokenizer.wasm_tokenize(content).terms), QueryPartType::Phrase, None)
                     } else {
-                        (None, QueryPartType::BRACKET, Some(parse_query(content, tokenizer)))
+                        (None, QueryPartType::Bracket, Some(parse_query(content, tokenizer)))
                     };
-                    query_parse_state = QueryParseState::NONE;
+                    query_parse_state = QueryParseState::None;
 
                     let query_part: QueryPart = handle_unary_op(
                         QueryPart {
@@ -206,7 +207,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
                     did_encounter_escape = false;
                 }
             }
-            QueryParseState::NONE => {
+            QueryParseState::None => {
                 if !did_encounter_escape && (c == '"' || c == '(') {
                     handle_terminator(
                         tokenizer,
@@ -219,7 +220,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
                         &mut op_stack,
                     );
 
-                    query_parse_state = if c == '"' { QueryParseState::QUOTE } else { QueryParseState::PARENTHESES };
+                    query_parse_state = if c == '"' { QueryParseState::Quote } else { QueryParseState::Parentheses };
                     i = j + 1;
                 } else if c == ':' && !did_encounter_escape && last_possible_unaryop_idx >= i && j > i {
                     handle_terminator(
@@ -233,7 +234,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
                         &mut op_stack,
                     );
 
-                    op_stack.push(UnaryOp::FIELD(collect_slice(
+                    op_stack.push(UnaryOp::Field(collect_slice(
                         &query_chars,
                         last_possible_unaryop_idx,
                         j,
@@ -266,7 +267,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
 
                         let last_curr_query_part = query_parts.pop();
                         if last_curr_query_part.is_some()
-                            && matches!(last_curr_query_part.as_ref().unwrap().part_type, QueryPartType::AND)
+                            && matches!(last_curr_query_part.as_ref().unwrap().part_type, QueryPartType::And)
                         {
                             // Reuse last AND group
                             query_parts.push(last_curr_query_part.unwrap());
@@ -278,7 +279,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
                                 is_expanded: false,
                                 original_terms: None,
                                 terms: None,
-                                part_type: QueryPartType::AND,
+                                part_type: QueryPartType::And,
                                 field_name: None,
                                 children: Some(if let Some(last_curr_query_part) = last_curr_query_part {
                                     vec![last_curr_query_part]
@@ -316,7 +317,7 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
                         &mut op_stack,
                     );
 
-                    op_stack.push(UnaryOp::NOT);
+                    op_stack.push(UnaryOp::Not);
 
                     j += 4;
                     while j < query_chars_len && query_chars[j].is_ascii_whitespace() {
@@ -357,14 +358,13 @@ pub fn parse_query(query: String, tokenizer: &Box<dyn Tokenizer>) -> Vec<QueryPa
 pub mod test {
     use pretty_assertions::assert_eq;
 
-    use morsels_common::tokenize::Tokenizer;
     use morsels_lang_latin::english::{self, EnglishTokenizerOptions};
 
     use super::{QueryPart, QueryPartType};
 
     impl QueryPart {
         fn no_expand(mut self) -> QueryPart {
-            if let QueryPartType::TERM = self.part_type {
+            if let QueryPartType::Term = self.part_type {
                 self.should_expand = false;
                 self
             } else {
@@ -386,7 +386,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: None,
-            part_type: QueryPartType::NOT,
+            part_type: QueryPartType::Not,
             field_name: None,
             children: Some(vec![query_part]),
         }
@@ -400,7 +400,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: None,
-            part_type: QueryPartType::AND,
+            part_type: QueryPartType::And,
             field_name: None,
             children: Some(query_parts),
         }
@@ -414,7 +414,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: None,
-            part_type: QueryPartType::BRACKET,
+            part_type: QueryPartType::Bracket,
             field_name: None,
             children: Some(query_parts),
         }
@@ -428,7 +428,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: Some(vec![term.to_owned()]),
-            part_type: QueryPartType::TERM,
+            part_type: QueryPartType::Term,
             field_name: None,
             children: None,
         }
@@ -443,11 +443,11 @@ pub mod test {
     }
 
     pub fn parse(query: &str) -> Vec<QueryPart> {
-        let tokenizer: Box<dyn Tokenizer> = Box::new(english::new_with_options(EnglishTokenizerOptions {
+        let tokenizer = english::new_with_options(EnglishTokenizerOptions {
             stop_words: None,
             stemmer: None,
             max_term_len: 80,
-        }));
+        });
 
         super::parse_query(query.to_owned(), &tokenizer)
     }

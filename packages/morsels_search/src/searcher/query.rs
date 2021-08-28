@@ -64,25 +64,13 @@ impl PartialEq for Position {
 
 impl Ord for Position {
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.pos < other.pos {
-            Ordering::Greater
-        } else if self.pos == other.pos {
-            Ordering::Equal
-        } else {
-            Ordering::Less
-        }
+        other.pos.cmp(&self.pos)
     }
 }
 
 impl PartialOrd for Position {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.pos < other.pos {
-            Some(Ordering::Greater)
-        } else if self.pos == other.pos {
-            Some(Ordering::Equal)
-        } else {
-            Some(Ordering::Less)
-        }
+        Some(other.pos.cmp(&self.pos))
     }
 }
 
@@ -107,7 +95,7 @@ impl Query {
         while !self.wand_leftovers.is_empty() && doc_ids.len() < n {
             if !self.did_dedup_wand {
                 self.did_dedup_wand = true;
-                self.wand_leftovers.sort();
+                self.wand_leftovers.sort_unstable();
                 self.wand_leftovers.dedup();
             }
             doc_ids.push(DocResult(self.wand_leftovers.pop().unwrap(), 0.0));
@@ -150,7 +138,7 @@ impl Searcher {
             postings_lists.iter().filter(|pl| pl.include_in_proximity_ranking).count() as f32;
         let proximity_ranking_max_scale = total_proximity_ranking_terms * 1.8;
 
-        while pl_its.len() > 0 {
+        while !pl_its.is_empty() {
             let mut pivot_doc_id = pl_its.get(0).unwrap().td.unwrap().doc_id;
 
             // ------------------------------------------
@@ -177,14 +165,11 @@ impl Searcher {
                 // Forward pls before the pivot list
                 for i in 0..pivot_list_idx {
                     let curr_it = pl_its.get_mut(i).unwrap();
-                    loop {
-                        if let Some(term_doc) = curr_it.td {
-                            if term_doc.doc_id < pivot_doc_id {
-                                wand_leftovers.push(term_doc.doc_id);
-                                curr_it.next();
-                            } else {
-                                break;
-                            }
+
+                    while let Some(term_doc) = curr_it.td {
+                        if term_doc.doc_id < pivot_doc_id {
+                            wand_leftovers.push(term_doc.doc_id);
+                            curr_it.next();
                         } else {
                             break;
                         }
@@ -214,7 +199,7 @@ impl Searcher {
                     for i in 0..pl_its_for_proximity_ranking.len() {
                         let curr_fields = &pl_its_for_proximity_ranking[i].td.as_ref().unwrap().fields;
                         for j in 0..curr_fields.len() {
-                            if curr_fields[j].field_positions.len() == 0 {
+                            if curr_fields[j].field_positions.is_empty() {
                                 continue;
                             }
                             position_heap.push(Position {

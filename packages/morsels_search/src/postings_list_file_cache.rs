@@ -9,7 +9,7 @@ pub struct PostingsListFileCache {
 }
 
 impl PostingsListFileCache {
-    pub async fn create(base_url: &str, pl_numbers: &Vec<u32>, num_pls_per_dir: u32) -> PostingsListFileCache {
+    pub async fn create(base_url: &str, pl_numbers: &[u32], num_pls_per_dir: u32) -> PostingsListFileCache {
         let window: web_sys::Window = js_sys::global().unchecked_into();
         let pls = join_all(
             pl_numbers.iter().map(|pl_num| PostingsList::fetch_pl_to_vec(&window, base_url, *pl_num, num_pls_per_dir)),

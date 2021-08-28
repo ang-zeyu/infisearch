@@ -44,16 +44,14 @@ fn main() {
         let mut command = Command::new("morsels");
         command.current_dir(html_renderer_path).args(&["./", "./morsels_output", "--dynamic"]);
 
-        if let Some(morsels_config_file_path_toml) = ctx.config.get("output.morsels.config") {
-            if let TomlString(morsels_config_file_path) = morsels_config_file_path_toml {
-                command.arg("-c");
-                command.arg(morsels_config_file_path);
-            }
+        if let Some(TomlString(morsels_config_file_path)) = ctx.config.get("output.morsels.config") {
+            command.arg("-c");
+            command.arg(morsels_config_file_path);
         }
 
         command.output().expect("failed to execute indexer process");
     } else {
-        let morsels_preprocessor = Morsels::new();
+        let morsels_preprocessor = Morsels;
 
         if let Some(sub_args) = matches.subcommand_matches("supports") {
             let renderer = sub_args.value_of("renderer").expect("Required argument");
@@ -74,12 +72,6 @@ fn main() {
 
 // Preprocessor for adding input search box
 pub struct Morsels;
-
-impl Morsels {
-    pub fn new() -> Morsels {
-        Morsels
-    }
-}
 
 static INPUT_EL: &str = "\n<input
     type=\"text\"
@@ -168,13 +160,9 @@ impl Preprocessor for Morsels {
             }
         } */
 
-        let css_el = if let Some(morsels_config_file_path_toml) = ctx.config.get("output.morsels.no-css") {
-            if let TomlBoolean(no_css) = morsels_config_file_path_toml {
-                if *no_css {
-                    ""
-                } else {
-                    CSS_EL
-                }
+        let css_el = if let Some(TomlBoolean(no_css)) = ctx.config.get("output.morsels.no-css") {
+            if *no_css {
+                ""
             } else {
                 CSS_EL
             }
@@ -182,12 +170,8 @@ impl Preprocessor for Morsels {
             CSS_EL
         };
 
-        let site_url = if let Some(html_site_url) = ctx.config.get("output.html.site-url") {
-            if let TomlString(site_url) = html_site_url {
-                site_url
-            } else {
-                "/"
-            }
+        let site_url = if let Some(TomlString(site_url)) = ctx.config.get("output.html.site-url") {
+            site_url
         } else {
             "/"
         };

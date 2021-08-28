@@ -46,7 +46,7 @@ use serde::{Deserialize, Serialize};
 #[macro_use]
 extern crate lazy_static;
 
-pub const MORSELS_VERSION: &'static str = env!("CARGO_PKG_VERSION");
+pub const MORSELS_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();

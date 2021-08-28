@@ -315,6 +315,7 @@ fn aggregate_block_terms(
     (curr_term, doc_freq, curr_term_max_score)
 }
 
+#[allow(clippy::too_many_arguments)]
 #[inline(always)]
 fn write_new_term_postings(
     curr_combined_term_docs: &mut Vec<TermDocsForMerge>,

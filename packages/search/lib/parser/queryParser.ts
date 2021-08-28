@@ -4,7 +4,6 @@ export enum QueryPartType {
   BRACKET = 'BRACKET',
   AND = 'AND',
   NOT = 'NOT',
-  ADDED = 'ADDED',
 }
 
 export interface QueryPart {

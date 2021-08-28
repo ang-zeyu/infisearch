@@ -12,16 +12,16 @@ impl Searcher {
                     let term = terms.get(term_idx).unwrap();
                     if allow_stop_word_removal && self.tokenizer.is_stop_word(term) {
                         query_part.is_stop_word_removed = true;
-                        if let None = query_part.original_terms {
+                        if query_part.original_terms.is_none() {
                             query_part.original_terms = Some(terms.clone());
                         }
                         terms.remove(term_idx);
                         continue;
                     }
 
-                    if let None = self.dictionary.get_term_info(term) {
+                    if self.dictionary.get_term_info(term).is_none() {
                         query_part.is_corrected = true;
-                        if let None = query_part.original_terms {
+                        if query_part.original_terms.is_none() {
                             query_part.original_terms = Some(terms.clone());
                         }
 

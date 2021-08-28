@@ -1489,7 +1489,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
 }
 
 // https://github.com/apache/lucene-solr/blob/master/lucene/analysis/common/src/java/org/apache/lucene/analysis/miscellaneous/ASCIIFoldingFilter.java#L187
-pub fn to_ascii<'a>(text: &'a str) -> Cow<'a, str> {
+pub fn to_ascii(text: &str) -> Cow<str> {
     let mut output: String = "".to_owned();
 
     let mut encountered = false;

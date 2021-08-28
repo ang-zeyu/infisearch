@@ -114,6 +114,7 @@ impl SearchDictionary for Dictionary {
         }
     }
 
+    #[allow(clippy::comparison_chain)]
     fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<Rc<String>> {
         let levenshtein_candidates = self.get_term_candidates(misspelled_term);
         let base_term_char_count = misspelled_term.chars().count();
@@ -144,7 +145,7 @@ impl SearchDictionary for Dictionary {
             }
         }
 
-        return min_edit_distance_terms;
+        min_edit_distance_terms
     }
 
     fn get_expanded_terms(
@@ -185,10 +186,10 @@ impl SearchDictionary for Dictionary {
 
                 let idf = self.term_infos.get(&term).unwrap().idf;
                 if top_n_min_heap.len() < number_of_expanded_terms {
-                    top_n_min_heap.push(TermWeightPair(term.into(), idf_difference));
+                    top_n_min_heap.push(TermWeightPair(term, idf_difference));
                 } else if idf < top_n_min_heap.peek().unwrap().1 {
                     top_n_min_heap.pop();
-                    top_n_min_heap.push(TermWeightPair(term.into(), idf_difference));
+                    top_n_min_heap.push(TermWeightPair(term, idf_difference));
                 }
             }
         }
@@ -199,29 +200,26 @@ impl SearchDictionary for Dictionary {
             expanded_terms.insert(std::string::String::from(&term_weight_pair.0[..]), weight as f32);
         }
 
-        return expanded_terms;
+        expanded_terms
     }
 
     fn get_term_candidates(&self, base_term: &str) -> FxHashMap<Rc<String>, usize> {
         let mut candidates: FxHashMap<Rc<String>, usize> = FxHashMap::default();
         for tri_gram in morsels_common::dictionary::trigrams::get_tri_grams(base_term) {
-            match self.trigrams.get(tri_gram) {
-                Some(terms) => {
-                    for term in terms {
-                        match candidates.get_mut(&**term) {
-                            Some(val) => {
-                                *val += 1;
-                            }
-                            None => {
-                                candidates.insert(Rc::clone(term), 1);
-                            }
+            if let Some(terms) = self.trigrams.get(tri_gram) {
+                for term in terms {
+                    match candidates.get_mut(&**term) {
+                        Some(val) => {
+                            *val += 1;
+                        }
+                        None => {
+                            candidates.insert(Rc::clone(term), 1);
                         }
                     }
                 }
-                None => {}
             }
         }
 
-        return candidates;
+        candidates
     }
 }

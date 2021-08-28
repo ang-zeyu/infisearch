@@ -17,17 +17,17 @@ impl Searcher {
         query_parts: &mut Vec<QueryPart>,
         postings_lists_map: &mut FxHashMap<String, PostingsList>,
     ) {
-        if query_parts.len() == 0 {
+        if query_parts.is_empty() {
             return;
         }
 
         let last_query_part = query_parts.last_mut().unwrap();
         if self.searcher_config.searcher_options.number_of_expanded_terms > 0
-            && matches!(last_query_part.part_type, QueryPartType::TERM)
+            && matches!(last_query_part.part_type, QueryPartType::Term)
             && last_query_part.should_expand
             && !last_query_part.is_stop_word_removed
         {
-            if let None = last_query_part.original_terms {
+            if last_query_part.original_terms.is_none() {
                 last_query_part.original_terms = last_query_part.terms.clone();
             }
 
@@ -44,12 +44,12 @@ impl Searcher {
                 )
             };
 
-            last_query_part.is_expanded = expanded_terms.len() > 0;
+            last_query_part.is_expanded = !expanded_terms.is_empty();
 
             let mut new_query_parts: Vec<QueryPart> = Vec::with_capacity(expanded_terms.len());
             for (term, weight) in expanded_terms {
                 if let Some(term_info) = self.dictionary.get_term_info(&term) {
-                    if let None = postings_lists_map.get(&term) {
+                    if postings_lists_map.get(&term).is_none() {
                         last_query_part.terms.as_mut().unwrap().push(term.clone());
 
                         new_query_parts.push(QueryPart {
@@ -59,7 +59,7 @@ impl Searcher {
                             is_expanded: false,
                             original_terms: None,
                             terms: Some(vec![term.clone()]),
-                            part_type: QueryPartType::TERM,
+                            part_type: QueryPartType::Term,
                             field_name: last_query_part.field_name.clone(),
                             children: None,
                         });
@@ -80,7 +80,6 @@ impl Searcher {
                 }
             }
 
-            drop(last_query_part);
             query_parts.append(&mut new_query_parts);
         }
     }

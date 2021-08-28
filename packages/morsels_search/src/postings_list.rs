@@ -141,42 +141,42 @@ impl PostingsList {
         for field_id in 0..max_fields_length {
             let term_doc_1_field_opt = term_doc_1.fields.get(field_id);
             let term_doc_2_field_opt = term_doc_2.fields.get(field_id);
-
-            if term_doc_1_field_opt.is_some() && term_doc_2_field_opt.is_some() {
-                let term_doc_1_field = term_doc_1_field_opt.unwrap();
-                let term_doc_2_field = term_doc_2_field_opt.unwrap();
-                let mut doc_field = DocField {
-                    field_tf: term_doc_1_field.field_tf + term_doc_2_field.field_tf,
-                    field_positions: Vec::new(),
-                };
-
-                let mut pos2_idx = 0;
-                for pos1_idx in 0..term_doc_1_field.field_positions.len() {
-                    while pos2_idx < term_doc_2_field.field_positions.len()
-                        && term_doc_2_field.field_positions[pos2_idx] < term_doc_1_field.field_positions[pos1_idx]
-                    {
+            
+            if let Some(term_doc_1_field) = term_doc_1_field_opt {
+                if let Some(term_doc_2_field) = term_doc_2_field_opt {
+                    let mut doc_field = DocField {
+                        field_tf: term_doc_1_field.field_tf + term_doc_2_field.field_tf,
+                        field_positions: Vec::new(),
+                    };
+    
+                    let mut pos2_idx = 0;
+                    for pos1_idx in 0..term_doc_1_field.field_positions.len() {
+                        while pos2_idx < term_doc_2_field.field_positions.len()
+                            && term_doc_2_field.field_positions[pos2_idx] < term_doc_1_field.field_positions[pos1_idx]
+                        {
+                            doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
+                            pos2_idx += 1;
+                        }
+    
+                        if pos2_idx < term_doc_2_field.field_positions.len()
+                            && term_doc_2_field.field_positions[pos2_idx] == term_doc_1_field.field_positions[pos1_idx]
+                        {
+                            pos2_idx += 1;
+                        }
+    
+                        doc_field.field_positions.push(term_doc_1_field.field_positions[pos1_idx]);
+                    }
+    
+                    while pos2_idx < term_doc_2_field.field_positions.len() {
                         doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
                         pos2_idx += 1;
                     }
-
-                    if pos2_idx < term_doc_2_field.field_positions.len()
-                        && term_doc_2_field.field_positions[pos2_idx] == term_doc_1_field.field_positions[pos1_idx]
-                    {
-                        pos2_idx += 1;
-                    }
-
-                    doc_field.field_positions.push(term_doc_1_field.field_positions[pos1_idx]);
+    
+                    td.fields.push(doc_field);
+                } else {
+                    td.fields.push(term_doc_1_field.clone());
                 }
-
-                while pos2_idx < term_doc_2_field.field_positions.len() {
-                    doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
-                    pos2_idx += 1;
-                }
-
-                td.fields.push(doc_field);
-            } else if let Option::Some(term_doc_1_field) = term_doc_1_field_opt {
-                td.fields.push(term_doc_1_field.clone());
-            } else if let Option::Some(term_doc_2_field) = term_doc_2_field_opt {
+            } else if let Some(term_doc_2_field) = term_doc_2_field_opt {
                 td.fields.push(term_doc_2_field.clone());
             }
         }
@@ -204,17 +204,18 @@ impl PostingsList {
         Ok(js_sys::Uint8Array::new(&pl_array_buffer).to_vec())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn fetch_term(
         &mut self,
         base_url: &str,
         pl_file_cache: &PostingsListFileCache,
-        invalidation_vector: &Vec<u8>,
+        invalidation_vector: &[u8],
         window: &web_sys::Window,
         num_scored_fields: usize,
         num_pls_per_dir: u32,
         with_positions: bool,
     ) -> Result<(), JsValue> {
-        if let None = self.term_info {
+        if self.term_info.is_none() {
             return Ok(());
         }
 

@@ -91,6 +91,7 @@ fn get_tokenizer(language_config: &mut MorselsLanguageConfig) -> Box<dyn Tokeniz
     }
 }
 
+#[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Morsels config does not match schema");
@@ -127,7 +128,7 @@ impl Searcher {
     }
 }
 
-fn get_searched_terms(query_parts: &Vec<QueryPart>, seen: &mut HashSet<String>, result: &mut Vec<String>) {
+fn get_searched_terms(query_parts: &[QueryPart], seen: &mut HashSet<String>, result: &mut Vec<String>) {
     for query_part in query_parts {
         if let Some(terms) = &query_part.terms {
             if query_part.is_stop_word_removed {
@@ -147,6 +148,7 @@ fn get_searched_terms(query_parts: &Vec<QueryPart>, seen: &mut HashSet<String>, 
     }
 }
 
+#[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query::Query, JsValue> {
     /* let window: web_sys::Window = js_sys::global().unchecked_into();
@@ -154,12 +156,12 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
      let start = performance.now();
     */
     let searcher_val = unsafe { &*searcher };
-    let mut query_parts = parse_query(query, &searcher_val.tokenizer);
+    let mut query_parts = parse_query(query, &*searcher_val.tokenizer);
 
     // web_sys::console::log_1(&format!("parse query took {}", performance.now() - start).into());
 
     let is_free_text_query = query_parts.iter().all(|query_part| {
-        if let QueryPartType::TERM = query_part.part_type {
+        if let QueryPartType::Term = query_part.part_type {
             query_part.field_name.is_none()
         } else {
             false

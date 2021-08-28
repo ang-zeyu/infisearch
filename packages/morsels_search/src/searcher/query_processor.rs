@@ -265,10 +265,12 @@ impl Searcher {
         query_part: &mut QueryPart,
         term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Option<Rc<PostingsList>> {
-        let mut child_postings_lists =
-            self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
+        let mut child_postings_lists = self.populate_postings_lists(
+            query_part.children.as_mut().unwrap(),
+            term_postings_lists,
+        );
 
-        if child_postings_lists.len() == 0 {
+        if child_postings_lists.is_empty() {
             return None;
         } else if child_postings_lists.len() == 1 {
             return Some(child_postings_lists.pop().unwrap());
@@ -299,8 +301,8 @@ impl Searcher {
 
         let mut curr_pl_iterators: Vec<Reverse<PlIterator>> = Vec::with_capacity(num_pls);
         while !doc_heap.is_empty() {
-            let mut curr_pl_it = doc_heap.pop().unwrap();
-            let mut doc_id = curr_pl_it.0.td.unwrap().doc_id;
+            let curr_pl_it = doc_heap.pop().unwrap();
+            let doc_id = curr_pl_it.0.td.unwrap().doc_id;
 
             curr_pl_iterators.push(curr_pl_it);
             
@@ -335,7 +337,7 @@ impl Searcher {
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
         if let Some(tup) =
-            self.searcher_config.field_infos.iter().enumerate().find(|(_id, field_info)| &field_info.name == field_name)
+            self.searcher_config.field_infos.iter().enumerate().find(|(_id, field_info)| field_info.name == field_name)
         {
             let mut new_pl = PostingsList {
                 weight: pl.weight,
@@ -376,14 +378,14 @@ impl Searcher {
         for query_part in query_parts {
             let mut pl_opt: Option<Rc<PostingsList>> = None;
             match query_part.part_type {
-                QueryPartType::TERM => {
+                QueryPartType::Term => {
                     if let Some(term) = query_part.terms.as_ref().unwrap().get(0) {
                         if let Some(term_pl) = term_postings_lists.get(term) {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     }
                 }
-                QueryPartType::PHRASE => {
+                QueryPartType::Phrase => {
                     if query_part.terms.as_ref().unwrap().len() == 1 {
                         if let Some(term_pl) =
                             term_postings_lists.get(query_part.terms.as_ref().unwrap().get(0).unwrap())
@@ -394,20 +396,19 @@ impl Searcher {
                         pl_opt = Some(self.populate_phrasal_postings_lists(query_part, term_postings_lists));
                     }
                 }
-                QueryPartType::AND => {
+                QueryPartType::And => {
                     pl_opt = Some(self.populate_and_postings_lists(query_part, term_postings_lists));
                 }
-                QueryPartType::NOT => {
+                QueryPartType::Not => {
                     pl_opt = Some(self.populate_not_postings_list(query_part, term_postings_lists));
                 }
-                QueryPartType::BRACKET => {
+                QueryPartType::Bracket => {
                     if let Some(bracket_postings_list) =
                         self.populate_bracket_postings_list(query_part, term_postings_lists)
                     {
                         pl_opt = Some(bracket_postings_list);
                     }
                 }
-                _ => {}
             }
 
             if let Some(mut pl) = pl_opt {
@@ -440,15 +441,10 @@ mod test {
 
     use pretty_assertions::assert_eq;
     use rustc_hash::FxHashMap;
-    use serde::{Deserialize};
 
-    use crate::dictionary::Dictionary;
-    use crate::docinfo::DocInfo;
     use crate::postings_list::{PostingsList, TermDoc, DocField};
-    use crate::postings_list_file_cache;
     use crate::searcher::test as searcher_test;
     use crate::searcher::query_parser::test as query_parser_test;
-    use crate::searcher::{Searcher, SearcherConfig};
 
     struct TermPostingsListsBuilder(FxHashMap<String, PostingsList>);
 

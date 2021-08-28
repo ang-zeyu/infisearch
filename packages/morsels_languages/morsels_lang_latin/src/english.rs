@@ -111,7 +111,7 @@ pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
 
 // Custom replace_all regex implementation accepting cow to make lifetimes comply
 // See https://github.com/rust-lang/regex/issues/676
-fn term_filter<'a>(input: Cow<'a, str>) -> Cow<'a, str> {
+fn term_filter(input: Cow<str>) -> Cow<str> {
     let mut match_iter = TERM_FILTER.find_iter(&input);
     if let Some(first) = match_iter.next() {
         let mut output: Vec<u8> = Vec::with_capacity(input.len());
