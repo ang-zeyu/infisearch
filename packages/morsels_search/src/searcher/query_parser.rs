@@ -28,25 +28,25 @@ pub struct QueryPart {
 enum Operator {
     Not,
     And,
+    OpenGroup,
     Field(String),
 }
 
 enum QueryParseState {
     None,
     Quote,
-    Parentheses,
 }
 
 fn handle_op(
     query_parts: &mut Vec<QueryPart>,
-    mut query_part: QueryPart,
     operator_stack: &mut Vec<Operator>
 ) {
     while !operator_stack.is_empty() {
         let op = operator_stack.pop().unwrap();
         match op {
             Operator::Not => {
-                query_part = QueryPart {
+                let last_part = query_parts.pop().unwrap();
+                query_parts.push(QueryPart {
                     is_corrected: false,
                     is_stop_word_removed: false,
                     should_expand: false,
@@ -55,21 +55,24 @@ fn handle_op(
                     terms: None,
                     part_type: QueryPartType::Not,
                     field_name: None,
-                    children: Some(vec![query_part]),
-                }
+                    children: Some(vec![last_part]),
+                });
             },
             Operator::And => {
-                query_parts.last_mut().unwrap().children.as_mut().unwrap().push(query_part);
-                operator_stack.clear(); // sanity check
+                let last_part = query_parts.pop().unwrap();
+                query_parts.last_mut().unwrap().children.as_mut().unwrap().push(last_part);
+            },
+            Operator::OpenGroup => {
+                // Serves as a guard to the rest of the stack.
+                // This will only be popped when ')' is encountered.
+                operator_stack.push(op);
                 return;
             },
             Operator::Field(field_name) => {
-                query_part.field_name = Some(field_name);
+                query_parts.last_mut().unwrap().field_name = Some(field_name);
             }
         }
     }
-
-    query_parts.push(query_part);
 }
 
 fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usize]) -> String {
@@ -105,21 +108,18 @@ fn handle_terminator(
         if is_first {
             is_first = false;
 
-            handle_op(
-                query_parts,
-                QueryPart {
-                    is_corrected: false,
-                    is_stop_word_removed: false,
-                    should_expand: tokenize_result.should_expand,
-                    is_expanded: false,
-                    original_terms: None,
-                    terms: Some(vec![term]),
-                    part_type: QueryPartType::Term,
-                    field_name: None,
-                    children: None,
-                },
-                operator_stack,
-            );
+            query_parts.push(QueryPart {
+                is_corrected: false,
+                is_stop_word_removed: false,
+                should_expand: tokenize_result.should_expand,
+                is_expanded: false,
+                original_terms: None,
+                terms: Some(vec![term]),
+                part_type: QueryPartType::Term,
+                field_name: None,
+                children: None,
+            });
+            handle_op(query_parts, operator_stack);
         } else {
             query_parts.push(QueryPart {
                 is_corrected: false,
@@ -155,32 +155,23 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
         let c = query_chars[j];
 
         match query_parse_state {
-            QueryParseState::Quote | QueryParseState::Parentheses => {
-                let char_to_match = if let QueryParseState::Quote = query_parse_state { '"' } else { ')' };
-                if !did_encounter_escape && c == char_to_match {
+            QueryParseState::Quote => {
+                if !did_encounter_escape && c == '"' {
                     let content = collect_slice(&query_chars, i, j, &escape_indices);
-                    let term_parttype_children = if let QueryParseState::Quote = query_parse_state {
-                        (Some(tokenizer.wasm_tokenize(content).terms), QueryPartType::Phrase, None)
-                    } else {
-                        (None, QueryPartType::Bracket, Some(parse_query(content, tokenizer)))
-                    };
                     query_parse_state = QueryParseState::None;
 
-                    handle_op(
-                        &mut query_parts,
-                        QueryPart {
-                            is_corrected: false,
-                            is_stop_word_removed: false,
-                            should_expand: false,
-                            is_expanded: false,
-                            original_terms: None,
-                            terms: term_parttype_children.0,
-                            part_type: term_parttype_children.1,
-                            field_name: None,
-                            children: term_parttype_children.2,
-                        },
-                        &mut op_stack,
-                    );
+                    query_parts.push(QueryPart {
+                        is_corrected: false,
+                        is_stop_word_removed: false,
+                        should_expand: false,
+                        is_expanded: false,
+                        original_terms: None,
+                        terms: Some(tokenizer.wasm_tokenize(content).terms),
+                        part_type: QueryPartType::Phrase,
+                        field_name: None,
+                        children: None,
+                    });
+                    handle_op(&mut query_parts, &mut op_stack);
 
                     i = j + 1;
                     last_possible_unaryop_idx = i;
@@ -191,7 +182,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
                 }
             }
             QueryParseState::None => {
-                if !did_encounter_escape && (c == '"' || c == '(') {
+                if !did_encounter_escape && (c == '"' || c == '(' || c == ')') {
                     handle_terminator(
                         tokenizer,
                         &query_chars,
@@ -202,8 +193,51 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
                         &mut op_stack,
                     );
 
-                    query_parse_state = if c == '"' { QueryParseState::Quote } else { QueryParseState::Parentheses };
                     i = j + 1;
+
+                    match c {
+                        '"' => query_parse_state = QueryParseState::Quote,
+                        '(' => {
+                            query_parts.push(QueryPart {
+                                is_corrected: false,
+                                is_stop_word_removed: false,
+                                should_expand: false,
+                                is_expanded: false,
+                                original_terms: None,
+                                terms: None,
+                                part_type: QueryPartType::Bracket,
+                                field_name: None,
+                                children: None,
+                            });
+                            op_stack.push(Operator::OpenGroup);
+                            last_possible_unaryop_idx = i;
+                        },
+                        ')' => {
+                            if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup) {
+                                let mut children: Vec<QueryPart> = Vec::new();
+                                while let Some(mut last_part) = query_parts.pop() {
+                                    if let QueryPartType::Bracket = last_part.part_type {
+                                        if last_part.children.is_none() {
+                                            children.reverse();
+                                            last_part.children = Some(children);
+                                            query_parts.push(last_part);
+                                            
+                                            op_stack.pop();
+                                            handle_op(&mut query_parts, &mut op_stack);
+                                            break;
+                                        } else {
+                                            // Nested parentheses
+                                            children.push(last_part);
+                                        }
+                                    } else {
+                                        children.push(last_part);
+                                    }
+                                }
+                            }
+                            last_possible_unaryop_idx = i;
+                        },
+                        _ => {}
+                    }
                 } else if c == ':' && !did_encounter_escape && last_possible_unaryop_idx >= i && j > i {
                     handle_terminator(
                         tokenizer,
@@ -524,6 +558,27 @@ pub mod test {
                 wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
             ]
         );
+        assert_eq!(
+            parse("(lorem ipsum) lorem (lorem ipsum)"),
+            vec![
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+                get_lorem().no_expand(),
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+            ]
+        );
+        assert_eq!(
+            parse("((lorem ipsum) lorem) (lorem(ipsum))"),
+            vec![
+                wrap_in_parentheses(vec![
+                    wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
+                    get_lorem(),
+                ]),
+                wrap_in_parentheses(vec![
+                    get_lorem(),
+                    wrap_in_parentheses(vec![get_ipsum()]),
+                ]),
+            ]
+        );
     }
 
     #[test]
@@ -581,6 +636,28 @@ pub mod test {
             vec![
                 get_phrase(vec!["lorem", "and", "ipsum"]).with_field("title"),
                 wrap_in_not(wrap_in_parentheses(vec![get_phrase(vec!["lorem", "ipsum"])]).with_field("title")),
+                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
+            ]
+        );
+
+        assert_eq!(
+            parse("title:(lorem AND body:(lorem ipsum))NOT title:((body:\"lorem\") ipsum) body:(lorem NOT ipsum)"),
+            vec![
+                wrap_in_parentheses(vec![
+                    wrap_in_and(vec![
+                        get_lorem(),
+                        wrap_in_parentheses(vec![
+                            get_lorem(),
+                            get_ipsum(),
+                        ]).with_field("body"),
+                    ])
+                ]).with_field("title"),
+                wrap_in_not(wrap_in_parentheses(vec![
+                    wrap_in_parentheses(vec![
+                        get_phrase(vec!["lorem"]).with_field("body"),
+                    ]),
+                    get_ipsum(),
+                ]).with_field("title")),
                 wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
             ]
         );
