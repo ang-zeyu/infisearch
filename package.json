@@ -14,7 +14,7 @@
     "lint": "cd packages/indexer && eslint . --ext .ts && cd ../.. && eslint packages/search --ext .js",
     "lintfix": "eslint packages/indexer --ext .ts --fix && eslint packages/search --ext .js --fix",
     "setup": "npm install && lerna bootstrap",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cargo test",
     "installIndexer": "cargo install --path packages/morsels_indexer"
   },
   "author": "",
