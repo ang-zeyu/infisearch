@@ -135,6 +135,8 @@ pub fn worker(
                     num_docs,
                     total_num_docs,
                 );
+
+                #[cfg(debug_assertions)]
                 println!("Worker {} wrote spimi block {}!", id, block_number);
 
                 {
@@ -142,6 +144,7 @@ pub fn worker(
                 }
             }
             MainToWorkerMessage::Reset(barrier) => {
+                #[cfg(debug_assertions)]
                 println!("Worker {} resetting!", id);
 
                 // return the indexed documents...

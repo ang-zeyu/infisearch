@@ -132,6 +132,7 @@ impl PostingsStream {
                     std::mem::swap(&mut postings_stream_reader.future_term_buffer, &mut self.term_buffer);
                 }
                 PostingsStreamDecoder::None => {
+                    #[cfg(debug_assertions)]
                     if do_print_blocked_msg {
                         println!("Blocked! Ouch! Consider increasing the decode buffer size...");
                     }
@@ -470,6 +471,7 @@ pub fn merge_blocks(
     // Varint buffer
     let mut varint_buf: [u8; 16] = [0; 16];
 
+    #[cfg(debug_assertions)]
     println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
 
     while !postings_streams.is_empty() {

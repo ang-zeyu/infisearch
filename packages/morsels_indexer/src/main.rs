@@ -65,6 +65,7 @@ fn main() {
     let (input_folder_path, output_folder_path, config_file_path) =
         resolve_folder_paths(&args.source_folder_path, &args.output_folder_path, args.config_file_path.as_ref());
 
+    #[cfg(debug_assertions)]
     println!(
         "Resolved Paths:\n{}\n{}\n{}",
         input_folder_path.to_str().unwrap(),

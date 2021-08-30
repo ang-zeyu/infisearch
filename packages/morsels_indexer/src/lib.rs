@@ -490,7 +490,9 @@ impl Indexer {
 
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
         if self.spimi_counter != 0 && self.spimi_counter != self.indexing_config.num_docs_per_block {
+            #[cfg(debug_assertions)]
             println!("Writing last spimi block");
+
             let block_number = self.block_number();
             Indexer::write_block(
                 &self.num_workers_writing_blocks,
@@ -508,7 +510,10 @@ impl Indexer {
 
         // Wait on all workers
         Worker::wait_on_all_workers(&self.tx_main, self.indexing_config.num_threads);
+
+        #[cfg(debug_assertions)]
         println!("Number of docs: {}", self.doc_id_counter);
+
         if let Some(now) = instant {
             print_time_elapsed(now, "Block indexing done!");
         }
@@ -558,5 +563,6 @@ impl Indexer {
 
 fn print_time_elapsed(instant: Instant, extra_message: &str) {
     let elapsed = instant.elapsed().as_secs_f64();
+    #[cfg(debug_assertions)]
     println!("{} {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
 }

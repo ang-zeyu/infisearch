@@ -65,6 +65,7 @@ impl Indexer {
             let worker_msg = rx_main.recv();
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
+                    #[cfg(debug_assertions)]
                     println!("Worker {} data received!", worker_msg_unwrapped.id);
                     worker_index_results
                         .push(worker_msg_unwrapped.block_index_results.expect("Received non doc miner message!"));
@@ -202,6 +203,7 @@ pub fn combine_worker_results_and_write_block(
         let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
         let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
 
+        #[cfg(debug_assertions)]
         println!(
             "Writing bsbi block {} to {}, num terms {}",
             block_number,
