@@ -2,7 +2,7 @@
 
 `mdbook-morsels` is a simple proof-of-concept search plugin for [mdbook](https://github.com/rust-lang/mdBook) to use morsels' search functions instead.
 
-It uses the css variables provided by the 5 main default themes in mdbook to style the search user interface.
+It uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. You can switch the themes in this documentation to try out the different themes.
 
 ## Installation
 

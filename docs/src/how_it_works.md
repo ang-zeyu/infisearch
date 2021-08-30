@@ -34,9 +34,12 @@ Device capabilities is also another concern (e.g. performance when ranking and p
 
 ### WebWorker built in
 
-Most of the search library operates on a WebWorker, so you don't have to worry about blocking the UI thread.
+Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.
 
-Document field store population is however, done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.
+Document field store population is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.
+
+Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
+One of the main reasons is that there is simply no way of parsing html (the original html document can be used as a field store) faster than the implementations provided by the browser.
 
 ### Wasm / Rust for the searcher
 
@@ -46,8 +49,8 @@ The usual wasm overheads of transferring large, complex data structures across t
 
 ### Rust for the indexer
 
-Rust was chosen for the indexer mainly as this was my first project in Rust.
+Rust was chosen for the indexer mainly as this was my first project in Rust. =P
 
-In retrospect, performance is critical for indexing fairly large collections nonetheless, making Rust a good choice for the indexer.
+In retrospect, performance is critical for indexing fairly large collections nonetheless, making Rust a fairly good choice for the indexer.
 
-A javascript implementation was also trialed in early stages (see the commit history). While javascript has come a long way in performance, it is inevitably still leaps behind a compiled language.
+A javascript implementation was also trialed in early stages of development (see the commit history). While javascript has come a long way in performance, it is inevitably still leaps behind a compiled language.
