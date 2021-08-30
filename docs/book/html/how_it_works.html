@@ -1,0 +1,236 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>How it Works - Morsels Documentation</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html" class="active"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Morsels Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <script src="search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="search-ui.css">
+<style>
+.morsels-root {
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-fg: var(--fg);
+    --morsels-bg: var(--bg);
+    --morsels-item-border: 1px solid var(--table-border-color);
+    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--bg);
+    --morsels-title-hover-bg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-bg: var(--sidebar-bg);
+    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
+    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
+    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
+    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+</style>
+<p><input
+    type="text"
+    id="morsels-search"
+    placeholder="Search"
+    style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
+/></p>
+<h1 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h1>
+<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>&quot;Morsels&quot;</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>65535</code> bytes as much as possible.</p>
+<p>On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (<code>&lt; 1gb</code>).</p>
+<p>The index files of searched terms will be requested only on-demand from a static file server.</p>
+<h2 id="limits"><a class="header" href="#limits">Limits</a></h2>
+<p>The practicality / scalability of this tool is bound by 2 factors:</p>
+<h3 id="size-of-the-largest-index-chunk"><a class="header" href="#size-of-the-largest-index-chunk">Size of the largest index chunk</a></h3>
+<p>While the index is split into many chunks, some chunks may exceed the &quot;split size&quot; of <code>65535</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like &quot;the&quot;). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
+<p>Certain <a href="./indexing_configuration.html">indexing options</a> like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.</p>
+<h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
+<p>The test collection used during development is a pure-text <code>380mb</code> .csv file, with positional indexing enabled. No stop word removal is done.</p>
+<p>Under these settings, the largest chunk weighed <code>5mb</code>.</p>
+<p>As an estimate, this library should be able to handle collections &lt; <code>800mb</code> with positional indexing. Without it, the index shrinks 3-4 fold, making it potentially possible to index collections <code>~2gb</code> in size.</p>
+<h3 id="hardware-capabilities"><a class="header" href="#hardware-capabilities">Hardware capabilities</a></h3>
+<p>Device capabilities is also another concern (e.g. performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor long before experiencing issues with this.</p>
+<h2 id="other-design-choices"><a class="header" href="#other-design-choices">Other Design Choices</a></h2>
+<h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker built in</a></h3>
+<p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.</p>
+<p>Document field store population is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
+<p>Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
+One of the main reasons is that there is simply no way of parsing html (the original html document can be used as a field store) faster than the implementations provided by the browser.</p>
+<h3 id="wasm--rust-for-the-searcher"><a class="header" href="#wasm--rust-for-the-searcher">Wasm / Rust for the searcher</a></h3>
+<p>The search portion of the project was developed in typescript for a very large part. While usable, switching to a wasm / rust implementation yielded 2-3 fold performance benefits on average, and never slower.</p>
+<p>The usual wasm overheads of transferring large, complex data structures across the boundary don't quite apply for the use cases here either, as only index chunks are transferred over in raw byte representation.</p>
+<h3 id="rust-for-the-indexer"><a class="header" href="#rust-for-the-indexer">Rust for the indexer</a></h3>
+<p>Rust was chosen for the indexer mainly as this was my first project in Rust. =P</p>
+<p>In retrospect, performance is critical for indexing fairly large collections nonetheless, making Rust a fairly good choice for the indexer.</p>
+<p>A javascript implementation was also trialed in early stages of development (see the commit history). While javascript has come a long way in performance, it is inevitably still leaps behind a compiled language.</p>
+<script>
+    initMorsels({
+        searcherOptions: {
+          url: '/morsels_output',
+        },
+        sourceFilesUrl: '',
+        render: {
+            enablePortal: true
+        }
+    });
+</script>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="search_features.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="search_features.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+    </body>
+</html>
