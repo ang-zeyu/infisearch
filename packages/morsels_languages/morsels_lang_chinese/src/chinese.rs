@@ -93,7 +93,7 @@ impl Tokenizer for ChineseTokenizer {
     }
 
     fn use_default_trigram(&self) -> bool {
-        false
+        true
     }
 
     fn get_best_corrected_term(
