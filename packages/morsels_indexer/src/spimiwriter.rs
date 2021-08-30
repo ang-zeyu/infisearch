@@ -48,6 +48,9 @@ impl Indexer {
                 .expect("Failed to send reset message!");
         }
 
+        *num_workers_writing_blocks += 1;
+        drop(num_workers_writing_blocks);
+
         // Receive doc miners
         for _i in 0..num_workers_to_collect {
             let worker_msg = rx_main.recv();
@@ -61,7 +64,6 @@ impl Indexer {
             }
         }
 
-        *num_workers_writing_blocks += 1;
         tx_main
             .send(MainToWorkerMessage::Combine {
                 worker_index_results,
