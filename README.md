@@ -1,4 +1,4 @@
-# Morsels 🧀
+# Morsels.`j/rs` 🧀
 
 A more scalable pre-built index approach to client-side search.
 
@@ -20,4 +20,14 @@ The main value proposition here versus other pre-built index options is the spli
 
 ## Getting Started
 
-Please refer to the [docs]().
+Please refer to the [docs]()!
+
+## Contributing
+
+Contributions are highly welcome! Please refer to the [setup guide]() to get started.
+
+---
+
+## License
+
+This project is [MIT licensed](./LICENSE.md).
