@@ -1,4 +1,5 @@
 use std::collections::BinaryHeap;
+use std::env::consts::OS;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Seek, SeekFrom, Write};
@@ -20,6 +21,14 @@ use crate::FieldInfos;
 use crate::Indexer;
 use crate::MainToWorkerMessage;
 use crate::WorkerToMainMessage;
+
+lazy_static! {
+    static ref NULL_HANDLER: &'static str = match OS {
+        "linux" | "macos" => "/dev/null",
+        "windows" => "nul",
+        _ => "",
+    };
+}
 
 impl Indexer {
     #[allow(clippy::too_many_arguments)]
@@ -122,7 +131,11 @@ pub fn combine_worker_results_and_write_block(
         // Store field texts
         let mut count = total_num_docs;
         let mut block_count = 0;
-        let mut writer = BufWriter::new(File::create(field_infos.field_output_folder_path.join(".nul")).unwrap());
+        let mut writer = BufWriter::new(if NULL_HANDLER.len() == 0 {
+            File::create(field_infos.field_output_folder_path.join(".nul".to_owned() + &block_number.to_string()[..])).unwrap()
+        } else {
+            File::create(*NULL_HANDLER).unwrap()
+        });
         for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
             block_count += 1;
 
