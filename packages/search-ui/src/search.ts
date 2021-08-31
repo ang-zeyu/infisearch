@@ -258,6 +258,7 @@ function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => 
     () => options.render.hide(portalRoot, options.render.opts, true),
   );
   portalInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
+  portalInput.addEventListener('keydown', (ev) => ev.stopPropagation());
   portalListContainer.appendChild(options.render.portalBlankRender(createElement, options.render.opts));
 
   // Dropdown version
@@ -271,6 +272,7 @@ function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => 
     parent.appendChild(root);
 
     input.addEventListener('input', inputListener(root, listContainer, false));
+    input.addEventListener('keydown', (ev) => ev.stopPropagation());
 
     input.addEventListener('blur', () => {
       if (options.render.enablePortal) {
