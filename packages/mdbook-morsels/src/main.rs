@@ -101,7 +101,7 @@ static STYLES: &str = r#"
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
-    --morsels-item-border: 1px solid var(--table-border-color);
+    --morsels-item-border-radius: 10px;
     --morsels-item-sub-border:  1px solid var(--table-border-color);
     --morsels-dropdown-input-separator-bg: var(--table-header-bg);
     --morsels-title-bg: var(--table-header-bg);
@@ -115,6 +115,7 @@ static STYLES: &str = r#"
     --morsels-loading-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-box-shadow: none;
     --morsels-fullscreen-header-bg: var(--sidebar-bg);
     --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
     --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
@@ -182,7 +183,10 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
         }},
         sourceFilesUrl: '',
         render: {{
-            enablePortal: {}
+            enablePortal: {},
+            opts: {{
+                dropdownAlignment: 'left'
+            }}
         }}
     }});
 </script>",
