@@ -95,7 +95,8 @@ static INPUT_EL: &str = "\n<input
     style=\"width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;\"
 />\n\n";
 
-static STYLES: &str = r#"<style>
+static STYLES: &str = r#"
+<style>
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
@@ -125,7 +126,8 @@ static STYLES: &str = r#"<style>
     --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
     --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
 }
-</style>"#;
+</style>
+"#;
 
 fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
     let mut output = String::new();
