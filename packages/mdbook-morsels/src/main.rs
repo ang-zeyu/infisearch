@@ -64,7 +64,7 @@ fn main() {
             .arg("-c")
             .arg(morsels_config_path);
 
-        command.output().expect("failed to execute indexer process");
+        command.output().expect("mdbook-morsels: failed to execute indexer process");
     } else {
         let morsels_preprocessor = Morsels;
 
@@ -77,8 +77,8 @@ fn main() {
                 std::process::exit(1);
             }
         } else {
-            let (ctx, book) = CmdPreprocessor::parse_input(&*buf).expect("Preprocess JSON parsing failed");
-            let processed_book = morsels_preprocessor.run(&ctx, book).expect("Preprocess processing failed");
+            let (ctx, book) = CmdPreprocessor::parse_input(&*buf).expect("mdbook-morsels: Preprocess JSON parsing failed");
+            let processed_book = morsels_preprocessor.run(&ctx, book).expect("mdbook-morsels: Preprocess processing failed");
             serde_json::to_writer(io::stdout(), &processed_book).unwrap();
             std::process::exit(0);
         }
@@ -206,13 +206,11 @@ impl Preprocessor for Morsels {
             "/"
         };
 
-        let asset_els = get_assets_els(&site_url, &ctx) + INPUT_EL;
-
         let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.portal"), site_url);
 
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
-                ch.content = asset_els + &ch.content + &init_morsels_el;
+                ch.content = get_assets_els(&site_url, &ctx) + INPUT_EL + &ch.content + &init_morsels_el;
             }
         });
 
