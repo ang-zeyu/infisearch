@@ -162,15 +162,15 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
 
 impl Preprocessor for Morsels {
     fn name(&self) -> &str {
-        "nop-preprocessor"
+        "morsels"
     }
 
     fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
-        /* if let Some(nop_cfg) = ctx.config.get_preprocessor(self.name()) {
+        if let Some(nop_cfg) = ctx.config.get_preprocessor("morsels") {
             if nop_cfg.contains_key("blow-up") {
                 anyhow::bail!("Boom!!1!");
             }
-        } */
+        }
 
         let css_el = if let Some(TomlBoolean(no_css)) = ctx.config.get("output.morsels.no-css") {
             if *no_css {
