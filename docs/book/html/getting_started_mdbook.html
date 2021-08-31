@@ -121,7 +121,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <script src="search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="search-ui.css">
+                        <script src="/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels_assets/search-ui.css">
 <style>
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
@@ -185,7 +185,8 @@ renderer = [&quot;html&quot;]          # this should only be run for the html re
 portal = true
 
 # Relative path to the indexer configuration file from the root project directory
-config = &quot;...&quot;
+# This will automatically be created if it dosen't exist.
+config = &quot;_morsels_config.json&quot;
 
 # Don't add the default stylesheet from morsels/search-ui,
 # nor the inline css variables for the default mdbook themes
