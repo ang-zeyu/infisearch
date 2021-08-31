@@ -1,6 +1,6 @@
 extern crate mdbook;
 
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, Read};
 use std::process::Command;
@@ -36,9 +36,12 @@ fn main() {
 
     if let Ok(ctx) = RenderContext::from_json(&*buf) {
         let html_renderer_path = ctx.destination.join("../html");
+
+        let assets_output_dir = html_renderer_path.join("morsels_assets");
+        fs::create_dir_all(&assets_output_dir).expect("mdbook-morsels: Failed to create assets output directory");
         for file in SEARCH_UI_DIST.files() {
-            let mut output_file = File::create(html_renderer_path.join(file.path())).unwrap();
-            output_file.write_all(file.contents()).expect("Failed to copy search-ui assets!");
+            let mut output_file = File::create((&assets_output_dir).join(file.path())).expect("mdbook-morsels: Failed to open asset write handler");
+            output_file.write_all(file.contents()).expect("mdbook-morsels: Failed to copy search-ui assets!");
         }
 
         let morsels_config_path = if let Some(TomlString(morsels_config_file_path)) = ctx.config.get("output.morsels.config") {
@@ -92,10 +95,7 @@ static INPUT_EL: &str = "\n<input
     style=\"width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;\"
 />\n\n";
 
-static SCRIPT_EL: &str = r#"<script src="search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>"#;
-static CSS_EL: &str = r#"<link rel="stylesheet" href="search-ui.css">
-
-<style>
+static STYLES: &str = r#"<style>
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
@@ -126,6 +126,34 @@ static CSS_EL: &str = r#"<link rel="stylesheet" href="search-ui.css">
     --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
 }
 </style>"#;
+
+fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
+    let mut output = String::new();
+    output.push_str(&format!(
+        r#"<script src="{}morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>"#,
+        base_url
+    ));
+
+    let add_css = if let Some(TomlBoolean(no_css)) = ctx.config.get("output.morsels.no-css") {
+        if *no_css {
+            false
+        } else {
+            true
+        }
+    } else {
+        true
+    };
+
+    if add_css {
+        output.push_str(&format!(
+            r#"<link rel="stylesheet" href="{}morsels_assets/search-ui.css">"#,
+            base_url
+        ));
+        output.push_str(STYLES);
+    }
+
+    output
+}
 
 fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> String {
     let enable_portal = if let Some(enable_portal) = enable_portal {
@@ -172,27 +200,19 @@ impl Preprocessor for Morsels {
             }
         }
 
-        let css_el = if let Some(TomlBoolean(no_css)) = ctx.config.get("output.morsels.no-css") {
-            if *no_css {
-                ""
-            } else {
-                CSS_EL
-            }
-        } else {
-            CSS_EL
-        };
-
         let site_url = if let Some(TomlString(site_url)) = ctx.config.get("output.html.site-url") {
             site_url
         } else {
             "/"
         };
 
+        let asset_els = get_assets_els(&site_url, &ctx) + INPUT_EL;
+
         let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.portal"), site_url);
 
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
-                ch.content = SCRIPT_EL.to_owned() + css_el + INPUT_EL + &ch.content + &init_morsels_el;
+                ch.content = asset_els + &ch.content + &init_morsels_el;
             }
         });
 
