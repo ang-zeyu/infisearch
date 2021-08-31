@@ -90,7 +90,7 @@ fn get_default_with_positions() -> bool {
 
 #[derive(Serialize, Deserialize)]
 pub struct MorselsIndexingConfig {
-    #[serde(default = "get_default_num_threads")]
+    #[serde(default = "get_default_num_threads", skip_serializing)]
     num_threads: usize,
 
     #[serde(default = "get_default_num_docs_per_block")]
