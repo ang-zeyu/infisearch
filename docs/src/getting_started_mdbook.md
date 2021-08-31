@@ -29,7 +29,8 @@ renderer = ["html"]          # this should only be run for the html renderer
 portal = true
 
 # Relative path to the indexer configuration file from the root project directory
-config = "..."
+# This will automatically be created if it dosen't exist.
+config = "_morsels_config.json"
 
 # Don't add the default stylesheet from morsels/search-ui,
 # nor the inline css variables for the default mdbook themes

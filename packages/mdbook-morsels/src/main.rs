@@ -41,13 +41,25 @@ fn main() {
             output_file.write_all(file.contents()).expect("Failed to copy search-ui assets!");
         }
 
-        let mut command = Command::new("morsels");
-        command.current_dir(html_renderer_path).args(&["./", "./morsels_output", "--dynamic"]);
+        let morsels_config_path = if let Some(TomlString(morsels_config_file_path)) = ctx.config.get("output.morsels.config") {
+            ctx.root.join(morsels_config_file_path)
+        } else {
+            ctx.root.join("_morsels_config.json")
+        };
 
-        if let Some(TomlString(morsels_config_file_path)) = ctx.config.get("output.morsels.config") {
-            command.arg("-c");
-            command.arg(morsels_config_file_path);
+        if !morsels_config_path.exists() || !morsels_config_path.is_file() {
+            let mut init_config_command = Command::new("morsels");
+            init_config_command.current_dir(ctx.root.clone()).args(&["./", "./morsels_output", "--init"]);
+            init_config_command.arg("-c");
+            init_config_command.arg(&morsels_config_path);
+            init_config_command.output().expect("mdbook-morsels: failed to create default configuration file");
         }
+
+        let mut command = Command::new("morsels");
+        command.current_dir(html_renderer_path)
+            .args(&["./", "./morsels_output", "--dynamic"])
+            .arg("-c")
+            .arg(morsels_config_path);
 
         command.output().expect("failed to execute indexer process");
     } else {
