@@ -26,8 +26,6 @@ Please refer to the [docs]()!
 
 Contributions are highly welcome! Please refer to the [setup guide]() to get started.
 
----
-
 ## License
 
 This project is [MIT licensed](./LICENSE.md).
