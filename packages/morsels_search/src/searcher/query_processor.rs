@@ -446,7 +446,8 @@ mod test {
     use pretty_assertions::assert_eq;
     use rustc_hash::FxHashMap;
 
-    use crate::postings_list::{PostingsList, TermDoc, DocField};
+    use crate::postings_list::PostingsList;
+    use crate::postings_list::test::{to_pl, to_pl_rc};
     use crate::searcher::test as searcher_test;
     use crate::searcher::query_parser::test as query_parser_test;
 
@@ -459,46 +460,6 @@ mod test {
             self.0.insert(term.to_owned(), to_pl(pl_str));
             self
         }
-    }
-
-    // Takes a vector of "TermDoc", containing a vector of "fields", containing a tuple of (field_tf, vector of field positions)
-    // E.g. a TermDoc containing 2 fields of term frequency 2 and 1: [ [2,[1,2]], [1,[120]] ]
-    fn to_pl(text: &str) -> PostingsList {
-        let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = serde_json::from_str(&format!("[{}]", text)).unwrap();
-
-        let term_docs: Vec<TermDoc> = vec.into_iter()
-            .enumerate()
-            .filter(|doc_fields| doc_fields.1.is_some())
-            .map(|doc_fields| (doc_fields.0, doc_fields.1.unwrap()))
-            .map(|(doc_id, doc_fields)| {
-                let fields: Vec<DocField> = doc_fields.into_iter().map(|(field_tf, field_positions)| {
-                    DocField {
-                        field_tf,
-                        field_positions
-                    }
-                }).collect();
-
-                TermDoc {
-                    doc_id: doc_id as u32,
-                    fields,
-                }
-            })
-            .collect();
-
-        
-        PostingsList {
-            term_docs,
-            weight: 1.0,
-            idf: 1.0,
-            include_in_proximity_ranking: true,
-            term: None,
-            term_info: None,
-            max_term_score: 0.0,
-        }
-    }
-
-    fn to_pl_rc(text: &str) -> Rc<PostingsList> {
-        Rc::new(to_pl(text))
     }
 
     fn search(query: &str, term_postings_lists: FxHashMap<String, PostingsList>) -> Vec<Rc<PostingsList>> {

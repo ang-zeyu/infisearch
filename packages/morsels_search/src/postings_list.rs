@@ -286,3 +286,94 @@ impl PostingsList {
         Ok(())
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    use std::rc::Rc;
+
+    use pretty_assertions::assert_eq;
+
+    use super::{PostingsList, TermDoc, DocField};
+
+    // Takes a vector of "TermDoc", containing a vector of "fields", containing a tuple of (field_tf, vector of field positions)
+    // E.g. a TermDoc containing 2 fields of term frequency 2 and 1: [ [2,[1,2]], [1,[120]] ]
+    pub fn to_pl(text: &str) -> PostingsList {
+        let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = serde_json::from_str(&format!("[{}]", text)).unwrap();
+
+        let term_docs: Vec<TermDoc> = vec.into_iter()
+            .enumerate()
+            .filter(|doc_fields| doc_fields.1.is_some())
+            .map(|doc_fields| (doc_fields.0, doc_fields.1.unwrap()))
+            .map(|(doc_id, doc_fields)| vec_to_term_doc(doc_id as u32, doc_fields))
+            .collect();
+
+        
+        PostingsList {
+            term_docs,
+            weight: 1.0,
+            idf: 1.0,
+            include_in_proximity_ranking: true,
+            term: None,
+            term_info: None,
+            max_term_score: 0.0,
+        }
+    }
+
+    fn vec_to_term_doc(doc_id: u32, doc_fields: Vec<(f32, Vec<u32>)>) -> TermDoc {
+        let fields: Vec<DocField> = doc_fields.into_iter().map(|(field_tf, field_positions)| {
+            DocField {
+                field_tf,
+                field_positions
+            }
+        }).collect();
+
+        TermDoc {
+            doc_id,
+            fields,
+        }
+    }
+
+    pub fn to_pl_rc(text: &str) -> Rc<PostingsList> {
+        Rc::new(to_pl(text))
+    }
+
+    fn to_term_doc(text: &str) -> TermDoc {
+        let doc_fields: Vec<(f32, Vec<u32>)> = serde_json::from_str(text).unwrap();
+        vec_to_term_doc(0, doc_fields)
+    }
+
+    #[test]
+    fn test_term_doc_merge() {
+        assert_eq!(
+            PostingsList::merge_term_docs(
+                &to_term_doc("[ [2,[1,2]] ]"),
+                &to_term_doc("[ [1,[120]] ]"),
+            ),
+            to_term_doc("[ [3,[1,2,120]] ]"),
+        );
+
+        assert_eq!(
+            PostingsList::merge_term_docs(
+                &to_term_doc("[ [2,[1,2]] ]"),
+                &to_term_doc("[ [0,[]], [1,[120]] ]"),
+            ),
+            to_term_doc("[ [2,[1,2]], [1,[120]] ]"),
+        );
+
+        assert_eq!(
+            PostingsList::merge_term_docs(
+                &to_term_doc("[ [2,[1,2]], [1,[120]] ]"),
+                &to_term_doc("[ [2,[1,2]] ]"),
+            ),
+            to_term_doc("[ [4,[1,2]], [1,[120]] ]"),
+        );
+
+        assert_eq!(
+            PostingsList::merge_term_docs(
+                &to_term_doc("[ [2,[1,2]], [1,[120]] ]"),
+                &to_term_doc("[ [2,[1,2]], [1,[121]] ]"),
+            ),
+            to_term_doc("[ [4,[1,2]], [2,[120,121]] ]"),
+        );
+    }
+}
