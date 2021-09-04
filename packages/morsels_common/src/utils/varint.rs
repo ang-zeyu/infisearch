@@ -20,3 +20,53 @@ pub fn decode_var_int(slice: &[u8]) -> (u32, usize) {
 
     (current_value, pos)
 }
+
+#[cfg(test)]
+mod test {
+    use pretty_assertions::assert_eq;
+
+    use super::{decode_var_int, CONTINUATION_MASK};
+
+    #[test]
+    fn test_decode() {
+        assert_eq!(
+            decode_var_int(&[]),
+            (0, 0)
+        );
+
+        assert_eq!(
+            decode_var_int(&[CONTINUATION_MASK | 0]),
+            (0, 1)
+        );
+
+        assert_eq!(
+            decode_var_int(&[CONTINUATION_MASK | 64]),
+            (64, 1)
+        );
+
+        assert_eq!(
+            decode_var_int(&[CONTINUATION_MASK | 127]),
+            (127, 1)
+        );
+
+        assert_eq!(
+            decode_var_int(&[0, CONTINUATION_MASK | 127]),
+            (16256, 2)
+        );
+
+        assert_eq!(
+            decode_var_int(&[10, CONTINUATION_MASK | 127]),
+            (16266, 2)
+        );
+
+        assert_eq!(
+            decode_var_int(&[127, CONTINUATION_MASK | 127]),
+            (16383, 2)
+        );
+
+        assert_eq!(
+            decode_var_int(&[127, 127, 127, 127, CONTINUATION_MASK | 15]),
+            (u32::MAX, 5)
+        );
+    }
+}
