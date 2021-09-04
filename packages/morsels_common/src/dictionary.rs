@@ -69,34 +69,34 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
         prev_term = term;
     }
 
-    let trigrams = if build_trigram { Dictionary::setup_trigrams(&term_infos) } else { FxHashMap::default() };
+    let trigrams = if build_trigram { setup_trigrams(&term_infos) } else { FxHashMap::default() };
 
     Dictionary { term_infos, trigrams }
+}
+
+fn setup_trigrams(term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<SmartString, Vec<Rc<String>>> {
+    let mut trigrams: FxHashMap<SmartString, Vec<Rc<String>>> = FxHashMap::default();
+
+    for term in term_infos.keys() {
+        for term_trigram in get_tri_grams(term) {
+            match trigrams.get_mut(term_trigram) {
+                Some(terms) => {
+                    terms.push(Rc::clone(term));
+                }
+                None => {
+                    let mut term_vec: Vec<Rc<String>> = Vec::with_capacity(20);
+                    term_vec.push(Rc::clone(term));
+                    trigrams.insert(SmartString::from(term_trigram), term_vec);
+                }
+            }
+        }
+    }
+
+    trigrams
 }
 
 impl Dictionary {
     pub fn get_term_info(&self, term: &str) -> Option<&Rc<TermInfo>> {
         self.term_infos.get(&String::from(term))
-    }
-
-    fn setup_trigrams(term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<SmartString, Vec<Rc<String>>> {
-        let mut trigrams: FxHashMap<SmartString, Vec<Rc<String>>> = FxHashMap::default();
-
-        for term in term_infos.keys() {
-            for term_trigram in get_tri_grams(term) {
-                match trigrams.get_mut(term_trigram) {
-                    Some(terms) => {
-                        terms.push(Rc::clone(term));
-                    }
-                    None => {
-                        let mut term_vec: Vec<Rc<String>> = Vec::with_capacity(20);
-                        term_vec.push(Rc::clone(term));
-                        trigrams.insert(SmartString::from(term_trigram), term_vec);
-                    }
-                }
-            }
-        }
-
-        trigrams
     }
 }
