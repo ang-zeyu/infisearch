@@ -3,11 +3,24 @@ use smartstring::alias::String as SmartString;
 use std::borrow::Cow;
 use std::rc::Rc;
 
+#[cfg_attr(test, derive(Debug))]
 pub struct TermInfo {
     pub doc_freq: u32,
     pub idf: f64,
     pub postings_file_name: u32,
     pub postings_file_offset: u32,
+}
+
+#[cfg(test)]
+impl Eq for TermInfo {}
+
+#[cfg(test)]
+impl PartialEq for TermInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.doc_freq == other.doc_freq
+            && self.postings_file_name == other.postings_file_name
+            && self.postings_file_offset == other.postings_file_offset
+    }
 }
 
 pub trait Tokenizer {

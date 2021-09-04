@@ -1271,6 +1271,7 @@ name = "morsels_common"
 version = "0.0.0"
 dependencies = [
  "byteorder",
+ "pretty_assertions",
  "rustc-hash",
  "serde",
  "serde_json",
@@ -1292,6 +1293,7 @@ dependencies = [
  "morsels_lang_latin",
  "num_cpus",
  "path-slash",
+ "pretty_assertions",
  "regex",
  "rustc-hash",
  "scraper",

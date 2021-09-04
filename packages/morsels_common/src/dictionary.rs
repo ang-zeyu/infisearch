@@ -100,3 +100,83 @@ impl Dictionary {
         self.term_infos.get(&String::from(term))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::rc::Rc;
+
+    use pretty_assertions::assert_eq;
+    use rustc_hash::FxHashMap;
+    use smartstring::alias::String;
+
+    use crate::tokenize::TermInfo;
+
+    #[test]
+    fn test_dictionary_setup() {
+        let dictionary = super::setup_dictionary(
+            vec![
+                129, 255, 255, 0, 0,
+                129, 255, 255, 0, 0,
+                128,
+                129, 255, 255, 0, 0, 
+                129, 255, 255, 0, 0
+            ],
+            {
+                let mut string_vec = Vec::new();
+
+                string_vec.extend(&[0, 3]);
+                string_vec.extend("foo".as_bytes());
+
+                string_vec.extend(&[3, 3]);
+                string_vec.extend("bar".as_bytes());
+
+                string_vec.extend(&[0, 4]);
+                string_vec.extend("test".as_bytes());
+
+                string_vec.extend(&[2, 4]);
+                string_vec.extend("test".as_bytes());
+
+                string_vec
+            },
+            10,
+            false
+        );
+
+        assert_eq!(
+            dictionary.term_infos,
+            {
+                let mut terms = FxHashMap::default();
+
+                terms.insert(Rc::new(String::from("foo")), Rc::new(TermInfo {
+                    doc_freq: 1,
+                    idf: 0.0,
+                    postings_file_name: 0,
+                    postings_file_offset: 65535,
+                }));
+
+                terms.insert(Rc::new(String::from("foobar")), Rc::new(TermInfo {
+                    doc_freq: 1,
+                    idf: 0.0,
+                    postings_file_name: 0,
+                    postings_file_offset: 65535,
+                }));
+
+                terms.insert(Rc::new(String::from("test")), Rc::new(TermInfo {
+                    doc_freq: 1,
+                    idf: 0.0,
+                    postings_file_name: 1,
+                    postings_file_offset: 65535,
+                }));
+
+                terms.insert(Rc::new(String::from("tetest")), Rc::new(TermInfo {
+                    doc_freq: 1,
+                    idf: 0.0,
+                    postings_file_name: 1,
+                    postings_file_offset: 65535,
+                }));
+
+                terms
+            }
+        )
+    }
+}
