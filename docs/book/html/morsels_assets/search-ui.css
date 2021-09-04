@@ -2,11 +2,14 @@
     --morsels-dropdown-width: 512px;
     --morsels-dropdown-max-height: 30em;
     --morsels-font-size: 16px;
-    --morsels-border: 3px solid var(--morsels-fullscreen-header-bg);
+    --morsels-border: none;
+    --morsels-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-fg: black;
     --morsels-bg: white;
     --morsels-dropdown-input-separator-bg: white;
-    --morsels-item-border: 1px solid rgba(67, 67, 67, 0.3);
+    --morsels-item-border: none;
+    --morsels-item-border-radius: 1px;
+    --morsels-item-box-shadow: 0 3px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 1px solid #949494;
     --morsels-title-fg: var(--morsels-fg);
     --morsels-title-bg: rgba(245, 169, 86, 0.33);
@@ -25,18 +28,21 @@
     --morsels-loading-bg: #fed;
     --morsels-scrollbar-bg: rgba(213, 177, 137, 0.15);
     --morsels-scrollbar-thumb-bg: rgba(213, 177, 137, 0.5);
+    --morsels-fullscreen-border: 3px solid var(--morsels-fullscreen-header-bg);
+    --morsels-fullscreen-box-shadow: 0 0 10px 3px rgb(218, 214, 208);
     --morsels-fullscreen-desktop-width: 700px;
     --morsels-fullscreen-desktop-height: 70%;
-    --morsels-fullscreen-header-bg: rgb(245, 200, 155);
+    --morsels-fullscreen-header-bg: rgb(255, 255, 255);
+    --morsels-fullscreen-header-border-bottom: 1px solid rgba(220, 220, 220, 0.3);
     --morsels-fullscreen-input-border: 2px solid rgba(253, 202, 144, 0.37);
     --morsels-fullscreen-input-focus-border: 2px solid rgba(255, 169, 66, 0.8);
     --morsels-fullscreen-input-focus-box-shadow: 0 0 5px rgba(255, 169, 66, 0.8);
-    --morsels-fullscreen-header-close-bg: rgba(255, 210, 144, 0.8);
-    --morsels-fullscreen-header-close-fg: rgba(246, 170, 73, 0.8);
-    --morsels-fullscreen-header-close-hover-bg: rgba(248, 168, 65, 0.5);
-    --morsels-fullscreen-header-close-hover-fg: rgb(252, 224, 197);
+    --morsels-fullscreen-header-close-bg: rgb(255, 255, 255);
+    --morsels-fullscreen-header-close-fg: rgb(253, 202, 144);
+    --morsels-fullscreen-header-close-hover-bg: rgb(255, 224, 183);
+    --morsels-fullscreen-header-close-hover-fg: rgb(255, 169, 66);
     --morsels-fullscreen-header-close-active-bg: rgba(246, 170, 73, 0.9);
-    --morsels-fullscreen-header-close-active-fg: rgb(255, 241, 226);
+    --morsels-fullscreen-header-close-active-fg: rgb(255, 169, 66);
     display: inline-block;
     position: relative;
     width: 100%;
@@ -53,7 +59,7 @@
  */
 
 .morsels-portal-backdrop {
-    --morsels-fullscreen-backdrop-bg: rgba(0, 0, 0, 0.2);
+    --morsels-fullscreen-backdrop-bg: rgba(0, 0, 0, 0.15);
     position: fixed;
     top: 0;
     left: 0;
@@ -79,6 +85,7 @@
     padding: 10px;
     font-size: 1.3em;
     background: var(--morsels-fullscreen-header-bg);
+    border-bottom: var(--morsels-fullscreen-header-border-bottom);
     z-index: 1000;
 }
 
@@ -162,7 +169,8 @@
 @media screen and (min-width: 1025px) {
     .morsels-portal-root {
         border-radius: 10px;
-        border: var(--morsels-border);
+        border: var(--morsels-fullscreen-border);
+        box-shadow: var(--morsels-fullscreen-box-shadow);
         top: 15%;
         left: calc(50% - (var(--morsels-fullscreen-desktop-width) / 2));
         width: var(--morsels-fullscreen-desktop-width);
@@ -178,7 +186,7 @@
     position: absolute;
     top: 100%;
     right: 16px;
-    z-index: 1;
+    z-index: 1001;
     width: 0;
     height: 0;
     border-left: 9px solid transparent;
@@ -198,7 +206,8 @@
 .morsels-list {
     padding: 0;
     border: var(--morsels-border);
-    border-radius: 8px;
+    border-radius: 5px;
+    box-shadow: var(--morsels-box-shadow);
     margin: 0;
     position: absolute;
     top: calc(100% + 8px);
@@ -223,6 +232,7 @@
     width: auto;
     max-height: calc(100% - 20px - 2.7em);
     border: none;
+    box-shadow: none;
     padding: 0 0.5em 0.5em 0.5em;
     background-color: transparent;
     position: static;
@@ -265,18 +275,19 @@
 .morsels-list-item {
     font-size: inherit;
     border: var(--morsels-item-border);
-    border-radius: 10px;
+    border-radius: var(--morsels-item-border-radius);
+    box-shadow: var(--morsels-item-box-shadow);
     margin: 18px 5px;
     overflow: hidden;
 }
 
 @media screen and (min-width: 1025px) {
     .morsels-list-item {
-        margin: 15px 10px;
+        margin: 18px 12px;
     }
 
     .morsels-list-item:first-child {
-        margin-top: 10px;
+        margin-top: 15px;
     }
 }
 
@@ -289,7 +300,6 @@
 .morsels-title {
     color: var(--morsels-title-fg);
     word-break: break-word;
-    border-radius: 10px 10px 0 0;
     padding: 3px 0.5em;
     background: var(--morsels-title-bg);
     font-size: 1.1em;
