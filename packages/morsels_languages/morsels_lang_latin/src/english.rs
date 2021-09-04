@@ -136,7 +136,7 @@ impl EnglishTokenizer {
     #[inline(always)]
     fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
         slice
-            .split_whitespace()
+            .split_ascii_whitespace()
             .map(|term_slice| {
                 let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
                 let filtered = term_filter(ascii_folded);
