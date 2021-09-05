@@ -83,7 +83,7 @@ The next [chapter](search_ui_configuration.md) will detail several options to he
 
 ## `lang_config`
 
-The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the `lang` key (only `latin` is supported for now). The `options` key supplies tokenization options unique to each module.
+The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the `lang` key. The `options` key supplies tokenization options unique to each module.
 
 Note that these options are also applied to the search library, which uses the same tokenizers through wasm.
 
@@ -101,9 +101,9 @@ Note that these options are also applied to the search library, which uses the s
 Morsels takes a slightly different approach with stop words in that stop words are only filtered at **query time** for certain types of queries (currently this is for free-text queries with more than two terms).
 
 This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:
-- For processing phrase queries (eg. `for tomorrow`)
+- For processing phrase queries (eg. `"for tomorrow"`)
 - Boolean queries (eg. `if AND forecast AND sunny`)
-- One or two term free text queries (not strictly necessary, but it is nice having some results showing up for queries like `"for"` than none)
+- One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.
 
 
 
@@ -163,20 +163,28 @@ Nonetheless, if you feel that a certain configuration option should be supported
 
 ## `indexing_config`
 
-All configurations are optional (reasonable defaults), save for the `loader_configs` key. The cli tool will simply do nothing if no loaders are specified.
+The configurations in this section specify **how and which** files to index.
+
+All configurations are optional (reasonable defaults provided otherwise), save for the `loader_configs` key. The cli tool **will do nothing** if no loaders are specified.
 
 The snippet below shows the default values, which need not be altered if you are only indexing html files.
 
 ```json
 {
   "indexing_config": {
-    "num_threads": 5,              // when unspecified, this is num physical cores - 1
-    "num_docs_per_block": 1000,    // this roughly controls the memory usage of the indexer
+    "num_threads": 5,              // when unspecified, this is max(num physical cores - 1, 1)
+
+    // This roughly controls the memory usage of the indexer
+    // If your documents are very small, increasing this may help improve indexing performance.
+    "num_docs_per_block": 1000,
+
     "exclude": [
       "_morsels_config.json"       // glob patterns to exclude from indexing
     ],
+
+    // Specifies what types of files to index
     "loader_configs": {
-      "HtmlLoader": {}
+      "HtmlLoader": {}             // enables support for .html files
     },
 
     // Any index files ("morsels") above this size (in bytes)
@@ -191,7 +199,7 @@ The snippet below shows the default values, which need not be altered if you are
 
     // Whether positions will be stored.
     // Phrase queries / Query Term Proximity Ranking will be unavailable if this is false.
-    // You'll want to turn this off for obscenely large collections.
+    // You'll want to turn this off for very large collections. (~> 1GB)
     "with_positions": true
   }
 }
@@ -205,7 +213,7 @@ You may configure loaders by including them under the `loader_configs` key, with
 
 The below sections shows the available loaders and configuration options available for each of them.
 
-`HtmlLoader`
+**`HtmlLoader`**
 
 ```json
 {
@@ -241,7 +249,7 @@ The html loader traverses the document depth-first. At each element, it checks i
 
 The `attr_map` allows indexing attributes of elements under fields as well.
 
-`JsonLoader`
+**`JsonLoader`**
 
 ```json
 {
@@ -270,7 +278,7 @@ The json files itself can be either
 1. An object, following the schema set out in `field_map`
 2. An array of objects following the schema set out in `field_map`
 
-`CsvLoader`
+**`CsvLoader`**
 
 ```json
 {
@@ -297,8 +305,7 @@ The json files itself can be either
       "escape": null,
       "has_headers": true,
       "quote": 34
-    },
-    "type": "CsvLoader"
+    }
   }
 }
 ```

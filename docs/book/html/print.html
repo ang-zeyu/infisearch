@@ -675,11 +675,11 @@ no-css = false
 <p>The search-ui package, <em>by default</em>, requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields, and the <code>_relative_fp</code> field above.</p>
 <p>The body field (and title, headings if available) are used to generate the result preview, whilst the <code>_relative_fp</code> field is used for navigating to the generated result.</p>
 <p>The next <a href="search_ui_configuration.html">chapter</a> will detail several options to help rename these fields, or even add additional fields and render them in result previews.</p>
-<h2 id="language"><a class="header" href="#language"><code>language</code></a></h2>
-<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key (only <code>latin</code> is supported for now). The <code>options</code> key supplies tokenization options unique to each module.</p>
+<h2 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h2>
+<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key. The <code>options</code> key supplies tokenization options unique to each module.</p>
 <p>Note that these options are also applied to the search library, which uses the same tokenizers through wasm.</p>
 <pre><code class="language-json">{
-  &quot;language&quot;: {
+  &quot;lang_config&quot;: {
     &quot;lang&quot;: &quot;latin&quot;,
     &quot;options&quot;: null
   }
@@ -689,15 +689,15 @@ no-css = false
 <p>Morsels takes a slightly different approach with stop words in that stop words are only filtered at <strong>query time</strong> for certain types of queries (currently this is for free-text queries with more than two terms).</p>
 <p>This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:</p>
 <ul>
-<li>For processing phrase queries (eg. <code>for tomorrow</code>)</li>
+<li>For processing phrase queries (eg. <code>&quot;for tomorrow&quot;</code>)</li>
 <li>Boolean queries (eg. <code>if AND forecast AND sunny</code>)</li>
-<li>One or two term free text queries (not strictly necessary, but it is nice having some results showing up for queries like <code>&quot;for&quot;</code> than none)</li>
+<li>One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.</li>
 </ul>
 <h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
 <p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
 <p><em>Tantivy</em>'s <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
 <p>If specified, a stemmer is also applied.</p>
-<pre><code class="language-json">&quot;language&quot;: {
+<pre><code class="language-json">&quot;lang_config&quot;: {
   &quot;lang&quot;: &quot;latin&quot;,
   &quot;options&quot;: {
     &quot;stop_words&quot;: [
@@ -718,7 +718,7 @@ no-css = false
 <h3 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h3>
 <p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
 <p>This tokenizer applies jieba's <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
-<pre><code class="language-json">&quot;language&quot;: {
+<pre><code class="language-json">&quot;lang_config&quot;: {
   &quot;lang&quot;: &quot;chinese&quot;,
   &quot;options&quot;: {
     &quot;stop_words&quot;: []
@@ -731,17 +731,24 @@ no-css = false
 <p>Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen't blow up.</p>
 <p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn't, feel free to open up an issue! Might just be that I haven't gotten around to it yet =P.</p>
 <h2 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h2>
-<p>All configurations are optional (reasonable defaults), save for the <code>loader_configs</code> key. The cli tool will simply do nothing if no loaders are specified.</p>
+<p>The configurations in this section specify <strong>how and which</strong> files to index.</p>
+<p>All configurations are optional (reasonable defaults provided otherwise), save for the <code>loader_configs</code> key. The cli tool <strong>will do nothing</strong> if no loaders are specified.</p>
 <p>The snippet below shows the default values, which need not be altered if you are only indexing html files.</p>
 <pre><code class="language-json">{
   &quot;indexing_config&quot;: {
-    &quot;num_threads&quot;: 5,              // when unspecified, this is num physical cores - 1
-    &quot;num_docs_per_block&quot;: 1000,    // this roughly controls the memory usage of the indexer
+    &quot;num_threads&quot;: 5,              // when unspecified, this is max(num physical cores - 1, 1)
+
+    // This roughly controls the memory usage of the indexer
+    // If your documents are very small, increasing this may help improve indexing performance.
+    &quot;num_docs_per_block&quot;: 1000,
+
     &quot;exclude&quot;: [
       &quot;_morsels_config.json&quot;       // glob patterns to exclude from indexing
     ],
+
+    // Specifies what types of files to index
     &quot;loader_configs&quot;: {
-      &quot;HtmlLoader&quot;: {}
+      &quot;HtmlLoader&quot;: {}             // enables support for .html files
     },
 
     // Any index files (&quot;morsels&quot;) above this size (in bytes)
@@ -756,7 +763,7 @@ no-css = false
 
     // Whether positions will be stored.
     // Phrase queries / Query Term Proximity Ranking will be unavailable if this is false.
-    // You'll want to turn this off for obscenely large collections.
+    // You'll want to turn this off for very large collections. (~&gt; 1GB)
     &quot;with_positions&quot;: true
   }
 }
@@ -765,7 +772,7 @@ no-css = false
 <p>The indexer is able to handle html, json or csv files. Support for each file type is provided by a &quot;<code>Loader</code>&quot; abstraction.</p>
 <p>You may configure loaders by including them under the <code>loader_configs</code> key, with any applicable options.</p>
 <p>The below sections shows the available loaders and configuration options available for each of them.</p>
-<p><code>HtmlLoader</code></p>
+<p><strong><code>HtmlLoader</code></strong></p>
 <pre><code class="language-json">{
   &quot;HtmlLoader&quot;: {
     // list of selectors to exclude from indexing
@@ -796,7 +803,7 @@ no-css = false
 </code></pre>
 <p>The html loader traverses the document depth-first. At each element, it checks if any of the selectors under the <code>selectors.selector</code> key above matches the element. If so, all children (elements, text) under this element will then be indexed under the <code>field_name</code> specified, until an &quot;overriding&quot; element that matched another selector is found.</p>
 <p>The <code>attr_map</code> allows indexing attributes of elements under fields as well.</p>
-<p><code>JsonLoader</code></p>
+<p><strong><code>JsonLoader</code></strong></p>
 <pre><code class="language-json">{
   &quot;JsonLoader&quot;: {
     &quot;field_map&quot;: {
@@ -822,7 +829,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <li>An object, following the schema set out in <code>field_map</code></li>
 <li>An array of objects following the schema set out in <code>field_map</code></li>
 </ol>
-<p><code>CsvLoader</code></p>
+<p><strong><code>CsvLoader</code></strong></p>
 <pre><code class="language-json">{
   &quot;CsvLoader&quot;: {
     &quot;use_headers&quot;: false,
@@ -847,8 +854,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
       &quot;escape&quot;: null,
       &quot;has_headers&quot;: true,
       &quot;quote&quot;: 34
-    },
-    &quot;type&quot;: &quot;CsvLoader&quot;
+    }
   }
 }
 </code></pre>
@@ -895,7 +901,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
       }
     ]
   },
-  &quot;language&quot;: {
+  &quot;lang_config&quot;: {
     &quot;lang&quot;: &quot;latin&quot;,
     &quot;options&quot;: null
   },
