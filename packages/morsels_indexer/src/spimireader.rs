@@ -829,89 +829,98 @@ pub fn modify_blocks(
     }
     new_pl_writer.flush().unwrap();
 
+    // ---------------------------------------------
+    // Dictionary
+
     let (mut dict_table_writer, mut dict_string_writer) = get_dict_writers(output_folder_path);
 
-    // Dictionary front coding tracker
+    /*
+     Write old terms first
+
+     Also resolve the new postings file offsets of terms that were not touched,
+     but were in postings lists that were edited by other terms.
+    */
     let mut prev_term = Rc::new(SmartString::from(""));
     let mut prev_dict_pl = 0;
 
     let mut old_pairs_sorted: Vec<_> = std::mem::take(&mut dictionary.term_infos).into_iter().collect();
+
+    // Sort by old postings list order
     old_pairs_sorted.sort_by(|a, b| match a.1.postings_file_name.cmp(&b.1.postings_file_name) {
         Ordering::Equal => a.1.postings_file_offset.cmp(&b.1.postings_file_offset),
         Ordering::Greater => Ordering::Greater,
         Ordering::Less => Ordering::Less,
-    }); // Sort by old postings list order, then lexicographical
+    });
 
-    // Existing terms, maybe with updates
-    let mut old_pairs_before_updated: Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)> = Vec::new();
-    let commit_old_pairs_before_updated =
-        |dict_table_writer: &mut BufWriter<File>,
-         varint_buf: &mut [u8],
-         old_pairs_before_updated: &mut Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)>,
-         curr_existing_pl_difference: i32| {
-            for (_term, term_info) in old_pairs_before_updated.iter_mut() {
-                dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, varint_buf)).unwrap();
+    let mut term_terminfo_pairs: Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)> = Vec::new();
 
-                dict_table_writer
-                    .write_all(
-                        &((term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32).to_le_bytes(),
-                    )
-                    .unwrap();
-            }
-            old_pairs_before_updated.clear();
-        };
+    fn commit_pairs(
+        dict_table_writer: &mut BufWriter<File>,
+        varint_buf: &mut [u8],
+        term_terminfo_pairs: &mut Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)>,
+        curr_existing_pl_difference: i32,
+     ) {
+        for (_term, term_info) in term_terminfo_pairs.iter_mut() {
+            dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, varint_buf)).unwrap();
 
-    // Write old pairs
-    // Also resolve the new postings file offsets of terms that were not touched,
-    // but were in postings lists that were edited but other terms
+            dict_table_writer
+                .write_all(
+                    &((term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32).to_le_bytes(),
+                )
+                .unwrap();
+        }
+        term_terminfo_pairs.clear();
+    }
+
     for (term, term_info) in old_pairs_sorted {
         frontcode_and_store_term(&prev_term, &term, &mut dict_string_writer);
         prev_term = term;
 
         if prev_dict_pl != term_info.postings_file_name {
-            commit_old_pairs_before_updated(
+            commit_pairs(
                 &mut dict_table_writer,
                 &mut varint_buf,
-                &mut old_pairs_before_updated,
+                &mut term_terminfo_pairs,
                 if let Some(diff) = pl_file_length_differences.get(&prev_dict_pl) { *diff } else { 0 },
             );
 
-            prev_dict_pl = term_info.postings_file_name;
             dict_table_writer.write_all(&[128_u8]).unwrap();
+            prev_dict_pl = term_info.postings_file_name;
         }
 
         if let Some(updated_term_info) = term_info_updates.get(&prev_term[..]) {
-            commit_old_pairs_before_updated(
+            commit_pairs(
                 &mut dict_table_writer,
                 &mut varint_buf,
-                &mut old_pairs_before_updated,
+                &mut term_terminfo_pairs,
                 updated_term_info.postings_file_offset as i32 - term_info.postings_file_offset as i32,
             );
 
             dict_table_writer.write_all(varint::get_var_int(updated_term_info.doc_freq, &mut varint_buf)).unwrap();
             dict_table_writer.write_all(&(updated_term_info.postings_file_offset.to_le_bytes())).unwrap();
         } else {
-            old_pairs_before_updated.push((prev_term.clone(), term_info));
+            term_terminfo_pairs.push((prev_term.clone(), term_info));
         }
     }
 
-    if !old_pairs_before_updated.is_empty() {
-        commit_old_pairs_before_updated(
+    if !term_terminfo_pairs.is_empty() {
+        commit_pairs(
             &mut dict_table_writer,
             &mut varint_buf,
-            &mut old_pairs_before_updated,
+            &mut term_terminfo_pairs,
             if let Some(diff) = pl_file_length_differences.get(&prev_dict_pl) { *diff } else { 0 },
         );
     }
 
+    /*
+     Attach new terms to the end
+     Not ideal for frontcoding savings, but much easier and performant for incremental indexing.
+
+     All postings lists have to be redecoded and spit out other wise.
+    */
+
     let mut prev_term = "".to_owned();
 
-    /*
-    Attach new terms to the end
-    Not ideal for frontcoding savings, but much easier and performant for incremental indexing.
-
-    All postings lists have to be redecoded and spit out other wise.
-    */
     for (term, term_info) in new_term_infos {
         if prev_dict_pl != term_info.postings_file_name {
             dict_table_writer.write_all(&[128_u8]).unwrap();
