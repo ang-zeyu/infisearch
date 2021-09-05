@@ -81,7 +81,7 @@ The body field (and title, headings if available) are used to generate the resul
 
 The next [chapter](search_ui_configuration.md) will detail several options to help rename these fields, or even add additional fields and render them in result previews.
 
-## `language`
+## `lang_config`
 
 The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the `lang` key (only `latin` is supported for now). The `options` key supplies tokenization options unique to each module.
 
@@ -89,7 +89,7 @@ Note that these options are also applied to the search library, which uses the s
 
 ```json
 {
-  "language": {
+  "lang_config": {
     "lang": "latin",
     "options": null
   }
@@ -116,7 +116,7 @@ The default tokenizer splits on sentences, then whitespaces to obtain tokens.
 If specified, a stemmer is also applied.
 
 ```json
-"language": {
+"lang_config": {
   "lang": "latin",
   "options": {
     "stop_words": [
@@ -142,7 +142,7 @@ A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieb
 This tokenizer applies jieba's `cut` method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.
 
 ```json
-"language": {
+"lang_config": {
   "lang": "chinese",
   "options": {
     "stop_words": []
@@ -352,7 +352,7 @@ Field mappings for csv can be configured using one of the `field_map / field_ord
       }
     ]
   },
-  "language": {
+  "lang_config": {
     "lang": "latin",
     "options": null
   },

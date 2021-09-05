@@ -39,7 +39,7 @@
       }
     ]
   },
-  "language": {
+  "lang_config": {
     "lang": "latin",
     "options": null
   },

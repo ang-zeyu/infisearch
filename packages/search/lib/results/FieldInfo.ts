@@ -8,7 +8,7 @@ export interface MorselsConfig {
     numStoresPerDir: number,
     withPositions: boolean,
   },
-  language: {
+  langConfig: {
     lang: string,
     options: any,
   },
@@ -27,7 +27,7 @@ export interface MorselsConfigRaw {
     num_stores_per_dir: number,
     with_positions: boolean,
   },
-  language: {
+  lang_config: {
     lang: string,
     options: any,
   },

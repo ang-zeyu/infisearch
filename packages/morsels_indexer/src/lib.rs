@@ -156,7 +156,7 @@ pub struct MorselsConfig {
     #[serde(default)]
     fields_config: FieldsConfig,
     #[serde(default)]
-    language: MorselsLanguageConfig,
+    lang_config: MorselsLanguageConfig,
     #[serde(default)]
     pub indexing_config: MorselsIndexingConfig,
 }
@@ -175,7 +175,7 @@ struct MorselsIndexingOutputConfig {
 pub struct MorselsOutputConfig<'a> {
     ver: &'static str,
     indexing_config: MorselsIndexingOutputConfig,
-    language: &'a MorselsLanguageConfig,
+    lang_config: &'a MorselsLanguageConfig,
     field_infos: &'a FieldInfos,
 }
 
@@ -183,7 +183,7 @@ impl Default for MorselsConfig {
     fn default() -> Self {
         MorselsConfig {
             indexing_config: MorselsIndexingConfig::default(),
-            language: MorselsLanguageConfig::default(),
+            lang_config: MorselsLanguageConfig::default(),
             fields_config: FieldsConfig::default(),
         }
     }
@@ -202,7 +202,7 @@ pub struct Indexer {
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
-    language_config: MorselsLanguageConfig,
+    lang_config: MorselsLanguageConfig,
     dictionary: Dictionary,
     is_dynamic: bool,
     start_doc_id: u32,
@@ -315,7 +315,7 @@ impl Indexer {
 
         let num_workers_writing_blocks = Arc::from(Mutex::from(0));
 
-        let tokenizer = Indexer::resolve_tokenizer(&config.language);
+        let tokenizer = Indexer::resolve_tokenizer(&config.lang_config);
 
         let mut workers = Vec::with_capacity(num_threads);
         let num_stores_per_dir = config.indexing_config.num_stores_per_dir;
@@ -359,7 +359,7 @@ impl Indexer {
             tx_main,
             rx_main,
             num_workers_writing_blocks,
-            language_config: config.language,
+            lang_config: config.lang_config,
             dictionary,
             is_dynamic,
             start_doc_id,
@@ -367,24 +367,24 @@ impl Indexer {
         }
     }
 
-    fn resolve_tokenizer(language_config: &MorselsLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
-        match language_config.lang.as_str() {
+    fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
+        match lang_config.lang.as_str() {
             "latin" => {
-                if let Some(options) = language_config.options.as_ref() {
+                if let Some(options) = lang_config.options.as_ref() {
                     Arc::new(english::new_with_options(serde_json::from_value(options.clone()).unwrap()))
                 } else {
                     Arc::new(english::EnglishTokenizer::default())
                 }
             }
             "chinese" => {
-                if let Some(options) = language_config.options.as_ref() {
+                if let Some(options) = lang_config.options.as_ref() {
                     Arc::new(chinese::new_with_options(serde_json::from_value(options.clone()).unwrap()))
                 } else {
                     Arc::new(chinese::ChineseTokenizer::default())
                 }
             }
             _ => {
-                panic!("Unsupported language {}", language_config.lang)
+                panic!("Unsupported language {}", lang_config.lang)
             }
         }
     }
@@ -477,7 +477,7 @@ impl Indexer {
                 num_stores_per_dir: self.indexing_config.num_stores_per_dir,
                 with_positions: self.indexing_config.with_positions,
             },
-            language: &self.language_config,
+            lang_config: &self.lang_config,
             field_infos: &self.field_infos,
         })
         .unwrap();

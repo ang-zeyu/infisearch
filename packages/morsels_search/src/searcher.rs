@@ -33,7 +33,7 @@ use query_parser::{parse_query, QueryPart, QueryPartType};
 #[serde(rename_all = "camelCase")]
 struct SearcherConfig {
     indexing_config: IndexingConfig,
-    language: MorselsLanguageConfig,
+    lang_config: MorselsLanguageConfig,
     field_infos: Vec<FieldInfo>,
     num_scored_fields: usize,
     searcher_options: SearcherOptions,
@@ -74,8 +74,8 @@ pub struct Searcher {
 }
 
 #[cfg(feature = "lang_latin")]
-fn get_tokenizer(language_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
-    if let Some(options) = &mut language_config.options {
+fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
+    if let Some(options) = &mut lang_config.options {
         Box::new(english::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
     } else {
         Box::new(english::EnglishTokenizer::default())
@@ -83,8 +83,8 @@ fn get_tokenizer(language_config: &mut MorselsLanguageConfig) -> Box<dyn Tokeniz
 }
 
 #[cfg(feature = "lang_chinese")]
-fn get_tokenizer(language_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
-    if let Some(options) = &mut language_config.options {
+fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
+    if let Some(options) = &mut lang_config.options {
         Box::new(chinese::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
     } else {
         Box::new(chinese::ChineseTokenizer::default())
@@ -97,7 +97,7 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Morsels config does not match schema");
     let doc_info = DocInfo::create(&searcher_config.searcher_options.url, searcher_config.num_scored_fields).await?;
 
-    let tokenizer = get_tokenizer(&mut searcher_config.language);
+    let tokenizer = get_tokenizer(&mut searcher_config.lang_config);
     let build_trigram = tokenizer.use_default_trigram();
 
     let window: web_sys::Window = js_sys::global().unchecked_into();
@@ -231,7 +231,7 @@ pub mod test {
                     num_pls_per_dir: 0,
                     with_positions: true,
                 },
-                language: MorselsLanguageConfig {
+                lang_config: MorselsLanguageConfig {
                     lang: "latin".to_owned(),
                     options: serde_json::from_str("{}").unwrap(),
                 },

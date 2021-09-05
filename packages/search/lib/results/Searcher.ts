@@ -96,7 +96,7 @@ class Searcher {
         numStoresPerDir: json.indexing_config.num_stores_per_dir,
         withPositions: json.indexing_config.with_positions,
       },
-      language: json.language,
+      langConfig: json.lang_config,
       fieldInfos,
       numScoredFields: fieldInfosRaw.num_scored_fields,
       fieldStoreBlockSize: fieldInfosRaw.field_store_block_size,

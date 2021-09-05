@@ -42,7 +42,7 @@ export default class WorkerSearcher {
   }
 
   private async setupWasm() {
-    const language = this.config.language.lang;
+    const language = this.config.langConfig.lang;
     this.wasmModule = await import(
       /* webpackChunkName: "wasm.[request]" */
       `@morsels/lang-${language}/index.js`
