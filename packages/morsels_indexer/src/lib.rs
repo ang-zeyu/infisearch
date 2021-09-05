@@ -563,6 +563,5 @@ impl Indexer {
 
 fn print_time_elapsed(instant: Instant, extra_message: &str) {
     let elapsed = instant.elapsed().as_secs_f64();
-    #[cfg(debug_assertions)]
-    println!("{} {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
+    println!("({}) {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
 }

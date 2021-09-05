@@ -21,6 +21,8 @@ struct CliArgs {
     init: bool,
     #[structopt(short, long)]
     dynamic: bool,
+    #[structopt(long, hidden = true)]
+    perf: bool,
 }
 
 fn get_relative_or_absolute_path(from_path: &Path, path: &Path) -> PathBuf {
@@ -89,7 +91,7 @@ fn main() {
 
     let mut indexer = morsels_indexer::Indexer::new(&output_folder_path, config, args.dynamic);
 
-    let now = Instant::now();
+    let now = if args.perf { Some(Instant::now()) } else { None };
 
     let input_folder_path_clone = input_folder_path.clone();
 
@@ -114,5 +116,5 @@ fn main() {
         }
     }
 
-    indexer.finish_writing_docs(Some(now));
+    indexer.finish_writing_docs(now);
 }
