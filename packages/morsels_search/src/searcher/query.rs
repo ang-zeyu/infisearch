@@ -132,6 +132,7 @@ impl Searcher {
             .map(|(idx, pl)| pl.get_it(idx as u8))
             .filter(|pl_it| pl_it.td.is_some())
             .collect();
+        let mut pl_its_for_proximity_ranking: Vec<*const PlIterator> = Vec::with_capacity(pl_its.len());
         pl_its.sort();
 
         let total_proximity_ranking_terms =
@@ -139,7 +140,7 @@ impl Searcher {
         let proximity_ranking_max_scale = total_proximity_ranking_terms * 1.8;
 
         while !pl_its.is_empty() {
-            let mut pivot_doc_id = pl_its.get(0).unwrap().td.unwrap().doc_id;
+            let mut pivot_doc_id = pl_its.first().unwrap().td.unwrap().doc_id;
 
             // ------------------------------------------
             // WAND
@@ -164,7 +165,7 @@ impl Searcher {
 
                 // Forward pls before the pivot list
                 for i in 0..pivot_list_idx {
-                    let curr_it = pl_its.get_mut(i).unwrap();
+                    let curr_it = unsafe { pl_its.get_unchecked_mut(i) };
 
                     while let Some(term_doc) = curr_it.td {
                         if term_doc.doc_id < pivot_doc_id {
@@ -176,7 +177,9 @@ impl Searcher {
                     }
                 }
 
-                pl_its = pl_its.into_iter().filter(|pl_it| pl_it.td.is_some()).collect();
+                if pl_its.iter().any(|pl_it| pl_it.td.is_none()) {
+                    pl_its = pl_its.into_iter().filter(|pl_it| pl_it.td.is_some()).collect();
+                }
             }
             // ------------------------------------------
 
@@ -186,18 +189,24 @@ impl Searcher {
             // ------------------------------------------
             // Query term proximity ranking
             if self.searcher_config.searcher_options.use_query_term_proximity {
-                let mut pl_its_for_proximity_ranking: Vec<&mut PlIterator> = pl_its
-                    .iter_mut()
-                    .filter(|pl_it| pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == pivot_doc_id)
-                    .collect();
-                pl_its_for_proximity_ranking.sort_by(|a, b| a.original_idx.cmp(&b.original_idx));
+                pl_its_for_proximity_ranking.extend(
+                    pl_its.iter()
+                        .filter(|pl_it| pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == pivot_doc_id)
+                        .map(|pl_it| pl_it as *const PlIterator)
+                );
 
                 if pl_its_for_proximity_ranking.len() > 1 {
+                    unsafe {
+                        pl_its_for_proximity_ranking.sort_by(|a, b| (**a).original_idx.cmp(&(**b).original_idx));
+                    }
+
                     let num_pl_its_float = pl_its_for_proximity_ranking.len() as f32;
 
                     let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
                     for i in 0..pl_its_for_proximity_ranking.len() {
-                        let curr_fields = &pl_its_for_proximity_ranking[i].td.as_ref().unwrap().fields;
+                        let curr_fields = unsafe {
+                            &(*pl_its_for_proximity_ranking[i]).td.as_ref().unwrap().fields
+                        };
                         for j in 0..curr_fields.len() {
                             if curr_fields[j].field_positions.is_empty() {
                                 continue;
@@ -217,8 +226,9 @@ impl Searcher {
                     while !position_heap.is_empty() {
                         let top = position_heap.pop().unwrap();
 
-                        let doc_field = &pl_its_for_proximity_ranking[top.pl_it_idx].td.as_ref().unwrap().fields
-                            [top.pl_it_field_idx];
+                        let doc_field = unsafe {
+                            &(*pl_its_for_proximity_ranking[top.pl_it_idx]).td.as_ref().unwrap().fields[top.pl_it_field_idx]
+                        };
                         if top.pl_it_field_fieldposition_next_idx < doc_field.field_positions.len() {
                             position_heap.push(Position {
                                 pos: doc_field.field_positions[top.pl_it_field_fieldposition_next_idx],
@@ -264,6 +274,8 @@ impl Searcher {
                                 * (num_pl_its_float / total_proximity_ranking_terms);
                     }
                 }
+
+                pl_its_for_proximity_ranking.clear();
             }
             // ------------------------------------------
 
@@ -305,7 +317,9 @@ impl Searcher {
             result.1 *= scaling_factor;
             result_heap.push(result);
 
-            pl_its = pl_its.into_iter().filter(|pl_it| pl_it.td.is_some()).collect();
+            if pl_its.iter().any(|pl_it| pl_it.td.is_none()) {
+                pl_its = pl_its.into_iter().filter(|pl_it| pl_it.td.is_some()).collect();
+            }
             pl_its.sort();
 
             // ------------------------------------------
