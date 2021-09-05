@@ -9,7 +9,7 @@ use structopt::StructOpt;
 use walkdir::WalkDir;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "basic")]
+#[structopt(name = "morsels")]
 struct CliArgs {
     #[structopt(parse(from_os_str))]
     source_folder_path: PathBuf,
@@ -17,9 +17,9 @@ struct CliArgs {
     output_folder_path: PathBuf,
     #[structopt(short, long, parse(from_os_str))]
     config_file_path: Option<PathBuf>,
-    #[structopt(short, long)]
+    #[structopt(short, long, help = "Initialise the configuration file in the source folder")]
     init: bool,
-    #[structopt(short, long)]
+    #[structopt(short, long, help = "Prefer dynamic indexing if the resources in output folder are available and compatible")]
     dynamic: bool,
     #[structopt(long, hidden = true)]
     perf: bool,
