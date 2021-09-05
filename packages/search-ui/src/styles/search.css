@@ -9,20 +9,20 @@
     --morsels-dropdown-input-separator-bg: white;
     --morsels-item-border: none;
     --morsels-item-border-radius: 1px;
-    --morsels-item-box-shadow: 0 3px 5px rgba(196, 192, 187, 0.8);
-    --morsels-item-sub-border: 1px solid #949494;
+    --morsels-item-box-shadow: 0 3px 5px rgba(196, 192, 187, 0.5);
+    --morsels-item-sub-border: none;
     --morsels-title-fg: var(--morsels-fg);
     --morsels-title-bg: rgba(245, 169, 86, 0.33);
     --morsels-title-hover-fg: var(--morsels-fg);
-    --morsels-title-hover-bg: rgba(213, 177, 137, 0.5);
+    --morsels-title-hover-bg: rgba(245, 169, 86, 0.5);
     --morsels-heading-fg: var(--morsels-fg);
     --morsels-heading-bg: rgba(255, 204, 147, 0.2);
     --morsels-heading-hover-fg: var(--morsels-fg);
-    --morsels-heading-hover-bg: rgb(255, 226, 201);
+    --morsels-heading-hover-bg: rgba(255, 204, 147, 0.3);
     --morsels-body-fg: var(--morsels-fg);
     --morsels-body-bg: var(--morsels-bg);
     --morsels-body-hover-fg: var(--morsels-fg);
-    --morsels-body-hover-bg: rgba(255, 234, 217, 0.8);
+    --morsels-body-hover-bg: rgba(255, 234, 217, 0.3);
     --morsels-highlight: #ef9001;
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
     --morsels-loading-bg: #fed;
@@ -30,10 +30,10 @@
     --morsels-scrollbar-thumb-bg: rgba(213, 177, 137, 0.5);
     --morsels-fullscreen-border: 3px solid var(--morsels-fullscreen-header-bg);
     --morsels-fullscreen-box-shadow: 0 0 10px 3px rgb(218, 214, 208);
-    --morsels-fullscreen-desktop-width: 700px;
+    --morsels-fullscreen-desktop-width: 650px;
     --morsels-fullscreen-desktop-height: 70%;
     --morsels-fullscreen-header-bg: rgb(255, 255, 255);
-    --morsels-fullscreen-header-border-bottom: 1px solid rgba(220, 220, 220, 0.3);
+    --morsels-fullscreen-header-border-bottom: 1px solid rgba(190, 190, 190, 0.3);
     --morsels-fullscreen-input-border: 2px solid rgba(253, 202, 144, 0.37);
     --morsels-fullscreen-input-focus-border: 2px solid rgba(255, 169, 66, 0.8);
     --morsels-fullscreen-input-focus-box-shadow: 0 0 5px rgba(255, 169, 66, 0.8);
@@ -302,7 +302,7 @@
     word-break: break-word;
     padding: 3px 0.5em;
     background: var(--morsels-title-bg);
-    font-size: 1.1em;
+    font-size: 1.05em;
     font-weight: 600;
     transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
@@ -326,7 +326,8 @@
     display: inline-block;
     vertical-align: top;
     background: var(--morsels-heading-bg);
-    font-weight: 600;
+    font-size: 1.02em;
+    font-weight: 400;
     color: var(--morsels-heading-fg);
     transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
