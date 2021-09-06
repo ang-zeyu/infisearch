@@ -5,7 +5,7 @@ use std::path::Path;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
-use morsels_common::BITMAP_FILE_NAME;
+use morsels_common::{BITMAP_FILE_NAME, bitmap};
 
 use crate::MORSELS_VERSION;
 
@@ -107,8 +107,7 @@ impl DynamicIndexInfo {
             .filter(|(_path, docids_and_filehash)| {
                 if !docids_and_filehash.2 {
                     for doc_id in docids_and_filehash.0.iter() {
-                        let byte_num = ((*doc_id) / 8) as usize;
-                        self.invalidation_vector[byte_num] |= 1_u8 << ((*doc_id) % 8) as u8;
+                        bitmap::set(&mut self.invalidation_vector, *doc_id as usize);
                         self.num_deleted_docs += 1;
                     }
                 }
