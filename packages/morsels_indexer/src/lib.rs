@@ -205,13 +205,19 @@ pub struct Indexer {
     lang_config: MorselsLanguageConfig,
     dictionary: Dictionary,
     is_dynamic: bool,
+    delete_unencountered_external_ids: bool,
     start_doc_id: u32,
     dynamic_index_info: DynamicIndexInfo,
 }
 
 impl Indexer {
     #[allow(clippy::mutex_atomic)]
-    pub fn new(output_folder_path: &Path, config: MorselsConfig, mut is_dynamic: bool) -> Indexer {
+    pub fn new(
+        output_folder_path: &Path,
+        config: MorselsConfig,
+        mut is_dynamic: bool,
+        delete_unencountered_external_ids: bool,
+    ) -> Indexer {
         is_dynamic = is_dynamic
             && if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) {
                 meta.is_file()
@@ -362,6 +368,7 @@ impl Indexer {
             lang_config: config.lang_config,
             dictionary,
             is_dynamic,
+            delete_unencountered_external_ids,
             start_doc_id,
             dynamic_index_info,
         }
@@ -531,7 +538,9 @@ impl Indexer {
         // Go through all blocks at once
         let num_blocks = self.block_number();
         if self.is_dynamic {
-            self.dynamic_index_info.delete_unencountered_external_ids();
+            if self.delete_unencountered_external_ids {
+                self.dynamic_index_info.delete_unencountered_external_ids();
+            }
 
             spimireader::modify_blocks(
                 self.doc_id_counter,

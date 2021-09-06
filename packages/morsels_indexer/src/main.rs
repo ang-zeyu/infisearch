@@ -89,7 +89,7 @@ fn main() {
 
     let exclude_patterns = config.indexing_config.get_excludes_from_config();
 
-    let mut indexer = morsels_indexer::Indexer::new(&output_folder_path, config, args.dynamic);
+    let mut indexer = morsels_indexer::Indexer::new(&output_folder_path, config, args.dynamic, true);
 
     let now = if args.perf { Some(Instant::now()) } else { None };
 
