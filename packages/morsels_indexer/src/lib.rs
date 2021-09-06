@@ -409,7 +409,16 @@ impl Indexer {
             *CURRENT_MILLIS
         };
 
-        if !self.dynamic_index_info.update_path_if_modified(relative_path, timestamp) && self.is_dynamic {
+        let relative_path_lossy;
+        let external_id = if let Some(relative_path) = relative_path.to_str() {
+            relative_path
+        } else {
+            relative_path_lossy = relative_path.to_string_lossy().into_owned();
+            &relative_path_lossy
+        };
+
+        let is_doc_modified = self.dynamic_index_info.update_doc_if_modified(external_id, timestamp);
+        if !is_doc_modified && self.is_dynamic {
             return;
         }
 
@@ -420,7 +429,7 @@ impl Indexer {
                         .send(MainToWorkerMessage::Index { doc_id: self.doc_id_counter, loader_result })
                         .expect("Failed to send work message to worker!");
 
-                    self.dynamic_index_info.add_doc_to_path(relative_path, self.doc_id_counter);
+                    self.dynamic_index_info.add_doc_to_external_id(external_id, self.doc_id_counter);
 
                     self.doc_id_counter += 1;
                     self.spimi_counter += 1;
@@ -522,7 +531,7 @@ impl Indexer {
         // Go through all blocks at once
         let num_blocks = self.block_number();
         if self.is_dynamic {
-            self.dynamic_index_info.delete_unencountered_paths();
+            self.dynamic_index_info.delete_unencountered_external_ids();
 
             spimireader::modify_blocks(
                 self.doc_id_counter,

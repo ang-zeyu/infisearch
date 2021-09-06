@@ -25,7 +25,7 @@ struct DocIdsAndFileHash(
 pub struct DynamicIndexInfo {
     pub ver: String,
 
-    // Mapping of file path -> doc id(s) / file hases, used for dynamic indexing
+    // Mapping of external doc identifier -> internal doc id(s) / hashes, used for dynamic indexing
     mappings: FxHashMap<String, DocIdsAndFileHash>,
 
     pub last_pl_number: u32,
@@ -64,18 +64,16 @@ impl DynamicIndexInfo {
         info
     }
 
-    pub fn add_doc_to_path(&mut self, path: &Path, doc_id: u32) {
-        let path = path.to_str().unwrap();
+    pub fn add_doc_to_external_id(&mut self, external_id: &str, doc_id: u32) {
         self.mappings
-            .get_mut(path)
+            .get_mut(external_id)
             .expect("Get path for index file should always have an entry when adding doc id")
             .0
             .push(doc_id);
     }
 
-    pub fn update_path_if_modified(&mut self, path: &Path, new_modified: u128) -> bool {
-        let path = path.to_str().unwrap();
-        if let Some(old_modified) = self.mappings.get_mut(path) {
+    pub fn update_doc_if_modified(&mut self, external_id: &str, new_modified: u128) -> bool {
+        if let Some(old_modified) = self.mappings.get_mut(external_id) {
             // Old document
 
             // Set encountered flag to know which files were deleted later on
@@ -96,14 +94,14 @@ impl DynamicIndexInfo {
             false
         } else {
             // New document
-            self.mappings.insert(path.to_owned(), DocIdsAndFileHash(Vec::new(), new_modified, true));
+            self.mappings.insert(external_id.to_owned(), DocIdsAndFileHash(Vec::new(), new_modified, true));
 
             true
         }
     }
 
     // Delete file paths that were not encountered at all (assume they were deleted)
-    pub fn delete_unencountered_paths(&mut self) {
+    pub fn delete_unencountered_external_ids(&mut self) {
         self.mappings = std::mem::take(&mut self.mappings)
             .into_iter()
             .filter(|(_path, docids_and_filehash)| {
