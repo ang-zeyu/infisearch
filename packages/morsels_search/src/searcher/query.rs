@@ -149,10 +149,10 @@ impl Searcher {
                 let mut wand_acc = 0.0;
                 let mut pivot_list_idx = 0;
 
-                while pivot_list_idx < pl_its.len() {
-                    wand_acc += pl_its[pivot_list_idx].pl.max_term_score;
+                for pl_it in pl_its.iter() {
+                    wand_acc += pl_it.pl.max_term_score;
                     if wand_acc > nth_highest_score {
-                        pivot_doc_id = pl_its[pivot_list_idx].td.unwrap().doc_id;
+                        pivot_doc_id = pl_it.td.unwrap().doc_id;
                         break;
                     }
 
@@ -164,9 +164,7 @@ impl Searcher {
                 }
 
                 // Forward pls before the pivot list
-                for i in 0..pivot_list_idx {
-                    let curr_it = unsafe { pl_its.get_unchecked_mut(i) };
-
+                for curr_it in pl_its.iter_mut().take(pivot_list_idx) {
                     while let Some(term_doc) = curr_it.td {
                         if term_doc.doc_id < pivot_doc_id {
                             wand_leftovers.push(term_doc.doc_id);
