@@ -20,6 +20,9 @@ initMorsels({
     
     // Id of input element to attach the search dropdown to
     inputId: 'morsels-search',
+
+    // Debounce time for the input
+    inputDebounce: isMobile ? 275 : 200,
     
     // Mandatory, by default - base url for sourcing .html / .json files
     sourceFilesUrl: 'http://192.168.10.132:3000/source',

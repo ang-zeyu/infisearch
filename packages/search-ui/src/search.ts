@@ -59,6 +59,10 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.inputId = 'morsels-search';
   }
 
+  if (!('inputDebounce' in options)) {
+    options.inputDebounce = isMobile ? 275 : 200;
+  }
+
   if (!('render' in options)) {
     options.render = {};
   }
@@ -230,7 +234,7 @@ function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => 
           update(query, root, listContainer, forPortal, searcher, options);
         }
         isFirstQueryFromBlank = false;
-      }, 200);
+      }, options.inputDebounce);
     } else {
       const reset = () => {
         if (forPortal) {
