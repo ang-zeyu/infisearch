@@ -33,9 +33,8 @@ use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
 use crate::loader::Loader;
-use crate::worker::MainToWorkerMessage;
-use crate::worker::Worker;
-use crate::worker::WorkerToMainMessage;
+use crate::worker::{Worker, MainToWorkerMessage, WorkerToMainMessage};
+use crate::worker::miner::WorkerMiner;
 
 use crossbeam::Receiver;
 use crossbeam::Sender;
@@ -196,6 +195,7 @@ pub struct Indexer {
     pl_names_to_cache: Vec<u32>,
     field_infos: Arc<FieldInfos>,
     output_folder_path: PathBuf,
+    doc_miner: WorkerMiner,
     workers: Vec<Worker>,
     loaders: Vec<Box<dyn Loader>>,
     doc_infos: Arc<Mutex<DocInfos>>,
@@ -310,10 +310,15 @@ impl Indexer {
         let start_doc_id = doc_id_counter;
 
         // Construct worker threads
-        let (tx_worker, rx_main): (Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>) =
-            crossbeam::bounded(config.indexing_config.num_threads);
-        let (tx_main, rx_worker): (Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>) =
-            crossbeam::bounded(config.indexing_config.num_threads);
+        let (tx_worker, rx_main): (
+            Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>
+        ) = crossbeam::bounded(config.indexing_config.num_threads);
+        let (tx_main, rx_worker): (
+            Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
+        ) = crossbeam::bounded(std::cmp::max(
+            config.indexing_config.num_docs_per_block as usize / 10,
+            config.indexing_config.num_threads * 2,
+        ));
 
         let expected_num_docs_per_thread =
             (config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2) as usize;
@@ -352,6 +357,8 @@ impl Indexer {
             });
         }
 
+        let doc_miner = WorkerMiner::new(&field_infos, with_positions, expected_num_docs_per_thread, &tokenizer);
+
         Indexer {
             indexing_config: config.indexing_config,
             doc_id_counter,
@@ -359,6 +366,7 @@ impl Indexer {
             pl_names_to_cache: Vec::new(),
             field_infos,
             output_folder_path: output_folder_path.to_path_buf(),
+            doc_miner,
             workers,
             loaders,
             doc_infos,
@@ -431,10 +439,14 @@ impl Indexer {
 
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path) {
-                for loader_result in loader_results {
-                    self.tx_main
-                        .send(MainToWorkerMessage::Index { doc_id: self.doc_id_counter, loader_result })
-                        .expect("Failed to send work message to worker!");
+                for mut loader_result in loader_results {
+                    if self.tx_main.is_full() {
+                        self.doc_miner.index_doc(self.doc_id_counter, loader_result.get_field_texts());
+                    } else {
+                        self.tx_main
+                            .send(MainToWorkerMessage::Index { doc_id: self.doc_id_counter, loader_result })
+                            .expect("Failed to send work message to worker!");
+                    }
 
                     self.dynamic_index_info.add_doc_to_external_id(external_id, self.doc_id_counter);
 
@@ -444,6 +456,7 @@ impl Indexer {
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
                         let block_number = self.block_number();
                         Indexer::write_block(
+                            &mut self.doc_miner,
                             &self.num_workers_writing_blocks,
                             self.indexing_config.num_threads,
                             &mut self.tx_main,
@@ -511,6 +524,7 @@ impl Indexer {
 
             let block_number = self.block_number();
             Indexer::write_block(
+                &mut self.doc_miner,
                 &self.num_workers_writing_blocks,
                 self.indexing_config.num_threads,
                 &mut self.tx_main,

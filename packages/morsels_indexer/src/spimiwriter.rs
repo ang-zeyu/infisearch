@@ -15,7 +15,7 @@ use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::TermDocComparator;
 use crate::worker::miner::WorkerMinerDocInfo;
-use crate::worker::WorkerBlockIndexResults;
+use crate::worker::miner::{WorkerMiner, WorkerBlockIndexResults};
 use crate::DocInfos;
 use crate::FieldInfos;
 use crate::Indexer;
@@ -33,6 +33,7 @@ lazy_static! {
 impl Indexer {
     #[allow(clippy::too_many_arguments)]
     pub fn write_block(
+        doc_miner: &mut WorkerMiner,
         num_workers_writing_blocks: &Arc<Mutex<usize>>,
         num_threads: usize,
         tx_main: &mut crossbeam::Sender<MainToWorkerMessage>,
@@ -46,7 +47,8 @@ impl Indexer {
         // Don't block on threads that are still writing blocks (long running)
         let mut num_workers_writing_blocks = num_workers_writing_blocks.lock().unwrap();
         let num_workers_to_collect = num_threads - *num_workers_writing_blocks;
-        let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect);
+        let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect + 1);
+        worker_index_results.push(doc_miner.get_results());
 
         let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_workers_to_collect));
 
@@ -58,7 +60,6 @@ impl Indexer {
         }
 
         *num_workers_writing_blocks += 1;
-        drop(num_workers_writing_blocks);
 
         // Receive doc miners
         for _i in 0..num_workers_to_collect {

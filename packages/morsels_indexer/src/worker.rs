@@ -10,14 +10,12 @@ use std::thread;
 
 use crossbeam::Receiver;
 use crossbeam::Sender;
-use rustc_hash::FxHashMap;
 
 use crate::loader::LoaderResult;
 use crate::spimireader::PostingsStreamDecoder;
 use crate::spimireader::PostingsStreamReader;
 use crate::spimiwriter;
-use crate::worker::miner::TermDoc;
-use crate::worker::miner::WorkerMinerDocInfo;
+use crate::worker::miner::WorkerBlockIndexResults;
 use crate::DocInfos;
 use crate::FieldInfos;
 use miner::WorkerMiner;
@@ -70,11 +68,6 @@ pub enum MainToWorkerMessage {
     },
 }
 
-pub struct WorkerBlockIndexResults {
-    pub terms: FxHashMap<String, Vec<TermDoc>>,
-    pub doc_infos: Vec<WorkerMinerDocInfo>,
-}
-
 pub struct WorkerToMainMessage {
     pub id: usize,
     pub block_index_results: Option<WorkerBlockIndexResults>,
@@ -93,13 +86,7 @@ pub fn worker(
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
     is_dynamic: bool,
 ) {
-    let mut doc_miner = WorkerMiner {
-        field_infos: Arc::clone(&field_infos),
-        with_positions,
-        terms: FxHashMap::default(),
-        doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
-        tokenizer: Arc::clone(&tokenizer),
-    };
+    let mut doc_miner = WorkerMiner::new(&field_infos, with_positions, expected_num_docs_per_reset, &tokenizer);
 
     loop {
         let msg = rcvr.recv().expect("Failed to receive message on worker side!");
@@ -141,13 +128,7 @@ pub fn worker(
                 // return the indexed documents...
                 sndr.send(WorkerToMainMessage {
                     id,
-                    block_index_results: Some(WorkerBlockIndexResults {
-                        terms: std::mem::take(&mut doc_miner.terms),
-                        doc_infos: std::mem::replace(
-                            &mut doc_miner.doc_infos,
-                            Vec::with_capacity(expected_num_docs_per_reset),
-                        ),
-                    }),
+                    block_index_results: Some(doc_miner.get_results()),
                 })
                 .expect("Failed to send message back to main thread!");
 

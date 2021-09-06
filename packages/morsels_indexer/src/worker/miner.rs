@@ -50,6 +50,11 @@ pub struct WorkerMiner {
     pub tokenizer: Arc<dyn Tokenizer + Send + Sync>,
 }
 
+pub struct WorkerBlockIndexResults {
+    pub terms: FxHashMap<String, Vec<TermDoc>>,
+    pub doc_infos: Vec<WorkerMinerDocInfo>,
+}
+
 pub struct TermDocComparator(pub TermDoc, pub std::vec::IntoIter<TermDoc>);
 
 impl Eq for TermDocComparator {}
@@ -126,6 +131,33 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
 static NULL_FIELD: FieldInfo = FieldInfo { id: 0, do_store: false, weight: 0.0, k: 0.0, b: 0.0 };
 
 impl WorkerMiner {
+    pub fn new(
+        field_infos: &Arc<FieldInfos>,
+        with_positions: bool,
+        expected_num_docs_per_reset: usize,
+        tokenizer: &Arc<dyn Tokenizer + Send + Sync>,
+    ) -> Self {
+        WorkerMiner {
+            field_infos: Arc::clone(field_infos),
+            with_positions,
+            terms: FxHashMap::default(),
+            doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
+            tokenizer: Arc::clone(tokenizer),
+        }
+    }
+
+    pub fn get_results(&mut self) -> WorkerBlockIndexResults {
+        let old_doc_infos_capacity = self.doc_infos.capacity();
+
+        WorkerBlockIndexResults {
+            terms: std::mem::take(&mut self.terms),
+            doc_infos: std::mem::replace(
+                &mut self.doc_infos,
+                Vec::with_capacity(old_doc_infos_capacity),
+            ),
+        }
+    }
+
     pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>) {
         let mut is_first_stored_field = true;
 
