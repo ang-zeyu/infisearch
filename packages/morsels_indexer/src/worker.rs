@@ -12,8 +12,7 @@ use crossbeam::Receiver;
 use crossbeam::Sender;
 
 use crate::loader::LoaderResult;
-use crate::spimireader::PostingsStreamDecoder;
-use crate::spimireader::PostingsStreamReader;
+use crate::spimireader::common::{PostingsStreamDecoder, postings_stream_reader::PostingsStreamReader};
 use crate::spimiwriter;
 use crate::worker::miner::WorkerBlockIndexResults;
 use crate::DocInfos;

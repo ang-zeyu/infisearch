@@ -556,7 +556,7 @@ impl Indexer {
                 self.dynamic_index_info.delete_unencountered_external_ids();
             }
 
-            spimireader::modify_blocks(
+            spimireader::dynamic::modify_blocks(
                 self.doc_id_counter,
                 num_blocks,
                 &mut self.indexing_config,
@@ -568,7 +568,7 @@ impl Indexer {
                 &mut self.dynamic_index_info,
             );
         } else {
-            spimireader::merge_blocks(
+            spimireader::full::merge_blocks(
                 self.doc_id_counter,
                 num_blocks,
                 &mut self.indexing_config,
@@ -584,7 +584,7 @@ impl Indexer {
 
         self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter);
 
-        spimireader::cleanup_blocks(num_blocks, &self.output_folder_path);
+        spimireader::common::cleanup_blocks(num_blocks, &self.output_folder_path);
 
         if let Some(now) = instant {
             print_time_elapsed(now, "Blocks merged!");
