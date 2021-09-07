@@ -47,6 +47,7 @@
     "num_docs_per_block": 1000,
     "pl_cache_threshold": 1048576,
     "exclude": [
+      "print.html",
       "_morsels_config.json"
     ],
     "loader_configs": {

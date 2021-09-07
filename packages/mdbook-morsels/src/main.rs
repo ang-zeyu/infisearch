@@ -56,6 +56,9 @@ fn main() {
             init_config_command.arg("-c");
             init_config_command.arg(&morsels_config_path);
             init_config_command.output().expect("mdbook-morsels: failed to create default configuration file");
+
+            let config = fs::read_to_string(&morsels_config_path).unwrap();
+            fs::write(&morsels_config_path, config.replace("\"exclude\": [", "\"exclude\": [\n      \"print.html\",")).unwrap();
         }
 
         let mut command = Command::new("morsels");
