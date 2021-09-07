@@ -1,0 +1,26 @@
+name: docs
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cargo install wasm-pack
+      - run: cargo install mdbook
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - run: npm i -g npm
+      - run: npm run setup
+      - run: npm run buildDocs
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.5
+        with:
+          branch: gh-pages
+          folder: docs/book/html

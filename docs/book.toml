@@ -5,6 +5,9 @@ multilingual = false
 src = "src"
 title = "Morsels Documentation"
 
+[output.html]
+site-url = "/morsels/"
+
 [output.html.search]
 enable = false
 
