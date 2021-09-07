@@ -15,6 +15,3 @@ rustc-hash = "1.1"
 rust-stemmers = "^1.0"
 serde = { version = "1.0", features = ["derive"] }
 smartstring = "0.2.7"
-
-[profile.release]
-lto = true

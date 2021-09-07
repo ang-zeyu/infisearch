@@ -16,6 +16,3 @@ smartstring = "0.2.7"
 
 [dev-dependencies]
 pretty_assertions = "0.7.2"
-
-[profile.release]
-lto = true
