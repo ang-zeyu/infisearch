@@ -12,7 +12,8 @@ initMorsels({
         // Whether to use substring query term expansion
         numberOfExpandedTerms: 3,
         
-        // Override for using query term proximity ranking or not. Disabled for mobile devices by default
+        // Override for using query term proximity ranking or not.
+        // Disabled for mobile devices by default
         useQueryTermProximity: true,
     },
     
@@ -237,11 +238,15 @@ Note that there are some minor differences between the dropdown version and full
 ```html
 <!-- (rootRender) START -->
 
-<!-- fullscreen version only - root element is a backdrop to facilitate backdrop dismiss -->
+<!--
+    fullscreen version only
+    root element is a backdrop to facilitate backdrop dismiss
+-->
 <div class="morsels-portal-backdrop">
 <!-- fullscreen version end -->
-    
-<div class="morsels-root"> <!-- fullscreen version has an additional "morsels-portal-root" class -->
+
+<!-- Note: fullscreen version has an additional "morsels-portal-root" class -->
+<div class="morsels-root">
 
     <!-- dropdown version -->
     <input id="morsels-search" placeholder="Search">
@@ -272,7 +277,8 @@ Note that there are some minor differences between the dropdown version and full
 
         <!-- (loadingIndicatorRender) START (blank by default)
           Shown when making the initial search from a blank search box.
-          Subsequent searches (ie. when there are some results already) will not show this indicator.
+          Subsequent searches (ie. when there are some results already)
+          will not show this indicator.
         -->
         <span class="morsels-loading-indicator"></span>
         <!-- (loadingIndicatorRender) END -->
@@ -281,58 +287,7 @@ Note that there are some minor differences between the dropdown version and full
         <div></div>
         <!-- (termInfoRender) END -->
 
-        <!-- (resultsRender) START matches for **all documents** -->
-        <!-- (listItemRender) START A match for a **single document** -->
-        <li class="morsels-list-item">
-            <a class="morsels-link" href="http://192.168.10.132:3000/source/book/testing/testingTypes/integrationTesting/index.html">
-
-                <div class="morsels-title"><span>CS2103/T Website - Testing: Testing Types: Integration Testing</span></div>
-
-                <!-- (headingBodyRender) START a heading and/or body field pair match for the document -->
-                <a class="morsels-heading-body" href="http://192.168.10.132:3000/source/book/testing/testingTypes/integrationTesting/index.html#what">
-                    <div class="morsels-heading"><span>What</span></div>
-                    <div class="morsels-bodies">
-                        <div class="morsels-body">
-                            <span class="morsels-ellipsis"></span>
-                            <span> this is text before the first highlighted term </span>
-                            <!-- (highlightRender) START (the query is "software engine") -->
-                            <span class="morsels-highlight"><span>software</span></span>
-                            <!-- (highlightRender) END -->
-                            <span> this is some text after the first highlighted term</span>
-                            <span class="morsels-ellipsis"></span>
-                            <span> this is text before the second highlighted term</span>
-                            <!-- (highlightRender) START (the query is "software engine") -->
-                            <span class="morsels-highlight"><span>engine</span></span>
-                            <!-- (highlightRender) END -->
-                            <span> this is some text after the second highlighted term<</span><span> ...</span>
-                        </div>
-                    </div>
-                </a>
-                <!-- (headingBodyRender) END -->
-
-                <!-- (bodyOnlyRender) START a body-only field match for the document
-                  i.e., This match does not have a corresponding heading before it / it belongs under
-                -->
-                <div class="morsels-body">
-                    <span class="morsels-ellipsis"></span>
-                    <span></span>
-                    <!-- (highlightRender) START -->
-                    <span class="morsels-highlight"><span>software</span></span><span> Engineering</span>
-                    <!-- (highlightRender) END -->
-                    <span class="morsels-ellipsis"></span>
-                </div>
-                <!-- (bodyOnlyRender) END -->
-            </a>
-        </li>
-        <!-- (listItemRender) END -->
-
-        <!-- Another document match -->
-        <!--
-          Note that an IntersectionObserver is attached to the
-          last such <li> element for infinite scrolling
-        -->
-        <li class="morsels-list-item">...</li>
-        <!-- (resultsRender) END -->
+        <!-- results placeholder (refer to "rendering search results") -->
     </ul>
 </div>
     
@@ -381,13 +336,94 @@ For example, you may render `<div>Did you mean <u>corrected</u>?</div>` for the 
 
 ---
 
-The 2 remaining sets of APIs are mutually exclusive. Use only one or the other.
+**Rendering Search Results**
+
+The **2 remaining sets of APIs** below render the results for all document matches, and are mutually exclusive. Use only one or the other.
+
+Together, they render the `<!-- results placeholder (refer to "rendering search results") -->` comment in the earlier example.
+
+```html
+<!-- (resultsRender) START matches for **all documents** -->
+<!-- (listItemRender) START A match for a **single document** -->
+<li class="morsels-list-item">
+    <a
+        class="morsels-link"
+        href="http://192.168.10.132:3000/...truncated.../index.html"
+    >
+
+        <div class="morsels-title">
+            <span>
+                This is the Document Title Extracted from the "title" Field
+            </span>
+        </div>
+
+        <!-- (headingBodyRender) START
+            a heading and/or body field pair match for the document
+        -->
+        <a
+            class="morsels-heading-body"
+            href="http://192.168.10.132:3000/...truncated.../index.html#what"
+        >
+            <!--
+                Sourced from the "heading" field
+            -->
+            <div class="morsels-heading"><span>What</span></div>
+            <div class="morsels-bodies">
+                <!--
+                    The text under the following element is sourced from
+                    the "body" field, and follows the "heading" field above
+                    in the original document.
+                -->
+                <div class="morsels-body">
+                    <span class="morsels-ellipsis"></span>
+                    <span> this is text before the first highlighted term </span>
+                    <!-- (highlightRender) START (the query is "foo bar") -->
+                    <span class="morsels-highlight"><span>foo</span></span>
+                    <!-- (highlightRender) END -->
+                    <span> this is some text after the first highlighted term</span>
+                    <span class="morsels-ellipsis"></span>
+                    <span> this is text before the second highlighted term</span>
+                    <!-- (highlightRender) START (the query is "foo bar") -->
+                    <span class="morsels-highlight"><span>bar</span></span>
+                    <!-- (highlightRender) END -->
+                    <span> this is some text after the second highlighted term<</span>
+                    <span class="morsels-ellipsis"></span>
+                </div>
+            </div>
+        </a>
+        <!-- (headingBodyRender) END -->
+
+        <!-- (bodyOnlyRender) START
+            
+            a body-only field match for the document
+            (it does not have a heading before it in the original document)
+        -->
+        <div class="morsels-body">
+            <span class="morsels-ellipsis"></span>
+            <span></span>
+            <!-- (highlightRender) START -->
+            <span class="morsels-highlight"><span>foo</span></span>
+            <!-- (highlightRender) END -->
+            <span class="morsels-ellipsis"></span>
+        </div>
+        <!-- (bodyOnlyRender) END -->
+    </a>
+</li>
+<!-- (listItemRender) END -->
+
+<!--
+    Note: an IntersectionObserver is attached to the
+    last such <li> element for infinite scrolling
+-->
+<li class="morsels-list-item">
+    <!-- Another search result -->
+</li>
+<!-- (resultsRender) END -->
+```
 
 **1. `async resultsRender(h, initMorselsOptions, config, results, query)`** <span style="color: red">(advanced)</span>
 
 This API renders the results for all document matches.
-
-Note that **the APIs below** (`listItemRender / headingBodyRender / bodyOnlyRender / highlightRender`) are **built upon the default implementation of this API**, and will be unavailable if this API is overwritten.
 
 This can be used for example, if the output required is substantially different or external API calls are required to retrieve document info.
 
@@ -396,20 +432,22 @@ For example, the default implementation does the following:
 2. If the document has the internal `_relative_fp` field and `sourceFilesUrl` is specified, retrieve the original document (`html` or `json`), and transform it into the same format as that generated by the indexer.
 3. Transform and highlight the field stores using the `listItemRender` set of APIs below.
 
+Refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.
+
 <br>
 
 **2. `resultsRenderOpts`**
 
 The renderers and options under this key are based on the **default implementation** of `resultsRender`.
-If overriding `resultsRender` above, these options will not be used.
+If overriding `resultsRender` above, the following options will be ignored.
 
-**`resultsPerPage = 8`**
+**2.1 `resultsPerPage = 8`**
 
 This option controls how many result previews are generated per trigger of the infinite scrolling intersection observer.
 
 If none of the `body / title / heading` fields are stored, lowering this has a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed.
 
-**`listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)`** & co.
+**2.2 `listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)`**
 
 This API renders the result for a single document match.
 
@@ -425,7 +463,7 @@ const subTitleField = fields.find(field => field[0] === 'subtitle');
 
 const linkEl = h('a', { class: 'morsels-link' },
   h('div', { class: 'morsels-title' }, title,
-      h('div', { class: 'morsels-subtitle' }, (subTitleField && subTitleField[1]) || '')
+    h('div', { class: 'morsels-subtitle' }, (subTitleField && subTitleField[1]) || '')
   ),
   ...bodies);
 if (fullLink) {
@@ -438,6 +476,8 @@ return h(
 );
 ```
 
+**2.3 `listItemRender` supporting APIs**
+
 The remaining 3 APIs are supplementary to `listItemRender`, and are responsible for generating the `resultTitle` and `resultHeadingsAndTexts` parameters.
 
 Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.
@@ -447,17 +487,27 @@ interface SearchUiRenderOptions {
     // ...
     headingBodyRender?: (
         h: CreateElement,
-        heading: string,                          // Heading text
-        bodyHighlights: (HTMLElement | string)[], // The elements under .morsels-body. Intended to be used with the 'h' function.
-        href?: string                             // Url of the document + The matching heading's id, if any
+
+        // Heading text
+        heading: string,    
+
+        // The elements under .morsels-body. Intended to be used with the 'h' function.
+        bodyHighlights: (HTMLElement | string)[], 
+
+        // Url of the document + The matching heading's id, if any
+        href?: string                             
     ) => HTMLElement,
     bodyOnlyRender?: (
         h: CreateElement,
-        bodyHighlights: (HTMLElement | string)[], // The elements under .morsels-body. Intended to be used with the 'h' function.
+
+        // The elements under .morsels-body. Intended to be used with the 'h' function.
+        bodyHighlights: (HTMLElement | string)[], 
     ) => HTMLElement,
     highlightRender?: (
         h: CreateElement,
-        matchedPart: string,                      // matched term
+
+        // matched term
+        matchedPart: string,                      
     ) => HTMLElement,
 }
 ```
