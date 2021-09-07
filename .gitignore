@@ -1,6 +1,9 @@
 # test files
 test_files
 
+# docs build
+docs/book
+
 # cargo
 target
 
