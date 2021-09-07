@@ -193,7 +193,7 @@ impl PostingsList {
     ) -> Result<Vec<u8>, JsValue> {
         let pl_resp_value = JsFuture::from(window.fetch_with_str(
             &(base_url.to_owned()
-                + "/pl_"
+                + "pl_"
                 + &(pl_num / num_pls_per_dir).to_string()[..]
                 + "/pl_"
                 + &pl_num.to_string()[..]),

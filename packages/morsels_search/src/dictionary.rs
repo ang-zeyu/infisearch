@@ -59,8 +59,8 @@ pub async fn setup_dictionary(url: &str, num_docs: u32, build_trigram: bool) -> 
     let start = performance.now(); */
 
     let (table_resp_value, string_resp_value) = join!(
-        JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/" + DICTIONARY_TABLE_FILE_NAME))),
-        JsFuture::from(window.fetch_with_str(&(url.to_owned() + "/" + DICTIONARY_STRING_FILE_NAME)))
+        JsFuture::from(window.fetch_with_str(&(url.to_owned() + DICTIONARY_TABLE_FILE_NAME))),
+        JsFuture::from(window.fetch_with_str(&(url.to_owned() + DICTIONARY_STRING_FILE_NAME)))
     );
 
     let table_resp: Response = table_resp_value.unwrap().dyn_into().unwrap();

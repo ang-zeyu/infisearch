@@ -1,8 +1,6 @@
 # Getting Started
 
-Getting started with the default setup is fairly easy.
-
-The default setup assumes you:
+Getting started with the following default setup is fairly easy straightforward:
 - Have some `.html` files you want to index
 - These `.html` files are served in a static file server, and are accessible by the search-ui to generate result previews
 
@@ -13,6 +11,7 @@ If you need more than this, have a look through here first, then jump into the [
 If you have the rust / cargo toolchain setup, simply run `cargo install morsels_indexer`.
 
 If not, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
+
 
 ## Running the indexer
 
@@ -49,12 +48,14 @@ To initialise morsels, call the `initMorsels` function as exposed by `search-ui.
 initMorsels({
     searcherOptions: {
         // Output folder url specified as the second parameter in the cli command
-        url: 'http://192.168.10.132:3000/output',
+        url: 'http://192.168.10.132:3000/output/',
     },
     // Input / source folder url, specified as the first parameter in the cli command
-    sourceFilesUrl: 'http://192.168.10.132:3000/source'
+    sourceFilesUrl: 'http://192.168.10.132:3000/source/'
 });
 ```
+
+If you wish to serve the files locally instead, you can find the latest versions in [this folder](https://github.com/ang-zeyu/morsels/tree/main/packages/search-ui/dist), or in the release packages [here](https://github.com/ang-zeyu/morsels/releases).
 
 ### Installation via webpack
 

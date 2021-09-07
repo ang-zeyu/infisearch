@@ -7,7 +7,7 @@ initMorsels({
     // Options belonging to @morsels/search-lib, the search library package
     searcherOptions: {
         // Base url of output directory from cli tool
-        url: 'http://192.168.10.132:3000/output',
+        url: 'http://192.168.10.132:3000/output/',
         
         // Whether to use substring query term expansion
         numberOfExpandedTerms: 3,
@@ -26,7 +26,7 @@ initMorsels({
     inputDebounce: isMobile ? 275 : 200,
     
     // Mandatory, by default - base url for sourcing .html / .json files
-    sourceFilesUrl: 'http://192.168.10.132:3000/source',
+    sourceFilesUrl: 'http://192.168.10.132:3000/source/',
     
     // Customise search result outputs, UI behaviour
     render: {

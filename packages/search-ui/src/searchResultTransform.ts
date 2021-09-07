@@ -316,7 +316,7 @@ async function singleResultRender(
   const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
   const relativeLink = (relativeFpField && relativeFpField[1]) || '';
   const hasSourceFilesUrl = typeof options.sourceFilesUrl === 'string';
-  const fullLink = hasSourceFilesUrl ? `${options.sourceFilesUrl}/${relativeLink}` : undefined;
+  const fullLink = hasSourceFilesUrl ? `${options.sourceFilesUrl}${relativeLink}` : undefined;
   const titleField = fields.find((v) => v[0] === 'title');
   let resultTitle = (titleField && titleField[1]) || relativeLink;
 

@@ -186,9 +186,9 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
         "\n\n<script>
     initMorsels({{
         searcherOptions: {{
-          url: '{}morsels_output',
+          url: '{}morsels_output/',
         }},
-        sourceFilesUrl: '',
+        sourceFilesUrl: '{}',
         render: {{
             enablePortal: {},
             opts: {{
@@ -197,7 +197,7 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
         }}
     }});
 </script>",
-        base_url, enable_portal
+        base_url, base_url, enable_portal
     )
 }
 
