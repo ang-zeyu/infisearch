@@ -17,6 +17,7 @@ use crate::spimiwriter;
 use crate::worker::miner::WorkerBlockIndexResults;
 use crate::DocInfos;
 use crate::FieldInfos;
+use crate::Indexer;
 use miner::WorkerMiner;
 
 pub struct Worker {
@@ -24,21 +25,21 @@ pub struct Worker {
     pub join_handle: thread::JoinHandle<()>,
 }
 
-impl Worker {
-    pub fn terminate_all_workers(workers: Vec<Worker>, tx_main: Sender<MainToWorkerMessage>) {
-        for _worker in &workers {
-            tx_main.send(MainToWorkerMessage::Terminate).expect("Failed to request worker termination!");
+impl Indexer {
+    pub fn terminate_all_workers(self) {
+        for _worker in &self.workers {
+            self.tx_main.send(MainToWorkerMessage::Terminate).expect("Failed to request worker termination!");
         }
 
-        for worker in workers {
+        for worker in self.workers {
             worker.join_handle.join().expect("Failed to join worker.");
         }
     }
 
-    pub fn wait_on_all_workers(tx_main: &Sender<MainToWorkerMessage>, num_threads: usize) {
-        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_threads + 1));
-        for _i in 0..num_threads {
-            tx_main.send(MainToWorkerMessage::Synchronize(Arc::clone(&receive_work_barrier))).unwrap();
+    pub fn wait_on_all_workers(&self) {
+        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(self.indexing_config.num_threads + 1));
+        for _i in 0..self.indexing_config.num_threads {
+            self.tx_main.send(MainToWorkerMessage::Synchronize(Arc::clone(&receive_work_barrier))).unwrap();
         }
         receive_work_barrier.wait();
     }

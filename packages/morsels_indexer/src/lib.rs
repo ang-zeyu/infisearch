@@ -526,8 +526,7 @@ impl Indexer {
             self.spimi_counter = 0;
         }
 
-        // Wait on all workers
-        Worker::wait_on_all_workers(&self.tx_main, self.indexing_config.num_threads);
+        self.wait_on_all_workers();
 
         #[cfg(debug_assertions)]
         println!("Number of docs: {}", self.doc_id_counter);
@@ -577,7 +576,8 @@ impl Indexer {
         if let Some(now) = instant {
             print_time_elapsed(now, "Blocks merged!");
         }
-        Worker::terminate_all_workers(self.workers, self.tx_main);
+
+        self.terminate_all_workers();
     }
 }
 
