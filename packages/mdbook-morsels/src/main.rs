@@ -63,9 +63,13 @@ fn main() {
 
         let mut command = Command::new("morsels");
         command.current_dir(html_renderer_path)
-            .args(&["./", "./morsels_output", "--dynamic"])
+            .args(&["./", "./morsels_output"])
             .arg("-c")
             .arg(morsels_config_path);
+        
+        if let Some(_livereload_url) = ctx.config.get("output.html.livereload-url") {
+            command.arg("--dynamic");
+        }
 
         command.output().expect("mdbook-morsels: failed to execute indexer process");
     } else {
