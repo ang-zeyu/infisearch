@@ -17,7 +17,6 @@ use std::sync::Mutex;
 use std::time::Instant;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use morsels_common::dictionary::{Dictionary, DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
 use morsels_common::tokenize::Tokenizer;
 use morsels_common::MorselsLanguageConfig;
 use morsels_common::DOC_INFO_FILE_NAME;
@@ -25,7 +24,7 @@ use morsels_lang_chinese::chinese;
 use morsels_lang_latin::english;
 
 use crate::docinfo::DocInfos;
-use crate::dynamic_index_info::{DynamicIndexInfo, DYNAMIC_INDEX_INFO_FILE_NAME};
+use crate::dynamic_index_info::DynamicIndexInfo;
 use crate::fieldinfo::FieldInfo;
 use crate::fieldinfo::FieldInfos;
 use crate::fieldinfo::FieldsConfig;
@@ -203,7 +202,6 @@ pub struct Indexer {
     rx_main: Receiver<WorkerToMainMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
     lang_config: MorselsLanguageConfig,
-    dictionary: Dictionary,
     is_dynamic: bool,
     delete_unencountered_external_ids: bool,
     start_doc_id: u32,
@@ -218,45 +216,9 @@ impl Indexer {
         mut is_dynamic: bool,
         delete_unencountered_external_ids: bool,
     ) -> Indexer {
-        is_dynamic = is_dynamic
-            && if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) {
-                meta.is_file()
-            } else {
-                false
-            };
-
-        let dynamic_index_info = if is_dynamic {
-            let existing = dynamic_index_info::DynamicIndexInfo::new_from_output_folder(&output_folder_path);
-
-            if &existing.ver[..] != MORSELS_VERSION {
-                is_dynamic = false;
-                dynamic_index_info::DynamicIndexInfo::empty()
-            } else {
-                existing
-            }
-        } else {
-            dynamic_index_info::DynamicIndexInfo::empty()
-        };
+        let dynamic_index_info = DynamicIndexInfo::new_from_output_folder(&output_folder_path, &mut is_dynamic);
 
         let loaders = config.indexing_config.get_loaders_from_config();
-
-        let dictionary = if is_dynamic {
-            let mut dictionary_table_vec: Vec<u8> = Vec::new();
-            let mut dictionary_string_vec: Vec<u8> = Vec::new();
-            File::open(output_folder_path.join(DICTIONARY_TABLE_FILE_NAME))
-                .unwrap()
-                .read_to_end(&mut dictionary_table_vec)
-                .unwrap();
-            File::open(output_folder_path.join(DICTIONARY_STRING_FILE_NAME))
-                .unwrap()
-                .read_to_end(&mut dictionary_string_vec)
-                .unwrap();
-
-            morsels_common::dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false)
-        } else {
-            // Not needed, don't load / decode it
-            Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() }
-        };
 
         let field_infos = {
             let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
@@ -374,7 +336,6 @@ impl Indexer {
             rx_main,
             num_workers_writing_blocks,
             lang_config: config.lang_config,
-            dictionary,
             is_dynamic,
             delete_unencountered_external_ids,
             start_doc_id,
@@ -551,7 +512,6 @@ impl Indexer {
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
-                &mut self.dictionary,
                 &mut self.dynamic_index_info,
             );
         } else {

@@ -6,13 +6,16 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
 use morsels_common::{BITMAP_FILE_NAME, bitmap};
+use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
 
 use crate::MORSELS_VERSION;
 
 // Not used for search
-pub static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
+static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
 
-// Used during search and indexing
+fn get_default_dictionary() -> Dictionary {
+    Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() }
+}
 
 #[derive(Serialize, Deserialize)]
 struct DocIdsAndFileHash(
@@ -36,6 +39,9 @@ pub struct DynamicIndexInfo {
 
     #[serde(skip)]
     pub invalidation_vector: Vec<u8>,
+
+    #[serde(skip, default = "get_default_dictionary")]
+    pub dictionary: Dictionary,
 }
 
 impl DynamicIndexInfo {
@@ -47,15 +53,46 @@ impl DynamicIndexInfo {
             num_docs: 0,
             num_deleted_docs: 0,
             invalidation_vector: Vec::new(),
+            dictionary: get_default_dictionary(),
         }
     }
 
-    pub fn new_from_output_folder(output_folder_path: &Path) -> DynamicIndexInfo {
+    pub fn new_from_output_folder(output_folder_path: &Path, is_dynamic: &mut bool) -> DynamicIndexInfo {
+        if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) {
+            if !meta.is_file() {
+                *is_dynamic = false;
+                return DynamicIndexInfo::empty();
+            }
+        } else {
+            *is_dynamic = false;
+            return DynamicIndexInfo::empty();
+        }
+
         let info_file = File::open(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)).unwrap();
 
-        let mut info: DynamicIndexInfo =
-            serde_json::from_reader(BufReader::new(info_file)).expect("dynamic index info deserialization failed!");
+        let mut info: DynamicIndexInfo = serde_json::from_reader(BufReader::new(info_file))
+            .expect("dynamic index info deserialization failed!");
+        
+        if &info.ver[..] != MORSELS_VERSION {
+            *is_dynamic = false;
+            return DynamicIndexInfo::empty();
+        }
 
+        // Dictionary
+        let mut dictionary_table_vec: Vec<u8> = Vec::new();
+        let mut dictionary_string_vec: Vec<u8> = Vec::new();
+        File::open(output_folder_path.join(DICTIONARY_TABLE_FILE_NAME))
+            .unwrap()
+            .read_to_end(&mut dictionary_table_vec)
+            .unwrap();
+        File::open(output_folder_path.join(DICTIONARY_STRING_FILE_NAME))
+            .unwrap()
+            .read_to_end(&mut dictionary_string_vec)
+            .unwrap();
+
+        info.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false);
+
+        // Invalidation vector
         File::open(output_folder_path.join(BITMAP_FILE_NAME))
             .unwrap()
             .read_to_end(&mut info.invalidation_vector)

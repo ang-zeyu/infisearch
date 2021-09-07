@@ -21,7 +21,6 @@ use morsels_common::DOC_INFO_FILE_NAME;
 
 use crate::docinfo::DocInfos;
 use crate::utils::varint;
-use crate::Dictionary;
 use crate::DynamicIndexInfo;
 use crate::MainToWorkerMessage;
 use crate::MorselsIndexingConfig;
@@ -191,7 +190,6 @@ pub fn modify_blocks(
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
-    dictionary: &mut Dictionary,
     dynamic_index_info: &mut DynamicIndexInfo,
 ) {
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
@@ -253,7 +251,7 @@ pub fn modify_blocks(
             &blocking_rcvr,
         );
 
-        let existing_term_info = dictionary.get_term_info(&curr_term);
+        let existing_term_info = dynamic_index_info.dictionary.get_term_info(&curr_term);
         if let Some(old_term_info) = existing_term_info {
             // Existing term
 
@@ -337,7 +335,7 @@ pub fn modify_blocks(
     let mut prev_term = Rc::new(SmartString::from(""));
     let mut prev_dict_pl = 0;
 
-    let mut old_pairs_sorted: Vec<_> = std::mem::take(&mut dictionary.term_infos).into_iter().collect();
+    let mut old_pairs_sorted: Vec<_> = std::mem::take(&mut dynamic_index_info.dictionary.term_infos).into_iter().collect();
 
     // Sort by old postings list order
     old_pairs_sorted.sort_by(|a, b| match a.1.postings_file_name.cmp(&b.1.postings_file_name) {
