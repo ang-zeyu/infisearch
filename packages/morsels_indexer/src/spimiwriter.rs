@@ -15,12 +15,11 @@ use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::TermDocComparator;
 use crate::worker::miner::WorkerMinerDocInfo;
-use crate::worker::miner::{WorkerMiner, WorkerBlockIndexResults};
+use crate::worker::miner::WorkerBlockIndexResults;
 use crate::DocInfos;
 use crate::FieldInfos;
 use crate::Indexer;
 use crate::MainToWorkerMessage;
-use crate::WorkerToMainMessage;
 
 lazy_static! {
     static ref NULL_HANDLER: &'static str = match OS {
@@ -31,39 +30,34 @@ lazy_static! {
 }
 
 impl Indexer {
-    #[allow(clippy::too_many_arguments)]
     pub fn write_block(
-        doc_miner: &mut WorkerMiner,
-        num_workers_writing_blocks: &Arc<Mutex<usize>>,
-        num_threads: usize,
-        tx_main: &mut crossbeam::Sender<MainToWorkerMessage>,
-        rx_main: &mut crossbeam::Receiver<WorkerToMainMessage>,
-        output_folder_path: PathBuf,
+        &self,
+        main_thread_block_results: WorkerBlockIndexResults,
         block_number: u32,
-        spimi_counter: u32,
-        total_num_docs: u32, //self.doc_id_counter - self.spimi_counter
-        doc_infos: &Arc<Mutex<DocInfos>>,
+        is_last_block: bool,
     ) {
         // Don't block on threads that are still writing blocks (long running)
-        let mut num_workers_writing_blocks = num_workers_writing_blocks.lock().unwrap();
-        let num_workers_to_collect = num_threads - *num_workers_writing_blocks;
+        let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
+        let num_workers_to_collect = self.indexing_config.num_threads - *num_workers_writing_blocks;
         let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect + 1);
-        worker_index_results.push(doc_miner.get_results());
+        worker_index_results.push(main_thread_block_results);
 
         let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(num_workers_to_collect));
 
         // Request all workers for doc miners
         for _i in 0..num_workers_to_collect {
-            tx_main
+            self.tx_main
                 .send(MainToWorkerMessage::Reset(Arc::clone(&receive_work_barrier)))
                 .expect("Failed to send reset message!");
         }
 
-        *num_workers_writing_blocks += 1;
+        if !is_last_block {
+            *num_workers_writing_blocks += 1;
+        }
 
         // Receive doc miners
         for _i in 0..num_workers_to_collect {
-            let worker_msg = rx_main.recv();
+            let worker_msg = self.rx_main.recv();
             match worker_msg {
                 Ok(worker_msg_unwrapped) => {
                     #[cfg(debug_assertions)]
@@ -75,16 +69,32 @@ impl Indexer {
             }
         }
 
-        tx_main
-            .send(MainToWorkerMessage::Combine {
+        let output_folder_path = PathBuf::from(&self.output_folder_path);
+        let total_num_docs = self.doc_id_counter - self.spimi_counter;
+        if is_last_block {
+            combine_worker_results_and_write_block(
                 worker_index_results,
+                Arc::clone(&self.doc_infos),
                 output_folder_path,
+                &self.field_infos,
                 block_number,
-                num_docs: spimi_counter,
+                self.is_dynamic,
+                self.indexing_config.num_stores_per_dir,
+                self.spimi_counter,
                 total_num_docs,
-                doc_infos: Arc::clone(doc_infos),
-            })
-            .expect("Failed to send work message to worker!");
+            );
+        } else {
+            self.tx_main
+                .send(MainToWorkerMessage::Combine {
+                    worker_index_results,
+                    output_folder_path,
+                    block_number,
+                    num_docs: self.spimi_counter,
+                    total_num_docs,
+                    doc_infos: Arc::clone(&self.doc_infos),
+                })
+                .expect("Failed to send work message to worker!");
+        }
     }
 }
 

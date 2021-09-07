@@ -454,18 +454,12 @@ impl Indexer {
                     self.spimi_counter += 1;
 
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
+                        let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number();
-                        Indexer::write_block(
-                            &mut self.doc_miner,
-                            &self.num_workers_writing_blocks,
-                            self.indexing_config.num_threads,
-                            &mut self.tx_main,
-                            &mut self.rx_main,
-                            PathBuf::from(&self.output_folder_path),
+                        self.write_block(
+                            main_thread_block_index_results,
                             block_number,
-                            self.spimi_counter,
-                            self.doc_id_counter - self.spimi_counter,
-                            &self.doc_infos,
+                            false,
                         );
                         self.spimi_counter = 0;
                     }
@@ -523,17 +517,11 @@ impl Indexer {
             println!("Writing last spimi block");
 
             let block_number = self.block_number();
-            Indexer::write_block(
-                &mut self.doc_miner,
-                &self.num_workers_writing_blocks,
-                self.indexing_config.num_threads,
-                &mut self.tx_main,
-                &mut self.rx_main,
-                PathBuf::from(&self.output_folder_path),
+            let main_thread_block_index_results = self.doc_miner.get_results();
+            self.write_block(
+                main_thread_block_index_results,
                 block_number,
-                self.spimi_counter,
-                self.doc_id_counter - self.spimi_counter,
-                &self.doc_infos,
+                true,
             );
             self.spimi_counter = 0;
         }
