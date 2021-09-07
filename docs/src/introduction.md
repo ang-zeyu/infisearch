@@ -10,12 +10,12 @@ In short, this tool is tailored for a very specific audience:
 - You have a fairly large collection of html, csv, or json (for now, only these are supported) files (`> 100MB`)
 - You don't want or can't run a search server / search Saas (eg. Algolia Docsearch)
 - You don't want the user downloading and loading a gigantic `> 50mb` index, blowing up memory usage everytime they visit your site.
-- You want a ready-made but customisable search UI interface.
+- You want a ready-made and customisable search UI.
 - ES5 support is not a concern (simply not possible with the technologies used here)
 
 ## Libraries
 
-This project is made up of 3 crates and 2 packages.
+This project is made up of 3 crates and 2 packages, which will be referred to in the subsequent sections of the documentation.
 
 - morsels_indexer: the cli tool providing indexing functionalities for several file formats
 - morsels_search: the rust wasm crate providing search functionalities
