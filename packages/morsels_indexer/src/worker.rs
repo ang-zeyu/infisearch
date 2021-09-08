@@ -126,8 +126,6 @@ pub fn worker(
                 #[cfg(debug_assertions)]
                 println!("Worker {} resetting!", id);
 
-                println!("Worker {} num docs {}", id, doc_miner.doc_infos.len());
-
                 // return the indexed documents...
                 sndr.send(WorkerToMainMessage {
                     id,

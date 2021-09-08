@@ -435,8 +435,6 @@ impl Indexer {
                             self.doc_miner.index_doc(doc_id, loader_result.get_field_texts());
                         }
 
-                        println!("main thread {}", self.doc_miner.doc_infos.len());
-
                         let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number();
                         self.write_block(
