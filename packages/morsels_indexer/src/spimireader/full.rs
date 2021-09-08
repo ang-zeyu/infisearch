@@ -48,7 +48,7 @@ pub fn merge_blocks(
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
     let postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>> =
         Arc::from(DashMap::with_capacity(num_blocks as usize));
-    let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::bounded(1);
+    let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
     let num_docs_double = doc_id_counter as f64;
 

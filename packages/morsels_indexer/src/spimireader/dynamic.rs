@@ -195,7 +195,7 @@ pub fn modify_blocks(
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
     let postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>> =
         Arc::from(DashMap::with_capacity(num_blocks as usize));
-    let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::bounded(1);
+    let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
     let old_num_docs = dynamic_index_info.num_docs as f64;
     let new_num_docs = (doc_id_counter - dynamic_index_info.num_deleted_docs) as f64;

@@ -32,11 +32,11 @@ use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
 use crate::loader::Loader;
-use crate::worker::{Worker, MainToWorkerMessage, WorkerToMainMessage};
+use crate::worker::{IndexUnit, Worker, MainToWorkerMessage, WorkerToMainMessage};
 use crate::worker::miner::WorkerMiner;
 
-use crossbeam::Receiver;
-use crossbeam::Sender;
+use crossbeam::channel::{self, Sender, Receiver};
+use crossbeam::queue::ArrayQueue;
 use glob::Pattern;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
@@ -198,6 +198,7 @@ pub struct Indexer {
     workers: Vec<Worker>,
     loaders: Vec<Box<dyn Loader>>,
     doc_infos: Arc<Mutex<DocInfos>>,
+    index_unit_queue: Arc<ArrayQueue<IndexUnit>>,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
@@ -274,13 +275,15 @@ impl Indexer {
         // Construct worker threads
         let (tx_worker, rx_main): (
             Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>
-        ) = crossbeam::bounded(config.indexing_config.num_threads);
+        ) = channel::bounded(config.indexing_config.num_threads);
         let (tx_main, rx_worker): (
             Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
-        ) = crossbeam::bounded(std::cmp::max(
-            config.indexing_config.num_docs_per_block as usize / 10,
-            config.indexing_config.num_threads * 2,
-        ));
+        ) = channel::bounded(config.indexing_config.num_threads);
+
+        let index_unit_queue = Arc::from(ArrayQueue::new(std::cmp::max(
+            config.indexing_config.num_docs_per_block as usize / 5,
+            config.indexing_config.num_threads,
+        )));
 
         let expected_num_docs_per_thread =
             (config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2) as usize;
@@ -299,6 +302,7 @@ impl Indexer {
             let tokenize_clone = Arc::clone(&tokenizer);
             let field_info_clone = Arc::clone(&field_infos);
             let num_workers_writing_blocks_clone = Arc::clone(&num_workers_writing_blocks);
+            let index_unit_queue = Arc::clone(&index_unit_queue);
 
             workers.push(Worker {
                 id: i as usize,
@@ -314,6 +318,7 @@ impl Indexer {
                         expected_num_docs_per_thread,
                         num_workers_writing_blocks_clone,
                         is_dynamic,
+                        index_unit_queue,
                     )
                 }),
             });
@@ -332,6 +337,7 @@ impl Indexer {
             workers,
             loaders,
             doc_infos,
+            index_unit_queue,
             tx_main,
             rx_main,
             num_workers_writing_blocks,
@@ -398,15 +404,25 @@ impl Indexer {
             return;
         }
 
+        let mut sent = 0;
+
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path) {
-                for mut loader_result in loader_results {
-                    if self.tx_main.is_full() {
-                        self.doc_miner.index_doc(self.doc_id_counter, loader_result.get_field_texts());
+                for loader_result in loader_results {
+                    /* let mut index_unit = IndexUnit { doc_id: self.doc_id_counter, loader_result };
+                    while let Err(unit) = self.index_unit_queue.push(index_unit) {
+                        index_unit = unit;
+                    }
+                    if let Ok(_) = self.tx_main.try_send(MainToWorkerMessage::Index) { } else { }; */
+                    //self.doc_miner.index_doc(self.doc_id_counter, loader_result.get_field_texts());
+                    if let Err(mut unit) = self.index_unit_queue.push(IndexUnit { doc_id: self.doc_id_counter, loader_result }) {
+                        self.doc_miner.index_doc(unit.doc_id, unit.loader_result.get_field_texts());
                     } else {
-                        self.tx_main
-                            .send(MainToWorkerMessage::Index { doc_id: self.doc_id_counter, loader_result })
-                            .expect("Failed to send work message to worker!");
+                        sent += 1;
+                        if sent == 10 {
+                            sent = 0;
+                            self.tx_main.try_send(MainToWorkerMessage::Index);
+                        }
                     }
 
                     self.dynamic_index_info.add_doc_to_external_id(external_id, self.doc_id_counter);
@@ -415,6 +431,12 @@ impl Indexer {
                     self.spimi_counter += 1;
 
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
+                        while let Some(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.pop() {
+                            self.doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+                        }
+
+                        println!("main thread {}", self.doc_miner.doc_infos.len());
+
                         let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number();
                         self.write_block(
@@ -476,6 +498,12 @@ impl Indexer {
         if self.spimi_counter != 0 && self.spimi_counter != self.indexing_config.num_docs_per_block {
             #[cfg(debug_assertions)]
             println!("Writing last spimi block");
+
+            while let Some(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.pop() {
+                self.doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+            }
+
+            println!("main thread {}", self.doc_miner.doc_infos.len());
 
             let block_number = self.block_number();
             let main_thread_block_index_results = self.doc_miner.get_results();

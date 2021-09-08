@@ -8,8 +8,8 @@ use std::sync::Barrier;
 use std::sync::Mutex;
 use std::thread;
 
-use crossbeam::Receiver;
-use crossbeam::Sender;
+use crossbeam::channel::{Sender, Receiver};
+use crossbeam::queue::ArrayQueue;
 
 use crate::loader::LoaderResult;
 use crate::spimireader::common::{PostingsStreamDecoder, postings_stream_reader::PostingsStreamReader};
@@ -45,6 +45,11 @@ impl Indexer {
     }
 }
 
+pub struct IndexUnit {
+    pub doc_id: u32,
+    pub loader_result: Box<dyn LoaderResult + Send>,
+}
+
 pub enum MainToWorkerMessage {
     Synchronize(Arc<Barrier>),
     Reset(Arc<Barrier>),
@@ -57,10 +62,7 @@ pub enum MainToWorkerMessage {
         total_num_docs: u32,
         doc_infos: Arc<Mutex<DocInfos>>,
     },
-    Index {
-        doc_id: u32,
-        loader_result: Box<dyn LoaderResult + Send>,
-    },
+    Index,
     Decode {
         n: u32,
         postings_stream_reader: PostingsStreamReader,
@@ -85,14 +87,17 @@ pub fn worker(
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
     is_dynamic: bool,
+    index_unit_queue: Arc<ArrayQueue<IndexUnit>>,
 ) {
     let mut doc_miner = WorkerMiner::new(&field_infos, with_positions, expected_num_docs_per_reset, &tokenizer);
 
     loop {
         let msg = rcvr.recv().expect("Failed to receive message on worker side!");
         match msg {
-            MainToWorkerMessage::Index { doc_id, mut loader_result } => {
-                doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+            MainToWorkerMessage::Index => {
+                while let Some(mut unit) = index_unit_queue.pop() {
+                    doc_miner.index_doc(unit.doc_id, unit.loader_result.get_field_texts());
+                }
             }
             MainToWorkerMessage::Combine {
                 worker_index_results,
@@ -124,6 +129,8 @@ pub fn worker(
             MainToWorkerMessage::Reset(barrier) => {
                 #[cfg(debug_assertions)]
                 println!("Worker {} resetting!", id);
+
+                println!("Worker {} num docs {}", id, doc_miner.doc_infos.len());
 
                 // return the indexed documents...
                 sndr.send(WorkerToMainMessage {

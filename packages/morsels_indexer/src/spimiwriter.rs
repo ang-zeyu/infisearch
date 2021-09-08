@@ -115,7 +115,7 @@ pub fn combine_worker_results_and_write_block(
     let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::with_capacity(worker_index_results.len());
 
     // Combine
-    for worker_result in worker_index_results {
+    for worker_result in worker_index_results.into_iter().filter(|w| !w.doc_infos.is_empty()) {
         for (worker_term, worker_term_docs) in worker_result.terms {
             combined_terms.entry(worker_term).or_insert_with(Vec::new).push(worker_term_docs);
         }
