@@ -56,17 +56,11 @@ impl Indexer {
         }
 
         // Receive doc miners
-        for _i in 0..num_workers_to_collect {
-            let worker_msg = self.rx_main.recv();
-            match worker_msg {
-                Ok(worker_msg_unwrapped) => {
-                    #[cfg(debug_assertions)]
-                    println!("Worker {} data received!", worker_msg_unwrapped.id);
-                    worker_index_results
-                        .push(worker_msg_unwrapped.block_index_results.expect("Received non doc miner message!"));
-                }
-                Err(e) => panic!("Failed to receive idle message from worker! {}", e),
-            }
+        for worker_msg in self.rx_main.iter().take(num_workers_to_collect) {
+            #[cfg(debug_assertions)]
+            println!("Worker {} data received!", worker_msg.id);
+            worker_index_results
+                .push(worker_msg.block_index_results.expect("Received non doc miner message!"));
         }
 
         let output_folder_path = PathBuf::from(&self.output_folder_path);

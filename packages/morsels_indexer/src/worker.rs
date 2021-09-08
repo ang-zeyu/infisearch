@@ -27,9 +27,7 @@ pub struct Worker {
 
 impl Indexer {
     pub fn terminate_all_workers(self) {
-        for _worker in &self.workers {
-            self.tx_main.send(MainToWorkerMessage::Terminate).expect("Failed to request worker termination!");
-        }
+        drop(self.tx_main);
 
         for worker in self.workers {
             worker.join_handle.join().expect("Failed to join worker.");
@@ -53,7 +51,6 @@ pub struct IndexUnit {
 pub enum MainToWorkerMessage {
     Synchronize(Arc<Barrier>),
     Reset(Arc<Barrier>),
-    Terminate,
     Combine {
         worker_index_results: Vec<WorkerBlockIndexResults>,
         output_folder_path: PathBuf,
@@ -91,8 +88,7 @@ pub fn worker(
 ) {
     let mut doc_miner = WorkerMiner::new(&field_infos, with_positions, expected_num_docs_per_reset, &tokenizer);
 
-    loop {
-        let msg = rcvr.recv().expect("Failed to receive message on worker side!");
+    for msg in rcvr.into_iter() {
         match msg {
             MainToWorkerMessage::Index => {
                 while let Some(mut unit) = index_unit_queue.pop() {
@@ -146,9 +142,6 @@ pub fn worker(
             }
             MainToWorkerMessage::Decode { n, postings_stream_reader, postings_stream_decoders } => {
                 postings_stream_reader.decode_next_n(n, postings_stream_decoders, with_positions, &field_infos);
-            }
-            MainToWorkerMessage::Terminate => {
-                break;
             }
         }
     }
