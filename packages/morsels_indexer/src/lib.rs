@@ -419,7 +419,7 @@ impl Indexer {
                         self.doc_miner.index_doc(unit.doc_id, unit.loader_result.get_field_texts());
                     } else {
                         sent += 1;
-                        if sent == 10 {
+                        if sent == 2 {
                             sent = 0;
                             self.tx_main.try_send(MainToWorkerMessage::Index);
                         }
