@@ -36,7 +36,7 @@ use crate::worker::{IndexUnit, Worker, MainToWorkerMessage, WorkerToMainMessage}
 use crate::worker::miner::WorkerMiner;
 
 use crossbeam::channel::{self, Sender, Receiver};
-use crossbeam::queue::ArrayQueue;
+use crossbeam::queue::SegQueue;
 use glob::Pattern;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
@@ -198,7 +198,7 @@ pub struct Indexer {
     workers: Vec<Worker>,
     loaders: Vec<Box<dyn Loader>>,
     doc_infos: Arc<Mutex<DocInfos>>,
-    index_unit_queue: Arc<ArrayQueue<IndexUnit>>,
+    index_unit_queue: Arc<SegQueue<IndexUnit>>,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
@@ -280,10 +280,7 @@ impl Indexer {
             Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
         ) = channel::bounded(config.indexing_config.num_threads);
 
-        let index_unit_queue = Arc::from(ArrayQueue::new(std::cmp::max(
-            config.indexing_config.num_docs_per_block as usize / 5,
-            config.indexing_config.num_threads,
-        )));
+        let index_unit_queue = Arc::from(SegQueue::new());
 
         let expected_num_docs_per_thread =
             (config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2) as usize;
@@ -409,20 +406,11 @@ impl Indexer {
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path) {
                 for loader_result in loader_results {
-                    /* let mut index_unit = IndexUnit { doc_id: self.doc_id_counter, loader_result };
-                    while let Err(unit) = self.index_unit_queue.push(index_unit) {
-                        index_unit = unit;
-                    }
-                    if let Ok(_) = self.tx_main.try_send(MainToWorkerMessage::Index) { } else { }; */
-                    //self.doc_miner.index_doc(self.doc_id_counter, loader_result.get_field_texts());
-                    if let Err(mut unit) = self.index_unit_queue.push(IndexUnit { doc_id: self.doc_id_counter, loader_result }) {
-                        self.doc_miner.index_doc(unit.doc_id, unit.loader_result.get_field_texts());
-                    } else {
-                        sent += 1;
-                        if sent == 2 {
-                            sent = 0;
-                            self.tx_main.try_send(MainToWorkerMessage::Index);
-                        }
+                    self.index_unit_queue.push(IndexUnit { doc_id: self.doc_id_counter, loader_result });
+                    sent += 1;
+                    if sent == 2 {
+                        sent = 0;
+                        self.tx_main.try_send(MainToWorkerMessage::Index);
                     }
 
                     self.dynamic_index_info.add_doc_to_external_id(external_id, self.doc_id_counter);

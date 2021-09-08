@@ -9,7 +9,7 @@ use std::sync::Mutex;
 use std::thread;
 
 use crossbeam::channel::{Sender, Receiver};
-use crossbeam::queue::ArrayQueue;
+use crossbeam::queue::SegQueue;
 
 use crate::loader::LoaderResult;
 use crate::spimireader::common::{PostingsStreamDecoder, postings_stream_reader::PostingsStreamReader};
@@ -84,7 +84,7 @@ pub fn worker(
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
     is_dynamic: bool,
-    index_unit_queue: Arc<ArrayQueue<IndexUnit>>,
+    index_unit_queue: Arc<SegQueue<IndexUnit>>,
 ) {
     let mut doc_miner = WorkerMiner::new(&field_infos, with_positions, expected_num_docs_per_reset, &tokenizer);
 
