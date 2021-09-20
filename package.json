@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-cli serve --config ./webpack.dev.js",
-    "devDocs": "cargo install --path packages/mdbook-morsels && cd docs && mdbook serve -p 8000",
-    "buildDocs": "npm run buildSearch && npm run installIndexer && cargo install --path packages/mdbook-morsels && cd docs && mdbook build",
+    "preDocs": "npm run buildSearch && npm run installIndexer  && cargo install --path packages/mdbook-morsels",
+    "devDocs": "npm run preDocs && cd docs && mdbook serve -p 8000",
+    "buildDocs": "npm run preDocs && cd docs && mdbook build",
     "buildSearch": "webpack --config ./webpack.prod.js",
     "index1": "cargo run -p morsels_indexer --release ./test_files/1/source ./test_files/1/output --perf",
     "index2": "cargo run -p morsels_indexer --release ./test_files/2/source ./test_files/2/output --perf",
