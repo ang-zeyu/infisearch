@@ -44,7 +44,9 @@ The default configurations are as follows, already setup for interfacing with th
         "b": 0.75
       },
       // Internal, hardcoded field sourced from the relative file path of the file from the root directory
-      // If omitted, the field will not be stored
+      // Required for the default search ui preview generation methods (see "Generating Result Previews" under search configuration)
+      //
+      // Nonetheless, if omitted, the field will not be stored.
       {
         "name": "_relative_fp",
         "do_store": true,
@@ -72,14 +74,6 @@ This parameter simply specifies the weight the field should have during scoring.
 **`k` & `b`**
 
 These are Okapi BM25 model parameters. The following [article](https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables) provides a good overview on how to configure these, although, the defaults should serve sufficiently.
-
-### Fields Needed for @morsels/search-ui
-
-The search-ui package, *by default*, requires **at least** one of the `body` / `heading` / `title` fields, and the `_relative_fp` field above.
-
-The body field (and title, headings if available) are used to generate the result preview, whilst the `_relative_fp` field is used for navigating to the generated result.
-
-The next [chapter](search_ui_configuration.md) will detail several options to help rename these fields, or even add additional fields and render them in result previews.
 
 ## `lang_config`
 
