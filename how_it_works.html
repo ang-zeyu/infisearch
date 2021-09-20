@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html" class="active"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html" class="active"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -106,6 +106,9 @@
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
                     </div>
                 </div>
@@ -161,13 +164,13 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h1>
-<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>&quot;Morsels&quot;</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>65535</code> bytes as much as possible.</p>
+<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>65535</code> bytes as much as possible.</p>
 <p>On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (<code>&lt; 1gb</code>).</p>
 <p>The index files of searched terms will be requested only on-demand from a static file server.</p>
 <h2 id="limits"><a class="header" href="#limits">Limits</a></h2>
 <p>The practicality / scalability of this tool is bound by 2 factors:</p>
 <h3 id="size-of-the-largest-index-chunk"><a class="header" href="#size-of-the-largest-index-chunk">Size of the largest index chunk</a></h3>
-<p>While the index is split into many chunks, some chunks may exceed the &quot;split size&quot; of <code>65535</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like &quot;the&quot;). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
+<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>65535</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
 <p>Certain <a href="./indexing_configuration.html">indexing options</a> like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.</p>
 <h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
 <p>The test collection used during development is a pure-text <code>380mb</code> .csv file, with positional indexing enabled. No stop word removal is done.</p>
@@ -177,13 +180,13 @@
 <p>Device capabilities is also another concern (e.g. performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor long before experiencing issues with this.</p>
 <h2 id="other-design-choices"><a class="header" href="#other-design-choices">Other Design Choices</a></h2>
 <h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker built in</a></h3>
-<p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.</p>
+<p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don’t have to worry about blocking the UI thread.</p>
 <p>Document field store population is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
 <p>Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
 One of the main reasons is that there is simply no way of parsing html (the original html document can be used as a field store) faster than the implementations provided by the browser.</p>
 <h3 id="wasm--rust-for-the-searcher"><a class="header" href="#wasm--rust-for-the-searcher">Wasm / Rust for the searcher</a></h3>
 <p>The search portion of the project was developed in typescript for a very large part. While usable, switching to a wasm / rust implementation yielded 2-3 fold performance benefits on average, and never slower.</p>
-<p>The usual wasm overheads of transferring large, complex data structures across the boundary don't quite apply for the use cases here either, as only index chunks are transferred over in raw byte representation.</p>
+<p>The usual wasm overheads of transferring large, complex data structures across the boundary don’t quite apply for the use cases here either, as only index chunks are transferred over in raw byte representation.</p>
 <h3 id="rust-for-the-indexer"><a class="header" href="#rust-for-the-indexer">Rust for the indexer</a></h3>
 <p>Rust was chosen for the indexer mainly as this was my first project in Rust. =P</p>
 <p>In retrospect, performance is critical for indexing fairly large collections nonetheless, making Rust a fairly good choice for the indexer.</p>

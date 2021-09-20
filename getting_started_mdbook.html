@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html" class="active"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html" class="active"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -106,6 +106,9 @@
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
                     </div>
                 </div>
@@ -161,7 +164,7 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="mdbook-morsels"><a class="header" href="#mdbook-morsels">mdbook-morsels</a></h1>
-<p><code>mdbook-morsels</code> is a simple proof-of-concept search plugin for <a href="https://github.com/rust-lang/mdBook">mdbook</a> to use morsels' search functions instead.</p>
+<p><code>mdbook-morsels</code> is a simple proof-of-concept search plugin for <a href="https://github.com/rust-lang/mdBook">mdbook</a> to use morsels’ search functions instead.</p>
 <p>It uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. You can switch the themes in this documentation to try out the different themes.</p>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <p>You will need to have installed the following command-line crates (<code>cargo install &lt;crate-name&gt;</code>):</p>
@@ -194,8 +197,8 @@ config = &quot;_morsels_config.json&quot;
 no-css = false
 </code></pre>
 <h2 id="preview"><a class="header" href="#preview">Preview</a></h2>
-<p>Here's what it looks like across the five different themes currently.</p>
-<p>Also note that unlike the default search feature, the search bar is always there! There is no search icon on the navbar to click. I am still trying to figure how to add this nicely within mdbook's plugin framework :).</p>
+<p>Here’s what it looks like across the five different themes currently.</p>
+<p>Also note that unlike the default search feature, the search bar is always there! There is no search icon on the navbar to click. I am still trying to figure how to add this nicely within mdbook’s plugin framework :).</p>
 <p><img src="./images/mdbook-preview.gif" alt="mdbook morsels plugin preview" /></p>
 <script>
     initMorsels({
@@ -218,7 +221,7 @@ no-css = false
                             <a rel="prev" href="getting_started.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="indexing_configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="search_configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -230,7 +233,7 @@ no-css = false
                     <a rel="prev" href="getting_started.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="indexing_configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="search_configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

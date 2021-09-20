@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html" class="active"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html" class="active"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -106,6 +106,9 @@
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
                     </div>
                 </div>
@@ -161,17 +164,17 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="setting-up"><a class="header" href="#setting-up">Setting Up</a></h1>
-<p>To get your development environment setup, you'll need to have installed the following:</p>
+<p>To get your development environment setup, you’ll need to have installed the following:</p>
 <ul>
 <li>Some Rust, WebAssembly and / or Typescript knowledge 🧠</li>
 <li><a href="https://crates.io/">cargo</a>, the package manager for Rust</li>
-<li><a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>, the &quot;one-stop shop&quot; for working with rust generated WebAssembly</li>
+<li><a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>, the “one-stop shop” for working with rust generated WebAssembly</li>
 <li><a href="https://rust-lang.github.io/mdBook/">mdbook</a>, if working on mdbook-morsels plugin</li>
 </ul>
 <h2 id="commands"><a class="header" href="#commands">Commands</a></h2>
 <p>After you have installed the above dependencies, simply run the <code>npm run setup</code> command to install npm-related dependencies. This command also symlinks the all npm packages locally, including the ones generated by wasm-pack.</p>
 <h2 id="test-files"><a class="header" href="#test-files">Test Files</a></h2>
-<p>You'll also need to source a suitable set of html, json, or csv collection that is loadable by one of the command-line <a href="./indexing_configuration.html#Loaders">loaders</a>. The data in the collection should be mappable to the <a href="./indexing_configuration.html#fields-needed-for-morselssearch-ui">fields</a> required by <code>@morsels/search-ui</code> for easy testing.</p>
+<p>You’ll also need to source a suitable set of html, json, or csv collection that is loadable by one of the command-line <a href="./indexing_configuration.html#Loaders">loaders</a>. The data in the collection should be mappable to the <a href="./indexing_configuration.html#fields-needed-for-morselssearch-ui">fields</a> required by <code>@morsels/search-ui</code> for easy testing.</p>
 <p>The test collection I used for the majority of development is a <code>380mb</code> csv corpus for example, in the following format.</p>
 <pre><code>&quot;date&quot;, &quot;title&quot;,                 &quot;content&quot;,              &quot;court&quot;
 unused, mapped to 'title' field, mapped to 'body' field, mapped to 'heading' field

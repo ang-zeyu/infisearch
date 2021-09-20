@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html" class="active"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html" class="active"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -106,6 +106,9 @@
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
                     </div>
                 </div>
@@ -178,7 +181,7 @@ This option outputs the default <a href="./indexing_configuration.html"><code>_m
 <p>You may also change the config file location (relative to the <code>source-folder-path</code>) using the <code>-c &lt;config-file-path&gt;</code> option.</p>
 <h2 id="installing-the-search-library--ui"><a class="header" href="#installing-the-search-library--ui">Installing the search library / UI</a></h2>
 <p>Installation for this section may very greatly depending on your setup.</p>
-<p>For now, let's assume you just need the default settings.</p>
+<p>For now, let’s assume you just need the default settings.</p>
 <h3 id="installation-via-cdn"><a class="header" href="#installation-via-cdn">Installation via cdn</a></h3>
 <pre><code class="language-html">&lt;!-- Replace &quot;version&quot; as appropriate --&gt;
 
@@ -214,7 +217,7 @@ new CopyPlugin({
 })
 </code></pre>
 <h4 id="bundling-everything"><a class="header" href="#bundling-everything">Bundling Everything</a></h4>
-<p>Alternatively, if you wish to bundle the <code>.wasm</code> binaries from source, you'll need to install <a href="https://github.com/wasm-tool/wasm-pack-plugin">wasm pack plugin</a> and its various dependencies, and adapt the configurations used in <code>webpack.common.js</code> in the github repo. This is unrecommended however, as it adds global dependency requirements (i.e. rust compiler) to your development toolchain and may slow build times significantly.</p>
+<p>Alternatively, if you wish to bundle the <code>.wasm</code> binaries from source, you’ll need to install <a href="https://github.com/wasm-tool/wasm-pack-plugin">wasm pack plugin</a> and its various dependencies, and adapt the configurations used in <code>webpack.common.js</code> in the github repo. This is unrecommended however, as it adds global dependency requirements (i.e. rust compiler) to your development toolchain and may slow build times significantly.</p>
 <script>
     initMorsels({
         searcherOptions: {

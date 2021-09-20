@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -107,6 +107,9 @@
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
                     </div>
                 </div>
@@ -168,8 +171,8 @@
 <p>In short, this tool is tailored for a very specific audience:</p>
 <ul>
 <li>You have a fairly large collection of html, csv, or json (for now, only these are supported) files (<code>&gt; 100MB</code>)</li>
-<li>You don't want or can't run a search server / search Saas (eg. Algolia Docsearch)</li>
-<li>You don't want the user downloading and loading a gigantic <code>&gt; 50mb</code> index, blowing up memory usage everytime they visit your site.</li>
+<li>You don’t want or can’t run a search server / search Saas (eg. Algolia Docsearch)</li>
+<li>You don’t want the user downloading and loading a gigantic <code>&gt; 50mb</code> index, blowing up memory usage everytime they visit your site.</li>
 <li>You want a ready-made and customisable search UI.</li>
 <li>ES5 support is not a concern (simply not possible with the technologies used here)</li>
 </ul>
@@ -245,13 +248,13 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h1>
-<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>&quot;Morsels&quot;</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>65535</code> bytes as much as possible.</p>
+<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>65535</code> bytes as much as possible.</p>
 <p>On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (<code>&lt; 1gb</code>).</p>
 <p>The index files of searched terms will be requested only on-demand from a static file server.</p>
 <h2 id="limits"><a class="header" href="#limits">Limits</a></h2>
 <p>The practicality / scalability of this tool is bound by 2 factors:</p>
 <h3 id="size-of-the-largest-index-chunk"><a class="header" href="#size-of-the-largest-index-chunk">Size of the largest index chunk</a></h3>
-<p>While the index is split into many chunks, some chunks may exceed the &quot;split size&quot; of <code>65535</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like &quot;the&quot;). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
+<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>65535</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
 <p>Certain <a href="./indexing_configuration.html">indexing options</a> like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.</p>
 <h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
 <p>The test collection used during development is a pure-text <code>380mb</code> .csv file, with positional indexing enabled. No stop word removal is done.</p>
@@ -261,13 +264,13 @@
 <p>Device capabilities is also another concern (e.g. performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor long before experiencing issues with this.</p>
 <h2 id="other-design-choices"><a class="header" href="#other-design-choices">Other Design Choices</a></h2>
 <h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker built in</a></h3>
-<p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.</p>
+<p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don’t have to worry about blocking the UI thread.</p>
 <p>Document field store population is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
 <p>Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
 One of the main reasons is that there is simply no way of parsing html (the original html document can be used as a field store) faster than the implementations provided by the browser.</p>
 <h3 id="wasm--rust-for-the-searcher"><a class="header" href="#wasm--rust-for-the-searcher">Wasm / Rust for the searcher</a></h3>
 <p>The search portion of the project was developed in typescript for a very large part. While usable, switching to a wasm / rust implementation yielded 2-3 fold performance benefits on average, and never slower.</p>
-<p>The usual wasm overheads of transferring large, complex data structures across the boundary don't quite apply for the use cases here either, as only index chunks are transferred over in raw byte representation.</p>
+<p>The usual wasm overheads of transferring large, complex data structures across the boundary don’t quite apply for the use cases here either, as only index chunks are transferred over in raw byte representation.</p>
 <h3 id="rust-for-the-indexer"><a class="header" href="#rust-for-the-indexer">Rust for the indexer</a></h3>
 <p>Rust was chosen for the indexer mainly as this was my first project in Rust. =P</p>
 <p>In retrospect, performance is critical for indexing fairly large collections nonetheless, making Rust a fairly good choice for the indexer.</p>
@@ -362,7 +365,7 @@ title\:lorem
 <p>This section briefly details some background features not exposed to the user:</p>
 <ul>
 <li>Disjunctive expressions are ranked using the same BM25 model used in lucene</li>
-<li>Pure free-text queries (e.g. &quot;lorem ipsum&quot;) use the <a href="https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand">WAND algorithm</a> to improve query speed</li>
+<li>Pure free-text queries (e.g. “lorem ipsum”) use the <a href="https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand">WAND algorithm</a> to improve query speed</li>
 <li>Background query term proximity ranking: BM25 results are also scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</li>
 </ul>
 <script>
@@ -435,7 +438,7 @@ This option outputs the default <a href="./indexing_configuration.html"><code>_m
 <p>You may also change the config file location (relative to the <code>source-folder-path</code>) using the <code>-c &lt;config-file-path&gt;</code> option.</p>
 <h2 id="installing-the-search-library--ui"><a class="header" href="#installing-the-search-library--ui">Installing the search library / UI</a></h2>
 <p>Installation for this section may very greatly depending on your setup.</p>
-<p>For now, let's assume you just need the default settings.</p>
+<p>For now, let’s assume you just need the default settings.</p>
 <h3 id="installation-via-cdn"><a class="header" href="#installation-via-cdn">Installation via cdn</a></h3>
 <pre><code class="language-html">&lt;!-- Replace &quot;version&quot; as appropriate --&gt;
 
@@ -471,7 +474,7 @@ new CopyPlugin({
 })
 </code></pre>
 <h4 id="bundling-everything"><a class="header" href="#bundling-everything">Bundling Everything</a></h4>
-<p>Alternatively, if you wish to bundle the <code>.wasm</code> binaries from source, you'll need to install <a href="https://github.com/wasm-tool/wasm-pack-plugin">wasm pack plugin</a> and its various dependencies, and adapt the configurations used in <code>webpack.common.js</code> in the github repo. This is unrecommended however, as it adds global dependency requirements (i.e. rust compiler) to your development toolchain and may slow build times significantly.</p>
+<p>Alternatively, if you wish to bundle the <code>.wasm</code> binaries from source, you’ll need to install <a href="https://github.com/wasm-tool/wasm-pack-plugin">wasm pack plugin</a> and its various dependencies, and adapt the configurations used in <code>webpack.common.js</code> in the github repo. This is unrecommended however, as it adds global dependency requirements (i.e. rust compiler) to your development toolchain and may slow build times significantly.</p>
 <script>
     initMorsels({
         searcherOptions: {
@@ -525,7 +528,7 @@ new CopyPlugin({
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="mdbook-morsels"><a class="header" href="#mdbook-morsels">mdbook-morsels</a></h1>
-<p><code>mdbook-morsels</code> is a simple proof-of-concept search plugin for <a href="https://github.com/rust-lang/mdBook">mdbook</a> to use morsels' search functions instead.</p>
+<p><code>mdbook-morsels</code> is a simple proof-of-concept search plugin for <a href="https://github.com/rust-lang/mdBook">mdbook</a> to use morsels’ search functions instead.</p>
 <p>It uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. You can switch the themes in this documentation to try out the different themes.</p>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <p>You will need to have installed the following command-line crates (<code>cargo install &lt;crate-name&gt;</code>):</p>
@@ -558,388 +561,9 @@ config = &quot;_morsels_config.json&quot;
 no-css = false
 </code></pre>
 <h2 id="preview"><a class="header" href="#preview">Preview</a></h2>
-<p>Here's what it looks like across the five different themes currently.</p>
-<p>Also note that unlike the default search feature, the search bar is always there! There is no search icon on the navbar to click. I am still trying to figure how to add this nicely within mdbook's plugin framework :).</p>
+<p>Here’s what it looks like across the five different themes currently.</p>
+<p>Also note that unlike the default search feature, the search bar is always there! There is no search icon on the navbar to click. I am still trying to figure how to add this nicely within mdbook’s plugin framework :).</p>
 <p><img src="./images/mdbook-preview.gif" alt="mdbook morsels plugin preview" /></p>
-<script>
-    initMorsels({
-        searcherOptions: {
-          url: '/morsels/morsels_output/',
-        },
-        sourceFilesUrl: '/morsels/',
-        render: {
-            enablePortal: true,
-            opts: {
-                dropdownAlignment: 'left'
-            }
-        }
-    });
-</script><div style="break-before: page; page-break-before: always;"></div><script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
-<style>
-.morsels-root {
-    --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-fg: var(--fg);
-    --morsels-bg: var(--bg);
-    --morsels-item-border-radius: 10px;
-    --morsels-item-sub-border:  1px solid var(--table-border-color);
-    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
-    --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--bg);
-    --morsels-title-hover-bg: var(--fg);
-    --morsels-heading-bg: var(--table-alternate-bg);
-    --morsels-heading-hover-bg: var(--table-header-bg);
-    --morsels-body-hover-bg: var(--table-alternate-bg);
-    --morsels-highlight: var(--search-mark-bg);
-    --morsels-fine-print-fg: var(--fg);
-    --morsels-loading-bg: var(--fg);
-    --morsels-scrollbar-bg: var(--sidebar-bg);
-    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-box-shadow: none;
-    --morsels-fullscreen-header-bg: var(--sidebar-bg);
-    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
-    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
-    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
-    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
-}
-</style>
-<p><input
-    type="text"
-    id="morsels-search"
-    placeholder="Search"
-    style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
-/></p>
-<h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
-<p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>_morsels_config.json</code> in the source folder (first argument) specified in the command.</p>
-<p>Run the cli command with the <code>--init</code> option to initialise the default configuration file instead.</p>
-<h2 id="fields_config"><a class="header" href="#fields_config"><code>fields_config</code></a></h2>
-<p>The first step to indexing any documents is defining the field configurations.</p>
-<p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
-<pre><code class="language-json">{
-  &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 1,
-    &quot;fields&quot;: [
-      {
-        &quot;name&quot;: &quot;title&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.2,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.25
-      },
-      {
-        &quot;name&quot;: &quot;heading&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.3,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.3
-      },
-      {
-        &quot;name&quot;: &quot;body&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.5,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      },
-      {
-        &quot;name&quot;: &quot;headingLink&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      },
-      // Internal, hardcoded field sourced from the relative file path of the file from the root directory
-      // If omitted, the field will not be stored
-      {
-        &quot;name&quot;: &quot;_relative_fp&quot;,
-        &quot;do_store&quot;: true,
-        &quot;weight&quot;: 0.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      }
-    ]
-  }
-}
-</code></pre>
-<p><strong><code>field_store_block_size</code> and <code>do_store</code></strong></p>
-<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file in the output folder.</p>
-<p>At search time, the search-lib package retrieves and populates fields saved in this manner from the json files.</p>
-<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.</p>
-<p><strong><code>weight</code></strong></p>
-<p>This parameter simply specifies the weight the field should have during scoring. Specifying <code>0.0</code> will result in the field not being indexed.</p>
-<p><strong><code>k</code> &amp; <code>b</code></strong></p>
-<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables">article</a> provides a good overview on how to configure these, although, the defaults should serve sufficiently.</p>
-<h3 id="fields-needed-for-morselssearch-ui"><a class="header" href="#fields-needed-for-morselssearch-ui">Fields Needed for @morsels/search-ui</a></h3>
-<p>The search-ui package, <em>by default</em>, requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields, and the <code>_relative_fp</code> field above.</p>
-<p>The body field (and title, headings if available) are used to generate the result preview, whilst the <code>_relative_fp</code> field is used for navigating to the generated result.</p>
-<p>The next <a href="search_ui_configuration.html">chapter</a> will detail several options to help rename these fields, or even add additional fields and render them in result previews.</p>
-<h2 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h2>
-<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key. The <code>options</code> key supplies tokenization options unique to each module.</p>
-<p>Note that these options are also applied to the search library, which uses the same tokenizers through wasm.</p>
-<pre><code class="language-json">{
-  &quot;lang_config&quot;: {
-    &quot;lang&quot;: &quot;latin&quot;,
-    &quot;options&quot;: null
-  }
-}
-</code></pre>
-<h3 id="note-on-stop-words"><a class="header" href="#note-on-stop-words">Note on Stop Words</a></h3>
-<p>Morsels takes a slightly different approach with stop words in that stop words are only filtered at <strong>query time</strong> for certain types of queries (currently this is for free-text queries with more than two terms).</p>
-<p>This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:</p>
-<ul>
-<li>For processing phrase queries (eg. <code>&quot;for tomorrow&quot;</code>)</li>
-<li>Boolean queries (eg. <code>if AND forecast AND sunny</code>)</li>
-<li>One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.</li>
-</ul>
-<h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
-<p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
-<p><em>Tantivy</em>'s <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
-<p>If specified, a stemmer is also applied.</p>
-<pre><code class="language-json">&quot;lang_config&quot;: {
-  &quot;lang&quot;: &quot;latin&quot;,
-  &quot;options&quot;: {
-    &quot;stop_words&quot;: [
-      &quot;a&quot;, &quot;an&quot;, &quot;and&quot;, &quot;are&quot;, &quot;as&quot;, &quot;at&quot;, &quot;be&quot;, &quot;but&quot;, &quot;by&quot;, &quot;for&quot;, &quot;if&quot;, &quot;in&quot;, &quot;into&quot;,
-      &quot;is&quot;, &quot;it&quot;, &quot;no&quot;, &quot;not&quot;, &quot;of&quot;, &quot;on&quot;, &quot;or&quot;, &quot;such&quot;, &quot;that&quot;, &quot;the&quot;, &quot;their&quot;, &quot;then&quot;,
-      &quot;there&quot;, &quot;these&quot;, &quot;they&quot;, &quot;this&quot;, &quot;to&quot;, &quot;was&quot;, &quot;will&quot;, &quot;with&quot;
-    ],
-
-    // Any of the languages here
-    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
-    // For example, &quot;english&quot;
-    &quot;stemmer&quot;: null,
-
-    &quot;max_term_len&quot;: 80
-  }
-}
-</code></pre>
-<h3 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h3>
-<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
-<p>This tokenizer applies jieba's <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
-<pre><code class="language-json">&quot;lang_config&quot;: {
-  &quot;lang&quot;: &quot;chinese&quot;,
-  &quot;options&quot;: {
-    &quot;stop_words&quot;: []
-  }
-}
-</code></pre>
-<h3 id="remark-on-language-modules-flexibility"><a class="header" href="#remark-on-language-modules-flexibility">Remark on Language Modules' Flexibility</a></h3>
-<p>While using the same tokenizer for both indexing / search unifies the codebase, one downside is that code size has to be taken into account.</p>
-<p>The chinese tokenizer for example, which uses <em>jieba-rs</em>, accounts for half of the wasm binary size alone.</p>
-<p>Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen't blow up.</p>
-<p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn't, feel free to open up an issue! Might just be that I haven't gotten around to it yet =P.</p>
-<h2 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h2>
-<p>The configurations in this section specify <strong>how and which</strong> files to index.</p>
-<p>All configurations are optional (reasonable defaults provided otherwise), save for the <code>loader_configs</code> key. The cli tool <strong>will do nothing</strong> if no loaders are specified.</p>
-<p>The snippet below shows the default values, which need not be altered if you are only indexing html files.</p>
-<pre><code class="language-json">{
-  &quot;indexing_config&quot;: {
-    &quot;num_threads&quot;: 5,              // when unspecified, this is max(num physical cores - 1, 1)
-
-    // This roughly controls the memory usage of the indexer
-    // If your documents are very small, increasing this may help improve indexing performance.
-    &quot;num_docs_per_block&quot;: 1000,
-
-    &quot;exclude&quot;: [
-      &quot;_morsels_config.json&quot;       // glob patterns to exclude from indexing
-    ],
-
-    // Specifies what types of files to index
-    &quot;loader_configs&quot;: {
-      &quot;HtmlLoader&quot;: {}             // enables support for .html files
-    },
-
-    // Any index files (&quot;morsels&quot;) above this size (in bytes)
-    // will be pre-loaded on initialisation of the search library
-    &quot;pl_cache_threshold&quot;: 1048576,
-    
-    // Number of index files (&quot;morsels&quot;) to store per directory
-    &quot;num_pls_per_dir&quot;: 1000,
-
-    // Number of field stores (`.json` files) to store per directory
-    &quot;num_stores_per_dir&quot;: 1000,
-
-    // Whether positions will be stored.
-    // Phrase queries / Query Term Proximity Ranking will be unavailable if this is false.
-    // You'll want to turn this off for very large collections. (~&gt; 1GB)
-    &quot;with_positions&quot;: true
-  }
-}
-</code></pre>
-<h3 id="loaders"><a class="header" href="#loaders">Loaders</a></h3>
-<p>The indexer is able to handle html, json or csv files. Support for each file type is provided by a &quot;<code>Loader</code>&quot; abstraction.</p>
-<p>You may configure loaders by including them under the <code>loader_configs</code> key, with any applicable options.</p>
-<p>The below sections shows the available loaders and configuration options available for each of them.</p>
-<p><strong><code>HtmlLoader</code></strong></p>
-<pre><code class="language-json">{
-  &quot;HtmlLoader&quot;: {
-    // list of selectors to exclude from indexing
-    &quot;exclude_selectors&quot;: [
-      &quot;script,style&quot;
-    ],
-    &quot;selectors&quot;: [
-      {
-        &quot;attr_map&quot;: {},
-        &quot;field_name&quot;: &quot;title&quot;,
-        &quot;selector&quot;: &quot;title&quot;
-      },
-      {
-        &quot;attr_map&quot;: {},
-        &quot;field_name&quot;: &quot;body&quot;,
-        &quot;selector&quot;: &quot;body&quot;
-      },
-      {
-        &quot;attr_map&quot;: {
-          &quot;id&quot;: &quot;headingLink&quot; // &quot;store the id attribute of any heading under headingLink&quot;
-        },
-        &quot;field_name&quot;: &quot;heading&quot;,
-        &quot;selector&quot;: &quot;h1,h2,h3,h4,h5,h6&quot;
-      }
-    ]
-  }
-}
-</code></pre>
-<p>The html loader traverses the document depth-first. At each element, it checks if any of the selectors under the <code>selectors.selector</code> key above matches the element. If so, all children (elements, text) under this element will then be indexed under the <code>field_name</code> specified, until an &quot;overriding&quot; element that matched another selector is found.</p>
-<p>The <code>attr_map</code> allows indexing attributes of elements under fields as well.</p>
-<p><strong><code>JsonLoader</code></strong></p>
-<pre><code class="language-json">{
-  &quot;JsonLoader&quot;: {
-    &quot;field_map&quot;: {
-      &quot;body&quot;: &quot;body&quot;,
-      &quot;heading&quot;: &quot;heading&quot;,
-      &quot;link&quot;: &quot;_relative_fp&quot;,
-      &quot;title&quot;: &quot;title&quot;
-    },
-    // Order in which to index the fields of the json {} document
-    &quot;field_order&quot;: [
-      &quot;title&quot;,
-      &quot;heading&quot;,
-      &quot;body&quot;,
-      &quot;link&quot;
-    ]
-  }
-}
-</code></pre>
-<p>Json files can also be indexed. To do this, the <code>field_map</code> key must be specified, which contains a mapping of <em>json file field name</em> -&gt; <em>morsels field name</em>.
-The <code>field_order</code> controls in which order these fields are indexed, which can influence position based functions such as query term proximity ranking.</p>
-<p>The json files itself can be either</p>
-<ol>
-<li>An object, following the schema set out in <code>field_map</code></li>
-<li>An array of objects following the schema set out in <code>field_map</code></li>
-</ol>
-<p><strong><code>CsvLoader</code></strong></p>
-<pre><code class="language-json">{
-  &quot;CsvLoader&quot;: {
-    &quot;use_headers&quot;: false,
-    &quot;header_field_map&quot;: {},
-    &quot;header_field_order&quot;: [],
-    &quot;index_field_map&quot;: {
-      &quot;0&quot;: &quot;link&quot;,
-      &quot;1&quot;: &quot;title&quot;,
-      &quot;2&quot;: &quot;body&quot;,
-      &quot;4&quot;: &quot;heading&quot;
-    },
-    &quot;index_field_order&quot;: [
-      1,
-      4,
-      2,
-      0
-    ],
-    &quot;parse_options&quot;: {
-      &quot;comment&quot;: null,
-      &quot;delimiter&quot;: 44,
-      &quot;double_quote&quot;: true,
-      &quot;escape&quot;: null,
-      &quot;has_headers&quot;: true,
-      &quot;quote&quot;: 34
-    }
-  }
-}
-</code></pre>
-<p>Field mappings for csv can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
-<h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
-<pre><code class="language-json">{
-  &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 100,
-    &quot;fields&quot;: [
-      {
-        &quot;name&quot;: &quot;title&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.2,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.25
-      },
-      {
-        &quot;name&quot;: &quot;heading&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.3,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.3
-      },
-      {
-        &quot;name&quot;: &quot;body&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.5,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      },
-      {
-        &quot;name&quot;: &quot;headingLink&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      },
-      {
-        &quot;name&quot;: &quot;_relative_fp&quot;,
-        &quot;do_store&quot;: true,
-        &quot;weight&quot;: 0.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      }
-    ]
-  },
-  &quot;lang_config&quot;: {
-    &quot;lang&quot;: &quot;latin&quot;,
-    &quot;options&quot;: null
-  },
-  &quot;indexing_config&quot;: {
-    &quot;num_docs_per_block&quot;: 1000,
-    &quot;pl_cache_threshold&quot;: 1048576,
-    &quot;exclude&quot;: [
-      &quot;_morsels_config.json&quot;
-    ],
-    &quot;loader_configs&quot;: {
-      &quot;HtmlLoader&quot;: {
-        &quot;exclude_selectors&quot;: [
-          &quot;.no-index&quot;
-        ]
-      },
-      &quot;JsonLoader&quot;: {
-        &quot;field_map&quot;: {
-          &quot;body&quot;: &quot;body&quot;,
-          &quot;heading&quot;: &quot;heading&quot;,
-          &quot;link&quot;: &quot;_relative_fp&quot;,
-          &quot;title&quot;: &quot;title&quot;
-        },
-        &quot;field_order&quot;: [
-          &quot;title&quot;,
-          &quot;heading&quot;,
-          &quot;body&quot;,
-          &quot;link&quot;
-        ]
-      }
-    },
-    &quot;pl_names_to_cache&quot;: [],
-    &quot;num_pls_per_dir&quot;: 1000,
-    &quot;num_stores_per_dir&quot;: 1000,
-    &quot;with_positions&quot;: true
-  }
-}
-</code></pre>
 <script>
     initMorsels({
         searcherOptions: {
@@ -994,6 +618,21 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 /></p>
 <h1 id="search-configuration"><a class="header" href="#search-configuration">Search Configuration</a></h1>
 <p>All search time related options can be provided through the <code>initMorsels</code> function, exposed by <code>@morsels/search-ui</code>.</p>
+<h2 id="forenotes"><a class="header" href="#forenotes">Forenotes</a></h2>
+<h3 id="fullscreen-pop-up-and-dropdown-ui-versions"><a class="header" href="#fullscreen-pop-up-and-dropdown-ui-versions">Fullscreen Pop-Up and Dropdown UI Versions</a></h3>
+<p>The search UI provides 2 different interfaces, a dropdown and fullscreen / “popup” version.</p>
+<p>The dropdown version is used for desktop devices by default, which is attached to the element specified by <code>inputId</code>.
+For mobile devices, the fullscreen version is used instead.</p>
+<h3 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h3>
+<p>It is also worth rehashing that the default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
+<p>This is achieved through an internal <code>_relative_fp</code> field that is stored during indexing, and retrieved during search time. The combination of <code>sourceFilesUrl</code> + <code>_relative_fp</code> forms the full source document link, which is used for:</p>
+<ul>
+<li>Attaching a link to the source document in the generated result match</li>
+<li>Retrieving the source document (see “From Source Documents”)</li>
+</ul>
+<p>Therefore, source documents are assumed to be available. You may refer to the section on <a href="search_configuration.html#generating-result-previews">generating</a> result previews otherwise.</p>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>The available options and their format in this page are detailed in the following code block. Options which warrant more explanation are also elaborated in the subsequent sections of this page.</p>
 <pre><code class="language-js">initMorsels({
     // Options belonging to @morsels/search-lib, the search library package
     searcherOptions: {
@@ -1013,7 +652,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
     // Id of input element to attach the search dropdown to
     inputId: 'morsels-search',
 
-    // Debounce time for the input
+    // Debounce time for the input handlers
     inputDebounce: isMobile ? 275 : 200,
     
     // Mandatory, by default - base url for sourcing .html / .json files
@@ -1025,39 +664,9 @@ The <code>field_order</code> controls in which order these fields are indexed, w
     }
 });
 </code></pre>
-<h2 id="mobile-device-detection"><a class="header" href="#mobile-device-detection">Mobile Device Detection</a></h2>
-<p>Mobile devices are detected through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be accurate.</p>
-<p>This is only used for some default settings, such as deciding whether to use query term proximity ranking. Overrides may be provided through the options above if this detection method is inadequate.</p>
-<h2 id="url"><a class="header" href="#url">url</a></h2>
-<p>This parameter must be specified, and tells Morsels where to find the output from the indexer.</p>
-<h2 id="numberofexpandedterms"><a class="header" href="#numberofexpandedterms">numberOfExpandedTerms</a></h2>
-<p>By default, stemming is turned off in the <a href="indexing_configuration.html#language">language modules</a>. This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.</p>
-<p>To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.</p>
-<p>This is only applied for the last term (if any) of a query, and if the query string immediately ends with that term (e.g. no whitespace after it).
-You may also think of this as implicit wildcard search for the last query term.</p>
-<h2 id="usequerytermproximity"><a class="header" href="#usequerytermproximity">useQueryTermProximity</a></h2>
-<p>Document scores are also scaled by how close query expressions or terms are to each other, if positions are indexed.
-This may be costly for mobile devices however, and is disabled by default in such cases.</p>
-<h2 id="sourcefilesurl"><a class="header" href="#sourcefilesurl">sourceFilesUrl</a></h2>
-<p>This option is only applicable for indexed html and json files.</p>
-<p>You will need to specify this in the default setup, and / or if you did not specify <code>do_store: true</code> for any of the necessary fields listed <a href="./indexing_configuration.html#fields-needed-for-morselssearch-ui">here</a>.</p>
-<p>This parameter tells search-ui where to find the <strong>source</strong> files that were indexed by the cli tool, so that it may generate result previews from them.</p>
-<p>If <code>do_store: true</code> is specified for the fields required by search-ui detailed in the indexing configuration page, then morsels' internal json field store will be used instead.</p>
-<p>You may wish to use <code>do_store: true</code> over this parameter if filesystem bloat isn't too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant for search-ui to perform result preview generation on.</p>
-<h2 id="customising-ui-behaviour--output"><a class="header" href="#customising-ui-behaviour--output">Customising UI Behaviour &amp; Output</a></h2>
-<p>The html output and UI behaviour can also be customised to some degree, under the <code>render</code> configuration key.</p>
-<p>Some use cases for this include:</p>
-<ul>
-<li>The default structure is not sufficient for your styling needs</li>
-<li>You need to attach additional event listeners to elements </li>
-<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer).</li>
-</ul>
-<p>If you only need to theme the dropdown or search popup, you can include your own css file to do so, or override the variables exposed by the default css bundle.</p>
-<h3 id="switching-between-fullscreen-popup-or-dropdown-ui-versions"><a class="header" href="#switching-between-fullscreen-popup-or-dropdown-ui-versions">Switching between fullscreen popup or dropdown UI versions</a></h3>
-<p>The search UI provides 2 different interfaces, a dropdown and fullscreen / &quot;popup&quot; version.</p>
-<p>The dropdown version is used for desktop devices by default, which is attached to the element specified by <code>inputId</code>.
-For mobile devices, the fullscreen popup version is used instead.</p>
-<p>This section details the available options to customise this behaviour.</p>
+<h2 id="basic-user-interface-behaviours"><a class="header" href="#basic-user-interface-behaviours">Basic User Interface Behaviours</a></h2>
+<p>This section details the available options, necessary inputs and some utility methods controlling the some user interface behaviour.</p>
+<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API (that really shouldn’t be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on Github!</p>
 <pre><code class="language-ts">{
     inputId?: string,
     render: {
@@ -1068,10 +677,10 @@ For mobile devices, the fullscreen popup version is used instead.</p>
 }
 </code></pre>
 <p><strong><code>inputId</code></strong></p>
-<p>This option tells morsels which input element to use for the dropdown version of its search ui.</p>
-<p>If this is unspecified, the <code>show / hide</code> APIs below must be used to bring up the popup UI.</p>
+<p>This option tells morsels which input element to use for the <strong>dropdown version</strong> of its search ui.</p>
+<p>If this is unspecified, the <code>show / hide</code> APIs below must be used to bring up the <strong>fullscreen UI</strong>.</p>
 <p><strong><code>enablePortal = 'auto'</code></strong></p>
-<p>This parameter tells search-ui whether to use the fullscreen search UI for mobile devices when the original <code>&lt;input&gt;</code> specified by <code>inputId</code> is focused.</p>
+<p>This parameter tells morsels whether to use the fullscreen search UI for mobile devices when the original <code>&lt;input&gt;</code> specified by <code>inputId</code> is focused.</p>
 <p>The default value of <code>'auto'</code> configures this according to mobile device detection (<code>true</code> if it is a mobile device), and also adds a simple window resize handler to automatically hide the corresponding UI if the window is resized.</p>
 <p>You can set this to <code>true</code> / <code>false</code> to always prefer the fullscreen or dropdown version instead when the original <code>&lt;input&gt;</code> is focused.</p>
 <p>If <code>inputId</code> is unspecified, this option will not do anything.</p>
@@ -1081,9 +690,103 @@ For mobile devices, the fullscreen popup version is used instead.</p>
 <pre><code class="language-ts">const { show, hide } = initMorsels(/* ... */);
 </code></pre>
 <p>The default behaviour of showing the fullscreen search UI on focusing the input may be insufficient in some cases, for example showing the UI when clicking a search icon.</p>
-<p>You may call the <code>show()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hide()</code> method hides the fullscreen interface, although, this shouldn't be needed since there's a close button.</p>
-<h3 id="renderers"><a class="header" href="#renderers">Renderers</a></h3>
-<p>The other properties under the <code>render</code> key allow you to customise the html output structure to some degree.</p>
+<p>You may call the <code>show()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hide()</code> method hides the fullscreen interface, although, this shouldn’t be needed since there’s a close button is available by default.</p>
+<h2 id="term-expansion"><a class="header" href="#term-expansion">Term Expansion</a></h2>
+<p>(<code>numberOfExpandedTerms</code>)</p>
+<p>By default, stemming is turned off in the <a href="indexing_configuration.html#language">language modules</a>. This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.</p>
+<p>To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.</p>
+<p>This is only applied for the last term (if any) of a query, and if the query string immediately ends with that term (e.g. no whitespace after it).
+You may also think of this as implicit wildcard search for the last query term.</p>
+<h2 id="term-proximity-ranking"><a class="header" href="#term-proximity-ranking">Term Proximity Ranking</a></h2>
+<p>(<code>useQueryTermProximity</code>)</p>
+<p>Document scores are also scaled by how close query expressions or terms are to each other, if positions are indexed.
+This may be costly for mobile devices however, and is disabled by default in such cases.</p>
+<h2 id="generating-result-previews"><a class="header" href="#generating-result-previews">Generating Result Previews</a></h2>
+<p>(<code>sourceFilesUrl</code>)</p>
+<p>There are two ways to generate result previews, the first of the below being the default.</p>
+<p>Unless you have modified the default result renderer (covered in the renderers page), morsels requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields (covered in the next section on indexing configuration).</p>
+<h3 id="1-from-source-documents-default"><a class="header" href="#1-from-source-documents-default">1. From Source Documents (default)</a></h3>
+<p>When the below option (field stores) is not configured or unavailable, and this parameter is specified, morsels will attempt to fetch the source document from <code>sourceFilesUrl</code> adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
+<p>Also note that this option is only applicable for indexed html and json files at this time!</p>
+<p>As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, the subsequent section details the alternative method of generating result previews.</p>
+<h3 id="2-from-field-stores"><a class="header" href="#2-from-field-stores">2. From Field Stores</a></h3>
+<p>If source documents are unavailable (or if you wish to use this method anyway), morsels is able to generate result previews from the field stores generated at indexing time.</p>
+<p>In order to specify what fields to store, please take a look at the <code>do_store</code> option in this <a href="./indexing_configuration.html#fields_config">section</a> of the indexing configuration page. To use this method of result preview generation for the default use case / result rendering behaviour, simply enable the <code>do_store</code> option for the <code>heading</code>, <code>body</code>, and <code>title</code> fields.</p>
+<p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant for search-ui to perform result preview generation on.</p>
+<h3 id="alternative-rendering-outputs"><a class="header" href="#alternative-rendering-outputs">Alternative Rendering Outputs</a></h3>
+<p>If this the default use case is insufficient (or if source documents are unavailable), you would need to create your own result <a href="./search_configuration_renderers.html">renderer</a> to achieve the expected behaviour you want (for example, to call a function when a user clicks the result preview). Nevertheless, the section <a href="search_configuration.html#from-field-stores">“From Field Stores”</a> above would still be relevant and provides the basis for retrieving a document’s fields.</p>
+<h2 id="mobile-device-detection"><a class="header" href="#mobile-device-detection">Mobile Device Detection</a></h2>
+<p>It may helpful to note that mobile devices are detected through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be accurate.</p>
+<p>This is used for determining some default settings, namely:</p>
+<ul>
+<li>Query term proximity ranking is disabled</li>
+<li>The input debounce time, which is slightly longer for mobile devices</li>
+<li>Whether to use the fullscreen “portal”-ed version of the user interface instead</li>
+</ul>
+<p>Overrides may be provided through the options above if this detection method is inadequate.</p>
+<script>
+    initMorsels({
+        searcherOptions: {
+          url: '/morsels/morsels_output/',
+        },
+        sourceFilesUrl: '/morsels/',
+        render: {
+            enablePortal: true,
+            opts: {
+                dropdownAlignment: 'left'
+            }
+        }
+    });
+</script><div style="break-before: page; page-break-before: always;"></div><script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
+<style>
+.morsels-root {
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-fg: var(--fg);
+    --morsels-bg: var(--bg);
+    --morsels-item-border-radius: 10px;
+    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--bg);
+    --morsels-title-hover-bg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-box-shadow: none;
+    --morsels-fullscreen-header-bg: var(--sidebar-bg);
+    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
+    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
+    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
+    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+</style>
+<p><input
+    type="text"
+    id="morsels-search"
+    placeholder="Search"
+    style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
+/></p>
+<h1 id="renderers"><a class="header" href="#renderers">Renderers</a></h1>
+<p>This page covers the a more advanced API, “renderers”, that allows you to customise the html output structure to some degree.</p>
+<p>Some use cases for this include:</p>
+<ul>
+<li>The default structure is not sufficient for your styling needs</li>
+<li>You need to attach additional event listeners to elements </li>
+<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer).</li>
+<li>You want to change the <a href="./search_configuration.html#default-rendering-output--purpose">default use case</a> of following through on a result preview to its source document entirely</li>
+</ul>
+<p>If you only need to theme the dropdown or search popup, you can include your own css file to do so, or override the variables exposed by the default css bundle.</p>
+<p>These API options are specified under the <code>render</code> key of the root configuration object, which has a typescript interface shown below.</p>
 <pre><code class="language-ts">interface SearchUiRenderOptions {
     // ...
     show?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) =&gt; void,
@@ -1092,9 +795,12 @@ For mobile devices, the fullscreen popup version is used instead.</p>
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         inputEl: HTMLElement,
-        portalCloseHandler?: () =&gt; void,
     ) =&gt; ({ root: HTMLElement, listContainer: HTMLElement }),
-    portalInputRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLInputElement,
+    portalRootRender?: (
+        h: CreateElement,
+        opts: ArbitraryRenderOptions,
+        portalCloseHandler: () =&gt; void,
+    ) =&gt; ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
     noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
     portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
     loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
@@ -1151,8 +857,7 @@ interface ArbitraryRenderOptions {
     dropdownAlignment?: 'left' | 'right',
 }
 </code></pre>
-<hr />
-<p><strong>The <code>h</code> function</strong></p>
+<h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
 <p>The <code>h</code> function is an optional helper function you may use to create your own renderer.
 The signature is as such:</p>
 <pre><code class="language-ts">export type CreateElement = (
@@ -1168,14 +873,13 @@ The signature is as such:</p>
   ...children: (string | HTMLElement)[]
 ) =&gt; HTMLElement;
 </code></pre>
-<hr />
-<p><strong>Default Html Output Structure</strong></p>
+<h2 id="default-html-output-structure"><a class="header" href="#default-html-output-structure">Default Html Output Structure</a></h2>
 <p>Have a look at the following snippet when reading the documentation below on each API to understand which renderers (bracketed on the left of each comment) are responsible for which parts of the html output by default.</p>
 <p>Note that there are some minor differences between the dropdown version and fullscreen version, also annotated below.</p>
-<pre><code class="language-html">&lt;!-- (rootRender) START --&gt;
+<pre><code class="language-html">&lt;!-- (rootRender / portalRootRender) START --&gt;
 
 &lt;!--
-    fullscreen version only
+    portalRootRender only
     root element is a backdrop to facilitate backdrop dismiss
 --&gt;
 &lt;div class=&quot;morsels-portal-backdrop&quot;&gt;
@@ -1184,22 +888,20 @@ The signature is as such:</p>
 &lt;!-- Note: fullscreen version has an additional &quot;morsels-portal-root&quot; class --&gt;
 &lt;div class=&quot;morsels-root&quot;&gt;
 
-    &lt;!-- dropdown version --&gt;
+    &lt;!-- rootRender (dropdown) only --&gt;
     &lt;input id=&quot;morsels-search&quot; placeholder=&quot;Search&quot;&gt;
     &lt;div class=&quot;morsels-input-dropdown-separator&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
-    &lt;!-- dropdown version end --&gt;
+    &lt;!-- rootRender end --&gt;
 
-    &lt;!-- fullscreen version only, wrap search box &amp; close button in a sticky header --&gt;
+    &lt;!-- portalRootRender only, wrap search box &amp; close button in a sticky header --&gt;
     &lt;div class=&quot;morsels-portal-input-button-wrapper&quot;&gt;
-        &lt;!-- (portalInputRender) START --&gt;
         &lt;input class=&quot;morsels-portal-input&quot; type=&quot;text&quot;&gt;
-        &lt;!-- (portalInputRender) END --&gt;
         &lt;button class=&quot;morsels-input-close-portal&quot;&gt;&lt;/button&gt;
     &lt;/div&gt;
-    &lt;!-- fullscreen version end --&gt;
+    &lt;!-- portalRootRender end --&gt;
 
     &lt;ul class=&quot;morsels-list&quot; style=&quot;display: none;&quot;&gt;
-&lt;!-- (rootRender) END --&gt;
+&lt;!-- (rootRender / portalRootRender) END --&gt;
 
         &lt;!-- (noResultsRender) START --&gt;
         &lt;div class=&quot;morsels-no-results&quot;&gt;No results found&lt;/div&gt;
@@ -1229,15 +931,27 @@ The signature is as such:</p>
     
 &lt;/div&gt;
 </code></pre>
-<p><strong><code>rootRender(h, opts, inputEl, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement }</code></strong></p>
+<h2 id="rendering-the-root-element"><a class="header" href="#rendering-the-root-element">Rendering the Root Element</a></h2>
+<p><strong><code>rootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }</code></strong></p>
+<p>This API renders the root element for the dropdown version of the user interface.</p>
 <ul>
-<li><code>inputEl</code>: Input element found by the <code>inputId</code> configuration, or created from the <code>portalInputRender</code> API below</li>
-<li><code>portalCloseHandler</code>: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.</li>
+<li><code>inputEl</code>: Input element found by the <code>inputId</code> configuration</li>
 </ul>
-<p>It should return two elements:</p>
+<p>It should return 2 elements:</p>
 <ul>
 <li><code>root</code>: The root element. This is passed to the <code>hide / show</code> APIs below.</li>
 <li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.</li>
+</ul>
+<p><strong><code>portalRootRender(h, opts, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }</code></strong></p>
+<p>This API renders the root element for the fullscreen version of the user interface.</p>
+<ul>
+<li><code>portalCloseHandler</code>: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.</li>
+</ul>
+<p>It should return 3 elements:</p>
+<ul>
+<li><code>root</code>: The root element. This is passed to the <code>hide / show</code> APIs below.</li>
+<li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.</li>
+<li><code>input</code>: Input element. This is required for morsels to attach input event handlers.</li>
 </ul>
 <p><strong><code>hide / show (root, opts, isPortal): void</code></strong></p>
 <p>These two APIs are not responsible for html output, but rather, hiding and showing the fullscreen or dropdown UIs (e.g. via <code>style=&quot;display: none&quot;</code>).</p>
@@ -1245,8 +959,7 @@ The signature is as such:</p>
 <li><code>root</code>: root element returned by <code>rootRender</code></li>
 <li><code>isPortal</code>: whether the function call is for the fullscreen / dropdown UI version</li>
 </ul>
-<p><strong><code>portalInputRender(h, opts): HTMLInputElement</code></strong></p>
-<p>This API renders the new <code>&lt;input&gt;</code> element wen using the fullscreen UI.</p>
+<h2 id="miscellaneous-renderers"><a class="header" href="#miscellaneous-renderers">Miscellaneous Renderers</a></h2>
 <p><strong><code>noResultsRender(h, opts): HTMLElement</code></strong></p>
 <p>This API renders the element attached under the <code>listContainer</code> when there are no results found for a given query.</p>
 <p><strong><code>portalBlankRender(h, opts): HTMLElement</code></strong></p>
@@ -1257,8 +970,7 @@ The signature is as such:</p>
 <p><strong><code>termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms): HTMLElement[]</code></strong></p>
 <p>This API renders elements attached under the <code>listContainer</code> related to the searched terms, and is blank by default.</p>
 <p>For example, you may render <code>&lt;div&gt;Did you mean &lt;u&gt;corrected&lt;/u&gt;?&lt;/div&gt;</code> for the misspelled query <code>correkted</code>.</p>
-<hr />
-<p><strong>Rendering Search Results</strong></p>
+<h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
 <p>The <strong>2 remaining sets of APIs</strong> below render the results for all document matches, and are mutually exclusive. Use only one or the other.</p>
 <p>Together, they render the <code>&lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;</code> comment in the earlier example.</p>
 <pre><code class="language-html">&lt;!-- (resultsRender) START matches for **all documents** --&gt;
@@ -1463,18 +1175,395 @@ return h(
     placeholder="Search"
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
+<h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
+<p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>_morsels_config.json</code> in the source folder (first argument) specified in the command.</p>
+<p>Run the cli command with the <code>--init</code> option to initialise the default configuration file instead.</p>
+<h2 id="fields_config"><a class="header" href="#fields_config"><code>fields_config</code></a></h2>
+<p>The first step to indexing any documents is defining the field configurations.</p>
+<p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
+<pre><code class="language-json">{
+  &quot;fields_config&quot;: {
+    &quot;field_store_block_size&quot;: 1,
+    &quot;fields&quot;: [
+      {
+        &quot;name&quot;: &quot;title&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.2,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.25
+      },
+      {
+        &quot;name&quot;: &quot;heading&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.3,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.3
+      },
+      {
+        &quot;name&quot;: &quot;body&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.5,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;headingLink&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      // Internal, hardcoded field sourced from the relative file path of the file from the root directory
+      // Required for the default search ui preview generation methods (see &quot;Generating Result Previews&quot; under search configuration)
+      //
+      // Nonetheless, if omitted, the field will not be stored.
+      {
+        &quot;name&quot;: &quot;_relative_fp&quot;,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      }
+    ]
+  }
+}
+</code></pre>
+<p><strong><code>field_store_block_size</code> and <code>do_store</code></strong></p>
+<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file in the output folder.</p>
+<p>At search time, the search-lib package retrieves and populates fields saved in this manner from the json files.</p>
+<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.</p>
+<p><strong><code>weight</code></strong></p>
+<p>This parameter simply specifies the weight the field should have during scoring. Specifying <code>0.0</code> will result in the field not being indexed.</p>
+<p><strong><code>k</code> &amp; <code>b</code></strong></p>
+<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables">article</a> provides a good overview on how to configure these, although, the defaults should serve sufficiently.</p>
+<h2 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h2>
+<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key. The <code>options</code> key supplies tokenization options unique to each module.</p>
+<p>Note that these options are also applied to the search library, which uses the same tokenizers through wasm.</p>
+<pre><code class="language-json">{
+  &quot;lang_config&quot;: {
+    &quot;lang&quot;: &quot;latin&quot;,
+    &quot;options&quot;: null
+  }
+}
+</code></pre>
+<h3 id="note-on-stop-words"><a class="header" href="#note-on-stop-words">Note on Stop Words</a></h3>
+<p>Morsels takes a slightly different approach with stop words in that stop words are only filtered at <strong>query time</strong> for certain types of queries (currently this is for free-text queries with more than two terms).</p>
+<p>This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:</p>
+<ul>
+<li>For processing phrase queries (eg. <code>&quot;for tomorrow&quot;</code>)</li>
+<li>Boolean queries (eg. <code>if AND forecast AND sunny</code>)</li>
+<li>One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.</li>
+</ul>
+<h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
+<p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
+<p><em>Tantivy</em>‘s <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
+<p>If specified, a stemmer is also applied.</p>
+<pre><code class="language-json">&quot;lang_config&quot;: {
+  &quot;lang&quot;: &quot;latin&quot;,
+  &quot;options&quot;: {
+    &quot;stop_words&quot;: [
+      &quot;a&quot;, &quot;an&quot;, &quot;and&quot;, &quot;are&quot;, &quot;as&quot;, &quot;at&quot;, &quot;be&quot;, &quot;but&quot;, &quot;by&quot;, &quot;for&quot;, &quot;if&quot;, &quot;in&quot;, &quot;into&quot;,
+      &quot;is&quot;, &quot;it&quot;, &quot;no&quot;, &quot;not&quot;, &quot;of&quot;, &quot;on&quot;, &quot;or&quot;, &quot;such&quot;, &quot;that&quot;, &quot;the&quot;, &quot;their&quot;, &quot;then&quot;,
+      &quot;there&quot;, &quot;these&quot;, &quot;they&quot;, &quot;this&quot;, &quot;to&quot;, &quot;was&quot;, &quot;will&quot;, &quot;with&quot;
+    ],
+
+    // Any of the languages here
+    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
+    // For example, &quot;english&quot;
+    &quot;stemmer&quot;: null,
+
+    &quot;max_term_len&quot;: 80
+  }
+}
+</code></pre>
+<h3 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h3>
+<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
+<p>This tokenizer applies jieba’s <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
+<pre><code class="language-json">&quot;lang_config&quot;: {
+  &quot;lang&quot;: &quot;chinese&quot;,
+  &quot;options&quot;: {
+    &quot;stop_words&quot;: []
+  }
+}
+</code></pre>
+<h3 id="remark-on-language-modules-flexibility"><a class="header" href="#remark-on-language-modules-flexibility">Remark on Language Modules’ Flexibility</a></h3>
+<p>While using the same tokenizer for both indexing / search unifies the codebase, one downside is that code size has to be taken into account.</p>
+<p>The chinese tokenizer for example, which uses <em>jieba-rs</em>, accounts for half of the wasm binary size alone.</p>
+<p>Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen’t blow up.</p>
+<p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn’t, feel free to open up an issue! Might just be that I haven’t gotten around to it yet =P.</p>
+<h2 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h2>
+<p>The configurations in this section specify <strong>how and which</strong> files to index.</p>
+<p>All configurations are optional (reasonable defaults provided otherwise), save for the <code>loader_configs</code> key. The cli tool <strong>will do nothing</strong> if no loaders are specified.</p>
+<p>The snippet below shows the default values, which need not be altered if you are only indexing html files.</p>
+<pre><code class="language-json">{
+  &quot;indexing_config&quot;: {
+    &quot;num_threads&quot;: 5,              // when unspecified, this is max(num physical cores - 1, 1)
+
+    // This roughly controls the memory usage of the indexer
+    // If your documents are very small, increasing this may help improve indexing performance.
+    &quot;num_docs_per_block&quot;: 1000,
+
+    &quot;exclude&quot;: [
+      &quot;_morsels_config.json&quot;       // glob patterns to exclude from indexing
+    ],
+
+    // Specifies what types of files to index
+    &quot;loader_configs&quot;: {
+      &quot;HtmlLoader&quot;: {}             // enables support for .html files
+    },
+
+    // Any index files (&quot;morsels&quot;) above this size (in bytes)
+    // will be pre-loaded on initialisation of the search library
+    &quot;pl_cache_threshold&quot;: 1048576,
+    
+    // Number of index files (&quot;morsels&quot;) to store per directory
+    &quot;num_pls_per_dir&quot;: 1000,
+
+    // Number of field stores (`.json` files) to store per directory
+    &quot;num_stores_per_dir&quot;: 1000,
+
+    // Whether positions will be stored.
+    // Phrase queries / Query Term Proximity Ranking will be unavailable if this is false.
+    // You'll want to turn this off for very large collections. (~&gt; 1GB)
+    &quot;with_positions&quot;: true
+  }
+}
+</code></pre>
+<h3 id="loaders"><a class="header" href="#loaders">Loaders</a></h3>
+<p>The indexer is able to handle html, json or csv files. Support for each file type is provided by a “<code>Loader</code>“ abstraction.</p>
+<p>You may configure loaders by including them under the <code>loader_configs</code> key, with any applicable options.</p>
+<p>The below sections shows the available loaders and configuration options available for each of them.</p>
+<p><strong><code>HtmlLoader</code></strong></p>
+<pre><code class="language-json">{
+  &quot;HtmlLoader&quot;: {
+    // list of selectors to exclude from indexing
+    &quot;exclude_selectors&quot;: [
+      &quot;script,style&quot;
+    ],
+    &quot;selectors&quot;: [
+      {
+        &quot;attr_map&quot;: {},
+        &quot;field_name&quot;: &quot;title&quot;,
+        &quot;selector&quot;: &quot;title&quot;
+      },
+      {
+        &quot;attr_map&quot;: {},
+        &quot;field_name&quot;: &quot;body&quot;,
+        &quot;selector&quot;: &quot;body&quot;
+      },
+      {
+        &quot;attr_map&quot;: {
+          &quot;id&quot;: &quot;headingLink&quot; // &quot;store the id attribute of any heading under headingLink&quot;
+        },
+        &quot;field_name&quot;: &quot;heading&quot;,
+        &quot;selector&quot;: &quot;h1,h2,h3,h4,h5,h6&quot;
+      }
+    ]
+  }
+}
+</code></pre>
+<p>The html loader traverses the document depth-first. At each element, it checks if any of the selectors under the <code>selectors.selector</code> key above matches the element. If so, all children (elements, text) under this element will then be indexed under the <code>field_name</code> specified, until an “overriding” element that matched another selector is found.</p>
+<p>The <code>attr_map</code> allows indexing attributes of elements under fields as well.</p>
+<p><strong><code>JsonLoader</code></strong></p>
+<pre><code class="language-json">{
+  &quot;JsonLoader&quot;: {
+    &quot;field_map&quot;: {
+      &quot;body&quot;: &quot;body&quot;,
+      &quot;heading&quot;: &quot;heading&quot;,
+      &quot;link&quot;: &quot;_relative_fp&quot;,
+      &quot;title&quot;: &quot;title&quot;
+    },
+    // Order in which to index the fields of the json {} document
+    &quot;field_order&quot;: [
+      &quot;title&quot;,
+      &quot;heading&quot;,
+      &quot;body&quot;,
+      &quot;link&quot;
+    ]
+  }
+}
+</code></pre>
+<p>Json files can also be indexed. To do this, the <code>field_map</code> key must be specified, which contains a mapping of <em>json file field name</em> -&gt; <em>morsels field name</em>.
+The <code>field_order</code> controls in which order these fields are indexed, which can influence position based functions such as query term proximity ranking.</p>
+<p>The json files itself can be either</p>
+<ol>
+<li>An object, following the schema set out in <code>field_map</code></li>
+<li>An array of objects following the schema set out in <code>field_map</code></li>
+</ol>
+<p><strong><code>CsvLoader</code></strong></p>
+<pre><code class="language-json">{
+  &quot;CsvLoader&quot;: {
+    &quot;use_headers&quot;: false,
+    &quot;header_field_map&quot;: {},
+    &quot;header_field_order&quot;: [],
+    &quot;index_field_map&quot;: {
+      &quot;0&quot;: &quot;link&quot;,
+      &quot;1&quot;: &quot;title&quot;,
+      &quot;2&quot;: &quot;body&quot;,
+      &quot;4&quot;: &quot;heading&quot;
+    },
+    &quot;index_field_order&quot;: [
+      1,
+      4,
+      2,
+      0
+    ],
+    &quot;parse_options&quot;: {
+      &quot;comment&quot;: null,
+      &quot;delimiter&quot;: 44,
+      &quot;double_quote&quot;: true,
+      &quot;escape&quot;: null,
+      &quot;has_headers&quot;: true,
+      &quot;quote&quot;: 34
+    }
+  }
+}
+</code></pre>
+<p>Field mappings for csv can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
+<h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
+<pre><code class="language-json">{
+  &quot;fields_config&quot;: {
+    &quot;field_store_block_size&quot;: 100,
+    &quot;fields&quot;: [
+      {
+        &quot;name&quot;: &quot;title&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.2,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.25
+      },
+      {
+        &quot;name&quot;: &quot;heading&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.3,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.3
+      },
+      {
+        &quot;name&quot;: &quot;body&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.5,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;headingLink&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;_relative_fp&quot;,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      }
+    ]
+  },
+  &quot;lang_config&quot;: {
+    &quot;lang&quot;: &quot;latin&quot;,
+    &quot;options&quot;: null
+  },
+  &quot;indexing_config&quot;: {
+    &quot;num_docs_per_block&quot;: 1000,
+    &quot;pl_cache_threshold&quot;: 1048576,
+    &quot;exclude&quot;: [
+      &quot;_morsels_config.json&quot;
+    ],
+    &quot;loader_configs&quot;: {
+      &quot;HtmlLoader&quot;: {
+        &quot;exclude_selectors&quot;: [
+          &quot;.no-index&quot;
+        ]
+      },
+      &quot;JsonLoader&quot;: {
+        &quot;field_map&quot;: {
+          &quot;body&quot;: &quot;body&quot;,
+          &quot;heading&quot;: &quot;heading&quot;,
+          &quot;link&quot;: &quot;_relative_fp&quot;,
+          &quot;title&quot;: &quot;title&quot;
+        },
+        &quot;field_order&quot;: [
+          &quot;title&quot;,
+          &quot;heading&quot;,
+          &quot;body&quot;,
+          &quot;link&quot;
+        ]
+      }
+    },
+    &quot;pl_names_to_cache&quot;: [],
+    &quot;num_pls_per_dir&quot;: 1000,
+    &quot;num_stores_per_dir&quot;: 1000,
+    &quot;with_positions&quot;: true
+  }
+}
+</code></pre>
+<script>
+    initMorsels({
+        searcherOptions: {
+          url: '/morsels/morsels_output/',
+        },
+        sourceFilesUrl: '/morsels/',
+        render: {
+            enablePortal: true,
+            opts: {
+                dropdownAlignment: 'left'
+            }
+        }
+    });
+</script><div style="break-before: page; page-break-before: always;"></div><script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
+<style>
+.morsels-root {
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-fg: var(--fg);
+    --morsels-bg: var(--bg);
+    --morsels-item-border-radius: 10px;
+    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--bg);
+    --morsels-title-hover-bg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-box-shadow: none;
+    --morsels-fullscreen-header-bg: var(--sidebar-bg);
+    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
+    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
+    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
+    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+</style>
+<p><input
+    type="text"
+    id="morsels-search"
+    placeholder="Search"
+    style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
+/></p>
 <h1 id="dynamic-indexing"><a class="header" href="#dynamic-indexing">Dynamic Indexing</a></h1>
-<p>Dynamic, or &quot;incremental&quot; indexing is also supported by the indexer cli tool.</p>
+<p>Dynamic, or “incremental” indexing is also supported by the indexer cli tool.</p>
 <p>Detecting deleted, changed, or added files is done by storing an internal file path / last modified metadata map.</p>
 <p>To enable it, simply pass the <code>--dynamic</code> or <code>-d</code> option when running the indexer.</p>
 <h2 id="how-it-works-1"><a class="header" href="#how-it-works-1">How it Works</a></h2>
-<p>As the core idea of Morsels is to split up the index into many tiny parts (and not more than necessary), the dynamic indexing feature works by &quot;patching&quot; only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.</p>
-<p>This is in contrast to a &quot;segment&quot; based approach whereby each dynamic indexing run generates an entirely separate &quot;segment&quot;, and segments are merged together at runtime. While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.</p>
+<p>As the core idea of Morsels is to split up the index into many tiny parts (and not more than necessary), the dynamic indexing feature works by “patching” only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.</p>
+<p>This is in contrast to a “segment” based approach whereby each dynamic indexing run generates an entirely separate “segment”, and segments are merged together at runtime. While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.</p>
 <h2 id="caveats"><a class="header" href="#caveats">Caveats</a></h2>
 <p>There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern -- for example, updating the index immediately when writing this documentation!</p>
 <p>This should be automatic for most use cases -- if the output folder path does not contain any files indexed by morsels and the <code>--dynamic</code> option is specified, this is similar to not specifying the <code>--dynamic</code> option at all.</p>
 <h3 id="collection-statistics"><a class="header" href="#collection-statistics">Collection Statistics</a></h3>
-<p>Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of dynamic indexing (from added / updated documents). As such, the files containing the information for these terms would not be &quot;patched&quot;. As a result, you <em>may</em> notice some slight drifting in the relative ranking of documents returned after some number of dynamic indexing runs.</p>
+<p>Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of dynamic indexing (from added / updated documents). As such, the files containing the information for these terms would not be “patched”. As a result, you <em>may</em> notice some slight drifting in the relative ranking of documents returned after some number of dynamic indexing runs.</p>
 <h3 id="file-metadata"><a class="header" href="#file-metadata">File Metadata</a></h3>
 <p>The change detection currently relies on the last modified time in file metadata. This may not be available or accurate on all systems, or guaranteed by the tools that generate the files Morsels indexes.</p>
 <p>If file metadata is <em>unavailable</em> for any given file, the file would always be re-indexed.</p>
@@ -1533,9 +1622,9 @@ return h(
 <h1 id="future-plans"><a class="header" href="#future-plans">Future Plans</a></h1>
 <p>This section briefly details some future plans for this project:</p>
 <h2 id="exposing-morsels_indexer-package-api"><a class="header" href="#exposing-morsels_indexer-package-api">Exposing <code>morsels_indexer</code> Package API</a></h2>
-<p>The plan is for the morsels_indexer package to also formalise its API. This is still a WIP at this point, and I'm not exactly sure if there would even be a demand for this given the very specific nature of this tool -- raise an issue if so!</p>
+<p>The plan is for the morsels_indexer package to also formalise its API. This is still a WIP at this point, and I’m not exactly sure if there would even be a demand for this given the very specific nature of this tool -- raise an issue if so!</p>
 <h2 id="dynamic-linking-for-language-modules"><a class="header" href="#dynamic-linking-for-language-modules">Dynamic Linking for Language Modules</a></h2>
-<p>Language modules are &quot;bundled&quot; into the <code>morsels_search</code> wasm module at the moment. In order to reduce binary size, each module is configured via feature flags and bundled separately. This however does mean that any and all language modules have to be PR-ed to the upstream module (otherwise, one would have to maintain a separate fork of morsels on its own distribution channels). This is pending better dynamic linking support in wasm.</p>
+<p>Language modules are “bundled” into the <code>morsels_search</code> wasm module at the moment. In order to reduce binary size, each module is configured via feature flags and bundled separately. This however does mean that any and all language modules have to be PR-ed to the upstream module (otherwise, one would have to maintain a separate fork of morsels on its own distribution channels). This is pending better dynamic linking support in wasm.</p>
 <h2 id="proximity-queries"><a class="header" href="#proximity-queries">Proximity Queries</a></h2>
 <p>Basically something like <a href="https://www.guidingtech.com/16116/google-search-little-known-around-operator/">this</a>:</p>
 <pre><code>lorem AROUND(2) dolor
@@ -1648,17 +1737,17 @@ return h(
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="setting-up"><a class="header" href="#setting-up">Setting Up</a></h1>
-<p>To get your development environment setup, you'll need to have installed the following:</p>
+<p>To get your development environment setup, you’ll need to have installed the following:</p>
 <ul>
 <li>Some Rust, WebAssembly and / or Typescript knowledge 🧠</li>
 <li><a href="https://crates.io/">cargo</a>, the package manager for Rust</li>
-<li><a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>, the &quot;one-stop shop&quot; for working with rust generated WebAssembly</li>
+<li><a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>, the “one-stop shop” for working with rust generated WebAssembly</li>
 <li><a href="https://rust-lang.github.io/mdBook/">mdbook</a>, if working on mdbook-morsels plugin</li>
 </ul>
 <h2 id="commands"><a class="header" href="#commands">Commands</a></h2>
 <p>After you have installed the above dependencies, simply run the <code>npm run setup</code> command to install npm-related dependencies. This command also symlinks the all npm packages locally, including the ones generated by wasm-pack.</p>
 <h2 id="test-files"><a class="header" href="#test-files">Test Files</a></h2>
-<p>You'll also need to source a suitable set of html, json, or csv collection that is loadable by one of the command-line <a href="./indexing_configuration.html#Loaders">loaders</a>. The data in the collection should be mappable to the <a href="./indexing_configuration.html#fields-needed-for-morselssearch-ui">fields</a> required by <code>@morsels/search-ui</code> for easy testing.</p>
+<p>You’ll also need to source a suitable set of html, json, or csv collection that is loadable by one of the command-line <a href="./indexing_configuration.html#Loaders">loaders</a>. The data in the collection should be mappable to the <a href="./indexing_configuration.html#fields-needed-for-morselssearch-ui">fields</a> required by <code>@morsels/search-ui</code> for easy testing.</p>
 <p>The test collection I used for the majority of development is a <code>380mb</code> csv corpus for example, in the following format.</p>
 <pre><code>&quot;date&quot;, &quot;title&quot;,                 &quot;content&quot;,              &quot;court&quot;
 unused, mapped to 'title' field, mapped to 'body' field, mapped to 'heading' field
@@ -1721,10 +1810,10 @@ unused, mapped to 'title' field, mapped to 'body' field, mapped to 'heading' fie
 /></p>
 <h1 id="developing"><a class="header" href="#developing">Developing</a></h1>
 <h2 id="building-and-running-the-development-site"><a class="header" href="#building-and-running-the-development-site">Building and Running the Development Site</a></h2>
-<p>Once you have you test files placed in the correct folder per the previous chapter, run the <code>npm run index1</code> script to index your content, then run <code>npm run devServer1</code> to serve up the indexer's output on port <code>3000</code>.</p>
+<p>Once you have you test files placed in the correct folder per the previous chapter, run the <code>npm run index1</code> script to index your content, then run <code>npm run devServer1</code> to serve up the indexer’s output on port <code>3000</code>.</p>
 <p>Finally, use the <code>npm run dev</code> script to open the development site on port <code>8080</code>. This script runs the webpack build process, which in turn triggers the WebAssembly build process as well through the wasm-pack webpack plugin.</p>
 <h2 id="working-with-the-mdbook-morsels-plugin"><a class="header" href="#working-with-the-mdbook-morsels-plugin">Working With the mdbook-morsels Plugin</a></h2>
-<p>As mdbook plugins are basically separate executables, operating on <code>stdin / stdout</code>, you'll need to first run <code>npm run installIndexer</code> to build and install the indexer command-line tool to your <code>PATH</code>. (including whenever changes are made to the indexer code)</p>
+<p>As mdbook plugins are basically separate executables, operating on <code>stdin / stdout</code>, you’ll need to first run <code>npm run installIndexer</code> to build and install the indexer command-line tool to your <code>PATH</code>. (including whenever changes are made to the indexer code)</p>
 <p>Next, run the <code>npm run devdocs</code> script, which similarly build and installs the <code>mdbook-morsels</code> executable. This script then serves up the documentation at port <code>8000</code>.</p>
 <script>
     initMorsels({

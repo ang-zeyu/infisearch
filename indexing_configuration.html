@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html" class="active"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -106,6 +106,9 @@
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
                     </div>
                 </div>
@@ -199,7 +202,9 @@
         &quot;b&quot;: 0.75
       },
       // Internal, hardcoded field sourced from the relative file path of the file from the root directory
-      // If omitted, the field will not be stored
+      // Required for the default search ui preview generation methods (see &quot;Generating Result Previews&quot; under search configuration)
+      //
+      // Nonetheless, if omitted, the field will not be stored.
       {
         &quot;name&quot;: &quot;_relative_fp&quot;,
         &quot;do_store&quot;: true,
@@ -219,10 +224,6 @@
 <p>This parameter simply specifies the weight the field should have during scoring. Specifying <code>0.0</code> will result in the field not being indexed.</p>
 <p><strong><code>k</code> &amp; <code>b</code></strong></p>
 <p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables">article</a> provides a good overview on how to configure these, although, the defaults should serve sufficiently.</p>
-<h3 id="fields-needed-for-morselssearch-ui"><a class="header" href="#fields-needed-for-morselssearch-ui">Fields Needed for @morsels/search-ui</a></h3>
-<p>The search-ui package, <em>by default</em>, requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields, and the <code>_relative_fp</code> field above.</p>
-<p>The body field (and title, headings if available) are used to generate the result preview, whilst the <code>_relative_fp</code> field is used for navigating to the generated result.</p>
-<p>The next <a href="search_ui_configuration.html">chapter</a> will detail several options to help rename these fields, or even add additional fields and render them in result previews.</p>
 <h2 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h2>
 <p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key. The <code>options</code> key supplies tokenization options unique to each module.</p>
 <p>Note that these options are also applied to the search library, which uses the same tokenizers through wasm.</p>
@@ -243,7 +244,7 @@
 </ul>
 <h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
 <p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
-<p><em>Tantivy</em>'s <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
+<p><em>Tantivy</em>‘s <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
 <p>If specified, a stemmer is also applied.</p>
 <pre><code class="language-json">&quot;lang_config&quot;: {
   &quot;lang&quot;: &quot;latin&quot;,
@@ -265,7 +266,7 @@
 </code></pre>
 <h3 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h3>
 <p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
-<p>This tokenizer applies jieba's <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
+<p>This tokenizer applies jieba’s <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
 <pre><code class="language-json">&quot;lang_config&quot;: {
   &quot;lang&quot;: &quot;chinese&quot;,
   &quot;options&quot;: {
@@ -273,11 +274,11 @@
   }
 }
 </code></pre>
-<h3 id="remark-on-language-modules-flexibility"><a class="header" href="#remark-on-language-modules-flexibility">Remark on Language Modules' Flexibility</a></h3>
+<h3 id="remark-on-language-modules-flexibility"><a class="header" href="#remark-on-language-modules-flexibility">Remark on Language Modules’ Flexibility</a></h3>
 <p>While using the same tokenizer for both indexing / search unifies the codebase, one downside is that code size has to be taken into account.</p>
 <p>The chinese tokenizer for example, which uses <em>jieba-rs</em>, accounts for half of the wasm binary size alone.</p>
-<p>Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen't blow up.</p>
-<p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn't, feel free to open up an issue! Might just be that I haven't gotten around to it yet =P.</p>
+<p>Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen’t blow up.</p>
+<p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn’t, feel free to open up an issue! Might just be that I haven’t gotten around to it yet =P.</p>
 <h2 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h2>
 <p>The configurations in this section specify <strong>how and which</strong> files to index.</p>
 <p>All configurations are optional (reasonable defaults provided otherwise), save for the <code>loader_configs</code> key. The cli tool <strong>will do nothing</strong> if no loaders are specified.</p>
@@ -317,7 +318,7 @@
 }
 </code></pre>
 <h3 id="loaders"><a class="header" href="#loaders">Loaders</a></h3>
-<p>The indexer is able to handle html, json or csv files. Support for each file type is provided by a &quot;<code>Loader</code>&quot; abstraction.</p>
+<p>The indexer is able to handle html, json or csv files. Support for each file type is provided by a “<code>Loader</code>“ abstraction.</p>
 <p>You may configure loaders by including them under the <code>loader_configs</code> key, with any applicable options.</p>
 <p>The below sections shows the available loaders and configuration options available for each of them.</p>
 <p><strong><code>HtmlLoader</code></strong></p>
@@ -349,7 +350,7 @@
   }
 }
 </code></pre>
-<p>The html loader traverses the document depth-first. At each element, it checks if any of the selectors under the <code>selectors.selector</code> key above matches the element. If so, all children (elements, text) under this element will then be indexed under the <code>field_name</code> specified, until an &quot;overriding&quot; element that matched another selector is found.</p>
+<p>The html loader traverses the document depth-first. At each element, it checks if any of the selectors under the <code>selectors.selector</code> key above matches the element. If so, all children (elements, text) under this element will then be indexed under the <code>field_name</code> specified, until an “overriding” element that matched another selector is found.</p>
 <p>The <code>attr_map</code> allows indexing attributes of elements under fields as well.</p>
 <p><strong><code>JsonLoader</code></strong></p>
 <pre><code class="language-json">{
@@ -505,10 +506,10 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="getting_started_mdbook.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="search_configuration_renderers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="search_configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="dynamic_indexing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -517,10 +518,10 @@ The <code>field_order</code> controls in which order these fields are indexed, w
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="getting_started_mdbook.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="search_configuration_renderers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="search_configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="dynamic_indexing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

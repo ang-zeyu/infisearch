@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">6.</strong> Search UI Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html" class="active"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html" class="active"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -106,6 +106,9 @@
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
                     </div>
                 </div>
@@ -161,17 +164,17 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="dynamic-indexing"><a class="header" href="#dynamic-indexing">Dynamic Indexing</a></h1>
-<p>Dynamic, or &quot;incremental&quot; indexing is also supported by the indexer cli tool.</p>
+<p>Dynamic, or “incremental” indexing is also supported by the indexer cli tool.</p>
 <p>Detecting deleted, changed, or added files is done by storing an internal file path / last modified metadata map.</p>
 <p>To enable it, simply pass the <code>--dynamic</code> or <code>-d</code> option when running the indexer.</p>
 <h2 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h2>
-<p>As the core idea of Morsels is to split up the index into many tiny parts (and not more than necessary), the dynamic indexing feature works by &quot;patching&quot; only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.</p>
-<p>This is in contrast to a &quot;segment&quot; based approach whereby each dynamic indexing run generates an entirely separate &quot;segment&quot;, and segments are merged together at runtime. While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.</p>
+<p>As the core idea of Morsels is to split up the index into many tiny parts (and not more than necessary), the dynamic indexing feature works by “patching” only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.</p>
+<p>This is in contrast to a “segment” based approach whereby each dynamic indexing run generates an entirely separate “segment”, and segments are merged together at runtime. While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.</p>
 <h2 id="caveats"><a class="header" href="#caveats">Caveats</a></h2>
 <p>There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern -- for example, updating the index immediately when writing this documentation!</p>
 <p>This should be automatic for most use cases -- if the output folder path does not contain any files indexed by morsels and the <code>--dynamic</code> option is specified, this is similar to not specifying the <code>--dynamic</code> option at all.</p>
 <h3 id="collection-statistics"><a class="header" href="#collection-statistics">Collection Statistics</a></h3>
-<p>Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of dynamic indexing (from added / updated documents). As such, the files containing the information for these terms would not be &quot;patched&quot;. As a result, you <em>may</em> notice some slight drifting in the relative ranking of documents returned after some number of dynamic indexing runs.</p>
+<p>Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of dynamic indexing (from added / updated documents). As such, the files containing the information for these terms would not be “patched”. As a result, you <em>may</em> notice some slight drifting in the relative ranking of documents returned after some number of dynamic indexing runs.</p>
 <h3 id="file-metadata"><a class="header" href="#file-metadata">File Metadata</a></h3>
 <p>The change detection currently relies on the last modified time in file metadata. This may not be available or accurate on all systems, or guaranteed by the tools that generate the files Morsels indexes.</p>
 <p>If file metadata is <em>unavailable</em> for any given file, the file would always be re-indexed.</p>
@@ -193,7 +196,7 @@
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="search_configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="indexing_configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                             <a rel="next" href="future_plans.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
@@ -205,7 +208,7 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="search_configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="indexing_configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                     <a rel="next" href="future_plans.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
