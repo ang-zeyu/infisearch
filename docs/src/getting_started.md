@@ -1,10 +1,10 @@
 # Getting Started
 
-Getting started with the following default setup is fairly easy straightforward:
-- Have some `.html` files you want to index
+Getting started with the following default setup is fairly easy straightforward. It assumes:
+- You have some `.html` files you want to index
 - These `.html` files are served in a static file server, and are accessible by the search-ui to generate result previews
 
-If you need more than this, have a look through here first, then jump into the [indexer configuration](indexing_configuration.md) page to learn more.
+If you need more than this, have a look through here first, then jump into the [configuration](search_configuration.md) page to learn more.
 
 ## Installing the indexer
 
@@ -57,15 +57,14 @@ initMorsels({
 
 If you wish to serve the files locally instead, you can find the latest versions in [this folder](https://github.com/ang-zeyu/morsels/tree/main/packages/search-ui/dist), or in the release packages [here](https://github.com/ang-zeyu/morsels/releases).
 
-### Installation via webpack
+### Installation via Bundlers
 
-<p style="color: red;">This section is not yet completed!</p>
+As morsels consists of a javascript (typescript) and rust portion enabled by WebAssembly, including it into your project's bundling / build process is likely infeasible, as rust / wasm compilation takes a lot of time (and requires [extra toolchains](./developers_setting_up.md)).
 
-With some setup, the library may also be integrated via bundlers. This guide will only cover webpack.
+Instead, use the file copying functionalities of your bundler to copy morsels' assets into the appropriate output directories.
 
-The following section shows how to include the worker bundle and `.wasm` files using the [CopyWebpackPlugin](https://webpack.js.org/plugins/copy-webpack-plugin/).
 
-The main `search-ui.bundle.js` will be bundled into your application.
+For example, using the [CopyWebpackPlugin](https://webpack.js.org/plugins/copy-webpack-plugin/), the following (untested) setup should be all you need:
 
 ```js
 // Under plugins configuration
@@ -79,6 +78,9 @@ new CopyPlugin({
 })
 ```
 
-#### Bundling Everything
 
-Alternatively, if you wish to bundle the `.wasm` binaries from source, you'll need to install [wasm pack plugin](https://github.com/wasm-tool/wasm-pack-plugin) and its various dependencies, and adapt the configurations used in `webpack.common.js` in the github repo. This is unrecommended however, as it adds global dependency requirements (i.e. rust compiler) to your development toolchain and may slow build times significantly.
+```html
+<!-- Replace links as appropriate -->
+<script src=".../search-ui.bundle.js"></script>
+<script src=".../search-ui.css"></script>
+```
