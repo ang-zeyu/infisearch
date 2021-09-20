@@ -1,11 +1,13 @@
 [book]
-authors = ["Ze Yu"]
+authors = ["Ang Ze Yu"]
 language = "en"
 multilingual = false
 src = "src"
 title = "Morsels Documentation"
 
 [output.html]
+curly-quotes = true
+git-repository-url = "https://github.com/ang-zeyu/morsels"
 site-url = "/morsels/"
 
 [output.html.search]
