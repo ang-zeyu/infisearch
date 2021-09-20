@@ -1,0 +1,93 @@
+/*
+    From light theme
+*/
+.morsels-theme {
+    --bg: hsl(0, 0%, 100%);
+    --fg: hsl(0, 0%, 0%);
+
+    --sidebar-bg: #fafafa;
+    --sidebar-fg: hsl(0, 0%, 0%);
+    --sidebar-non-existant: #aaaaaa;
+    --sidebar-active: #1f1fff;
+    --sidebar-spacer: #f4f4f4;
+
+    --scrollbar: #8F8F8F;
+
+    --icons: #747474;
+    --icons-hover: #000000;
+
+    --links: #20609f;
+
+    --inline-code-color: #301900;
+
+    --theme-popup-bg: #fafafa;
+    --theme-popup-border: #cccccc;
+    --theme-hover: #e6e6e6;
+
+    --quote-bg: hsl(197, 37%, 96%);
+    --quote-border: hsl(197, 37%, 91%);
+
+    --table-border-color: hsl(0, 0%, 95%);
+    --table-header-bg: hsl(0, 0%, 80%);
+    --table-alternate-bg: hsl(0, 0%, 97%);
+
+    --searchbar-border-color: #aaa;
+    --searchbar-bg: #fafafa;
+    --searchbar-fg: #000;
+    --searchbar-shadow-color: #aaa;
+    --searchresults-header-fg: #666;
+    --searchresults-border-color: #888;
+    --searchresults-li-bg: #e4f2fe;
+    --search-mark-bg: #a2cff5;
+}
+
+/*
+    Copied from search-ui.css.
+    Not ideal but style updates should be few and far between.
+*/
+.morsels-theme .morsels-root {
+    --morsels-dropdown-width: 512px;
+    --morsels-dropdown-max-height: 30em;
+    --morsels-font-size: 16px;
+    --morsels-border: none;
+    --morsels-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
+    --morsels-fg: black;
+    --morsels-bg: white;
+    --morsels-dropdown-input-separator-bg: white;
+    --morsels-item-border: none;
+    --morsels-item-border-radius: 1px;
+    --morsels-item-box-shadow: 0 3px 5px rgba(196, 192, 187, 0.5);
+    --morsels-item-sub-border: none;
+    --morsels-title-fg: var(--morsels-fg);
+    --morsels-title-bg: rgba(245, 169, 86, 0.33);
+    --morsels-title-hover-fg: var(--morsels-fg);
+    --morsels-title-hover-bg: rgba(245, 169, 86, 0.5);
+    --morsels-heading-fg: var(--morsels-fg);
+    --morsels-heading-bg: rgba(255, 204, 147, 0.2);
+    --morsels-heading-hover-fg: var(--morsels-fg);
+    --morsels-heading-hover-bg: rgba(255, 204, 147, 0.3);
+    --morsels-body-fg: var(--morsels-fg);
+    --morsels-body-bg: var(--morsels-bg);
+    --morsels-body-hover-fg: var(--morsels-fg);
+    --morsels-body-hover-bg: rgba(255, 234, 217, 0.3);
+    --morsels-highlight: #ef9001;
+    --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
+    --morsels-loading-bg: #fed;
+    --morsels-scrollbar-bg: rgba(213, 177, 137, 0.15);
+    --morsels-scrollbar-thumb-bg: rgba(213, 177, 137, 0.5);
+    --morsels-fullscreen-border: 3px solid var(--morsels-fullscreen-header-bg);
+    --morsels-fullscreen-box-shadow: 0 0 10px 3px rgb(218, 214, 208);
+    --morsels-fullscreen-desktop-width: 650px;
+    --morsels-fullscreen-desktop-height: 70%;
+    --morsels-fullscreen-header-bg: rgb(255, 255, 255);
+    --morsels-fullscreen-header-border-bottom: 1px solid rgba(190, 190, 190, 0.3);
+    --morsels-fullscreen-input-border: 2px solid rgba(253, 202, 144, 0.37);
+    --morsels-fullscreen-input-focus-border: 2px solid rgba(255, 169, 66, 0.8);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px rgba(255, 169, 66, 0.8);
+    --morsels-fullscreen-header-close-bg: rgb(255, 255, 255);
+    --morsels-fullscreen-header-close-fg: rgb(253, 202, 144);
+    --morsels-fullscreen-header-close-hover-bg: rgb(255, 224, 183);
+    --morsels-fullscreen-header-close-hover-fg: rgb(255, 169, 66);
+    --morsels-fullscreen-header-close-active-bg: rgba(246, 170, 73, 0.9);
+    --morsels-fullscreen-header-close-active-fg: rgb(255, 169, 66);
+}

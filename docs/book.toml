@@ -6,7 +6,10 @@ src = "src"
 title = "Morsels Documentation"
 
 [output.html]
+default-theme = "rust"
 curly-quotes = true
+additional-css = ["src/morsels-theme.css"]
+additional-js = ["src/morsels-theme.js"]
 git-repository-url = "https://github.com/ang-zeyu/morsels"
 site-url = "/morsels/"
 
