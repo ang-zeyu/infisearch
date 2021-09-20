@@ -95,52 +95,58 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     }
   });
 
-  options.render.rootRender = options.render.rootRender || ((h, opts, inputEl, portalCloseHandler) => {
-    const root = h(
-      'div',
-      {
-        class: `morsels-root${portalCloseHandler ? ' morsels-portal-root' : ''}`,
-      },
-    );
+  options.render.rootRender = options.render.rootRender || ((h, opts, inputEl) => {
+    const root = h('div', { class: 'morsels-root' }, inputEl);
 
-    let backdropEl;
-    if (portalCloseHandler) {
-      backdropEl = h('div', { class: 'morsels-portal-backdrop' }, root);
-      root.onclick = (ev) => ev.stopPropagation();
-      backdropEl.onclick = () => backdropEl.remove();
-    }
-
-    if (portalCloseHandler) {
-      const buttonEl = h('button', { class: 'morsels-input-close-portal' });
-      buttonEl.onclick = portalCloseHandler;
-      root.appendChild(h('div', { class: 'morsels-portal-input-button-wrapper' },
-        inputEl, buttonEl));
-    } else {
-      root.appendChild(inputEl);
-    }
-
-    if (!portalCloseHandler) {
-      root.appendChild(h('div', {
-        class: `morsels-input-dropdown-separator ${opts.dropdownAlignment || 'right'}`,
-        style: 'display: none;',
-      }));
-    }
+    root.appendChild(h('div', {
+      class: `morsels-input-dropdown-separator ${opts.dropdownAlignment || 'right'}`,
+      style: 'display: none;',
+    }));
 
     const listContainer = h('ul', {
-      class: `morsels-list ${portalCloseHandler ? '' : (opts.dropdownAlignment || 'right')}`,
-      style: portalCloseHandler ? '' : 'display: none;',
+      class: `morsels-list ${opts.dropdownAlignment || 'right'}`,
+      style: 'display: none;',
     });
     root.appendChild(listContainer);
 
     return {
-      root: portalCloseHandler ? backdropEl : root,
+      root,
       listContainer,
     };
   });
 
-  options.render.portalInputRender = options.render.portalInputRender || ((h) => h(
-    'input', { class: 'morsels-portal-input', type: 'text' },
-  ) as HTMLInputElement);
+  options.render.portalRootRender = options.render.portalRootRender || ((
+    h,
+    opts,
+    portalCloseHandler,
+  ) => {
+    const innerRoot = h('div', { class: 'morsels-root morsels-portal-root' });
+    innerRoot.onclick = (ev) => ev.stopPropagation();
+
+    const rootBackdropEl = h('div', { class: 'morsels-portal-backdrop' }, innerRoot);
+    rootBackdropEl.onclick = () => rootBackdropEl.remove();
+
+    const inputEl = h(
+      'input', { class: 'morsels-portal-input', type: 'text' },
+    ) as HTMLInputElement;
+
+    const buttonEl = h('button', { class: 'morsels-input-close-portal' });
+    buttonEl.onclick = portalCloseHandler;
+
+    innerRoot.appendChild(h('div',
+      { class: 'morsels-portal-input-button-wrapper' },
+      inputEl,
+      buttonEl));
+
+    const listContainer = h('ul', { class: 'morsels-list' });
+    innerRoot.appendChild(listContainer);
+
+    return {
+      root: rootBackdropEl,
+      listContainer,
+      input: inputEl,
+    };
+  });
 
   options.render.noResultsRender = options.render.noResultsRender
       || ((h) => h('div', { class: 'morsels-no-results' }));
@@ -255,16 +261,26 @@ function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => 
     }
   };
 
+  // --------------------------------------------------
   // Fullscreen portal-ed version
-  const portalInput: HTMLInputElement = options.render.portalInputRender(createElement, options.render.opts);
-  const { root: portalRoot, listContainer: portalListContainer } = options.render.rootRender(
-    createElement, options.render.opts, portalInput,
+  const {
+    root: portalRoot,
+    listContainer: portalListContainer,
+    input: portalInput,
+  } = options.render.portalRootRender(
+    createElement,
+    options.render.opts,
     () => options.render.hide(portalRoot, options.render.opts, true),
   );
+
   portalInput.addEventListener('input', inputListener(portalRoot, portalListContainer, true));
   portalInput.addEventListener('keydown', (ev) => ev.stopPropagation());
-  portalListContainer.appendChild(options.render.portalBlankRender(createElement, options.render.opts));
 
+  // Initial state is blank
+  portalListContainer.appendChild(options.render.portalBlankRender(createElement, options.render.opts));
+  // --------------------------------------------------
+
+  // --------------------------------------------------
   // Dropdown version
   const input = options.inputId && document.getElementById(options.inputId);
   if (input) {
@@ -325,6 +341,7 @@ function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => 
       });
     }
   }
+  // --------------------------------------------------
 
   return {
     show: () => {

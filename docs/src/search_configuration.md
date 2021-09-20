@@ -145,9 +145,12 @@ interface SearchUiRenderOptions {
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         inputEl: HTMLElement,
-        portalCloseHandler?: () => void,
     ) => ({ root: HTMLElement, listContainer: HTMLElement }),
-    portalInputRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLInputElement,
+    portalRootRender?: (
+        h: CreateElement,
+        opts: ArbitraryRenderOptions,
+        portalCloseHandler: () => void,
+    ) => ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
     noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
     portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
     loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
@@ -236,10 +239,10 @@ Have a look at the following snippet when reading the documentation below on eac
 Note that there are some minor differences between the dropdown version and fullscreen version, also annotated below.
 
 ```html
-<!-- (rootRender) START -->
+<!-- (rootRender / portalRootRender) START -->
 
 <!--
-    fullscreen version only
+    portalRootRender only
     root element is a backdrop to facilitate backdrop dismiss
 -->
 <div class="morsels-portal-backdrop">
@@ -248,22 +251,20 @@ Note that there are some minor differences between the dropdown version and full
 <!-- Note: fullscreen version has an additional "morsels-portal-root" class -->
 <div class="morsels-root">
 
-    <!-- dropdown version -->
+    <!-- rootRender (dropdown) only -->
     <input id="morsels-search" placeholder="Search">
     <div class="morsels-input-dropdown-separator" style="display: none;"></div>
-    <!-- dropdown version end -->
+    <!-- rootRender end -->
 
-    <!-- fullscreen version only, wrap search box & close button in a sticky header -->
+    <!-- portalRootRender only, wrap search box & close button in a sticky header -->
     <div class="morsels-portal-input-button-wrapper">
-        <!-- (portalInputRender) START -->
         <input class="morsels-portal-input" type="text">
-        <!-- (portalInputRender) END -->
         <button class="morsels-input-close-portal"></button>
     </div>
-    <!-- fullscreen version end -->
+    <!-- portalRootRender end -->
 
     <ul class="morsels-list" style="display: none;">
-<!-- (rootRender) END -->
+<!-- (rootRender / portalRootRender) END -->
 
         <!-- (noResultsRender) START -->
         <div class="morsels-no-results">No results found</div>
@@ -294,14 +295,26 @@ Note that there are some minor differences between the dropdown version and full
 </div>
 ```
 
-**`rootRender(h, opts, inputEl, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement }`**
+**`rootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }`**
 
-- `inputEl`: Input element found by the `inputId` configuration, or created from the `portalInputRender` API below
-- `portalCloseHandler`: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.
+This API renders the root element for the dropdown version of the user interface.
 
-It should return two elements:
+- `inputEl`: Input element found by the `inputId` configuration
+
+It should return 2 elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.
 - `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
+
+**`portalRootRender(h, opts, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }`**
+
+This API renders the root element for the fullscreen version of the user interface.
+
+- `portalCloseHandler`: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.
+
+It should return 3 elements:
+- `root`: The root element. This is passed to the `hide / show` APIs below.
+- `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
+- `input`: Input element. This is required for morsels to attach input event handlers.
 
 **`hide / show (root, opts, isPortal): void`**
 
@@ -309,10 +322,6 @@ These two APIs are not responsible for html output, but rather, hiding and showi
 
 - `root`: root element returned by `rootRender`
 - `isPortal`: whether the function call is for the fullscreen / dropdown UI version
-
-**`portalInputRender(h, opts): HTMLInputElement`**
-
-This API renders the new `<input>` element wen using the fullscreen UI.
 
 **`noResultsRender(h, opts): HTMLElement`**
 
