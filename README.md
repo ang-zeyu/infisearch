@@ -18,13 +18,13 @@ The main value proposition here versus other pre-built index options is the spli
 - Customisable dropdown / fullscreen popup user interface
 - A plugin for mdbook!
 
-## Getting Started
+## Getting Started & Demo
 
-Please refer to the [docs]()!
+Please check out the [docs](http://ang-zeyu.github.io/morsels/)!
 
 ## Contributing
 
-Contributions are highly welcome! Please refer to the [setup guide]() to get started.
+Contributions are highly welcome! Please refer to the [setup guide](http://ang-zeyu.github.io/morsels/contributing.html) to get started.
 
 ## License
 
