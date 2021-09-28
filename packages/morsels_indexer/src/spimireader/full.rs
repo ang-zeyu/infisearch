@@ -134,11 +134,11 @@ pub fn merge_blocks(
         // ---------------------------------------------
 
         // ---------------------------------------------
-        // Dictionary table writing: doc freq (var-int), pl offset (u32)
+        // Dictionary table writing: doc freq (var-int), pl offset (var-int)
 
         dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
 
-        dict_table_writer.write_all(&start_pl_offset.to_le_bytes()).unwrap();
+        dict_table_writer.write_all(varint::get_var_int(start_pl_offset, &mut varint_buf)).unwrap();
 
         // ---------------------------------------------
         // Dictionary string writing

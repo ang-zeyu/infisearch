@@ -2,7 +2,6 @@ pub mod trigrams;
 
 use std::rc::Rc;
 
-use byteorder::{ByteOrder, LittleEndian};
 use rustc_hash::FxHashMap;
 use smartstring::alias::String;
 use smartstring::alias::String as SmartString;
@@ -39,8 +38,8 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
             continue;
         }
 
-        let postings_file_offset = LittleEndian::read_u32(&table_vec[dict_table_pos..]);
-        dict_table_pos += 4;
+        let (postings_file_offset, offset_len) = varint::decode_var_int(&table_vec);
+        dict_table_pos += offset_len;
 
         let prefix_len = string_vec[dict_string_pos] as usize;
         dict_string_pos += 1;

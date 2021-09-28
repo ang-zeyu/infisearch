@@ -357,7 +357,10 @@ pub fn modify_blocks(
 
             dict_table_writer
                 .write_all(
-                    &((term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32).to_le_bytes(),
+                    varint::get_var_int(
+                        (term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32,
+                        varint_buf
+                    )
                 )
                 .unwrap();
         }
@@ -389,7 +392,7 @@ pub fn modify_blocks(
             );
 
             dict_table_writer.write_all(varint::get_var_int(updated_term_info.doc_freq, &mut varint_buf)).unwrap();
-            dict_table_writer.write_all(&(updated_term_info.postings_file_offset.to_le_bytes())).unwrap();
+            dict_table_writer.write_all(varint::get_var_int(updated_term_info.postings_file_offset, &mut varint_buf)).unwrap();
         } else {
             term_terminfo_pairs.push((prev_term.clone(), term_info));
         }
@@ -420,7 +423,7 @@ pub fn modify_blocks(
 
         dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf)).unwrap();
 
-        dict_table_writer.write_all(&term_info.postings_file_offset.to_le_bytes()).unwrap();
+        dict_table_writer.write_all(varint::get_var_int(term_info.postings_file_offset, &mut varint_buf)).unwrap();
 
         terms::frontcode_and_store_term(&prev_term, &term, &mut dict_string_writer);
         prev_term = term;
