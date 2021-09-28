@@ -4,7 +4,7 @@ This section briefly details some future plans for this project:
 
 ## Exposing `morsels_indexer` Package API
 
-The plan is for the morsels_indexer package to also formalise its API. This is still a WIP at this point, and I'm not exactly sure if there would even be a demand for this given the very specific nature of this tool -- raise an issue if so!
+The plan is for the morsels_indexer package to also formalise its API. This is still a WIP at this point, and I'm not exactly sure if there would even be a demand for this given the very specific use cases of this tool -- raise an issue if so!
 
 ## Dynamic Linking for Language Modules
 

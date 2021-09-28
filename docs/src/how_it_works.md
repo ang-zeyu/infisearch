@@ -1,6 +1,6 @@
 # How it Works
 
-The core idea of this tool is to split up a monolithic postings list into many smaller files (hence *"Morsels"*), organised by the indexed terms. Multiple index files are batched into the same file, keeping to `65535` bytes as much as possible.
+The core idea of this tool is to split up a monolithic postings list into many smaller files (hence *"Morsels"*), organised by the indexed terms. Multiple index files are batched into the same file, keeping to `16383` bytes (configurable) as much as possible.
 
 On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (`< 1gb`).
 
@@ -12,7 +12,7 @@ The practicality / scalability of this tool is bound by 2 factors:
 
 ### Size of the largest index chunk
 
-While the index is split into many chunks, some chunks may exceed the "split size" of `65535` bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like "the"). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.
+While the index is split into many chunks, some chunks may exceed the "split size" of `16383` bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like "the"). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.
 
 Certain [indexing options](./indexing_configuration.md) like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.
 

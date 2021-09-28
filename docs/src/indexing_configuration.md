@@ -180,8 +180,11 @@ The snippet below shows the default values, which need not be altered if you are
     "loader_configs": {
       "HtmlLoader": {}             // enables support for .html files
     },
+    
+    // The threshold (in bytes) at which to "cut" index files
+    "pl_limit": 16383,
 
-    // Any index files ("morsels") above this size (in bytes)
+    // Any index files above this size (in bytes)
     // will be pre-loaded on initialisation of the search library
     "pl_cache_threshold": 1048576,
     
@@ -359,6 +362,7 @@ Field mappings for csv can be configured using one of the `field_map / field_ord
   },
   "indexing_config": {
     "num_docs_per_block": 1000,
+    "pl_limit": 16383,
     "pl_cache_threshold": 1048576,
     "exclude": [
       "_morsels_config.json"

@@ -25,8 +25,6 @@ use crate::Sender;
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE};
 use self::postings_stream_reader::PostingsStreamReader;
 
-static POSTINGS_FILE_LIMIT: u32 = 65535;
-
 #[derive(Default)]
 pub struct TermDocsForMerge {
     pub term: String,
@@ -138,7 +136,7 @@ pub fn write_new_term_postings(
         curr_combined_term_docs.iter().fold(0, |acc, next| acc + next.combined_var_ints.len() as u32 + 16);
     let end = *pl_offset + curr_postings_max_size;
 
-    if end > POSTINGS_FILE_LIMIT {
+    if end > indexing_config.pl_limit {
         // --------------------------------
         // Dictionary table writing
         // (1 byte varint = 0 in place of the docFreq varint, delimiting a new postings list)

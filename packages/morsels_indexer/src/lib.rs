@@ -54,6 +54,10 @@ fn get_default_num_threads() -> usize {
     std::cmp::max(num_cpus::get_physical() - 1, 1)
 }
 
+fn get_default_pl_limit() -> u32 {
+    16383
+}
+
 fn get_default_num_docs_per_block() -> u32 {
     1000
 }
@@ -94,6 +98,9 @@ pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_num_docs_per_block")]
     num_docs_per_block: u32,
 
+    #[serde(default = "get_default_pl_limit")]
+    pl_limit: u32,
+
     #[serde(default = "get_default_pl_cache_threshold")]
     pl_cache_threshold: u32,
 
@@ -118,6 +125,7 @@ impl Default for MorselsIndexingConfig {
         MorselsIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
+            pl_limit: get_default_pl_limit(),
             pl_cache_threshold: get_default_pl_cache_threshold(),
             exclude: get_default_exclude_patterns(),
             loader_configs: get_default_loader_configs(),
