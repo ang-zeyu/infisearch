@@ -72,10 +72,9 @@ impl ExistingPlWriter {
 
         let mut prev_doc_id = 0;
         for _i in 0..old_term_info.doc_freq {
-            let (doc_id_gap, doc_id_len) = decode_var_int(&self.pl_vec[pl_vec_pos..]);
+            let doc_id_gap = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
 
             prev_doc_id += doc_id_gap;
-            pl_vec_pos += doc_id_len;
 
             let start = pl_vec_pos;
 
@@ -84,13 +83,12 @@ impl ExistingPlWriter {
                 is_last = self.pl_vec[pl_vec_pos] & 0x80;
                 pl_vec_pos += 1;
 
-                let (field_tf, field_tf_len) = decode_var_int(&self.pl_vec[pl_vec_pos..]);
-                pl_vec_pos += field_tf_len;
+                let field_tf = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
 
                 if self.with_positions {
                     for _j in 0..field_tf {
                         // Not interested in positions here, just decode and forward pos
-                        pl_vec_pos += decode_var_int(&self.pl_vec[pl_vec_pos..]).1;
+                        decode_var_int(&self.pl_vec, &mut pl_vec_pos);
                     }
                 }
             }

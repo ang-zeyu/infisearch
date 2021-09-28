@@ -234,11 +234,12 @@ impl PostingsList {
 
         let mut prev_doc_id = 0;
         for _i in 0..term_info.doc_freq {
-            let docfreq_and_len = decode_var_int(&pl_vec[pos..]);
-            pos += docfreq_and_len.1;
+            let docfreq = decode_var_int(&pl_vec, &mut pos);
 
-            let mut term_doc =
-                TermDoc { doc_id: prev_doc_id + docfreq_and_len.0, fields: Vec::with_capacity(num_scored_fields) };
+            let mut term_doc = TermDoc {
+                doc_id: prev_doc_id + docfreq,
+                fields: Vec::with_capacity(num_scored_fields),
+            };
             prev_doc_id = term_doc.doc_id;
 
             let mut is_last: u8 = 0;
@@ -249,18 +250,14 @@ impl PostingsList {
                 let field_id = next_int & 0x7f;
                 is_last = next_int & 0x80;
 
-                let field_tf_val_and_length = decode_var_int(&pl_vec[pos..]);
-                pos += field_tf_val_and_length.1;
+                let field_tf = decode_var_int(&pl_vec, &mut pos);
 
                 let field_positions = if with_positions {
-                    let mut field_positions = Vec::with_capacity(field_tf_val_and_length.0 as usize);
+                    let mut field_positions = Vec::with_capacity(field_tf as usize);
 
                     let mut prev_pos = 0;
-                    for _j in 0..field_tf_val_and_length.0 {
-                        let posgap_val_and_length = decode_var_int(&pl_vec[pos..]);
-                        pos += posgap_val_and_length.1;
-
-                        prev_pos += posgap_val_and_length.0;
+                    for _j in 0..field_tf {
+                        prev_pos += decode_var_int(&pl_vec, &mut pos);
                         field_positions.push(prev_pos);
                     }
 
@@ -273,7 +270,7 @@ impl PostingsList {
                     term_doc.fields.push(DocField::default());
                 }
 
-                term_doc.fields.push(DocField { field_tf: field_tf_val_and_length.0 as f32, field_positions });
+                term_doc.fields.push(DocField { field_tf: field_tf as f32, field_positions });
             }
 
             if !morsels_common::bitmap::check(invalidation_vector, prev_doc_id as usize) {

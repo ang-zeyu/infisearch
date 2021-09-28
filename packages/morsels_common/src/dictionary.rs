@@ -29,8 +29,7 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
 
     let table_vec_len = table_vec.len();
     while dict_table_pos < table_vec_len {
-        let (doc_freq, doc_freq_len) = varint::decode_var_int(&table_vec[dict_table_pos..]);
-        dict_table_pos += doc_freq_len;
+        let doc_freq = varint::decode_var_int(&table_vec, &mut dict_table_pos);
 
         // new postings list delimiter
         if doc_freq == 0 {
@@ -38,8 +37,7 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
             continue;
         }
 
-        let (postings_file_offset, offset_len) = varint::decode_var_int(&table_vec);
-        dict_table_pos += offset_len;
+        let postings_file_offset = varint::decode_var_int(&table_vec, &mut dict_table_pos);
 
         let prefix_len = string_vec[dict_string_pos] as usize;
         dict_string_pos += 1;
