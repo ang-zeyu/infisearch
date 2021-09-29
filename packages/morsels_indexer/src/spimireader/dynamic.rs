@@ -298,6 +298,7 @@ pub fn modify_blocks(
                 &mut new_pl,
                 &mut new_pl_writer,
                 &mut new_pls_offset,
+                &mut 0,
                 doc_freq,
                 curr_term_max_score,
                 new_num_docs,
@@ -323,6 +324,7 @@ pub fn modify_blocks(
     // Dictionary
 
     let (mut dict_table_writer, mut dict_string_writer) = common::get_dict_writers(output_folder_path);
+    let mut prev_offset = 0;
 
     /*
      Write old terms first
@@ -348,19 +350,19 @@ pub fn modify_blocks(
         dict_table_writer: &mut BufWriter<File>,
         varint_buf: &mut [u8],
         term_terminfo_pairs: &mut Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)>,
+        prev_offset: &mut u32,
         curr_existing_pl_difference: i32,
      ) {
         for (_term, term_info) in term_terminfo_pairs.iter_mut() {
             dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, varint_buf)).unwrap();
 
+            let pl_offset = (term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32;
+
             dict_table_writer
-                .write_all(
-                    varint::get_var_int(
-                        (term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32,
-                        varint_buf
-                    )
-                )
+                .write_all(varint::get_var_int(pl_offset - *prev_offset, varint_buf))
                 .unwrap();
+            
+            *prev_offset = pl_offset;
         }
         term_terminfo_pairs.clear();
     }
@@ -374,10 +376,12 @@ pub fn modify_blocks(
                 &mut dict_table_writer,
                 &mut varint_buf,
                 &mut term_terminfo_pairs,
+                &mut prev_offset,
                 if let Some(diff) = pl_file_length_differences.get(&prev_dict_pl) { *diff } else { 0 },
             );
 
             dict_table_writer.write_all(&[128_u8]).unwrap();
+            prev_offset = 0;
             prev_dict_pl = term_info.postings_file_name;
         }
 
@@ -386,11 +390,17 @@ pub fn modify_blocks(
                 &mut dict_table_writer,
                 &mut varint_buf,
                 &mut term_terminfo_pairs,
+                &mut prev_offset,
                 updated_term_info.postings_file_offset as i32 - term_info.postings_file_offset as i32,
             );
 
-            dict_table_writer.write_all(varint::get_var_int(updated_term_info.doc_freq, &mut varint_buf)).unwrap();
-            dict_table_writer.write_all(varint::get_var_int(updated_term_info.postings_file_offset, &mut varint_buf)).unwrap();
+            dict_table_writer
+                .write_all(varint::get_var_int(updated_term_info.doc_freq, &mut varint_buf))
+                .unwrap();
+            dict_table_writer
+                .write_all(varint::get_var_int(updated_term_info.postings_file_offset - prev_offset, &mut varint_buf))
+                .unwrap();
+            prev_offset = updated_term_info.postings_file_offset;
         } else {
             term_terminfo_pairs.push((prev_term.clone(), term_info));
         }
@@ -401,6 +411,7 @@ pub fn modify_blocks(
             &mut dict_table_writer,
             &mut varint_buf,
             &mut term_terminfo_pairs,
+            &mut prev_offset,
             if let Some(diff) = pl_file_length_differences.get(&prev_dict_pl) { *diff } else { 0 },
         );
     }
@@ -415,18 +426,23 @@ pub fn modify_blocks(
     let mut prev_term = "".to_owned();
 
     for (term, term_info) in new_term_infos {
-        if prev_dict_pl != term_info.postings_file_name {
-            dict_table_writer.write_all(&[128_u8]).unwrap();
-        }
-
-        dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf)).unwrap();
-
-        dict_table_writer.write_all(varint::get_var_int(term_info.postings_file_offset, &mut varint_buf)).unwrap();
-
         terms::frontcode_and_store_term(&prev_term, &term, &mut dict_string_writer);
         prev_term = term;
 
-        prev_dict_pl = term_info.postings_file_name;
+        if prev_dict_pl != term_info.postings_file_name {
+            dict_table_writer.write_all(&[128_u8]).unwrap();
+            prev_offset = 0;
+            prev_dict_pl = term_info.postings_file_name;
+        }
+
+        dict_table_writer
+            .write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf))
+            .unwrap();
+        dict_table_writer
+            .write_all(varint::get_var_int(term_info.postings_file_offset - prev_offset, &mut varint_buf))
+            .unwrap();
+
+        prev_offset = term_info.postings_file_offset;
     }
 
     dict_table_writer.flush().unwrap();

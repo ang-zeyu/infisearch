@@ -91,6 +91,7 @@ pub fn merge_blocks(
     // Dictionary table / Postings list trackers
     let mut curr_pl = 0;
     let mut curr_pl_offset: u32 = 0;
+    let mut prev_pl_start_offset: u32 = 0;
 
     // Varint buffer
     let mut varint_buf: [u8; 16] = [0; 16];
@@ -123,6 +124,7 @@ pub fn merge_blocks(
             &mut curr_pl,
             &mut pl_writer,
             &mut curr_pl_offset,
+            &mut prev_pl_start_offset,
             doc_freq,
             curr_term_max_score,
             num_docs_double,
@@ -138,7 +140,8 @@ pub fn merge_blocks(
 
         dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
 
-        dict_table_writer.write_all(varint::get_var_int(start_pl_offset, &mut varint_buf)).unwrap();
+        dict_table_writer.write_all(varint::get_var_int(start_pl_offset - prev_pl_start_offset, &mut varint_buf)).unwrap();
+        prev_pl_start_offset = start_pl_offset;
 
         // ---------------------------------------------
         // Dictionary string writing

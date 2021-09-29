@@ -23,6 +23,7 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
     let mut term_infos: FxHashMap<Rc<String>, Rc<TermInfo>> = FxHashMap::default();
 
     let mut postings_file_name = 0;
+    let mut postings_file_offset = 0;
     let mut dict_string_pos = 0;
     let mut dict_table_pos = 0;
     let mut prev_term: Rc<String> = Rc::new(SmartString::from(""));
@@ -34,10 +35,11 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
         // new postings list delimiter
         if doc_freq == 0 {
             postings_file_name += 1;
+            postings_file_offset = 0;
             continue;
         }
 
-        let postings_file_offset = varint::decode_var_int(&table_vec, &mut dict_table_pos);
+        postings_file_offset += varint::decode_var_int(&table_vec, &mut dict_table_pos);
 
         let prefix_len = string_vec[dict_string_pos] as usize;
         dict_string_pos += 1;

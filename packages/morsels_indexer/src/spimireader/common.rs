@@ -121,6 +121,7 @@ pub fn write_new_term_postings(
     curr_pl: &mut u32,
     pl_writer: &mut BufWriter<File>,
     pl_offset: &mut u32,
+    prev_pl_start_offset: &mut u32,
     doc_freq: u32,
     curr_term_max_score: f32,
     num_docs: f64,
@@ -154,6 +155,7 @@ pub fn write_new_term_postings(
 
         *curr_pl += 1;
         *pl_offset = 0;
+        *prev_pl_start_offset = 0;
         *pl_writer = get_pl_writer(output_folder_path, *curr_pl, indexing_config.num_pls_per_dir);
     }
     // ---------------------------------------------
