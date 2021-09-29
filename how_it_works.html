@@ -165,13 +165,13 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h1>
-<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>65535</code> bytes as much as possible.</p>
+<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>16383</code> bytes (configurable) as much as possible.</p>
 <p>On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (<code>&lt; 1gb</code>).</p>
 <p>The index files of searched terms will be requested only on-demand from a static file server.</p>
 <h2 id="limits"><a class="header" href="#limits">Limits</a></h2>
 <p>The practicality / scalability of this tool is bound by 2 factors:</p>
 <h3 id="size-of-the-largest-index-chunk"><a class="header" href="#size-of-the-largest-index-chunk">Size of the largest index chunk</a></h3>
-<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>65535</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
+<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>16383</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
 <p>Certain <a href="./indexing_configuration.html">indexing options</a> like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.</p>
 <h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
 <p>The test collection used during development is a pure-text <code>380mb</code> .csv file, with positional indexing enabled. No stop word removal is done.</p>

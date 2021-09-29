@@ -167,7 +167,7 @@
 <h1 id="future-plans"><a class="header" href="#future-plans">Future Plans</a></h1>
 <p>This section briefly details some future plans for this project:</p>
 <h2 id="exposing-morsels_indexer-package-api"><a class="header" href="#exposing-morsels_indexer-package-api">Exposing <code>morsels_indexer</code> Package API</a></h2>
-<p>The plan is for the morsels_indexer package to also formalise its API. This is still a WIP at this point, and I’m not exactly sure if there would even be a demand for this given the very specific nature of this tool -- raise an issue if so!</p>
+<p>The plan is for the morsels_indexer package to also formalise its API. This is still a WIP at this point, and I’m not exactly sure if there would even be a demand for this given the very specific use cases of this tool -- raise an issue if so!</p>
 <h2 id="dynamic-linking-for-language-modules"><a class="header" href="#dynamic-linking-for-language-modules">Dynamic Linking for Language Modules</a></h2>
 <p>Language modules are “bundled” into the <code>morsels_search</code> wasm module at the moment. In order to reduce binary size, each module is configured via feature flags and bundled separately. This however does mean that any and all language modules have to be PR-ed to the upstream module (otherwise, one would have to maintain a separate fork of morsels on its own distribution channels). This is pending better dynamic linking support in wasm.</p>
 <h2 id="proximity-queries"><a class="header" href="#proximity-queries">Proximity Queries</a></h2>
