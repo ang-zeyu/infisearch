@@ -183,7 +183,7 @@ fn get_existing_pl_writer(
 pub fn modify_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
-    indexing_config: &mut MorselsIndexingConfig,
+    indexing_config: &MorselsIndexingConfig,
     pl_names_to_cache: &mut Vec<u32>,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,

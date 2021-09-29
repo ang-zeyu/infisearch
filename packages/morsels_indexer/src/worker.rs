@@ -12,6 +12,7 @@ use crossbeam::channel::{Sender, Receiver};
 use crossbeam::queue::SegQueue;
 
 use crate::loader::LoaderResult;
+use crate::MorselsIndexingConfig;
 use crate::spimireader::common::{PostingsStreamDecoder, postings_stream_reader::PostingsStreamReader};
 use crate::spimiwriter;
 use crate::worker::miner::WorkerBlockIndexResults;
@@ -79,14 +80,13 @@ pub fn worker(
     rcvr: Receiver<MainToWorkerMessage>,
     tokenizer: Arc<dyn Tokenizer + Send + Sync>,
     field_infos: Arc<FieldInfos>,
-    num_stores_per_dir: u32,
-    with_positions: bool,
+    indexing_config: Arc<MorselsIndexingConfig>,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
     is_dynamic: bool,
     index_unit_queue: Arc<SegQueue<IndexUnit>>,
 ) {
-    let mut doc_miner = WorkerMiner::new(&field_infos, with_positions, expected_num_docs_per_reset, &tokenizer);
+    let mut doc_miner = WorkerMiner::new(&field_infos, indexing_config.with_positions, expected_num_docs_per_reset, &tokenizer);
 
     for msg in rcvr.into_iter() {
         match msg {
@@ -110,7 +110,7 @@ pub fn worker(
                     &field_infos,
                     block_number,
                     is_dynamic,
-                    num_stores_per_dir,
+                    indexing_config.num_stores_per_dir,
                     num_docs,
                     total_num_docs,
                 );
@@ -139,7 +139,7 @@ pub fn worker(
                 barrier.wait();
             }
             MainToWorkerMessage::Decode { n, postings_stream_reader, postings_stream_decoders } => {
-                postings_stream_reader.decode_next_n(n, postings_stream_decoders, with_positions, &field_infos);
+                postings_stream_reader.decode_next_n(n, postings_stream_decoders, indexing_config.with_positions, &field_infos);
             }
         }
     }

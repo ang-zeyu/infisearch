@@ -196,7 +196,7 @@ impl Default for MorselsConfig {
 }
 
 pub struct Indexer {
-    indexing_config: MorselsIndexingConfig,
+    indexing_config: Arc<MorselsIndexingConfig>,
     doc_id_counter: u32,
     spimi_counter: u32,
     pl_names_to_cache: Vec<u32>,
@@ -298,14 +298,15 @@ impl Indexer {
 
         let tokenizer = Indexer::resolve_tokenizer(&config.lang_config);
 
+        let indexing_config = Arc::from(config.indexing_config);
+
         let mut workers = Vec::with_capacity(num_threads);
-        let num_stores_per_dir = config.indexing_config.num_stores_per_dir;
-        let with_positions = config.indexing_config.with_positions;
         for i in 0..num_threads {
             let tx_worker_clone = tx_worker.clone();
             let rx_worker_clone = rx_worker.clone();
             let tokenize_clone = Arc::clone(&tokenizer);
             let field_info_clone = Arc::clone(&field_infos);
+            let indexing_config_clone = Arc::clone(&indexing_config);
             let num_workers_writing_blocks_clone = Arc::clone(&num_workers_writing_blocks);
             let index_unit_queue = Arc::clone(&index_unit_queue);
 
@@ -318,8 +319,7 @@ impl Indexer {
                         rx_worker_clone,
                         tokenize_clone,
                         field_info_clone,
-                        num_stores_per_dir,
-                        with_positions,
+                        indexing_config_clone,
                         expected_num_docs_per_thread,
                         num_workers_writing_blocks_clone,
                         is_dynamic,
@@ -329,10 +329,10 @@ impl Indexer {
             });
         }
 
-        let doc_miner = WorkerMiner::new(&field_infos, with_positions, expected_num_docs_per_thread, &tokenizer);
+        let doc_miner = WorkerMiner::new(&field_infos, indexing_config.with_positions, expected_num_docs_per_thread, &tokenizer);
 
         Indexer {
-            indexing_config: config.indexing_config,
+            indexing_config,
             doc_id_counter,
             spimi_counter: 0,
             pl_names_to_cache: Vec::new(),
@@ -530,7 +530,7 @@ impl Indexer {
             spimireader::dynamic::modify_blocks(
                 self.doc_id_counter,
                 num_blocks,
-                &mut self.indexing_config,
+                &self.indexing_config,
                 &mut self.pl_names_to_cache,
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
@@ -541,7 +541,7 @@ impl Indexer {
             spimireader::full::merge_blocks(
                 self.doc_id_counter,
                 num_blocks,
-                &mut self.indexing_config,
+                &self.indexing_config,
                 &mut self.pl_names_to_cache,
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
