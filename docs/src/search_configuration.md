@@ -8,8 +8,8 @@ All search time related options can be provided through the `initMorsels` functi
 
 The search UI provides 2 different interfaces, a dropdown and fullscreen / "popup" version.
 
-The dropdown version is used for desktop devices by default, which is attached to the element specified by `inputId`.
-For mobile devices, the fullscreen version is used instead.
+The dropdown version is used for desktop devices by default, which is attached to the element specified by the `input` option.
+For mobile devices, the fullscreen version is displayed instead when this input is focused.
 
 ### Default Rendering Output / Purpose
 
@@ -43,7 +43,8 @@ initMorsels({
     // Options for @morsels/search-ui, the user interface package
     
     // Id of input element to attach the search dropdown to
-    inputId: 'morsels-search',
+    // Or the HTMLInputElement itself
+    input: 'morsels-search',
 
     // Debounce time for the input handlers
     inputDebounce: isMobile ? 275 : 200,
@@ -72,7 +73,7 @@ The subsequent section on [renderers](./search_configuration_renderers.md) provi
 
 ```ts
 {
-    inputId?: string,
+    input: string | HTMLInputElement,
     render: {
         enablePortal?: boolean | 'auto',
         portalTo?: HTMLElement,
@@ -82,22 +83,22 @@ The subsequent section on [renderers](./search_configuration_renderers.md) provi
 }
 ```
 
-**`inputId`**
+**`input`**
 
-This option tells morsels which input element to use for the **dropdown version** of its search ui.
+This option tells morsels which input element to use for the **dropdown version** of its search ui. It can be specified as a `string` (the id of the input element), or, directly as the `HTMLInputElement` to use.
 
-If this is unspecified, the `show / hide` APIs below must be used to bring up the **fullscreen UI**.
+If this is unspecified, the `show / hide` APIs below should be used to bring up the **fullscreen UI**.
 
 
 **`enablePortal = 'auto'`**
 
-This parameter tells morsels whether to use the fullscreen search UI for mobile devices when the original `<input>` specified by `inputId` is focused.
+This parameter specifies whether to use the fullscreen search UI for mobile devices when the original `<input>` specified by `input` is focused.
 
 The default value of `'auto'` configures this according to mobile device detection (`true` if it is a mobile device), and also adds a simple window resize handler to automatically hide the corresponding UI if the window is resized.
 
 You can set this to `true` / `false` to always prefer the fullscreen or dropdown version instead when the original `<input>` is focused.
 
-If `inputId` is unspecified, this option will not do anything.
+If no `input` is specified, this option will not do anything.
 
 **`portalTo = document.getElementsByTagName('body')[0]`**
 

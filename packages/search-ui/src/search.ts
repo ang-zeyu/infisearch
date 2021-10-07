@@ -55,8 +55,8 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.searcherOptions.useQueryTermProximity = !isMobile;
   }
 
-  if (!('inputId' in options)) {
-    options.inputId = 'morsels-search';
+  if (!('input' in options) || typeof options.input === 'string') {
+    options.input = document.getElementById(options.input as any || 'morsels-search') as HTMLInputElement;
   }
 
   if (!('inputDebounce' in options)) {
@@ -282,7 +282,7 @@ function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => 
 
   // --------------------------------------------------
   // Dropdown version
-  const input = options.inputId && document.getElementById(options.inputId);
+  const { input } = options;
   if (input) {
     const parent = input.parentElement;
     input.remove();

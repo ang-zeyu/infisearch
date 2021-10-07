@@ -215,7 +215,7 @@ Note that there are some minor differences between the dropdown version and full
 
 This API renders the root element for the **dropdown version** of the user interface.
 
-- `inputEl`: Input element found by the `inputId` configuration
+- `inputEl`: Input element found by the `input` configuration option
 
 It should return 2 elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.

@@ -71,7 +71,9 @@ new CopyPlugin({
 
 ### Initialisation Call
 
-Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function as exposed by `search-ui.bundle.js`:
+Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function as exposed globally by `search-ui.bundle.js`.
+
+This requires an input element with an id of `morsels-search` to be present in the page by default.
 
 ```js
 initMorsels({

@@ -78,7 +78,7 @@ export interface SearchUiRenderOptions {
 
 export interface SearchUiOptions {
   searcherOptions: SearcherOptions,
-  inputId: string,
+  input: HTMLInputElement,
   inputDebounce?: number,
   sourceFilesUrl?: string,
   render?: SearchUiRenderOptions
