@@ -73,6 +73,10 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
 
   options.render.portalTo = options.render.portalTo || document.getElementsByTagName('body')[0];
 
+  if (!('resultsPerPage' in options.render)) {
+    options.render.resultsPerPage = 8;
+  }
+
   options.render.show = options.render.show || ((root, opts, forPortal) => {
     if (forPortal) {
       options.render.portalTo.appendChild(root);
@@ -162,10 +166,6 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   options.render.resultsRender = options.render.resultsRender || resultsRender;
 
   options.render.resultsRenderOpts = options.render.resultsRenderOpts || {};
-
-  if (!('resultsPerPage' in options.render.resultsRenderOpts)) {
-    options.render.resultsRenderOpts.resultsPerPage = 8;
-  }
 
   options.render.resultsRenderOpts.listItemRender = options.render.resultsRenderOpts.listItemRender || ((
     h, opts, fullLink, title, bodies,

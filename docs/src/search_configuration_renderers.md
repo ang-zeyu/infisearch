@@ -386,15 +386,7 @@ If overriding `resultsRender` above, the following options will be ignored.
 
 <br>
 
-**2.1 `resultsPerPage = 8`**
-
-This option controls how many result previews are generated per trigger of the infinite scrolling intersection observer.
-
-If none of the `body / title / heading` fields are stored, lowering this has a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed.
-
-<br>
-
-**2.2 `listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)`**
+**2.1 `listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)`**
 
 This API renders the result for a single document match.
 
@@ -425,9 +417,9 @@ return h(
 
 <br>
 
-**2.3 `listItemRender` supporting APIs**
+**2.2 `listItemRender` supporting APIs**
 
-The remaining 3 APIs are supplementary to `listItemRender`, and are responsible for generating the `resultTitle` and `resultHeadingsAndTexts` parameters.
+The remaining 3 APIs below are supplementary to `listItemRender`, and are responsible for generating the `resultTitle` and `resultHeadingsAndTexts` parameters.
 
 Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.
 

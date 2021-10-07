@@ -404,7 +404,7 @@ export default async function transformResults(
 
   // let now = performance.now();
 
-  const results = await query.retrieve(options.render.resultsRenderOpts.resultsPerPage);
+  const results = await query.retrieve(options.render.resultsPerPage);
 
   // console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   // now = performance.now();

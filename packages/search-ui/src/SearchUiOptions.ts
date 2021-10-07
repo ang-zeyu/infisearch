@@ -12,6 +12,7 @@ export interface ArbitraryRenderOptions {
 export interface SearchUiRenderOptions {
   enablePortal?: boolean | 'auto',
   portalTo?: HTMLElement,
+  resultsPerPage?: number,
   show?: (
     root: HTMLElement,
     opts: ArbitraryRenderOptions,
@@ -50,7 +51,6 @@ export interface SearchUiRenderOptions {
     query: Query,
   ) => Promise<HTMLElement[]>,
   resultsRenderOpts?: {
-    resultsPerPage?: number,
     listItemRender?: (
       h: CreateElement,
       opts: ArbitraryRenderOptions,

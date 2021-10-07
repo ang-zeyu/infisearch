@@ -55,6 +55,7 @@ initMorsels({
     render: {
         enablePortal?: boolean | 'auto',
         portalTo?: HTMLElement,
+        resultsPerPage: 8,
         opts: {
             dropdownAlignment: 'left' | 'right'
         },
@@ -75,6 +76,7 @@ The subsequent section on [renderers](./search_configuration_renderers.md) provi
     render: {
         enablePortal?: boolean | 'auto',
         portalTo?: HTMLElement,
+        resultsPerPage: 8,
         // ...
     }
 }
@@ -100,6 +102,11 @@ If `inputId` is unspecified, this option will not do anything.
 **`portalTo = document.getElementsByTagName('body')[0]`**
 
 This parameter tells morsels which element to attach the fullscreen search UI to, which uses `fixed` positioning.
+**`resultsPerPage = 8`**
+
+This option controls how many result previews are retrieved per trigger of the infinite scrolling intersection observer.
+
+If none of the `body / title / heading` fields are stored (see [generating result previews](#generating-result-previews)), lowering this can have a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed.
 
 **`show() / hide()`**
 
