@@ -1,7 +1,6 @@
 # Summary
 
 - [Introduction](./introduction.md)
-- [How it Works](./how_it_works.md)
 - [Search Features](./search_features.md)
 - [Getting Started](./getting_started.md)
   - [mdbook-morsels](./getting_started_mdbook.md)

@@ -1,16 +1,16 @@
 # Getting Started
 
-Getting started with the following default setup is fairly easy straightforward. It assumes:
-- You have some `.html` files you want to index
+The following page assumes:
+- You have simply some `.html` files you want to index
 - These `.html` files are served in a static file server, and are accessible by the search-ui to generate result previews
 
-If you need more than this, have a look through here first, then jump into the [configuration](search_configuration.md) page to learn more.
+If you require more, have a look through here first, then jump into the [configuration](search_configuration.md) pages to learn more.
 
 ## Installing the indexer
 
 If you have the rust / cargo toolchain setup, simply run `cargo install morsels_indexer`.
 
-If not, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
+The cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases) if preferred.
 
 
 ## Running the indexer
@@ -71,11 +71,11 @@ new CopyPlugin({
 
 ### Initialisation Call
 
-Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function as exposed globally by `search-ui.bundle.js`.
+Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function.
 
 This requires an input element with an id of `morsels-search` to be present in the page by default.
 
-```js
+```ts
 initMorsels({
     searcherOptions: {
         // Output folder url specified as the second parameter in the cli command

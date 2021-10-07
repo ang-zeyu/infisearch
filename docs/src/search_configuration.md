@@ -83,12 +83,15 @@ The subsequent section on [renderers](./search_configuration_renderers.md) provi
 }
 ```
 
-**`input`**
+<br>
+
+**`input = 'morsels-search'`**
 
 This option tells morsels which input element to use for the **dropdown version** of its search ui. It can be specified as a `string` (the id of the input element), or, directly as the `HTMLInputElement` to use.
 
 If this is unspecified, the `show / hide` APIs below should be used to bring up the **fullscreen UI**.
 
+---
 
 **`enablePortal = 'auto'`**
 
@@ -100,14 +103,21 @@ You can set this to `true` / `false` to always prefer the fullscreen or dropdown
 
 If no `input` is specified, this option will not do anything.
 
+---
+
 **`portalTo = document.getElementsByTagName('body')[0]`**
 
-This parameter tells morsels which element to attach the fullscreen search UI to, which uses `fixed` positioning.
+This parameter specifies which element to attach the fullscreen search UI to, which uses `fixed` positioning. The `<body>` element is used by default.
+
+---
+
 **`resultsPerPage = 8`**
 
 This option controls how many result previews are retrieved per trigger of the infinite scrolling intersection observer.
 
 If none of the `body / title / heading` fields are stored (see [generating result previews](#generating-result-previews)), lowering this can have a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed.
+
+---
 
 **`show() / hide()`**
 
@@ -115,9 +125,9 @@ If none of the `body / title / heading` fields are stored (see [generating resul
 const { show, hide } = initMorsels(/* ... */);
 ```
 
-The default behaviour of showing the fullscreen search UI on focusing the input may be insufficient in some cases, for example showing the UI when clicking a search icon.
+The default behaviour of showing the fullscreen search UI when focusing the input may be insufficient in some cases, for example, to show the UI when clicking a "search icon".
 
-You may call the `show()` function returned by the initMorsels call in such a case for manual control. Correspondingly, the `hide()` method hides the fullscreen interface, although, this shouldn't be needed since there's a close button is available by default.
+You may call the `show()` function returned by the initMorsels call in such a case for manual control. Correspondingly, the `hide()` method hides the fullscreen interface, although, this shouldn't be needed since a close button is available by default.
 
 
 ## Automatic Term Expansion

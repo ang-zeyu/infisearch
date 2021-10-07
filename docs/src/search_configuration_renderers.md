@@ -70,8 +70,6 @@ interface SearchUiRenderOptions {
 
     // Options / more renderers for the default implementation of resultsRender
     resultsRenderOpts?: {
-        resultsPerPage: 8,
-
         listItemRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
@@ -368,7 +366,9 @@ Together, they are placed in the `<!-- results placeholder (refer to "rendering 
 
 This API renders the results for *all* document matches.
 
-This can be used for example, if the output required is substantially different or external API calls are required to retrieve document info.
+Some examples use cases are:
+- Altering the html output structure substantially (e.g. displaying results in a tabular form)
+- Calling external API calls to retrieve additional info for generating result previews.
 
 For example, the default implementation does the following:
 1. Check the `config.fieldInfos` if any of `body / title / heading` fields are stored by the indexer to generate result previews. (Skip to 3 if present)
@@ -381,7 +381,7 @@ Refer to the default implementation [here](https://github.com/ang-zeyu/morsels/b
 
 **2. `resultsRenderOpts`**
 
-The renderers and options under this key are based on the **default implementation of `resultsRender`**.
+The renderers under this key are based on the **default implementation of `resultsRender`**.
 If overriding `resultsRender` above, the following options will be ignored.
 
 <br>

@@ -49,7 +49,21 @@ title\:lorem
 
 ## Other Details
 
-This section briefly details some background features not exposed to the user:
-- Disjunctive expressions are ranked using the same BM25 model used in lucene
-- Pure free-text queries (e.g. "lorem ipsum") use the [WAND algorithm](https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand) to improve query speed
-- Background query term proximity ranking: BM25 results are also scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.
+This section briefly details some non user-facing features.
+
+### WebWorker Built-in
+
+Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.
+
+Population of stored document fields is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.
+
+Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
+One of the main reasons is that there is simply no way of parsing html (the original html document can be used as an alternative to storing document fields) faster than the implementations provided by the browser.
+
+### Ranking Specifics
+
+Top-level disjunctive expressions (e.g. `lorem ipsum`) are ranked using the BM25 model.
+
+Pure free-text queries (e.g. "lorem ipsum") also use the [WAND algorithm](https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand) to improve query speed, although, the benefits should be marginal for most cases.
+
+Query term proximity ranking is also supported and enabled by default - results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.
