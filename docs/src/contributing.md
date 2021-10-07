@@ -1,5 +1,7 @@
 # Contributing
 
-Contributions are highly welcome! If you are new to open source, check out some of the ways you can contribute at this [awesome guide](https://opensource.guide/).
+Contributions of any form (code, documentation, bug reports) are highly welcome.
 
-This section details some information that may be helpful, for example, getting your development environment setup.
+To report a bug, simply head on over [here](https://github.com/ang-zeyu/morsels/issues/new).
+
+The subsequent sections details information only for getting your development environment setup.

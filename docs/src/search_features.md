@@ -1,27 +1,25 @@
 # Search Features
 
-The morsels_search crate provides its own query parser supporting several methods.
+This page outlines the available search features common to both `@morsels/search-ui` and `@morsels/search-lib`.
 
 ## Boolean Operators, Parentheses
 
-`AND` and `NOT` operators are supported, and are used like such in a standard manner.
-`OR` operators are not supported, but are implicitly left to the tokenizer (see below for an example).
+`AND` and `NOT` operators are supported.
+`OR` operators are not supported, and is implicitly left to the tokenizer (see below for an example).
 Parentheses `(...)` can be used to group expressions together.
 
 ```
-// e.g.
 lorem ipsum                 - documents containing either lorem or ipsum.
 lorem AND ipsum             - documents with both "lorem" and "ipsum"
 lorem AND NOT ipsum         - documents with "lorem" but not "ipsum"
-lorem AND NOT (ipsum dolor) - documents with "lorem" but not "ipsum" OR "dolor"
+lorem AND NOT (ipsum dolor) - documents with "lorem" but not ("ipsum" OR "dolor")
 ```
 
 ## Phrase Queries
 
-Phrase queries are also supported. However, these will only work if the `withPositions` index feature is turned on.
+Phrase queries are also supported. However, these will not work if the [`withPositions`](./indexing_configuration.md) index feature is disabled.
 
 ```
-// e.g.
 "lorem ipsum" - documents containing "lorem" and "ipsum" appearing one after the other
 ```
 
@@ -30,7 +28,6 @@ Phrase queries are also supported. However, these will only work if the `withPos
 Field queries are supported via the following syntax `field_name:`, following the same syntax rules as the `NOT` operator.
 
 ```
-// e.g.
 title:lorem             - documents containing "lorem" in the field "title"
 title:(lorem AND ipsum) - documents with both "lorem" and "ipsum" in the
                           field "title" only
@@ -50,7 +47,7 @@ lorem\ AND ipsum            - interpreted literally as "lorem AND ipsum"
 title\:lorem
 ```
 
-## Behind the scenes Features
+## Other Details
 
 This section briefly details some background features not exposed to the user:
 - Disjunctive expressions are ranked using the same BM25 model used in lucene

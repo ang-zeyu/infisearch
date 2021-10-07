@@ -9,6 +9,7 @@
   - [Renderers](./search_configuration_renderers.md)
 - [Indexing Configuration](./indexing_configuration.md)
 - [Dynamic Indexing](./dynamic_indexing.md)
+- [Search API]()
 - [Future Plans](./future_plans.md)
 - [Contributing](./contributing.md)
   - [Setting Up](./developers_setting_up.md)

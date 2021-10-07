@@ -15,9 +15,9 @@ For mobile devices, the fullscreen version is used instead.
 
 It is also worth rehashing that the default result generation assumes the simple but common use case of **linking to a source document** (`<a />` tag). 
 
-This is achieved through an internal `_relative_fp` field that is stored during indexing, and retrieved during search time. The combination of `sourceFilesUrl` + `_relative_fp` forms the full source document link, which is used for:
+This is achieved through an internal `_relative_fp` field that is stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (see `sourceFilesUrl` below) and this `_relative_fp` field forms the full source document link, which is used for:
 - Attaching a link to the source document in the generated result match
-- Retrieving the source document (see "From Source Documents")
+- Retrieving the source document
 
 Therefore, source documents are assumed to be available. You may refer to the section on [generating](#generating-result-previews) result previews otherwise.
 
@@ -53,7 +53,12 @@ initMorsels({
     
     // Customise search result outputs, UI behaviour
     render: {
-        // refer to Renderers section
+        enablePortal?: boolean | 'auto',
+        portalTo?: HTMLElement,
+        opts: {
+            dropdownAlignment: 'left' | 'right'
+        },
+        // refer to Renderers section for the other options
     }
 });
 ```
@@ -62,7 +67,7 @@ initMorsels({
 
 This section details the available options, necessary inputs and some utility methods controlling the some user interface behaviour.
 
-The subsequent section on [renderers](./search_configuration_renderers.md) provides a more advanced API (that really shouldn't be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on Github!
+The subsequent section on [renderers](./search_configuration_renderers.md) provides a more advanced API (that really shouldn't be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on the Github repository.
 
 ```ts
 {
@@ -107,7 +112,7 @@ The default behaviour of showing the fullscreen search UI on focusing the input 
 You may call the `show()` function returned by the initMorsels call in such a case for manual control. Correspondingly, the `hide()` method hides the fullscreen interface, although, this shouldn't be needed since there's a close button is available by default.
 
 
-## Term Expansion
+## Automatic Term Expansion
 
 (`numberOfExpandedTerms`)
 
@@ -115,8 +120,7 @@ By default, stemming is turned off in the [language modules](indexing_configurat
 
 To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.
 
-This is only applied for the last term (if any) of a query, and if the query string immediately ends with that term (e.g. no whitespace after it).
-You may also think of this as implicit wildcard search for the last query term.
+For both of the [language](./indexing_configuration.md#latin-tokenizer) modules available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (quite similar to Algolia Docsearch's behaviour)
 
 ## Term Proximity Ranking
 
@@ -127,31 +131,34 @@ This may be costly for mobile devices however, and is disabled by default in suc
 
 ## Generating Result Previews
 
-(`sourceFilesUrl`)
-
-There are two ways to generate result previews, the first of the below being the default.
+There are 3 ways to generate result previews, the first of the below being the default.
 
 Unless you have modified the default result renderer (covered in the renderers page), morsels requires **at least** one of the `body` / `heading` / `title` fields (covered in the next section on indexing configuration).
 
 ### 1. From Source Documents (default)
 
-When the below option (field stores) is not configured or unavailable, and this parameter is specified, morsels will attempt to fetch the source document from `sourceFilesUrl` adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.
+(`sourceFilesUrl`)
 
-Also note that this option is only applicable for indexed html and json files at this time!
+When the below option (field stores) is not configured or unavailable, morsels will attempt to fetch the source document from `sourceFilesUrl` adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.
 
+Note that this option is only applicable for indexed html and json files at this time.
 As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, the subsequent section details the alternative method of generating result previews.
 
 ### 2. From Field Stores
 
-If source documents are unavailable (or if you wish to use this method anyway), morsels is able to generate result previews from the field stores generated at indexing time.
+If source documents are unavailable, morsels is able to generate result previews from its json field stores generated at indexing time.
 
 In order to specify what fields to store, please take a look at the `do_store` option in this [section](./indexing_configuration.md#fields_config) of the indexing configuration page. To use this method of result preview generation for the default use case / result rendering behaviour, simply enable the `do_store` option for the `heading`, `body`, and `title` fields.
 
 You may also wish to use this method even if source documents are available, if filesystem bloat isn't too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant for search-ui to perform result preview generation on.
 
-### Alternative Rendering Outputs
+### 3. Alternative Rendering Outputs (advanced)
 
-If this the default use case is insufficient (or if source documents are unavailable), you would need to create your own result [renderer](./search_configuration_renderers.md) to achieve the expected behaviour you want (for example, to call a function when a user clicks the result preview). Nevertheless, the section ["From Field Stores"](#from-field-stores) above would still be relevant and provides the basis for retrieving a document's fields.
+It is also possible to create your own result [renderer](./search_configuration_renderers.md) to, for example:
+- attach an event handler to call a function when a user clicks the result preview
+- retrieve and generate result previews from some other API.
+
+Nevertheless, the section ["From Field Stores"](#from-field-stores) above would still be relevant as it provides the basis for retrieving a document's fields (e.g. a document id with which to call an API).
 
 ## Mobile Device Detection
 

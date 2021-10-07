@@ -4,32 +4,54 @@ This page covers the a more advanced API, "renderers", that allows you to custom
 
 Some use cases for this include:
 - The default structure is not sufficient for your styling needs
-- You need to attach additional event listeners to elements 
-- You want to override or insert additional content sourced from custom fields / static content (e.g. a footer).
+- You need to attach additional event listeners to elements
+- You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)
 - You want to change the [default use case](./search_configuration.md#default-rendering-output--purpose) of following through on a result preview to its source document entirely
 
-If you only need to theme the dropdown or search popup, you can include your own css file to do so, or override the variables exposed by the default css bundle.
+If you only need to style the dropdown or search popup, you can include your own css file to do so and / or override the variables exposed by the default css bundle.
 
-These API options are specified under the `render` key of the root configuration object, which has a typescript interface shown below.
+These API options are specified under the `render` key of the root configuration object.
+
+```ts
+initMorsels({
+    // ...
+    
+    render: {
+        // ...
+    }
+});
+```
+
+<details>
+
+<summary><strong>Typescript Interface Reference</strong></summary>
 
 ```ts
 interface SearchUiRenderOptions {
-    // ...
+    // ... some other options covered in the previous section ...
+
     show?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) => void,
+
     hide?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) => void,
+
     rootRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         inputEl: HTMLElement,
     ) => ({ root: HTMLElement, listContainer: HTMLElement }),
+
     portalRootRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         portalCloseHandler: () => void,
     ) => ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
+
     noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+
     portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+
     loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+
     termInfoRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
@@ -37,6 +59,7 @@ interface SearchUiRenderOptions {
         correctedTerms: string[],
         expandedTerms: string[],
     ) => HTMLElement[],
+
     resultsRender?: (
         h: CreateElement,
         initMorselsOptions: SearchUiOptions,
@@ -44,6 +67,7 @@ interface SearchUiRenderOptions {
         results: Result[],
         query: Query,
     ) => Promise<HTMLElement[]>,
+
     // Options / more renderers for the default implementation of resultsRender
     resultsRenderOpts?: {
         resultsPerPage: 8,
@@ -56,6 +80,7 @@ interface SearchUiRenderOptions {
             resultHeadingsAndTexts: (HTMLElement | string)[],
             fields: [string, string][],
         ) => HTMLElement,
+
         headingBodyRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
@@ -63,18 +88,21 @@ interface SearchUiRenderOptions {
             bodyHighlights: (HTMLElement | string)[],
             href?: string,
         ) => HTMLElement,
+
         bodyOnlyRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
             bodyHighlights: (HTMLElement | string)[],
         ) => HTMLElement,
+
         highlightRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
             matchedPart: string,
         ) => HTMLElement,
-    }
-    // Any options you want to pass to any of the render functions below, from the initMorsels call
+    },
+
+    // Any options you want to pass to any of the render functions above (ArbitraryRenderOptions) from the initMorsels call
     opts?: ArbitraryRenderOptions,
 }
 
@@ -84,11 +112,14 @@ interface ArbitraryRenderOptions {
 }
 ```
 
+</details>
+
 
 ## The `h` function
 
-The `h` function is an optional helper function you may use to create your own renderer.
-The signature is as such:
+All renderer functions are passed a "`h`" function. This is an optional helper function you may use to create your own renderer.
+
+The method signature is as such:
 
 ```ts
 export type CreateElement = (
@@ -98,18 +129,26 @@ export type CreateElement = (
   // Element attribute map
   attrs: { [attrName: string]: string },
 
-  // Child elements (HTMLElement) OR text (string) nodes
+  // Child elements (HTMLElement) OR text nodes (string)
   // string parameters utilise .textContent,
   // so you don't have to worry about escaping potentially malicious content
   ...children: (string | HTMLElement)[]
 ) => HTMLElement;
 ```
 
+## Passing Custom Options
+
+All renderer functions are also passed an `opts` parameter. This provided in the `render.opts` key, and basically allows passing in any additional initilisation-time options you might need for the renderers. (e.g. an API url)
+
 ## Default Html Output Structure
 
 Have a look at the following snippet when reading the documentation below on each API to understand which renderers (bracketed on the left of each comment) are responsible for which parts of the html output by default.
 
 Note that there are some minor differences between the dropdown version and fullscreen version, also annotated below.
+
+<details>
+
+<summary><strong>Renderers and their output placement</strong></summary>
 
 ```html
 <!-- (rootRender / portalRootRender) START -->
@@ -168,11 +207,13 @@ Note that there are some minor differences between the dropdown version and full
 </div>
 ```
 
-## Rendering the Root Element
+</details>
+
+## Rendering the Root Elements
 
 **`rootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }`**
 
-This API renders the root element for the dropdown version of the user interface.
+This API renders the root element for the **dropdown version** of the user interface.
 
 - `inputEl`: Input element found by the `inputId` configuration
 
@@ -180,9 +221,11 @@ It should return 2 elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.
 - `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
 
+---
+
 **`portalRootRender(h, opts, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }`**
 
-This API renders the root element for the fullscreen version of the user interface.
+This API renders the root element for the **fullscreen version** of the user interface.
 
 - `portalCloseHandler`: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.
 
@@ -190,6 +233,8 @@ It should return 3 elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.
 - `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
 - `input`: Input element. This is required for morsels to attach input event handlers.
+
+---
 
 **`hide / show (root, opts, isPortal): void`**
 
@@ -204,15 +249,21 @@ These two APIs are not responsible for html output, but rather, hiding and showi
 
 This API renders the element attached under the `listContainer` when there are no results found for a given query.
 
+---
+
 **`portalBlankRender(h, opts): HTMLElement`**
 
 This API renders the element attached under the `listContainer` when the search box is empty for the fullscreen UI.
 
 The dropdown UI is hidden in such a case.
 
+---
+
 **`loadingIndicatorRender(h, opts): HTMLElement`**
 
 This API renders the loading indicator attached under the `listContainer`. The loading indicator is shown when making the initial search (the first search from an empty search box).
+
+---
 
 **`termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms): HTMLElement[]`**
 
@@ -222,9 +273,13 @@ For example, you may render `<div>Did you mean <u>corrected</u>?</div>` for the 
 
 ## Rendering Search Results
 
-The **2 remaining sets of APIs** below render the results for all document matches, and are mutually exclusive. Use only one or the other.
+The below **2 remaining sets of APIs** render the results for all document matches, and are **mutually exclusive**. Use only one or the other.
 
-Together, they render the `<!-- results placeholder (refer to "rendering search results") -->` comment in the earlier example.
+Together, they are placed in the `<!-- results placeholder (refer to "rendering search results") -->` (see [html output structure](#default-html-output-structure)).
+
+<details>
+
+<summary><strong>Remaining renderers and their output placement</strong></summary>
 
 ```html
 <!-- (resultsRender) START matches for **all documents** -->
@@ -305,9 +360,13 @@ Together, they render the `<!-- results placeholder (refer to "rendering search 
 <!-- (resultsRender) END -->
 ```
 
+</details>
+
+<br>
+
 **1. `async resultsRender(h, initMorselsOptions, config, results, query)`** <span style="color: red">(advanced)</span>
 
-This API renders the results for all document matches.
+This API renders the results for *all* document matches.
 
 This can be used for example, if the output required is substantially different or external API calls are required to retrieve document info.
 
@@ -318,18 +377,22 @@ For example, the default implementation does the following:
 
 Refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.
 
-<br>
+---
 
 **2. `resultsRenderOpts`**
 
-The renderers and options under this key are based on the **default implementation** of `resultsRender`.
+The renderers and options under this key are based on the **default implementation of `resultsRender`**.
 If overriding `resultsRender` above, the following options will be ignored.
+
+<br>
 
 **2.1 `resultsPerPage = 8`**
 
 This option controls how many result previews are generated per trigger of the infinite scrolling intersection observer.
 
 If none of the `body / title / heading` fields are stored, lowering this has a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed.
+
+<br>
 
 **2.2 `listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)`**
 
@@ -359,6 +422,8 @@ return h(
   linkEl,
 );
 ```
+
+<br>
 
 **2.3 `listItemRender` supporting APIs**
 
