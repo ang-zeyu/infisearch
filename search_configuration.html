@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -173,10 +173,10 @@
 For mobile devices, the fullscreen version is used instead.</p>
 <h3 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h3>
 <p>It is also worth rehashing that the default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
-<p>This is achieved through an internal <code>_relative_fp</code> field that is stored during indexing, and retrieved during search time. The combination of <code>sourceFilesUrl</code> + <code>_relative_fp</code> forms the full source document link, which is used for:</p>
+<p>This is achieved through an internal <code>_relative_fp</code> field that is stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (see <code>sourceFilesUrl</code> below) and this <code>_relative_fp</code> field forms the full source document link, which is used for:</p>
 <ul>
 <li>Attaching a link to the source document in the generated result match</li>
-<li>Retrieving the source document (see “From Source Documents”)</li>
+<li>Retrieving the source document</li>
 </ul>
 <p>Therefore, source documents are assumed to be available. You may refer to the section on <a href="#generating-result-previews">generating</a> result previews otherwise.</p>
 <h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
@@ -208,13 +208,18 @@ For mobile devices, the fullscreen version is used instead.</p>
     
     // Customise search result outputs, UI behaviour
     render: {
-        // refer to Renderers section
+        enablePortal?: boolean | 'auto',
+        portalTo?: HTMLElement,
+        opts: {
+            dropdownAlignment: 'left' | 'right'
+        },
+        // refer to Renderers section for the other options
     }
 });
 </code></pre>
 <h2 id="basic-user-interface-behaviours"><a class="header" href="#basic-user-interface-behaviours">Basic User Interface Behaviours</a></h2>
 <p>This section details the available options, necessary inputs and some utility methods controlling the some user interface behaviour.</p>
-<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API (that really shouldn’t be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on Github!</p>
+<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API (that really shouldn’t be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on the Github repository.</p>
 <pre><code class="language-ts">{
     inputId?: string,
     render: {
@@ -239,30 +244,34 @@ For mobile devices, the fullscreen version is used instead.</p>
 </code></pre>
 <p>The default behaviour of showing the fullscreen search UI on focusing the input may be insufficient in some cases, for example showing the UI when clicking a search icon.</p>
 <p>You may call the <code>show()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hide()</code> method hides the fullscreen interface, although, this shouldn’t be needed since there’s a close button is available by default.</p>
-<h2 id="term-expansion"><a class="header" href="#term-expansion">Term Expansion</a></h2>
+<h2 id="automatic-term-expansion"><a class="header" href="#automatic-term-expansion">Automatic Term Expansion</a></h2>
 <p>(<code>numberOfExpandedTerms</code>)</p>
 <p>By default, stemming is turned off in the <a href="indexing_configuration.html#language">language modules</a>. This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.</p>
 <p>To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.</p>
-<p>This is only applied for the last term (if any) of a query, and if the query string immediately ends with that term (e.g. no whitespace after it).
-You may also think of this as implicit wildcard search for the last query term.</p>
+<p>For both of the <a href="./indexing_configuration.html#latin-tokenizer">language</a> modules available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (quite similar to Algolia Docsearch’s behaviour)</p>
 <h2 id="term-proximity-ranking"><a class="header" href="#term-proximity-ranking">Term Proximity Ranking</a></h2>
 <p>(<code>useQueryTermProximity</code>)</p>
 <p>Document scores are also scaled by how close query expressions or terms are to each other, if positions are indexed.
 This may be costly for mobile devices however, and is disabled by default in such cases.</p>
 <h2 id="generating-result-previews"><a class="header" href="#generating-result-previews">Generating Result Previews</a></h2>
-<p>(<code>sourceFilesUrl</code>)</p>
-<p>There are two ways to generate result previews, the first of the below being the default.</p>
+<p>There are 3 ways to generate result previews, the first of the below being the default.</p>
 <p>Unless you have modified the default result renderer (covered in the renderers page), morsels requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields (covered in the next section on indexing configuration).</p>
 <h3 id="1-from-source-documents-default"><a class="header" href="#1-from-source-documents-default">1. From Source Documents (default)</a></h3>
-<p>When the below option (field stores) is not configured or unavailable, and this parameter is specified, morsels will attempt to fetch the source document from <code>sourceFilesUrl</code> adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
-<p>Also note that this option is only applicable for indexed html and json files at this time!</p>
-<p>As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, the subsequent section details the alternative method of generating result previews.</p>
+<p>(<code>sourceFilesUrl</code>)</p>
+<p>When the below option (field stores) is not configured or unavailable, morsels will attempt to fetch the source document from <code>sourceFilesUrl</code> adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
+<p>Note that this option is only applicable for indexed html and json files at this time.
+As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, the subsequent section details the alternative method of generating result previews.</p>
 <h3 id="2-from-field-stores"><a class="header" href="#2-from-field-stores">2. From Field Stores</a></h3>
-<p>If source documents are unavailable (or if you wish to use this method anyway), morsels is able to generate result previews from the field stores generated at indexing time.</p>
+<p>If source documents are unavailable, morsels is able to generate result previews from its json field stores generated at indexing time.</p>
 <p>In order to specify what fields to store, please take a look at the <code>do_store</code> option in this <a href="./indexing_configuration.html#fields_config">section</a> of the indexing configuration page. To use this method of result preview generation for the default use case / result rendering behaviour, simply enable the <code>do_store</code> option for the <code>heading</code>, <code>body</code>, and <code>title</code> fields.</p>
 <p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant for search-ui to perform result preview generation on.</p>
-<h3 id="alternative-rendering-outputs"><a class="header" href="#alternative-rendering-outputs">Alternative Rendering Outputs</a></h3>
-<p>If this the default use case is insufficient (or if source documents are unavailable), you would need to create your own result <a href="./search_configuration_renderers.html">renderer</a> to achieve the expected behaviour you want (for example, to call a function when a user clicks the result preview). Nevertheless, the section <a href="#from-field-stores">“From Field Stores”</a> above would still be relevant and provides the basis for retrieving a document’s fields.</p>
+<h3 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h3>
+<p>It is also possible to create your own result <a href="./search_configuration_renderers.html">renderer</a> to, for example:</p>
+<ul>
+<li>attach an event handler to call a function when a user clicks the result preview</li>
+<li>retrieve and generate result previews from some other API.</li>
+</ul>
+<p>Nevertheless, the section <a href="#from-field-stores">“From Field Stores”</a> above would still be relevant as it provides the basis for retrieving a document’s fields (e.g. a document id with which to call an API).</p>
 <h2 id="mobile-device-detection"><a class="header" href="#mobile-device-detection">Mobile Device Detection</a></h2>
 <p>It may helpful to note that mobile devices are detected through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be accurate.</p>
 <p>This is used for determining some default settings, namely:</p>

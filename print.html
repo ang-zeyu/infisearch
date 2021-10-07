@@ -77,7 +77,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -179,22 +179,16 @@
 </ul>
 <h2 id="libraries"><a class="header" href="#libraries">Libraries</a></h2>
 <p>This project is made up of 3 crates and 2 packages, which will be referred to in the subsequent sections of the documentation.</p>
+<h4 id="rust-crates"><a class="header" href="#rust-crates">Rust crates:</a></h4>
 <ul>
-<li>
-<p>morsels_indexer: the cli tool providing indexing functionalities for several file formats</p>
-</li>
-<li>
-<p>morsels_search: the rust wasm crate providing search functionalities</p>
-</li>
-<li>
-<p>morsels_common: internal library containing common functionalities for the above 2 crates.</p>
-</li>
-<li>
-<p>@morsels/search-lib: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the <code>morsels-searchui</code> package below in the future.</p>
-</li>
-<li>
-<p>@morsels/search-ui: interfaces with @morsels/search-lib to provide basic search UI functionalities (e.g. SERP generation)</p>
-</li>
+<li><strong>morsels_indexer</strong>: the cli tool providing indexing functionalities for several file formats</li>
+<li><strong>morsels_search</strong>: the rust wasm crate providing search functionalities</li>
+<li><strong>morsels_common</strong>: internal library containing common functionalities for the above 2 crates.</li>
+</ul>
+<h4 id="npm-packages"><a class="header" href="#npm-packages">Npm packages:</a></h4>
+<ul>
+<li><strong>@morsels/search-ui</strong>: interfaces with @morsels/search-lib to provide basic search UI functionalities (e.g. SERP generation)</li>
+<li><strong>@morsels/search-lib</strong>: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the <code>@morsels/search-ui</code> package in the future. For now, it only serves to separate some concerns from the UI package.</li>
 </ul>
 <script>
     initMorsels({
@@ -249,13 +243,13 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h1>
-<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>16383</code> bytes (configurable) as much as possible.</p>
-<p>On the client, only supporting information (e.g. dictionary, document lengths, field infos) is retrieved on startup, which is usually less than a few MB even for fairly large collections (<code>&lt; 1gb</code>).</p>
-<p>The index files of searched terms will be requested only on-demand from a static file server.</p>
+<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence the name <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>16383</code> bytes (configurable) as much as possible.</p>
+<p>On the client, supporting information (e.g. dictionary, document lengths, field weights) is retrieved on startup, which is usually less than a few MB even for fairly large collections.</p>
+<p>The index files containing searched terms will be requested only on-demand from a static file server.</p>
 <h2 id="limits"><a class="header" href="#limits">Limits</a></h2>
 <p>The practicality / scalability of this tool is bound by 2 factors:</p>
 <h3 id="size-of-the-largest-index-chunk"><a class="header" href="#size-of-the-largest-index-chunk">Size of the largest index chunk</a></h3>
-<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>16383</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing the benefit.</p>
+<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>16383</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing its benefit.</p>
 <p>Certain <a href="./indexing_configuration.html">indexing options</a> like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.</p>
 <h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
 <p>The test collection used during development is a pure-text <code>380mb</code> .csv file, with positional indexing enabled. No stop word removal is done.</p>
@@ -269,13 +263,11 @@
 <p>Document field store population is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
 <p>Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
 One of the main reasons is that there is simply no way of parsing html (the original html document can be used as a field store) faster than the implementations provided by the browser.</p>
-<h3 id="wasm--rust-for-the-searcher"><a class="header" href="#wasm--rust-for-the-searcher">Wasm / Rust for the searcher</a></h3>
+<h3 id="wasm--rust"><a class="header" href="#wasm--rust">Wasm / Rust</a></h3>
 <p>The search portion of the project was developed in typescript for a very large part. While usable, switching to a wasm / rust implementation yielded 2-3 fold performance benefits on average, and never slower.</p>
 <p>The usual wasm overheads of transferring large, complex data structures across the boundary don’t quite apply for the use cases here either, as only index chunks are transferred over in raw byte representation.</p>
-<h3 id="rust-for-the-indexer"><a class="header" href="#rust-for-the-indexer">Rust for the indexer</a></h3>
 <p>Rust was chosen for the indexer mainly as this was my first project in Rust. =P</p>
-<p>In retrospect, performance is critical for indexing fairly large collections nonetheless, making Rust a fairly good choice for the indexer.</p>
-<p>A javascript implementation was also trialed in early stages of development (see the commit history). While javascript has come a long way in performance, it is inevitably still leaps behind a compiled language.</p>
+<p>In retrospect, performance is critical for indexing fairly large collections nonetheless, making it a fairly good choice.</p>
 <script>
     initMorsels({
         searcherOptions: {
@@ -329,26 +321,23 @@ One of the main reasons is that there is simply no way of parsing html (the orig
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="search-features"><a class="header" href="#search-features">Search Features</a></h1>
-<p>The morsels_search crate provides its own query parser supporting several methods.</p>
+<p>This page outlines the available search features common to both <code>@morsels/search-ui</code> and <code>@morsels/search-lib</code>.</p>
 <h2 id="boolean-operators-parentheses"><a class="header" href="#boolean-operators-parentheses">Boolean Operators, Parentheses</a></h2>
-<p><code>AND</code> and <code>NOT</code> operators are supported, and are used like such in a standard manner.
-<code>OR</code> operators are not supported, but are implicitly left to the tokenizer (see below for an example).
+<p><code>AND</code> and <code>NOT</code> operators are supported.
+<code>OR</code> operators are not supported, and is implicitly left to the tokenizer (see below for an example).
 Parentheses <code>(...)</code> can be used to group expressions together.</p>
-<pre><code>// e.g.
-lorem ipsum                 - documents containing either lorem or ipsum.
+<pre><code>lorem ipsum                 - documents containing either lorem or ipsum.
 lorem AND ipsum             - documents with both &quot;lorem&quot; and &quot;ipsum&quot;
 lorem AND NOT ipsum         - documents with &quot;lorem&quot; but not &quot;ipsum&quot;
-lorem AND NOT (ipsum dolor) - documents with &quot;lorem&quot; but not &quot;ipsum&quot; OR &quot;dolor&quot;
+lorem AND NOT (ipsum dolor) - documents with &quot;lorem&quot; but not (&quot;ipsum&quot; OR &quot;dolor&quot;)
 </code></pre>
 <h2 id="phrase-queries"><a class="header" href="#phrase-queries">Phrase Queries</a></h2>
-<p>Phrase queries are also supported. However, these will only work if the <code>withPositions</code> index feature is turned on.</p>
-<pre><code>// e.g.
-&quot;lorem ipsum&quot; - documents containing &quot;lorem&quot; and &quot;ipsum&quot; appearing one after the other
+<p>Phrase queries are also supported. However, these will not work if the <a href="./indexing_configuration.html"><code>withPositions</code></a> index feature is disabled.</p>
+<pre><code>&quot;lorem ipsum&quot; - documents containing &quot;lorem&quot; and &quot;ipsum&quot; appearing one after the other
 </code></pre>
 <h2 id="field-search"><a class="header" href="#field-search">Field Search</a></h2>
 <p>Field queries are supported via the following syntax <code>field_name:</code>, following the same syntax rules as the <code>NOT</code> operator.</p>
-<pre><code>// e.g.
-title:lorem             - documents containing &quot;lorem&quot; in the field &quot;title&quot;
+<pre><code>title:lorem             - documents containing &quot;lorem&quot; in the field &quot;title&quot;
 title:(lorem AND ipsum) - documents with both &quot;lorem&quot; and &quot;ipsum&quot; in the
                           field &quot;title&quot; only
 lorem AND title:ipsum   - documents with &quot;ipsum&quot; in the title and &quot;lorem&quot; in any field
@@ -362,7 +351,7 @@ lorem AND title:ipsum   - documents with &quot;ipsum&quot; in the title and &quo
 &quot;phrase query with qu\&quot;ote inside&quot;
 title\:lorem
 </code></pre>
-<h2 id="behind-the-scenes-features"><a class="header" href="#behind-the-scenes-features">Behind the scenes Features</a></h2>
+<h2 id="other-details"><a class="header" href="#other-details">Other Details</a></h2>
 <p>This section briefly details some background features not exposed to the user:</p>
 <ul>
 <li>Disjunctive expressions are ranked using the same BM25 model used in lucene</li>
@@ -434,12 +423,10 @@ title\:lorem
 <h2 id="running-the-indexer"><a class="header" href="#running-the-indexer">Running the indexer</a></h2>
 <pre><code>morsels &lt;source-folder-path&gt; &lt;output-folder-path&gt;
 </code></pre>
-<p>While optional, if it is your first time running the tool, first run the below command with the <code>--init</code> or <code>-i</code> flag, then run the command again without the flag.
-This option outputs the default <a href="./indexing_configuration.html"><code>_morsels_config.json</code></a> that can be used to configure the indexer later on.</p>
+<p>While optional, if it is your first time running the tool, you can run the above command with the <code>--init</code> or <code>-i</code> flag, then run it again without this flag.
+This flag outputs the default <a href="./indexing_configuration.html"><code>_morsels_config.json</code></a> that can be used to configure the indexer later on.</p>
 <p>You may also change the config file location (relative to the <code>source-folder-path</code>) using the <code>-c &lt;config-file-path&gt;</code> option.</p>
 <h2 id="installing-the-search-library--ui"><a class="header" href="#installing-the-search-library--ui">Installing the search library / UI</a></h2>
-<p>Installation for this section may very greatly depending on your setup.</p>
-<p>For now, let’s assume you just need the default settings.</p>
 <h3 id="installation-via-cdn"><a class="header" href="#installation-via-cdn">Installation via cdn</a></h3>
 <pre><code class="language-html">&lt;!-- Replace &quot;version&quot; as appropriate --&gt;
 
@@ -447,16 +434,6 @@ This option outputs the default <a href="./indexing_configuration.html"><code>_m
 &lt;script src=&quot;https://cdn.jsdelivr.net/npm/morsels-search-ui@version/search-ui.bundle.js&quot;&gt;&lt;/script&gt;
 &lt;!-- Search UI css, this provides very basic styling for the search dropdown, and can be omitted if desired --&gt;
 &lt;script src=&quot;https://cdn.jsdelivr.net/npm/morsels-search-ui@version/search-ui.css&quot;&gt;&lt;/script&gt;
-</code></pre>
-<p>To initialise morsels, call the <code>initMorsels</code> function as exposed by <code>search-ui.bundle.js</code>:</p>
-<pre><code class="language-js">initMorsels({
-    searcherOptions: {
-        // Output folder url specified as the second parameter in the cli command
-        url: 'http://192.168.10.132:3000/output/',
-    },
-    // Input / source folder url, specified as the first parameter in the cli command
-    sourceFilesUrl: 'http://192.168.10.132:3000/source/'
-});
 </code></pre>
 <p>If you wish to serve the files locally instead, you can find the latest versions in <a href="https://github.com/ang-zeyu/morsels/tree/main/packages/search-ui/dist">this folder</a>, or in the release packages <a href="https://github.com/ang-zeyu/morsels/releases">here</a>.</p>
 <h3 id="installation-via-bundlers"><a class="header" href="#installation-via-bundlers">Installation via Bundlers</a></h3>
@@ -476,6 +453,17 @@ new CopyPlugin({
 <pre><code class="language-html">&lt;!-- Replace links as appropriate --&gt;
 &lt;script src=&quot;.../search-ui.bundle.js&quot;&gt;&lt;/script&gt;
 &lt;script src=&quot;.../search-ui.css&quot;&gt;&lt;/script&gt;
+</code></pre>
+<h3 id="initialisation-call"><a class="header" href="#initialisation-call">Initialisation Call</a></h3>
+<p>Once you have loaded the bundles, to initialise morsels, simply call the <code>initMorsels</code> function as exposed by <code>search-ui.bundle.js</code>:</p>
+<pre><code class="language-js">initMorsels({
+    searcherOptions: {
+        // Output folder url specified as the second parameter in the cli command
+        url: 'http://192.168.10.132:3000/output/',
+    },
+    // Input / source folder url, specified as the first parameter in the cli command
+    sourceFilesUrl: 'http://192.168.10.132:3000/source/'
+});
 </code></pre>
 <script>
     initMorsels({
@@ -530,8 +518,9 @@ new CopyPlugin({
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="mdbook-morsels"><a class="header" href="#mdbook-morsels">mdbook-morsels</a></h1>
-<p><code>mdbook-morsels</code> is a simple proof-of-concept search plugin for <a href="https://github.com/rust-lang/mdBook">mdbook</a> to use morsels’ search functions instead.</p>
+<p><code>mdbook-morsels</code> is a simple search plugin replacement for <a href="https://github.com/rust-lang/mdBook">mdbook</a> to use morsels’ search interface and library instead of elasticlunr.js.</p>
 <p>It uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. You can switch the themes in this documentation to try out the different themes.</p>
+<p>Note: The “Morsels” theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without mdbook-morsels).</p>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <p>You will need to have installed the following command-line crates (<code>cargo install &lt;crate-name&gt;</code>):</p>
 <ul>
@@ -627,10 +616,10 @@ no-css = false
 For mobile devices, the fullscreen version is used instead.</p>
 <h3 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h3>
 <p>It is also worth rehashing that the default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
-<p>This is achieved through an internal <code>_relative_fp</code> field that is stored during indexing, and retrieved during search time. The combination of <code>sourceFilesUrl</code> + <code>_relative_fp</code> forms the full source document link, which is used for:</p>
+<p>This is achieved through an internal <code>_relative_fp</code> field that is stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (see <code>sourceFilesUrl</code> below) and this <code>_relative_fp</code> field forms the full source document link, which is used for:</p>
 <ul>
 <li>Attaching a link to the source document in the generated result match</li>
-<li>Retrieving the source document (see “From Source Documents”)</li>
+<li>Retrieving the source document</li>
 </ul>
 <p>Therefore, source documents are assumed to be available. You may refer to the section on <a href="search_configuration.html#generating-result-previews">generating</a> result previews otherwise.</p>
 <h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
@@ -662,13 +651,18 @@ For mobile devices, the fullscreen version is used instead.</p>
     
     // Customise search result outputs, UI behaviour
     render: {
-        // refer to Renderers section
+        enablePortal?: boolean | 'auto',
+        portalTo?: HTMLElement,
+        opts: {
+            dropdownAlignment: 'left' | 'right'
+        },
+        // refer to Renderers section for the other options
     }
 });
 </code></pre>
 <h2 id="basic-user-interface-behaviours"><a class="header" href="#basic-user-interface-behaviours">Basic User Interface Behaviours</a></h2>
 <p>This section details the available options, necessary inputs and some utility methods controlling the some user interface behaviour.</p>
-<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API (that really shouldn’t be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on Github!</p>
+<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API (that really shouldn’t be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on the Github repository.</p>
 <pre><code class="language-ts">{
     inputId?: string,
     render: {
@@ -693,30 +687,34 @@ For mobile devices, the fullscreen version is used instead.</p>
 </code></pre>
 <p>The default behaviour of showing the fullscreen search UI on focusing the input may be insufficient in some cases, for example showing the UI when clicking a search icon.</p>
 <p>You may call the <code>show()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hide()</code> method hides the fullscreen interface, although, this shouldn’t be needed since there’s a close button is available by default.</p>
-<h2 id="term-expansion"><a class="header" href="#term-expansion">Term Expansion</a></h2>
+<h2 id="automatic-term-expansion"><a class="header" href="#automatic-term-expansion">Automatic Term Expansion</a></h2>
 <p>(<code>numberOfExpandedTerms</code>)</p>
 <p>By default, stemming is turned off in the <a href="indexing_configuration.html#language">language modules</a>. This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.</p>
 <p>To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.</p>
-<p>This is only applied for the last term (if any) of a query, and if the query string immediately ends with that term (e.g. no whitespace after it).
-You may also think of this as implicit wildcard search for the last query term.</p>
+<p>For both of the <a href="./indexing_configuration.html#latin-tokenizer">language</a> modules available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (quite similar to Algolia Docsearch’s behaviour)</p>
 <h2 id="term-proximity-ranking"><a class="header" href="#term-proximity-ranking">Term Proximity Ranking</a></h2>
 <p>(<code>useQueryTermProximity</code>)</p>
 <p>Document scores are also scaled by how close query expressions or terms are to each other, if positions are indexed.
 This may be costly for mobile devices however, and is disabled by default in such cases.</p>
 <h2 id="generating-result-previews"><a class="header" href="#generating-result-previews">Generating Result Previews</a></h2>
-<p>(<code>sourceFilesUrl</code>)</p>
-<p>There are two ways to generate result previews, the first of the below being the default.</p>
+<p>There are 3 ways to generate result previews, the first of the below being the default.</p>
 <p>Unless you have modified the default result renderer (covered in the renderers page), morsels requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields (covered in the next section on indexing configuration).</p>
 <h3 id="1-from-source-documents-default"><a class="header" href="#1-from-source-documents-default">1. From Source Documents (default)</a></h3>
-<p>When the below option (field stores) is not configured or unavailable, and this parameter is specified, morsels will attempt to fetch the source document from <code>sourceFilesUrl</code> adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
-<p>Also note that this option is only applicable for indexed html and json files at this time!</p>
-<p>As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, the subsequent section details the alternative method of generating result previews.</p>
+<p>(<code>sourceFilesUrl</code>)</p>
+<p>When the below option (field stores) is not configured or unavailable, morsels will attempt to fetch the source document from <code>sourceFilesUrl</code> adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
+<p>Note that this option is only applicable for indexed html and json files at this time.
+As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, the subsequent section details the alternative method of generating result previews.</p>
 <h3 id="2-from-field-stores"><a class="header" href="#2-from-field-stores">2. From Field Stores</a></h3>
-<p>If source documents are unavailable (or if you wish to use this method anyway), morsels is able to generate result previews from the field stores generated at indexing time.</p>
+<p>If source documents are unavailable, morsels is able to generate result previews from its json field stores generated at indexing time.</p>
 <p>In order to specify what fields to store, please take a look at the <code>do_store</code> option in this <a href="./indexing_configuration.html#fields_config">section</a> of the indexing configuration page. To use this method of result preview generation for the default use case / result rendering behaviour, simply enable the <code>do_store</code> option for the <code>heading</code>, <code>body</code>, and <code>title</code> fields.</p>
 <p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant for search-ui to perform result preview generation on.</p>
-<h3 id="alternative-rendering-outputs"><a class="header" href="#alternative-rendering-outputs">Alternative Rendering Outputs</a></h3>
-<p>If this the default use case is insufficient (or if source documents are unavailable), you would need to create your own result <a href="./search_configuration_renderers.html">renderer</a> to achieve the expected behaviour you want (for example, to call a function when a user clicks the result preview). Nevertheless, the section <a href="search_configuration.html#from-field-stores">“From Field Stores”</a> above would still be relevant and provides the basis for retrieving a document’s fields.</p>
+<h3 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h3>
+<p>It is also possible to create your own result <a href="./search_configuration_renderers.html">renderer</a> to, for example:</p>
+<ul>
+<li>attach an event handler to call a function when a user clicks the result preview</li>
+<li>retrieve and generate result previews from some other API.</li>
+</ul>
+<p>Nevertheless, the section <a href="search_configuration.html#from-field-stores">“From Field Stores”</a> above would still be relevant as it provides the basis for retrieving a document’s fields (e.g. a document id with which to call an API).</p>
 <h2 id="mobile-device-detection"><a class="header" href="#mobile-device-detection">Mobile Device Detection</a></h2>
 <p>It may helpful to note that mobile devices are detected through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be accurate.</p>
 <p>This is used for determining some default settings, namely:</p>
@@ -783,29 +781,47 @@ This may be costly for mobile devices however, and is disabled by default in suc
 <p>Some use cases for this include:</p>
 <ul>
 <li>The default structure is not sufficient for your styling needs</li>
-<li>You need to attach additional event listeners to elements </li>
-<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer).</li>
+<li>You need to attach additional event listeners to elements</li>
+<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)</li>
 <li>You want to change the <a href="./search_configuration.html#default-rendering-output--purpose">default use case</a> of following through on a result preview to its source document entirely</li>
 </ul>
-<p>If you only need to theme the dropdown or search popup, you can include your own css file to do so, or override the variables exposed by the default css bundle.</p>
-<p>These API options are specified under the <code>render</code> key of the root configuration object, which has a typescript interface shown below.</p>
-<pre><code class="language-ts">interface SearchUiRenderOptions {
+<p>If you only need to style the dropdown or search popup, you can include your own css file to do so and / or override the variables exposed by the default css bundle.</p>
+<p>These API options are specified under the <code>render</code> key of the root configuration object.</p>
+<pre><code class="language-ts">initMorsels({
     // ...
+    
+    render: {
+        // ...
+    }
+});
+</code></pre>
+<details>
+<summary><strong>Typescript Interface Reference</strong></summary>
+<pre><code class="language-ts">interface SearchUiRenderOptions {
+    // ... some other options covered in the previous section ...
+
     show?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) =&gt; void,
+
     hide?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) =&gt; void,
+
     rootRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         inputEl: HTMLElement,
     ) =&gt; ({ root: HTMLElement, listContainer: HTMLElement }),
+
     portalRootRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         portalCloseHandler: () =&gt; void,
     ) =&gt; ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
+
     noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
+
     portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
+
     loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
+
     termInfoRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
@@ -813,6 +829,7 @@ This may be costly for mobile devices however, and is disabled by default in suc
         correctedTerms: string[],
         expandedTerms: string[],
     ) =&gt; HTMLElement[],
+
     resultsRender?: (
         h: CreateElement,
         initMorselsOptions: SearchUiOptions,
@@ -820,6 +837,7 @@ This may be costly for mobile devices however, and is disabled by default in suc
         results: Result[],
         query: Query,
     ) =&gt; Promise&lt;HTMLElement[]&gt;,
+
     // Options / more renderers for the default implementation of resultsRender
     resultsRenderOpts?: {
         resultsPerPage: 8,
@@ -832,6 +850,7 @@ This may be costly for mobile devices however, and is disabled by default in suc
             resultHeadingsAndTexts: (HTMLElement | string)[],
             fields: [string, string][],
         ) =&gt; HTMLElement,
+
         headingBodyRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
@@ -839,18 +858,21 @@ This may be costly for mobile devices however, and is disabled by default in suc
             bodyHighlights: (HTMLElement | string)[],
             href?: string,
         ) =&gt; HTMLElement,
+
         bodyOnlyRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
             bodyHighlights: (HTMLElement | string)[],
         ) =&gt; HTMLElement,
+
         highlightRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
             matchedPart: string,
         ) =&gt; HTMLElement,
-    }
-    // Any options you want to pass to any of the render functions below, from the initMorsels call
+    },
+
+    // Any options you want to pass to any of the render functions above (ArbitraryRenderOptions) from the initMorsels call
     opts?: ArbitraryRenderOptions,
 }
 
@@ -859,9 +881,10 @@ interface ArbitraryRenderOptions {
     dropdownAlignment?: 'left' | 'right',
 }
 </code></pre>
+</details>
 <h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
-<p>The <code>h</code> function is an optional helper function you may use to create your own renderer.
-The signature is as such:</p>
+<p>All renderer functions are passed a “<code>h</code>“ function. This is an optional helper function you may use to create your own renderer.</p>
+<p>The method signature is as such:</p>
 <pre><code class="language-ts">export type CreateElement = (
   // Element name
   name: string,
@@ -869,15 +892,19 @@ The signature is as such:</p>
   // Element attribute map
   attrs: { [attrName: string]: string },
 
-  // Child elements (HTMLElement) OR text (string) nodes
+  // Child elements (HTMLElement) OR text nodes (string)
   // string parameters utilise .textContent,
   // so you don't have to worry about escaping potentially malicious content
   ...children: (string | HTMLElement)[]
 ) =&gt; HTMLElement;
 </code></pre>
+<h2 id="passing-custom-options"><a class="header" href="#passing-custom-options">Passing Custom Options</a></h2>
+<p>All renderer functions are also passed an <code>opts</code> parameter. This provided in the <code>render.opts</code> key, and basically allows passing in any additional initilisation-time options you might need for the renderers. (e.g. an API url)</p>
 <h2 id="default-html-output-structure"><a class="header" href="#default-html-output-structure">Default Html Output Structure</a></h2>
 <p>Have a look at the following snippet when reading the documentation below on each API to understand which renderers (bracketed on the left of each comment) are responsible for which parts of the html output by default.</p>
 <p>Note that there are some minor differences between the dropdown version and fullscreen version, also annotated below.</p>
+<details>
+<summary><strong>Renderers and their output placement</strong></summary>
 <pre><code class="language-html">&lt;!-- (rootRender / portalRootRender) START --&gt;
 
 &lt;!--
@@ -933,9 +960,10 @@ The signature is as such:</p>
     
 &lt;/div&gt;
 </code></pre>
-<h2 id="rendering-the-root-element"><a class="header" href="#rendering-the-root-element">Rendering the Root Element</a></h2>
+</details>
+<h2 id="rendering-the-root-elements"><a class="header" href="#rendering-the-root-elements">Rendering the Root Elements</a></h2>
 <p><strong><code>rootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }</code></strong></p>
-<p>This API renders the root element for the dropdown version of the user interface.</p>
+<p>This API renders the root element for the <strong>dropdown version</strong> of the user interface.</p>
 <ul>
 <li><code>inputEl</code>: Input element found by the <code>inputId</code> configuration</li>
 </ul>
@@ -944,8 +972,9 @@ The signature is as such:</p>
 <li><code>root</code>: The root element. This is passed to the <code>hide / show</code> APIs below.</li>
 <li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.</li>
 </ul>
+<hr />
 <p><strong><code>portalRootRender(h, opts, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }</code></strong></p>
-<p>This API renders the root element for the fullscreen version of the user interface.</p>
+<p>This API renders the root element for the <strong>fullscreen version</strong> of the user interface.</p>
 <ul>
 <li><code>portalCloseHandler</code>: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.</li>
 </ul>
@@ -955,6 +984,7 @@ The signature is as such:</p>
 <li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.</li>
 <li><code>input</code>: Input element. This is required for morsels to attach input event handlers.</li>
 </ul>
+<hr />
 <p><strong><code>hide / show (root, opts, isPortal): void</code></strong></p>
 <p>These two APIs are not responsible for html output, but rather, hiding and showing the fullscreen or dropdown UIs (e.g. via <code>style=&quot;display: none&quot;</code>).</p>
 <ul>
@@ -964,17 +994,22 @@ The signature is as such:</p>
 <h2 id="miscellaneous-renderers"><a class="header" href="#miscellaneous-renderers">Miscellaneous Renderers</a></h2>
 <p><strong><code>noResultsRender(h, opts): HTMLElement</code></strong></p>
 <p>This API renders the element attached under the <code>listContainer</code> when there are no results found for a given query.</p>
+<hr />
 <p><strong><code>portalBlankRender(h, opts): HTMLElement</code></strong></p>
 <p>This API renders the element attached under the <code>listContainer</code> when the search box is empty for the fullscreen UI.</p>
 <p>The dropdown UI is hidden in such a case.</p>
+<hr />
 <p><strong><code>loadingIndicatorRender(h, opts): HTMLElement</code></strong></p>
 <p>This API renders the loading indicator attached under the <code>listContainer</code>. The loading indicator is shown when making the initial search (the first search from an empty search box).</p>
+<hr />
 <p><strong><code>termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms): HTMLElement[]</code></strong></p>
 <p>This API renders elements attached under the <code>listContainer</code> related to the searched terms, and is blank by default.</p>
 <p>For example, you may render <code>&lt;div&gt;Did you mean &lt;u&gt;corrected&lt;/u&gt;?&lt;/div&gt;</code> for the misspelled query <code>correkted</code>.</p>
 <h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
-<p>The <strong>2 remaining sets of APIs</strong> below render the results for all document matches, and are mutually exclusive. Use only one or the other.</p>
-<p>Together, they render the <code>&lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;</code> comment in the earlier example.</p>
+<p>The below <strong>2 remaining sets of APIs</strong> render the results for all document matches, and are <strong>mutually exclusive</strong>. Use only one or the other.</p>
+<p>Together, they are placed in the <code>&lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;</code> (see <a href="search_configuration_renderers.html#default-html-output-structure">html output structure</a>).</p>
+<details>
+<summary><strong>Remaining renderers and their output placement</strong></summary>
 <pre><code class="language-html">&lt;!-- (resultsRender) START matches for **all documents** --&gt;
 &lt;!-- (listItemRender) START A match for a **single document** --&gt;
 &lt;li class=&quot;morsels-list-item&quot;&gt;
@@ -1052,8 +1087,10 @@ The signature is as such:</p>
 &lt;/li&gt;
 &lt;!-- (resultsRender) END --&gt;
 </code></pre>
+</details>
+<br>
 <p><strong>1. <code>async resultsRender(h, initMorselsOptions, config, results, query)</code></strong> <span style="color: red">(advanced)</span></p>
-<p>This API renders the results for all document matches.</p>
+<p>This API renders the results for <em>all</em> document matches.</p>
 <p>This can be used for example, if the output required is substantially different or external API calls are required to retrieve document info.</p>
 <p>For example, the default implementation does the following:</p>
 <ol>
@@ -1062,13 +1099,15 @@ The signature is as such:</p>
 <li>Transform and highlight the field stores using the <code>listItemRender</code> set of APIs below.</li>
 </ol>
 <p>Refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
-<br>
+<hr />
 <p><strong>2. <code>resultsRenderOpts</code></strong></p>
-<p>The renderers and options under this key are based on the <strong>default implementation</strong> of <code>resultsRender</code>.
+<p>The renderers and options under this key are based on the <strong>default implementation of <code>resultsRender</code></strong>.
 If overriding <code>resultsRender</code> above, the following options will be ignored.</p>
+<br>
 <p><strong>2.1 <code>resultsPerPage = 8</code></strong></p>
 <p>This option controls how many result previews are generated per trigger of the infinite scrolling intersection observer.</p>
 <p>If none of the <code>body / title / heading</code> fields are stored, lowering this has a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed.</p>
+<br>
 <p><strong>2.2 <code>listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)</code></strong></p>
 <p>This API renders the result for a single document match.</p>
 <ul>
@@ -1094,6 +1133,7 @@ return h(
   linkEl,
 );
 </code></pre>
+<br>
 <p><strong>2.3 <code>listItemRender</code> supporting APIs</strong></p>
 <p>The remaining 3 APIs are supplementary to <code>listItemRender</code>, and are responsible for generating the <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters.</p>
 <p>Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.</p>
@@ -1688,8 +1728,9 @@ The <code>field_order</code> controls in which order these fields are indexed, w
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
-<p>Contributions are highly welcome! If you are new to open source, check out some of the ways you can contribute at this <a href="https://opensource.guide/">awesome guide</a>.</p>
-<p>This section details some information that may be helpful, for example, getting your development environment setup.</p>
+<p>Contributions of any form (code, documentation, bug reports) are highly welcome.</p>
+<p>To report a bug, simply head on over <a href="https://github.com/ang-zeyu/morsels/issues/new">here</a>.</p>
+<p>The subsequent sections details information only for getting your development environment setup.</p>
 <script>
     initMorsels({
         searcherOptions: {

@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -178,22 +178,16 @@
 </ul>
 <h2 id="libraries"><a class="header" href="#libraries">Libraries</a></h2>
 <p>This project is made up of 3 crates and 2 packages, which will be referred to in the subsequent sections of the documentation.</p>
+<h4 id="rust-crates"><a class="header" href="#rust-crates">Rust crates:</a></h4>
 <ul>
-<li>
-<p>morsels_indexer: the cli tool providing indexing functionalities for several file formats</p>
-</li>
-<li>
-<p>morsels_search: the rust wasm crate providing search functionalities</p>
-</li>
-<li>
-<p>morsels_common: internal library containing common functionalities for the above 2 crates.</p>
-</li>
-<li>
-<p>@morsels/search-lib: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the <code>morsels-searchui</code> package below in the future.</p>
-</li>
-<li>
-<p>@morsels/search-ui: interfaces with @morsels/search-lib to provide basic search UI functionalities (e.g. SERP generation)</p>
-</li>
+<li><strong>morsels_indexer</strong>: the cli tool providing indexing functionalities for several file formats</li>
+<li><strong>morsels_search</strong>: the rust wasm crate providing search functionalities</li>
+<li><strong>morsels_common</strong>: internal library containing common functionalities for the above 2 crates.</li>
+</ul>
+<h4 id="npm-packages"><a class="header" href="#npm-packages">Npm packages:</a></h4>
+<ul>
+<li><strong>@morsels/search-ui</strong>: interfaces with @morsels/search-lib to provide basic search UI functionalities (e.g. SERP generation)</li>
+<li><strong>@morsels/search-lib</strong>: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the <code>@morsels/search-ui</code> package in the future. For now, it only serves to separate some concerns from the UI package.</li>
 </ul>
 <script>
     initMorsels({

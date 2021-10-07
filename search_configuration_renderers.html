@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -169,29 +169,47 @@
 <p>Some use cases for this include:</p>
 <ul>
 <li>The default structure is not sufficient for your styling needs</li>
-<li>You need to attach additional event listeners to elements </li>
-<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer).</li>
+<li>You need to attach additional event listeners to elements</li>
+<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)</li>
 <li>You want to change the <a href="./search_configuration.html#default-rendering-output--purpose">default use case</a> of following through on a result preview to its source document entirely</li>
 </ul>
-<p>If you only need to theme the dropdown or search popup, you can include your own css file to do so, or override the variables exposed by the default css bundle.</p>
-<p>These API options are specified under the <code>render</code> key of the root configuration object, which has a typescript interface shown below.</p>
-<pre><code class="language-ts">interface SearchUiRenderOptions {
+<p>If you only need to style the dropdown or search popup, you can include your own css file to do so and / or override the variables exposed by the default css bundle.</p>
+<p>These API options are specified under the <code>render</code> key of the root configuration object.</p>
+<pre><code class="language-ts">initMorsels({
     // ...
+    
+    render: {
+        // ...
+    }
+});
+</code></pre>
+<details>
+<summary><strong>Typescript Interface Reference</strong></summary>
+<pre><code class="language-ts">interface SearchUiRenderOptions {
+    // ... some other options covered in the previous section ...
+
     show?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) =&gt; void,
+
     hide?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) =&gt; void,
+
     rootRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         inputEl: HTMLElement,
     ) =&gt; ({ root: HTMLElement, listContainer: HTMLElement }),
+
     portalRootRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
         portalCloseHandler: () =&gt; void,
     ) =&gt; ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
+
     noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
+
     portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
+
     loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) =&gt; HTMLElement,
+
     termInfoRender?: (
         h: CreateElement,
         opts: ArbitraryRenderOptions,
@@ -199,6 +217,7 @@
         correctedTerms: string[],
         expandedTerms: string[],
     ) =&gt; HTMLElement[],
+
     resultsRender?: (
         h: CreateElement,
         initMorselsOptions: SearchUiOptions,
@@ -206,6 +225,7 @@
         results: Result[],
         query: Query,
     ) =&gt; Promise&lt;HTMLElement[]&gt;,
+
     // Options / more renderers for the default implementation of resultsRender
     resultsRenderOpts?: {
         resultsPerPage: 8,
@@ -218,6 +238,7 @@
             resultHeadingsAndTexts: (HTMLElement | string)[],
             fields: [string, string][],
         ) =&gt; HTMLElement,
+
         headingBodyRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
@@ -225,18 +246,21 @@
             bodyHighlights: (HTMLElement | string)[],
             href?: string,
         ) =&gt; HTMLElement,
+
         bodyOnlyRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
             bodyHighlights: (HTMLElement | string)[],
         ) =&gt; HTMLElement,
+
         highlightRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
             matchedPart: string,
         ) =&gt; HTMLElement,
-    }
-    // Any options you want to pass to any of the render functions below, from the initMorsels call
+    },
+
+    // Any options you want to pass to any of the render functions above (ArbitraryRenderOptions) from the initMorsels call
     opts?: ArbitraryRenderOptions,
 }
 
@@ -245,9 +269,10 @@ interface ArbitraryRenderOptions {
     dropdownAlignment?: 'left' | 'right',
 }
 </code></pre>
+</details>
 <h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
-<p>The <code>h</code> function is an optional helper function you may use to create your own renderer.
-The signature is as such:</p>
+<p>All renderer functions are passed a “<code>h</code>“ function. This is an optional helper function you may use to create your own renderer.</p>
+<p>The method signature is as such:</p>
 <pre><code class="language-ts">export type CreateElement = (
   // Element name
   name: string,
@@ -255,15 +280,19 @@ The signature is as such:</p>
   // Element attribute map
   attrs: { [attrName: string]: string },
 
-  // Child elements (HTMLElement) OR text (string) nodes
+  // Child elements (HTMLElement) OR text nodes (string)
   // string parameters utilise .textContent,
   // so you don't have to worry about escaping potentially malicious content
   ...children: (string | HTMLElement)[]
 ) =&gt; HTMLElement;
 </code></pre>
+<h2 id="passing-custom-options"><a class="header" href="#passing-custom-options">Passing Custom Options</a></h2>
+<p>All renderer functions are also passed an <code>opts</code> parameter. This provided in the <code>render.opts</code> key, and basically allows passing in any additional initilisation-time options you might need for the renderers. (e.g. an API url)</p>
 <h2 id="default-html-output-structure"><a class="header" href="#default-html-output-structure">Default Html Output Structure</a></h2>
 <p>Have a look at the following snippet when reading the documentation below on each API to understand which renderers (bracketed on the left of each comment) are responsible for which parts of the html output by default.</p>
 <p>Note that there are some minor differences between the dropdown version and fullscreen version, also annotated below.</p>
+<details>
+<summary><strong>Renderers and their output placement</strong></summary>
 <pre><code class="language-html">&lt;!-- (rootRender / portalRootRender) START --&gt;
 
 &lt;!--
@@ -319,9 +348,10 @@ The signature is as such:</p>
     
 &lt;/div&gt;
 </code></pre>
-<h2 id="rendering-the-root-element"><a class="header" href="#rendering-the-root-element">Rendering the Root Element</a></h2>
+</details>
+<h2 id="rendering-the-root-elements"><a class="header" href="#rendering-the-root-elements">Rendering the Root Elements</a></h2>
 <p><strong><code>rootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }</code></strong></p>
-<p>This API renders the root element for the dropdown version of the user interface.</p>
+<p>This API renders the root element for the <strong>dropdown version</strong> of the user interface.</p>
 <ul>
 <li><code>inputEl</code>: Input element found by the <code>inputId</code> configuration</li>
 </ul>
@@ -330,8 +360,9 @@ The signature is as such:</p>
 <li><code>root</code>: The root element. This is passed to the <code>hide / show</code> APIs below.</li>
 <li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.</li>
 </ul>
+<hr />
 <p><strong><code>portalRootRender(h, opts, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }</code></strong></p>
-<p>This API renders the root element for the fullscreen version of the user interface.</p>
+<p>This API renders the root element for the <strong>fullscreen version</strong> of the user interface.</p>
 <ul>
 <li><code>portalCloseHandler</code>: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.</li>
 </ul>
@@ -341,6 +372,7 @@ The signature is as such:</p>
 <li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.</li>
 <li><code>input</code>: Input element. This is required for morsels to attach input event handlers.</li>
 </ul>
+<hr />
 <p><strong><code>hide / show (root, opts, isPortal): void</code></strong></p>
 <p>These two APIs are not responsible for html output, but rather, hiding and showing the fullscreen or dropdown UIs (e.g. via <code>style=&quot;display: none&quot;</code>).</p>
 <ul>
@@ -350,17 +382,22 @@ The signature is as such:</p>
 <h2 id="miscellaneous-renderers"><a class="header" href="#miscellaneous-renderers">Miscellaneous Renderers</a></h2>
 <p><strong><code>noResultsRender(h, opts): HTMLElement</code></strong></p>
 <p>This API renders the element attached under the <code>listContainer</code> when there are no results found for a given query.</p>
+<hr />
 <p><strong><code>portalBlankRender(h, opts): HTMLElement</code></strong></p>
 <p>This API renders the element attached under the <code>listContainer</code> when the search box is empty for the fullscreen UI.</p>
 <p>The dropdown UI is hidden in such a case.</p>
+<hr />
 <p><strong><code>loadingIndicatorRender(h, opts): HTMLElement</code></strong></p>
 <p>This API renders the loading indicator attached under the <code>listContainer</code>. The loading indicator is shown when making the initial search (the first search from an empty search box).</p>
+<hr />
 <p><strong><code>termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms): HTMLElement[]</code></strong></p>
 <p>This API renders elements attached under the <code>listContainer</code> related to the searched terms, and is blank by default.</p>
 <p>For example, you may render <code>&lt;div&gt;Did you mean &lt;u&gt;corrected&lt;/u&gt;?&lt;/div&gt;</code> for the misspelled query <code>correkted</code>.</p>
 <h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
-<p>The <strong>2 remaining sets of APIs</strong> below render the results for all document matches, and are mutually exclusive. Use only one or the other.</p>
-<p>Together, they render the <code>&lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;</code> comment in the earlier example.</p>
+<p>The below <strong>2 remaining sets of APIs</strong> render the results for all document matches, and are <strong>mutually exclusive</strong>. Use only one or the other.</p>
+<p>Together, they are placed in the <code>&lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;</code> (see <a href="#default-html-output-structure">html output structure</a>).</p>
+<details>
+<summary><strong>Remaining renderers and their output placement</strong></summary>
 <pre><code class="language-html">&lt;!-- (resultsRender) START matches for **all documents** --&gt;
 &lt;!-- (listItemRender) START A match for a **single document** --&gt;
 &lt;li class=&quot;morsels-list-item&quot;&gt;
@@ -438,8 +475,10 @@ The signature is as such:</p>
 &lt;/li&gt;
 &lt;!-- (resultsRender) END --&gt;
 </code></pre>
+</details>
+<br>
 <p><strong>1. <code>async resultsRender(h, initMorselsOptions, config, results, query)</code></strong> <span style="color: red">(advanced)</span></p>
-<p>This API renders the results for all document matches.</p>
+<p>This API renders the results for <em>all</em> document matches.</p>
 <p>This can be used for example, if the output required is substantially different or external API calls are required to retrieve document info.</p>
 <p>For example, the default implementation does the following:</p>
 <ol>
@@ -448,13 +487,15 @@ The signature is as such:</p>
 <li>Transform and highlight the field stores using the <code>listItemRender</code> set of APIs below.</li>
 </ol>
 <p>Refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
-<br>
+<hr />
 <p><strong>2. <code>resultsRenderOpts</code></strong></p>
-<p>The renderers and options under this key are based on the <strong>default implementation</strong> of <code>resultsRender</code>.
+<p>The renderers and options under this key are based on the <strong>default implementation of <code>resultsRender</code></strong>.
 If overriding <code>resultsRender</code> above, the following options will be ignored.</p>
+<br>
 <p><strong>2.1 <code>resultsPerPage = 8</code></strong></p>
 <p>This option controls how many result previews are generated per trigger of the infinite scrolling intersection observer.</p>
 <p>If none of the <code>body / title / heading</code> fields are stored, lowering this has a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed.</p>
+<br>
 <p><strong>2.2 <code>listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)</code></strong></p>
 <p>This API renders the result for a single document match.</p>
 <ul>
@@ -480,6 +521,7 @@ return h(
   linkEl,
 );
 </code></pre>
+<br>
 <p><strong>2.3 <code>listItemRender</code> supporting APIs</strong></p>
 <p>The remaining 3 APIs are supplementary to <code>listItemRender</code>, and are responsible for generating the <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters.</p>
 <p>Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.</p>
