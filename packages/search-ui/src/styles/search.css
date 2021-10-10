@@ -83,7 +83,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px;
-    font-size: 1.3em;
+    font-size: 1.25em;
     background: var(--morsels-fullscreen-header-bg);
     border-bottom: var(--morsels-fullscreen-header-border-bottom);
     z-index: 1000;
@@ -92,7 +92,7 @@
 .morsels-portal-input {
     flex: 1 0 0;
     width: 0;
-    padding: 0.2em 0.8em;
+    padding: 0.25em 0.8em;
     outline: none;
     border: var(--morsels-fullscreen-input-border);
     border-radius: 30px;

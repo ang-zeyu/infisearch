@@ -137,7 +137,7 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     });
 
     const inputEl = h(
-      'input', { class: 'morsels-portal-input', type: 'text' },
+      'input', { class: 'morsels-portal-input', type: 'text', placeholder: 'Search...' },
     ) as HTMLInputElement;
 
     const buttonEl = h('button', { class: 'morsels-input-close-portal' });
