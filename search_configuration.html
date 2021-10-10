@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">6.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -169,8 +169,8 @@
 <h2 id="forenotes"><a class="header" href="#forenotes">Forenotes</a></h2>
 <h3 id="fullscreen-pop-up-and-dropdown-ui-versions"><a class="header" href="#fullscreen-pop-up-and-dropdown-ui-versions">Fullscreen Pop-Up and Dropdown UI Versions</a></h3>
 <p>The search UI provides 2 different interfaces, a dropdown and fullscreen / “popup” version.</p>
-<p>The dropdown version is used for desktop devices by default, which is attached to the element specified by <code>inputId</code>.
-For mobile devices, the fullscreen version is used instead.</p>
+<p>The dropdown version is used for desktop devices by default, which is attached to the element specified by the <code>input</code> option.
+For mobile devices, the fullscreen version is displayed instead when this input is focused.</p>
 <h3 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h3>
 <p>It is also worth rehashing that the default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
 <p>This is achieved through an internal <code>_relative_fp</code> field that is stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (see <code>sourceFilesUrl</code> below) and this <code>_relative_fp</code> field forms the full source document link, which is used for:</p>
@@ -198,7 +198,8 @@ For mobile devices, the fullscreen version is used instead.</p>
     // Options for @morsels/search-ui, the user interface package
     
     // Id of input element to attach the search dropdown to
-    inputId: 'morsels-search',
+    // Or the HTMLInputElement itself
+    input: 'morsels-search',
 
     // Debounce time for the input handlers
     inputDebounce: isMobile ? 275 : 200,
@@ -210,6 +211,7 @@ For mobile devices, the fullscreen version is used instead.</p>
     render: {
         enablePortal?: boolean | 'auto',
         portalTo?: HTMLElement,
+        resultsPerPage: 8,
         opts: {
             dropdownAlignment: 'left' | 'right'
         },
@@ -221,29 +223,38 @@ For mobile devices, the fullscreen version is used instead.</p>
 <p>This section details the available options, necessary inputs and some utility methods controlling the some user interface behaviour.</p>
 <p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API (that really shouldn’t be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on the Github repository.</p>
 <pre><code class="language-ts">{
-    inputId?: string,
+    input: string | HTMLInputElement,
     render: {
         enablePortal?: boolean | 'auto',
         portalTo?: HTMLElement,
+        resultsPerPage: 8,
         // ...
     }
 }
 </code></pre>
-<p><strong><code>inputId</code></strong></p>
-<p>This option tells morsels which input element to use for the <strong>dropdown version</strong> of its search ui.</p>
-<p>If this is unspecified, the <code>show / hide</code> APIs below must be used to bring up the <strong>fullscreen UI</strong>.</p>
+<br>
+<p><strong><code>input = 'morsels-search'</code></strong></p>
+<p>This option tells morsels which input element to use for the <strong>dropdown version</strong> of its search ui. It can be specified as a <code>string</code> (the id of the input element), or, directly as the <code>HTMLInputElement</code> to use.</p>
+<p>If this is unspecified, the <code>show / hide</code> APIs below should be used to bring up the <strong>fullscreen UI</strong>.</p>
+<hr />
 <p><strong><code>enablePortal = 'auto'</code></strong></p>
-<p>This parameter tells morsels whether to use the fullscreen search UI for mobile devices when the original <code>&lt;input&gt;</code> specified by <code>inputId</code> is focused.</p>
+<p>This parameter specifies whether to use the fullscreen search UI for mobile devices when the original <code>&lt;input&gt;</code> specified by <code>input</code> is focused.</p>
 <p>The default value of <code>'auto'</code> configures this according to mobile device detection (<code>true</code> if it is a mobile device), and also adds a simple window resize handler to automatically hide the corresponding UI if the window is resized.</p>
 <p>You can set this to <code>true</code> / <code>false</code> to always prefer the fullscreen or dropdown version instead when the original <code>&lt;input&gt;</code> is focused.</p>
-<p>If <code>inputId</code> is unspecified, this option will not do anything.</p>
+<p>If no <code>input</code> is specified, this option will not do anything.</p>
+<hr />
 <p><strong><code>portalTo = document.getElementsByTagName('body')[0]</code></strong></p>
-<p>This parameter tells morsels which element to attach the fullscreen search UI to, which uses <code>fixed</code> positioning.</p>
+<p>This parameter specifies which element to attach the fullscreen search UI to, which uses <code>fixed</code> positioning. The <code>&lt;body&gt;</code> element is used by default.</p>
+<hr />
+<p><strong><code>resultsPerPage = 8</code></strong></p>
+<p>This option controls how many result previews are retrieved per trigger of the infinite scrolling intersection observer.</p>
+<p>If none of the <code>body / title / heading</code> fields are stored (see <a href="#generating-result-previews">generating result previews</a>), lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed.</p>
+<hr />
 <p><strong><code>show() / hide()</code></strong></p>
 <pre><code class="language-ts">const { show, hide } = initMorsels(/* ... */);
 </code></pre>
-<p>The default behaviour of showing the fullscreen search UI on focusing the input may be insufficient in some cases, for example showing the UI when clicking a search icon.</p>
-<p>You may call the <code>show()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hide()</code> method hides the fullscreen interface, although, this shouldn’t be needed since there’s a close button is available by default.</p>
+<p>The default behaviour of showing the fullscreen search UI when focusing the input may be insufficient in some cases, for example, to show the UI when clicking a “search icon”.</p>
+<p>You may call the <code>show()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hide()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button is available by default.</p>
 <h2 id="automatic-term-expansion"><a class="header" href="#automatic-term-expansion">Automatic Term Expansion</a></h2>
 <p>(<code>numberOfExpandedTerms</code>)</p>
 <p>By default, stemming is turned off in the <a href="indexing_configuration.html#language">language modules</a>. This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.</p>

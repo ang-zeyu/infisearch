@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">6.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -228,8 +228,6 @@
 
     // Options / more renderers for the default implementation of resultsRender
     resultsRenderOpts?: {
-        resultsPerPage: 8,
-
         listItemRender?: (
             h: CreateElement,
             opts: ArbitraryRenderOptions,
@@ -353,7 +351,7 @@ interface ArbitraryRenderOptions {
 <p><strong><code>rootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }</code></strong></p>
 <p>This API renders the root element for the <strong>dropdown version</strong> of the user interface.</p>
 <ul>
-<li><code>inputEl</code>: Input element found by the <code>inputId</code> configuration</li>
+<li><code>inputEl</code>: Input element found by the <code>input</code> configuration option</li>
 </ul>
 <p>It should return 2 elements:</p>
 <ul>
@@ -479,7 +477,11 @@ interface ArbitraryRenderOptions {
 <br>
 <p><strong>1. <code>async resultsRender(h, initMorselsOptions, config, results, query)</code></strong> <span style="color: red">(advanced)</span></p>
 <p>This API renders the results for <em>all</em> document matches.</p>
-<p>This can be used for example, if the output required is substantially different or external API calls are required to retrieve document info.</p>
+<p>Some examples use cases are:</p>
+<ul>
+<li>Altering the html output structure substantially (e.g. displaying results in a tabular form)</li>
+<li>Calling external API calls to retrieve additional info for generating result previews.</li>
+</ul>
 <p>For example, the default implementation does the following:</p>
 <ol>
 <li>Check the <code>config.fieldInfos</code> if any of <code>body / title / heading</code> fields are stored by the indexer to generate result previews. (Skip to 3 if present)</li>
@@ -489,14 +491,10 @@ interface ArbitraryRenderOptions {
 <p>Refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
 <hr />
 <p><strong>2. <code>resultsRenderOpts</code></strong></p>
-<p>The renderers and options under this key are based on the <strong>default implementation of <code>resultsRender</code></strong>.
+<p>The renderers under this key are based on the <strong>default implementation of <code>resultsRender</code></strong>.
 If overriding <code>resultsRender</code> above, the following options will be ignored.</p>
 <br>
-<p><strong>2.1 <code>resultsPerPage = 8</code></strong></p>
-<p>This option controls how many result previews are generated per trigger of the infinite scrolling intersection observer.</p>
-<p>If none of the <code>body / title / heading</code> fields are stored, lowering this has a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed.</p>
-<br>
-<p><strong>2.2 <code>listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)</code></strong></p>
+<p><strong>2.1 <code>listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)</code></strong></p>
 <p>This API renders the result for a single document match.</p>
 <ul>
 <li><code>fullLink</code> - full resource link of the document</li>
@@ -522,8 +520,8 @@ return h(
 );
 </code></pre>
 <br>
-<p><strong>2.3 <code>listItemRender</code> supporting APIs</strong></p>
-<p>The remaining 3 APIs are supplementary to <code>listItemRender</code>, and are responsible for generating the <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters.</p>
+<p><strong>2.2 <code>listItemRender</code> supporting APIs</strong></p>
+<p>The remaining 3 APIs below are supplementary to <code>listItemRender</code>, and are responsible for generating the <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters.</p>
 <p>Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.</p>
 <pre><code class="language-ts">interface SearchUiRenderOptions {
     // ...

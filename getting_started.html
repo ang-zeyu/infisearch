@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="how_it_works.html"><strong aria-hidden="true">2.</strong> How it Works</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">3.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html" class="active"><strong aria-hidden="true">4.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">4.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">5.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">5.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">6.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html" class="active"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdbook-morsels</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">6.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -165,15 +165,15 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <h1 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h1>
-<p>Getting started with the following default setup is fairly easy straightforward. It assumes:</p>
+<p>The following page assumes:</p>
 <ul>
-<li>You have some <code>.html</code> files you want to index</li>
+<li>You have simply some <code>.html</code> files you want to index</li>
 <li>These <code>.html</code> files are served in a static file server, and are accessible by the search-ui to generate result previews</li>
 </ul>
-<p>If you need more than this, have a look through here first, then jump into the <a href="search_configuration.html">configuration</a> page to learn more.</p>
+<p>If you require more, have a look through here first, then jump into the <a href="search_configuration.html">configuration</a> pages to learn more.</p>
 <h2 id="installing-the-indexer"><a class="header" href="#installing-the-indexer">Installing the indexer</a></h2>
 <p>If you have the rust / cargo toolchain setup, simply run <code>cargo install morsels_indexer</code>.</p>
-<p>If not, the cli binaries are also available <a href="https://github.com/ang-zeyu/morsels/releases">here</a>.</p>
+<p>The cli binaries are also available <a href="https://github.com/ang-zeyu/morsels/releases">here</a> if preferred.</p>
 <h2 id="running-the-indexer"><a class="header" href="#running-the-indexer">Running the indexer</a></h2>
 <pre><code>morsels &lt;source-folder-path&gt; &lt;output-folder-path&gt;
 </code></pre>
@@ -209,8 +209,9 @@ new CopyPlugin({
 &lt;script src=&quot;.../search-ui.css&quot;&gt;&lt;/script&gt;
 </code></pre>
 <h3 id="initialisation-call"><a class="header" href="#initialisation-call">Initialisation Call</a></h3>
-<p>Once you have loaded the bundles, to initialise morsels, simply call the <code>initMorsels</code> function as exposed by <code>search-ui.bundle.js</code>:</p>
-<pre><code class="language-js">initMorsels({
+<p>Once you have loaded the bundles, to initialise morsels, simply call the <code>initMorsels</code> function.</p>
+<p>This requires an input element with an id of <code>morsels-search</code> to be present in the page by default.</p>
+<pre><code class="language-ts">initMorsels({
     searcherOptions: {
         // Output folder url specified as the second parameter in the cli command
         url: 'http://192.168.10.132:3000/output/',
