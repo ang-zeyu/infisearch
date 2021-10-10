@@ -489,7 +489,7 @@ impl Indexer {
     }
 
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
-        if self.spimi_counter != 0 && self.spimi_counter != self.indexing_config.num_docs_per_block {
+        if self.spimi_counter != 0 {
             #[cfg(debug_assertions)]
             println!("Writing last spimi block");
 
