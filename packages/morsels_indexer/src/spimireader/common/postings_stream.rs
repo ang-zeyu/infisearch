@@ -6,10 +6,10 @@ use std::sync::Mutex;
 
 use dashmap::DashMap;
 
+use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::MainToWorkerMessage;
 use crate::Receiver;
 use crate::Sender;
-use super::{PostingsStreamDecoder, TermDocsForMerge};
 
 pub static POSTINGS_STREAM_BUFFER_SIZE: u32 = 5000;
 
@@ -108,7 +108,10 @@ impl PostingsStream {
                     // Done! Reacquire lock
                     match postings_stream_decoders.get_mut(&self.idx).unwrap().value_mut() {
                         PostingsStreamDecoder::Reader(postings_stream_reader) => {
-                            std::mem::swap(&mut postings_stream_reader.future_term_buffer, &mut self.term_buffer);
+                            std::mem::swap(
+                                &mut postings_stream_reader.future_term_buffer,
+                                &mut self.term_buffer,
+                            );
                         }
                         _ => panic!("Unexpected state @get_term blocking branch"),
                     }
@@ -116,7 +119,9 @@ impl PostingsStream {
                 _ => panic!("Unexpected state @get_term notifier"),
             }
             self.is_reader_decoding = false;
-        } else if !self.is_reader_decoding && self.term_buffer.len() < POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD {
+        } else if !self.is_reader_decoding
+            && self.term_buffer.len() < POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD
+        {
             // Request for an in-advance worker decode...
 
             match std::mem::replace(
@@ -138,7 +143,7 @@ impl PostingsStream {
             self.is_empty = true;
         }
     }
-    
+
     #[inline(always)]
     pub fn aggregate_block_terms(
         curr_combined_term_docs: &mut Vec<TermDocsForMerge>,

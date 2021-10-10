@@ -19,7 +19,12 @@ pub struct Dictionary {
 }
 
 #[inline(always)]
-pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, build_trigram: bool) -> Dictionary {
+pub fn setup_dictionary(
+    table_vec: Vec<u8>,
+    string_vec: Vec<u8>,
+    num_docs: u32,
+    build_trigram: bool,
+) -> Dictionary {
     let mut term_infos: FxHashMap<Rc<String>, Rc<TermInfo>> = FxHashMap::default();
 
     let mut postings_file_name = 0;
@@ -50,7 +55,9 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
         let term = Rc::new(
             SmartString::from(&prev_term[..prefix_len])
                 + unsafe {
-                    std::str::from_utf8_unchecked(&string_vec[dict_string_pos..dict_string_pos + remaining_len])
+                    std::str::from_utf8_unchecked(
+                        &string_vec[dict_string_pos..dict_string_pos + remaining_len],
+                    )
                 },
         );
         dict_string_pos += remaining_len;
@@ -73,7 +80,9 @@ pub fn setup_dictionary(table_vec: Vec<u8>, string_vec: Vec<u8>, num_docs: u32, 
     Dictionary { term_infos, trigrams }
 }
 
-fn setup_trigrams(term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>) -> FxHashMap<SmartString, Vec<Rc<String>>> {
+fn setup_trigrams(
+    term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>,
+) -> FxHashMap<SmartString, Vec<Rc<String>>> {
     let mut trigrams: FxHashMap<SmartString, Vec<Rc<String>>> = FxHashMap::default();
 
     for term in term_infos.keys() {
@@ -139,44 +148,53 @@ mod test {
                 string_vec
             },
             10,
-            false
+            false,
         );
 
-        assert_eq!(
-            dictionary.term_infos,
-            {
-                let mut terms = FxHashMap::default();
+        assert_eq!(dictionary.term_infos, {
+            let mut terms = FxHashMap::default();
 
-                terms.insert(Rc::new(String::from("foo")), Rc::new(TermInfo {
+            terms.insert(
+                Rc::new(String::from("foo")),
+                Rc::new(TermInfo {
                     doc_freq: 1,
                     idf: 0.0,
                     postings_file_name: 0,
                     postings_file_offset: 65535,
-                }));
+                }),
+            );
 
-                terms.insert(Rc::new(String::from("foobar")), Rc::new(TermInfo {
+            terms.insert(
+                Rc::new(String::from("foobar")),
+                Rc::new(TermInfo {
                     doc_freq: 1,
                     idf: 0.0,
                     postings_file_name: 0,
                     postings_file_offset: 65535,
-                }));
+                }),
+            );
 
-                terms.insert(Rc::new(String::from("test")), Rc::new(TermInfo {
+            terms.insert(
+                Rc::new(String::from("test")),
+                Rc::new(TermInfo {
                     doc_freq: 1,
                     idf: 0.0,
                     postings_file_name: 1,
                     postings_file_offset: 65535,
-                }));
+                }),
+            );
 
-                terms.insert(Rc::new(String::from("tetest")), Rc::new(TermInfo {
+            terms.insert(
+                Rc::new(String::from("tetest")),
+                Rc::new(TermInfo {
                     doc_freq: 1,
                     idf: 0.0,
                     postings_file_name: 1,
                     postings_file_offset: 65535,
-                }));
+                }),
+            );
 
-                terms
-            }
-        )
+            terms
+        })
     }
 }

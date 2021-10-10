@@ -32,10 +32,10 @@ use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
 use crate::loader::Loader;
-use crate::worker::{IndexUnit, Worker, MainToWorkerMessage, WorkerToMainMessage};
 use crate::worker::miner::WorkerMiner;
+use crate::worker::{IndexUnit, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
-use crossbeam::channel::{self, Sender, Receiver};
+use crossbeam::channel::{self, Receiver, Sender};
 use crossbeam::queue::SegQueue;
 use glob::Pattern;
 use rustc_hash::FxHashMap;
@@ -153,7 +153,10 @@ impl MorselsIndexingConfig {
     }
 
     pub fn get_excludes_from_config(&self) -> Vec<Pattern> {
-        self.exclude.iter().map(|pat_str| Pattern::new(pat_str).expect("Invalid exclude glob pattern!")).collect()
+        self.exclude
+            .iter()
+            .map(|pat_str| Pattern::new(pat_str).expect("Invalid exclude glob pattern!"))
+            .collect()
     }
 }
 
@@ -270,7 +273,10 @@ impl Indexer {
 
         let doc_infos = Arc::from(Mutex::from(if is_dynamic {
             let mut doc_infos_vec: Vec<u8> = Vec::new();
-            File::open(output_folder_path.join(DOC_INFO_FILE_NAME)).unwrap().read_to_end(&mut doc_infos_vec).unwrap();
+            File::open(output_folder_path.join(DOC_INFO_FILE_NAME))
+                .unwrap()
+                .read_to_end(&mut doc_infos_vec)
+                .unwrap();
 
             DocInfos::from_search_docinfo(doc_infos_vec, field_infos.num_scored_fields)
         } else {
@@ -329,7 +335,12 @@ impl Indexer {
             });
         }
 
-        let doc_miner = WorkerMiner::new(&field_infos, indexing_config.with_positions, expected_num_docs_per_thread, &tokenizer);
+        let doc_miner = WorkerMiner::new(
+            &field_infos,
+            indexing_config.with_positions,
+            expected_num_docs_per_thread,
+            &tokenizer,
+        );
 
         Indexer {
             indexing_config,
@@ -412,7 +423,8 @@ impl Indexer {
         let mut sent = 0;
 
         for loader in self.loaders.iter() {
-            if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path) {
+            if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
+            {
                 for loader_result in loader_results {
                     self.index_unit_queue.push(IndexUnit { doc_id: self.doc_id_counter, loader_result });
                     sent += 1;
@@ -427,17 +439,14 @@ impl Indexer {
                     self.spimi_counter += 1;
 
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
-                        while let Some(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.pop() {
+                        while let Some(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.pop()
+                        {
                             self.doc_miner.index_doc(doc_id, loader_result.get_field_texts());
                         }
 
                         let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number();
-                        self.write_block(
-                            main_thread_block_index_results,
-                            block_number,
-                            false,
-                        );
+                        self.write_block(main_thread_block_index_results, block_number, false);
                         self.spimi_counter = 0;
                     }
                 }
@@ -502,11 +511,7 @@ impl Indexer {
 
             let block_number = self.block_number();
             let main_thread_block_index_results = self.doc_miner.get_results();
-            self.write_block(
-                main_thread_block_index_results,
-                block_number,
-                true,
-            );
+            self.write_block(main_thread_block_index_results, block_number, true);
             self.spimi_counter = 0;
         }
 

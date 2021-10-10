@@ -12,7 +12,9 @@ impl PostingsListFileCache {
     pub async fn create(base_url: &str, pl_numbers: &[u32], num_pls_per_dir: u32) -> PostingsListFileCache {
         let window: web_sys::Window = js_sys::global().unchecked_into();
         let pls = join_all(
-            pl_numbers.iter().map(|pl_num| PostingsList::fetch_pl_to_vec(&window, base_url, *pl_num, num_pls_per_dir)),
+            pl_numbers
+                .iter()
+                .map(|pl_num| PostingsList::fetch_pl_to_vec(&window, base_url, *pl_num, num_pls_per_dir)),
         )
         .await;
 
@@ -39,8 +41,6 @@ pub mod test {
     use super::PostingsListFileCache;
 
     pub fn get_empty() -> PostingsListFileCache {
-        PostingsListFileCache {
-            pl_bytes: FxHashMap::default(),
-        }
+        PostingsListFileCache { pl_bytes: FxHashMap::default() }
     }
 }

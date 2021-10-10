@@ -14,8 +14,8 @@ use crate::docinfo::BlockDocLengths;
 use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::TermDocComparator;
-use crate::worker::miner::WorkerMinerDocInfo;
 use crate::worker::miner::WorkerBlockIndexResults;
+use crate::worker::miner::WorkerMinerDocInfo;
 use crate::DocInfos;
 use crate::FieldInfos;
 use crate::Indexer;
@@ -138,7 +138,10 @@ pub fn combine_worker_results_and_write_block(
         let mut count = total_num_docs;
         let mut block_count = 0;
         let mut writer = BufWriter::new(if NULL_HANDLER.len() == 0 {
-            File::create(field_infos.field_output_folder_path.join(".nul".to_owned() + &block_number.to_string()[..])).unwrap()
+            File::create(
+                field_infos.field_output_folder_path.join(".nul".to_owned() + &block_number.to_string()[..]),
+            )
+            .unwrap()
         } else {
             File::create(*NULL_HANDLER).unwrap()
         });
@@ -152,7 +155,8 @@ pub fn combine_worker_results_and_write_block(
                 if (store_num % num_stores_per_dir == 0)
                     && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
                 {
-                    std::fs::create_dir(&dir_output_folder_path).expect("Failed to create field store output dir!");
+                    std::fs::create_dir(&dir_output_folder_path)
+                        .expect("Failed to create field store output dir!");
                 }
 
                 let output_file_path = dir_output_folder_path.join(format!("{}.json", store_num));
@@ -163,10 +167,14 @@ pub fn combine_worker_results_and_write_block(
                         .write(true)
                         .open(output_file_path)
                         .expect("Failed to open existing field store for editing");
-                    field_store_file.seek(SeekFrom::End(-1)).expect("Failed to seek to existing field store end");
+                    field_store_file
+                        .seek(SeekFrom::End(-1))
+                        .expect("Failed to seek to existing field store end");
 
                     // Override ']' with ','
-                    field_store_file.write_all(b",").expect("Failed to override existing field store ] with ,");
+                    field_store_file
+                        .write_all(b",")
+                        .expect("Failed to override existing field store ] with ,");
 
                     writer = BufWriter::new(field_store_file);
                 } else {
@@ -216,7 +224,8 @@ pub fn combine_worker_results_and_write_block(
             combined_terms_vec.len()
         );
 
-        let df = File::create(dict_output_file_path).expect("Failed to open temporary dictionary table for writing.");
+        let df = File::create(dict_output_file_path)
+            .expect("Failed to open temporary dictionary table for writing.");
         let mut buffered_writer_dict = BufWriter::new(df);
 
         let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");

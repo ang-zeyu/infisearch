@@ -38,9 +38,11 @@ fn main() {
         let html_renderer_path = ctx.destination.join("../html");
 
         let assets_output_dir = html_renderer_path.join("morsels_assets");
-        fs::create_dir_all(&assets_output_dir).expect("mdbook-morsels: Failed to create assets output directory");
+        fs::create_dir_all(&assets_output_dir)
+            .expect("mdbook-morsels: Failed to create assets output directory");
         for file in SEARCH_UI_DIST.files() {
-            let mut output_file = File::create((&assets_output_dir).join(file.path())).expect("mdbook-morsels: Failed to open asset write handler");
+            let mut output_file = File::create((&assets_output_dir).join(file.path()))
+                .expect("mdbook-morsels: Failed to open asset write handler");
             output_file.write_all(file.contents()).expect("mdbook-morsels: Failed to copy search-ui assets!");
         }
 
@@ -55,18 +57,25 @@ fn main() {
             init_config_command.current_dir(ctx.root.clone()).args(&["./", "./morsels_output", "--init"]);
             init_config_command.arg("-c");
             init_config_command.arg(&morsels_config_path);
-            init_config_command.output().expect("mdbook-morsels: failed to create default configuration file");
+            init_config_command
+                .output()
+                .expect("mdbook-morsels: failed to create default configuration file");
 
             let config = fs::read_to_string(&morsels_config_path).unwrap();
-            fs::write(&morsels_config_path, config.replace("\"exclude\": [", "\"exclude\": [\n      \"print.html\",")).unwrap();
+            fs::write(
+                &morsels_config_path,
+                config.replace("\"exclude\": [", "\"exclude\": [\n      \"print.html\","),
+            )
+            .unwrap();
         }
 
         let mut command = Command::new("morsels");
-        command.current_dir(html_renderer_path)
+        command
+            .current_dir(html_renderer_path)
             .args(&["./", "./morsels_output"])
             .arg("-c")
             .arg(morsels_config_path);
-        
+
         if let Some(_livereload_url) = ctx.config.get("output.html.livereload-url") {
             command.arg("--dynamic");
         }

@@ -19,7 +19,11 @@ struct CliArgs {
     config_file_path: Option<PathBuf>,
     #[structopt(short, long, help = "Initialise the configuration file in the source folder")]
     init: bool,
-    #[structopt(short, long, help = "Prefer dynamic indexing if the resources in output folder are available and compatible")]
+    #[structopt(
+        short,
+        long,
+        help = "Prefer dynamic indexing if the resources in output folder are available and compatible"
+    )]
     dynamic: bool,
     #[structopt(long, hidden = true)]
     perf: bool,
@@ -64,8 +68,11 @@ fn resolve_folder_paths(
 fn main() {
     let args: CliArgs = CliArgs::from_args();
 
-    let (input_folder_path, output_folder_path, config_file_path) =
-        resolve_folder_paths(&args.source_folder_path, &args.output_folder_path, args.config_file_path.as_ref());
+    let (input_folder_path, output_folder_path, config_file_path) = resolve_folder_paths(
+        &args.source_folder_path,
+        &args.output_folder_path,
+        args.config_file_path.as_ref(),
+    );
 
     #[cfg(debug_assertions)]
     println!(

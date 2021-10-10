@@ -162,8 +162,11 @@ impl SearchDictionary for Dictionary {
         let prefix_check_candidates = self.get_term_candidates(base_term);
         let min_matching_trigrams = (TERM_EXPANSION_ALPHA * (base_term.chars().count() - 2) as f32).floor() as usize;
 
-        let base_idf =
-            if let Some(term_info) = self.term_infos.get(&String::from(base_term)) { term_info.idf } else { 0.0 };
+        let base_idf = if let Some(term_info) = self.term_infos.get(&String::from(base_term)) {
+            term_info.idf
+        } else {
+            0.0
+        };
 
         // number_of_expanded_terms terms with the closest idfs
         let mut top_n_min_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(number_of_expanded_terms);

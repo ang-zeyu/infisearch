@@ -23,8 +23,7 @@ impl Eq for DocField {}
 #[cfg(test)]
 impl PartialEq for DocField {
     fn eq(&self, other: &Self) -> bool {
-        self.field_tf as u32 == other.field_tf as u32
-            && self.field_positions == other.field_positions
+        self.field_tf as u32 == other.field_tf as u32 && self.field_positions == other.field_positions
     }
 }
 
@@ -116,9 +115,7 @@ impl PartialEq for PostingsList {
 #[cfg(test)]
 impl std::fmt::Debug for PostingsList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("PostingsList")
-         .field("term_docs", &self.term_docs)
-         .finish()
+        f.debug_struct("PostingsList").field("term_docs", &self.term_docs).finish()
     }
 }
 
@@ -141,37 +138,39 @@ impl PostingsList {
         for field_id in 0..max_fields_length {
             let term_doc_1_field_opt = term_doc_1.fields.get(field_id);
             let term_doc_2_field_opt = term_doc_2.fields.get(field_id);
-            
+
             if let Some(term_doc_1_field) = term_doc_1_field_opt {
                 if let Some(term_doc_2_field) = term_doc_2_field_opt {
                     let mut doc_field = DocField {
                         field_tf: term_doc_1_field.field_tf + term_doc_2_field.field_tf,
                         field_positions: Vec::new(),
                     };
-    
+
                     let mut pos2_idx = 0;
                     for pos1_idx in 0..term_doc_1_field.field_positions.len() {
                         while pos2_idx < term_doc_2_field.field_positions.len()
-                            && term_doc_2_field.field_positions[pos2_idx] < term_doc_1_field.field_positions[pos1_idx]
+                            && term_doc_2_field.field_positions[pos2_idx]
+                                < term_doc_1_field.field_positions[pos1_idx]
                         {
                             doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
                             pos2_idx += 1;
                         }
-    
+
                         if pos2_idx < term_doc_2_field.field_positions.len()
-                            && term_doc_2_field.field_positions[pos2_idx] == term_doc_1_field.field_positions[pos1_idx]
+                            && term_doc_2_field.field_positions[pos2_idx]
+                                == term_doc_1_field.field_positions[pos1_idx]
                         {
                             pos2_idx += 1;
                         }
-    
+
                         doc_field.field_positions.push(term_doc_1_field.field_positions[pos1_idx]);
                     }
-    
+
                     while pos2_idx < term_doc_2_field.field_positions.len() {
                         doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
                         pos2_idx += 1;
                     }
-    
+
                     td.fields.push(doc_field);
                 } else {
                     td.fields.push(term_doc_1_field.clone());
@@ -225,8 +224,13 @@ impl PostingsList {
         let pl_vec = if let Some(pl_vec) = pl_file_cache.get(term_info.postings_file_name) {
             pl_vec
         } else {
-            fetched_pl =
-                PostingsList::fetch_pl_to_vec(window, base_url, term_info.postings_file_name, num_pls_per_dir).await?;
+            fetched_pl = PostingsList::fetch_pl_to_vec(
+                window,
+                base_url,
+                term_info.postings_file_name,
+                num_pls_per_dir,
+            )
+            .await?;
             &fetched_pl
         };
 
@@ -290,21 +294,21 @@ pub mod test {
 
     use pretty_assertions::assert_eq;
 
-    use super::{PostingsList, TermDoc, DocField};
+    use super::{DocField, PostingsList, TermDoc};
 
     // Takes a vector of "TermDoc", containing a vector of "fields", containing a tuple of (field_tf, vector of field positions)
     // E.g. a TermDoc containing 2 fields of term frequency 2 and 1: [ [2,[1,2]], [1,[120]] ]
     pub fn to_pl(text: &str) -> PostingsList {
         let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = serde_json::from_str(&format!("[{}]", text)).unwrap();
 
-        let term_docs: Vec<TermDoc> = vec.into_iter()
+        let term_docs: Vec<TermDoc> = vec
+            .into_iter()
             .enumerate()
             .filter(|doc_fields| doc_fields.1.is_some())
             .map(|doc_fields| (doc_fields.0, doc_fields.1.unwrap()))
             .map(|(doc_id, doc_fields)| vec_to_term_doc(doc_id as u32, doc_fields))
             .collect();
 
-        
         PostingsList {
             term_docs,
             weight: 1.0,
@@ -317,17 +321,12 @@ pub mod test {
     }
 
     fn vec_to_term_doc(doc_id: u32, doc_fields: Vec<(f32, Vec<u32>)>) -> TermDoc {
-        let fields: Vec<DocField> = doc_fields.into_iter().map(|(field_tf, field_positions)| {
-            DocField {
-                field_tf,
-                field_positions
-            }
-        }).collect();
+        let fields: Vec<DocField> = doc_fields
+            .into_iter()
+            .map(|(field_tf, field_positions)| DocField { field_tf, field_positions })
+            .collect();
 
-        TermDoc {
-            doc_id,
-            fields,
-        }
+        TermDoc { doc_id, fields }
     }
 
     pub fn to_pl_rc(text: &str) -> Rc<PostingsList> {
@@ -342,10 +341,7 @@ pub mod test {
     #[test]
     fn test_term_doc_merge() {
         assert_eq!(
-            PostingsList::merge_term_docs(
-                &to_term_doc("[ [2,[1,2]] ]"),
-                &to_term_doc("[ [1,[120]] ]"),
-            ),
+            PostingsList::merge_term_docs(&to_term_doc("[ [2,[1,2]] ]"), &to_term_doc("[ [1,[120]] ]"),),
             to_term_doc("[ [3,[1,2,120]] ]"),
         );
 

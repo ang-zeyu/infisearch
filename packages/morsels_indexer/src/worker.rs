@@ -8,17 +8,17 @@ use std::sync::Barrier;
 use std::sync::Mutex;
 use std::thread;
 
-use crossbeam::channel::{Sender, Receiver};
+use crossbeam::channel::{Receiver, Sender};
 use crossbeam::queue::SegQueue;
 
 use crate::loader::LoaderResult;
-use crate::MorselsIndexingConfig;
-use crate::spimireader::common::{PostingsStreamDecoder, postings_stream_reader::PostingsStreamReader};
+use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
 use crate::spimiwriter;
 use crate::worker::miner::WorkerBlockIndexResults;
 use crate::DocInfos;
 use crate::FieldInfos;
 use crate::Indexer;
+use crate::MorselsIndexingConfig;
 use miner::WorkerMiner;
 
 pub struct Worker {
@@ -86,7 +86,12 @@ pub fn worker(
     is_dynamic: bool,
     index_unit_queue: Arc<SegQueue<IndexUnit>>,
 ) {
-    let mut doc_miner = WorkerMiner::new(&field_infos, indexing_config.with_positions, expected_num_docs_per_reset, &tokenizer);
+    let mut doc_miner = WorkerMiner::new(
+        &field_infos,
+        indexing_config.with_positions,
+        expected_num_docs_per_reset,
+        &tokenizer,
+    );
 
     for msg in rcvr.into_iter() {
         match msg {
@@ -127,11 +132,8 @@ pub fn worker(
                 println!("Worker {} resetting!", id);
 
                 // return the indexed documents...
-                sndr.send(WorkerToMainMessage {
-                    id,
-                    block_index_results: Some(doc_miner.get_results()),
-                })
-                .expect("Failed to send message back to main thread!");
+                sndr.send(WorkerToMainMessage { id, block_index_results: Some(doc_miner.get_results()) })
+                    .expect("Failed to send message back to main thread!");
 
                 barrier.wait();
             }
@@ -139,7 +141,12 @@ pub fn worker(
                 barrier.wait();
             }
             MainToWorkerMessage::Decode { n, postings_stream_reader, postings_stream_decoders } => {
-                postings_stream_reader.decode_next_n(n, postings_stream_decoders, indexing_config.with_positions, &field_infos);
+                postings_stream_reader.decode_next_n(
+                    n,
+                    postings_stream_decoders,
+                    indexing_config.with_positions,
+                    &field_infos,
+                );
             }
         }
     }

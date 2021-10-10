@@ -23,7 +23,6 @@ pub fn get_tri_grams(term: &str) -> impl Iterator<Item = &str> {
         .skip(2)
 }
 
-
 #[cfg(test)]
 mod test {
     use super::get_tri_grams;
@@ -32,6 +31,6 @@ mod test {
     fn test_trigram_extraction() {
         assert!(get_tri_grams("").next().is_none());
         assert!(get_tri_grams("foo").eq(vec!["foo"]));
-        assert!(get_tri_grams("foobar").eq(vec!["foo","oob","oba","bar"]));
+        assert!(get_tri_grams("foobar").eq(vec!["foo", "oob", "oba", "bar"]));
     }
 }

@@ -16,14 +16,14 @@ use dashmap::DashMap;
 
 use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
 
+use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE};
+use self::postings_stream_reader::PostingsStreamReader;
 use crate::docinfo::DocInfos;
 use crate::utils::varint;
 use crate::MainToWorkerMessage;
 use crate::MorselsIndexingConfig;
 use crate::Receiver;
 use crate::Sender;
-use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE};
-use self::postings_stream_reader::PostingsStreamReader;
 
 #[derive(Default)]
 pub struct TermDocsForMerge {
@@ -44,7 +44,9 @@ pub enum PostingsStreamDecoder {
 #[inline(always)]
 pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> BufWriter<File> {
     let dir_output_folder_path = output_folder_path.join(format!("pl_{}", curr_pl / num_pls_per_dir));
-    if (curr_pl % num_pls_per_dir == 0) && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir()) {
+    if (curr_pl % num_pls_per_dir == 0)
+        && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
+    {
         std::fs::create_dir(&dir_output_folder_path).expect("Failed to create pl output dir!");
     }
 
@@ -111,7 +113,6 @@ pub fn initialise_postings_streams(
     );
 }
 
-
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 pub fn write_new_term_postings(
@@ -176,8 +177,8 @@ pub fn write_new_term_postings(
     }
 
     let doc_freq_double = doc_freq as f64;
-    let max_doc_term_score: f32 =
-        curr_term_max_score * (1.0 + (num_docs - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
+    let max_doc_term_score: f32 = curr_term_max_score
+        * (1.0 + (num_docs - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
     pl_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
     *pl_offset += 4;
 
@@ -190,6 +191,7 @@ pub fn cleanup_blocks(num_blocks: u32, output_folder_path: &Path) {
         let block_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", idx));
         let block_dict_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", idx));
         std::fs::remove_file(&block_file_path).expect("Failed to cleanup temporary bsbi_block file!");
-        std::fs::remove_file(&block_dict_file_path).expect("Failed to cleanup temporary bsbi_block_dict file!");
+        std::fs::remove_file(&block_dict_file_path)
+            .expect("Failed to cleanup temporary bsbi_block_dict file!");
     }
 }

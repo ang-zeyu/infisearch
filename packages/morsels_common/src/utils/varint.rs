@@ -31,59 +31,35 @@ mod test {
     fn test_decode() {
         let mut pos = 0;
 
-        assert_eq!(
-            decode_var_int(&[], &mut pos),
-            0
-        );
+        assert_eq!(decode_var_int(&[], &mut pos), 0);
         assert_eq!(0, pos);
 
         pos = 0;
-        assert_eq!(
-            decode_var_int(&[CONTINUATION_MASK | 0], &mut pos),
-            0
-        );
+        assert_eq!(decode_var_int(&[CONTINUATION_MASK | 0], &mut pos), 0);
         assert_eq!(1, pos);
 
         pos = 0;
-        assert_eq!(
-            decode_var_int(&[CONTINUATION_MASK | 64], &mut pos),
-            64
-        );
+        assert_eq!(decode_var_int(&[CONTINUATION_MASK | 64], &mut pos), 64);
         assert_eq!(1, pos);
 
         pos = 0;
-        assert_eq!(
-            decode_var_int(&[CONTINUATION_MASK | 127], &mut pos),
-            127
-        );
+        assert_eq!(decode_var_int(&[CONTINUATION_MASK | 127], &mut pos), 127);
         assert_eq!(1, pos);
 
         pos = 0;
-        assert_eq!(
-            decode_var_int(&[0, CONTINUATION_MASK | 127], &mut pos),
-            16256
-        );
+        assert_eq!(decode_var_int(&[0, CONTINUATION_MASK | 127], &mut pos), 16256);
         assert_eq!(2, pos);
 
         pos = 0;
-        assert_eq!(
-            decode_var_int(&[10, CONTINUATION_MASK | 127], &mut pos),
-            16266
-        );
+        assert_eq!(decode_var_int(&[10, CONTINUATION_MASK | 127], &mut pos), 16266);
         assert_eq!(2, pos);
 
         pos = 0;
-        assert_eq!(
-            decode_var_int(&[127, CONTINUATION_MASK | 127], &mut pos),
-            16383
-        );
+        assert_eq!(decode_var_int(&[127, CONTINUATION_MASK | 127], &mut pos), 16383);
         assert_eq!(2, pos);
 
         pos = 0;
-        assert_eq!(
-            decode_var_int(&[127, 127, 127, 127, CONTINUATION_MASK | 15], &mut pos),
-            u32::MAX
-        );
+        assert_eq!(decode_var_int(&[127, 127, 127, 127, CONTINUATION_MASK | 15], &mut pos), u32::MAX);
         assert_eq!(5, pos);
     }
 }

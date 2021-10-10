@@ -214,10 +214,7 @@ pub mod test {
         }
 
         Searcher {
-            dictionary: Dictionary {
-                term_infos: FxHashMap::default(),
-                trigrams: FxHashMap::default(),
-            },
+            dictionary: Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() },
             tokenizer: Box::new(english::EnglishTokenizer::default()),
             doc_info: DocInfo {
                 doc_length_factors: vec![vec![1.0; num_fields]; num_docs],

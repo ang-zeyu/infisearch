@@ -8,12 +8,12 @@ use std::sync::Arc;
 use byteorder::{ByteOrder, LittleEndian};
 use dashmap::DashMap;
 
+use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::docinfo::DocInfos;
-use crate::FieldInfos;
 use crate::utils::varint;
+use crate::FieldInfos;
 use crate::MainToWorkerMessage;
 use crate::Sender;
-use super::{PostingsStreamDecoder, TermDocsForMerge};
 
 static POSTINGS_STREAM_BUFFER_SIZE: u32 = 5000;
 
@@ -73,16 +73,16 @@ impl PostingsStreamReader {
 
                 let mut read_and_write_doc =
                     |doc_id,
-                        pl_reader: &mut BufReader<File>,
-                        combined_var_ints: &mut Vec<u8>,
-                        u8_buf: &mut [u8; 1],
-                        u32_buf: &mut [u8; 4]| {
+                     pl_reader: &mut BufReader<File>,
+                     combined_var_ints: &mut Vec<u8>,
+                     u8_buf: &mut [u8; 1],
+                     u32_buf: &mut [u8; 4]| {
                         let mut curr_doc_term_score: f32 = 0.0;
                         let mut read_and_write_field =
                             |field_id,
-                                pl_reader: &mut BufReader<File>,
-                                combined_var_ints: &mut Vec<u8>,
-                                u32_buf: &mut [u8; 4]| {
+                             pl_reader: &mut BufReader<File>,
+                             combined_var_ints: &mut Vec<u8>,
+                             u32_buf: &mut [u8; 4]| {
                                 pl_reader.read_exact(u32_buf).unwrap();
                                 let field_tf = LittleEndian::read_u32(u32_buf);
                                 varint::get_var_int_vec(field_tf, combined_var_ints);
@@ -142,7 +142,13 @@ impl PostingsStreamReader {
                 let first_doc_id = LittleEndian::read_u32(&u32_buf);
 
                 let mut prev_doc_id = first_doc_id;
-                read_and_write_doc(first_doc_id, pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf);
+                read_and_write_doc(
+                    first_doc_id,
+                    pl_reader,
+                    &mut combined_var_ints,
+                    &mut u8_buf,
+                    &mut u32_buf,
+                );
 
                 for _i in 1..doc_freq {
                     pl_reader.read_exact(&mut u32_buf).unwrap();
@@ -167,8 +173,7 @@ impl PostingsStreamReader {
         }
 
         {
-            let mut postings_stream_decoder_entry =
-                postings_stream_decoders.get_mut(&self.idx).unwrap();
+            let mut postings_stream_decoder_entry = postings_stream_decoders.get_mut(&self.idx).unwrap();
             let postings_stream_decoder = postings_stream_decoder_entry.value_mut();
             match postings_stream_decoder {
                 PostingsStreamDecoder::None => {

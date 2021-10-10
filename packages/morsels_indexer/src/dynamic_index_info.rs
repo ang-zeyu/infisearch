@@ -5,8 +5,8 @@ use std::path::Path;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
-use morsels_common::{BITMAP_FILE_NAME, bitmap};
 use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
+use morsels_common::{bitmap, BITMAP_FILE_NAME};
 
 use crate::MORSELS_VERSION;
 
@@ -72,7 +72,7 @@ impl DynamicIndexInfo {
 
         let mut info: DynamicIndexInfo = serde_json::from_reader(BufReader::new(info_file))
             .expect("dynamic index info deserialization failed!");
-        
+
         if &info.ver[..] != MORSELS_VERSION {
             *is_dynamic = false;
             return DynamicIndexInfo::empty();
@@ -165,6 +165,9 @@ impl DynamicIndexInfo {
         let num_bytes = (doc_id_counter as f64 / 8.0).ceil() as usize;
         self.invalidation_vector.extend(vec![0; num_bytes - self.invalidation_vector.len()]);
 
-        File::create(output_folder_path.join(BITMAP_FILE_NAME)).unwrap().write_all(&*self.invalidation_vector).unwrap();
+        File::create(output_folder_path.join(BITMAP_FILE_NAME))
+            .unwrap()
+            .write_all(&*self.invalidation_vector)
+            .unwrap();
     }
 }

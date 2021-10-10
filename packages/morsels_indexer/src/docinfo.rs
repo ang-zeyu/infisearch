@@ -90,7 +90,11 @@ impl DocInfos {
     }
 
     fn calculate_field_average_lengths(&mut self, writer: &mut BufWriter<std::fs::File>) {
-        let num_fields = if let Some(first) = self.doc_lengths.get(0) { first.field_lengths.len() } else { 0 };
+        let num_fields = if let Some(first) = self.doc_lengths.get(0) {
+            first.field_lengths.len()
+        } else {
+            0
+        };
         let mut total_field_lengths: Vec<u64> = vec![0; num_fields];
         for worker_miner_doc_info in self.doc_lengths.iter() {
             for (field_id, field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {

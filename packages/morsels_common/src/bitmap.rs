@@ -6,7 +6,7 @@ pub fn check(vec: &[u8], at: usize) -> bool {
 }
 
 #[inline(always)]
-pub fn set(vec: &mut[u8], at: usize) {
+pub fn set(vec: &mut [u8], at: usize) {
     let byte_num = at / 8 as usize;
     vec[byte_num] |= 1_u8 << (at % 8) as u8;
 }

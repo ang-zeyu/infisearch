@@ -151,10 +151,7 @@ impl WorkerMiner {
 
         WorkerBlockIndexResults {
             terms: std::mem::take(&mut self.terms),
-            doc_infos: std::mem::replace(
-                &mut self.doc_infos,
-                Vec::with_capacity(old_doc_infos_capacity),
-            ),
+            doc_infos: std::mem::replace(&mut self.doc_infos, Vec::with_capacity(old_doc_infos_capacity)),
         }
     }
 
@@ -165,8 +162,9 @@ impl WorkerMiner {
 
         let num_scored_fields = self.field_infos.num_scored_fields;
         let mut field_lengths = vec![0; num_scored_fields];
-        let mut field_store_buffered_writer =
-            Vec::with_capacity(((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize);
+        let mut field_store_buffered_writer = Vec::with_capacity(
+            ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize,
+        );
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
         for (field_name, mut field_text) in field_texts {
@@ -183,7 +181,9 @@ impl WorkerMiner {
                 field_store_buffered_writer.write_all(b"[").unwrap();
                 field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
                 field_store_buffered_writer.write_all(b",\"").unwrap();
-                field_store_buffered_writer.write_all(find_u8_unsafe_morecap(&field_text).as_bytes()).unwrap();
+                field_store_buffered_writer
+                    .write_all(find_u8_unsafe_morecap(&field_text).as_bytes())
+                    .unwrap();
                 field_store_buffered_writer.write_all(b"\"]").unwrap();
             }
 
@@ -209,7 +209,10 @@ impl WorkerMiner {
 
                     let mut term_doc = term_docs.last_mut().unwrap();
                     if term_doc.doc_id != doc_id {
-                        term_docs.push(TermDoc { doc_id, doc_fields: vec![DocField::default(); num_scored_fields] });
+                        term_docs.push(TermDoc {
+                            doc_id,
+                            doc_fields: vec![DocField::default(); num_scored_fields],
+                        });
                         term_doc = term_docs.last_mut().unwrap();
                     }
 
@@ -230,6 +233,10 @@ impl WorkerMiner {
 
         field_store_buffered_writer.write_all(b"]").unwrap();
         field_store_buffered_writer.flush().unwrap();
-        self.doc_infos.push(WorkerMinerDocInfo { doc_id, field_lengths, field_texts: field_store_buffered_writer });
+        self.doc_infos.push(WorkerMinerDocInfo {
+            doc_id,
+            field_lengths,
+            field_texts: field_store_buffered_writer,
+        });
     }
 }

@@ -188,14 +188,18 @@ impl Searcher {
             // Query term proximity ranking
             if self.searcher_config.searcher_options.use_query_term_proximity {
                 pl_its_for_proximity_ranking.extend(
-                    pl_its.iter()
-                        .filter(|pl_it| pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == pivot_doc_id)
-                        .map(|pl_it| pl_it as *const PlIterator)
+                    pl_its
+                        .iter()
+                        .filter(|pl_it| {
+                            pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == pivot_doc_id
+                        })
+                        .map(|pl_it| pl_it as *const PlIterator),
                 );
 
                 if pl_its_for_proximity_ranking.len() > 1 {
                     unsafe {
-                        pl_its_for_proximity_ranking.sort_by(|a, b| (**a).original_idx.cmp(&(**b).original_idx));
+                        pl_its_for_proximity_ranking
+                            .sort_by(|a, b| (**a).original_idx.cmp(&(**b).original_idx));
                     }
 
                     let num_pl_its_float = pl_its_for_proximity_ranking.len() as f32;
@@ -323,6 +327,13 @@ impl Searcher {
             // ------------------------------------------
         }
 
-        Query { searched_terms, query_parts, is_free_text_query, result_heap, wand_leftovers, did_dedup_wand: false }
+        Query {
+            searched_terms,
+            query_parts,
+            is_free_text_query,
+            result_heap,
+            wand_leftovers,
+            did_dedup_wand: false,
+        }
     }
 }

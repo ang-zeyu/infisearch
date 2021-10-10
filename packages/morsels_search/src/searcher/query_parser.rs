@@ -37,10 +37,7 @@ enum QueryParseState {
     Quote,
 }
 
-fn handle_op(
-    query_parts: &mut Vec<QueryPart>,
-    operator_stack: &mut Vec<Operator>
-) {
+fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator>) {
     while !operator_stack.is_empty() {
         let op = operator_stack.pop().unwrap();
         match op {
@@ -57,17 +54,17 @@ fn handle_op(
                     field_name: None,
                     children: Some(vec![last_part]),
                 });
-            },
+            }
             Operator::And => {
                 let last_part = query_parts.pop().unwrap();
                 query_parts.last_mut().unwrap().children.as_mut().unwrap().push(last_part);
-            },
+            }
             Operator::OpenGroup => {
                 // Serves as a guard to the rest of the stack.
                 // This will only be popped when ')' is encountered.
                 operator_stack.push(op);
                 return;
-            },
+            }
             Operator::Field(field_name) => {
                 query_parts.last_mut().unwrap().field_name = Some(field_name);
             }
@@ -211,9 +208,10 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
                             });
                             op_stack.push(Operator::OpenGroup);
                             last_possible_unaryop_idx = i;
-                        },
+                        }
                         ')' => {
-                            if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup) {
+                            if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup)
+                            {
                                 let mut children: Vec<QueryPart> = Vec::new();
                                 while let Some(mut last_part) = query_parts.pop() {
                                     if let QueryPartType::Bracket = last_part.part_type {
@@ -221,7 +219,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
                                             children.reverse();
                                             last_part.children = Some(children);
                                             query_parts.push(last_part);
-                                            
+
                                             op_stack.pop();
                                             handle_op(&mut query_parts, &mut op_stack);
                                             break;
@@ -235,7 +233,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
                                 }
                             }
                             last_possible_unaryop_idx = i;
-                        },
+                        }
                         _ => {}
                     }
                 } else if c == ':' && !did_encounter_escape && last_possible_unaryop_idx >= i && j > i {
@@ -279,7 +277,9 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
                             &mut op_stack,
                         );
 
-                        if query_parts.is_empty() || !matches!(query_parts.last().unwrap().part_type, QueryPartType::And) {
+                        if query_parts.is_empty()
+                            || !matches!(query_parts.last().unwrap().part_type, QueryPartType::And)
+                        {
                             let children = Some(if let Some(last_curr_query_part) = query_parts.pop() {
                                 vec![last_curr_query_part]
                             } else {
@@ -350,15 +350,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
         j += 1;
     }
 
-    handle_terminator(
-        tokenizer,
-        &query_chars,
-        i,
-        j,
-        &escape_indices,
-        &mut query_parts,
-        &mut op_stack,
-    );
+    handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut op_stack);
 
     query_parts
 }
@@ -489,8 +481,14 @@ pub mod test {
         assert_eq!(parse("lorem NOTipsum"), vec![get_lorem(), get_term("notipsum")]);
         assert_eq!(parse("lorem NOT ipsum"), vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]);
         assert_eq!(parse("lorem AND ipsum"), vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]);
-        assert_eq!(parse("lorem AND ipsum AND lorem"), vec![wrap_in_and(vec![get_lorem(), get_ipsum(), get_lorem()])]);
-        assert_eq!(parse("lorem AND NOT ipsum"), vec![wrap_in_and(vec![get_lorem(), wrap_in_not(get_ipsum())])]);
+        assert_eq!(
+            parse("lorem AND ipsum AND lorem"),
+            vec![wrap_in_and(vec![get_lorem(), get_ipsum(), get_lorem()])]
+        );
+        assert_eq!(
+            parse("lorem AND NOT ipsum"),
+            vec![wrap_in_and(vec![get_lorem(), wrap_in_not(get_ipsum())])]
+        );
         assert_eq!(
             parse("NOT lorem AND NOT ipsum"),
             vec![wrap_in_and(vec![wrap_in_not(get_lorem()), wrap_in_not(get_ipsum())])]
@@ -509,17 +507,10 @@ pub mod test {
     fn phrase_test() {
         assert_eq!(parse("\"lorem ipsum\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
         assert_eq!(parse("\"(lorem ipsum)\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
-        assert_eq!(
-            parse("lorem\"lorem ipsum\""),
-            vec![get_lorem(), get_phrase(vec!["lorem", "ipsum"])]
-        );
+        assert_eq!(parse("lorem\"lorem ipsum\""), vec![get_lorem(), get_phrase(vec!["lorem", "ipsum"])]);
         assert_eq!(
             parse("\"lorem ipsum\"lorem\"lorem ipsum\""),
-            vec![
-                get_phrase(vec!["lorem", "ipsum"]),
-                get_lorem(),
-                get_phrase(vec!["lorem", "ipsum"]),
-            ]
+            vec![get_phrase(vec!["lorem", "ipsum"]), get_lorem(), get_phrase(vec!["lorem", "ipsum"]),]
         );
         assert_eq!(
             parse("\"lorem ipsum\" lorem \"lorem ipsum\""),
@@ -569,14 +560,8 @@ pub mod test {
         assert_eq!(
             parse("((lorem ipsum) lorem) (lorem(ipsum))"),
             vec![
-                wrap_in_parentheses(vec![
-                    wrap_in_parentheses(vec![get_lorem(), get_ipsum()]),
-                    get_lorem(),
-                ]),
-                wrap_in_parentheses(vec![
-                    get_lorem(),
-                    wrap_in_parentheses(vec![get_ipsum()]),
-                ]),
+                wrap_in_parentheses(vec![wrap_in_parentheses(vec![get_lorem(), get_ipsum()]), get_lorem(),]),
+                wrap_in_parentheses(vec![get_lorem(), wrap_in_parentheses(vec![get_ipsum()]),]),
             ]
         );
     }
@@ -591,7 +576,8 @@ pub mod test {
         );
         assert_eq!(
             parse("title:(lorem body:ipsum)"),
-            vec![wrap_in_parentheses(vec![get_lorem().no_expand(), get_ipsum().with_field("body")]).with_field("title")]
+            vec![wrap_in_parentheses(vec![get_lorem().no_expand(), get_ipsum().with_field("body")])
+                .with_field("title")]
         );
         assert_eq!(
             parse("title:lorem AND ipsum"),
@@ -601,8 +587,14 @@ pub mod test {
             parse("title:(lorem AND ipsum)"),
             vec![wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]).with_field("title")]
         );
-        assert_eq!(parse("title:NOT lorem ipsum)"), vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]);
-        assert_eq!(parse("title: NOT lorem ipsum)"), vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]);
+        assert_eq!(
+            parse("title:NOT lorem ipsum)"),
+            vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]
+        );
+        assert_eq!(
+            parse("title: NOT lorem ipsum)"),
+            vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]
+        );
         assert_eq!(
             parse("title: lorem NOT ipsum)"),
             vec![get_lorem().with_field("title").no_expand(), wrap_in_not(get_ipsum())]
@@ -615,10 +607,12 @@ pub mod test {
             parse("title:(lorem AND ipsum) AND NOT (lorem ipsum) body:(lorem NOT ipsum)"),
             vec![
                 wrap_in_and(vec![
-                    wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]).with_field("title"),
+                    wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])])
+                        .with_field("title"),
                     wrap_in_not(wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]))
                 ]),
-                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
+                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())])
+                    .with_field("body")
             ]
         );
 
@@ -627,7 +621,8 @@ pub mod test {
             vec![
                 wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]).with_field("title"),
                 wrap_in_not(wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]).with_field("title")),
-                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
+                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())])
+                    .with_field("body")
             ]
         );
 
@@ -635,8 +630,11 @@ pub mod test {
             parse("title:\"lorem AND ipsum\"NOT title:(\"lorem ipsum\") body:(lorem NOT ipsum)"),
             vec![
                 get_phrase(vec!["lorem", "and", "ipsum"]).with_field("title"),
-                wrap_in_not(wrap_in_parentheses(vec![get_phrase(vec!["lorem", "ipsum"])]).with_field("title")),
-                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
+                wrap_in_not(
+                    wrap_in_parentheses(vec![get_phrase(vec!["lorem", "ipsum"])]).with_field("title")
+                ),
+                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())])
+                    .with_field("body")
             ]
         );
 
@@ -665,7 +663,11 @@ pub mod test {
         assert_eq!(
             parse("title:lorem AND ipsum AND NOT lorem ipsum body:lorem NOT ipsum"),
             vec![
-                wrap_in_and(vec![get_lorem().with_field("title"), get_ipsum(), wrap_in_not(get_lorem().no_expand()),]),
+                wrap_in_and(vec![
+                    get_lorem().with_field("title"),
+                    get_ipsum(),
+                    wrap_in_not(get_lorem().no_expand()),
+                ]),
                 get_ipsum().no_expand(),
                 get_lorem().no_expand().with_field("body"),
                 wrap_in_not(get_ipsum()),

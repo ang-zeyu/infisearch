@@ -147,7 +147,12 @@ impl<'de> Deserialize<'de> for HtmlLoader {
 }
 
 impl HtmlLoaderResult {
-    fn traverse_node(&self, node: ElementRef, field_texts: &mut Vec<(String, String)>, field_name: Option<&String>) {
+    fn traverse_node(
+        &self,
+        node: ElementRef,
+        field_texts: &mut Vec<(String, String)>,
+        field_name: Option<&String>,
+    ) {
         for html_loader_selector in self.options.selectors.iter() {
             if html_loader_selector.selector.matches(&node) {
                 let field_name = Some(&html_loader_selector.field_name);
@@ -168,7 +173,8 @@ impl HtmlLoaderResult {
                             if last.0 == html_loader_selector.field_name {
                                 last.1 += text;
                             } else {
-                                field_texts.push((html_loader_selector.field_name.to_owned(), text.to_string()));
+                                field_texts
+                                    .push((html_loader_selector.field_name.to_owned(), text.to_string()));
                             }
                         } else {
                             field_texts.push((html_loader_selector.field_name.to_owned(), text.to_string()));

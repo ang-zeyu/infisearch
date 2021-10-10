@@ -59,9 +59,10 @@ impl Loader for JsonLoader {
     ) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
             if extension == "json" {
-                let as_value: Value =
-                    serde_json::from_str(&std::fs::read_to_string(absolute_path).expect("Failed to read json file!"))
-                        .expect("Invalid json!");
+                let as_value: Value = serde_json::from_str(
+                    &std::fs::read_to_string(absolute_path).expect("Failed to read json file!"),
+                )
+                .expect("Invalid json!");
 
                 let link = relative_path.to_slash().unwrap();
                 if as_value.is_array() {
@@ -69,9 +70,11 @@ impl Loader for JsonLoader {
                     return Some(Box::new({
                         let doc_count = documents.len();
                         let links = vec![link; doc_count];
-                        documents.into_iter().zip(links).zip(0..doc_count).map(move |((document, link), idx)| {
-                            self.unwrap_json_deserialize_result(document, format!("{}#{}", link, idx))
-                        })
+                        documents.into_iter().zip(links).zip(0..doc_count).map(
+                            move |((document, link), idx)| {
+                                self.unwrap_json_deserialize_result(document, format!("{}#{}", link, idx))
+                            },
+                        )
                     }));
                 } else {
                     return Some(Box::new(std::iter::once(

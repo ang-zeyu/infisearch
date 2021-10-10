@@ -9,19 +9,15 @@ use dashmap::DashMap;
 use morsels_common::DOC_INFO_FILE_NAME;
 
 use crate::docinfo::DocInfos;
+use crate::spimireader::common::{
+    self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
+};
 use crate::utils::varint;
 use crate::DynamicIndexInfo;
 use crate::MainToWorkerMessage;
 use crate::MorselsIndexingConfig;
 use crate::Receiver;
 use crate::Sender;
-use crate::spimireader::common::{
-    self,
-    postings_stream::PostingsStream,
-    PostingsStreamDecoder,
-    TermDocsForMerge,
-    terms,
-};
 
 #[allow(clippy::too_many_arguments)]
 pub fn merge_blocks(
@@ -58,7 +54,8 @@ pub fn merge_blocks(
             .expect("No thread should be holding doc infos arc when merging blocks")
             .into_inner()
             .expect("No thread should be holding doc infos mutex when merging blocks");
-        doc_infos_unwrapped_inner.finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), doc_id_counter);
+        doc_infos_unwrapped_inner
+            .finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), doc_id_counter);
 
         Arc::from(doc_infos_unwrapped_inner)
     };
@@ -140,7 +137,9 @@ pub fn merge_blocks(
 
         dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
 
-        dict_table_writer.write_all(varint::get_var_int(start_pl_offset - prev_pl_start_offset, &mut varint_buf)).unwrap();
+        dict_table_writer
+            .write_all(varint::get_var_int(start_pl_offset - prev_pl_start_offset, &mut varint_buf))
+            .unwrap();
         prev_pl_start_offset = start_pl_offset;
 
         // ---------------------------------------------
@@ -153,7 +152,8 @@ pub fn merge_blocks(
         // ---------------------------------------------
     }
 
-    dynamic_index_info.last_pl_number = if curr_pl_offset != 0 || curr_pl == 0 { curr_pl } else { curr_pl - 1 };
+    dynamic_index_info.last_pl_number =
+        if curr_pl_offset != 0 || curr_pl == 0 { curr_pl } else { curr_pl - 1 };
     dynamic_index_info.num_docs = doc_id_counter;
 
     dict_table_writer.flush().unwrap();

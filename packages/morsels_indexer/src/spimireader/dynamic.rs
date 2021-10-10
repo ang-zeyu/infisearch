@@ -20,19 +20,15 @@ use morsels_common::utils::varint::decode_var_int;
 use morsels_common::DOC_INFO_FILE_NAME;
 
 use crate::docinfo::DocInfos;
+use crate::spimireader::common::{
+    self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
+};
 use crate::utils::varint;
 use crate::DynamicIndexInfo;
 use crate::MainToWorkerMessage;
 use crate::MorselsIndexingConfig;
 use crate::Receiver;
 use crate::Sender;
-use crate::spimireader::common::{
-    self,
-    postings_stream::PostingsStream,
-    PostingsStreamDecoder,
-    TermDocsForMerge,
-    terms,
-};
 
 struct ExistingPlWriter {
     curr_pl: u32,
@@ -97,7 +93,9 @@ impl ExistingPlWriter {
                 new_term_info.doc_freq -= 1;
             } else {
                 // Doc id gaps need to be re-encoded due to possible doc deletions
-                self.pl_writer.write_all(varint::get_var_int(prev_doc_id - prev_last_valid_id, varint_buf)).unwrap();
+                self.pl_writer
+                    .write_all(varint::get_var_int(prev_doc_id - prev_last_valid_id, varint_buf))
+                    .unwrap();
                 self.pl_writer.write_all(&self.pl_vec[start..pl_vec_pos]).unwrap();
                 prev_last_valid_id = prev_doc_id;
             }
@@ -143,7 +141,8 @@ impl ExistingPlWriter {
             self.pl_writer.write_all(&self.pl_vec[self.pl_vec_last_offset..]).unwrap();
         }
 
-        pl_file_length_differences.insert(self.curr_pl, self.pl_writer.len() as i32 - self.pl_vec.len() as i32);
+        pl_file_length_differences
+            .insert(self.curr_pl, self.pl_writer.len() as i32 - self.pl_vec.len() as i32);
 
         File::create(self.output_path).unwrap().write_all(&*self.pl_writer).unwrap();
     }
@@ -166,7 +165,14 @@ fn get_existing_pl_writer(
     let mut pl_vec = Vec::new();
     pl_file.read_to_end(&mut pl_vec).unwrap();
 
-    ExistingPlWriter { curr_pl, pl_vec, pl_writer: Vec::new(), pl_vec_last_offset: 0, with_positions, output_path }
+    ExistingPlWriter {
+        curr_pl,
+        pl_vec,
+        pl_writer: Vec::new(),
+        pl_vec_last_offset: 0,
+        with_positions,
+        output_path,
+    }
 }
 
 // The same as merge_blocks, but for dynamic indexing.
@@ -204,7 +210,8 @@ pub fn modify_blocks(
             .expect("No thread should be holding doc infos arc when merging blocks")
             .into_inner()
             .expect("No thread should be holding doc infos mutex when merging blocks");
-        doc_infos_unwrapped_inner.finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), new_num_docs as u32);
+        doc_infos_unwrapped_inner
+            .finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), new_num_docs as u32);
 
         Arc::from(doc_infos_unwrapped_inner)
     };
@@ -310,7 +317,12 @@ pub fn modify_blocks(
             // New term
             new_term_infos.push((
                 curr_term,
-                TermInfo { doc_freq, idf: 0.0, postings_file_name: new_pl, postings_file_offset: start_pl_offset },
+                TermInfo {
+                    doc_freq,
+                    idf: 0.0,
+                    postings_file_name: new_pl,
+                    postings_file_offset: start_pl_offset,
+                },
             ));
         }
     }
@@ -352,16 +364,14 @@ pub fn modify_blocks(
         term_terminfo_pairs: &mut Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)>,
         prev_offset: &mut u32,
         curr_existing_pl_difference: i32,
-     ) {
+    ) {
         for (_term, term_info) in term_terminfo_pairs.iter_mut() {
             dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, varint_buf)).unwrap();
 
             let pl_offset = (term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32;
 
-            dict_table_writer
-                .write_all(varint::get_var_int(pl_offset - *prev_offset, varint_buf))
-                .unwrap();
-            
+            dict_table_writer.write_all(varint::get_var_int(pl_offset - *prev_offset, varint_buf)).unwrap();
+
             *prev_offset = pl_offset;
         }
         term_terminfo_pairs.clear();
@@ -398,7 +408,10 @@ pub fn modify_blocks(
                 .write_all(varint::get_var_int(updated_term_info.doc_freq, &mut varint_buf))
                 .unwrap();
             dict_table_writer
-                .write_all(varint::get_var_int(updated_term_info.postings_file_offset - prev_offset, &mut varint_buf))
+                .write_all(varint::get_var_int(
+                    updated_term_info.postings_file_offset - prev_offset,
+                    &mut varint_buf,
+                ))
                 .unwrap();
             prev_offset = updated_term_info.postings_file_offset;
         } else {
@@ -435,9 +448,7 @@ pub fn modify_blocks(
             prev_dict_pl = term_info.postings_file_name;
         }
 
-        dict_table_writer
-            .write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf))
-            .unwrap();
+        dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf)).unwrap();
         dict_table_writer
             .write_all(varint::get_var_int(term_info.postings_file_offset - prev_offset, &mut varint_buf))
             .unwrap();

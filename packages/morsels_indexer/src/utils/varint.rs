@@ -43,39 +43,18 @@ mod test {
     fn test_encode() {
         let mut output_buf: [u8; 16] = [0; 16];
 
-        assert_eq!(
-            get_var_int(0, &mut output_buf),
-            &[CONTINUATION_MASK | 0]
-        );
+        assert_eq!(get_var_int(0, &mut output_buf), &[CONTINUATION_MASK | 0]);
 
-        assert_eq!(
-            get_var_int(64, &mut output_buf),
-            &[CONTINUATION_MASK | 64]
-        );
+        assert_eq!(get_var_int(64, &mut output_buf), &[CONTINUATION_MASK | 64]);
 
-        assert_eq!(
-            get_var_int(127, &mut output_buf),
-            &[CONTINUATION_MASK | 127]
-        );
+        assert_eq!(get_var_int(127, &mut output_buf), &[CONTINUATION_MASK | 127]);
 
-        assert_eq!(
-            get_var_int(16256, &mut output_buf),
-            &[0, CONTINUATION_MASK | 127]
-        );
+        assert_eq!(get_var_int(16256, &mut output_buf), &[0, CONTINUATION_MASK | 127]);
 
-        assert_eq!(
-            get_var_int(16266, &mut output_buf),
-            &[10, CONTINUATION_MASK | 127]
-        );
+        assert_eq!(get_var_int(16266, &mut output_buf), &[10, CONTINUATION_MASK | 127]);
 
-        assert_eq!(
-            get_var_int(16383, &mut output_buf),
-            &[127, CONTINUATION_MASK | 127]
-        );
+        assert_eq!(get_var_int(16383, &mut output_buf), &[127, CONTINUATION_MASK | 127]);
 
-        assert_eq!(
-            get_var_int(u32::MAX, &mut output_buf),
-            &[127, 127, 127, 127, CONTINUATION_MASK | 15]
-        );
+        assert_eq!(get_var_int(u32::MAX, &mut output_buf), &[127, 127, 127, 127, CONTINUATION_MASK | 15]);
     }
 }

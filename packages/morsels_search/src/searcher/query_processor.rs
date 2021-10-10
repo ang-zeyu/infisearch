@@ -27,7 +27,9 @@ impl Searcher {
             .unwrap()
             .iter()
             .enumerate()
-            .map(|(idx, term)| Rc::new(RefCell::new(term_postings_lists.get(term).unwrap().get_it(idx as u8))))
+            .map(|(idx, term)| {
+                Rc::new(RefCell::new(term_postings_lists.get(term).unwrap().get_it(idx as u8)))
+            })
             .collect();
         let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> =
             pl_iterators.iter().map(|pl_it| Reverse(Rc::clone(pl_it))).collect();
@@ -82,7 +84,9 @@ impl Searcher {
                         }
 
                         let curr_pl_field = &curr_term_termdocs.fields[field_id];
-                        if let Some(pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
+                        if let Some(pos) =
+                            curr_pl_field.field_positions.get(term_field_position_idxes[term_idx])
+                        {
                             if term_idx == 0 {
                                 term_field_position_idxes[term_idx] += 1;
 
@@ -309,24 +313,20 @@ impl Searcher {
             let doc_id = curr_pl_it.0.td.unwrap().doc_id;
 
             curr_pl_iterators.push(curr_pl_it);
-            
-            while !doc_heap.is_empty()
-                && doc_heap.peek().unwrap().0.td.unwrap().doc_id == doc_id {
+
+            while !doc_heap.is_empty() && doc_heap.peek().unwrap().0.td.unwrap().doc_id == doc_id {
                 curr_pl_iterators.push(doc_heap.pop().unwrap());
             }
 
             let merged_term_docs = if curr_pl_iterators.len() == 1 {
                 curr_pl_iterators[0].0.td.unwrap().to_owned()
             } else {
-                curr_pl_iterators
-                    .iter()
-                    .fold(TermDoc {
-                        doc_id,
-                        fields: Vec::new(),
-                    }, |acc, next| PostingsList::merge_term_docs(&acc, next.0.td.unwrap()))
+                curr_pl_iterators.iter().fold(TermDoc { doc_id, fields: Vec::new() }, |acc, next| {
+                    PostingsList::merge_term_docs(&acc, next.0.td.unwrap())
+                })
             };
             new_pl.term_docs.push(merged_term_docs);
-            
+
             for mut pl_it in curr_pl_iterators.drain(..) {
                 if pl_it.0.next().is_some() {
                     doc_heap.push(pl_it);
@@ -340,8 +340,12 @@ impl Searcher {
     }
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
-        if let Some(tup) =
-            self.searcher_config.field_infos.iter().enumerate().find(|(_id, field_info)| field_info.name == field_name)
+        if let Some(tup) = self
+            .searcher_config
+            .field_infos
+            .iter()
+            .enumerate()
+            .find(|(_id, field_info)| field_info.name == field_name)
         {
             let mut new_pl = PostingsList {
                 weight: pl.weight,
@@ -446,15 +450,17 @@ mod test {
     use pretty_assertions::assert_eq;
     use rustc_hash::FxHashMap;
 
-    use crate::postings_list::PostingsList;
     use crate::postings_list::test::{to_pl, to_pl_rc};
-    use crate::searcher::test as searcher_test;
+    use crate::postings_list::PostingsList;
     use crate::searcher::query_parser::test as query_parser_test;
+    use crate::searcher::test as searcher_test;
 
     struct TermPostingsListsBuilder(FxHashMap<String, PostingsList>);
 
     impl TermPostingsListsBuilder {
-        fn new() -> Self { TermPostingsListsBuilder(FxHashMap::default()) }
+        fn new() -> Self {
+            TermPostingsListsBuilder(FxHashMap::default())
+        }
 
         fn with(mut self, term: &str, pl_str: &str) -> Self {
             self.0.insert(term.to_owned(), to_pl(pl_str));
@@ -570,14 +576,11 @@ mod test {
         assert_eq!(
             search(
                 "lorem AND ipsum",
-                TermPostingsListsBuilder::new()
-                    .with("lorem", "[[1,[1]]]")
-                    .with("ipsum", "[[1,[1]]]")
-                    .0
+                TermPostingsListsBuilder::new().with("lorem", "[[1,[1]]]").with("ipsum", "[[1,[1]]]").0
             ),
             vec![to_pl_rc("[]")]
         );
-        
+
         // Different fields still match
         assert_eq!(
             search(
@@ -640,10 +643,7 @@ mod test {
         assert_eq!(
             search(
                 "(lorem AND ipsum)",
-                TermPostingsListsBuilder::new()
-                    .with("lorem", "[[1,[1]]]")
-                    .with("ipsum", "[[1,[1]]]")
-                    .0
+                TermPostingsListsBuilder::new().with("lorem", "[[1,[1]]]").with("ipsum", "[[1,[1]]]").0
             ),
             vec![to_pl_rc("[]")]
         );
@@ -675,9 +675,7 @@ mod test {
         assert_eq!(
             search(
                 "NOT lorem",
-                TermPostingsListsBuilder::new()
-                    .with("lorem", "null, [[1,[1]]], null, [[1,[1]]]")
-                    .0
+                TermPostingsListsBuilder::new().with("lorem", "null, [[1,[1]]], null, [[1,[1]]]").0
             ),
             vec![to_pl_rc("[], null, [], null, [], [], [], [], [], []")]
         );
@@ -685,9 +683,7 @@ mod test {
         assert_eq!(
             search(
                 "NOT lorem ipsum",
-                TermPostingsListsBuilder::new()
-                    .with("lorem", "null, [[1,[1]]], null, [[1,[1]]]")
-                    .0
+                TermPostingsListsBuilder::new().with("lorem", "null, [[1,[1]]], null, [[1,[1]]]").0
             ),
             vec![to_pl_rc("[], null, [], null, [], [], [], [], [], []")]
         );

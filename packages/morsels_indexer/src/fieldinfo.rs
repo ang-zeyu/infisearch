@@ -62,7 +62,10 @@ impl FieldInfos {
         field_store_block_size: u32,
         output_folder_path: &Path,
     ) -> FieldInfos {
-        let num_scored_fields = field_infos_map.values().filter(|field_info| field_info.weight != 0.0).count();
+        let num_scored_fields = field_infos_map
+            .values()
+            .filter(|field_info| field_info.weight != 0.0)
+            .count();
 
         let mut field_infos_by_id: Vec<FieldInfo> = field_infos_map.values().cloned().collect();
         field_infos_by_id.sort_by(|fi1, fi2| fi1.id.cmp(&fi2.id));
