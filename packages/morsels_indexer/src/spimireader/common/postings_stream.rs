@@ -13,7 +13,7 @@ use crate::Sender;
 
 pub static POSTINGS_STREAM_BUFFER_SIZE: u32 = 5000;
 
-static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 5000;
+static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 2500;
 
 pub struct PostingsStream {
     idx: u32,
