@@ -129,6 +129,12 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
 
     const rootBackdropEl = h('div', { class: 'morsels-portal-backdrop' }, innerRoot);
     rootBackdropEl.onclick = () => rootBackdropEl.remove();
+    rootBackdropEl.addEventListener('keyup', (ev) => {
+      if (ev.code === 'Escape') {
+        ev.stopPropagation();
+        rootBackdropEl.remove();
+      }
+    });
 
     const inputEl = h(
       'input', { class: 'morsels-portal-input', type: 'text' },
