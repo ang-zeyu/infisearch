@@ -269,12 +269,8 @@ impl Searcher {
         query_part: &mut QueryPart,
         term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Option<Rc<PostingsList>> {
-        if query_part.children.is_none() {
-            return None;
-        }
-
         let mut child_postings_lists = self.populate_postings_lists(
-            query_part.children.as_mut().unwrap(),
+            query_part.children.as_mut()?,
             term_postings_lists,
         );
 

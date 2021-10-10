@@ -205,16 +205,16 @@ impl Searcher {
                     let num_pl_its_float = pl_its_for_proximity_ranking.len() as f32;
 
                     let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
-                    for i in 0..pl_its_for_proximity_ranking.len() {
+                    for (i, pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
                         let curr_fields = unsafe {
-                            &(*pl_its_for_proximity_ranking[i]).td.as_ref().unwrap().fields
+                            &(**pl_it).td.as_ref().unwrap().fields
                         };
-                        for j in 0..curr_fields.len() {
-                            if curr_fields[j].field_positions.is_empty() {
+                        for (j, curr_field) in curr_fields.iter().enumerate() {
+                            if curr_field.field_positions.is_empty() {
                                 continue;
                             }
                             position_heap.push(Position {
-                                pos: curr_fields[j].field_positions[0],
+                                pos: curr_field.field_positions[0],
                                 pl_it_idx: i,
                                 pl_it_field_idx: j,
                                 pl_it_field_fieldposition_next_idx: 1,

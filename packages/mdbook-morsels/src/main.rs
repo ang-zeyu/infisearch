@@ -154,11 +154,7 @@ fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
     ));
 
     let add_css = if let Some(TomlBoolean(no_css)) = ctx.config.get("output.morsels.no-css") {
-        if *no_css {
-            false
-        } else {
-            true
-        }
+        !(*no_css)
     } else {
         true
     };
