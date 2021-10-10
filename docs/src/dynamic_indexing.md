@@ -1,8 +1,8 @@
 # Dynamic Indexing
 
-Dynamic, or "incremental" indexing is also supported by the indexer cli tool.
+*Dynamic*, or *incremental* indexing is also supported by the indexer cli tool.
 
-Detecting deleted, changed, or added files is done by storing an internal file path / last modified metadata map.
+Detecting deleted, changed, or added files is done by storing an internal file path -> last modified timestamp metadata map.
 
 To enable it, simply pass the `--dynamic` or `-d` option when running the indexer.
 
@@ -10,13 +10,13 @@ To enable it, simply pass the `--dynamic` or `-d` option when running the indexe
 
 As the core idea of Morsels is to split up the index into many tiny parts (and not more than necessary), the dynamic indexing feature works by "patching" only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.
 
-This is in contrast to a "segment" based approach whereby each dynamic indexing run generates an entirely separate "segment", and segments are merged together at runtime. While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.
+This is in contrast to a more traditional "segment" based approach you might find in search servers, whereby each dynamic indexing run generates an entirely separate "segment", and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.
 
 ## Caveats
 
-There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern -- for example, updating the index immediately when writing this documentation!
+There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern -- for example, updating the index immediately when writing this documentation (on saving a file).
 
-This should be automatic for most use cases -- if the output folder path does not contain any files indexed by morsels and the `--dynamic` option is specified, this is similar to not specifying the `--dynamic` option at all.
+This should be automatic for most use cases when specifying the `--dynamic` option: If the output folder path does not contain any files indexed by morsels, or it contains incompatible files, the end result is the same as not specifying the `--dynamic` option at all.
 
 ### Collection Statistics
 
