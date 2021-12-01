@@ -33,10 +33,10 @@ use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
 use crate::loader::Loader;
 use crate::worker::miner::WorkerMiner;
-use crate::worker::{IndexUnit, MainToWorkerMessage, Worker, WorkerToMainMessage};
+use crate::worker::{IndexMsg, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
-use crossbeam::queue::SegQueue;
+use crossbeam::deque::{Injector as CrossbeamInjector, Stealer as CrossbeamStealer, Worker as CrossbeamWorker, Steal as CrossbeamSteal};
 use glob::Pattern;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
@@ -209,7 +209,8 @@ pub struct Indexer {
     workers: Vec<Worker>,
     loaders: Vec<Box<dyn Loader>>,
     doc_infos: Arc<Mutex<DocInfos>>,
-    index_unit_queue: Arc<SegQueue<IndexUnit>>,
+    index_unit_queue: Arc<CrossbeamInjector<IndexMsg>>,
+    index_unit_queue_max_size: usize,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
@@ -294,7 +295,7 @@ impl Indexer {
             Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
         ) = channel::bounded(config.indexing_config.num_threads);
 
-        let index_unit_queue = Arc::from(SegQueue::new());
+        let index_unit_queue = Arc::from(CrossbeamInjector::new());
 
         let expected_num_docs_per_thread =
             (config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2) as usize;
@@ -342,7 +343,7 @@ impl Indexer {
             &tokenizer,
         );
 
-        Indexer {
+        let indexer = Indexer {
             indexing_config,
             doc_id_counter,
             spimi_counter: 0,
@@ -354,6 +355,7 @@ impl Indexer {
             loaders,
             doc_infos,
             index_unit_queue,
+            index_unit_queue_max_size: 30,
             tx_main,
             rx_main,
             num_workers_writing_blocks,
@@ -362,7 +364,11 @@ impl Indexer {
             delete_unencountered_external_ids,
             start_doc_id,
             dynamic_index_info,
-        }
+        };
+
+        indexer.make_workers_index(num_threads);
+
+        indexer
     }
 
     fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
@@ -390,6 +396,12 @@ impl Indexer {
     fn block_number(&self) -> u32 {
         ((self.doc_id_counter - self.start_doc_id) as f64 / (self.indexing_config.num_docs_per_block as f64)).ceil()
             as u32
+    }
+
+    fn make_workers_index(&self, n: usize) {
+        for _i in 0..n {
+            self.tx_main.send(MainToWorkerMessage::Index).expect("Failed to restart index phase");
+        }
     }
 
     pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
@@ -420,17 +432,15 @@ impl Indexer {
             return;
         }
 
-        let mut sent = 0;
-
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
             {
-                for loader_result in loader_results {
-                    self.index_unit_queue.push(IndexUnit { doc_id: self.doc_id_counter, loader_result });
-                    sent += 1;
-                    if sent == 2 {
-                        sent = 0;
-                        self.tx_main.try_send(MainToWorkerMessage::Index);
+                for mut loader_result in loader_results {
+                    if self.index_unit_queue.len() > 100 {
+                        // println!("main20 {}", self.doc_id_counter);
+                        self.doc_miner.index_doc(self.doc_id_counter, loader_result.get_field_texts());
+                    } else {
+                        self.index_unit_queue.push(IndexMsg::Index { doc_id: self.doc_id_counter, loader_result });
                     }
 
                     self.dynamic_index_info.add_doc_to_external_id(external_id, self.doc_id_counter);
@@ -439,15 +449,32 @@ impl Indexer {
                     self.spimi_counter += 1;
 
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
-                        while let Some(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.pop()
+                        /* while let CrossbeamSteal::Success(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.steal()
                         {
+                            println!("main {}", doc_id);
                             self.doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+                        } */
+
+                        let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
+                        let num_active_workers = self.indexing_config.num_threads - *num_workers_writing_blocks;
+                        for _i in 0..num_active_workers {
+                            self.index_unit_queue.push(IndexMsg::Stop);
                         }
 
-                        let main_thread_block_index_results = self.doc_miner.get_results();
+                        let main_thread_block_index_results = self.doc_miner.get_results(1000);
                         let block_number = self.block_number();
-                        self.write_block(main_thread_block_index_results, block_number, false);
+                        self.write_block(
+                            main_thread_block_index_results, block_number, false, &mut * num_workers_writing_blocks
+                        );
                         self.spimi_counter = 0;
+
+                        // Clear leftover IndexMsg::Stop if any, and restart index phase for workers
+                        loop {
+                            if let CrossbeamSteal::Empty = self.index_unit_queue.steal() {
+                                break;
+                            }
+                        }
+                        self.make_workers_index(num_active_workers - 1);
                     }
                 }
                 break;
@@ -502,16 +529,19 @@ impl Indexer {
             #[cfg(debug_assertions)]
             println!("Writing last spimi block");
 
-            while let Some(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.pop() {
-                self.doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+            for _i in 0..self.indexing_config.num_threads {
+                self.index_unit_queue.push(IndexMsg::Stop);
             }
 
             #[cfg(debug_assertions)]
             println!("main thread {}", self.doc_miner.doc_infos.len());
 
+            let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
             let block_number = self.block_number();
-            let main_thread_block_index_results = self.doc_miner.get_results();
-            self.write_block(main_thread_block_index_results, block_number, true);
+            let main_thread_block_index_results = self.doc_miner.get_results(1000);
+            self.write_block(
+                main_thread_block_index_results, block_number, true, &mut * num_workers_writing_blocks
+            );
             self.spimi_counter = 0;
         }
 

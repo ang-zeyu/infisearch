@@ -48,6 +48,8 @@ pub struct WorkerMiner {
     pub terms: FxHashMap<String, Vec<TermDoc>>,
     pub doc_infos: Vec<WorkerMinerDocInfo>,
     pub tokenizer: Arc<dyn Tokenizer + Send + Sync>,
+    pub total_terms: u32,
+    pub total_len: u64,
 }
 
 pub struct WorkerBlockIndexResults {
@@ -143,11 +145,16 @@ impl WorkerMiner {
             terms: FxHashMap::default(),
             doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
             tokenizer: Arc::clone(tokenizer),
+            total_terms: 0,
+            total_len: 0,
         }
     }
 
-    pub fn get_results(&mut self) -> WorkerBlockIndexResults {
+    pub fn get_results(&mut self, id: usize) -> WorkerBlockIndexResults {
         let old_doc_infos_capacity = self.doc_infos.capacity();
+
+        self.total_len = 0;
+        self.total_terms = 0;
 
         WorkerBlockIndexResults {
             terms: std::mem::take(&mut self.terms),
@@ -191,11 +198,15 @@ impl WorkerMiner {
                 continue;
             }
 
+            self.total_len += field_text.len() as u64;
+
             let sentences = self.tokenizer.tokenize(&mut field_text);
             let field_lengths = field_lengths.get_mut(field_id as usize).unwrap();
 
             for sent_terms in sentences {
-                *field_lengths += sent_terms.len() as u32;
+                let l = sent_terms.len() as u32;
+                *field_lengths += l;
+                self.total_terms += l;
 
                 for field_term in sent_terms {
                     let term_docs = if let Some(existing) = self.terms.get_mut(&field_term[..]) {

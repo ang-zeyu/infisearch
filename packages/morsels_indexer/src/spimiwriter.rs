@@ -35,9 +35,9 @@ impl Indexer {
         main_thread_block_results: WorkerBlockIndexResults,
         block_number: u32,
         is_last_block: bool,
+        num_workers_writing_blocks: &mut usize,
     ) {
         // Don't block on threads that are still writing blocks (long running)
-        let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
         let num_workers_to_collect = self.indexing_config.num_threads - *num_workers_writing_blocks;
         let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect + 1);
         worker_index_results.push(main_thread_block_results);
