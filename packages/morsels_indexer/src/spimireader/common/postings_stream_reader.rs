@@ -187,7 +187,7 @@ impl PostingsStreamReader {
                     // Main thread was blocked as this worker was still decoding
                     // Re-notify that decoding is done!
                     if let PostingsStreamDecoder::Notifier(tx) = notifier_decoder {
-                        tx.lock().unwrap().send(()).unwrap();
+                        tx.send(()).unwrap();
                     }
                 }
                 PostingsStreamDecoder::Reader(_r) => panic!("Reader still available in array @worker"),

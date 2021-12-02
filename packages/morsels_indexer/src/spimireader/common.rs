@@ -10,7 +10,6 @@ use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use dashmap::DashMap;
 
@@ -37,7 +36,7 @@ pub struct TermDocsForMerge {
 
 pub enum PostingsStreamDecoder {
     Reader(PostingsStreamReader),
-    Notifier(Mutex<Sender<()>>),
+    Notifier(Sender<()>),
     None,
 }
 

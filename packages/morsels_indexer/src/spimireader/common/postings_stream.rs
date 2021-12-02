@@ -2,7 +2,6 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::VecDeque;
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use dashmap::DashMap;
 
@@ -110,7 +109,7 @@ impl PostingsStream {
                     }
 
                     // Set to notifier
-                    *lock_value_mut = PostingsStreamDecoder::Notifier(Mutex::from(blocking_sndr.clone()));
+                    *lock_value_mut = PostingsStreamDecoder::Notifier(blocking_sndr.clone());
 
                     // Deadlock otherwise - worker will never be able to acquire postings_stream_readers_vec
                     drop(lock);
