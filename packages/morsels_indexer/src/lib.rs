@@ -36,7 +36,7 @@ use crate::worker::miner::WorkerMiner;
 use crate::worker::{IndexMsg, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
-use crossbeam::deque::{Injector as CrossbeamInjector, Stealer as CrossbeamStealer, Worker as CrossbeamWorker, Steal as CrossbeamSteal};
+use crossbeam::deque::Injector as CrossbeamInjector;
 use glob::Pattern;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
@@ -210,7 +210,6 @@ pub struct Indexer {
     loaders: Vec<Box<dyn Loader>>,
     doc_infos: Arc<Mutex<DocInfos>>,
     index_unit_queue: Arc<CrossbeamInjector<IndexMsg>>,
-    index_unit_queue_max_size: usize,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
@@ -355,7 +354,6 @@ impl Indexer {
             loaders,
             doc_infos,
             index_unit_queue,
-            index_unit_queue_max_size: 30,
             tx_main,
             rx_main,
             num_workers_writing_blocks,
@@ -436,8 +434,7 @@ impl Indexer {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
             {
                 for mut loader_result in loader_results {
-                    if self.index_unit_queue.len() > 100 {
-                        // println!("main20 {}", self.doc_id_counter);
+                    if self.index_unit_queue.len() > 100 { // TODO 100 may be a little arbitrary
                         self.doc_miner.index_doc(self.doc_id_counter, loader_result.get_field_texts());
                     } else {
                         self.index_unit_queue.push(IndexMsg::Index { doc_id: self.doc_id_counter, loader_result });
@@ -449,31 +446,19 @@ impl Indexer {
                     self.spimi_counter += 1;
 
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
-                        /* while let CrossbeamSteal::Success(IndexUnit { doc_id, mut loader_result }) = self.index_unit_queue.steal()
-                        {
-                            println!("main {}", doc_id);
-                            self.doc_miner.index_doc(doc_id, loader_result.get_field_texts());
-                        } */
-
                         let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
                         let num_active_workers = self.indexing_config.num_threads - *num_workers_writing_blocks;
                         for _i in 0..num_active_workers {
                             self.index_unit_queue.push(IndexMsg::Stop);
                         }
 
-                        let main_thread_block_index_results = self.doc_miner.get_results(1000);
+                        let main_thread_block_index_results = self.doc_miner.get_results(1000000);
                         let block_number = self.block_number();
                         self.write_block(
                             main_thread_block_index_results, block_number, false, &mut * num_workers_writing_blocks
                         );
                         self.spimi_counter = 0;
 
-                        // Clear leftover IndexMsg::Stop if any, and restart index phase for workers
-                        loop {
-                            if let CrossbeamSteal::Empty = self.index_unit_queue.steal() {
-                                break;
-                            }
-                        }
                         self.make_workers_index(num_active_workers - 1);
                     }
                 }
@@ -533,12 +518,9 @@ impl Indexer {
                 self.index_unit_queue.push(IndexMsg::Stop);
             }
 
-            #[cfg(debug_assertions)]
-            println!("main thread {}", self.doc_miner.doc_infos.len());
-
             let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
             let block_number = self.block_number();
-            let main_thread_block_index_results = self.doc_miner.get_results(1000);
+            let main_thread_block_index_results = self.doc_miner.get_results(1000000);
             self.write_block(
                 main_thread_block_index_results, block_number, true, &mut * num_workers_writing_blocks
             );

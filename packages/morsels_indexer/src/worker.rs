@@ -9,7 +9,7 @@ use std::sync::Mutex;
 use std::thread;
 
 use crossbeam::channel::{Receiver, Sender};
-use crossbeam::deque::{Injector as CrossbeamInjector, Stealer as CrossbeamStealer, Worker as CrossbeamWorker};
+use crossbeam::deque::{Injector as CrossbeamInjector, Worker as CrossbeamWorker};
 
 use crate::loader::LoaderResult;
 use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};

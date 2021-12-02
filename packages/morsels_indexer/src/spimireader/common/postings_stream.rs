@@ -94,7 +94,7 @@ impl PostingsStream {
         tx_main: &Sender<MainToWorkerMessage>,
         blocking_sndr: &Sender<()>,
         blocking_rcvr: &Receiver<()>,
-        do_print_blocked_msg: bool,
+        _do_print_blocked_msg: bool,
     ) {
         if self.term_buffer.is_empty() {
             let mut lock = postings_stream_decoders.get_mut(&self.idx).unwrap();
@@ -105,7 +105,7 @@ impl PostingsStream {
                 }
                 PostingsStreamDecoder::None => {
                     #[cfg(debug_assertions)]
-                    if do_print_blocked_msg {
+                    if _do_print_blocked_msg {
                         println!("Blocked! Ouch! Consider increasing the decode buffer size...");
                     }
 
