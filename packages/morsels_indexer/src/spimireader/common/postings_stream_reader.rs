@@ -15,8 +15,6 @@ use crate::FieldInfos;
 use crate::MainToWorkerMessage;
 use crate::Sender;
 
-static POSTINGS_STREAM_BUFFER_SIZE: u32 = 5000;
-
 pub struct PostingsStreamReader {
     pub idx: u32,
     pub buffered_reader: BufReader<File>,
@@ -30,12 +28,13 @@ static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
 impl PostingsStreamReader {
     pub fn read_next_batch(
         self,
+        n: usize,
         tx_main: &Sender<MainToWorkerMessage>,
         postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
     ) {
         tx_main
             .send(MainToWorkerMessage::Decode {
-                n: POSTINGS_STREAM_BUFFER_SIZE,
+                n,
                 postings_stream_reader: self,
                 postings_stream_decoders,
             })
@@ -45,7 +44,7 @@ impl PostingsStreamReader {
     #[inline]
     pub fn decode_next_n(
         mut self,
-        n: u32,
+        n: usize,
         postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
         with_positions: bool,
         field_infos: &Arc<FieldInfos>,

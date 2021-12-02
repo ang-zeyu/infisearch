@@ -11,7 +11,9 @@ use crate::MainToWorkerMessage;
 use crate::Receiver;
 use crate::Sender;
 
-pub static POSTINGS_STREAM_BUFFER_SIZE: u32 = 3000;
+pub static POSTINGS_STREAM_BUFFER_SIZE: usize = 3000;
+
+pub static POSTINGS_STREAM_INITIAL_READ: usize = 2000;
 
 static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 1000;
 
@@ -55,27 +57,38 @@ impl PartialOrd for PostingsStream {
 impl PostingsStream {
     pub fn initialise_postings_streams(
         num_blocks: u32,
-        postings_streams: &mut BinaryHeap<PostingsStream>,
+        postings_stream_heap: &mut BinaryHeap<PostingsStream>,
         postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
         tx_main: &Sender<MainToWorkerMessage>,
         blocking_sndr: &Sender<()>,
         blocking_rcvr: &Receiver<()>,
     ) {
         for idx in 1..(num_blocks + 1) {
-            let mut postings_stream = PostingsStream {
-                idx,
-                is_empty: false,
-                is_reader_decoding: true,
-                curr_term: Default::default(),
-                term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize), // transfer ownership of future term buffer to the main postings stream
-            };
-            postings_stream.get_term(&postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, false);
-            postings_streams.push(postings_stream);
+            postings_stream_heap.push(Self::create_postings_stream(
+                idx, postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr
+            ));
         }
     }
 
-    // Transfer first term of term_buffer into curr_term and curr_term_docs
-    pub fn get_term(
+    fn create_postings_stream(
+        postings_stream_number: u32,
+        postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
+        tx_main: &Sender<MainToWorkerMessage>,
+        blocking_sndr: &Sender<()>,
+        blocking_rcvr: &Receiver<()>,
+    ) -> Self {
+        let mut postings_stream = PostingsStream {
+            idx: postings_stream_number,
+            is_empty: false,
+            is_reader_decoding: true,
+            curr_term: Default::default(),
+            term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE), // transfer ownership of future term buffer to the main postings stream
+        };
+        postings_stream.get_term(&postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, false);
+        postings_stream
+    }
+
+    fn get_term(
         &mut self,
         postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
         tx_main: &Sender<MainToWorkerMessage>,
@@ -129,17 +142,18 @@ impl PostingsStream {
                 PostingsStreamDecoder::None,
             ) {
                 PostingsStreamDecoder::Reader(postings_stream_reader) => {
-                    postings_stream_reader.read_next_batch(tx_main, Arc::clone(postings_stream_decoders));
+                    postings_stream_reader.read_next_batch(POSTINGS_STREAM_BUFFER_SIZE, tx_main, Arc::clone(postings_stream_decoders));
                     self.is_reader_decoding = true;
                 }
                 _ => panic!("Unexpected state @get_term"),
             }
         }
 
-        // Pluck out the first tuple
         if let Some(term_termdocs) = self.term_buffer.pop_front() {
+            // Transfer first term of term_buffer into curr_term and curr_term_docs
             self.curr_term = term_termdocs;
         } else {
+            // Mark as exhausted otherwise
             self.is_empty = true;
         }
     }

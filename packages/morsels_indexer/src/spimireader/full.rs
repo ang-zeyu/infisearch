@@ -60,7 +60,7 @@ pub fn merge_blocks(
         Arc::from(doc_infos_unwrapped_inner)
     };
 
-    common::initialise_postings_streams(
+    common::initialise_postings_stream_readers(
         num_blocks,
         output_folder_path,
         &mut postings_streams,

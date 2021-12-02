@@ -16,7 +16,7 @@ use dashmap::DashMap;
 
 use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
 
-use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE};
+use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
 use crate::docinfo::DocInfos;
 use crate::utils::varint;
@@ -70,10 +70,10 @@ pub fn get_dict_writers(output_folder_path: &Path) -> (BufWriter<File>, BufWrite
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn initialise_postings_streams(
+pub fn initialise_postings_stream_readers(
     num_blocks: u32,
     output_folder_path: &Path,
-    postings_streams: &mut BinaryHeap<PostingsStream>,
+    postings_stream_heap: &mut BinaryHeap<PostingsStream>,
     postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
     doc_infos: &Arc<DocInfos>,
     tx_main: &Sender<MainToWorkerMessage>,
@@ -96,16 +96,16 @@ pub fn initialise_postings_streams(
             idx,
             buffered_reader: BufReader::new(block_file),
             buffered_dict_reader: BufReader::new(block_dict_file),
-            future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE as usize),
+            future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE),
             doc_infos_unlocked: Arc::clone(&doc_infos),
         })
-        .read_next_batch(tx_main, Arc::clone(&postings_stream_decoders));
+        .read_next_batch(POSTINGS_STREAM_INITIAL_READ, tx_main, Arc::clone(&postings_stream_decoders));
     }
 
     // Wait for all initial decoding to finish (for the heap to have initialised)
     PostingsStream::initialise_postings_streams(
         num_blocks,
-        postings_streams,
+        postings_stream_heap,
         postings_stream_decoders,
         tx_main,
         blocking_sndr,

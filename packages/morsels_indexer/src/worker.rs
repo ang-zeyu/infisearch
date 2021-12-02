@@ -65,7 +65,7 @@ pub enum MainToWorkerMessage {
     },
     Index,
     Decode {
-        n: u32,
+        n: usize,
         postings_stream_reader: PostingsStreamReader,
         postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
     },
