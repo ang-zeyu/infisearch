@@ -58,6 +58,10 @@ impl DynamicIndexInfo {
     }
 
     pub fn new_from_output_folder(output_folder_path: &Path, is_dynamic: &mut bool) -> DynamicIndexInfo {
+        if !*is_dynamic {
+            return DynamicIndexInfo::empty();
+        }
+
         if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) {
             if !meta.is_file() {
                 *is_dynamic = false;
