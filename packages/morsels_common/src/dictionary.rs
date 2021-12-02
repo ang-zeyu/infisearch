@@ -123,10 +123,10 @@ mod test {
     fn test_dictionary_setup() {
         let dictionary = super::setup_dictionary(
             vec![
-                // In doc freq var-int then pl offset var-int format
+                // Format: doc freq var-int, then pl offset var-int
                 129, 127, 127, 131,
                 129, 127, 127, 131,
-                128,                // new pl file delimiter
+                128,                // doc freq 0 is a new pl file delimiter
                 129, 127, 127, 131,
                 129, 127, 127, 131,
             ],
@@ -147,7 +147,7 @@ mod test {
 
                 string_vec
             },
-            10,
+            2,
             false,
         );
 
@@ -158,7 +158,7 @@ mod test {
                 Rc::new(String::from("foo")),
                 Rc::new(TermInfo {
                     doc_freq: 1,
-                    idf: 0.0,
+                    idf: 2f64.ln(),
                     postings_file_name: 0,
                     postings_file_offset: 65535,
                 }),
@@ -168,9 +168,9 @@ mod test {
                 Rc::new(String::from("foobar")),
                 Rc::new(TermInfo {
                     doc_freq: 1,
-                    idf: 0.0,
+                    idf: 2f64.ln(),
                     postings_file_name: 0,
-                    postings_file_offset: 65535,
+                    postings_file_offset: 65535 + 65535,
                 }),
             );
 
@@ -178,7 +178,7 @@ mod test {
                 Rc::new(String::from("test")),
                 Rc::new(TermInfo {
                     doc_freq: 1,
-                    idf: 0.0,
+                    idf: 2f64.ln(),
                     postings_file_name: 1,
                     postings_file_offset: 65535,
                 }),
@@ -188,9 +188,9 @@ mod test {
                 Rc::new(String::from("tetest")),
                 Rc::new(TermInfo {
                     doc_freq: 1,
-                    idf: 0.0,
+                    idf: 2f64.ln(),
                     postings_file_name: 1,
-                    postings_file_offset: 65535,
+                    postings_file_offset: 65535 + 65535,
                 }),
             );
 
