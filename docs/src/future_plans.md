@@ -1,4 +1,4 @@
-# Future Plans
+# What's Next
 
 This section briefly details some future plans for this project:
 

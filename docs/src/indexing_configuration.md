@@ -43,8 +43,11 @@ The default configurations are as follows, already setup for interfacing with th
         "k": 1.2,
         "b": 0.75
       },
-      // Internal, hardcoded field sourced from the relative file path of the file from the root directory
-      // Required for the default search ui preview generation methods (see "Generating Result Previews" under search configuration)
+      // Internal, hardcoded field sourced from the
+      // relative file path of the file from the root directory
+      //
+      // Required for the default search ui preview generation methods
+      // (see "Generating Result Previews" under search configuration)
       //
       // Nonetheless, if omitted, the field will not be stored.
       {
@@ -74,6 +77,14 @@ This parameter simply specifies the weight the field should have during scoring.
 **`k` & `b`**
 
 These are Okapi BM25 model parameters. The following [article](https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables) provides a good overview on how to configure these, although, the defaults should serve sufficiently.
+
+**`_relative_fp`**
+
+This is a "hardcoded" field, in that its value is fixed as the relative file path from your source folder path to the file.
+
+It is included in the default configuration to allow `@morsels/search-ui` to retrieve the source file for result preview generation. (refer back to [this section](./search_configuration.md#generating-result-previews) for more details)
+
+If this is removed, this field simply won't be indexed.
 
 ## `lang_config`
 
@@ -114,9 +125,10 @@ If specified, a stemmer is also applied.
   "lang": "latin",
   "options": {
     "stop_words": [
-      "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
-      "is", "it", "no", "not", "of", "on", "or", "such", "that", "the", "their", "then",
-      "there", "these", "they", "this", "to", "was", "will", "with"
+      "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
+      "if", "in", "into", "is", "it", "no", "not", "of", "on", "or",
+      "such", "that", "the", "their", "then", "there", "these",
+      "they", "this", "to", "was", "will", "with"
     ],
 
     // Any of the languages here
@@ -166,22 +178,29 @@ The snippet below shows the default values, which need not be altered if you are
 ```json
 {
   "indexing_config": {
-    "num_threads": 5,              // when unspecified, this is max(num physical cores - 1, 1)
+    // Number of threads excluding the main thread
+    "num_threads": 5,      // when unspecified, this is max(num physical cores - 1, 1)
 
     // This roughly controls the memory usage of the indexer
-    // If your documents are very small, increasing this may help improve indexing performance.
+    // If your documents are very small,
+    // increasing this *may* help improve indexing performance.
     "num_docs_per_block": 1000,
 
+    // glob patterns to exclude from indexing
     "exclude": [
-      "_morsels_config.json"       // glob patterns to exclude from indexing
+      "_morsels_config.json"
     ],
 
     // Specifies what types of files to index
     "loader_configs": {
-      "HtmlLoader": {}             // enables support for .html files
+      "HtmlLoader": {}     // enables support for .html files
     },
     
     // The threshold (in bytes) at which to "cut" index files
+    //
+    // Increasing this produces less but bigger files
+    // (which may take longer to retrieve), and vice versa.
+    
     "pl_limit": 16383,
 
     // Any index files above this size (in bytes)
@@ -195,8 +214,11 @@ The snippet below shows the default values, which need not be altered if you are
     "num_stores_per_dir": 1000,
 
     // Whether positions will be stored.
-    // Phrase queries / Query Term Proximity Ranking will be unavailable if this is false.
-    // You'll want to turn this off for very large collections. (~> 1GB)
+    //
+    // Phrase queries and Query Term Proximity Ranking
+    // will be unavailable if this is false.
+    //
+    // You may want to turn this off for very large collections. (~> 1GB)
     "with_positions": true
   }
 }
@@ -232,7 +254,7 @@ The below sections shows the available loaders and configuration options availab
       },
       {
         "attr_map": {
-          "id": "headingLink" // "store the id attribute of any heading under headingLink"
+          "id": "headingLink" // "store the id attribute under headingLink"
         },
         "field_name": "heading",
         "selector": "h1,h2,h3,h4,h5,h6"
@@ -242,9 +264,11 @@ The below sections shows the available loaders and configuration options availab
 }
 ```
 
-The html loader traverses the document depth-first. At each element, it checks if any of the selectors under the `selectors.selector` key above matches the element. If so, all children (elements, text) under this element will then be indexed under the `field_name` specified, until an "overriding" element that matched another selector is found.
+The html loader traverses the document depth-first.
 
-The `attr_map` allows indexing attributes of elements under fields as well.
+At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by `field_name`. If one the element's descendants matched another selector however, the configuration is then overwritten for that descendant (and its descendants).
+
+The `attr_map` allows indexing attributes of elements (not including descendants) under fields as well.
 
 **`JsonLoader`**
 
@@ -268,7 +292,7 @@ The `attr_map` allows indexing attributes of elements under fields as well.
 }
 ```
 
-Json files can also be indexed. To do this, the `field_map` key must be specified, which contains a mapping of *json file field name* -> *morsels field name*.
+Json files can also be indexed. To do this, the `field_map` key must be specified, which contains a mapping of **json key -> field name**.
 The `field_order` controls in which order these fields are indexed, which can influence position based functions such as query term proximity ranking.
 
 The json files itself can be either

@@ -20,7 +20,7 @@ The practicality / scalability of this tool is mainly bound by the following 2 f
 
 ### Size of the Largest Index Chunk Retrieved
 
-While the index is split into many chunks, some chunks may exceed the "split size" of `16383` bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like "the"). While we could further split the information for this term into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing its benefit.
+While the index is split into many chunks, some chunks may exceed the "split size" of `16383` bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing its benefit.
 
 Certain [indexing options](./indexing_configuration.md) like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.
 
