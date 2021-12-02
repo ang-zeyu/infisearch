@@ -11,9 +11,9 @@ use crate::MainToWorkerMessage;
 use crate::Receiver;
 use crate::Sender;
 
-pub static POSTINGS_STREAM_BUFFER_SIZE: u32 = 5000;
+pub static POSTINGS_STREAM_BUFFER_SIZE: u32 = 3000;
 
-static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 2500;
+static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 1000;
 
 pub struct PostingsStream {
     idx: u32,
