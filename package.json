@@ -13,8 +13,8 @@
     "index2": "cargo run -p morsels_indexer --release ./test_files/2/source ./test_files/2/output --perf",
     "devServer1": "http-server ./test_files/1 -p 3000 --cors",
     "devServer2": "http-server ./test_files/2 -p 3000 --cors",
-    "lint": "cd packages/search-ui && eslint . --ext .ts && cd ../.. && eslint packages/search --ext .js",
-    "lintFix": "eslint packages/search-ui --ext .ts --fix && eslint packages/search --ext .js --fix",
+    "lint": "eslint packages/search-ui --ext .ts && eslint packages/search --ext .ts",
+    "lintFix": "eslint packages/search-ui --ext .ts --fix && eslint packages/search --ext .ts --fix",
     "setup": "npm install && lerna bootstrap",
     "test": "cargo test",
     "installIndexer": "cargo install --path packages/morsels_indexer"

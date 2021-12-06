@@ -3,7 +3,7 @@ import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { ArbitraryRenderOptions, SearchUiOptions, SearchUiRenderOptions } from './SearchUiOptions';
+import { SearchUiOptions, SearchUiRenderOptions } from './SearchUiOptions';
 import createElement, { CreateElement } from './utils/dom';
 
 const domParser = new DOMParser();

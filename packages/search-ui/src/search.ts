@@ -5,7 +5,7 @@ import createElement from './utils/dom';
 import transformResults, { resultsRender } from './searchResultTransform';
 import { SearchUiOptions } from './SearchUiOptions';
 
-let query: Query;
+let currQuery: Query;
 
 let isUpdating = false;
 let nextUpdate: () => any;
@@ -13,22 +13,21 @@ async function update(
   queryString: string,
   root: HTMLElement,
   listContainer: HTMLElement,
-  forPortal: boolean,
   searcher: Searcher,
   options: SearchUiOptions,
 ): Promise<void> {
   try {
     // const now = performance.now();
 
-    if (query) {
-      query.free();
+    if (currQuery) {
+      currQuery.free();
     }
 
-    query = await searcher.getQuery(queryString);
+    currQuery = await searcher.getQuery(queryString);
 
     // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
-    await transformResults(query, searcher.morselsConfig, true, listContainer, options);
+    await transformResults(currQuery, searcher.morselsConfig, true, listContainer, options);
 
     root.scrollTo({ top: 0 });
     listContainer.scrollTo({ top: 0 });
@@ -189,7 +188,8 @@ function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     );
   });
 
-  options.render.resultsRenderOpts.headingBodyRender = options.render.resultsRenderOpts.headingBodyRender || ((
+  options.render.resultsRenderOpts.headingBodyRender = options.render.resultsRenderOpts.headingBodyRender
+  || ((
     h, opts, heading, bodyHighlights, href,
   ) => {
     const el = h('a', { class: 'morsels-heading-body' },
@@ -233,17 +233,19 @@ function initMorsels(options: SearchUiOptions): { show: () => void, hide: () => 
       inputTimer = setTimeout(() => {
         if (isFirstQueryFromBlank) {
           listContainer.innerHTML = '';
-          listContainer.appendChild(options.render.loadingIndicatorRender(createElement, options.render.opts));
+          listContainer.appendChild(
+            options.render.loadingIndicatorRender(createElement, options.render.opts),
+          );
           if (!forPortal) {
             options.render.show(root, options.render.opts, forPortal);
           }
         }
 
         if (isUpdating) {
-          nextUpdate = () => update(query, root, listContainer, forPortal, searcher, options);
+          nextUpdate = () => update(query, root, listContainer, searcher, options);
         } else {
           isUpdating = true;
-          update(query, root, listContainer, forPortal, searcher, options);
+          update(query, root, listContainer, searcher, options);
         }
         isFirstQueryFromBlank = false;
       }, options.inputDebounce);
