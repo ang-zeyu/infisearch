@@ -3,7 +3,7 @@ import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { SearchUiOptions, SearchUiRenderOptions } from './SearchUiOptions';
+import { SearchUiOptions } from './SearchUiOptions';
 import createElement, { CreateElement } from './utils/dom';
 
 const domParser = new DOMParser();
@@ -31,8 +31,10 @@ function transformText(
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
-  render: SearchUiRenderOptions,
+  options: SearchUiOptions,
 ): (string | HTMLElement)[] {
+  const { highlightRender, bodyOnlyRender, headingBodyRender } = options.uiOptions.resultsRenderOpts;
+
   const lowerCasedSortedQueryTermsIndices: { [term: string]: number } = Object.create(null);
   sortedQueryTerms.forEach((term, idx) => {
     lowerCasedSortedQueryTermsIndices[term.toLowerCase()] = idx;
@@ -88,12 +90,12 @@ function transformText(
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
         result.push(createElement('span', { class: 'morsels-ellipsis' }));
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
-        result.push(render.resultsRenderOpts.highlightRender(createElement, render.opts, term));
+        result.push(highlightRender(createElement, options, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       } else {
         result.pop();
         result.push(str.substring(prevHighlightEndPos, pos));
-        result.push(render.resultsRenderOpts.highlightRender(createElement, render.opts, term));
+        result.push(highlightRender(createElement, options, term));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       }
       prevHighlightEndPos = highlightEndPos;
@@ -126,9 +128,9 @@ function transformText(
         lastIncludedHeading = i;
 
         finalMatchResults.push({
-          result: render.resultsRenderOpts.headingBodyRender(
+          result: headingBodyRender(
             createElement,
-            render.opts,
+            options,
             texts[i][1],
             result,
             (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}#${texts[i - 1][1]}`,
@@ -142,7 +144,7 @@ function transformText(
     // Insert without heading
     if (!finalMatchResults.length && numberTermsMatched > bestBodyMatch.numberTermsMatched) {
       bestBodyMatch = {
-        result: render.resultsRenderOpts.bodyOnlyRender(createElement, render.opts, result),
+        result: bodyOnlyRender(createElement, options, result),
         numberTermsMatched,
       };
     }
@@ -164,7 +166,7 @@ function transformJson(
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
-  renderOptions: SearchUiRenderOptions,
+  options: SearchUiOptions,
 ) {
   const fields: [string, string][] = [];
 
@@ -185,7 +187,7 @@ function transformJson(
 
   return {
     title: titleKey && json[titleKey],
-    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl, renderOptions),
+    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl, options),
   };
 }
 
@@ -200,7 +202,7 @@ function transformHtml(
   sortedQueryTerms: string[],
   termRegex: RegExp,
   baseUrl: string,
-  renderOptions: SearchUiRenderOptions,
+  options: SearchUiOptions,
 ): { title: string, bodies: (string | HTMLElement)[] } {
   const fields: [string, string][] = [];
 
@@ -266,7 +268,7 @@ function transformHtml(
   return {
     title,
     bodies: transformText(
-      fields, sortedQueryTerms, termRegex, baseUrl, renderOptions,
+      fields, sortedQueryTerms, termRegex, baseUrl, options,
     ),
   };
 }
@@ -275,7 +277,7 @@ function transformHtml(
  Corrected / "also searched for..." terms
  */
 
-function displayTermInfo(queryParts: QueryPart[], render: SearchUiRenderOptions): HTMLElement[] {
+function displayTermInfo(queryParts: QueryPart[], options: SearchUiOptions): HTMLElement[] {
   const misspelledTerms: string[] = [];
   const correctedTerms: string[] = [];
   let expandedTerms: string[] = [];
@@ -295,7 +297,9 @@ function displayTermInfo(queryParts: QueryPart[], render: SearchUiRenderOptions)
     }
   });
 
-  return render.termInfoRender(createElement, render.opts, misspelledTerms, correctedTerms, expandedTerms);
+  return options.uiOptions.termInfoRender(
+    createElement, options, misspelledTerms, correctedTerms, expandedTerms,
+  );
 }
 
 /*
@@ -315,8 +319,8 @@ async function singleResultRender(
   const fields = result.getStorageWithFieldNames();
   const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
   const relativeLink = (relativeFpField && relativeFpField[1]) || '';
-  const hasSourceFilesUrl = typeof options.sourceFilesUrl === 'string';
-  const fullLink = hasSourceFilesUrl ? `${options.sourceFilesUrl}${relativeLink}` : undefined;
+  const hasSourceFilesUrl = typeof options.uiOptions.sourceFilesUrl === 'string';
+  const fullLink = hasSourceFilesUrl ? `${options.uiOptions.sourceFilesUrl}${relativeLink}` : undefined;
   const titleField = fields.find((v) => v[0] === 'title');
   let resultTitle = (titleField && titleField[1]) || relativeLink;
 
@@ -327,7 +331,7 @@ async function singleResultRender(
       query.searchedTerms,
       termRegex,
       relativeLink,
-      options.render,
+      options,
     );
   } else if (!relativeFpField || !hasSourceFilesUrl) {
     // Unable to retrieve and load from source file
@@ -337,7 +341,7 @@ async function singleResultRender(
     const doc = domParser.parseFromString(asText, 'text/html');
 
     const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
-      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, relativeLink, options.render,
+      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, relativeLink, options,
     );
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
@@ -349,16 +353,16 @@ async function singleResultRender(
       const { title: newTitle, bodies: newBodies } = transformJson(
         fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
         loaderConfigs.JsonLoader,
-        query.searchedTerms, termRegex, relativeLink, options.render,
+        query.searchedTerms, termRegex, relativeLink, options,
       );
       resultTitle = newTitle || resultTitle;
       resultHeadingsAndTexts = newBodies;
     }
   }
 
-  return options.render.resultsRenderOpts.listItemRender(
+  return options.uiOptions.resultsRenderOpts.listItemRender(
     createElement,
-    options.render.opts,
+    options,
     fullLink,
     resultTitle,
     resultHeadingsAndTexts,
@@ -393,28 +397,28 @@ export default async function transformResults(
   container: HTMLElement,
   options: SearchUiOptions,
 ): Promise<void> {
-  const loader = options.render.loadingIndicatorRender(createElement, options.render.opts);
+  const loader = options.uiOptions.loadingIndicatorRender(createElement, options);
   if (!isFirst) {
     container.appendChild(loader);
   }
 
   const fragment = document.createDocumentFragment();
-  const termInfoEls = isFirst ? displayTermInfo(query.queryParts, options.render) : [];
+  const termInfoEls = isFirst ? displayTermInfo(query.queryParts, options) : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
   // let now = performance.now();
 
-  const results = await query.retrieve(options.render.resultsPerPage);
+  const results = await query.retrieve(options.uiOptions.resultsPerPage);
 
   // console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   // now = performance.now();
 
-  const resultsEls = await options.render.resultsRender(createElement, options, config, results, query);
+  const resultsEls = await options.uiOptions.resultsRender(createElement, options, config, results, query);
 
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
   } else if (isFirst) {
-    fragment.appendChild(options.render.noResultsRender(createElement, options.render.opts));
+    fragment.appendChild(options.uiOptions.noResultsRender(createElement, options));
   }
   const sentinel = fragment.lastElementChild;
 

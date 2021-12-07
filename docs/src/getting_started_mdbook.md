@@ -8,12 +8,12 @@ Note: The "Morsels" theme is not included in the plugin and is specific to this 
 
 ## Installation
 
-You will need to have installed the following command-line crates (`cargo install <crate-name>`):
+You will need to have installed the following command-line crates (`cargo install <crate-name>` or with the binaries in your `PATH`):
 - mdbook
 - mdbook-morsels
 - morsels_indexer
 
-Then add the first two configuration sections below to your `book.toml` configuration file:
+Then, minimally add the first two configuration sections below to your `book.toml` configuration file:
 
 ```toml
 [output.html.search]
@@ -26,9 +26,8 @@ renderer = ["html"]          # this should only be run for the html renderer
 # Plugin configuration options (optional)
 [output.morsels]
 
-# Force morsels to use the fullscreen popup UI version,
-# instead of dynamically switching between the dropdown / popup version for desktop / mobile devices
-portal = true
+# See search configuration page
+mode = "target"
 
 # Relative path to the indexer configuration file from the root project directory
 # This will automatically be created if it dosen't exist.
@@ -41,8 +40,11 @@ no-css = false
 
 ## Preview
 
-Here's what it looks like across the five different themes currently.
+Try out the different **themes** on this documentation using mdbook's paintbrush icon!
 
-Also note that unlike the default search feature, the search bar is always there! There is no search icon on the navbar to click. I am still trying to figure how to add this nicely within mdbook's plugin framework :).
+You may also use the following (non-canonical, documentation specific) buttons to try out the different [**`mode`** parameters](search_configuration.md#ui-mode).
 
 ![mdbook morsels plugin preview](./images/mdbook-preview.gif)
+*Gif of `mode='fullscreen'` across the different themes*
+
+Also note that unlike the default search feature, the search bar is always there -- there is no search icon on the navbar to click. I am still trying to figure how to add this nicely (without runtime hacks) within mdbook's plugin framework :)

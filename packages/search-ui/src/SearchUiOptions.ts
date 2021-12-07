@@ -4,48 +4,80 @@ import Result from '@morsels/search-lib/lib/results/Result';
 import { Query } from '@morsels/search-lib';
 import { CreateElement } from './utils/dom';
 
-export interface ArbitraryRenderOptions {
-  [key: string]: any,
-  dropdownAlignment?: 'left' | 'right',
+export type ArbitraryOptions = any;
+
+export enum UiMode {
+  Auto = 'auto',
+  Dropdown = 'dropdown',
+  Fullscreen = 'fullscreen',
+  Target = 'target',
 }
 
-export interface SearchUiRenderOptions {
-  enablePortal?: boolean | 'auto',
-  portalTo?: HTMLElement,
+export interface UiOptions {
+  input: HTMLInputElement,
+  inputDebounce?: number,
+  mode: UiMode,
+  dropdownAlignment?: 'left' | 'right',
+  fullscreenContainer?: HTMLElement,
+  target?: HTMLElement,
   resultsPerPage?: number,
-  show?: (
-    root: HTMLElement,
-    opts: ArbitraryRenderOptions,
-    isPortal: boolean
-  ) => void,
-  hide?: (
-    root: HTMLElement,
-    opts: ArbitraryRenderOptions,
-    isPortal: boolean
-  ) => void,
-  rootRender?: (
+  sourceFilesUrl?: string,
+
+  // -----------------------------------------------------
+  // Renderers
+
+  // Dropdown Specific
+  dropdownRootRender?: (
     h: CreateElement,
-    opts: ArbitraryRenderOptions,
+    opts: SearchUiOptions,
     inputEl: HTMLElement,
-  ) => ({ root: HTMLElement, listContainer: HTMLElement }),
-  portalRootRender?: (
+  ) => ({ dropdownRoot: HTMLElement, dropdownListContainer: HTMLElement }),
+  showDropdown?: (
+    root: HTMLElement,
+    listContainer: HTMLElement,
+    opts: SearchUiOptions
+  ) => void,
+  hideDropdown?: (
+    root: HTMLElement,
+    listContainer: HTMLElement,
+    opts: SearchUiOptions
+  ) => void,
+
+  // Fullscreen Specific
+  fsRootRender?: (
     h: CreateElement,
-    opts: ArbitraryRenderOptions,
-    portalCloseHandler: () => void,
+    opts: SearchUiOptions,
+    fsCloseHandler: () => void,
   ) => ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
-  noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
-  portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
-  loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
+  showFullscreen?: (
+    root: HTMLElement,
+    listContainer: HTMLElement,
+    fullscreenContainer: HTMLElement,
+    opts: SearchUiOptions,
+  ) => void,
+  hideFullscreen?: (
+    root: HTMLElement,
+    listContainer: HTMLElement,
+    fullscreenContainer: HTMLElement,
+    opts: SearchUiOptions
+  ) => void,
+
+  // Miscellaneous
+  noResultsRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
+  fsBlankRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
+  loadingIndicatorRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
   termInfoRender?: (
     h: CreateElement,
-    opts: ArbitraryRenderOptions,
+    opts: SearchUiOptions,
     misspelledTerms: string[],
     correctedTerms: string[],
     expandedTerms: string[],
   ) => HTMLElement[],
+
+  // Rendering Results
   resultsRender?: (
     h: CreateElement,
-    options: SearchUiOptions,
+    opts: SearchUiOptions,
     config: MorselsConfig,
     results: Result[],
     query: Query,
@@ -53,7 +85,7 @@ export interface SearchUiRenderOptions {
   resultsRenderOpts?: {
     listItemRender?: (
       h: CreateElement,
-      opts: ArbitraryRenderOptions,
+      opts: SearchUiOptions,
       fullLink: string,
       resultTitle: string,
       resultHeadingsAndTexts: (HTMLElement | string)[],
@@ -61,25 +93,23 @@ export interface SearchUiRenderOptions {
     ) => HTMLElement,
     headingBodyRender?: (
       h: CreateElement,
-      opts: ArbitraryRenderOptions,
+      opts: SearchUiOptions,
       heading: string,
       bodyHighlights: (HTMLElement | string)[],
       href?: string
     ) => HTMLElement,
     bodyOnlyRender?: (
       h: CreateElement,
-      opts: ArbitraryRenderOptions,
+      opts: SearchUiOptions,
       bodyHighlights: (HTMLElement | string)[],
     ) => HTMLElement,
-    highlightRender?: (h: CreateElement, opts: ArbitraryRenderOptions, matchedPart: string) => HTMLElement,
+    highlightRender?: (h: CreateElement, opts: SearchUiOptions, matchedPart: string) => HTMLElement,
   },
-  opts?: ArbitraryRenderOptions,
 }
 
 export interface SearchUiOptions {
-  searcherOptions: SearcherOptions,
-  input: HTMLInputElement,
-  inputDebounce?: number,
-  sourceFilesUrl?: string,
-  render?: SearchUiRenderOptions
+  searcherOptions?: SearcherOptions,
+  uiOptions?: UiOptions,
+  isMobileDevice: () => boolean,
+  otherOptions: ArbitraryOptions
 }

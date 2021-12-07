@@ -26,7 +26,7 @@ If you find other use cases for this tool, do leave a post in the issue tracker!
 
 ## Getting Started & Demo
 
-Please check out the [docs](http://ang-zeyu.github.io/morsels/)!
+Please check out the [docs](http://ang-zeyu.github.io/morsels/).
 
 ## Contributing
 

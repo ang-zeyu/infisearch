@@ -8,114 +8,25 @@ Some use cases for this include:
 - You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)
 - You want to change the [default use case](./search_configuration.md#default-rendering-output--purpose) of following through on a result preview to its source document entirely
 
-If you only need to style the dropdown or search popup, you can include your own css file to do so and / or override the variables exposed by the default css bundle.
+If you only need to style the dropdown or search popup, you can include your own css file to do so [and / or override the variables](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css) exposed by the default css bundle.
 
-These API options are specified under the `render` key of the root configuration object.
+These API options are similarly specified under the `uiOptions` key of the root configuration object.
 
 ```ts
 initMorsels({
-    // ...
-    
-    render: {
+    uiOptions: {
         // ...
     }
 });
 ```
 
-<details>
-
-<summary><strong>Typescript Interface Reference</strong></summary>
-
-```ts
-interface SearchUiRenderOptions {
-    // ... some other options covered in the previous section ...
-
-    show?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) => void,
-
-    hide?: (root: HTMLElement, opts: ArbitraryRenderOptions, isPortal: boolean) => void,
-
-    rootRender?: (
-        h: CreateElement,
-        opts: ArbitraryRenderOptions,
-        inputEl: HTMLElement,
-    ) => ({ root: HTMLElement, listContainer: HTMLElement }),
-
-    portalRootRender?: (
-        h: CreateElement,
-        opts: ArbitraryRenderOptions,
-        portalCloseHandler: () => void,
-    ) => ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
-
-    noResultsRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
-
-    portalBlankRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
-
-    loadingIndicatorRender?: (h: CreateElement, opts: ArbitraryRenderOptions) => HTMLElement,
-
-    termInfoRender?: (
-        h: CreateElement,
-        opts: ArbitraryRenderOptions,
-        misspelledTerms: string[],
-        correctedTerms: string[],
-        expandedTerms: string[],
-    ) => HTMLElement[],
-
-    resultsRender?: (
-        h: CreateElement,
-        initMorselsOptions: SearchUiOptions,
-        config: MorselsConfig,
-        results: Result[],
-        query: Query,
-    ) => Promise<HTMLElement[]>,
-
-    // Options / more renderers for the default implementation of resultsRender
-    resultsRenderOpts?: {
-        listItemRender?: (
-            h: CreateElement,
-            opts: ArbitraryRenderOptions,
-            fullLink: string,
-            resultTitle: string,
-            resultHeadingsAndTexts: (HTMLElement | string)[],
-            fields: [string, string][],
-        ) => HTMLElement,
-
-        headingBodyRender?: (
-            h: CreateElement,
-            opts: ArbitraryRenderOptions,
-            heading: string,
-            bodyHighlights: (HTMLElement | string)[],
-            href?: string,
-        ) => HTMLElement,
-
-        bodyOnlyRender?: (
-            h: CreateElement,
-            opts: ArbitraryRenderOptions,
-            bodyHighlights: (HTMLElement | string)[],
-        ) => HTMLElement,
-
-        highlightRender?: (
-            h: CreateElement,
-            opts: ArbitraryRenderOptions,
-            matchedPart: string,
-        ) => HTMLElement,
-    },
-
-    // Any options you want to pass to any of the render functions above (ArbitraryRenderOptions) from the initMorsels call
-    opts?: ArbitraryRenderOptions,
-}
-
-interface ArbitraryRenderOptions {
-    [key: string]: any,
-    dropdownAlignment?: 'left' | 'right',
-}
-```
-
-</details>
-
+As the interfaces are rather low level, this page will cross reference the `UiOptions` interface [specification](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/SearchUiOptions.ts) directly.
 
 ## The `h` function
 
-All renderer functions are passed a "`h`" function. This is an optional helper function you may use to create your own renderer.
+`h`
+
+Almost all renderer functions are passed a "`h`" function. This is an **optional** helper function you may use to create your own renderer.
 
 The method signature is as such:
 
@@ -127,7 +38,7 @@ export type CreateElement = (
   // Element attribute map
   attrs: { [attrName: string]: string },
 
-  // Child elements (HTMLElement) OR text nodes (string)
+  // Child elements (HTMLElement) OR text nodes (just put the string)
   // string parameters utilise .textContent,
   // so you don't have to worry about escaping potentially malicious content
   ...children: (string | HTMLElement)[]
@@ -136,80 +47,108 @@ export type CreateElement = (
 
 ## Passing Custom Options
 
-All renderer functions are also passed an `opts` parameter. This provided in the `render.opts` key, and basically allows passing in any additional initilisation-time options you might need for the renderers. (e.g. an API url)
+`opts`
+
+All renderer functions are also passed an `opts` parameter. This is the original input object that you provided to the `initMorsels` call. Default parameters are however populated at this point.
+
+i.e.,
+```
+opts = export interface SearchUiOptions {
+  searcherOptions?: SearcherOptions,
+  uiOptions?: UiOptions,
+  isMobileDevice: () => boolean,
+  otherOptions: ArbitraryOptions
+}
+```
+
+If you want to include some custom options (e.g. an API base url) somehwere, you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
 
 ## Default Html Output Structure
 
-Have a look at the following snippet when reading the documentation below on each API to understand which renderers (bracketed on the left of each comment) are responsible for which parts of the html output by default.
+You can have a look at the documentation further below on each API to understand each renderer, then refer back to the following output placement snippet to understand which renderers are responsible for which parts of the html output.
 
-Note that there are some minor differences between the dropdown version and fullscreen version, also annotated below.
+The output also varies depending on the [UI mode](./search_configuration.md#ui-mode) specified earlier. As usual, note that `dropdown` and `fullscreen` modes both apply to the `auto` mode.
 
 <details>
 
 <summary><strong>Renderers and their output placement</strong></summary>
 
 ```html
-<!-- (rootRender / portalRootRender) START -->
+<!--
+    dropdownRootRender - mode: 'dropdown'
+    fsRootRender       - mode: 'fullscreen'
+ -->
 
 <!--
-    portalRootRender only
+    **fsRootRender** START
     root element is a backdrop to facilitate backdrop dismiss
 -->
-<div class="morsels-portal-backdrop">
-<!-- fullscreen version end -->
+<div class="morsels-fs-backdrop">
+  
+  <!-- **dropdownRootRender** START -->
+  <!-- fsRootRender has an additional "morsels-fs-root" class on this element -->
+  <div class="morsels-root">
 
-<!-- Note: fullscreen version has an additional "morsels-portal-root" class -->
-<div class="morsels-root">
-
-    <!-- rootRender (dropdown) only -->
+    <!-- these two elements are for dropdownRootRender only -->
     <input id="morsels-search" placeholder="Search">
     <div class="morsels-input-dropdown-separator" style="display: none;"></div>
-    <!-- rootRender end -->
 
-    <!-- portalRootRender only, wrap search box & close button in a sticky header -->
-    <div class="morsels-portal-input-button-wrapper">
-        <input class="morsels-portal-input" type="text">
-        <button class="morsels-input-close-portal"></button>
+    <!--
+        this element is for fsRootRender only,
+        for wrapping search box & close button in a sticky header
+    -->
+    <div class="morsels-fs-input-button-wrapper">
+        <input class="morsels-fs-input" type="text">
+        <button class="morsels-input-close-fs"></button>
     </div>
-    <!-- portalRootRender end -->
 
     <ul class="morsels-list" style="display: none;">
-<!-- (rootRender / portalRootRender) END -->
+    <!--
+        **dropdownRootRender / fsRootRender** END
+        
+        NOTE: If using mode = 'target', the above ul element is
+              substituted for the target element you specify
+    -->
 
-        <!-- (noResultsRender) START -->
+        <!-- **noResultsRender** START -->
         <div class="morsels-no-results">No results found</div>
-        <!-- (noResultsRender) END -->
+        <!-- **noResultsRender** END -->
 
-        <!-- (portalBlankRender) START
+        <!-- **fsBlankRender** START
           Shown for the fullscreen version, when the search box is empty
         -->
-        <div class="morsels-portal-blank">Powered by tiny Morsels of 🧀</div>
-        <!-- (portalBlankRender) END -->
+        <div class="morsels-fs-blank">Powered by tiny Morsels of 🧀</div>
+        <!-- **fsBlankRender** END -->
 
-        <!-- (loadingIndicatorRender) START (blank by default)
+        <!--
+          **loadingIndicatorRender** START (blank by default)
+
           Shown when making the initial search from a blank search box.
           Subsequent searches (ie. when there are some results already)
           will not show this indicator.
         -->
         <span class="morsels-loading-indicator"></span>
-        <!-- (loadingIndicatorRender) END -->
+        <!-- **loadingIndicatorRender** END -->
 
-        <!-- (termInfoRender) START (blank by default) -->
+        <!-- **termInfoRender** START (intentionally blank by default) -->
         <div></div>
-        <!-- (termInfoRender) END -->
+        <!-- **termInfoRender** END -->
 
         <!-- results placeholder (refer to "rendering search results") -->
     </ul>
-</div>
-    
+  </div>
 </div>
 ```
 
 </details>
 
-## Rendering the Root Elements
+You can find the latest default implementations of the renderers [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/search.ts).
 
-**`rootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }`**
+## Root Elements
+
+### Dropdown
+
+`dropdownRootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }`
 
 This API renders the root element for the **dropdown version** of the user interface.
 
@@ -218,193 +157,236 @@ This API renders the root element for the **dropdown version** of the user inter
 It should return 2 elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.
 - `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
+  - in the above snippet, this is the `<ul class="morsels-list"></ul>` element
 
----
+#### Supplementary Mandatory Functions
 
-**`portalRootRender(h, opts, portalCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }`**
+The following two functions should be implemented **in tandem** with the above function; They are used internally to show / hide the dropdown on certain events (for example, on input focus / blur).
+
+`showDropdown?: (root: HTMLElement, opts: SearchUiOptions) => void`
+
+`hideDropdown?: (root: HTMLElement, opts: SearchUiOptions) => void`
+
+For example, the default `showDropdown` implementation is as such:
+
+```ts
+(root, listContainer) => {
+  if (listContainer.childElementCount) {
+    listContainer.style.display = 'block';
+    (listContainer.previousSibling as HTMLElement).style.display = 'block';
+  }
+}
+```
+
+It first checks if the `listContainer` (the dropdown), which contains result matches, has any child elements. If so, it sets `style=display:block;` on it, and its previous sibling, which is the triangle dropdown separator container.
+
+### Fullscreen
+
+`fsRootRender(h, opts, fsCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }`
 
 This API renders the root element for the **fullscreen version** of the user interface.
 
-- `portalCloseHandler`: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.
+- `fsCloseHandler`: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.
 
 It should return 3 elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.
 - `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
 - `input`: Input element. This is required for morsels to attach input event handlers.
 
----
+#### Supplementary Mandatory Functions
 
-**`hide / show (root, opts, isPortal): void`**
+Similarly, there are two `show / hide` variants for the fullscreen version:
 
-These two APIs are not responsible for html output, but rather, hiding and showing the fullscreen or dropdown UIs (e.g. via `style="display: none"`).
+```ts
+showFullscreen?: (
+  root: HTMLElement,
+  listContainer: HTMLElement,
+  fullscreenContainer: HTMLElement,
+  opts: SearchUiOptions,
+) => void,
 
-- `root`: root element returned by `rootRender`
-- `isPortal`: whether the function call is for the fullscreen / dropdown UI version
+hideFullscreen?: (
+  root: HTMLElement,
+  listContainer: HTMLElement,
+  fullscreenContainer: HTMLElement,
+  opts: SearchUiOptions
+) => void,
+```
+
+The `fullscreenContainer` (by default the `<body>` element) to which to append the root element is also provided. You may also want to for example, refocus the fullscreen version's `<input>` element once UI is shown.
+
+### Target
+
+There is no root element for the target, as it is specified by the `target` option. The equivalent of the `target` element would be the `listContainer` element for the dropdown / fullscreen versions  above.
+
 
 ## Miscellaneous Renderers
 
-**`noResultsRender(h, opts): HTMLElement`**
-
-This API renders the element attached under the `listContainer` when there are no results found for a given query.
-
----
-
-**`portalBlankRender(h, opts): HTMLElement`**
-
-This API renders the element attached under the `listContainer` when the search box is empty for the fullscreen UI.
-
-The dropdown UI is hidden in such a case.
-
----
-
-**`loadingIndicatorRender(h, opts): HTMLElement`**
-
-This API renders the loading indicator attached under the `listContainer`. The loading indicator is shown when making the initial search (the first search from an empty search box).
-
----
-
-**`termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms): HTMLElement[]`**
-
-This API renders elements attached under the `listContainer` related to the searched terms, and is blank by default.
-
-For example, you may render `<div>Did you mean <u>corrected</u>?</div>` for the misspelled query `correkted`.
+| Function        | Return | Description |
+| ----- | ----- | ----------- |
+| `noResultsRender(h, opts)` | `HTMLElement`        | This API renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when there are no results found for a given query. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |
+| `loadingIndicatorRender(h, opts)` | `HTMLElement`  | This API renders the loading indicator attached under the `listContainer`. The loading indicator is shown when making the initial search (the first search from an empty search box).    |
+| `termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms)` | `HTMLElement[]`      | This API renders element(s) attached under the `listContainer` related to the searched terms, and is blank by default.<br><br>This can be used to render messages like "*Did you mean <u>spelling</u>?* ".    |
+| `fsBlankRender(h, opts)`<br><br>( `mode='fullscreen'` only ) | `HTMLElement` | This API renders the element attached under the `listContainer` when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.    |
 
 ## Rendering Search Results
 
-The below **2 remaining sets of APIs** render the results for all document matches, and are **mutually exclusive**. Use only one or the other.
+The below **2 remaining sets of APIs** render the results for all document matches, and are **mutually exclusive** in that the second set of APIs are "building blocks" of the first (which only has one available API). So, reconfiguring the first API would invalidate any changes to the second.
 
-Together, they are placed in the `<!-- results placeholder (refer to "rendering search results") -->` (see [html output structure](#default-html-output-structure)).
+Together, they are placed in the `<!-- results placeholder (refer to "rendering search results") -->` comment earlier (see [html output structure](#default-html-output-structure)).
 
-<details>
+In the following snippet, APIs belonging to the first / second are annotated with `1.` & `2.`.
+
+<details open>
 
 <summary><strong>Remaining renderers and their output placement</strong></summary>
 
 ```html
-<!-- (resultsRender) START matches for **all documents** -->
-<!-- (listItemRender) START A match for a **single document** -->
+<!--
+  **1. resultsRender** START matches for all documents
+  **2. listItemRender** START A match for a single document
+-->
 <li class="morsels-list-item">
-    <a
-        class="morsels-link"
-        href="http://192.168.10.132:3000/...truncated.../index.html"
-    >
+  <a class="morsels-link" href="http://192.168.10.132:3000/...truncated.../index.html">
 
-        <div class="morsels-title">
-            <span>
-                This is the Document Title Extracted from the "title" Field
-            </span>
-        </div>
+    <div class="morsels-title">
+      <span>
+        This is the Document Title Extracted from the "title" Field
+      </span>
+    </div>
 
-        <!-- (headingBodyRender) START
-            a heading and/or body field pair match for the document
-        -->
-        <a
-            class="morsels-heading-body"
-            href="http://192.168.10.132:3000/...truncated.../index.html#what"
-        >
-            <!--
-                Sourced from the "heading" field
-            -->
-            <div class="morsels-heading"><span>What</span></div>
-            <div class="morsels-bodies">
-                <!--
-                    The text under the following element is sourced from
-                    the "body" field, and follows the "heading" field above
-                    in the original document.
-                -->
-                <div class="morsels-body">
-                    <span class="morsels-ellipsis"></span>
-                    <span> this is text before the first highlighted term </span>
-                    <!-- (highlightRender) START (the query is "foo bar") -->
-                    <span class="morsels-highlight"><span>foo</span></span>
-                    <!-- (highlightRender) END -->
-                    <span> this is some text after the first highlighted term</span>
-                    <span class="morsels-ellipsis"></span>
-                    <span> this is text before the second highlighted term</span>
-                    <!-- (highlightRender) START (the query is "foo bar") -->
-                    <span class="morsels-highlight"><span>bar</span></span>
-                    <!-- (highlightRender) END -->
-                    <span> this is some text after the second highlighted term<</span>
-                    <span class="morsels-ellipsis"></span>
-                </div>
-            </div>
-        </a>
-        <!-- (headingBodyRender) END -->
+    <!--
+      **headingBodyRender** START
+      a heading and/or body field pair match for the document
+    -->
+    <a class="morsels-heading-body" href="http://192.168.10.132:3000/...truncated.../index.html#what">
+      <!-- Sourced from the "heading" field -->
+      <div class="morsels-heading"><span>What</span></div>
+      <div class="morsels-bodies">
+        <!--
+          The text under the following element is sourced from
+          the "body" field, that follows the "heading" field above
+          in the original document.
 
-        <!-- (bodyOnlyRender) START
-            
-            a body-only field match for the document
-            (it does not have a heading before it in the original document)
+          Refer to the section on indexing configuration for more details.
         -->
         <div class="morsels-body">
-            <span class="morsels-ellipsis"></span>
-            <span></span>
-            <!-- (highlightRender) START -->
-            <span class="morsels-highlight"><span>foo</span></span>
-            <!-- (highlightRender) END -->
-            <span class="morsels-ellipsis"></span>
+          <!-- (the query here is "foo bar") -->
+          <span class="morsels-ellipsis"></span>
+
+          <span> this is text before the first highlighted term </span>
+          <!-- **highlightRender** START  -->
+          <span class="morsels-highlight"><span>foo</span></span>
+          <!-- **highlightRender** END -->
+          <span> this is some text after the first highlighted term</span>
+
+
+          <span class="morsels-ellipsis"></span>
+
+
+          <span> this is text before the second highlighted term</span>
+          <!-- **highlightRender** START -->
+          <span class="morsels-highlight"><span>bar</span></span>
+          <!-- **highlightRender** END -->
+          <span> this is some text after the second highlighted term<< /span>
+
+          <span class="morsels-ellipsis"></span>
         </div>
-        <!-- (bodyOnlyRender) END -->
+      </div>
     </a>
+    <!-- **headingBodyRender** END -->
+
+    <!--
+      **bodyOnlyRender** START
+      a body-only field match for the document
+      (no heading before it in the original document)
+    -->
+    <div class="morsels-body">
+      <span class="morsels-ellipsis"></span>
+      <span></span>
+      <!-- **highlightRender** START -->
+      <span class="morsels-highlight"><span>foo</span></span>
+      <!-- **highlightRender** END -->
+      <span class="morsels-ellipsis"></span>
+    </div>
+    <!-- **bodyOnlyRender** END -->
+  </a>
 </li>
-<!-- (listItemRender) END -->
+<!-- **listItemRender** END -->
 
 <!--
+    ... Repeat (another search result) ...
+
     Note: an IntersectionObserver is attached to the
     last such <li> element for infinite scrolling
 -->
-<li class="morsels-list-item">
-    <!-- Another search result -->
-</li>
-<!-- (resultsRender) END -->
+<li class="morsels-list-item"></li>
+<!-- **resultsRender** END -->
 ```
 
 </details>
 
 <br>
 
-**1. `async resultsRender(h, initMorselsOptions, config, results, query)`** <span style="color: red">(advanced)</span>
+### 1. Rendering All Results
+
+`async resultsRender(h, opts, config, results, query): Promise<HTMLElement[]>`
+
+<span style="color: red;">(flexible but not too well documented yet, and may be unstable)</span>
 
 This API renders the results for *all* document matches.
 
 Some examples use cases are:
 - Altering the html output structure substantially (e.g. displaying results in a tabular form)
 - Calling external API calls to retrieve additional info for generating result previews.
+  - For this reason, this is also the only `async` API
 
 For example, the default implementation does the following:
 1. Check the `config.fieldInfos` if any of `body / title / heading` fields are stored by the indexer to generate result previews. (Skip to 3 if present)
 2. If the document has the internal `_relative_fp` field and `sourceFilesUrl` is specified, retrieve the original document (`html` or `json`), and transform it into the same format as that generated by the indexer.
 3. Transform and highlight the field stores using the `listItemRender` set of APIs below.
 
-Refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.
+| Parameter   | Description |
+| ----------- | ----------- |
+| `config`    | This is the **indexing** configuration object. |
+| `results`   | an array of `Result` objects |
+| `query`     | a `Query` object |
 
----
+You may also refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.
 
-**2. `resultsRenderOpts`**
+### 2. Rendering a Single Result
 
-The renderers under this key are based on the **default implementation of `resultsRender`**.
+The renderers under this key **build up the default implementation of `resultsRender`**, and are grouped under `uiOptions.resultsRenderOpts` (instead of `uiOptions.XXX`).
 If overriding `resultsRender` above, the following options will be ignored.
 
-<br>
+These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).
 
-**2.1 `listItemRender(h, fullLink, resultTitle, resultHeadingsAndTexts, fields)`**
+<div style="height:1px"></div>
+
+`listItemRender(h, opts, fullLink, resultTitle, resultHeadingsAndTexts, fields): HTMLElement`
 
 This API renders the result for a single document match.
 
-- `fullLink` - full resource link of the document
-- `resultTitle` - extracted `title` field of the document, if any
-- `resultHeadingsAndTexts` - An array of strings & html elements intended to be used as the last parameter of `h`. This contains the highlighted heading-body pair matches or body only matches rendered from the below 2 apis.
-- `fields` - All stored fields for the document, as positioned `[fieldName, fieldValue]` pairs. Useful if adding additional fields.
+| Parameter   | Description |
+| ----------- | ----------- |
+| `fullLink`                 | full resource link of the document |
+| `resultTitle`              | the first extracted `title` field of the document, if any |
+| `resultHeadingsAndTexts`   | An array of `string` or `HTMLElement` intended to be used as the last parameter of `h`.<br><br>This contains the highlighted heading-body pair matches, or body-only matches rendered from `headingBodyRender` and `bodyOnlyRender` further below. |
+| `fields`                   | All stored fields for the document, as positioned `[fieldName, fieldValue]` pairs. Useful if adding additional fields. |
 
 The following example shows the default implementation, and how to add an additional field, `subtitle`, to each result.
 
 ```ts
 const subTitleField = fields.find(field => field[0] === 'subtitle');
 
-const linkEl = h('a', { class: 'morsels-link' },
+const linkEl = h(
+  'a', { class: 'morsels-link' },
   h('div', { class: 'morsels-title' }, title,
     h('div', { class: 'morsels-subtitle' }, (subTitleField && subTitleField[1]) || '')
   ),
-  ...bodies);
+  ...bodies
+);
+
 if (fullLink) {
   linkEl.setAttribute('href', fullLink);
 }
@@ -415,40 +397,44 @@ return h(
 );
 ```
 
-<br>
+#### 2.1 `listItemRender` supporting APIs
 
-**2.2 `listItemRender` supporting APIs**
-
-The remaining 3 APIs below are supplementary to `listItemRender`, and are responsible for generating the `resultTitle` and `resultHeadingsAndTexts` parameters.
+The remaining 3 APIs below are supplementary to `listItemRender`, and are responsible for generating the `resultTitle` and `resultHeadingsAndTexts` parameters for `listItemRender`.
 
 Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.
 
 ```ts
 interface SearchUiRenderOptions {
-    // ...
-    headingBodyRender?: (
-        h: CreateElement,
+  // Renders a "heading" field,
+  // along with the highlighted "body" fields that follow it (in document order)
+  headingBodyRender?: (
+    h: CreateElement,
 
-        // Heading text
-        heading: string,    
+    // Heading text
+    heading: string,    
 
-        // The elements under .morsels-body. Intended to be used with the 'h' function.
-        bodyHighlights: (HTMLElement | string)[], 
+    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
+    bodyHighlights: (HTMLElement | string)[], 
 
-        // Url of the document + The matching heading's id, if any
-        href?: string                             
-    ) => HTMLElement,
-    bodyOnlyRender?: (
-        h: CreateElement,
+    // Url of the document + The matching heading's id, if any
+    href?: string                             
+  ) => HTMLElement,
 
-        // The elements under .morsels-body. Intended to be used with the 'h' function.
-        bodyHighlights: (HTMLElement | string)[], 
-    ) => HTMLElement,
-    highlightRender?: (
-        h: CreateElement,
 
-        // matched term
-        matchedPart: string,                      
-    ) => HTMLElement,
+  // Renders highlighted "body" fields without a heading preceding it
+  bodyOnlyRender?: (
+    h: CreateElement,
+
+    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
+    bodyHighlights: (HTMLElement | string)[], 
+  ) => HTMLElement,
+
+
+  highlightRender?: (
+    h: CreateElement,
+
+    // matched term
+    matchedPart: string,                      
+  ) => HTMLElement,
 }
 ```

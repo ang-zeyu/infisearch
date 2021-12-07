@@ -109,7 +109,8 @@ static INPUT_EL: &str = "\n<input
     id=\"morsels-search\"
     placeholder=\"Search\"
     style=\"width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;\"
-/>\n\n";
+/>\n\n
+<div class=\"morsels-root\" id=\"morsels-mdbook-target\"></div>\n\n";
 
 static STYLES: &str = r#"
 <style>
@@ -143,6 +144,10 @@ static STYLES: &str = r#"
     --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
     --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
 }
+
+#morsels-mdbook-target {
+    list-style: none;
+}
 </style>
 "#;
 
@@ -170,21 +175,16 @@ fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
     output
 }
 
-fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> String {
-    let enable_portal = if let Some(enable_portal) = enable_portal {
-        if let TomlString(_str) = enable_portal {
-            "'auto'"
-        } else if let TomlBoolean(do_enable) = enable_portal {
-            if *do_enable {
-                "true"
-            } else {
-                " false "
-            }
+fn get_initialise_script_el(mode: Option<&Value>, base_url: &str) -> String {
+    let mode = if let Some(TomlString(mode)) = mode {
+        let valid_modes = vec!["auto", "dropdown", "fullscreen", "target"];
+        if valid_modes.into_iter().any(|valid_mode| valid_mode == mode) {
+            mode
         } else {
-            "'auto'"
+            "target"
         }
     } else {
-        "'auto'"
+        "target"
     };
 
     format!(
@@ -194,15 +194,14 @@ fn get_initialise_script_el(enable_portal: Option<&Value>, base_url: &str) -> St
           url: '{}morsels_output/',
         }},
         sourceFilesUrl: '{}',
-        render: {{
-            enablePortal: {},
-            opts: {{
-                dropdownAlignment: 'left'
-            }}
+        uiOptions: {{
+            mode: '{}',
+            dropdownAlignment: 'left',
+            target: document.getElementById('morsels-mdbook-target'),
         }}
     }});
 </script>",
-        base_url, base_url, enable_portal
+        base_url, base_url, mode
     )
 }
 
@@ -224,7 +223,7 @@ impl Preprocessor for Morsels {
             "/"
         };
 
-        let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.portal"), site_url);
+        let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.mode"), site_url);
 
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {

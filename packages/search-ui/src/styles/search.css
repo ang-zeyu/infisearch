@@ -1,5 +1,6 @@
 .morsels-root {
     --morsels-dropdown-width: 512px;
+    --morsels-dropdown-max-width: 80vw;
     --morsels-dropdown-max-height: 30em;
     --morsels-font-size: 16px;
     --morsels-border: none;
@@ -58,7 +59,7 @@
  Fullscreen version
  */
 
-.morsels-portal-backdrop {
+.morsels-fs-backdrop {
     --morsels-fullscreen-backdrop-bg: rgba(0, 0, 0, 0.15);
     position: fixed;
     top: 0;
@@ -69,7 +70,7 @@
     z-index: 1000;
 }
 
-.morsels-portal-root {
+.morsels-fs-root {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -78,7 +79,7 @@
     z-index: 1000;
 }
 
-.morsels-portal-input-button-wrapper {
+.morsels-fs-input-button-wrapper {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -89,7 +90,7 @@
     z-index: 1000;
 }
 
-.morsels-portal-input {
+.morsels-fs-input {
     flex: 1 0 0;
     width: 0;
     padding: 0.25em 0.8em;
@@ -99,12 +100,12 @@
     font-size: inherit;
 }
 
-.morsels-portal-input:focus {
+.morsels-fs-input:focus {
     border: var(--morsels-fullscreen-input-focus-border);
     box-shadow: var(--morsels-fullscreen-input-focus-box-shadow);
 }
 
-.morsels-input-close-portal {
+.morsels-input-close-fs {
     position: relative;
     border: none;
     padding: 0;
@@ -119,7 +120,7 @@
     transition: 0.2s linear background;
 }
 
-.morsels-input-close-portal::before, .morsels-input-close-portal::after {
+.morsels-input-close-fs::before, .morsels-input-close-fs::after {
     content: ' ';
     position: absolute;
     top: 0.225em;
@@ -130,44 +131,44 @@
     background: var(--morsels-fullscreen-header-close-fg);
     transition: 0.2s linear background;
 }
-.morsels-input-close-portal::before {
+.morsels-input-close-fs::before {
     transform: rotate(45deg);
 }
-.morsels-input-close-portal::after {
+.morsels-input-close-fs::after {
     transform: rotate(-45deg);
 }
 
-.morsels-input-close-portal:hover {
+.morsels-input-close-fs:hover {
     background: var(--morsels-fullscreen-header-close-hover-bg);
 }
 
-.morsels-input-close-portal:hover::before,
-.morsels-input-close-portal:hover::after {
+.morsels-input-close-fs:hover::before,
+.morsels-input-close-fs:hover::after {
     background: var(--morsels-fullscreen-header-close-hover-fg);
 }
 
-.morsels-input-close-portal:active {
+.morsels-input-close-fs:active {
     background: var(--morsels-fullscreen-header-close-active-bg);
 }
 
-.morsels-input-close-portal:active::before,
-.morsels-input-close-portal:active::after {
+.morsels-input-close-fs:active::before,
+.morsels-input-close-fs:active::after {
     background: var(--morsels-fullscreen-header-close-active-fg);
 }
 
-.morsels-portal-blank {
+.morsels-fs-blank {
     text-align: center;
     font-size: 0.9em;
     color: var(--morsels-fine-print-fg);
     padding: 1em;
 }
 
-.morsels-portal-blank::before {
+.morsels-fs-blank::before {
     content: 'Powered by tiny Morsels of 🧀';
 }
 
 @media screen and (min-width: 1025px) {
-    .morsels-portal-root {
+    .morsels-fs-root {
         border-radius: 10px;
         border: var(--morsels-fullscreen-border);
         box-shadow: var(--morsels-fullscreen-box-shadow);
@@ -213,6 +214,7 @@
     top: calc(100% + 8px);
     right: 0;
     width: var(--morsels-dropdown-width);
+    max-width: var(--morsels-dropdown-max-width);
     max-height: var(--morsels-dropdown-max-height);
     overflow-y: auto;
     list-style: none;
@@ -228,7 +230,7 @@
     right: unset;
 }
 
-.morsels-portal-root .morsels-list {
+.morsels-fs-root .morsels-list {
     width: auto;
     max-height: calc(100% - 20px - 2.7em);
     border: none;
@@ -239,13 +241,13 @@
 }
 
 @media screen and (max-width: 1025px) {
-    .morsels-portal-root .morsels-list {
+    .morsels-fs-root .morsels-list {
         /* Generous amount of bottom padding for device navigation bar. The alternative is dynamic style detection. */
         padding-bottom: 100px;
     }
 }
 
-.morsels-portal-root::-webkit-scrollbar-track,
+.morsels-fs-root::-webkit-scrollbar-track,
 .morsels-list::-webkit-scrollbar-track {
     border-radius: 5px;
     background: var(--morsels-scrollbar-bg);

@@ -58,6 +58,10 @@
           width: 100%;
         }
       }
+
+      #target-mode-el {
+        list-style: none;
+      }
     </style>
   </head>
   <body>
@@ -68,14 +72,31 @@
         </div>
       </nav>
       <h1 class="app-heading">Morsels Dev Site</h1>
+      <div class="d-flex justify-content-center w-75 flex-wrap">
+        <a class="btn btn-outline-primary m-1" href="/?mode=auto">Auto</a>
+        <a class="btn btn-outline-success m-1" href="/?mode=dropdown">Dropdown</a>
+        <a class="btn btn-outline-warning m-1" href="/?mode=fullscreen">Fullscreen</a>
+        <a class="btn btn-outline-info m-1" href="/?mode=target">Target</a>
+      </div>
+      <div class="morsels-root d-flex justify-content-center w-75">
+        <div id="target-mode-el"></div>
+      </div>
     </div>
   </body>
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode') || 'auto';
+    console.log(mode);
+
     initMorsels({
       searcherOptions: {
         url: 'http://192.168.10.132:3000/output/',
       },
-      sourceFilesUrl: 'http://192.168.10.132:3000/source/'
+      uiOptions: {
+        mode,
+        target: document.getElementById('target-mode-el'),
+        sourceFilesUrl: 'http://192.168.10.132:3000/source/',
+      }
     });
   </script>
 </html>

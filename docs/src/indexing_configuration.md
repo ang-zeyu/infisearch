@@ -82,7 +82,7 @@ These are Okapi BM25 model parameters. The following [article](https://www.elast
 
 This is a "hardcoded" field, in that its value is fixed as the relative file path from your source folder path to the file.
 
-It is included in the default configuration to allow `@morsels/search-ui` to retrieve the source file for result preview generation. (refer back to [this section](./search_configuration.md#generating-result-previews) for more details)
+It is included in the default configuration to allow `@morsels/search-ui` to retrieve the source file for result preview generation. You may refer back to [this section](./search_configuration.md#options-for-generating-result-previews) for more details.
 
 If this is removed, this field simply won't be indexed.
 
