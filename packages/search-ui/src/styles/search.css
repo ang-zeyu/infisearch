@@ -233,6 +233,7 @@
 .morsels-fs-root .morsels-list {
     width: auto;
     max-height: calc(100% - 20px - 2.7em);
+    max-width: none;
     border: none;
     box-shadow: none;
     padding: 0 0.5em 0.5em 0.5em;
