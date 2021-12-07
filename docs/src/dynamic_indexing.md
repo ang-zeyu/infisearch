@@ -20,7 +20,9 @@ This should be automatic for most use cases when specifying the `--dynamic` opti
 
 ### Collection Statistics
 
-Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of dynamic indexing (from added / updated documents). Detecting such terms is difficult, as there is no guarantee the deleted documents are available anymore. As such, the files containing the information for these terms would not be "patched". As a result, you *may* notice some slight drifting in the relative ranking of documents returned after some number of dynamic indexing runs.
+Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of dynamic indexing (from added / updated documents). Detecting such terms is difficult, as there is no guarantee the deleted documents are available anymore. The alternative would be to store such information in a non-inverted index, but that again takes up extra space =(.
+
+As such, the information for these terms may not be "patched". As a result, you *may* notice some slight drifting in the relative ranking of documents returned after some number of dynamic indexing runs.
 
 ### File Metadata
 

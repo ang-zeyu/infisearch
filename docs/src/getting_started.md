@@ -77,11 +77,13 @@ This requires an input element with an id of `morsels-search` to be present in t
 
 ```ts
 initMorsels({
-    searcherOptions: {
-        // Output folder url specified as the second parameter in the cli command
-        url: 'http://192.168.10.132:3000/output/',
-    },
+  searcherOptions: {
+    // Output folder url specified as the second parameter in the cli command
+    url: 'http://192.168.10.132:3000/output/',
+  },
+  uiOptions: {
     // Input / source folder url, specified as the first parameter in the cli command
-    sourceFilesUrl: 'http://192.168.10.132:3000/source/'
+    sourceFilesUrl: 'http://192.168.10.132:3000/source/',
+  }
 });
 ```
