@@ -4,7 +4,10 @@
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>Search UI Configuration - Morsels Documentation</title>
+
+
         <!-- Custom HTML head -->
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,9 +19,11 @@
         <link rel="stylesheet" href="css/general.css">
         <link rel="stylesheet" href="css/chrome.css">
         <link rel="stylesheet" href="css/print.css" media="print">
+
         <!-- Fonts -->
         <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
         <link rel="stylesheet" href="fonts/fonts.css">
+
         <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" href="highlight.css">
         <link rel="stylesheet" href="tomorrow-night.css">
@@ -26,6 +31,7 @@
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="src/morsels-theme.css">
+
     </head>
     <body>
         <!-- Provide site root to javascript -->
@@ -111,8 +117,10 @@
                         <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
+
                     </div>
                 </div>
+
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script type="text/javascript">
@@ -157,6 +165,10 @@
     --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
     --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
 }
+
+#morsels-mdbook-target {
+    list-style: none;
+}
 </style>
 <p><input
     type="text"
@@ -164,145 +176,133 @@
     placeholder="Search"
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
+<div class="morsels-root" id="morsels-mdbook-target"></div>
 <h1 id="search-configuration"><a class="header" href="#search-configuration">Search Configuration</a></h1>
 <p>All search time related options can be provided through the <code>initMorsels</code> function, exposed by <code>@morsels/search-ui</code>.</p>
-<h2 id="forenotes"><a class="header" href="#forenotes">Forenotes</a></h2>
-<h3 id="fullscreen-pop-up-and-dropdown-ui-versions"><a class="header" href="#fullscreen-pop-up-and-dropdown-ui-versions">Fullscreen Pop-Up and Dropdown UI Versions</a></h3>
-<p>The search UI provides 2 different interfaces, a dropdown and fullscreen / “popup” version.</p>
-<p>The dropdown version is used for desktop devices by default, which is attached to the element specified by the <code>input</code> option.
-For mobile devices, the fullscreen version is displayed instead when this input is focused.</p>
+<p>There are 2 categories of options, the first being related to the search library (<code>@morsels/search-lib</code>), and the second the user interface (<code>@morsels/search-ui</code>).</p>
+<h2 id="forenote-on-mobile-device-detection"><a class="header" href="#forenote-on-mobile-device-detection">Forenote on Mobile Device Detection</a></h2>
+<p>Several options in both the search library and UI are by default tuned based on whether the client is a mobile device.</p>
+<p>Some examples of tuned settings for mobile devices:</p>
+<ul>
+<li>Query term proximity ranking is disabled</li>
+<li>A slightly longer input debounce time</li>
+<li>Whether to use the fullscreen version (more later) of the user interface instead</li>
+</ul>
+<p>The check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
+<p>An override may be provided through the <code>isMobileDevice</code> option shown below, which is simply a function returning a boolean.</p>
+<pre><code class="language-ts">initMorsels({
+    isMobileDevice: () =&gt; true,
+})
+</code></pre>
+<hr />
+<h2 id="search-ui-options"><a class="header" href="#search-ui-options">Search UI Options</a></h2>
+<p>Search UI options are organised under the <code>uiOptions</code> key:</p>
+<pre><code class="language-ts">initMorsels({
+    uiOptions: {
+        // ... options go here ...
+    }
+})
+</code></pre>
+<p>For brevity, this page covers only a subset of the most important options.</p>
+<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!</p>
+<h3 id="input-element"><a class="header" href="#input-element">Input Element</a></h3>
+<table><thead><tr><th>Option</th><th>Default Value</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>input</code></td><td><code>'morsels-search'</code></td><td>id of the input element or a html element reference</td></tr>
+<tr><td><code>inputDebounce</code></td><td><code>isMobile ? 275 : 200</code></td><td>debounce time of keystrokes to the input element</td></tr>
+</tbody></table>
+<p>The <code>input</code> option is the most important option, and required in most use cases. Its purpose varies depending on the ui mode specified below.</p>
+<h3 id="ui-mode"><a class="header" href="#ui-mode">UI Mode</a></h3>
+<p><code>mode = 'auto'</code></p>
+<p>The search UI provides 4 main different behaviours.</p>
+<p>To try the different modes out, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation.</p>
+<table><thead><tr><th>Mode</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.</td></tr>
+<tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are displayed using an additional container attached to this root container.<br><br><strong>Styling Note:</strong><br>When using this option, it is important to note that the dropdown may overflow your screen depending on your dropdown alignment and screen size (more likely for mobile devices). You will need to adjust the maximum width accordingly (see <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css">css styling</a>). This may likely change in the short future using <a href="https://popper.js.org/">popper.js</a>. As such, intrusive modifications (mainly renderers, covered in the next page) relying on current dropdown behaviours are discouraged.</td></tr>
+<tr><td><code>&quot;fullscreen&quot;</code></td><td>This option creates a completely distinct root container with its own input element, and attaches it to the <code>&lt;body&gt;</code> element. Under the default stylesheet, the user interface is fullscreen for devices satisfying <code>max-width: 1025px</code>, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the <code>input</code> element is specified, the root container is attached whenever the <code>input</code> is focused.<br><br>Alternatively, one may use the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> function to toggle the UI. This is also the only use case where you would not need to specify the <code>input</code> element.</td></tr>
+<tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin and this documentation by default. The <code>input</code> element must be specified, but only for attaching keystroke listeners. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom target element of choice.</td></tr>
+</tbody></table>
+<h4 id="ui-mode-specific-options"><a class="header" href="#ui-mode-specific-options">UI Mode Specific Options</a></h4>
+<p>There are also several options specific to each UI. Note that <code>dropdown</code> and <code>fullscreen</code> options are both applicable to the <code>auto</code> mode.</p>
+<table><thead><tr><th>Mode</th><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'right'</code></td><td><code>'left'</code> or <code>'right'</code>. Which side of the input element to align the dropdown results container against.</td></tr>
+<tr><td><code>fullscreen</code></td><td><code>fullscreenContainer</code></td><td><code>&lt;body&gt;</code> element</td><td>Id of the element, or an element reference to attach the separate root container to.</td></tr>
+<tr><td><code>target</code></td><td><code>target</code></td><td>-</td><td>Id of the element, or an element reference to attach results to. Required if using <code>mode='target'</code>.</td></tr>
+</tbody></table>
+<h4 id="manually-showing--hiding-the-fullscreen-ui"><a class="header" href="#manually-showing--hiding-the-fullscreen-ui">Manually Showing / Hiding the Fullscreen UI</a></h4>
+<pre><code class="language-ts">const { showFullscreen, hideFullscreen } = initMorsels(/* ... */);
+</code></pre>
+<p>The default behaviour of showing the fullscreen search UI when focusing the input may be insufficient, for example to show the UI when clicking a “search icon”.</p>
+<p>You may call the <code>showFullscreen()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hideFullscreen()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button (or by pressing <code>esc</code>) is available by default.</p>
+<p>These functions can also be used under <code>mode='auto'</code> if desired.</p>
+<h3 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h3>
+<p>There are 3 ways to generate result previews, the first of the below being the default.</p>
+<p>Unless you have modified the default result renderer (covered in the next page on renderers), morsels requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields. This is configured by default, and covered in the next section on indexing configuration in more detail.</p>
 <h3 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h3>
-<p>It is also worth rehashing that the default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
-<p>This is achieved through an internal <code>_relative_fp</code> field that is stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (see <code>sourceFilesUrl</code> below) and this <code>_relative_fp</code> field forms the full source document link, which is used for:</p>
+<p>The default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
+<p>Therefore, source documents are assumed to be available. To generate alternative outputs (e.g. buttons, perform some action), you will need to use option 3 below.</p>
+<h4 id="1-from-source-documents-default"><a class="header" href="#1-from-source-documents-default">1. From Source Documents (default)</a></h4>
+<p><code>sourceFilesUrl</code></p>
+<p>When option 2 below (field stores) is not configured or unavailable, morsels will attempt to fetch the source document from <strong><code>sourceFilesUrl</code> adjoined with the relative file path of the document</strong> at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
+<p>The <code>_relative_fp</code> field is an internally generated field that can be stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (<code>sourceFilesUrl</code>) and this field forms the full source document link, used for:</p>
 <ul>
 <li>Attaching a link to the source document in the generated result match</li>
 <li>Retrieving the source document</li>
 </ul>
-<p>Therefore, source documents are assumed to be available. You may refer to the section on <a href="#generating-result-previews">generating</a> result previews otherwise.</p>
-<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
-<p>The available options and their format in this page are detailed in the following code block. Options which warrant more explanation are also elaborated in the subsequent sections of this page.</p>
-<pre><code class="language-js">initMorsels({
-    // Options belonging to @morsels/search-lib, the search library package
-    searcherOptions: {
-        // Base url of output directory from cli tool
-        url: 'http://192.168.10.132:3000/output/',
-        
-        // Whether to use substring query term expansion
-        numberOfExpandedTerms: 3,
-        
-        // Override for using query term proximity ranking or not.
-        // Disabled for mobile devices by default
-        useQueryTermProximity: true,
-    },
-    
-    // Options for @morsels/search-ui, the user interface package
-    
-    // Id of input element to attach the search dropdown to
-    // Or the HTMLInputElement itself
-    input: 'morsels-search',
-
-    // Debounce time for the input handlers
-    inputDebounce: isMobile ? 275 : 200,
-    
-    // Mandatory, by default - base url for sourcing .html / .json files
-    sourceFilesUrl: 'http://192.168.10.132:3000/source/',
-    
-    // Customise search result outputs, UI behaviour
-    render: {
-        enablePortal?: boolean | 'auto',
-        portalTo?: HTMLElement,
-        resultsPerPage: 8,
-        opts: {
-            dropdownAlignment: 'left' | 'right'
-        },
-        // refer to Renderers section for the other options
-    }
-});
-</code></pre>
-<h2 id="basic-user-interface-behaviours"><a class="header" href="#basic-user-interface-behaviours">Basic User Interface Behaviours</a></h2>
-<p>This section details the available options, necessary inputs and some utility methods controlling the some user interface behaviour.</p>
-<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API (that really shouldn’t be needed) to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request on the Github repository.</p>
-<pre><code class="language-ts">{
-    input: string | HTMLInputElement,
-    render: {
-        enablePortal?: boolean | 'auto',
-        portalTo?: HTMLElement,
-        resultsPerPage: 8,
-        // ...
-    }
-}
-</code></pre>
-<br>
-<p><strong><code>input = 'morsels-search'</code></strong></p>
-<p>This option tells morsels which input element to use for the <strong>dropdown version</strong> of its search ui. It can be specified as a <code>string</code> (the id of the input element), or, directly as the <code>HTMLInputElement</code> to use.</p>
-<p>If this is unspecified, the <code>show / hide</code> APIs below should be used to bring up the <strong>fullscreen UI</strong>.</p>
-<hr />
-<p><strong><code>enablePortal = 'auto'</code></strong></p>
-<p>This parameter specifies whether to use the fullscreen search UI for mobile devices when the original <code>&lt;input&gt;</code> specified by <code>input</code> is focused.</p>
-<p>The default value of <code>'auto'</code> configures this according to mobile device detection (<code>true</code> if it is a mobile device), and also adds a simple window resize handler to automatically hide the corresponding UI if the window is resized.</p>
-<p>You can set this to <code>true</code> / <code>false</code> to always prefer the fullscreen or dropdown version instead when the original <code>&lt;input&gt;</code> is focused.</p>
-<p>If no <code>input</code> is specified, this option will not do anything.</p>
-<hr />
-<p><strong><code>portalTo = document.getElementsByTagName('body')[0]</code></strong></p>
-<p>This parameter specifies which element to attach the fullscreen search UI to, which uses <code>fixed</code> positioning. The <code>&lt;body&gt;</code> element is used by default.</p>
-<hr />
-<p><strong><code>resultsPerPage = 8</code></strong></p>
-<p>This option controls how many result previews are retrieved per trigger of the infinite scrolling intersection observer.</p>
-<p>If none of the <code>body / title / heading</code> fields are stored (see <a href="#generating-result-previews">generating result previews</a>), lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed.</p>
-<hr />
-<p><strong><code>show() / hide()</code></strong></p>
-<pre><code class="language-ts">const { show, hide } = initMorsels(/* ... */);
-</code></pre>
-<p>The default behaviour of showing the fullscreen search UI when focusing the input may be insufficient in some cases, for example, to show the UI when clicking a “search icon”.</p>
-<p>You may call the <code>show()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hide()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button is available by default.</p>
-<h2 id="automatic-term-expansion"><a class="header" href="#automatic-term-expansion">Automatic Term Expansion</a></h2>
-<p>(<code>numberOfExpandedTerms</code>)</p>
-<p>By default, stemming is turned off in the <a href="indexing_configuration.html#language">language modules</a>. This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.</p>
-<p>To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.</p>
-<p>For both of the <a href="./indexing_configuration.html#latin-tokenizer">language</a> modules available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (quite similar to Algolia Docsearch’s behaviour)</p>
-<h2 id="term-proximity-ranking"><a class="header" href="#term-proximity-ranking">Term Proximity Ranking</a></h2>
-<p>(<code>useQueryTermProximity</code>)</p>
-<p>Document scores are also scaled by how close query expressions or terms are to each other, if positions are indexed.
-This may be costly for mobile devices however, and is disabled by default in such cases.</p>
-<h2 id="generating-result-previews"><a class="header" href="#generating-result-previews">Generating Result Previews</a></h2>
-<p>There are 3 ways to generate result previews, the first of the below being the default.</p>
-<p>Unless you have modified the default result renderer (covered in the renderers page), morsels requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields (covered in the next section on indexing configuration).</p>
-<h3 id="1-from-source-documents-default"><a class="header" href="#1-from-source-documents-default">1. From Source Documents (default)</a></h3>
-<p>(<code>sourceFilesUrl</code>)</p>
-<p>When the below option (field stores) is not configured or unavailable, morsels will attempt to fetch the source document from <code>sourceFilesUrl</code> adjoined with the relative file path of the document at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
-<p>Note that this option is only applicable for indexed html and json files at this time.
-As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, the subsequent section details the alternative method of generating result previews.</p>
-<h3 id="2-from-field-stores"><a class="header" href="#2-from-field-stores">2. From Field Stores</a></h3>
-<p>If source documents are unavailable, morsels is able to generate result previews from its json field stores generated at indexing time.</p>
-<p>In order to specify what fields to store, please take a look at the <code>do_store</code> option in this <a href="./indexing_configuration.html#fields_config">section</a> of the indexing configuration page. To use this method of result preview generation for the default use case / result rendering behaviour, simply enable the <code>do_store</code> option for the <code>heading</code>, <code>body</code>, and <code>title</code> fields.</p>
-<p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant for search-ui to perform result preview generation on.</p>
-<h3 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h3>
+<p>Note that this option is only applicable for indexed html and json files at this time.</p>
+<p>As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, options 2 or 3 can be used.</p>
+<h4 id="2-from-field-stores"><a class="header" href="#2-from-field-stores">2. From Field Stores</a></h4>
+<p>If source documents are unavailable, morsels is able to generate result previews from its own json field stores generated at indexing time.</p>
+<p>In order to specify what fields to store, take a look at the <code>do_store</code> option in this <a href="./indexing_configuration.html#fields_config">section</a> of the indexing configuration page. To use this method of result preview generation for the default use case / result rendering behaviour, enable the <code>do_store</code> option for the relevant fields.</p>
+<p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant to perform result preview generation on.</p>
+<h4 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h4>
 <p>It is also possible to create your own result <a href="./search_configuration_renderers.html">renderer</a> to, for example:</p>
 <ul>
 <li>attach an event handler to call a function when a user clicks the result preview</li>
 <li>retrieve and generate result previews from some other API.</li>
 </ul>
 <p>Nevertheless, the section <a href="#from-field-stores">“From Field Stores”</a> above would still be relevant as it provides the basis for retrieving a document’s fields (e.g. a document id with which to call an API).</p>
-<h2 id="mobile-device-detection"><a class="header" href="#mobile-device-detection">Mobile Device Detection</a></h2>
-<p>It may helpful to note that mobile devices are detected through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be accurate.</p>
-<p>This is used for determining some default settings, namely:</p>
-<ul>
-<li>Query term proximity ranking is disabled</li>
-<li>The input debounce time, which is slightly longer for mobile devices</li>
-<li>Whether to use the fullscreen “portal”-ed version of the user interface instead</li>
-</ul>
-<p>Overrides may be provided through the options above if this detection method is inadequate.</p>
+<p>This is covered in more detail in the next page.</p>
+<h3 id="results-per-page"><a class="header" href="#results-per-page">Results Per Page</a></h3>
+<p><code>resultsPerPage = 8</code></p>
+<p>In all UI modes, an infinite scrolling intersection observer is attached to the bottom of the relevant container. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
+<p>Lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
+<hr />
+<h2 id="search-library-options"><a class="header" href="#search-library-options">Search Library Options</a></h2>
+<p>The options for the search library are rather brief, and can be summarised in this snippet:</p>
+<pre><code class="language-js">initMorsels({
+    // Options belonging to @morsels/search-lib, the search library package
+    searcherOptions: {
+        // Base url of output directory that the cli tool generated
+        url: 'http://192.168.10.132:3000/output/',
+        
+        // Maximum number of terms for query term expansion
+        numberOfExpandedTerms: 3,
+        
+        // Override for using query term proximity ranking or not.
+        // Disabled for mobile devices by default
+        useQueryTermProximity: true,
+    },
+});
+</code></pre>
+<h3 id="automatic-term-expansion"><a class="header" href="#automatic-term-expansion">Automatic Term Expansion</a></h3>
+<p><code>numberOfExpandedTerms</code></p>
+<p>By default, stemming is turned off in the <a href="indexing_configuration.html#language">language modules</a>. This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.</p>
+<p>To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.</p>
+<p>For both of the <a href="./indexing_configuration.html#latin-tokenizer">language</a> modules available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (quite similar to Algolia Docsearch’s behaviour)</p>
+<h3 id="term-proximity-ranking"><a class="header" href="#term-proximity-ranking">Term Proximity Ranking</a></h3>
+<p><code>useQueryTermProximity</code></p>
+<p>If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other.
+This may be costly for mobile devices however, and is disabled by default in such cases.</p>
 <script>
     initMorsels({
         searcherOptions: {
           url: '/morsels/morsels_output/',
         },
         sourceFilesUrl: '/morsels/',
-        render: {
-            enablePortal: true,
-            opts: {
-                dropdownAlignment: 'left'
-            }
+        uiOptions: {
+            mode: 'target',
+            dropdownAlignment: 'left',
+            target: document.getElementById('morsels-mdbook-target'),
         }
     });
 </script>
@@ -313,9 +313,11 @@ As csv files are often used to hold multiple documents (and can therefore get ve
                             <a rel="prev" href="getting_started_mdbook.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
+
                             <a rel="next" href="search_configuration_renderers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
+
                         <div style="clear: both"></div>
                     </nav>
                 </div>
@@ -325,6 +327,7 @@ As csv files are often used to hold multiple documents (and can therefore get ve
                     <a rel="prev" href="getting_started_mdbook.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
+
                     <a rel="next" href="search_configuration_renderers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
@@ -332,14 +335,22 @@ As csv files are often used to hold multiple documents (and can therefore get ve
 
         </div>
 
+
+
+
         <script type="text/javascript">
             window.playground_copyable = true;
         </script>
+
+
+
         <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
         <script src="book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
         <script type="text/javascript" src="src/morsels-theme.js"></script>
+
+
     </body>
 </html>
