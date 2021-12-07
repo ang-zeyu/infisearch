@@ -9,6 +9,7 @@ use web_sys::Response;
 
 use crate::postings_list_file_cache::PostingsListFileCache;
 use morsels_common::tokenize::TermInfo;
+use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
 
 #[cfg_attr(test, derive(Debug))]
@@ -126,8 +127,7 @@ impl PostingsList {
 
     // Used for "processed" (e.g. phrase, bracket, AND) postings lists
     pub fn calc_pseudo_idf(&mut self, num_docs: u32) {
-        self.idf =
-            (1.0 + (num_docs as f64 - self.term_docs.len() as f64 + 0.5) / (self.term_docs.len() as f64 + 0.5)).ln()
+        self.idf = get_idf(num_docs as f64, self.term_docs.len() as f64);
     }
 
     pub fn merge_term_docs(term_doc_1: &TermDoc, term_doc_2: &TermDoc) -> TermDoc {

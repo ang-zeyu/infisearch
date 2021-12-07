@@ -14,6 +14,7 @@ use std::sync::Arc;
 use dashmap::DashMap;
 
 use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
+use morsels_common::utils::idf::get_idf;
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
@@ -175,9 +176,7 @@ pub fn write_new_term_postings(
         *pl_offset += term_docs.combined_var_ints.len() as u32;
     }
 
-    let doc_freq_double = doc_freq as f64;
-    let max_doc_term_score: f32 = curr_term_max_score
-        * (1.0 + (num_docs - doc_freq_double + 0.5) / (doc_freq_double + 0.5)).ln() as f32;
+    let max_doc_term_score: f32 = curr_term_max_score * get_idf(num_docs, doc_freq as f64) as f32;
     pl_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
     *pl_offset += 4;
 

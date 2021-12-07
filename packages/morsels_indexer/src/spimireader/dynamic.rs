@@ -16,6 +16,7 @@ use smartstring::SmartString;
 
 use morsels_common::bitmap;
 use morsels_common::tokenize::TermInfo;
+use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
 use morsels_common::DOC_INFO_FILE_NAME;
 
@@ -106,8 +107,8 @@ impl ExistingPlWriter {
         let new_doc_freq_double = new_term_info.doc_freq as f64;
 
         let old_max_term_score = LittleEndian::read_f32(&self.pl_vec[pl_vec_pos..])
-            / (1.0 + (old_num_docs - old_doc_freq_double + 0.5) / (old_doc_freq_double + 0.5)).ln() as f32
-            * (1.0 + (num_docs - new_doc_freq_double + 0.5) / (new_doc_freq_double + 0.5)).ln() as f32;
+            / (get_idf(old_num_docs, old_doc_freq_double)
+            * get_idf(num_docs, new_doc_freq_double)) as f32;
         pl_vec_pos += 4;
 
         // Add in new documents
@@ -123,8 +124,7 @@ impl ExistingPlWriter {
         }
 
         // New max term score
-        let new_max_term_score = new_max_term_score
-            * (1.0 + (num_docs - new_doc_freq_double + 0.5) / (new_doc_freq_double + 0.5)).ln() as f32;
+        let new_max_term_score = new_max_term_score * get_idf(num_docs, new_doc_freq_double) as f32;
         if new_max_term_score > old_max_term_score {
             self.pl_writer.write_all(&new_max_term_score.to_le_bytes()).unwrap();
         } else {

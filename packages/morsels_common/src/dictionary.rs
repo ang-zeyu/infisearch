@@ -7,6 +7,7 @@ use smartstring::alias::String;
 use smartstring::alias::String as SmartString;
 
 use crate::tokenize::TermInfo;
+use crate::utils::idf::get_idf;
 use crate::utils::varint;
 use trigrams::get_tri_grams;
 
@@ -66,7 +67,7 @@ pub fn setup_dictionary(
             Rc::clone(&term),
             Rc::new(TermInfo {
                 doc_freq,
-                idf: (1.0 + (num_docs as f64 - doc_freq as f64 + 0.5) / (doc_freq as f64 + 0.5)).ln(),
+                idf: get_idf(num_docs as f64, doc_freq as f64),
                 postings_file_name,
                 postings_file_offset,
             }),
