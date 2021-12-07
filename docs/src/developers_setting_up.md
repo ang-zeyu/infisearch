@@ -1,7 +1,6 @@
 # Setting Up
 
 To get your development environment setup, you'll need to have installed the following:
-- Some Rust, WebAssembly and / or Typescript knowledge 🧠
 - [cargo](https://crates.io/), the package manager for Rust
 - [wasm-pack](https://github.com/rustwasm/wasm-pack), the "one-stop shop" for working with rust generated WebAssembly
 - [mdbook](https://rust-lang.github.io/mdBook/), if working on mdbook-morsels plugin

@@ -1,10 +1,10 @@
 # Getting Started
 
-The following page assumes:
-- You have simply some `.html` files you want to index
+This page assumes the following use case:
+- You have some `.html` files you want to index
 - These `.html` files are served in a static file server, and are accessible by the search-ui to generate result previews
 
-If you require more, have a look through here first, then jump into the [configuration](search_configuration.md) pages to learn more.
+If you require more, have a look through here first, then jump into the subsequent configuration pages to learn more.
 
 ## Installing the indexer
 
@@ -15,19 +15,23 @@ The cli binaries are also available [here](https://github.com/ang-zeyu/morsels/r
 
 ## Running the indexer
 
+Run the executable as such, replacing `<source-folder-path>` with the relative or absolute folder path of your source html files, and `<output-folder-path>` with your desired index output folder.
+
 ```
 morsels <source-folder-path> <output-folder-path>
 ```
 
+### Other Cli Options
+
 While optional, if it is your first time running the tool, you can run the above command with the `--init` or `-i` flag, then run it again without this flag.
-This flag outputs the default [`_morsels_config.json`](./indexing_configuration.md) that can be used to configure the indexer later on.
+This flag outputs the default `_morsels_config.json` that can be used to [configure the indexer](./indexing_configuration.md) later on.
 
 You may also change the config file location (relative to the `source-folder-path`) using the `-c <config-file-path>` option.
 
 
 ## Installing the search library / UI
 
-### Installation via cdn 
+### Installation via CDN
 
 ```html
 <!-- Replace "version" as appropriate -->
@@ -38,8 +42,20 @@ You may also change the config file location (relative to the `source-folder-pat
 <script src="https://cdn.jsdelivr.net/npm/morsels-search-ui@version/search-ui.css"></script>
 ```
 
+#### Hosting the Files Locally
 
 If you wish to serve the files locally instead, you can find the latest versions in [this folder](https://github.com/ang-zeyu/morsels/tree/main/packages/search-ui/dist), or in the release packages [here](https://github.com/ang-zeyu/morsels/releases).
+
+The following files will be present in each release:
+
+- `search-ui.bundle.js`
+- `search-ui.css`
+- `search.worker.bundle.js`
+- Multiple (as many supported languages / tokenizers as there are):
+  - `wasm.lang-latin-index-js.bundle`
+  - an accompanying wasm binary
+
+Note that `search.worker.bundle.js` and the wasm files are expected to be accessible in the same folder relative to the linked `search-ui.bundle.js`.
 
 ### Installation via Bundlers
 
