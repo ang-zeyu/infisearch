@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "webpack-cli serve --config ./webpack.dev.js",
     "devDocs": "cd docs && mdbook serve -p 8000",
-    "buildDocs": "npm run preDocs && cd docs && mdbook build",
+    "buildDocs": "cd docs && mdbook build",
     "buildSearch": "webpack --config ./webpack.prod.js",
     "buildMdbook": "cargo install --path packages/mdbook-morsels",
     "index1": "cargo run -p morsels_indexer --release ./test_files/1/source ./test_files/1/output --perf",
