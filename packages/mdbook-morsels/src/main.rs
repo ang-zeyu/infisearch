@@ -114,6 +114,12 @@ static INPUT_EL: &str = "\n<input
 
 static STYLES: &str = r#"
 <style>
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
@@ -177,14 +183,25 @@ fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
 
 fn get_initialise_script_el(mode: Option<&Value>, base_url: &str) -> String {
     let mode = if let Some(TomlString(mode)) = mode {
-        let valid_modes = vec!["auto", "dropdown", "fullscreen", "target"];
-        if valid_modes.into_iter().any(|valid_mode| valid_mode == mode) {
-            mode
+        if mode == "query_param" {
+            // Documentation specific, do not use!
+            // For demoing the different modes only
+            "(function () {
+                // This IIFE is documentation specific, for demoing the different modes.
+                // It would be the string mode (e.g. 'target') normally
+                const params = new URLSearchParams(window.location.search);
+                return params.get('mode') || 'target';
+            })()".to_owned()
         } else {
-            "target"
+            let valid_modes = vec!["auto", "dropdown", "fullscreen", "target"];
+            if valid_modes.into_iter().any(|valid_mode| valid_mode == mode) {
+                format!("'{}'", mode)
+            } else {
+                "'target'".to_owned()
+            }
         }
     } else {
-        "target"
+        "'target'".to_owned()
     };
 
     format!(
@@ -194,7 +211,7 @@ fn get_initialise_script_el(mode: Option<&Value>, base_url: &str) -> String {
           url: '{}morsels_output/',
         }},
         uiOptions: {{
-            mode: '{}',
+            mode: {},
             dropdownAlignment: 'left',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '{}',

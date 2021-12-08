@@ -3,6 +3,10 @@
 This page assumes the following use case:
 - You have some `.html` files you want to index
 - These `.html` files are served in a static file server, and are accessible by the search-ui to generate result previews
+- You have a input element to attach a search dropdown to
+  - For mobile devices, a fullscreen UI will show instead when this input element is focused.
+  - Note that this documentation is using an alternative UI mode (try the search function), which is covered later under [search configuration](./search_configuration.md#ui-mode).
+  - To preview the default mode, head on over to the mdbook page [here](./getting_started_mdbook.md#preview), and click on the **auto** button.
 
 If you require more, have a look through here first, then jump into the subsequent configuration pages to learn more.
 
@@ -89,7 +93,7 @@ new CopyPlugin({
 
 Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function.
 
-This requires an input element with an id of `morsels-search` to be present in the page by default.
+This requires an input element with an id of `morsels-search` to be present in the page by default, which can be configured differently via `uiOptions.input`.
 
 ```ts
 initMorsels({

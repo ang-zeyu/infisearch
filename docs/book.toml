@@ -21,4 +21,7 @@ command = "mdbook-morsels"
 renderer = ["html"]
 
 [output.morsels]
-mode = "target"
+# Note
+# "query_param" is documentation specific, for demo-ing the different modes with the buttons
+# the only valid modes that should be used are "auto", "dropdown", "fullscreen", "target"
+mode = "query_param"

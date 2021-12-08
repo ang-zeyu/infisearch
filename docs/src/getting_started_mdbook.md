@@ -40,11 +40,44 @@ no-css = false
 
 ## Preview
 
-Try out the different **themes** on this documentation using mdbook's paintbrush icon!
+Use the following (non-canonical, documentation specific) buttons to try out the different [**`mode`** parameters](search_configuration.md#ui-mode).
 
-You may also use the following (non-canonical, documentation specific) buttons to try out the different [**`mode`** parameters](search_configuration.md#ui-mode).
+<style>
+    .demo-btn {
+        padding: 5px 9px;
+        margin: 0 8px 8px 8px;
+        border: 2px solid var(--sidebar-bg) !important;
+        border-radius: 10px;
+        transition: all 0.15s linear;
+        color: var(--fg) !important;
+        text-decoration: none !important;
+        font-weight: 600 !important;
+    }
+
+    .demo-btn:hover {
+        color: var(--sidebar-fg) !important;
+        background: var(--sidebar-bg) !important;
+    }
+
+    .demo-btn:active {
+        color: var(--sidebar-active) !important;
+    }
+</style>
+
+<div style="display: flex; justify-content: center; flex-wrap: wrap;">
+    <a class="demo-btn" href="?mode=auto">Auto</a>
+    <a class="demo-btn" href="?mode=dropdown">Dropdown</a>
+    <a class="demo-btn" href="?mode=fullscreen">Fullscreen</a>
+    <a class="demo-btn" href="?mode=target">Target</a>
+</div>
+
+You can also try out the different **themes** on this documentation using mdbook's paintbrush icon!
+
+<figure>
 
 ![mdbook morsels plugin preview](./images/mdbook-preview.gif)
-*Gif of `mode='fullscreen'` across the different themes*
+<figcaption style="text-align: center;"><em>Gif of `mode='fullscreen'` across the different themes</em></figcaption>
+</figure>
+
 
 Also note that unlike the default search feature, the search bar is always there -- there is no search icon on the navbar to click. I am still trying to figure how to add this nicely (without runtime hacks) within mdbook's plugin framework :)
