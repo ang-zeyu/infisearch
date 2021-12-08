@@ -135,6 +135,12 @@
                     <main>
                         <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
 <style>
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
@@ -211,21 +217,55 @@ config = &quot;_morsels_config.json&quot;
 no-css = false
 </code></pre>
 <h2 id="preview"><a class="header" href="#preview">Preview</a></h2>
-<p>Try out the different <strong>themes</strong> on this documentation using mdbook’s paintbrush icon!</p>
-<p>You may also use the following (non-canonical, documentation specific) buttons to try out the different <a href="search_configuration.html#ui-mode"><strong><code>mode</code></strong> parameters</a>.</p>
-<p><img src="./images/mdbook-preview.gif" alt="mdbook morsels plugin preview" />
-<em>Gif of <code>mode='fullscreen'</code> across the different themes</em></p>
+<p>Use the following (non-canonical, documentation specific) buttons to try out the different <a href="search_configuration.html#ui-mode"><strong><code>mode</code></strong> parameters</a>.</p>
+<style>
+    .demo-btn {
+        padding: 5px 9px;
+        margin: 0 8px 8px 8px;
+        border: 2px solid var(--sidebar-bg) !important;
+        border-radius: 10px;
+        transition: all 0.15s linear;
+        color: var(--fg) !important;
+        text-decoration: none !important;
+        font-weight: 600 !important;
+    }
+
+    .demo-btn:hover {
+        color: var(--sidebar-fg) !important;
+        background: var(--sidebar-bg) !important;
+    }
+
+    .demo-btn:active {
+        color: var(--sidebar-active) !important;
+    }
+</style>
+<div style="display: flex; justify-content: center; flex-wrap: wrap;">
+    <a class="demo-btn" href="?mode=auto">Auto</a>
+    <a class="demo-btn" href="?mode=dropdown">Dropdown</a>
+    <a class="demo-btn" href="?mode=fullscreen">Fullscreen</a>
+    <a class="demo-btn" href="?mode=target">Target</a>
+</div>
+<p>You can also try out the different <strong>themes</strong> on this documentation using mdbook’s paintbrush icon!</p>
+<figure>
+<p><img src="./images/mdbook-preview.gif" alt="mdbook morsels plugin preview" /></p>
+<figcaption style="text-align: center;"><em>Gif of `mode='fullscreen'` across the different themes</em></figcaption>
+</figure>
 <p>Also note that unlike the default search feature, the search bar is always there – there is no search icon on the navbar to click. I am still trying to figure how to add this nicely (without runtime hacks) within mdbook’s plugin framework :)</p>
 <script>
     initMorsels({
         searcherOptions: {
           url: '/morsels/morsels_output/',
         },
-        sourceFilesUrl: '/morsels/',
         uiOptions: {
-            mode: 'target',
+            mode: (function () {
+                // This IIFE is documentation specific, for demoing the different modes.
+                // It would be the string mode (e.g. 'target') normally
+                const params = new URLSearchParams(window.location.search);
+                return params.get('mode') || 'target';
+            })(),
             dropdownAlignment: 'left',
             target: document.getElementById('morsels-mdbook-target'),
+            sourceFilesUrl: '/morsels/',
         }
     });
 </script>

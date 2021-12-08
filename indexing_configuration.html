@@ -135,6 +135,12 @@
                     <main>
                         <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
 <style>
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
@@ -530,11 +536,16 @@ The <code>field_order</code> controls in which order these fields are indexed, w
         searcherOptions: {
           url: '/morsels/morsels_output/',
         },
-        sourceFilesUrl: '/morsels/',
         uiOptions: {
-            mode: 'target',
+            mode: (function () {
+                // This IIFE is documentation specific, for demoing the different modes.
+                // It would be the string mode (e.g. 'target') normally
+                const params = new URLSearchParams(window.location.search);
+                return params.get('mode') || 'target';
+            })(),
             dropdownAlignment: 'left',
             target: document.getElementById('morsels-mdbook-target'),
+            sourceFilesUrl: '/morsels/',
         }
     });
 </script>
