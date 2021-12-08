@@ -226,8 +226,32 @@ There is no root element for the target, as it is specified by the `target` opti
 | ----- | ----- | ----------- |
 | `noResultsRender(h, opts)` | `HTMLElement`        | This API renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when there are no results found for a given query. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |
 | `loadingIndicatorRender(h, opts)` | `HTMLElement`  | This API renders the loading indicator attached under the `listContainer`. The loading indicator is shown when making the initial search (the first search from an empty search box).    |
-| `termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms)` | `HTMLElement[]`      | This API renders element(s) attached under the `listContainer` related to the searched terms, and is blank by default.<br><br>This can be used to render messages like "*Did you mean <u>spelling</u>?* ".    |
+| `termInfoRender(h, opts, queryParts: QueryPart[])`<br><br>(may be *especially* <span style="color: red;">unstable</span> / changed shortly, please ensure your version is fixed if using this) | `HTMLElement[]`      | This API renders element(s) attached under the `listContainer` related to the searched terms, and is blank by default.<br><br>This can be used to render messages like "*Did you mean <u>spelling</u>?* ".    |
 | `fsBlankRender(h, opts)`<br><br>( `mode='fullscreen'` only ) | `HTMLElement` | This API renders the element attached under the `listContainer` when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.    |
+
+### `queryParts` Parameter
+
+This parameter to the `termInfoRender` function is the parsed structure of the input query string.
+
+Its (<span style="color: red;">tentative</span>) interface is as follows:
+
+```ts
+export interface QueryPart {
+  partType: 'TERM' | 'PHRASE' | 'BRACKET' | 'AND' | 'NOT';
+
+  // Raw, original term(s) contained
+  originalTerms?: string[];
+
+  isCorrected?: boolean;
+  isStopWordRemoved?: boolean;
+  isExpanded?: boolean;
+
+  // Spelling corrected / Expanded / Stop word removed result
+  terms?: string[];
+
+  children?: QueryPart[];
+}
+```
 
 ## Rendering Search Results
 

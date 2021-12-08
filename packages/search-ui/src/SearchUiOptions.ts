@@ -2,6 +2,7 @@ import { SearcherOptions } from '@morsels/search-lib/lib/results/SearcherOptions
 import { MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import Result from '@morsels/search-lib/lib/results/Result';
 import { Query } from '@morsels/search-lib';
+import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
 import { CreateElement } from './utils/dom';
 
 export type ArbitraryOptions = any;
@@ -69,9 +70,7 @@ export interface UiOptions {
   termInfoRender?: (
     h: CreateElement,
     opts: SearchUiOptions,
-    misspelledTerms: string[],
-    correctedTerms: string[],
-    expandedTerms: string[],
+    queryParts: QueryPart[],
   ) => HTMLElement[],
 
   // Rendering Results

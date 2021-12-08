@@ -274,35 +274,6 @@ function transformHtml(
 }
 
 /*
- Corrected / "also searched for..." terms
- */
-
-function displayTermInfo(queryParts: QueryPart[], options: SearchUiOptions): HTMLElement[] {
-  const misspelledTerms: string[] = [];
-  const correctedTerms: string[] = [];
-  let expandedTerms: string[] = [];
-
-  queryParts.forEach((queryPart) => {
-    if (queryPart.isCorrected) {
-      for (const misspelledTerm of queryPart.originalTerms) {
-        if (!queryPart.terms.includes(misspelledTerm)) {
-          misspelledTerms.push(misspelledTerm);
-        }
-      }
-      for (const term of queryPart.terms) {
-        correctedTerms.push(term);
-      }
-    } else if (queryPart.isExpanded) {
-      expandedTerms = queryPart.terms;
-    }
-  });
-
-  return options.uiOptions.termInfoRender(
-    createElement, options, misspelledTerms, correctedTerms, expandedTerms,
-  );
-}
-
-/*
  Main transform function
  */
 
@@ -403,7 +374,9 @@ export default async function transformResults(
   }
 
   const fragment = document.createDocumentFragment();
-  const termInfoEls = isFirst ? displayTermInfo(query.queryParts, options) : [];
+  const termInfoEls = isFirst
+    ? options.uiOptions.termInfoRender(createElement, options, query.queryParts)
+    : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
   // let now = performance.now();
