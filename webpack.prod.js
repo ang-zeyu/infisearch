@@ -34,6 +34,12 @@ module.exports = merge(common, {
     new MiniCssExtractPlugin(),
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
+      extraArgs: '-- --no-default-features --features lang_latin',
+      forceMode: 'production',
+      outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_latin'),
+    }),
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
       extraArgs: '-- --no-default-features --features lang_chinese',
       forceMode: 'production',
       outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_chinese'),

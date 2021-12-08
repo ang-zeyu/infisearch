@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use regex::Regex;
+#[cfg(feature = "stemmer")]
 use rust_stemmers::{Algorithm, Stemmer};
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
@@ -11,7 +12,7 @@ use smartstring::alias::String as SmartString;
 use crate::ascii_folding_filter;
 use morsels_common::tokenize::SearchTokenizeResult;
 use morsels_common::tokenize::TermInfo;
-use morsels_common::tokenize::Tokenizer;
+use morsels_common::tokenize::Tokenizer as TokenizerTrait;
 
 lazy_static! {
     static ref TERM_FILTER: Regex =
@@ -41,9 +42,9 @@ fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
     set
 }
 
-pub struct EnglishTokenizer {
+pub struct Tokenizer {
     pub stop_words: HashSet<String>,
-    use_stemmer: bool,
+    #[cfg(feature = "stemmer")]
     stemmer: Stemmer,
     max_term_len: usize,
 }
@@ -52,11 +53,11 @@ fn get_default_max_term_len() -> usize {
     80
 }
 
-impl Default for EnglishTokenizer {
-    fn default() -> EnglishTokenizer {
-        EnglishTokenizer {
+impl Default for Tokenizer {
+    fn default() -> Tokenizer {
+        Tokenizer {
             stop_words: get_stop_words_set(get_default_stop_words()),
-            use_stemmer: false,
+            #[cfg(feature = "stemmer")]
             stemmer: Stemmer::create(Algorithm::English),
             max_term_len: get_default_max_term_len(),
         }
@@ -64,22 +65,22 @@ impl Default for EnglishTokenizer {
 }
 
 #[derive(Deserialize)]
-pub struct EnglishTokenizerOptions {
+pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
+    #[cfg(feature = "stemmer")]
     pub stemmer: Option<String>,
     #[serde(default = "get_default_max_term_len")]
     pub max_term_len: usize,
 }
 
-pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
+pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
     let stop_words = if let Some(stop_words) = options.stop_words {
         get_stop_words_set(stop_words)
     } else {
         get_stop_words_set(get_default_stop_words())
     };
 
-    let use_stemmer = options.stemmer.is_some();
-
+    #[cfg(feature = "stemmer")]
     let stemmer = if let Some(stemmer_lang) = options.stemmer {
         match stemmer_lang.to_lowercase().as_str() {
             "arabic" => Stemmer::create(Algorithm::Arabic),
@@ -106,11 +107,16 @@ pub fn new_with_options(options: EnglishTokenizerOptions) -> EnglishTokenizer {
         Stemmer::create(Algorithm::English)
     };
 
-    EnglishTokenizer { stop_words, use_stemmer, stemmer, max_term_len: options.max_term_len }
+    Tokenizer {
+        stop_words,
+        #[cfg(feature = "stemmer")]
+        stemmer,
+        max_term_len: options.max_term_len
+    }
 }
 
 // Custom replace_all regex implementation accepting cow to make lifetimes comply
-// See https://github.com/rust-lang/regex/issues/676
+// https://github.com/rust-lang/regex/issues/676
 fn term_filter(input: Cow<str>) -> Cow<str> {
     let mut match_iter = TERM_FILTER.find_iter(&input);
     if let Some(first) = match_iter.next() {
@@ -132,7 +138,7 @@ fn term_filter(input: Cow<str>) -> Cow<str> {
     }
 }
 
-impl EnglishTokenizer {
+impl Tokenizer {
     #[inline(always)]
     fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
         slice
@@ -141,15 +147,14 @@ impl EnglishTokenizer {
                 let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
                 let filtered = term_filter(ascii_folded);
 
-                if self.use_stemmer {
-                    if let Cow::Owned(v) = self.stemmer.stem(&filtered) {
-                        Cow::Owned(v)
-                    } else {
-                        filtered // unchanged
-                    }
+                #[cfg(feature = "stemmer")]
+                if let Cow::Owned(v) = self.stemmer.stem(&filtered) {
+                    Cow::Owned(v)
                 } else {
-                    filtered
+                    filtered // unchanged
                 }
+                #[cfg(not(feature = "stemmer"))]
+                filtered
             })
             .filter(|term| {
                 let term_byte_len = term.len();
@@ -159,7 +164,7 @@ impl EnglishTokenizer {
     }
 }
 
-impl Tokenizer for EnglishTokenizer {
+impl TokenizerTrait for Tokenizer {
     fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
         text.make_ascii_lowercase();
         SENTENCE_SPLITTER.split(text).map(|sent_slice| self.tokenize_slice(sent_slice)).collect()

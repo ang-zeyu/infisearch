@@ -20,10 +20,12 @@ use crate::dictionary::Dictionary;
 use crate::docinfo::DocInfo;
 use crate::postings_list_file_cache::PostingsListFileCache;
 
+#[cfg(feature = "lang_ascii")]
+use morsels_lang_ascii::ascii;
+#[cfg(feature = "lang_latin")]
+use morsels_lang_latin::latin;
 #[cfg(feature = "lang_chinese")]
 use morsels_lang_chinese::chinese;
-#[cfg(feature = "lang_latin")]
-use morsels_lang_latin::english;
 
 use morsels_common::tokenize::Tokenizer;
 use morsels_common::MorselsLanguageConfig;
@@ -73,12 +75,21 @@ pub struct Searcher {
     invalidation_vector: Vec<u8>,
 }
 
+#[cfg(feature = "lang_ascii")]
+fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
+    if let Some(options) = &mut lang_config.options {
+        Box::new(ascii::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
+    } else {
+        Box::new(ascii::Tokenizer::default())
+    }
+}
+
 #[cfg(feature = "lang_latin")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
     if let Some(options) = &mut lang_config.options {
-        Box::new(english::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
+        Box::new(latin::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
     } else {
-        Box::new(english::EnglishTokenizer::default())
+        Box::new(latin::Tokenizer::default())
     }
 }
 
@@ -87,7 +98,7 @@ fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> 
     if let Some(options) = &mut lang_config.options {
         Box::new(chinese::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
     } else {
-        Box::new(chinese::ChineseTokenizer::default())
+        Box::new(chinese::Tokenizer::default())
     }
 }
 
@@ -195,7 +206,7 @@ pub mod test {
     use rustc_hash::FxHashMap;
 
     use morsels_common::MorselsLanguageConfig;
-    use morsels_lang_latin::english;
+    use morsels_lang_ascii::ascii;
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
     use crate::dictionary::Dictionary;
@@ -215,7 +226,7 @@ pub mod test {
 
         Searcher {
             dictionary: Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() },
-            tokenizer: Box::new(english::EnglishTokenizer::default()),
+            tokenizer: Box::new(ascii::Tokenizer::default()),
             doc_info: DocInfo {
                 doc_length_factors: vec![vec![1.0; num_fields]; num_docs],
                 doc_length_factors_len: num_docs as u32,

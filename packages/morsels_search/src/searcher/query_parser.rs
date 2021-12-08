@@ -359,7 +359,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
 pub mod test {
     use pretty_assertions::assert_eq;
 
-    use morsels_lang_latin::english::{self, EnglishTokenizerOptions};
+    use morsels_lang_ascii::ascii::{self, TokenizerOptions};
 
     use super::{QueryPart, QueryPartType};
 
@@ -458,7 +458,7 @@ pub mod test {
     }
 
     pub fn parse(query: &str) -> Vec<QueryPart> {
-        let tokenizer = english::new_with_options(EnglishTokenizerOptions {
+        let tokenizer = ascii::new_with_options(TokenizerOptions {
             stop_words: None,
             stemmer: None,
             max_term_len: 80,

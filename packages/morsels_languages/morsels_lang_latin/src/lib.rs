@@ -1,5 +1,1 @@
-mod ascii_folding_filter;
-pub mod english;
-
-#[macro_use]
-extern crate lazy_static;
+pub use morsels_lang_ascii::ascii as latin;

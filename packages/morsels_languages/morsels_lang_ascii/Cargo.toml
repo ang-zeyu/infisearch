@@ -1,0 +1,20 @@
+[package]
+name = "morsels_lang_ascii"
+version = "0.0.0"
+authors = ["Ze Yu <angzeyu@gmail.com>"]
+edition = "2018"
+
+[features]
+stemmer = ["rust-stemmers"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+lazy_static = "1.4"
+morsels_common = { path = "../../morsels_common" }
+regex = "1"
+rustc-hash = "1.1"
+rust-stemmers = { version = "^1.0", optional = true }
+serde = { version = "1.0", features = ["derive"] }
+smartstring = "0.2.7"

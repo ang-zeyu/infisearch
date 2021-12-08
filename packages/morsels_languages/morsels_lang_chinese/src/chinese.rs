@@ -10,7 +10,7 @@ use smartstring::alias::String as SmartString;
 
 use morsels_common::tokenize::SearchTokenizeResult;
 use morsels_common::tokenize::TermInfo;
-use morsels_common::tokenize::Tokenizer;
+use morsels_common::tokenize::Tokenizer as TokenizerTrait;
 
 lazy_static! {
     static ref PUNCTUATION_FILTER: Regex =
@@ -28,33 +28,33 @@ fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
     set
 }
 
-pub struct ChineseTokenizer {
+pub struct Tokenizer {
     pub stop_words: HashSet<String>,
     jieba: Jieba,
 }
 
-impl Default for ChineseTokenizer {
-    fn default() -> ChineseTokenizer {
-        ChineseTokenizer { stop_words: get_stop_words_set(Vec::new()), jieba: Jieba::empty() }
+impl Default for Tokenizer {
+    fn default() -> Tokenizer {
+        Tokenizer { stop_words: get_stop_words_set(Vec::new()), jieba: Jieba::empty() }
     }
 }
 
 #[derive(Deserialize)]
-pub struct ChineseTokenizerOptions {
+pub struct TokenizerOptions {
     stop_words: Option<Vec<String>>,
 }
 
-pub fn new_with_options(options: ChineseTokenizerOptions) -> ChineseTokenizer {
+pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
     let stop_words = if let Some(stop_words) = options.stop_words {
         get_stop_words_set(stop_words)
     } else {
         get_stop_words_set(Vec::new())
     };
 
-    ChineseTokenizer { stop_words, jieba: Jieba::empty() }
+    Tokenizer { stop_words, jieba: Jieba::empty() }
 }
 
-impl Tokenizer for ChineseTokenizer {
+impl TokenizerTrait for Tokenizer {
     fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
         text.make_ascii_lowercase();
         self.jieba

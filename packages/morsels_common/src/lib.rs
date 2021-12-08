@@ -9,7 +9,7 @@ pub static DOC_INFO_FILE_NAME: &str = "_doc_info";
 pub static BITMAP_FILE_NAME: &str = "_invalidation_vector";
 
 fn get_default_language() -> String {
-    "latin".to_owned()
+    "ascii".to_owned()
 }
 
 #[derive(Serialize, Deserialize)]

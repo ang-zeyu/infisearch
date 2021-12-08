@@ -101,24 +101,20 @@ Note that these options are also applied to the search library, which uses the s
 }
 ```
 
-### Note on Stop Words
+### Forenote on Stop Words
 
-Morsels takes a slightly different approach with stop words in that stop words are only filtered at **query time** for certain types of queries (currently this is for free-text queries with more than two terms).
+A slightly different approach with stop words is taken in that stop words are only filtered at **query time** for certain types of queries (currently this is for free-text queries with more than two terms).
 
 This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:
 - For processing phrase queries (eg. `"for tomorrow"`)
 - Boolean queries (eg. `if AND forecast AND sunny`)
 - One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.
 
-
-
-### Latin Tokenizer
+### Ascii Tokenizer
 
 The default tokenizer splits on sentences, then whitespaces to obtain tokens.
 
-*Tantivy*'s [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to these tokens, followed by punctuation and non-word boundary removal.
-
-If specified, a stemmer is also applied.
+An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to these tokens, followed by punctuation and non-word boundary removal.
 
 ```json
 "lang_config": {
@@ -131,15 +127,30 @@ If specified, a stemmer is also applied.
       "they", "this", "to", "was", "will", "with"
     ],
 
-    // Any of the languages here
-    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
-    // For example, "english"
-    "stemmer": null,
-
     "max_term_len": 80
   }
 }
 ```
+
+### Latin Tokenizer
+
+This is essentially the same as the ascii tokenizer, but adds a `stemmer` option.
+
+```
+"lang_config": {
+  "lang": "latin",
+  "options": {
+    // Ascii Tokenizer options also apply
+
+    // Any of the languages here
+    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
+    // For example, "english"
+    "stemmer": "english"
+  }
+}
+```
+
+It is separated from the ascii tokenizer to reduce binary size (about ~`220KB` savings before gzip).
 
 ### Chinese Tokenizer
 
@@ -165,7 +176,7 @@ The chinese tokenizer for example, which uses *jieba-rs*, accounts for half of t
 
 Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen't blow up.
 
-Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn't, feel free to open up an issue! Might just be that I haven't gotten around to it yet =P.
+Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn't, feel free to open up an issue!
 
 ## `indexing_config`
 

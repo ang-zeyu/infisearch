@@ -20,8 +20,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use morsels_common::tokenize::Tokenizer;
 use morsels_common::MorselsLanguageConfig;
 use morsels_common::DOC_INFO_FILE_NAME;
+use morsels_lang_ascii::ascii;
+use morsels_lang_latin::latin;
 use morsels_lang_chinese::chinese;
-use morsels_lang_latin::english;
 
 use crate::docinfo::DocInfos;
 use crate::dynamic_index_info::DynamicIndexInfo;
@@ -371,18 +372,25 @@ impl Indexer {
 
     fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
         match lang_config.lang.as_str() {
+            "ascii" => {
+                if let Some(options) = lang_config.options.as_ref() {
+                    Arc::new(ascii::new_with_options(serde_json::from_value(options.clone()).unwrap()))
+                } else {
+                    Arc::new(ascii::Tokenizer::default())
+                }
+            }
             "latin" => {
                 if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(english::new_with_options(serde_json::from_value(options.clone()).unwrap()))
+                    Arc::new(latin::new_with_options(serde_json::from_value(options.clone()).unwrap()))
                 } else {
-                    Arc::new(english::EnglishTokenizer::default())
+                    Arc::new(latin::Tokenizer::default())
                 }
             }
             "chinese" => {
                 if let Some(options) = lang_config.options.as_ref() {
                     Arc::new(chinese::new_with_options(serde_json::from_value(options.clone()).unwrap()))
                 } else {
-                    Arc::new(chinese::ChineseTokenizer::default())
+                    Arc::new(chinese::Tokenizer::default())
                 }
             }
             _ => {

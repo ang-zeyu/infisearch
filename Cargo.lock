@@ -1238,6 +1238,7 @@ dependencies = [
  "glob",
  "lazy_static",
  "morsels_common",
+ "morsels_lang_ascii",
  "morsels_lang_chinese",
  "morsels_lang_latin",
  "num_cpus",
@@ -1252,6 +1253,19 @@ dependencies = [
  "structopt",
  "typetag",
  "walkdir",
+]
+
+[[package]]
+name = "morsels_lang_ascii"
+version = "0.0.0"
+dependencies = [
+ "lazy_static",
+ "morsels_common",
+ "regex",
+ "rust-stemmers",
+ "rustc-hash",
+ "serde",
+ "smartstring",
 ]
 
 [[package]]
@@ -1271,13 +1285,7 @@ dependencies = [
 name = "morsels_lang_latin"
 version = "0.0.0"
 dependencies = [
- "lazy_static",
- "morsels_common",
- "regex",
- "rust-stemmers",
- "rustc-hash",
- "serde",
- "smartstring",
+ "morsels_lang_ascii",
 ]
 
 [[package]]
@@ -1288,6 +1296,7 @@ dependencies = [
  "futures",
  "js-sys",
  "morsels_common",
+ "morsels_lang_ascii",
  "morsels_lang_chinese",
  "morsels_lang_latin",
  "pretty_assertions",
