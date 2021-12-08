@@ -261,18 +261,17 @@
   }
 }
 </code></pre>
-<h3 id="note-on-stop-words"><a class="header" href="#note-on-stop-words">Note on Stop Words</a></h3>
-<p>Morsels takes a slightly different approach with stop words in that stop words are only filtered at <strong>query time</strong> for certain types of queries (currently this is for free-text queries with more than two terms).</p>
+<h3 id="forenote-on-stop-words"><a class="header" href="#forenote-on-stop-words">Forenote on Stop Words</a></h3>
+<p>A slightly different approach with stop words is taken in that stop words are only filtered at <strong>query time</strong> for certain types of queries (currently this is for free-text queries with more than two terms).</p>
 <p>This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:</p>
 <ul>
 <li>For processing phrase queries (eg. <code>&quot;for tomorrow&quot;</code>)</li>
 <li>Boolean queries (eg. <code>if AND forecast AND sunny</code>)</li>
 <li>One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.</li>
 </ul>
-<h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
+<h3 id="ascii-tokenizer"><a class="header" href="#ascii-tokenizer">Ascii Tokenizer</a></h3>
 <p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
-<p><em>Tantivy</em>’s <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
-<p>If specified, a stemmer is also applied.</p>
+<p>An <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
 <pre><code class="language-json">&quot;lang_config&quot;: {
   &quot;lang&quot;: &quot;latin&quot;,
   &quot;options&quot;: {
@@ -283,15 +282,25 @@
       &quot;they&quot;, &quot;this&quot;, &quot;to&quot;, &quot;was&quot;, &quot;will&quot;, &quot;with&quot;
     ],
 
-    // Any of the languages here
-    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
-    // For example, &quot;english&quot;
-    &quot;stemmer&quot;: null,
-
     &quot;max_term_len&quot;: 80
   }
 }
 </code></pre>
+<h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
+<p>This is essentially the same as the ascii tokenizer, but adds a <code>stemmer</code> option.</p>
+<pre><code>&quot;lang_config&quot;: {
+  &quot;lang&quot;: &quot;latin&quot;,
+  &quot;options&quot;: {
+    // Ascii Tokenizer options also apply
+
+    // Any of the languages here
+    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
+    // For example, &quot;english&quot;
+    &quot;stemmer&quot;: &quot;english&quot;
+  }
+}
+</code></pre>
+<p>It is separated from the ascii tokenizer to reduce binary size (about ~<code>220KB</code> savings before gzip).</p>
 <h3 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h3>
 <p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
 <p>This tokenizer applies jieba’s <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
@@ -306,7 +315,7 @@
 <p>While using the same tokenizer for both indexing / search unifies the codebase, one downside is that code size has to be taken into account.</p>
 <p>The chinese tokenizer for example, which uses <em>jieba-rs</em>, accounts for half of the wasm binary size alone.</p>
 <p>Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen’t blow up.</p>
-<p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn’t, feel free to open up an issue! Might just be that I haven’t gotten around to it yet =P.</p>
+<p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn’t, feel free to open up an issue!</p>
 <h2 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h2>
 <p>The configurations in this section specify <strong>how and which</strong> files to index.</p>
 <p>All configurations are optional (reasonable defaults provided otherwise), save for the <code>loader_configs</code> key. The cli tool <strong>will do nothing</strong> if no loaders are specified.</p>

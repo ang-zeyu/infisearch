@@ -366,9 +366,28 @@ hideFullscreen?: (
 <table><thead><tr><th>Function</th><th>Return</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>noResultsRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when there are no results found for a given query.                                                                                     </td></tr>
 <tr><td><code>loadingIndicatorRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>This API renders the loading indicator attached under the <code>listContainer</code>. The loading indicator is shown when making the initial search (the first search from an empty search box).</td></tr>
-<tr><td><code>termInfoRender(h, opts, misspelledTerms, correctedTerms, expandedTerms)</code></td><td><code>HTMLElement[]</code></td><td>This API renders element(s) attached under the <code>listContainer</code> related to the searched terms, and is blank by default.<br><br>This can be used to render messages like “<em>Did you mean <u>spelling</u>?</em> “.</td></tr>
+<tr><td><code>termInfoRender(h, opts, queryParts: QueryPart[])</code><br><br>(may be <em>especially</em> <span style="color: red;">unstable</span> / changed shortly, please ensure your version is fixed if using this)</td><td><code>HTMLElement[]</code></td><td>This API renders element(s) attached under the <code>listContainer</code> related to the searched terms, and is blank by default.<br><br>This can be used to render messages like “<em>Did you mean <u>spelling</u>?</em> “.</td></tr>
 <tr><td><code>fsBlankRender(h, opts)</code><br><br>( <code>mode='fullscreen'</code> only )</td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.</td></tr>
 </tbody></table>
+<h3 id="queryparts-parameter"><a class="header" href="#queryparts-parameter"><code>queryParts</code> Parameter</a></h3>
+<p>This parameter to the <code>termInfoRender</code> function is the parsed structure of the input query string.</p>
+<p>Its (<span style="color: red;">tentative</span>) interface is as follows:</p>
+<pre><code class="language-ts">export interface QueryPart {
+  partType: 'TERM' | 'PHRASE' | 'BRACKET' | 'AND' | 'NOT';
+
+  // Raw, original term(s) contained
+  originalTerms?: string[];
+
+  isCorrected?: boolean;
+  isStopWordRemoved?: boolean;
+  isExpanded?: boolean;
+
+  // Spelling corrected / Expanded / Stop word removed result
+  terms?: string[];
+
+  children?: QueryPart[];
+}
+</code></pre>
 <h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
 <p>The below <strong>2 remaining sets of APIs</strong> render the results for all document matches, and are <strong>mutually exclusive</strong> in that the second set of APIs are “building blocks” of the first (which only has one available API). So, reconfiguring the first API would invalidate any changes to the second.</p>
 <p>Together, they are placed in the <code>&lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;</code> comment earlier (see <a href="#default-html-output-structure">html output structure</a>).</p>
