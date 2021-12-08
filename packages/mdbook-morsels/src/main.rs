@@ -193,15 +193,15 @@ fn get_initialise_script_el(mode: Option<&Value>, base_url: &str) -> String {
         searcherOptions: {{
           url: '{}morsels_output/',
         }},
-        sourceFilesUrl: '{}',
         uiOptions: {{
             mode: '{}',
             dropdownAlignment: 'left',
             target: document.getElementById('morsels-mdbook-target'),
+            sourceFilesUrl: '{}',
         }}
     }});
 </script>",
-        base_url, base_url, mode
+        base_url, mode, base_url
     )
 }
 
