@@ -12,13 +12,15 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
-      - run: cargo install wasm-pack
+      - name: Install
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - run: cargo install mdbook
       - uses: actions/setup-node@v1
         with:
           node-version: '12'
       - run: npm i -g npm
       - run: npm run setup
+      - run: npm run test
       - run: npm run installIndexer
       - run: npm run buildSearch
       - run: npm run buildMdbook
