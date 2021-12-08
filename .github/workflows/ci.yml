@@ -20,10 +20,10 @@ jobs:
           node-version: '12'
       - run: npm i -g npm
       - run: npm run setup
-      - run: npm run test
       - run: npm run installIndexer
       - run: npm run buildSearch
       - run: npm run buildMdbook
+      - run: npm run test
       - run: npm run buildDocs
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.5
