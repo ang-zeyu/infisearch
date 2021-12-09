@@ -45,8 +45,10 @@
   },
   "indexing_config": {
     "num_docs_per_block": 1000,
+    "pl_limit": 16383,
     "pl_cache_threshold": 1048576,
     "exclude": [
+      "index.html",
       "print.html",
       "morsels_config.json"
     ],
