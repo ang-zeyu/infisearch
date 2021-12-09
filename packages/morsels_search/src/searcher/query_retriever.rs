@@ -17,71 +17,77 @@ impl Searcher {
         query_parts: &mut Vec<QueryPart>,
         postings_lists_map: &mut FxHashMap<String, PostingsList>,
     ) {
-        if query_parts.is_empty() {
+        let num_desired_expanded_terms = self.searcher_config.searcher_options.number_of_expanded_terms;
+        if query_parts.is_empty() || num_desired_expanded_terms == 0 {
             return;
         }
 
         let last_query_part = query_parts.last_mut().unwrap();
-        if self.searcher_config.searcher_options.number_of_expanded_terms > 0
-            && matches!(last_query_part.part_type, QueryPartType::Term)
-            && last_query_part.should_expand
-            && !last_query_part.is_stop_word_removed
-        {
-            if last_query_part.original_terms.is_none() {
-                last_query_part.original_terms = last_query_part.terms.clone();
-            }
-
-            let expanded_terms = if self.tokenizer.use_default_trigram() {
-                self.dictionary.get_expanded_terms(
-                    self.searcher_config.searcher_options.number_of_expanded_terms,
-                    last_query_part.original_terms.as_ref().unwrap().get(0).unwrap(),
-                )
-            } else {
-                self.tokenizer.get_expanded_terms(
-                    self.searcher_config.searcher_options.number_of_expanded_terms,
-                    last_query_part.original_terms.as_ref().unwrap().get(0).unwrap(),
-                    &self.dictionary.term_infos,
-                )
-            };
-
-            last_query_part.is_expanded = !expanded_terms.is_empty();
-
-            let mut new_query_parts: Vec<QueryPart> = Vec::with_capacity(expanded_terms.len());
-            for (term, weight) in expanded_terms {
-                if let Some(term_info) = self.dictionary.get_term_info(&term) {
-                    if postings_lists_map.get(&term).is_none() {
-                        last_query_part.terms.as_mut().unwrap().push(term.clone());
-
-                        new_query_parts.push(QueryPart {
-                            is_corrected: false,
-                            is_stop_word_removed: false,
-                            should_expand: false,
-                            is_expanded: false,
-                            original_terms: None,
-                            terms: Some(vec![term.clone()]),
-                            part_type: QueryPartType::Term,
-                            field_name: last_query_part.field_name.clone(),
-                            children: None,
-                        });
-
-                        postings_lists_map.insert(
-                            term.clone(),
-                            PostingsList {
-                                weight,
-                                include_in_proximity_ranking: false,
-                                term_docs: Vec::new(),
-                                idf: term_info.idf,
-                                term: Some(term),
-                                term_info: Some(Rc::clone(term_info)),
-                                max_term_score: 0.0,
-                            },
-                        );
-                    }
-                }
-            }
-
-            query_parts.append(&mut new_query_parts);
+        if !last_query_part.should_expand {
+            return;
         }
+
+        if !matches!(last_query_part.part_type, QueryPartType::Term) {
+            last_query_part.should_expand = false;
+            return;
+        }
+
+        if last_query_part.original_terms.is_none() {
+            last_query_part.original_terms = last_query_part.terms.clone();
+        } /* else {
+            from spelling correction / stop word removal
+        } */
+
+        let term_to_expand = last_query_part.original_terms.as_ref().unwrap().first().unwrap();
+        let expanded_terms = if self.tokenizer.use_default_trigram() {
+            self.dictionary.get_expanded_terms(num_desired_expanded_terms,term_to_expand)
+        } else {
+            self.tokenizer.get_expanded_terms(
+num_desired_expanded_terms,
+                term_to_expand,
+                &self.dictionary.term_infos,
+            )
+        };
+
+        if expanded_terms.is_empty() {
+            return;
+        }
+
+        let mut new_query_parts: Vec<QueryPart> = Vec::with_capacity(expanded_terms.len());
+        for (term, weight) in expanded_terms {
+            if let Some(term_info) = self.dictionary.get_term_info(&term) {
+                if postings_lists_map.get(&term).is_some() {
+                    continue;
+                }
+
+                new_query_parts.push(QueryPart {
+                    is_corrected: false,
+                    is_stop_word_removed: false,
+                    should_expand: false,
+                    is_expanded: true,
+                    original_terms: None,
+                    terms: Some(vec![term.clone()]),
+                    part_type: QueryPartType::Term,
+                    field_name: last_query_part.field_name.clone(),
+                    children: None,
+                });
+
+                postings_lists_map.insert(
+                    term.clone(),
+                    PostingsList {
+                        weight,
+                        include_in_proximity_ranking: false,
+                        term_docs: Vec::new(),
+                        idf: term_info.idf,
+                        term: Some(term),
+                        term_info: Some(Rc::clone(term_info)),
+                        max_term_score: 0.0,
+                    },
+                );
+            }
+        }
+
+        query_parts.append(&mut new_query_parts);
     }
 
     fn populate_term_postings_lists(
