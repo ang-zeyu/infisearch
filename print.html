@@ -194,28 +194,27 @@
 <h2 id="limits"><a class="header" href="#limits">Limits</a></h2>
 <p>The practicality / scalability of this tool is mainly bound by the following 2 factors as such.</p>
 <h3 id="size-of-the-largest-index-chunk-retrieved"><a class="header" href="#size-of-the-largest-index-chunk-retrieved">Size of the Largest Index Chunk Retrieved</a></h3>
-<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>16383</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing its benefit.</p>
+<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>16383</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, all such chunks will still inevitably have to be retrieved when the term is searched, diminishing its benefit.</p>
 <p>Certain <a href="./indexing_configuration.html">indexing options</a> like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.</p>
 <h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
-<p>The test collection I mainly used during development is a pure-text <code>380mb</code> .csv file, with positional indexing enabled. No stop word removal is done.</p>
-<p>Under these settings, the largest chunk weighed <code>5mb</code>.</p>
-<p>As an estimate, this library should be able to handle collections &lt; <code>800mb</code> with positional indexing. Without it, the index shrinks 3-4 fold, making it potentially possible to index collections <code>~2gb</code> in size.</p>
+<p>As a rough estimate from testing, this library should be able to handle collections &lt; <code>800mb</code> with positional indexing. Without it, the index shrinks 3-4 fold, making it potentially possible to index collections <code>~2gb</code> in size.</p>
 <h3 id="hardware-capabilities"><a class="header" href="#hardware-capabilities">Hardware Capabilities</a></h3>
-<p>Device capabilities is also another concern (performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor long before experiencing issues with this.</p>
+<p>Device capabilities is also another concern (performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor (network transfer times) long before experiencing issues with this.</p>
 <h2 id="use-cases"><a class="header" href="#use-cases">Use Cases</a></h2>
 <p>In short, this tool is tailored for a very specific audience:</p>
 <ul>
-<li>You have a fairly large collection of html, csv, or json (for now, only these are supported) files (<code>&gt; 100MB</code>) that cannot be monolithically retrieved feasibly</li>
+<li>You have a fairly large collection of html, csv, or json (only these are supported for now) files that cannot be monolithically retrieved feasibly</li>
 <li>You don’t want or can’t run a search server / search Saas (eg. Algolia Docsearch)</li>
 <li>You don’t want the user downloading and loading a gigantic <code>&gt; 50mb</code> index, blowing up memory usage everytime they visit your site.</li>
-<li>You want a ready-made and customisable search UI and file indexing solution.</li>
-<li>ES5 support is not a concern (simply not possible with the technologies used here)</li>
+<li>You want a complete, end-to-end and customisable search UI and file indexing solution.</li>
 </ul>
-<p>It is <strong>not possible</strong> to use morsels for client-side indexing + searching since the indexer is a cli tool.
-A rust indexing API may be supported in the future. Even then, it would likely still be infeasible to get this running in WebAssembly due to many other issues (platform differences, memory copying performance, binary size, …). (holding my thumbs)</p>
-<p>As such, if this is the use case, consider other lighter-weighter libraries like lunr.js that already fit well.</p>
+<blockquote>
+<p>⚠️ 
+It is <strong>not possible</strong> to use morsels for client-side indexing + searching as such since the indexer is a cli tool.</p>
+<p>If this is the use case, consider other lighter-weight libraries like lunr.js that already fit well.</p>
+</blockquote>
 <h2 id="libraries"><a class="header" href="#libraries">Libraries</a></h2>
-<p>This project is made up of 3 crates and 2 packages, which will be referred to in the subsequent sections of the documentation.</p>
+<p>This project is made up of 3 crates and 2 packages, which may be referred to in the subsequent sections of the documentation.</p>
 <h4 id="rust-crates"><a class="header" href="#rust-crates">Rust crates:</a></h4>
 <ul>
 <li><strong>morsels_indexer</strong>: the cli tool providing indexing functionalities for several file formats</li>
@@ -299,7 +298,7 @@ A rust indexing API may be supported in the future. Even then, it would likely s
 <p>This page outlines the available search features common to both <code>@morsels/search-ui</code> and <code>@morsels/search-lib</code>.</p>
 <h2 id="boolean-operators-parentheses"><a class="header" href="#boolean-operators-parentheses">Boolean Operators, Parentheses</a></h2>
 <p><code>AND</code> and <code>NOT</code> operators are supported.
-<code>OR</code> operators are not supported, and is implicitly left to the tokenizer (see below for an example).
+<code>OR</code> operators are not supported, but is implicitly left to the tokenizer (see below for an example).
 Parentheses <code>(...)</code> can be used to group expressions together.</p>
 <pre><code>lorem ipsum                 - documents containing either lorem or ipsum.
 lorem AND ipsum             - documents with both &quot;lorem&quot; and &quot;ipsum&quot;
@@ -412,7 +411,7 @@ One of the main reasons is that there is simply no way of parsing html (the orig
 <li>You have a input element to attach a search dropdown to
 <ul>
 <li>For mobile devices, a fullscreen UI will show instead when this input element is focused.</li>
-<li>Note that this documentation is using an alternative UI mode (try the search function), which is covered later under <a href="./search_configuration.html#ui-mode">search configuration</a>.</li>
+<li>Note that this documentation is using an alternative UI mode (try the search function!), which is covered later under <a href="./search_configuration.html#ui-mode">search configuration</a>.</li>
 <li>To preview the default mode, head on over to the mdbook page <a href="./getting_started_mdbook.html#preview">here</a>, and click on the <strong>auto</strong> button.</li>
 </ul>
 </li>
@@ -1972,7 +1971,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <h2 id="search-api"><a class="header" href="#search-api">Search API</a></h2>
 <p>I.e. publishing <code>@morsels/search-lib</code>. Also, stabilizing some finer related details of the <a href="./search_configuration_renderers.html">renderers API</a> available.</p>
 <h2 id="field-sorting--types"><a class="header" href="#field-sorting--types">Field Sorting &amp; Types</a></h2>
-<p>While the focus currently is on free text queries sorted by relevance (BM25), it would definitely be great (if feasible) to support use cases that need to sort by some other fields.</p>
+<p>While the focus currently is on free text queries sorted by relevance (BM25), it would definitely be great (if feasible) to support use cases that need to sort results by fields values.</p>
 <p>Field types (e.g. integers), and sorting based on these types may be supported as such in the future.</p>
 <h2 id="proximity-queries"><a class="header" href="#proximity-queries">Proximity Queries</a></h2>
 <p>Basically something like <a href="https://www.guidingtech.com/16116/google-search-little-known-around-operator/">this</a>:</p>
