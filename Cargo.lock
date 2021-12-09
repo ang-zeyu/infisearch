@@ -1091,7 +1091,7 @@ dependencies = [
 
 [[package]]
 name = "mdbook-morsels"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1199,7 +1199,7 @@ dependencies = [
 
 [[package]]
 name = "morsels_common"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "byteorder",
  "pretty_assertions",
@@ -1211,7 +1211,7 @@ dependencies = [
 
 [[package]]
 name = "morsels_indexer"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "byteorder",
  "crossbeam",
@@ -1239,7 +1239,7 @@ dependencies = [
 
 [[package]]
 name = "morsels_lang_ascii"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "lazy_static",
  "morsels_common",
@@ -1251,7 +1251,7 @@ dependencies = [
 
 [[package]]
 name = "morsels_lang_chinese"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "jieba-rs",
  "lazy_static",
@@ -1264,7 +1264,7 @@ dependencies = [
 
 [[package]]
 name = "morsels_lang_latin"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "lazy_static",
  "morsels_common",
@@ -1278,7 +1278,7 @@ dependencies = [
 
 [[package]]
 name = "morsels_search"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "byteorder",
  "futures",
