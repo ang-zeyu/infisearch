@@ -1,4 +1,5 @@
 import { FieldInfo } from './FieldInfo';
+import TempJsonCache from './TempJsonCache';
 
 class Result {
   storage: [number, string][] = Object.create(null);
@@ -9,12 +10,17 @@ class Result {
     private fieldInfos: FieldInfo[],
   ) {}
 
-  async populate(baseUrl: string, fieldStoreBlockSize: number, numStoresPerDir: number): Promise<void> {
+  async populate(
+    baseUrl: string,
+    tempJsonCache: TempJsonCache,
+    fieldStoreBlockSize: number,
+    numStoresPerDir: number,
+  ): Promise<void> {
     const fileNumber = Math.floor(this.docId / fieldStoreBlockSize);
     const dirNumber = Math.floor(fileNumber / numStoresPerDir);
     const fileUrl = `${baseUrl}field_store/${dirNumber}/${fileNumber}.json`;
     try {
-      const rawJson = await (await fetch(fileUrl)).json();
+      const rawJson = await tempJsonCache.fetch(fileUrl);
       this.storage = rawJson[this.docId % fieldStoreBlockSize];
     } catch (ex) {
       console.log(ex);

@@ -5,6 +5,7 @@ import {
 import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
+import TempJsonCache from './TempJsonCache';
 
 declare const MORSELS_VERSION;
 
@@ -152,8 +153,10 @@ class Searcher {
         docId, score, this.morselsConfig.fieldInfos,
       ));
 
+      const tempJsonCache = new TempJsonCache();
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url,
+        tempJsonCache,
         this.morselsConfig.fieldStoreBlockSize,
         this.morselsConfig.indexingConfig.numStoresPerDir,
       )));
