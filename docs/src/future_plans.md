@@ -14,7 +14,7 @@ I.e. publishing `@morsels/search-lib`. Also, stabilizing some finer related deta
 
 ## Field Sorting & Types
 
-While the focus currently is on free text queries sorted by relevance (BM25), it would definitely be great (if feasible) to support use cases that need to sort by some other fields.
+While the focus currently is on free text queries sorted by relevance (BM25), it would definitely be great (if feasible) to support use cases that need to sort results by fields values.
 
 Field types (e.g. integers), and sorting based on these types may be supported as such in the future.
 

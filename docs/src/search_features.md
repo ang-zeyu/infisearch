@@ -5,7 +5,7 @@ This page outlines the available search features common to both `@morsels/search
 ## Boolean Operators, Parentheses
 
 `AND` and `NOT` operators are supported.
-`OR` operators are not supported, and is implicitly left to the tokenizer (see below for an example).
+`OR` operators are not supported, but is implicitly left to the tokenizer (see below for an example).
 Parentheses `(...)` can be used to group expressions together.
 
 ```

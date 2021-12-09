@@ -20,42 +20,37 @@ The practicality / scalability of this tool is mainly bound by the following 2 f
 
 ### Size of the Largest Index Chunk Retrieved
 
-While the index is split into many chunks, some chunks may exceed the "split size" of `16383` bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, all such chunks will still have to be retrieved when the term is searched, diminishing its benefit.
+While the index is split into many chunks, some chunks may exceed the "split size" of `16383` bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, all such chunks will still inevitably have to be retrieved when the term is searched, diminishing its benefit.
 
 Certain [indexing options](./indexing_configuration.md) like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.
 
 #### Estimations
 
-The test collection I mainly used during development is a pure-text `380mb` .csv file, with positional indexing enabled. No stop word removal is done.
-
-Under these settings, the largest chunk weighed `5mb`.
-
-As an estimate, this library should be able to handle collections < `800mb` with positional indexing. Without it, the index shrinks 3-4 fold, making it potentially possible to index collections `~2gb` in size.
+As a rough estimate from testing, this library should be able to handle collections < `800mb` with positional indexing. Without it, the index shrinks 3-4 fold, making it potentially possible to index collections `~2gb` in size.
 
 
 ### Hardware Capabilities
 
-Device capabilities is also another concern (performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor long before experiencing issues with this.
+Device capabilities is also another concern (performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor (network transfer times) long before experiencing issues with this.
 
 
 ## Use Cases
 
 In short, this tool is tailored for a very specific audience:
-- You have a fairly large collection of html, csv, or json (for now, only these are supported) files (`> 100MB`) that cannot be monolithically retrieved feasibly
+- You have a fairly large collection of html, csv, or json (only these are supported for now) files that cannot be monolithically retrieved feasibly
 - You don't want or can't run a search server / search Saas (eg. Algolia Docsearch)
 - You don't want the user downloading and loading a gigantic `> 50mb` index, blowing up memory usage everytime they visit your site.
-- You want a ready-made and customisable search UI and file indexing solution.
-- ES5 support is not a concern (simply not possible with the technologies used here)
+- You want a complete, end-to-end and customisable search UI and file indexing solution.
 
-It is **not possible** to use morsels for client-side indexing + searching since the indexer is a cli tool.
-A rust indexing API may be supported in the future. Even then, it would likely still be infeasible to get this running in WebAssembly due to many other issues (platform differences, memory copying performance, binary size, ...). (holding my thumbs)
-
-As such, if this is the use case, consider other lighter-weighter libraries like lunr.js that already fit well.
+> ⚠️ 
+> It is **not possible** to use morsels for client-side indexing + searching as such since the indexer is a cli tool.
+>
+> If this is the use case, consider other lighter-weight libraries like lunr.js that already fit well.
 
 
 ## Libraries
 
-This project is made up of 3 crates and 2 packages, which will be referred to in the subsequent sections of the documentation.
+This project is made up of 3 crates and 2 packages, which may be referred to in the subsequent sections of the documentation.
 
 #### Rust crates:
 - **morsels_indexer**: the cli tool providing indexing functionalities for several file formats
