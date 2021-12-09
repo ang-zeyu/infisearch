@@ -53,7 +53,7 @@
     "loader_configs": {
       "HtmlLoader": {
         "exclude_selectors": [
-          "script,style"
+          "script,style,#sidebar,#menu-bar"
         ],
         "selectors": [
           {

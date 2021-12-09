@@ -64,7 +64,8 @@ fn main() {
             let config = fs::read_to_string(&morsels_config_path).unwrap();
             fs::write(
                 &morsels_config_path,
-                config.replace("\"exclude\": [", "\"exclude\": [\n      \"print.html\","),
+                config.replace("\"exclude\": [", "\"exclude\": [\n      \"index.html\",\n      \"print.html\",")
+                    .replace("script,style", "script,style,#sidebar,#menu-bar"),
             )
             .unwrap();
         }
