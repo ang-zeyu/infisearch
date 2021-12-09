@@ -21,7 +21,7 @@ jobs:
       - run: npm run setup
       - run: npm run installIndexer
       - run: npm run buildSearch
-      - run: npm run buildMdbook
+      - run: npm run installMdbook
       - run: npm run test
       - run: npm run buildDocs
       - name: Deploy 🚀
