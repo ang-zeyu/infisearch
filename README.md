@@ -4,27 +4,10 @@ A complete and more scalable pre-built index approach to client-side search.
 
 ---
 
-<style>
-    .alert-warning {
-        color: #856404;
-        background-color: #fff3cd;
-        border-color: #ffeeba;
-    }
-    .alert {
-        position: relative;
-        padding: 0.75rem 1.25rem;
-        margin-bottom: 1rem;
-        border: 1px solid transparent;
-        border-radius: 0.25rem;
-    }
-</style>
 
-<div class="alert alert-warning" role="alert">
-
-  This is still a very new project, and some things may completely change over releases! (fingers crossed)<br>
-
-  Please keep the version fixed and check back for version updates.
-</div>
+> :warning: This is still a very new project, and some things may completely change over releases! (fingers crossed)<br>
+>
+> Please keep the version fixed and check back for version updates.
 
 ## Description
 
