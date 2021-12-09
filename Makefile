@@ -49,11 +49,13 @@ releaseIndexer:
 	cd packages/morsels_indexer &&\
 	cargo publish
 
+# git checkout -- . to discard wasm-pack package.json changes
 preReleaseSearch:
 	npm run setup
 	npm run buildSearch
 	git add packages/search-ui/dist/*
 	git commit -m "Update search-ui dist"
+	git checkout -- .
 	npx lerna version --no-push
 
 releaseSearch:
