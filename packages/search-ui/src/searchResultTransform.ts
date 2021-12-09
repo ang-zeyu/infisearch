@@ -1,4 +1,4 @@
-import * as escapeRegex from 'escape-string-regexp';
+import escapeStringRegexp from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
@@ -349,7 +349,7 @@ export function resultsRender(
   query: Query,
 ): Promise<HTMLElement[]> {
   const termRegex = new RegExp(
-    `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeRegex(t)})`).join('|')})(?=\\W|$)`,
+    `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|')})(?=\\W|$)`,
     'gi',
   );
 
