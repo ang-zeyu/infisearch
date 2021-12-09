@@ -210,13 +210,16 @@ This flag outputs the default <code>morsels_config.json</code> that can be used 
 <p>You may also change the config file location (relative to the <code>source-folder-path</code>) using the <code>-c &lt;config-file-path&gt;</code> option.</p>
 <h2 id="installing-the-search-library--ui"><a class="header" href="#installing-the-search-library--ui">Installing the search library / UI</a></h2>
 <h3 id="installation-via-cdn"><a class="header" href="#installation-via-cdn">Installation via CDN</a></h3>
-<pre><code class="language-html">&lt;!-- Replace &quot;version&quot; as appropriate --&gt;
+<pre><code class="language-html">&lt;!-- Replace &quot;v0.0.2&quot; as appropriate --&gt;
 
 &lt;!--  Search UI package script, which bundles the search library together with it --&gt;
-&lt;script src=&quot;https://cdn.jsdelivr.net/npm/morsels-search-ui@version/search-ui.bundle.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.bundle.js&quot;&gt;&lt;/script&gt;
 &lt;!-- Search UI css, this provides very basic styling for the search dropdown, and can be omitted if desired --&gt;
-&lt;script src=&quot;https://cdn.jsdelivr.net/npm/morsels-search-ui@version/search-ui.css&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css&quot;&gt;&lt;/script&gt;
 </code></pre>
+<blockquote>
+<p>⚠️ Ensure the versions here tally with the indexer version installed.</p>
+</blockquote>
 <h4 id="hosting-the-files-locally"><a class="header" href="#hosting-the-files-locally">Hosting the Files Locally</a></h4>
 <p>If you wish to serve the files locally instead, you can find the latest versions in <a href="https://github.com/ang-zeyu/morsels/tree/main/packages/search-ui/dist">this folder</a>, or in the release packages <a href="https://github.com/ang-zeyu/morsels/releases">here</a>.</p>
 <p>The following files will be present in each release:</p>
