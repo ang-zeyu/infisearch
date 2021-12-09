@@ -68,7 +68,7 @@ fn get_default_pl_cache_threshold() -> u32 {
 }
 
 fn get_default_exclude_patterns() -> Vec<String> {
-    vec!["_morsels_config.json".to_owned()]
+    vec!["morsels_config.json".to_owned()]
 }
 
 fn get_default_loader_configs() -> FxHashMap<String, serde_json::Value> {
@@ -511,7 +511,7 @@ impl Indexer {
         })
         .unwrap();
 
-        File::create(self.output_folder_path.join("_morsels_config.json"))
+        File::create(self.output_folder_path.join("morsels_config.json"))
             .unwrap()
             .write_all(serialized.as_bytes())
             .unwrap();

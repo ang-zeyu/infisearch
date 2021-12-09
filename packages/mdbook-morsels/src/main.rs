@@ -49,7 +49,7 @@ fn main() {
         let morsels_config_path = if let Some(TomlString(morsels_config_file_path)) = ctx.config.get("output.morsels.config") {
             ctx.root.join(morsels_config_file_path)
         } else {
-            ctx.root.join("_morsels_config.json")
+            ctx.root.join("morsels_config.json")
         };
 
         if !morsels_config_path.exists() || !morsels_config_path.is_file() {

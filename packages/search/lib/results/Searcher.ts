@@ -69,7 +69,7 @@ class Searcher {
   }
 
   async retrieveConfig(): Promise<void> {
-    const json: MorselsConfigRaw = await (await fetch(`${this.options.url}_morsels_config.json`, {
+    const json: MorselsConfigRaw = await (await fetch(`${this.options.url}morsels_config.json`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

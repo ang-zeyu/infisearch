@@ -1,6 +1,6 @@
 # Indexer Configuration
 
-All indexer configurations are sourced from a json file. By default, the cli tool looks for `_morsels_config.json` in the source folder (first argument) specified in the command.
+All indexer configurations are sourced from a json file. By default, the cli tool looks for `morsels_config.json` in the source folder (first argument) specified in the command.
 
 You can run the cli command with the `--init` option to initialise the default configuration file in the source folder.
 
@@ -217,7 +217,7 @@ The snippet below shows the default values, which need not be altered if you are
 
     // glob patterns to exclude from indexing
     "exclude": [
-      "_morsels_config.json"
+      "morsels_config.json"
     ],
 
     // Specifies what types of files to index
@@ -418,7 +418,7 @@ Field mappings for csv can be configured using one of the `field_map / field_ord
     "pl_limit": 16383,
     "pl_cache_threshold": 1048576,
     "exclude": [
-      "_morsels_config.json"
+      "morsels_config.json"
     ],
     "loader_configs": {
       "HtmlLoader": {

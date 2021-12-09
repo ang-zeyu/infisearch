@@ -31,7 +31,7 @@ mode = "target"
 
 # Relative path to the indexer configuration file from the root project directory
 # This will automatically be created if it dosen't exist.
-config = "_morsels_config.json"
+config = "morsels_config.json"
 
 # Don't add the default stylesheet from morsels/search-ui,
 # nor the inline css variables for the default mdbook themes

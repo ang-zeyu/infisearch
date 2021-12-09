@@ -54,7 +54,7 @@ fn resolve_folder_paths(
             let config_return = if let Some(config_raw_file_path) = config_file_path {
                 get_relative_or_absolute_path(&cwd, &config_raw_file_path)
             } else {
-                source_return.join("_morsels_config.json")
+                source_return.join("morsels_config.json")
             };
 
             (source_return, output_return, config_return)
@@ -84,7 +84,7 @@ fn main() {
 
     let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
         let config_raw = std::fs::read_to_string(&config_file_path).unwrap();
-        serde_json::from_str(&config_raw).expect("_morsels_config.json does not match schema!")
+        serde_json::from_str(&config_raw).expect("morsels_config.json does not match schema!")
     } else {
         MorselsConfig::default()
     };

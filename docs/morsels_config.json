@@ -48,7 +48,7 @@
     "pl_cache_threshold": 1048576,
     "exclude": [
       "print.html",
-      "_morsels_config.json"
+      "morsels_config.json"
     ],
     "loader_configs": {
       "HtmlLoader": {
