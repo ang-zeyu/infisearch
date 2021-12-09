@@ -4,8 +4,6 @@ A complete and more scalable pre-built index approach to client-side search.
 
 ---
 
-> :warning: Not ready to be used yet! Still cleaning some things up
-
 > :warning: This is still a very new project, and some things may completely change over releases! (fingers crossed)<br>
 >
 > Please keep the version fixed and check back for version updates.
@@ -26,9 +24,9 @@ The secondary value proposition here versus other pre-built index options is the
 
 ## Use Cases
 
-As you might imagine, the main target use case for this tool right now, is providing a complete search solution for static sites (and possibly really large ones) or static site generators. That said, the indexing tool was built with support for a few other file formats (`.json`, `.csv`, `.html`) in mind, and might be useful elsewhere as such.
+The main target use case for this tool right now is providing a complete search solution for static sites (and possibly really large ones) or static site generators.
 
-If you find other use cases for this tool, do leave a post in the issue tracker!
+That said, the indexing tool was built with support for a few other file formats (`.json`, `.csv`, `.html`) in mind, and might be useful elsewhere as such.
 
 ## Getting Started & Demo
 

@@ -38,13 +38,15 @@ You may also change the config file location (relative to the `source-folder-pat
 ### Installation via CDN
 
 ```html
-<!-- Replace "version" as appropriate -->
+<!-- Replace "v0.0.2" as appropriate -->
 
 <!--  Search UI package script, which bundles the search library together with it -->
-<script src="https://cdn.jsdelivr.net/npm/morsels-search-ui@version/search-ui.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.bundle.js"></script>
 <!-- Search UI css, this provides very basic styling for the search dropdown, and can be omitted if desired -->
-<script src="https://cdn.jsdelivr.net/npm/morsels-search-ui@version/search-ui.css"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css"></script>
 ```
+
+> ⚠️ Ensure the versions here tally with the indexer version installed.
 
 #### Hosting the Files Locally
 
