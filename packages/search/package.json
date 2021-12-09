@@ -1,6 +1,6 @@
 {
   "name": "@morsels/search-lib",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Internal search library module for @morsels/search-ui",
   "keywords": [
     "search"
@@ -26,8 +26,8 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "devDependencies": {
-    "@morsels/lang-ascii": "^0.0.1",
-    "@morsels/lang-chinese": "^0.0.1",
-    "@morsels/lang-latin": "^0.0.1"
+    "@morsels/lang-ascii": "^0.0.2",
+    "@morsels/lang-chinese": "^0.0.2",
+    "@morsels/lang-latin": "^0.0.2"
   }
 }
