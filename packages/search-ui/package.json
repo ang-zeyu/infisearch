@@ -2,7 +2,9 @@
   "name": "@morsels/search-ui",
   "version": "0.0.0",
   "description": "A complete and more scalable pre-built index approach to client-side search.",
-  "keywords": ["search"],
+  "keywords": [
+    "search"
+  ],
   "homepage": "https://github.com/ang-zeyu/morsels",
   "bugs": {
     "url": "https://github.com/ang-zeyu/morsels/issues"
@@ -23,7 +25,7 @@
     "directory": "packages/search-ui"
   },
   "dependencies": {
-    "escape-string-regexp": "^4.0.0",
-    "@morsels/search-lib": "0.0.0"
+    "@morsels/search-lib": "^0.0.0",
+    "escape-string-regexp": "^4.0.0"
   }
 }

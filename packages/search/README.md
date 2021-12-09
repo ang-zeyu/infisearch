@@ -1,11 +1,3 @@
-# `search`
+# Morsels Search Library
 
-> TODO: description
-
-## Usage
-
-```
-const search = require('search');
-
-// TODO: DEMONSTRATE API
-```
+Utility library for `@morsels/search-ui`. Not to be used directly.

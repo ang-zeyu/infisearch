@@ -3,9 +3,14 @@ name = "morsels_lang_latin"
 version = "0.0.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
+description = "Ascii tokenizer with stemmers for morsels."
+documentation = "http://ang-zeyu.github.io/morsels/"
+repository = "https://github.com/ang-zeyu/morsels"
+readme = "../../README.md"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-morsels_lang_ascii = { path = "../morsels_lang_ascii", features = ["stemmer"] }
+morsels_lang_ascii = { path = "../morsels_lang_ascii", features = ["stemmer"], version="0.0.0" }

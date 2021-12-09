@@ -1,6 +1,9 @@
 # test files
 test_files
 
+# mdbook-morsels copy of search-ui's dist folder
+search-ui-dist
+
 # docs build
 docs/book
 

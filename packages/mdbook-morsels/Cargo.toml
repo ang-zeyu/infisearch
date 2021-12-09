@@ -3,6 +3,11 @@ name = "mdbook-morsels"
 version = "0.0.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
+description = "Morsels plugin for Mdbook."
+documentation = "http://ang-zeyu.github.io/morsels/"
+repository = "https://github.com/ang-zeyu/morsels"
+readme = "../../README.md"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

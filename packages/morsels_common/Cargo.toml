@@ -3,6 +3,11 @@ name = "morsels_common"
 version = "0.0.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
+description = "Internal library for other morsels packages."
+documentation = "http://ang-zeyu.github.io/morsels/"
+repository = "https://github.com/ang-zeyu/morsels"
+readme = "../../README.md"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

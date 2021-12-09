@@ -1,16 +1,23 @@
 {
   "name": "@morsels/search-lib",
   "version": "0.0.0",
-  "description": "Frontend search library module for powered by tiny morsels",
-  "author": "Ze Yu <angzeyu@gmail.com>",
-  "homepage": "",
-  "license": "MIT",
-  "main": "lib/index.ts",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
+  "description": "Internal search library module for @morsels/search-ui",
+  "keywords": [
+    "search"
+  ],
+  "homepage": "https://github.com/ang-zeyu/morsels",
+  "bugs": {
+    "url": "https://github.com/ang-zeyu/morsels/issues"
   },
-  "private": true,
+  "license": "MIT",
+  "author": "Ze Yu <angzeyu@gmail.com>",
+  "files": [
+    "lib"
+  ],
+  "browser": "lib/index.ts",
+  "directories": {
+    "lib": "lib"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ang-zeyu/morsels.git"
@@ -18,12 +25,9 @@
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
-  "dependencies": {
-    "@morsels/lang-ascii": "0.0.0",
-    "@morsels/lang-latin": "0.0.0",
-    "@morsels/lang-chinese": "0.0.0"
-  },
-  "bugs": {
-    "url": "https://github.com/ang-zeyu/morsels/issues"
+  "devDependencies": {
+    "@morsels/lang-ascii": "^0.0.0",
+    "@morsels/lang-chinese": "^0.0.0",
+    "@morsels/lang-latin": "^0.0.0"
   }
 }

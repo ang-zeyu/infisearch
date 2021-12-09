@@ -9,6 +9,7 @@
     "index.js",
     "index.d.ts"
   ],
+  "private": true,
   "module": "index.js",
   "types": "index.d.ts",
   "sideEffects": false

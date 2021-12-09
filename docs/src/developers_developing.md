@@ -10,4 +10,4 @@ Finally, use the `npm run dev` script to open the development site on port `8080
 
 As mdbook plugins are basically separate executables, operating on `stdin / stdout`, you'll need to first run `npm run installIndexer` to build and install the indexer command-line tool to your `PATH`. (including whenever changes are made to the indexer code)
 
-Next, run the `buildSearch` then `buildMdbook` script, which builds the search binary and mdbook executables respectively. Lastly, execute `devDocs`, which serves up the documentation at port `8000`. The commands are segregated to reduce iterative build times if you only need to execute the last few script(s).
+Next, run the `buildSearch` then `installMdbook` script, which builds the search binaries and installs the mdbook executable. Lastly, execute `devDocs`, which serves up the documentation at port `8000`. The commands are segregated to reduce iterative build times if you only need to execute the last few script(s).
