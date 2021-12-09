@@ -12,8 +12,7 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
-      - name: Install
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - run: cargo install mdbook
       - uses: actions/setup-node@v1
         with:
