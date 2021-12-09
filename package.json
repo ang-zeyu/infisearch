@@ -17,7 +17,7 @@
     "lintFix": "eslint packages/search-ui --ext .ts --fix && eslint packages/search --ext .ts --fix",
     "test": "cargo test",
     "installIndexer": "cargo install --path packages/morsels_indexer",
-    "installMdbook": "cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist && cargo install --path packages/mdbook-morsels"
+    "installMdbook": "rimraf ./packages/mdbook-morsels/search-ui-dist/* && cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist && cargo install --path packages/mdbook-morsels"
   },
   "author": "",
   "license": "MIT",

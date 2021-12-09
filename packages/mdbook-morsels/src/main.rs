@@ -18,7 +18,7 @@ use mdbook::preprocess::PreprocessorContext;
 use mdbook::renderer::RenderContext;
 use toml::value::Value::{self, Boolean as TomlBoolean, String as TomlString};
 
-const SEARCH_UI_DIST: Dir = include_dir!("./search-ui-dist");
+const SEARCH_UI_DIST: Dir = include_dir!("$CARGO_MANIFEST_DIR/search-ui-dist");
 
 pub fn make_app() -> App<'static, 'static> {
     App::new("morsels").about("Morsels preprocessor + renderer for mdbook").subcommand(
