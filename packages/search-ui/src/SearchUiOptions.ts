@@ -17,6 +17,7 @@ export enum UiMode {
 export interface UiOptions {
   input: HTMLInputElement,
   inputDebounce?: number,
+  preprocessQuery: (input: string) => string,
   mode: UiMode,
   dropdownAlignment?: 'left' | 'right',
   fullscreenContainer?: HTMLElement,

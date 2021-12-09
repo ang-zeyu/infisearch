@@ -90,6 +90,10 @@ function prepareOptions(options: SearchUiOptions) {
     uiOptions.inputDebounce = isMobileSizeGlobal ? 275 : 200;
   }
 
+  if (!uiOptions.preprocessQuery) {
+    uiOptions.preprocessQuery = (q) => q;
+  }
+
   if (typeof uiOptions.fullscreenContainer === 'string') {
     uiOptions.fullscreenContainer = document.getElementById(uiOptions.fullscreenContainer) as HTMLElement;
   }
@@ -266,7 +270,7 @@ function initMorsels(options: SearchUiOptions): {
   let inputTimer: any = -1;
   let isFirstQueryFromBlank = true;
   const inputListener = (root: HTMLElement, listContainer: HTMLElement) => (ev) => {
-    const query = (ev.target as HTMLInputElement).value;
+    const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
 
     clearTimeout(inputTimer);
     if (query.length) {
