@@ -74,3 +74,7 @@ preReleaseMdbook:
 releaseMdbook:
 	cd packages/mdbook-morsels &&\
 	cargo publish
+
+buildBinaries:
+	cargo build --release -p morsels_indexer
+	cargo build --release -p mdbook-morsels
