@@ -14,7 +14,7 @@
   "files": [
     "lib"
   ],
-  "browser": "lib/index.ts",
+  "main": "lib/index.ts",
   "directories": {
     "lib": "lib"
   },
