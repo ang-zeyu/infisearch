@@ -1,5 +1,7 @@
-mod ascii_folding_filter;
+pub mod ascii_folding_filter;
 pub mod ascii;
+pub mod stop_words;
+pub mod utils;
 
 #[macro_use]
 extern crate lazy_static;

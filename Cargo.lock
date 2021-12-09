@@ -1244,7 +1244,6 @@ dependencies = [
  "lazy_static",
  "morsels_common",
  "regex",
- "rust-stemmers",
  "rustc-hash",
  "serde",
  "smartstring",
@@ -1267,7 +1266,14 @@ dependencies = [
 name = "morsels_lang_latin"
 version = "0.0.0"
 dependencies = [
+ "lazy_static",
+ "morsels_common",
  "morsels_lang_ascii",
+ "regex",
+ "rust-stemmers",
+ "rustc-hash",
+ "serde",
+ "smartstring",
 ]
 
 [[package]]

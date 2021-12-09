@@ -3,16 +3,17 @@ use std::collections::HashSet;
 use std::rc::Rc;
 
 use regex::Regex;
+use rust_stemmers::{Algorithm, Stemmer};
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use smartstring::alias::String as SmartString;
 
-use crate::ascii_folding_filter;
-use crate::stop_words::{get_stop_words_set, get_default_stop_words_set};
-use crate::utils::term_filter;
 use morsels_common::tokenize::SearchTokenizeResult;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::tokenize::Tokenizer as TokenizerTrait;
+use morsels_lang_ascii::ascii_folding_filter;
+use morsels_lang_ascii::stop_words::{get_stop_words_set, get_default_stop_words_set};
+use morsels_lang_ascii::utils::term_filter;
 
 lazy_static! {
     static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.,;?!]\s+"#).unwrap();
@@ -20,6 +21,7 @@ lazy_static! {
 
 pub struct Tokenizer {
     pub stop_words: HashSet<String>,
+    stemmer: Stemmer,
     max_term_len: usize,
 }
 
@@ -30,7 +32,8 @@ fn get_default_max_term_len() -> usize {
 impl Default for Tokenizer {
     fn default() -> Tokenizer {
         Tokenizer {
-            stop_words: crate::stop_words::get_default_stop_words_set(),
+            stop_words: get_default_stop_words_set(),
+            stemmer: Stemmer::create(Algorithm::English),
             max_term_len: get_default_max_term_len(),
         }
     }
@@ -39,6 +42,7 @@ impl Default for Tokenizer {
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
+    pub stemmer: Option<String>,
     #[serde(default = "get_default_max_term_len")]
     pub max_term_len: usize,
 }
@@ -50,8 +54,35 @@ pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
         get_default_stop_words_set()
     };
 
+    let stemmer = if let Some(stemmer_lang) = options.stemmer {
+        match stemmer_lang.to_lowercase().as_str() {
+            "arabic" => Stemmer::create(Algorithm::Arabic),
+            "danish" => Stemmer::create(Algorithm::Danish),
+            "dutch" => Stemmer::create(Algorithm::Dutch),
+            "english" => Stemmer::create(Algorithm::English),
+            "finnish" => Stemmer::create(Algorithm::Finnish),
+            "french" => Stemmer::create(Algorithm::French),
+            "german" => Stemmer::create(Algorithm::German),
+            "greek" => Stemmer::create(Algorithm::Greek),
+            "hungarian" => Stemmer::create(Algorithm::Hungarian),
+            "italian" => Stemmer::create(Algorithm::Italian),
+            "norwegian" => Stemmer::create(Algorithm::Norwegian),
+            "portuguese" => Stemmer::create(Algorithm::Portuguese),
+            "romanian" => Stemmer::create(Algorithm::Romanian),
+            "russian" => Stemmer::create(Algorithm::Russian),
+            "spanish" => Stemmer::create(Algorithm::Spanish),
+            "swedish" => Stemmer::create(Algorithm::Swedish),
+            "tamil" => Stemmer::create(Algorithm::Tamil),
+            "turkish" => Stemmer::create(Algorithm::Turkish),
+            _ => Stemmer::create(Algorithm::English),
+        }
+    } else {
+        Stemmer::create(Algorithm::English)
+    };
+
     Tokenizer {
         stop_words,
+        stemmer,
         max_term_len: options.max_term_len
     }
 }
@@ -63,7 +94,13 @@ impl Tokenizer {
             .split_ascii_whitespace()
             .map(|term_slice| {
                 let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
-                term_filter(ascii_folded)
+                let filtered = term_filter(ascii_folded);
+
+                if let Cow::Owned(v) = self.stemmer.stem(&filtered) {
+                    Cow::Owned(v)
+                } else {
+                    filtered // unchanged
+                }
             })
             .filter(|term| {
                 let term_byte_len = term.len();

@@ -1,1 +1,4 @@
-pub use morsels_lang_ascii::ascii as latin;
+pub mod latin;
+
+#[macro_use]
+extern crate lazy_static;

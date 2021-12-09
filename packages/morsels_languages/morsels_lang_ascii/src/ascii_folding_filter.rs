@@ -11,6 +11,7 @@ use std::borrow::Cow;
 // (e.g. simple ASCII chars like `A`) or if the `char`
 // does not have a sensible ascii equivalent (e.g.: Kanjis like 馬,
 // this function returns `None`.
+#[inline(always)]
 fn fold_non_ascii_char(c: char) -> Option<&'static str> {
     match c {
         '\u{00C0}' | // À  [LATIN CAPITAL LETTER A WITH GRAVE]
@@ -1489,6 +1490,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
 }
 
 // https://github.com/apache/lucene-solr/blob/master/lucene/analysis/common/src/java/org/apache/lucene/analysis/miscellaneous/ASCIIFoldingFilter.java#L187
+#[inline(always)]
 pub fn to_ascii(text: &str) -> Cow<str> {
     let mut output: String = "".to_owned();
 

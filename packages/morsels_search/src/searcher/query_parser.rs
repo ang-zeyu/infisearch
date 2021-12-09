@@ -460,7 +460,6 @@ pub mod test {
     pub fn parse(query: &str) -> Vec<QueryPart> {
         let tokenizer = ascii::new_with_options(TokenizerOptions {
             stop_words: None,
-            stemmer: None,
             max_term_len: 80,
         });
 

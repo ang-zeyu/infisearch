@@ -9,9 +9,6 @@ repository = "https://github.com/ang-zeyu/morsels"
 readme = "../README.md"
 license = "MIT"
 
-[features]
-stemmer = ["rust-stemmers"]
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -20,6 +17,5 @@ lazy_static = "1.4"
 morsels_common = { path = "../../morsels_common", version="0.0.0" }
 regex = "1"
 rustc-hash = "1.1"
-rust-stemmers = { version = "^1.0", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 smartstring = "0.2.7"
