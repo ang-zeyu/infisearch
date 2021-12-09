@@ -62,6 +62,7 @@ releaseSearch:
 	npx lerna publish from-git
 
 preReleaseMdbook:
+	npx rimraf ./packages/mdbook-morsels/search-ui-dist/*
 	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
 	cd packages/mdbook-morsels &&\
 	cargo package &&\
