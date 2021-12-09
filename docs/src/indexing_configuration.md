@@ -20,7 +20,8 @@ The default configurations are as follows, already setup for interfacing with th
         "do_store": false,
         "weight": 0.2,
         "k": 1.2,
-        "b": 0.25
+        "b": 0.25,
+        "": true
       },
       {
         "name": "heading",
@@ -66,17 +67,34 @@ The default configurations are as follows, already setup for interfacing with th
 
 Morsels stores fields that have `do_store: true` specified in the field configuration into a json file in the output folder.
 
-At search time, the search-lib package retrieves and populates fields saved in this manner from the json files.
+At search time, these fields saved in this manner from the json files are retrieved as-is.
 
 The `field_store_block_size` parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.
 
 **`weight`**
 
-This parameter simply specifies the weight the field should have during scoring. Specifying `0.0` will result in the field not being indexed.
+This parameter simply specifies the weight the field should have during scoring.
+
+Specifying `0.0` will result in the field not being indexed (although, it can still be stored for retrieval using `do_store`).
 
 **`k` & `b`**
 
-These are Okapi BM25 model parameters. The following [article](https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables) provides a good overview on how to configure these, although, the defaults should serve sufficiently.
+These are Okapi BM25 model parameters. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these, although, the defaults should serve sufficiently.
+
+<div style="display: none;">
+
+**`type` (WIP)**
+
+The only available types are `string` and `u32`.
+
+This only affects how the fields are stored when the `do_store` parameter is specified (but not the indexing process).
+
+`string` fields are stored in the manner illustrated above.
+
+`u32` fields however are stored monolithically in a single file, for the purpose of fast random access.
+
+Moreover, sorting (also WIP) operations are only supported on `u32` fields.
+</div>
 
 **`_relative_fp`**
 
@@ -88,9 +106,9 @@ If this is removed, this field simply won't be indexed.
 
 ## `lang_config`
 
-The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the `lang` key. The `options` key supplies tokenization options unique to each module.
+The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the `lang` key, while the `options` key supplies tokenization options unique to each module.
 
-Note that these options are also applied to the search library, which uses the same tokenizers through wasm.
+These options are also applied to `@morsels/search-ui`, which sources this information from the index output directory as specified in the `initMorsels` call.
 
 ```json
 {

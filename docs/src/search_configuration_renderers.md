@@ -1,5 +1,24 @@
 # Renderers
 
+<style>
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
+    .alert {
+        position: relative;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+    }
+</style>
+
+<div class="alert alert-warning" role="alert">
+  Certain parts of the APIs here (highlighted in <span style="color: red;">red</span>) may be particularly unstable still.
+</div>
+
 This page covers the a more advanced API, "renderers", that allows you to customise the html output structure to some degree.
 
 Some use cases for this include:

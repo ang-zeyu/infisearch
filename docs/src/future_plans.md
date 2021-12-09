@@ -18,8 +18,6 @@ While the focus currently is on free text queries sorted by relevance (BM25), it
 
 Field types (e.g. integers), and sorting based on these types may be supported as such in the future.
 
-The primary challenge would be doing this in a slightly scalable manner (i.e. retrieving "morsels" of data), instead of requiring that all field data be present immediately.
-
 ## Proximity Queries
 
 Basically something like [this](https://www.guidingtech.com/16116/google-search-little-known-around-operator/):
