@@ -8,6 +8,7 @@
 
 preReleaseCommon:
 	cd packages/morsels_common &&\
+	cargo package &&\
 	cargo package --list
 
 releaseCommon:
@@ -16,8 +17,10 @@ releaseCommon:
 
 preReleaseLanguages:
 	cd packages/morsels_languages/morsels_lang_ascii &&\
+	cargo package &&\
 	cargo package --list
 	cd packages/morsels_languages/morsels_lang_chinese &&\
+	cargo package &&\
 	cargo package --list
 
 releaseLanguages:
@@ -29,6 +32,7 @@ releaseLanguages:
 # Latin (ascii with stemmers) is separate as the prior needs to be published first
 preReleaseLatin:
 	cd packages/morsels_languages/morsels_lang_latin &&\
+	cargo package &&\
 	cargo package --list
 
 releaseLatin:
@@ -38,6 +42,7 @@ releaseLatin:
 # Indexer relies on all of the above
 preReleaseIndexer:
 	cd packages/morsels_indexer &&\
+	cargo package &&\
 	cargo package --list
 
 releaseIndexer:
@@ -57,6 +62,7 @@ releaseSearch:
 preReleaseMdbook:
 	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
 	cd packages/mdbook-morsels &&\
+	cargo package &&\
 	cargo package --list
 
 releaseMdbook:
