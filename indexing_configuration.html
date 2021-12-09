@@ -184,7 +184,7 @@
 /></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
 <h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
-<p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>_morsels_config.json</code> in the source folder (first argument) specified in the command.</p>
+<p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>morsels_config.json</code> in the source folder (first argument) specified in the command.</p>
 <p>You can run the cli command with the <code>--init</code> option to initialise the default configuration file in the source folder.</p>
 <h2 id="fields_config"><a class="header" href="#fields_config"><code>fields_config</code></a></h2>
 <p>The first step to indexing any documents is defining the field configurations.</p>
@@ -342,7 +342,7 @@
 
     // glob patterns to exclude from indexing
     &quot;exclude&quot;: [
-      &quot;_morsels_config.json&quot;
+      &quot;morsels_config.json&quot;
     ],
 
     // Specifies what types of files to index
@@ -520,7 +520,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
     &quot;pl_limit&quot;: 16383,
     &quot;pl_cache_threshold&quot;: 1048576,
     &quot;exclude&quot;: [
-      &quot;_morsels_config.json&quot;
+      &quot;morsels_config.json&quot;
     ],
     &quot;loader_configs&quot;: {
       &quot;HtmlLoader&quot;: {
