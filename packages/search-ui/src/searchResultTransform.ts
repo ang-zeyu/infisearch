@@ -29,7 +29,7 @@ interface FinalMatchResult {
 function transformText(
   texts: [string, string][], // field name - field content pairs
   sortedQueryTerms: string[],
-  termRegex: RegExp,
+  termRegexes: RegExp[],
   baseUrl: string,
   options: SearchUiOptions,
 ): (string | HTMLElement)[] {
@@ -46,33 +46,41 @@ function transformText(
     let lastClosestWindowLen = 100000000;
     let lastNumberMatchedTerms = 0;
 
-    let match = termRegex.exec(str);
-    while (match) {
-      const matchedText = match[2].toLowerCase();
-
-      const matchedQueryTermIdx = lowerCasedSortedQueryTermsIndices[matchedText];
-      lastTermPositions[matchedQueryTermIdx] = match.index + match[1].length;
-      if (match[1].length > 0) {
-        // For non whitespace tokenized languages, need to backtrack to allow capturing consecutive terms
-        termRegex.lastIndex = lastTermPositions[matchedQueryTermIdx];
+    for (const termRegex of termRegexes) {
+      let match = termRegex.exec(str);
+      if (!match) {
+        continue;
       }
 
-      const validLastTermPositions = lastTermPositions.filter((p) => p >= 0);
-      const windowLen = Math.max(...validLastTermPositions) - Math.min(...validLastTermPositions);
+      while (match) {
+        const matchedText = match[2].toLowerCase();
 
-      const isMoreTermsMatched = validLastTermPositions.length > lastNumberMatchedTerms;
-      if (isMoreTermsMatched || windowLen < lastClosestWindowLen) {
-        if (isMoreTermsMatched) {
-          lastNumberMatchedTerms = validLastTermPositions.length;
+        const matchedQueryTermIdx = lowerCasedSortedQueryTermsIndices[matchedText];
+        lastTermPositions[matchedQueryTermIdx] = match.index + match[1].length;
+        if (match[1].length > 0) {
+          // For non whitespace tokenized languages, need to backtrack to allow capturing consecutive terms
+          termRegex.lastIndex = lastTermPositions[matchedQueryTermIdx];
         }
-        lastClosestWindowLen = windowLen;
 
-        lastClosestTermPositions = lastTermPositions.map((pos) => pos);
+        const validLastTermPositions = lastTermPositions.filter((p) => p >= 0);
+        const windowLen = Math.max(...validLastTermPositions) - Math.min(...validLastTermPositions);
+
+        const isMoreTermsMatched = validLastTermPositions.length > lastNumberMatchedTerms;
+        if (isMoreTermsMatched || windowLen < lastClosestWindowLen) {
+          if (isMoreTermsMatched) {
+            lastNumberMatchedTerms = validLastTermPositions.length;
+          }
+          lastClosestWindowLen = windowLen;
+
+          lastClosestTermPositions = lastTermPositions.map((pos) => pos);
+        }
+
+        match = termRegex.exec(str);
       }
+      termRegex.lastIndex = 0;
 
-      match = termRegex.exec(str);
+      break;
     }
-    termRegex.lastIndex = 0;
 
     const lastClosestWindowPositions = lastClosestTermPositions
       .map((pos, idx) => ({ pos, term: sortedQueryTerms[idx] }))
@@ -164,7 +172,7 @@ function transformJson(
   json: any,
   loaderConfig: any,
   sortedQueryTerms: string[],
-  termRegex: RegExp,
+  termRegexes: RegExp[],
   baseUrl: string,
   options: SearchUiOptions,
 ) {
@@ -187,7 +195,7 @@ function transformJson(
 
   return {
     title: titleKey && json[titleKey],
-    bodies: transformText(fields, sortedQueryTerms, termRegex, baseUrl, options),
+    bodies: transformText(fields, sortedQueryTerms, termRegexes, baseUrl, options),
   };
 }
 
@@ -200,7 +208,7 @@ function transformHtml(
   doc: Document,
   loaderConfig: any,
   sortedQueryTerms: string[],
-  termRegex: RegExp,
+  termRegexes: RegExp[],
   baseUrl: string,
   options: SearchUiOptions,
 ): { title: string, bodies: (string | HTMLElement)[] } {
@@ -268,7 +276,7 @@ function transformHtml(
   return {
     title,
     bodies: transformText(
-      fields, sortedQueryTerms, termRegex, baseUrl, options,
+      fields, sortedQueryTerms, termRegexes, baseUrl, options,
     ),
   };
 }
@@ -283,7 +291,7 @@ async function singleResultRender(
   configs: MorselsConfig,
   hasStoredContentField: FieldInfo,
   query: Query,
-  termRegex: RegExp,
+  termRegexes: RegExp[],
 ) {
   const { loaderConfigs } = configs.indexingConfig;
 
@@ -300,7 +308,7 @@ async function singleResultRender(
     resultHeadingsAndTexts = transformText(
       fields.filter((v) => v[0] !== RELATIVE_LINK_FIELD_NAME && v[0] !== 'title'),
       query.searchedTerms,
-      termRegex,
+      termRegexes,
       relativeLink,
       options,
     );
@@ -312,7 +320,7 @@ async function singleResultRender(
     const doc = domParser.parseFromString(asText, 'text/html');
 
     const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
-      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegex, relativeLink, options,
+      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegexes, relativeLink, options,
     );
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
@@ -324,7 +332,7 @@ async function singleResultRender(
       const { title: newTitle, bodies: newBodies } = transformJson(
         fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
         loaderConfigs.JsonLoader,
-        query.searchedTerms, termRegex, relativeLink, options,
+        query.searchedTerms, termRegexes, relativeLink, options,
       );
       resultTitle = newTitle || resultTitle;
       resultHeadingsAndTexts = newBodies;
@@ -348,16 +356,22 @@ export function resultsRender(
   results: Result[],
   query: Query,
 ): Promise<HTMLElement[]> {
-  const termRegex = new RegExp(
-    `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|')})(?=\\W|$)`,
-    'gi',
-  );
+  const termRegexes = [
+    new RegExp(
+      `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|')})(?=\\W|$)`,
+      'gi',
+    ),
+    new RegExp(
+      `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|')})`,
+      'gi',
+    ),
+  ];
 
   const hasStoredContentField = config.fieldInfos.find((info) => info.do_store
       && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
 
   return Promise.all(results.map(
-    (result) => singleResultRender(result, options, config, hasStoredContentField, query, termRegex),
+    (result) => singleResultRender(result, options, config, hasStoredContentField, query, termRegexes),
   ));
 }
 
@@ -379,12 +393,12 @@ export default async function transformResults(
     : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
-  // let now = performance.now();
+  let now = performance.now();
 
   const results = await query.retrieve(options.uiOptions.resultsPerPage);
 
-  // console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
-  // now = performance.now();
+  console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
+  now = performance.now();
 
   const resultsEls = await options.uiOptions.resultsRender(createElement, options, config, results, query);
 
@@ -402,7 +416,7 @@ export default async function transformResults(
     loader.replaceWith(fragment);
   }
 
-  // console.log(`Result transformation took ${performance.now() - now} milliseconds`);
+  console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
   let firstRun = true;
   const iObserver = new IntersectionObserver(async (entries, observer) => {
