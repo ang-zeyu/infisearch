@@ -1,6 +1,6 @@
 [package]
 name = "morsels_indexer"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "A complete and more scalable pre-built index approach to client-side search."
@@ -25,10 +25,10 @@ csv = "1.1"
 dashmap = "4"
 glob = "0.3"
 lazy_static = "1.4"
-morsels_common = { path = "../morsels_common", version="0.0.1" }
-morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", version="0.0.1" }
-morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", version="0.0.1" }
-morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", version="0.0.1" }
+morsels_common = { path = "../morsels_common", version="0.0.2" }
+morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", version="0.0.2" }
+morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", version="0.0.2" }
+morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", version="0.0.2" }
 num_cpus = "1.13.0"
 path-slash = "0.1.4"
 regex = "1"

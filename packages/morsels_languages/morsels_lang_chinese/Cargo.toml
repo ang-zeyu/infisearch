@@ -1,6 +1,6 @@
 [package]
 name = "morsels_lang_chinese"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Chinese tokenizer for morsels."
@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 lazy_static = "1.4"
-morsels_common = { path = "../../morsels_common", version="0.0.1" }
+morsels_common = { path = "../../morsels_common", version="0.0.2" }
 regex = "1"
 rustc-hash = "1.1"
 jieba-rs = { version = "0.6.5", default-features = false }
