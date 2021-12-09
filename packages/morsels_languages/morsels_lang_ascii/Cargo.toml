@@ -6,7 +6,7 @@ edition = "2018"
 description = "Basic ascii tokenizer for morsels."
 documentation = "http://ang-zeyu.github.io/morsels/"
 repository = "https://github.com/ang-zeyu/morsels"
-readme = "../../README.md"
+readme = "../README.md"
 license = "MIT"
 
 [features]
