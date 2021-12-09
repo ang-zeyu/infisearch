@@ -183,7 +183,35 @@
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
-<h1 id="others"><a class="header" href="#others">Others</a></h1>
+<h1 id="other-use-cases"><a class="header" href="#other-use-cases">Other Use Cases</a></h1>
+<p>Since its indexer is essentially just a CLI tool, morsels could in-theory be used almost anywhere (e.g. other static site generators) easily without a custom wrapper implementation (such as the Mdbook plugin).</p>
+<p>For example, to deploy another static site generator to gh-pages using github actions, simply chain the morsels tool on top of the static site generator output:</p>
+<pre><code class="language-yml">name: docs
+on:
+  push:
+    branches:
+      - docs
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build documentation
+        run: # &lt;insert your favourite ssg build command&gt;
+      - name: Install Morsels
+        run: cargo install morsels_indexer # or, using the binary release
+      - name: Run Morsels
+        run: morsels &lt;docs_build_folder&gt; &lt;docs_build_folder/morsels_output&gt; -c &lt;morsels_config_path&gt;
+      - name: Deploy to github pages 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.5
+        with:
+          branch: gh-pages
+          folder: &lt;docs_build_folder&gt;
+</code></pre>
+<h2 id="custom-data-formats-non-html"><a class="header" href="#custom-data-formats-non-html">Custom Data Formats (non <code>.html</code>)</a></h2>
+<p>Some use cases may not always have <code>.html</code> files readily available (e.g. pure client-side rendered ones) or in the right format.</p>
+<p>In such cases, morsels also supports <code>.json</code> and <code>.csv</code> files, which is covered in greater detail later under <a href="./indexing_configuration.html">indexing configuration</a>.</p>
+<p>Another simpler (but likely slow) alternative you could consider specifically for client-side rendered projects is to display the page in a headless browser, then index said html file.</p>
 <script>
     initMorsels({
         searcherOptions: {

@@ -687,7 +687,35 @@ no-css = false
     style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
-<h1 id="others"><a class="header" href="#others">Others</a></h1>
+<h1 id="other-use-cases"><a class="header" href="#other-use-cases">Other Use Cases</a></h1>
+<p>Since its indexer is essentially just a CLI tool, morsels could in-theory be used almost anywhere (e.g. other static site generators) easily without a custom wrapper implementation (such as the Mdbook plugin).</p>
+<p>For example, to deploy another static site generator to gh-pages using github actions, simply chain the morsels tool on top of the static site generator output:</p>
+<pre><code class="language-yml">name: docs
+on:
+  push:
+    branches:
+      - docs
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build documentation
+        run: # &lt;insert your favourite ssg build command&gt;
+      - name: Install Morsels
+        run: cargo install morsels_indexer # or, using the binary release
+      - name: Run Morsels
+        run: morsels &lt;docs_build_folder&gt; &lt;docs_build_folder/morsels_output&gt; -c &lt;morsels_config_path&gt;
+      - name: Deploy to github pages 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.5
+        with:
+          branch: gh-pages
+          folder: &lt;docs_build_folder&gt;
+</code></pre>
+<h2 id="custom-data-formats-non-html"><a class="header" href="#custom-data-formats-non-html">Custom Data Formats (non <code>.html</code>)</a></h2>
+<p>Some use cases may not always have <code>.html</code> files readily available (e.g. pure client-side rendered ones) or in the right format.</p>
+<p>In such cases, morsels also supports <code>.json</code> and <code>.csv</code> files, which is covered in greater detail later under <a href="./indexing_configuration.html">indexing configuration</a>.</p>
+<p>Another simpler (but likely slow) alternative you could consider specifically for client-side rendered projects is to display the page in a headless browser, then index said html file.</p>
 <script>
     initMorsels({
         searcherOptions: {
@@ -940,6 +968,23 @@ This may be costly for mobile devices however, and is disabled by default in suc
 /></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
 <h1 id="renderers"><a class="header" href="#renderers">Renderers</a></h1>
+<style>
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
+    .alert {
+        position: relative;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+    }
+</style>
+<div class="alert alert-warning" role="alert">
+  Certain parts of the APIs here (highlighted in <span style="color: red;">red</span>) may be particularly unstable still.
+</div>
 <p>This page covers the a more advanced API, “renderers”, that allows you to customise the html output structure to some degree.</p>
 <p>Some use cases for this include:</p>
 <ul>
@@ -1410,7 +1455,8 @@ return h(
         &quot;do_store&quot;: false,
         &quot;weight&quot;: 0.2,
         &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.25
+        &quot;b&quot;: 0.25,
+        &quot;&quot;: true
       },
       {
         &quot;name&quot;: &quot;heading&quot;,
@@ -1453,19 +1499,28 @@ return h(
 </code></pre>
 <p><strong><code>field_store_block_size</code> and <code>do_store</code></strong></p>
 <p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file in the output folder.</p>
-<p>At search time, the search-lib package retrieves and populates fields saved in this manner from the json files.</p>
+<p>At search time, these fields saved in this manner from the json files are retrieved as-is.</p>
 <p>The <code>field_store_block_size</code> parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.</p>
 <p><strong><code>weight</code></strong></p>
-<p>This parameter simply specifies the weight the field should have during scoring. Specifying <code>0.0</code> will result in the field not being indexed.</p>
+<p>This parameter simply specifies the weight the field should have during scoring.</p>
+<p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
 <p><strong><code>k</code> &amp; <code>b</code></strong></p>
-<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables">article</a> provides a good overview on how to configure these, although, the defaults should serve sufficiently.</p>
+<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these, although, the defaults should serve sufficiently.</p>
+<div style="display: none;">
+<p><strong><code>type</code> (WIP)</strong></p>
+<p>The only available types are <code>string</code> and <code>u32</code>.</p>
+<p>This only affects how the fields are stored when the <code>do_store</code> parameter is specified (but not the indexing process).</p>
+<p><code>string</code> fields are stored in the manner illustrated above.</p>
+<p><code>u32</code> fields however are stored monolithically in a single file, for the purpose of fast random access.</p>
+<p>Moreover, sorting (also WIP) operations are only supported on <code>u32</code> fields.</p>
+</div>
 <p><strong><code>_relative_fp</code></strong></p>
 <p>This is a “hardcoded” field, in that its value is fixed as the relative file path from your source folder path to the file.</p>
 <p>It is included in the default configuration to allow <code>@morsels/search-ui</code> to retrieve the source file for result preview generation. You may refer back to <a href="./search_configuration.html#options-for-generating-result-previews">this section</a> for more details.</p>
 <p>If this is removed, this field simply won’t be indexed.</p>
 <h2 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h2>
-<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key. The <code>options</code> key supplies tokenization options unique to each module.</p>
-<p>Note that these options are also applied to the search library, which uses the same tokenizers through wasm.</p>
+<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key, while the <code>options</code> key supplies tokenization options unique to each module.</p>
+<p>These options are also applied to <code>@morsels/search-ui</code>, which sources this information from the index output directory as specified in the <code>initMorsels</code> call.</p>
 <pre><code class="language-json">{
   &quot;lang_config&quot;: {
     &quot;lang&quot;: &quot;latin&quot;,
@@ -1912,7 +1967,6 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <h2 id="field-sorting--types"><a class="header" href="#field-sorting--types">Field Sorting &amp; Types</a></h2>
 <p>While the focus currently is on free text queries sorted by relevance (BM25), it would definitely be great (if feasible) to support use cases that need to sort by some other fields.</p>
 <p>Field types (e.g. integers), and sorting based on these types may be supported as such in the future.</p>
-<p>The primary challenge would be doing this in a slightly scalable manner (i.e. retrieving “morsels” of data), instead of requiring that all field data be present immediately.</p>
 <h2 id="proximity-queries"><a class="header" href="#proximity-queries">Proximity Queries</a></h2>
 <p>Basically something like <a href="https://www.guidingtech.com/16116/google-search-little-known-around-operator/">this</a>:</p>
 <pre><code>lorem AROUND(2) dolor
@@ -2152,7 +2206,7 @@ unused, | mapped to 'title' field, | mapped to 'body' field, | mapped to 'headin
 <p>Finally, use the <code>npm run dev</code> script to open the development site on port <code>8080</code>. This script runs the webpack build process, which in turn triggers the WebAssembly build process as well through the wasm-pack webpack plugin.</p>
 <h2 id="working-with-the-mdbook-morsels-plugin"><a class="header" href="#working-with-the-mdbook-morsels-plugin">Working With the mdbook-morsels Plugin</a></h2>
 <p>As mdbook plugins are basically separate executables, operating on <code>stdin / stdout</code>, you’ll need to first run <code>npm run installIndexer</code> to build and install the indexer command-line tool to your <code>PATH</code>. (including whenever changes are made to the indexer code)</p>
-<p>Next, run the <code>buildSearch</code> then <code>buildMdbook</code> script, which builds the search binary and mdbook executables respectively. Lastly, execute <code>devDocs</code>, which serves up the documentation at port <code>8000</code>. The commands are segregated to reduce iterative build times if you only need to execute the last few script(s).</p>
+<p>Next, run the <code>buildSearch</code> then <code>installMdbook</code> script, which builds the search binaries and installs the mdbook executable. Lastly, execute <code>devDocs</code>, which serves up the documentation at port <code>8000</code>. The commands are segregated to reduce iterative build times if you only need to execute the last few script(s).</p>
 <script>
     initMorsels({
         searcherOptions: {
