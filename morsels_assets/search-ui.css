@@ -164,7 +164,7 @@
 }
 
 .morsels-fs-blank::before {
-    content: 'Powered by tiny Morsels of 🧀';
+    content: 'Start Searching Above!';
 }
 
 @media screen and (min-width: 1025px) {

@@ -1080,8 +1080,10 @@ This may be costly for mobile devices however, and is disabled by default in suc
 
         &lt;!-- **fsBlankRender** START
           Shown for the fullscreen version, when the search box is empty
+          This is the shown text &quot;Start Searching Above!&quot; when the input is empty,
+          implemented inside a ::before pseudo class for easy overriding.
         --&gt;
-        &lt;div class=&quot;morsels-fs-blank&quot;&gt;Powered by tiny Morsels of 🧀&lt;/div&gt;
+        &lt;div class=&quot;morsels-fs-blank&quot;&gt;&lt;/div&gt;
         &lt;!-- **fsBlankRender** END --&gt;
 
         &lt;!--
@@ -1454,7 +1456,7 @@ return h(
 <p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 1,
+    &quot;field_store_block_size&quot;: 300,
     &quot;fields&quot;: [
       {
         &quot;name&quot;: &quot;title&quot;,
@@ -1735,7 +1737,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 100,
+    &quot;field_store_block_size&quot;: 300,
     &quot;fields&quot;: [
       {
         &quot;name&quot;: &quot;title&quot;,
