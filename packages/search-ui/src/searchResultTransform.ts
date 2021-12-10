@@ -427,10 +427,8 @@ export default async function transformResults(
 
   //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
-  let firstRun = true;
   const iObserver = new IntersectionObserver(async (entries, observer) => {
-    if (firstRun || !entries[0].isIntersecting) {
-      firstRun = false;
+    if (!entries[0].isIntersecting) {
       return;
     }
 
