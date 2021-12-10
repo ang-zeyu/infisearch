@@ -393,12 +393,12 @@ export default async function transformResults(
     : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
-  let now = performance.now();
+  //let now = performance.now();
 
   const results = await query.retrieve(options.uiOptions.resultsPerPage);
 
-  console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
-  now = performance.now();
+  //console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
+  //now = performance.now();
 
   const resultsEls = await options.uiOptions.resultsRender(createElement, options, config, results, query);
 
@@ -416,7 +416,7 @@ export default async function transformResults(
     loader.replaceWith(fragment);
   }
 
-  console.log(`Result transformation took ${performance.now() - now} milliseconds`);
+  //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
   let firstRun = true;
   const iObserver = new IntersectionObserver(async (entries, observer) => {
