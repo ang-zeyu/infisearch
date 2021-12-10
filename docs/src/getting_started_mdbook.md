@@ -13,6 +13,8 @@ You will need to have installed the following command-line crates (`cargo instal
 - mdbook-morsels
 - morsels_indexer
 
+> ⚠️ Ensure the mdbook-morsels and morsels_indexer versions are the same.
+
 Then, minimally add the first two configuration sections below to your `book.toml` configuration file:
 
 ```toml
