@@ -41,14 +41,19 @@ function transformText(
   });
 
   function getBestMatchResult(str: string): MatchResult {
-    const lastTermPositions = sortedQueryTerms.map(() => -100000000);
-    let lastClosestTermPositions = lastTermPositions.map((i) => i);
-    let lastClosestWindowLen = 100000000;
-    let lastNumberMatchedTerms = 0;
+    let lastTermPositions: number[];
+    let lastClosestTermPositions: number[];
+    let lastNumberMatchedTerms: number;
 
     for (const termRegex of termRegexes) {
+      lastTermPositions = sortedQueryTerms.map(() => -100000000);
+      lastClosestTermPositions = lastTermPositions.map((i) => i);
+      lastNumberMatchedTerms = 0;
+      let lastClosestWindowLen = 100000000;
+
       let match = termRegex.exec(str);
       if (!match) {
+        termRegex.lastIndex = 0;
         continue;
       }
 
@@ -356,16 +361,20 @@ export function resultsRender(
   results: Result[],
   query: Query,
 ): Promise<HTMLElement[]> {
-  const termRegexes = [
-    new RegExp(
-      `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|')})(?=\\W|$)`,
-      'gi',
-    ),
-    new RegExp(
-      `(^|\\W)(${query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|')})`,
-      'gi',
-    ),
-  ];
+  const termsJoined = query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|');
+  const boundariedRegex = new RegExp(`(^|\\W)(${termsJoined})(?=\\W|$)`, 'gi');
+  const nonEndBoundariedRegex = new RegExp(`(^|\\W)(${termsJoined})`, 'gi');
+  const nonBoundariedRegex = new RegExp(`()(${termsJoined})`, 'gi');
+
+  const termRegexes: RegExp[] = [];
+  // A little hardcoded, not so pretty but gets the job done for now
+  if (config.langConfig.lang === 'ascii') {
+    termRegexes.push(boundariedRegex);
+  } else if (config.langConfig.lang === 'latin') {
+    termRegexes.push(nonEndBoundariedRegex);
+  } else if (config.langConfig.lang === 'chinese') {
+    termRegexes.push(nonBoundariedRegex);
+  }
 
   const hasStoredContentField = config.fieldInfos.find((info) => info.do_store
       && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
