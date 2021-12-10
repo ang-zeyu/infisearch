@@ -135,8 +135,10 @@ The output also varies depending on the [UI mode](./search_configuration.md#ui-m
 
         <!-- **fsBlankRender** START
           Shown for the fullscreen version, when the search box is empty
+          This is the shown text "Start Searching Above!" when the input is empty,
+          implemented inside a ::before pseudo class for easy overriding.
         -->
-        <div class="morsels-fs-blank">Powered by tiny Morsels of 🧀</div>
+        <div class="morsels-fs-blank"></div>
         <!-- **fsBlankRender** END -->
 
         <!--
