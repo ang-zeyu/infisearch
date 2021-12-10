@@ -135,12 +135,6 @@
                     <main>
                         <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
 <style>
-@media print {
-    #morsels-search {
-        display: none;
-    }
-}
-
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
@@ -172,6 +166,24 @@
     --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
 }
 
+#morsels-search {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 16px;
+    padding: 0.5em 0.75em;
+    border: 1px solid var(--searchbar-border-color);
+    background: var(--searchbar-bg);
+    color: var(--searchbar-fg);
+    outline: none;
+}
+
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
 #morsels-mdbook-target {
     list-style: none;
 }
@@ -180,7 +192,6 @@
     type="text"
     id="morsels-search"
     placeholder="Search"
-    style="width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;"
 /></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
 <h1 id="setting-up"><a class="header" href="#setting-up">Setting Up</a></h1>
