@@ -47,8 +47,9 @@
 */
 .morsels-theme .morsels-root {
     --morsels-dropdown-width: 512px;
+    --morsels-dropdown-max-width: 80vw;
     --morsels-dropdown-max-height: 30em;
-    --morsels-font-size: 16px;
+    --morsels-font-size: 15px;
     --morsels-border: none;
     --morsels-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-fg: black;
