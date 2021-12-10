@@ -109,18 +109,11 @@ static INPUT_EL: &str = "\n<input
     type=\"text\"
     id=\"morsels-search\"
     placeholder=\"Search\"
-    style=\"width: 100%; border-radius: 5px; font-size: 16px; padding: 0.5em 0.75em; border: 1px solid var(--searchbar-border-color); background: var(--searchbar-bg); color: var(--searchbar-fg); outline: none;\"
 />\n\n
 <div class=\"morsels-root\" id=\"morsels-mdbook-target\"></div>\n\n";
 
 static STYLES: &str = r#"
 <style>
-@media print {
-    #morsels-search {
-        display: none;
-    }
-}
-
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-fg: var(--fg);
@@ -150,6 +143,24 @@ static STYLES: &str = r#"
     --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
     --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
     --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+
+#morsels-search {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 16px;
+    padding: 0.5em 0.75em;
+    border: 1px solid var(--searchbar-border-color);
+    background: var(--searchbar-bg);
+    color: var(--searchbar-fg);
+    outline: none;
+}
+
+@media print {
+    #morsels-search {
+        display: none;
+    }
 }
 
 #morsels-mdbook-target {
