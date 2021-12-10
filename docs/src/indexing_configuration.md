@@ -13,7 +13,7 @@ The default configurations are as follows, already setup for interfacing with th
 ```json
 {
   "fields_config": {
-    "field_store_block_size": 1,
+    "field_store_block_size": 300,
     "fields": [
       {
         "name": "title",
@@ -370,7 +370,7 @@ Field mappings for csv can be configured using one of the `field_map / field_ord
 ```json
 {
   "fields_config": {
-    "field_store_block_size": 100,
+    "field_store_block_size": 300,
     "fields": [
       {
         "name": "title",
