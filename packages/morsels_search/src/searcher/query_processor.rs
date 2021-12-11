@@ -21,6 +21,7 @@ impl Searcher {
         query_part: &QueryPart,
         term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
+        let mut encountered_empty_pl = false;
         let pl_iterators: Vec<Rc<RefCell<PlIterator>>> = query_part
             .terms
             .as_ref()
@@ -28,12 +29,13 @@ impl Searcher {
             .iter()
             .enumerate()
             .map(|(idx, term)| {
-                Rc::new(RefCell::new(term_postings_lists.get(term).unwrap().get_it(idx as u8)))
+                let pl_iterator = term_postings_lists.get(term).unwrap().get_it(idx as u8);
+                if pl_iterator.td.is_none() {
+                    encountered_empty_pl = true;
+                }
+                Rc::new(RefCell::new(pl_iterator))
             })
             .collect();
-        let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> =
-            pl_iterators.iter().map(|pl_it| Reverse(Rc::clone(pl_it))).collect();
-        let num_pls = iterator_heap.len();
 
         let mut result_pl = PostingsList {
             weight: 1.0,
@@ -44,6 +46,15 @@ impl Searcher {
             term_info: None,
             max_term_score: 0.0,
         };
+
+        if encountered_empty_pl {
+            return Rc::new(result_pl);
+        }
+        
+        let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> =
+            pl_iterators.iter().map(|pl_it| Reverse(Rc::clone(pl_it))).collect();
+        let num_pls = iterator_heap.len();
+
 
         let mut curr_doc_id = self.doc_info.doc_length_factors_len + 1;
         let mut curr_num_docs = 0;
