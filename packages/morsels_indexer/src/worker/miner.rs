@@ -107,7 +107,7 @@ impl PartialEq for DocIdAndFieldLengthsComparator {
 // Adapted from https://lise-henry.github.io/articles/optimising_strings.html
 fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
     lazy_static! {
-        static ref REGEX: Regex = Regex::new(r#"[\n\r\t"\\]"#).unwrap();
+        static ref REGEX: Regex = Regex::new(r#"[\n\r\t"\\\x08\x0c]"#).unwrap();
     }
     let input = input.into();
     let first = REGEX.find(&input);
@@ -119,6 +119,8 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
         let rest = input[start..].bytes();
         for c in rest {
             match c {
+                8 => output.extend_from_slice(b"\\b"),
+                12 => output.extend_from_slice(b"\\f"),
                 b'\n' => output.extend_from_slice(b"\\n"),
                 b'\r' => output.extend_from_slice(b"\\r"),
                 b'\t' => output.extend_from_slice(b"\\t"),
