@@ -214,9 +214,13 @@ const cleanup = () => {
 
 test('Test with different field and block size configs', async () => {
   cleanup();
+  await testSuite('e2e/input/morsels_config_0.json');
+  cleanup();
   await testSuite('e2e/input/morsels_config_1.json');
   cleanup();
   await testSuite('e2e/input/morsels_config_2.json');
+  cleanup();
+  await testSuite('e2e/input/morsels_config_3.json');
 });
 
 afterAll(cleanup);

@@ -16,7 +16,7 @@ jobs:
       - run: cargo install mdbook
       - uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '14'
       - run: npm i -g npm
       - run: npm run setup
       - run: npm run installIndexer
