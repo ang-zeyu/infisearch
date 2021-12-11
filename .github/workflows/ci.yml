@@ -23,7 +23,7 @@ jobs:
       - run: npm run buildSearch
       - run: npm run installMdbook
       - run: cargo test
-      - run: npm run e2etest
+      - run: npm run e2e
       - run: npm run buildDocs
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.5
