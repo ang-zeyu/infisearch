@@ -148,33 +148,6 @@ impl ExistingPlWriter {
     }
 }
 
-#[inline(always)]
-fn get_existing_pl_writer(
-    output_folder_path: &Path,
-    curr_pl: u32,
-    num_pls_per_dir: u32,
-    with_positions: bool,
-) -> ExistingPlWriter {
-    let output_path = output_folder_path
-        .join(format!("pl_{}", curr_pl / num_pls_per_dir))
-        .join(Path::new(&format!("pl_{}", curr_pl)));
-
-    // Load the entire postings list into memory
-    let mut pl_file = File::open(&output_path).unwrap();
-
-    let mut pl_vec = Vec::new();
-    pl_file.read_to_end(&mut pl_vec).unwrap();
-
-    ExistingPlWriter {
-        curr_pl,
-        pl_vec,
-        pl_writer: Vec::new(),
-        pl_vec_last_offset: 0,
-        with_positions,
-        output_path,
-    }
-}
-
 // The same as merge_blocks, but for dynamic indexing.
 //
 // Goes through things term-at-a-time (all terms found in the current iteration) as well,
@@ -241,9 +214,8 @@ pub fn modify_blocks(
     );
     let mut new_pl = dynamic_index_info.last_pl_number + 1;
     let mut new_pls_offset: u32 = 0;
-    let mut pl_file_length_differences: FxHashMap<u32, i32> = FxHashMap::default();
 
-    let mut existing_pl_writer: Option<ExistingPlWriter> = None;
+    let mut existing_pl_writers: FxHashMap<u32, ExistingPlWriter> = FxHashMap::default();
     let mut term_info_updates: FxHashMap<String, TermInfo> = FxHashMap::default();
     let mut new_term_infos: Vec<(String, TermInfo)> = Vec::new();
 
@@ -263,27 +235,28 @@ pub fn modify_blocks(
         if let Some(old_term_info) = existing_term_info {
             // Existing term
 
-            // Is the term_pl_writer for the same pl?
-            let mut term_pl_writer = if let Some(existing_pl_writer_unwrapped) = existing_pl_writer {
-                if existing_pl_writer_unwrapped.curr_pl != old_term_info.postings_file_name {
-                    existing_pl_writer_unwrapped.commit(&mut pl_file_length_differences);
-
-                    get_existing_pl_writer(
-                        &output_folder_path,
-                        old_term_info.postings_file_name,
-                        indexing_config.num_pls_per_dir,
-                        indexing_config.with_positions,
-                    )
-                } else {
-                    existing_pl_writer_unwrapped
-                }
+            let term_pl_writer = if let Some(existing) = existing_pl_writers.get_mut(&old_term_info.postings_file_name) {
+                existing
             } else {
-                get_existing_pl_writer(
-                    &output_folder_path,
-                    old_term_info.postings_file_name,
-                    indexing_config.num_pls_per_dir,
-                    indexing_config.with_positions,
-                )
+                let output_path = output_folder_path
+                    .join(format!("pl_{}", old_term_info.postings_file_name / indexing_config.num_pls_per_dir))
+                    .join(Path::new(&format!("pl_{}", old_term_info.postings_file_name)));
+            
+                // Load the entire postings list into memory
+                let mut pl_file = File::open(&output_path).unwrap();
+            
+                let mut pl_vec = Vec::new();
+                pl_file.read_to_end(&mut pl_vec).unwrap();
+            
+                existing_pl_writers.insert(old_term_info.postings_file_name, ExistingPlWriter {
+                    curr_pl: old_term_info.postings_file_name,
+                    pl_vec,
+                    pl_writer: Vec::new(),
+                    pl_vec_last_offset: 0,
+                    with_positions: indexing_config.with_positions,
+                    output_path,
+                });
+                existing_pl_writers.get_mut(&old_term_info.postings_file_name).unwrap()
             };
 
             let new_term_info = term_pl_writer.update_term_pl(
@@ -298,8 +271,6 @@ pub fn modify_blocks(
             );
 
             term_info_updates.insert(curr_term, new_term_info);
-
-            existing_pl_writer = Some(term_pl_writer);
         } else {
             let start_pl_offset = common::write_new_term_postings(
                 &mut curr_combined_term_docs,
@@ -330,9 +301,11 @@ pub fn modify_blocks(
         }
     }
 
-    if let Some(existing_pl_writer) = existing_pl_writer {
-        existing_pl_writer.commit(&mut pl_file_length_differences);
+    let mut pl_file_length_differences: FxHashMap<u32, i32> = FxHashMap::default();
+    for (_pl, pl_writer) in existing_pl_writers {
+        pl_writer.commit(&mut pl_file_length_differences);
     }
+
     new_pl_writer.flush().unwrap();
 
     // ---------------------------------------------
