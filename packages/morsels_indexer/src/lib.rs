@@ -8,7 +8,7 @@ mod utils;
 mod worker;
 
 use std::cmp::Ordering;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::iter::FromIterator;
 use std::path::Path;
@@ -234,6 +234,7 @@ impl Indexer {
         output_folder_path: &Path,
         config: MorselsConfig,
         mut is_dynamic: bool,
+        preserve_output_folder: bool,
         delete_unencountered_external_ids: bool,
     ) -> Indexer {
         let raw_config_normalised = &String::from_iter(normalized(config.raw_config.chars()));
@@ -243,6 +244,14 @@ impl Indexer {
             raw_config_normalised,
             &mut is_dynamic
         );
+
+        if !is_dynamic && !preserve_output_folder {
+            if let Err(err) = fs::remove_dir_all(output_folder_path) {
+                eprintln!("{}\nFailed to clean output directory, continuing.", err);
+            } else {
+                fs::create_dir(output_folder_path).expect("failed to recreate output directory");
+            }
+        }
 
         {
             File::create(output_folder_path.join("old_morsels_config.json"))

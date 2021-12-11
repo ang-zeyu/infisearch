@@ -15,6 +15,12 @@ struct CliArgs {
     source_folder_path: PathBuf,
     #[structopt(parse(from_os_str))]
     output_folder_path: PathBuf,
+    #[structopt(
+        short,
+        long,
+        help = "Preserves the output directory contents, overwriting them as necessary if running a full reindex"
+    )]
+    preserve_output_folder: bool,
     #[structopt(short, long, parse(from_os_str))]
     config_file_path: Option<PathBuf>,
     #[structopt(short, long, help = "Initialise the configuration file in the source folder")]
@@ -98,7 +104,13 @@ fn main() {
 
     let exclude_patterns = config.indexing_config.get_excludes_from_config();
 
-    let mut indexer = morsels_indexer::Indexer::new(&output_folder_path, config, args.dynamic, true);
+    let mut indexer = morsels_indexer::Indexer::new(
+        &output_folder_path,
+        config,
+        args.dynamic,
+        args.preserve_output_folder,
+        true,
+    );
 
     let now = if args.perf { Some(Instant::now()) } else { None };
 

@@ -32,6 +32,7 @@ This flag outputs the default `morsels_config.json` that can be used to [configu
 
 You may also change the config file location (relative to the `source-folder-path`) using the `-c <config-file-path>` option.
 
+**All existing contents** in the output folder are also **removed** when running a full index. Specify the `--preserve-output-folder` option to avoid this.
 
 ## Installing the search library / UI
 
