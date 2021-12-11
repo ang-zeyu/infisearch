@@ -16,7 +16,10 @@ This is in contrast to a more traditional "segment" based approach you might fin
 
 There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern -- for example, updating the index immediately when writing this documentation (on saving a file).
 
-This should be automatic for most use cases when specifying the `--dynamic` option: If the output folder path does not contain any files indexed by morsels, or it contains incompatible files, the end result is the same as not specifying the `--dynamic` option at all.
+Note however, that the following circumstances will forcibly trigger a **full** reindex:
+- If the output folder path does not contain any files indexed by morsels
+- It contains files indexed by a different version of morsels
+- The configuration file (`morsels_config.json`) was changed in any way
 
 ### Collection Statistics
 

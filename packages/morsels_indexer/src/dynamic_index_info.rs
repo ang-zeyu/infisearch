@@ -1,9 +1,12 @@
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
+use std::iter::FromIterator;
 use std::path::Path;
 
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
+
+use normalize_line_endings::normalized;
 
 use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
 use morsels_common::{bitmap, BITMAP_FILE_NAME};
@@ -57,7 +60,11 @@ impl DynamicIndexInfo {
         }
     }
 
-    pub fn new_from_output_folder(output_folder_path: &Path, is_dynamic: &mut bool) -> DynamicIndexInfo {
+    pub fn new_from_output_folder(
+        output_folder_path: &Path,
+        raw_config_normalised: &str,
+        is_dynamic: &mut bool,
+    ) -> DynamicIndexInfo {
         if !*is_dynamic {
             return DynamicIndexInfo::empty();
         }
@@ -71,6 +78,21 @@ impl DynamicIndexInfo {
             *is_dynamic = false;
             return DynamicIndexInfo::empty();
         }
+
+        if let Ok(mut file) = File::open(output_folder_path.join("old_morsels_config.json")) {
+            let mut old_config = "".to_owned();
+            file.read_to_string(&mut old_config).expect("Unable to read old config file");
+            let old_config_normalised = &String::from_iter(normalized(old_config.chars()));
+            if raw_config_normalised != old_config_normalised {
+                println!("Configuration file changed. Running a full reindex.");
+                *is_dynamic = false;
+                return DynamicIndexInfo::empty();
+            }
+        } else {
+            *is_dynamic = false;
+            return DynamicIndexInfo::empty();
+        }
+
 
         let info_file = File::open(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)).unwrap();
 

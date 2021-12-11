@@ -29,6 +29,7 @@ morsels_common = { path = "../morsels_common", version="0.0.2" }
 morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", version="0.0.2" }
 morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", version="0.0.2" }
 morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", version="0.0.2" }
+normalize-line-endings = "0.3"
 num_cpus = "1.13.0"
 path-slash = "0.1.4"
 regex = "1"

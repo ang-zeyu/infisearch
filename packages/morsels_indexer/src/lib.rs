@@ -10,6 +10,7 @@ mod worker;
 use std::cmp::Ordering;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::iter::FromIterator;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -39,6 +40,7 @@ use crate::worker::{IndexMsg, MainToWorkerMessage, Worker, WorkerToMainMessage};
 use crossbeam::channel::{self, Receiver, Sender};
 use crossbeam::deque::Injector as CrossbeamInjector;
 use glob::Pattern;
+use normalize_line_endings::normalized;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
@@ -169,6 +171,8 @@ pub struct MorselsConfig {
     lang_config: MorselsLanguageConfig,
     #[serde(default)]
     pub indexing_config: MorselsIndexingConfig,
+    #[serde(skip)]
+    pub raw_config: String,
 }
 
 // Separate struct to support serializing for --init option but not output config
@@ -196,6 +200,7 @@ impl Default for MorselsConfig {
             indexing_config: MorselsIndexingConfig::default(),
             lang_config: MorselsLanguageConfig::default(),
             fields_config: FieldsConfig::default(),
+            raw_config: "".to_owned(),
         }
     }
 }
@@ -231,7 +236,20 @@ impl Indexer {
         mut is_dynamic: bool,
         delete_unencountered_external_ids: bool,
     ) -> Indexer {
-        let dynamic_index_info = DynamicIndexInfo::new_from_output_folder(&output_folder_path, &mut is_dynamic);
+        let raw_config_normalised = &String::from_iter(normalized(config.raw_config.chars()));
+
+        let dynamic_index_info = DynamicIndexInfo::new_from_output_folder(
+            &output_folder_path,
+            raw_config_normalised,
+            &mut is_dynamic
+        );
+
+        {
+            File::create(output_folder_path.join("old_morsels_config.json"))
+                .expect("error creating old config file")
+                .write_all(raw_config_normalised.as_bytes())
+                .expect("error writing old config");
+        }
 
         let loaders = config.indexing_config.get_loaders_from_config();
 

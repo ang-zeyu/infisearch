@@ -83,8 +83,10 @@ fn main() {
     );
 
     let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
-        let config_raw = std::fs::read_to_string(&config_file_path).unwrap();
-        serde_json::from_str(&config_raw).expect("morsels_config.json does not match schema!")
+        let raw_config = std::fs::read_to_string(&config_file_path).unwrap();
+        let mut config: MorselsConfig = serde_json::from_str(&raw_config).expect("morsels_config.json does not match schema!");
+        config.raw_config = raw_config;
+        config
     } else {
         MorselsConfig::default()
     };
