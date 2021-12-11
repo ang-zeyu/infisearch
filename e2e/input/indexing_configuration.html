@@ -1,0 +1,643 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js rust">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Indexing Configuration - Morsels Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="src/morsels-theme.css">
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "rust";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('rust')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">6.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li><li class="chapter-item expanded "><a href="araara.html"><strong aria-hidden="true">9.3.</strong> araararar</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Morsels Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ang-zeyu/morsels" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <script src="/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels_assets/search-ui.css">
+<style>
+.morsels-root {
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-fg: var(--fg);
+    --morsels-bg: var(--bg);
+    --morsels-item-border-radius: 10px;
+    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--bg);
+    --morsels-title-hover-bg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-box-shadow: none;
+    --morsels-fullscreen-header-bg: var(--sidebar-bg);
+    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
+    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
+    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
+    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+
+#morsels-search {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 16px;
+    padding: 0.5em 0.75em;
+    border: 1px solid var(--searchbar-border-color);
+    background: var(--searchbar-bg);
+    color: var(--searchbar-fg);
+    outline: none;
+}
+
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
+#morsels-mdbook-target {
+    list-style: none;
+}
+</style>
+<p><input
+    type="text"
+    id="morsels-search"
+    placeholder="Search"
+/></p>
+<div class="morsels-root" id="morsels-mdbook-target"></div>
+<h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
+<p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>morsels_config.json</code> in the source folder (first argument specified in the command).</p>
+<p>You can run the cli command with the <code>--init</code> option to initialise the default configuration file in the source folder.</p>
+<h2 id="fields_config"><a class="header" href="#fields_config"><code>fields_config</code></a></h2>
+<p>The first step to indexing any documents is defining the field configurations.</p>
+<p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
+<pre><code class="language-json">{
+  &quot;fields_config&quot;: {
+    &quot;field_store_block_size&quot;: 300,
+    &quot;fields&quot;: [
+      {
+        &quot;name&quot;: &quot;title&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.2,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.25,
+        &quot;&quot;: true
+      },
+      {
+        &quot;name&quot;: &quot;heading&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.3,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.3
+      },
+      {
+        &quot;name&quot;: &quot;body&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.5,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;headingLink&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      // Internal, hardcoded field sourced from the
+      // relative file path of the file from the root directory
+      //
+      // Required for the default search ui preview generation methods
+      // (see &quot;Generating Result Previews&quot; under search configuration)
+      //
+      // Nonetheless, if omitted, the field will not be stored.
+      {
+        &quot;name&quot;: &quot;_relative_fp&quot;,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      }
+    ]
+  }
+}
+</code></pre>
+<p><strong><code>field_store_block_size</code> and <code>do_store</code></strong></p>
+<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file in the output folder.</p>
+<p>At search time, these fields saved in this manner from the json files are retrieved as-is.</p>
+<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.</p>
+<p><strong><code>weight</code></strong></p>
+<p>This parameter simply specifies the weight the field should have during scoring.</p>
+<p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
+<p><strong><code>k</code> &amp; <code>b</code></strong></p>
+<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these, although, the defaults should serve sufficiently.</p>
+<div style="display: none;">
+<p><strong><code>type</code> (WIP)</strong></p>
+<p>The only available types are <code>string</code> and <code>u32</code>.</p>
+<p>This only affects how the fields are stored when the <code>do_store</code> parameter is specified (but not the indexing process).</p>
+<p><code>string</code> fields are stored in the manner illustrated above.</p>
+<p><code>u32</code> fields however are stored monolithically in a single file, for the purpose of fast random access.</p>
+<p>Moreover, sorting (also WIP) operations are only supported on <code>u32</code> fields.</p>
+</div>
+<p><strong><code>_relative_fp</code></strong></p>
+<p>This is a “hardcoded” field, in that its value is fixed as the relative file path from your source folder path to the file.</p>
+<p>It is included in the default configuration to allow <code>@morsels/search-ui</code> to retrieve the source file for result preview generation. You may refer back to <a href="./search_configuration.html#options-for-generating-result-previews">this section</a> for more details.</p>
+<p>If this is removed, this field simply won’t be indexed.</p>
+<h2 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h2>
+<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key, while the <code>options</code> key supplies tokenization options unique to each module.</p>
+<p>These options are also applied to <code>@morsels/search-ui</code>, which sources this information from the index output directory as specified in the <code>initMorsels</code> call.</p>
+<pre><code class="language-json">{
+  &quot;lang_config&quot;: {
+    &quot;lang&quot;: &quot;latin&quot;,
+    &quot;options&quot;: null
+  }
+}
+</code></pre>
+<h3 id="forenote-on-stop-words"><a class="header" href="#forenote-on-stop-words">Forenote on Stop Words</a></h3>
+<p>A slightly different approach with stop words is taken in that stop words are only filtered at <strong>query time</strong> for certain types of queries (currently this is for free-text queries with more than two terms).</p>
+<p>This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:</p>
+<ul>
+<li>For processing phrase queries (eg. <code>&quot;for tomorrow&quot;</code>)</li>
+<li>Boolean queries (eg. <code>if AND forecast AND sunny</code>)</li>
+<li>One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.</li>
+</ul>
+<h3 id="ascii-tokenizer"><a class="header" href="#ascii-tokenizer">Ascii Tokenizer</a></h3>
+<p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
+<p>An <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
+<pre><code class="language-json">&quot;lang_config&quot;: {
+  &quot;lang&quot;: &quot;latin&quot;,
+  &quot;options&quot;: {
+    &quot;stop_words&quot;: [
+      &quot;a&quot;, &quot;an&quot;, &quot;and&quot;, &quot;are&quot;, &quot;as&quot;, &quot;at&quot;, &quot;be&quot;, &quot;but&quot;, &quot;by&quot;, &quot;for&quot;,
+      &quot;if&quot;, &quot;in&quot;, &quot;into&quot;, &quot;is&quot;, &quot;it&quot;, &quot;no&quot;, &quot;not&quot;, &quot;of&quot;, &quot;on&quot;, &quot;or&quot;,
+      &quot;such&quot;, &quot;that&quot;, &quot;the&quot;, &quot;their&quot;, &quot;then&quot;, &quot;there&quot;, &quot;these&quot;,
+      &quot;they&quot;, &quot;this&quot;, &quot;to&quot;, &quot;was&quot;, &quot;will&quot;, &quot;with&quot;
+    ],
+
+    &quot;max_term_len&quot;: 80
+  }
+}
+</code></pre>
+<h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
+<p>This is essentially the same as the ascii tokenizer, but adds a <code>stemmer</code> option.</p>
+<pre><code>&quot;lang_config&quot;: {
+  &quot;lang&quot;: &quot;latin&quot;,
+  &quot;options&quot;: {
+    // Ascii Tokenizer options also apply
+
+    // Any of the languages here
+    // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
+    // For example, &quot;english&quot;
+    &quot;stemmer&quot;: &quot;english&quot;
+  }
+}
+</code></pre>
+<p>It is separated from the ascii tokenizer to reduce binary size (about ~<code>220KB</code> savings before gzip).</p>
+<h3 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h3>
+<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
+<p>This tokenizer applies jieba’s <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
+<pre><code class="language-json">&quot;lang_config&quot;: {
+  &quot;lang&quot;: &quot;chinese&quot;,
+  &quot;options&quot;: {
+    &quot;stop_words&quot;: []
+  }
+}
+</code></pre>
+<h3 id="remark-on-language-modules-flexibility"><a class="header" href="#remark-on-language-modules-flexibility">Remark on Language Modules’ Flexibility</a></h3>
+<p>While using the same tokenizer for both indexing / search unifies the codebase, one downside is that code size has to be taken into account.</p>
+<p>The chinese tokenizer for example, which uses <em>jieba-rs</em>, accounts for half of the wasm binary size alone.</p>
+<p>Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen’t blow up.</p>
+<p>Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn’t, feel free to open up an issue!</p>
+<h2 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h2>
+<p>The configurations in this section specify <strong>how and which</strong> files to index.</p>
+<p>All configurations are optional (reasonable defaults provided otherwise), save for the <code>loader_configs</code> key. The cli tool <strong>will do nothing</strong> if no loaders are specified.</p>
+<p>The snippet below shows the default values, which need not be altered if you are only indexing html files.</p>
+<pre><code class="language-json">{
+  &quot;indexing_config&quot;: {
+    // Number of threads excluding the main thread
+    &quot;num_threads&quot;: 5,      // when unspecified, this is max(num physical cores - 1, 1)
+
+    // This roughly controls the memory usage of the indexer
+    // If your documents are very small,
+    // increasing this *may* help improve indexing performance.
+    &quot;num_docs_per_block&quot;: 1000,
+
+    // glob patterns to exclude from indexing
+    &quot;exclude&quot;: [
+      &quot;morsels_config.json&quot;
+    ],
+
+    // Specifies what types of files to index
+    &quot;loader_configs&quot;: {
+      &quot;HtmlLoader&quot;: {}     // enables support for .html files
+    },
+    
+    // The threshold (in bytes) at which to &quot;cut&quot; index files
+    //
+    // Increasing this produces less but bigger files
+    // (which may take longer to retrieve), and vice versa.
+    
+    &quot;pl_limit&quot;: 16383,
+
+    // Any index files above this size (in bytes)
+    // will be pre-loaded on initialisation of the search library
+    &quot;pl_cache_threshold&quot;: 1048576,
+    
+    // Number of index files (&quot;morsels&quot;) to store per directory
+    &quot;num_pls_per_dir&quot;: 1000,
+
+    // Number of field stores (`.json` files) to store per directory
+    &quot;num_stores_per_dir&quot;: 1000,
+
+    // Whether positions will be stored.
+    //
+    // Phrase queries and Query Term Proximity Ranking
+    // will be unavailable if this is false.
+    //
+    // You may want to turn this off for very large collections. (~&gt; 1GB)
+    &quot;with_positions&quot;: true
+  }
+}
+</code></pre>
+<h3 id="loaders"><a class="header" href="#loaders">Loaders</a></h3>
+<p>The indexer is able to handle html, json or csv files. Support for each file type is provided by a “<code>Loader</code>” abstraction.</p>
+<p>You may configure loaders by including them under the <code>loader_configs</code> key, with any applicable options.</p>
+<p>The below sections shows the available loaders and configuration options available for each of them.</p>
+<p><strong><code>HtmlLoader</code></strong></p>
+<pre><code class="language-json">{
+  &quot;HtmlLoader&quot;: {
+    // list of selectors to exclude from indexing
+    &quot;exclude_selectors&quot;: [
+      &quot;script,style&quot;
+    ],
+    &quot;selectors&quot;: [
+      {
+        &quot;attr_map&quot;: {},
+        &quot;field_name&quot;: &quot;title&quot;,
+        &quot;selector&quot;: &quot;title&quot;
+      },
+      {
+        &quot;attr_map&quot;: {},
+        &quot;field_name&quot;: &quot;body&quot;,
+        &quot;selector&quot;: &quot;body&quot;
+      },
+      {
+        &quot;attr_map&quot;: {
+          &quot;id&quot;: &quot;headingLink&quot; // &quot;store the id attribute under headingLink&quot;
+        },
+        &quot;field_name&quot;: &quot;heading&quot;,
+        &quot;selector&quot;: &quot;h1,h2,h3,h4,h5,h6&quot;
+      }
+    ]
+  }
+}
+</code></pre>
+<p>The html loader traverses the document depth-first.</p>
+<p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by <code>field_name</code>. If one the element’s descendants matched another selector however, the configuration is then overwritten for that descendant (and its descendants).</p>
+<p>The <code>attr_map</code> allows indexing attributes of elements (not including descendants) under fields as well.</p>
+<p><strong><code>JsonLoader</code></strong></p>
+<pre><code class="language-json">{
+  &quot;JsonLoader&quot;: {
+    &quot;field_map&quot;: {
+      &quot;body&quot;: &quot;body&quot;,
+      &quot;heading&quot;: &quot;heading&quot;,
+      &quot;link&quot;: &quot;_relative_fp&quot;,
+      &quot;title&quot;: &quot;title&quot;
+    },
+    // Order in which to index the fields of the json {} document
+    &quot;field_order&quot;: [
+      &quot;title&quot;,
+      &quot;heading&quot;,
+      &quot;body&quot;,
+      &quot;link&quot;
+    ]
+  }
+}
+</code></pre>
+<p>Json files can also be indexed. To do this, the <code>field_map</code> key must be specified, which contains a mapping of <strong>json key -&gt; field name</strong>.
+The <code>field_order</code> controls in which order these fields are indexed, which can influence position based functions such as query term proximity ranking.</p>
+<p>The json files itself can be either</p>
+<ol>
+<li>An object, following the schema set out in <code>field_map</code></li>
+<li>An array of objects following the schema set out in <code>field_map</code></li>
+</ol>
+<p><strong><code>CsvLoader</code></strong></p>
+<pre><code class="language-json">{
+  &quot;CsvLoader&quot;: {
+    &quot;use_headers&quot;: false,
+    &quot;header_field_map&quot;: {},
+    &quot;header_field_order&quot;: [],
+    &quot;index_field_map&quot;: {
+      &quot;0&quot;: &quot;link&quot;,
+      &quot;1&quot;: &quot;title&quot;,
+      &quot;2&quot;: &quot;body&quot;,
+      &quot;4&quot;: &quot;heading&quot;
+    },
+    &quot;index_field_order&quot;: [
+      1,
+      4,
+      2,
+      0
+    ],
+    &quot;parse_options&quot;: {
+      &quot;comment&quot;: null,
+      &quot;delimiter&quot;: 44,
+      &quot;double_quote&quot;: true,
+      &quot;escape&quot;: null,
+      &quot;has_headers&quot;: true,
+      &quot;quote&quot;: 34
+    }
+  }
+}
+</code></pre>
+<p>Field mappings for csv can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
+<h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
+<pre><code class="language-json">{
+  &quot;fields_config&quot;: {
+    &quot;field_store_block_size&quot;: 300,
+    &quot;fields&quot;: [
+      {
+        &quot;name&quot;: &quot;title&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.2,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.25
+      },
+      {
+        &quot;name&quot;: &quot;heading&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.3,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.3
+      },
+      {
+        &quot;name&quot;: &quot;body&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.5,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;headingLink&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;_relative_fp&quot;,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      }
+    ]
+  },
+  &quot;lang_config&quot;: {
+    &quot;lang&quot;: &quot;latin&quot;,
+    &quot;options&quot;: null
+  },
+  &quot;indexing_config&quot;: {
+    &quot;num_docs_per_block&quot;: 1000,
+    &quot;pl_limit&quot;: 16383,
+    &quot;pl_cache_threshold&quot;: 1048576,
+    &quot;exclude&quot;: [
+      &quot;morsels_config.json&quot;
+    ],
+    &quot;loader_configs&quot;: {
+      &quot;HtmlLoader&quot;: {
+        &quot;exclude_selectors&quot;: [
+          &quot;.no-index&quot;
+        ]
+      },
+      &quot;JsonLoader&quot;: {
+        &quot;field_map&quot;: {
+          &quot;body&quot;: &quot;body&quot;,
+          &quot;heading&quot;: &quot;heading&quot;,
+          &quot;link&quot;: &quot;_relative_fp&quot;,
+          &quot;title&quot;: &quot;title&quot;
+        },
+        &quot;field_order&quot;: [
+          &quot;title&quot;,
+          &quot;heading&quot;,
+          &quot;body&quot;,
+          &quot;link&quot;
+        ]
+      }
+    },
+    &quot;pl_names_to_cache&quot;: [],
+    &quot;num_pls_per_dir&quot;: 1000,
+    &quot;num_stores_per_dir&quot;: 1000,
+    &quot;with_positions&quot;: true
+  }
+}
+</code></pre>
+<script>
+    initMorsels({
+        searcherOptions: {
+          url: '/morsels_output/',
+        },
+        uiOptions: {
+            mode: (function () {
+                // This IIFE is documentation specific, for demoing the different modes.
+                // It would be the string mode (e.g. 'target') normally
+                const params = new URLSearchParams(window.location.search);
+                return params.get('mode') || 'target';
+            })(),
+            dropdownAlignment: 'left',
+            target: document.getElementById('morsels-mdbook-target'),
+            sourceFilesUrl: '/',
+        }
+    });
+</script>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="search_configuration_renderers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="dynamic_indexing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="search_configuration_renderers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="dynamic_indexing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:8000/__livereload");
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        <script type="text/javascript" src="src/morsels-theme.js"></script>
+
+
+    </body>
+</html>

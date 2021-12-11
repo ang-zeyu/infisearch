@@ -86,15 +86,19 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode') || 'auto';
+    const url = params.get('url') || 'http://localhost:3000/output/';
+    const resultsPerPage = params.get('resultsPerPage') || 8;
+    const sourceFilesUrl = params.get('sourceFilesUrl') || 'http://localhost:3000/source/';
 
     initMorsels({
       searcherOptions: {
-        url: 'http://192.168.10.132:3000/output/',
+        url,
       },
       uiOptions: {
         mode,
         target: document.getElementById('target-mode-el'),
-        sourceFilesUrl: 'http://192.168.10.132:3000/source/',
+        resultsPerPage,
+        sourceFilesUrl,
       }
     });
   </script>

@@ -1,5 +1,6 @@
 # test files
 test_files
+e2e/output/*
 
 # docs build
 docs/book
