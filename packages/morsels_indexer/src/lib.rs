@@ -549,21 +549,28 @@ impl Indexer {
     }
 
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
+        #[cfg(debug_assertions)]
+        println!("@finish_writing_docs");
+
+        for _i in 0..self.indexing_config.num_threads {
+            self.index_unit_queue.push(IndexMsg::Stop);
+        }
+
+        let first_block = self.start_block_number;
+        let mut last_block = self.block_number();
+
         if self.spimi_counter != 0 {
             #[cfg(debug_assertions)]
-            println!("Writing last spimi block");
-
-            for _i in 0..self.indexing_config.num_threads {
-                self.index_unit_queue.push(IndexMsg::Stop);
-            }
+            println!("Writing extra last spimi block");
 
             let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
-            let block_number = self.block_number();
             let main_thread_block_index_results = self.doc_miner.get_results(1000000);
             self.write_block(
-                main_thread_block_index_results, block_number, true, &mut * num_workers_writing_blocks
+                main_thread_block_index_results, last_block, true, &mut * num_workers_writing_blocks
             );
             self.spimi_counter = 0;
+        } else {
+            last_block -= 1;
         }
 
         self.wait_on_all_workers();
@@ -577,8 +584,6 @@ impl Indexer {
 
         // Merge spimi blocks
         // Go through all blocks at once
-        let first_block = self.start_block_number;
-        let last_block = self.block_number();
         let num_blocks = last_block - first_block + 1;
         if self.is_dynamic {
             if self.delete_unencountered_external_ids {

@@ -159,6 +159,9 @@ pub fn worker(
                     *num_workers_writing_blocks_clone.lock().unwrap() -= 1;
                 }
 
+                #[cfg(debug_assertions)]
+                println!("Worker {} decremented num_workers_writing_blocks_clone!", id);
+
                 handle_index(&local_queue, &mut doc_miner, &global_queue);
             }
             MainToWorkerMessage::Reset(barrier) => {
