@@ -16,7 +16,7 @@
     "devServer2": "http-server ./test_files/2 -p 3000 --cors",
     "lint": "eslint packages/search-ui --ext .ts && eslint packages/search --ext .ts",
     "lintFix": "eslint packages/search-ui --ext .ts --fix && eslint packages/search --ext .ts --fix",
-    "test": "cargo test && jest",
+    "test": "cargo test && jest -- e2e.test.js",
     "e2e": "npm-run-all --race --parallel dev e2eServer e2etest",
     "e2eServer": "http-server ./e2e/output -p 3000 --cors",
     "e2etest": "jest",
