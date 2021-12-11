@@ -88,19 +88,22 @@ fn main() {
         config_file_path.to_str().unwrap(),
     );
 
+    if args.init {
+        morsels_indexer::Indexer::write_morsels_source_config(MorselsConfig::default(), &config_file_path);
+        return;
+    }
+
     let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
         let raw_config = std::fs::read_to_string(&config_file_path).unwrap();
         let mut config: MorselsConfig = serde_json::from_str(&raw_config).expect("morsels_config.json does not match schema!");
         config.raw_config = raw_config;
         config
+    } else if args.config_file_path.is_some() {
+        eprintln!("Specified configuration file {} not found!", config_file_path.to_str().unwrap());
+        return;
     } else {
         MorselsConfig::default()
     };
-
-    if args.init {
-        morsels_indexer::Indexer::write_morsels_source_config(config, &config_file_path);
-        return;
-    }
 
     let exclude_patterns = config.indexing_config.get_excludes_from_config();
 
