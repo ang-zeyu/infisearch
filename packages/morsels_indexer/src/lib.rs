@@ -606,17 +606,13 @@ impl Indexer {
             #[cfg(debug_assertions)]
             println!("Writing extra last spimi block");
 
-            let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
             let main_thread_block_index_results = self.doc_miner.get_results();
-            self.write_block(
-                main_thread_block_index_results, last_block, true, &mut * num_workers_writing_blocks
-            );
+            self.write_block(main_thread_block_index_results, last_block, true, &mut 0);
             self.spimi_counter = 0;
         } else if !self.is_deletion_only_run() {
             last_block -= 1;
+            self.wait_on_all_workers();
         }
-
-        self.wait_on_all_workers();
 
         #[cfg(debug_assertions)]
         println!(
