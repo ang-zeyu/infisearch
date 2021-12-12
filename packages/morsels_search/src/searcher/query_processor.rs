@@ -394,17 +394,17 @@ impl Searcher {
             let mut pl_opt: Option<Rc<PostingsList>> = None;
             match query_part.part_type {
                 QueryPartType::Term => {
-                    if let Some(term) = query_part.terms.as_ref().unwrap().get(0) {
+                    if let Some(term) = query_part.terms.as_ref().unwrap().first() {
                         if let Some(term_pl) = term_postings_lists.get(term) {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
-                    }
+                    } /* else {
+                        spelling correct / stop word removed, ignore
+                    } */
                 }
                 QueryPartType::Phrase => {
                     if query_part.terms.as_ref().unwrap().len() == 1 {
-                        if let Some(term_pl) =
-                            term_postings_lists.get(query_part.terms.as_ref().unwrap().get(0).unwrap())
-                        {
+                        if let Some(term_pl) = term_postings_lists.get(query_part.terms.as_ref().unwrap().first().unwrap()) {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     } else {

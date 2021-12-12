@@ -60,7 +60,7 @@ pub enum MainToWorkerMessage {
         output_folder_path: PathBuf,
         block_number: u32,
         start_doc_id: u32,
-        start_block_number: u32,
+        check_for_existing_field_store: bool,
         spimi_counter: u32,
         doc_id_counter: u32,
         doc_infos: Arc<Mutex<DocInfos>>,
@@ -109,7 +109,6 @@ pub fn worker(
     indexing_config: Arc<MorselsIndexingConfig>,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
-    is_dynamic: bool,
     global_queue: Arc<CrossbeamInjector<IndexMsg>>,
 ) {
     let mut doc_miner = WorkerMiner::new(
@@ -117,6 +116,8 @@ pub fn worker(
         indexing_config.with_positions,
         expected_num_docs_per_reset,
         &tokenizer,
+        #[cfg(debug_assertions)]
+        id,
     );
 
     let local_queue: CrossbeamWorker<IndexMsg> = CrossbeamWorker::new_fifo();
@@ -131,7 +132,7 @@ pub fn worker(
                 output_folder_path,
                 block_number,
                 start_doc_id,
-                start_block_number,
+                check_for_existing_field_store,
                 spimi_counter,
                 doc_id_counter,
                 doc_infos,
@@ -146,7 +147,7 @@ pub fn worker(
                     &field_infos,
                     block_number,
                     start_doc_id,
-                    is_dynamic && block_number == start_block_number,
+                    check_for_existing_field_store,
                     indexing_config.num_stores_per_dir,
                     spimi_counter,
                     doc_id_counter,
@@ -169,7 +170,7 @@ pub fn worker(
                 println!("Worker {} resetting!", id);
 
                 // return the indexed documents...
-                sndr.send(WorkerToMainMessage { id, block_index_results: Some(doc_miner.get_results(id)) })
+                sndr.send(WorkerToMainMessage { id, block_index_results: Some(doc_miner.get_results()) })
                     .expect("Failed to send message back to main thread!");
 
                 barrier.wait();

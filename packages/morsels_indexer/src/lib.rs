@@ -358,7 +358,6 @@ impl Indexer {
                         indexing_config_clone,
                         expected_num_docs_per_thread,
                         num_workers_writing_blocks_clone,
-                        is_dynamic,
                         index_unit_queue,
                     )
                 }),
@@ -370,6 +369,8 @@ impl Indexer {
             indexing_config.with_positions,
             expected_num_docs_per_thread,
             &tokenizer,
+            #[cfg(debug_assertions)]
+            0,
         );
 
         let mut indexer = Indexer {
@@ -490,7 +491,7 @@ impl Indexer {
                             self.index_unit_queue.push(IndexMsg::Stop);
                         }
 
-                        let main_thread_block_index_results = self.doc_miner.get_results(1000000);
+                        let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number() - 1;
                         self.write_block(
                             main_thread_block_index_results, block_number, false, &mut * num_workers_writing_blocks
@@ -564,7 +565,7 @@ impl Indexer {
             println!("Writing extra last spimi block");
 
             let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
-            let main_thread_block_index_results = self.doc_miner.get_results(1000000);
+            let main_thread_block_index_results = self.doc_miner.get_results();
             self.write_block(
                 main_thread_block_index_results, last_block, true, &mut * num_workers_writing_blocks
             );

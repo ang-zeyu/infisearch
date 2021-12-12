@@ -80,6 +80,10 @@ impl<'a> PartialEq for PlIterator<'a> {
     }
 }
 
+/*
+ Assumes term docs to be is_some()!
+ (iterator still has some docs left)
+ */
 impl<'a> Ord for PlIterator<'a> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.td.unwrap().doc_id.cmp(&other.td.unwrap().doc_id)

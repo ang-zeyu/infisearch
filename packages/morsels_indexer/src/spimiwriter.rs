@@ -55,6 +55,7 @@ impl Indexer {
         }
 
         let output_folder_path = PathBuf::from(&self.output_folder_path);
+        let check_for_existing_field_store = self.is_dynamic && block_number == self.start_block_number;
         if is_last_block {
             combine_worker_results_and_write_block(
                 worker_index_results,
@@ -63,7 +64,7 @@ impl Indexer {
                 &self.field_infos,
                 block_number,
                 self.start_doc_id,
-                self.is_dynamic && block_number == self.start_block_number,
+                check_for_existing_field_store,
                 self.indexing_config.num_stores_per_dir,
                 self.spimi_counter,
                 self.doc_id_counter,
@@ -75,7 +76,7 @@ impl Indexer {
                     output_folder_path,
                     block_number,
                     start_doc_id: self.start_doc_id,
-                    start_block_number: self.start_block_number,
+                    check_for_existing_field_store,
                     spimi_counter: self.spimi_counter,
                     doc_id_counter: self.doc_id_counter,
                     doc_infos: Arc::clone(&self.doc_infos),
@@ -144,27 +145,29 @@ pub fn combine_worker_results_and_write_block(
                 (doc_id_counter - spimi_counter) % field_infos.field_store_block_size
             };
             let mut writer = open_new_block_file(file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
-            let mut is_first = true; // may mistakenly write extra comma due to dynamic indexing
+
+            write_field_texts(
+                &mut writer,
+                sorted_doc_infos.first_mut().unwrap(),
+                &mut curr_block_count,
+                field_infos,
+                &mut file_number,
+            );
     
-            for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
+            for worker_miner_doc_info in sorted_doc_infos.iter_mut().skip(1) {
                 if curr_block_count == 0 {
                     writer = open_new_block_file(file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
-                } else if !is_first {
+                } else {
                     writer.write_all(b",").unwrap();
                 }
     
-                is_first = false;
-    
-                writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
-    
-                curr_block_count += 1;
-                if curr_block_count == field_infos.field_store_block_size {
-                    writer.write_all(b"]").unwrap();
-                    writer.flush().unwrap();
-    
-                    file_number += 1;
-                    curr_block_count = 0;
-                }
+                write_field_texts(
+                    &mut writer,
+                    worker_miner_doc_info,
+                    &mut curr_block_count,
+                    field_infos,
+                    &mut file_number,
+                );
             }
     
             if curr_block_count != 0 {
@@ -253,6 +256,26 @@ pub fn combine_worker_results_and_write_block(
 
         buffered_writer.flush().unwrap();
         buffered_writer_dict.flush().unwrap();
+    }
+}
+
+#[inline(always)]
+fn write_field_texts(
+    writer: &mut BufWriter<File>,
+    worker_miner_doc_info:
+    &mut WorkerMinerDocInfo,
+    curr_block_count: &mut u32,
+    field_infos: &Arc<FieldInfos>,
+    file_number: &mut u32,
+) {
+    writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
+    *curr_block_count += 1;
+    if *curr_block_count == field_infos.field_store_block_size {
+        writer.write_all(b"]").unwrap();
+        writer.flush().unwrap();
+    
+        *file_number += 1;
+        *curr_block_count = 0;
     }
 }
 

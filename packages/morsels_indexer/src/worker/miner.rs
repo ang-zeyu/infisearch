@@ -50,6 +50,8 @@ pub struct WorkerMiner {
     pub tokenizer: Arc<dyn Tokenizer + Send + Sync>,
 
     #[cfg(debug_assertions)]
+    pub id: usize,
+    #[cfg(debug_assertions)]
     pub total_terms: u32,
     #[cfg(debug_assertions)]
     pub total_len: u64,
@@ -143,6 +145,8 @@ impl WorkerMiner {
         with_positions: bool,
         expected_num_docs_per_reset: usize,
         tokenizer: &Arc<dyn Tokenizer + Send + Sync>,
+        #[cfg(debug_assertions)]
+        id: usize,
     ) -> Self {
         WorkerMiner {
             field_infos: Arc::clone(field_infos),
@@ -152,18 +156,20 @@ impl WorkerMiner {
             tokenizer: Arc::clone(tokenizer),
 
             #[cfg(debug_assertions)]
+            id,
+            #[cfg(debug_assertions)]
             total_terms: 0,
             #[cfg(debug_assertions)]
             total_len: 0,
         }
     }
 
-    pub fn get_results(&mut self, _id: usize) -> WorkerBlockIndexResults {
+    pub fn get_results(&mut self) -> WorkerBlockIndexResults {
         let old_doc_infos_capacity = self.doc_infos.capacity();
 
         #[cfg(debug_assertions)]
         {
-            println!("Worker {}, total_len {}, total_terms {}!", _id, self.total_len, self.total_terms);
+            println!("Worker {}, total_len {}, total_terms {}!", self.id, self.total_len, self.total_terms);
             self.total_len = 0;
             self.total_terms = 0;
         }
