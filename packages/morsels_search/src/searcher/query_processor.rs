@@ -679,7 +679,10 @@ mod test {
                 "NOT lorem ipsum",
                 TermPostingsListsBuilder::new().with("lorem", "null, [[1,[1]]], null, [[1,[1]]]").0
             ),
-            vec![to_pl_rc("[], null, [], null, [], [], [], [], [], []")]
+            vec![
+                to_pl_rc("[], null, [], null, [], [], [], [], [], []"),
+                to_pl_rc(""),
+            ]
         );
 
         assert_eq!(
