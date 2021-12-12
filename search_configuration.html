@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">6.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -202,7 +202,6 @@
 <p>Some examples of tuned settings for mobile devices:</p>
 <ul>
 <li>Query term proximity ranking is disabled</li>
-<li>A slightly longer input debounce time</li>
 <li>Whether to use the fullscreen version (more later) of the user interface instead</li>
 </ul>
 <p>The check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
@@ -225,7 +224,7 @@
 <h3 id="input-element"><a class="header" href="#input-element">Input Element</a></h3>
 <table><thead><tr><th>Option</th><th>Default Value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>input</code></td><td><code>'morsels-search'</code></td><td>id of the input element or a html element reference</td></tr>
-<tr><td><code>inputDebounce</code></td><td><code>isMobile ? 275 : 200</code></td><td>debounce time of keystrokes to the input element</td></tr>
+<tr><td><code>inputDebounce</code></td><td><code>200</code></td><td>debounce time of keystrokes to the input element</td></tr>
 <tr><td><code>preprocessQuery</code></td><td><code>(q) =&gt; q</code></td><td>any function for preprocessing the query. Can be used to add a <a href="./search_features.html#field-search">field filter</a> for example.</td></tr>
 </tbody></table>
 <p>The <code>input</code> option is the most important option, and required in most use cases. Its purpose varies depending on the ui mode specified below.</p>
@@ -235,14 +234,14 @@
 <p>To try the different modes out, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation.</p>
 <table><thead><tr><th>Mode</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.</td></tr>
-<tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are displayed using an additional container attached to this root container.<br><br><strong>Styling Note:</strong><br>When using this option, it is important to note that the dropdown may overflow your screen depending on your dropdown alignment and screen size (more likely for mobile devices). You will need to adjust the maximum width accordingly (see <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css">css styling</a>). This may likely change in the short future using <a href="https://popper.js.org/">popper.js</a>. As such, intrusive modifications (mainly renderers, covered in the next page) relying on current dropdown behaviours are discouraged.</td></tr>
+<tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are displayed using an additional container attached to this root container.</td></tr>
 <tr><td><code>&quot;fullscreen&quot;</code></td><td>This option creates a completely distinct root container with its own input element, and attaches it to the <code>&lt;body&gt;</code> element. Under the default stylesheet, the user interface is fullscreen for devices satisfying <code>max-width: 1025px</code>, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the <code>input</code> element is specified, the root container is attached whenever the <code>input</code> is focused.<br><br>Alternatively, one may use the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> function to toggle the UI. This is also the only use case where you would not need to specify the <code>input</code> element.</td></tr>
 <tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin and this documentation by default. The <code>input</code> element must be specified, but only for attaching keystroke listeners. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom target element of choice.</td></tr>
 </tbody></table>
 <h4 id="ui-mode-specific-options"><a class="header" href="#ui-mode-specific-options">UI Mode Specific Options</a></h4>
 <p>There are also several options specific to each UI. Note that <code>dropdown</code> and <code>fullscreen</code> options are both applicable to the <code>auto</code> mode.</p>
 <table><thead><tr><th>Mode</th><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'right'</code></td><td><code>'left'</code> or <code>'right'</code>. Which side of the input element to align the dropdown results container against.</td></tr>
+<tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'bottom-end'</code></td><td><code>'bottom-start'</code> or <code>'bottom-end'</code>. Which side of the input element to align the dropdown results container and dropdown seperator against. The alignment of the dropdown container will be automatically flipped horizontally to ensure the most optimal size (see <a href="https://floating-ui.com/docs/size#using-with-flip">floating-ui</a> ’s docs for a demonstration).</td></tr>
 <tr><td><code>fullscreen</code></td><td><code>fullscreenContainer</code></td><td><code>&lt;body&gt;</code> element</td><td>Id of the element, or an element reference to attach the separate root container to.</td></tr>
 <tr><td><code>target</code></td><td><code>target</code></td><td>-</td><td>Id of the element, or an element reference to attach results to. Required if using <code>mode='target'</code>.</td></tr>
 </tbody></table>
@@ -282,7 +281,7 @@
 <p>This is covered in more detail in the next page.</p>
 <h3 id="results-per-page"><a class="header" href="#results-per-page">Results Per Page</a></h3>
 <p><code>resultsPerPage = 8</code></p>
-<p>In all UI modes, an infinite scrolling intersection observer is attached to the bottom of the relevant container. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
+<p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
 <p>Lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
 <hr />
 <h2 id="search-library-options"><a class="header" href="#search-library-options">Search Library Options</a></h2>
@@ -299,6 +298,10 @@
         // Override for using query term proximity ranking or not.
         // Disabled for mobile devices by default
         useQueryTermProximity: true,
+
+        // Whether to retrieve all field stores on initialisation
+        // (see chapter &quot;Tradeoffs&quot; for more details)
+        cacheAllFieldStores: true,
     },
 });
 </code></pre>
@@ -323,7 +326,7 @@ This may be costly for mobile devices however, and is disabled by default in suc
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }

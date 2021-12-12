@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">6.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -202,15 +202,14 @@
 <p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 300,
+    &quot;field_store_block_size&quot;: 250,
     &quot;fields&quot;: [
       {
         &quot;name&quot;: &quot;title&quot;,
         &quot;do_store&quot;: false,
         &quot;weight&quot;: 0.2,
         &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.25,
-        &quot;&quot;: true
+        &quot;b&quot;: 0.25
       },
       {
         &quot;name&quot;: &quot;heading&quot;,
@@ -255,6 +254,11 @@
 <p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file in the output folder.</p>
 <p>At search time, these fields saved in this manner from the json files are retrieved as-is.</p>
 <p>The <code>field_store_block_size</code> parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.</p>
+<blockquote>
+<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter elaborated further below.<br>
+This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
+but should work well enough for most use cases.</p>
+</blockquote>
 <p><strong><code>weight</code></strong></p>
 <p>This parameter simply specifies the weight the field should have during scoring.</p>
 <p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
@@ -483,7 +487,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 300,
+    &quot;field_store_block_size&quot;: 250,
     &quot;fields&quot;: [
       {
         &quot;name&quot;: &quot;title&quot;,
@@ -573,7 +577,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -587,7 +591,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="dynamic_indexing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="tradeoffs.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -601,7 +605,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="dynamic_indexing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="tradeoffs.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

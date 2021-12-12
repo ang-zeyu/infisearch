@@ -46,8 +46,7 @@
     Not ideal but style updates should be few and far between.
 */
 .morsels-theme .morsels-root {
-    --morsels-dropdown-width: 512px;
-    --morsels-dropdown-max-width: 80vw;
+    --morsels-dropdown-max-width: 512px;
     --morsels-dropdown-max-height: 30em;
     --morsels-font-size: 15px;
     --morsels-border: none;

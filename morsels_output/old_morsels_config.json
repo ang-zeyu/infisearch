@@ -1,0 +1,86 @@
+{
+  "fields_config": {
+    "field_store_block_size": 250,
+    "fields": [
+      {
+        "name": "title",
+        "do_store": false,
+        "weight": 0.2,
+        "k": 1.2,
+        "b": 0.25
+      },
+      {
+        "name": "heading",
+        "do_store": false,
+        "weight": 0.3,
+        "k": 1.2,
+        "b": 0.3
+      },
+      {
+        "name": "body",
+        "do_store": false,
+        "weight": 0.5,
+        "k": 1.2,
+        "b": 0.75
+      },
+      {
+        "name": "headingLink",
+        "do_store": false,
+        "weight": 0.0,
+        "k": 1.2,
+        "b": 0.75
+      },
+      {
+        "name": "_relative_fp",
+        "do_store": true,
+        "weight": 0.0,
+        "k": 1.2,
+        "b": 0.75
+      }
+    ]
+  },
+  "lang_config": {
+    "lang": "ascii",
+    "options": null
+  },
+  "indexing_config": {
+    "num_docs_per_block": 1000,
+    "pl_limit": 16383,
+    "pl_cache_threshold": 1048576,
+    "exclude": [
+      "index.html",
+      "print.html",
+      "morsels_config.json"
+    ],
+    "loader_configs": {
+      "HtmlLoader": {
+        "exclude_selectors": [
+          "script,style,#sidebar,#menu-bar"
+        ],
+        "selectors": [
+          {
+            "attr_map": {},
+            "field_name": "title",
+            "selector": "title"
+          },
+          {
+            "attr_map": {},
+            "field_name": "body",
+            "selector": "body"
+          },
+          {
+            "attr_map": {
+              "id": "headingLink"
+            },
+            "field_name": "heading",
+            "selector": "h1,h2,h3,h4,h5,h6"
+          }
+        ],
+        "type": "HtmlLoader"
+      }
+    },
+    "num_pls_per_dir": 1000,
+    "num_stores_per_dir": 1000,
+    "with_positions": true
+  }
+}

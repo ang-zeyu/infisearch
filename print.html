@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">6.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">8.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -250,7 +250,7 @@ It is <strong>not possible</strong> to use morsels for client-side indexing + se
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -370,7 +370,7 @@ One of the main reasons is that there is simply no way of parsing html (the orig
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -461,6 +461,7 @@ One of the main reasons is that there is simply no way of parsing html (the orig
 <p>While optional, if it is your first time running the tool, you can run the above command with the <code>--init</code> or <code>-i</code> flag, then run it again without this flag.
 This flag outputs the default <code>morsels_config.json</code> that can be used to <a href="./indexing_configuration.html">configure the indexer</a> later on.</p>
 <p>You may also change the config file location (relative to the <code>source-folder-path</code>) using the <code>-c &lt;config-file-path&gt;</code> option.</p>
+<p><strong>All existing contents</strong> in the output folder are also <strong>removed</strong> when running a full index. Specify the <code>--preserve-output-folder</code> option to avoid this.</p>
 <h2 id="installing-the-search-library--ui"><a class="header" href="#installing-the-search-library--ui">Installing the search library / UI</a></h2>
 <h3 id="installation-via-cdn"><a class="header" href="#installation-via-cdn">Installation via CDN</a></h3>
 <pre><code class="language-html">&lt;!-- Replace &quot;v0.0.2&quot; as appropriate --&gt;
@@ -532,7 +533,7 @@ new CopyPlugin({
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -632,6 +633,8 @@ config = &quot;morsels_config.json&quot;
 
 # Don't add the default stylesheet from morsels/search-ui,
 # nor the inline css variables for the default mdbook themes
+#
+# Only needed if you want to use some custom styling
 no-css = false
 </code></pre>
 <h2 id="preview"><a class="header" href="#preview">Preview</a></h2>
@@ -681,7 +684,7 @@ no-css = false
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -788,7 +791,7 @@ jobs:
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -862,7 +865,6 @@ jobs:
 <p>Some examples of tuned settings for mobile devices:</p>
 <ul>
 <li>Query term proximity ranking is disabled</li>
-<li>A slightly longer input debounce time</li>
 <li>Whether to use the fullscreen version (more later) of the user interface instead</li>
 </ul>
 <p>The check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
@@ -885,7 +887,7 @@ jobs:
 <h3 id="input-element"><a class="header" href="#input-element">Input Element</a></h3>
 <table><thead><tr><th>Option</th><th>Default Value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>input</code></td><td><code>'morsels-search'</code></td><td>id of the input element or a html element reference</td></tr>
-<tr><td><code>inputDebounce</code></td><td><code>isMobile ? 275 : 200</code></td><td>debounce time of keystrokes to the input element</td></tr>
+<tr><td><code>inputDebounce</code></td><td><code>200</code></td><td>debounce time of keystrokes to the input element</td></tr>
 <tr><td><code>preprocessQuery</code></td><td><code>(q) =&gt; q</code></td><td>any function for preprocessing the query. Can be used to add a <a href="./search_features.html#field-search">field filter</a> for example.</td></tr>
 </tbody></table>
 <p>The <code>input</code> option is the most important option, and required in most use cases. Its purpose varies depending on the ui mode specified below.</p>
@@ -895,14 +897,14 @@ jobs:
 <p>To try the different modes out, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation.</p>
 <table><thead><tr><th>Mode</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="search_configuration.html#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.</td></tr>
-<tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are displayed using an additional container attached to this root container.<br><br><strong>Styling Note:</strong><br>When using this option, it is important to note that the dropdown may overflow your screen depending on your dropdown alignment and screen size (more likely for mobile devices). You will need to adjust the maximum width accordingly (see <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css">css styling</a>). This may likely change in the short future using <a href="https://popper.js.org/">popper.js</a>. As such, intrusive modifications (mainly renderers, covered in the next page) relying on current dropdown behaviours are discouraged.</td></tr>
+<tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are displayed using an additional container attached to this root container.</td></tr>
 <tr><td><code>&quot;fullscreen&quot;</code></td><td>This option creates a completely distinct root container with its own input element, and attaches it to the <code>&lt;body&gt;</code> element. Under the default stylesheet, the user interface is fullscreen for devices satisfying <code>max-width: 1025px</code>, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the <code>input</code> element is specified, the root container is attached whenever the <code>input</code> is focused.<br><br>Alternatively, one may use the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> function to toggle the UI. This is also the only use case where you would not need to specify the <code>input</code> element.</td></tr>
 <tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin and this documentation by default. The <code>input</code> element must be specified, but only for attaching keystroke listeners. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom target element of choice.</td></tr>
 </tbody></table>
 <h4 id="ui-mode-specific-options"><a class="header" href="#ui-mode-specific-options">UI Mode Specific Options</a></h4>
 <p>There are also several options specific to each UI. Note that <code>dropdown</code> and <code>fullscreen</code> options are both applicable to the <code>auto</code> mode.</p>
 <table><thead><tr><th>Mode</th><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'right'</code></td><td><code>'left'</code> or <code>'right'</code>. Which side of the input element to align the dropdown results container against.</td></tr>
+<tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'bottom-end'</code></td><td><code>'bottom-start'</code> or <code>'bottom-end'</code>. Which side of the input element to align the dropdown results container and dropdown seperator against. The alignment of the dropdown container will be automatically flipped horizontally to ensure the most optimal size (see <a href="https://floating-ui.com/docs/size#using-with-flip">floating-ui</a> ’s docs for a demonstration).</td></tr>
 <tr><td><code>fullscreen</code></td><td><code>fullscreenContainer</code></td><td><code>&lt;body&gt;</code> element</td><td>Id of the element, or an element reference to attach the separate root container to.</td></tr>
 <tr><td><code>target</code></td><td><code>target</code></td><td>-</td><td>Id of the element, or an element reference to attach results to. Required if using <code>mode='target'</code>.</td></tr>
 </tbody></table>
@@ -942,7 +944,7 @@ jobs:
 <p>This is covered in more detail in the next page.</p>
 <h3 id="results-per-page"><a class="header" href="#results-per-page">Results Per Page</a></h3>
 <p><code>resultsPerPage = 8</code></p>
-<p>In all UI modes, an infinite scrolling intersection observer is attached to the bottom of the relevant container. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
+<p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
 <p>Lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
 <hr />
 <h2 id="search-library-options"><a class="header" href="#search-library-options">Search Library Options</a></h2>
@@ -959,6 +961,10 @@ jobs:
         // Override for using query term proximity ranking or not.
         // Disabled for mobile devices by default
         useQueryTermProximity: true,
+
+        // Whether to retrieve all field stores on initialisation
+        // (see chapter &quot;Tradeoffs&quot; for more details)
+        cacheAllFieldStores: true,
     },
 });
 </code></pre>
@@ -983,7 +989,7 @@ This may be costly for mobile devices however, and is disabled by default in suc
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -1473,7 +1479,7 @@ return h(
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -1547,15 +1553,14 @@ return h(
 <p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 300,
+    &quot;field_store_block_size&quot;: 250,
     &quot;fields&quot;: [
       {
         &quot;name&quot;: &quot;title&quot;,
         &quot;do_store&quot;: false,
         &quot;weight&quot;: 0.2,
         &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.25,
-        &quot;&quot;: true
+        &quot;b&quot;: 0.25
       },
       {
         &quot;name&quot;: &quot;heading&quot;,
@@ -1600,6 +1605,11 @@ return h(
 <p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file in the output folder.</p>
 <p>At search time, these fields saved in this manner from the json files are retrieved as-is.</p>
 <p>The <code>field_store_block_size</code> parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.</p>
+<blockquote>
+<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter elaborated further below.<br>
+This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
+but should work well enough for most use cases.</p>
+</blockquote>
 <p><strong><code>weight</code></strong></p>
 <p>This parameter simply specifies the weight the field should have during scoring.</p>
 <p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
@@ -1828,7 +1838,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 300,
+    &quot;field_store_block_size&quot;: 250,
     &quot;fields&quot;: [
       {
         &quot;name&quot;: &quot;title&quot;,
@@ -1918,7 +1928,168 @@ The <code>field_order</code> controls in which order these fields are indexed, w
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
+            target: document.getElementById('morsels-mdbook-target'),
+            sourceFilesUrl: '/morsels/',
+        }
+    });
+</script><div style="break-before: page; page-break-before: always;"></div><script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
+<style>
+.morsels-root {
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-fg: var(--fg);
+    --morsels-bg: var(--bg);
+    --morsels-item-border-radius: 10px;
+    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--bg);
+    --morsels-title-hover-bg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-box-shadow: none;
+    --morsels-fullscreen-header-bg: var(--sidebar-bg);
+    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
+    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
+    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
+    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
+    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
+    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+
+#morsels-search {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 16px;
+    padding: 0.5em 0.75em;
+    border: 1px solid var(--searchbar-border-color);
+    background: var(--searchbar-bg);
+    color: var(--searchbar-fg);
+    outline: none;
+}
+
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
+#morsels-mdbook-target {
+    list-style: none;
+}
+</style>
+<p><input
+    type="text"
+    id="morsels-search"
+    placeholder="Search"
+/></p>
+<div class="morsels-root" id="morsels-mdbook-target"></div>
+<h1 id="tradeoffs"><a class="header" href="#tradeoffs">Tradeoffs</a></h1>
+<p>When configuring morsels, there are several tradeoffs you need to keep in mind, which varies greatly on depending on your collection and use case. </p>
+<p>This chapter outlines the possible tradeoffs you can make and summarises the relevant options you would want to keep in mind.</p>
+<h2 id="possible-tradeoffs"><a class="header" href="#possible-tradeoffs">Possible Tradeoffs</a></h2>
+<p>The possible tradeoffs you can make are marked with ✔️. Those that are likely impossible are marked ❌, or in other words, you need a search server / SaaS for these options. Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked 😩.</p>
+<p>Latency is labelled in terms of <code>RTT</code> (round trip time), the maximum of which is <code>3</code>.
+Scalability and file bloat are inevitably labelled more <strong>subjectively</strong>.</p>
+<p>Also note that the labelled <code>RTT</code> times are <strong>maximums</strong>. (namely, if files are served from <strong>disk</strong> cache instead)</p>
+<table><thead><tr><th>Factor</th><th><code>RTT=0</code></th><th><code>RTT=1</code></th><th><code>RTT=2</code></th><th><code>RTT=3</code></th></tr></thead><tbody>
+<tr><td>Fair Scalability,<br><span style="color: green">Little</span> File bloat</td><td>✔️</td><td>😩</td><td>😩</td><td>😩</td></tr>
+<tr><td>Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
+<tr><td>Fair Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
+<tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>❌</td><td>✔️</td><td>😩</td></tr>
+<tr><td>Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>✔️</td><td>😩</td><td>😩</td></tr>
+<tr><td>Good Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>✔️</td><td>😩</td><td>😩</td></tr>
+<tr><td>Excellent Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
+<tr><td>Excellent Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
+<tr><td>Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>❌</td><td>✔️</td><td>😩</td></tr>
+<tr><td>Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+</tbody></table>
+<blockquote>
+<p>Some roughly equivalent / nearby options are still marked ✔️ (vs 😩), since the labels are subjective.</p>
+</blockquote>
+<p>Of particular note, the only possible option under <code>RTT=0</code> is equivalent to using some other existing client side search library and generating a monolithic prebuilt index.</p>
+<p>You may still want to use morsels since it packages a search UI, or, if you prefer the simplicity of a cli indexer tool (e.g. for CI).</p>
+<h2 id="configuration"><a class="header" href="#configuration">Configuration</a></h2>
+<blockquote>
+<p>This section assumes you have read chapters 4 (barring 4.1) and 5, the options will be discussed in briefer detail here.</p>
+</blockquote>
+<p>The relevant options you will want to keep in mind are:</p>
+<ul>
+<li>Search Configuration: 
+<ul>
+<li>⭐⭐ The method of <a href="search_configuration.html#default-rendering-output--purpose">result preview generation</a></li>
+<li><a href="search_configuration.html#search-library-options"><code>cacheAllFieldStores</code></a></li>
+</ul>
+</li>
+<li>Indexing Configuration:
+<ul>
+<li>what fields are stored (<code>do_store</code>)</li>
+<li><a href="indexing_configuration.html#fields_config"><code>field_store_block_size</code></a></li>
+<li><a href="indexing_configuration.html#indexing_config"><code>pl_limit</code></a></li>
+<li><a href="indexing_configuration.html#indexing_config"><code>pl_cache_threshold</code></a></li>
+<li><a href="indexing_configuration.html#indexing_config"><code>num_stores_per_dir</code></a></li>
+</ul>
+</li>
+</ul>
+<p>The following sections discusses some combinations of options that generate the outputs in the table above.</p>
+<h3 id="1-rtt0-fair-scalability-little-file-bloat"><a class="header" href="#1-rtt0-fair-scalability-little-file-bloat">1. <code>RTT=0</code>, Fair Scalability, Little File Bloat</a></h3>
+<p>To achieve this result, you will need to ensure <strong>everything</strong> that is <strong>potentially</strong> needed is retrieved up front.</p>
+<ul>
+<li>Set <code>pl_limit</code> to an arbitrarily large number. This compresses the inverted index into one or a few files.</li>
+<li>Ensure <code>pl_cache_threshold</code> is set to a very low number (or at least smaller than the inverted index file size), so that the postings list are loaded up front and cached in memory.</li>
+<li>You would also want to set <code>field_store_block_size</code> to a fairly high number, and correspondingly set <code>cacheAllFieldStores</code> to <code>true</code>. This allows morsels to load the few field stores during initilisation and persistently cache them.</li>
+</ul>
+<h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
+<p>The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation.</p>
+<h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
+<p>While generating result previews from source files greatly reduces file bloat, it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files.</p>
+<p>Therefore, the tradeoff here is between <strong>file bloat</strong> and <strong><code>RTT</code></strong>.</p>
+<p>However, it is also more feasible with this option to remove a round of network requests by <strong>compressing and caching</strong> all field stores up front.
+This is because in this option, field stores only store the relative file path from which to retrieve the source files, and are therefore fairly small.</p>
+<p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your “comfort zone”, you can store up to <code>120000</code> document links in a single, cached field store!</p>
+<p>The relevant options are <code>pl_cache_threshold</code> and <code>field_store_block_size</code> (configure similar to the earlier <code>RTT=0</code> case).</p>
+<blockquote>
+<p>⭐ This is the default settings! (<code>RTT=2</code>, Little file bloat, Good scalability)</p>
+</blockquote>
+<h4 id="22-generating-result-previews-from-field-stores"><a class="header" href="#22-generating-result-previews-from-field-stores">2.2. Generating Result Previews from Field Stores</a></h4>
+<p>(<code>RTT=1</code>, Moderate-Heavy file bloat, Good scalability)</p>
+<p>It is also possible to achieve another trade off by using this method of preview generation.</p>
+<p>As mentioned, generating result previews directly from field stores (making sure to specify <code>do_store</code> on the appropriate fields) avoids the extra mentioned round of network requests to retrieve said source files.</p>
+<p>Moreover, for moderately sized collections, we may surmise that the <strong>size of the index</strong> is often far smaller than the <strong>size of field stores</strong>.</p>
+<p>The idea here therefore is to <strong>cache the index</strong> (using <code>pl_limit</code>, <code>pl_cache_threshold</code>) and fragment the <strong>field stores</strong> (<code>field_store_block_size</code>), therefore reducing another <code>RTT</code>.</p>
+<h3 id="3-excellent-scalability"><a class="header" href="#3-excellent-scalability">3. Excellent Scalability</a></h3>
+<p>The settings here follow from the section directly above, disregarding the compromises. That is,</p>
+<h4 id="31-generating-result-previews-from-source-files"><a class="header" href="#31-generating-result-previews-from-source-files">3.1. Generating Result Previews from Source Files</a></h4>
+<p>(<code>RTT=3</code>, Excellent Scalability, Little-Moderate File Bloat)</p>
+<p>The <code>RTT</code> compromise is accepted as is, without performing the caching mentioned in section 2.1.</p>
+<p>This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached.</p>
+<h4 id="32-generating-result-previews-from-field-stores"><a class="header" href="#32-generating-result-previews-from-field-stores">3.2. Generating Result Previews from Field Stores</a></h4>
+<p>(<code>RTT=2</code>, Excellent Scalability, Heavy File Bloat)</p>
+<p>Per section 2.2, one simply needs to avoid the assumption that the index can be cached.</p>
+<p>Scalability is then ensured here by fragmenting both the index (using <code>pl_limit</code>) and field stores (<code>field_store_block_size</code>).</p>
+<script>
+    initMorsels({
+        searcherOptions: {
+          url: '/morsels/morsels_output/',
+        },
+        uiOptions: {
+            mode: (function () {
+                // This IIFE is documentation specific, for demoing the different modes.
+                // It would be the string mode (e.g. 'target') normally
+                const params = new URLSearchParams(window.location.search);
+                return params.get('mode') || 'target';
+            })(),
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -1993,7 +2164,12 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <p>This is in contrast to a more traditional “segment” based approach you might find in search servers, whereby each dynamic indexing run generates an entirely separate “segment”, and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.</p>
 <h2 id="caveats"><a class="header" href="#caveats">Caveats</a></h2>
 <p>There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern – for example, updating the index immediately when writing this documentation (on saving a file).</p>
-<p>This should be automatic for most use cases when specifying the <code>--dynamic</code> option: If the output folder path does not contain any files indexed by morsels, or it contains incompatible files, the end result is the same as not specifying the <code>--dynamic</code> option at all.</p>
+<p>Note however, that the following circumstances will forcibly trigger a <strong>full</strong> reindex:</p>
+<ul>
+<li>If the output folder path does not contain any files indexed by morsels</li>
+<li>It contains files indexed by a different version of morsels</li>
+<li>The configuration file (<code>morsels_config.json</code>) was changed in any way</li>
+</ul>
 <h3 id="collection-statistics"><a class="header" href="#collection-statistics">Collection Statistics</a></h3>
 <p>Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of dynamic indexing (from added / updated documents). Detecting such terms is difficult, as there is no guarantee the deleted documents are available anymore. The alternative would be to store such information in a non-inverted index, but that again takes up extra space =(.</p>
 <p>As such, the information for these terms may not be “patched”. As a result, you <em>may</em> notice some slight drifting in the relative ranking of documents returned after some number of dynamic indexing runs.</p>
@@ -2012,7 +2188,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -2108,7 +2284,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -2190,7 +2366,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -2288,7 +2464,7 @@ unused, | mapped to 'title' field, | mapped to 'body' field, | mapped to 'headin
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
@@ -2373,7 +2549,7 @@ unused, | mapped to 'title' field, | mapped to 'body' field, | mapped to 'headin
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
             })(),
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '/morsels/',
         }
