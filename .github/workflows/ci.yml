@@ -23,6 +23,7 @@ jobs:
       - run: npm run e2e
       - run: npm run installIndexer
       - run: npm run buildSearch
+      - run: cargo clean --release -p mdbook-morsels
       - run: npm run installMdbook
       - run: npm run buildDocs
       - name: Deploy 🚀

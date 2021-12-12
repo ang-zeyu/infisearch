@@ -7,6 +7,7 @@
 # Check preReleaseXX outputs manually before running release
 
 preReleaseCommon:
+	cargo clean
 	cd packages/morsels_common &&\
 	cargo package &&\
 	cargo package --list
@@ -67,6 +68,7 @@ preReleaseMdbook:
 	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
 	git add packages/mdbook-morsels/search-ui-dist/*
 	git commit -m "Update mdbook search-ui dist"
+	cargo clean -p mdbook-morsels
 	cd packages/mdbook-morsels &&\
 	cargo package &&\
 	cargo package --list
