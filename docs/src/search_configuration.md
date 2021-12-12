@@ -10,7 +10,6 @@ Several options in both the search library and UI are by default tuned based on 
 
 Some examples of tuned settings for mobile devices:
 - Query term proximity ranking is disabled
-- A slightly longer input debounce time
 - Whether to use the fullscreen version (more later) of the user interface instead
 
 The check is done through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query at initialisation time, which may not be robust enough for your use case.
@@ -47,7 +46,7 @@ The subsequent section on [renderers](./search_configuration_renderers.md) provi
 | Option      | Default Value | Description |
 | ----------- | ----------- | ----------- |
 | `input`     | `'morsels-search'` | id of the input element or a html element reference |
-| `inputDebounce`     | `isMobile ? 275 : 200` | debounce time of keystrokes to the input element |
+| `inputDebounce`     | `200` | debounce time of keystrokes to the input element |
 | `preprocessQuery`   | `(q) => q` | any function for preprocessing the query. Can be used to add a [field filter](./search_features.md#field-search) for example. |
 
 The `input` option is the most important option, and required in most use cases. Its purpose varies depending on the ui mode specified below.
@@ -140,7 +139,7 @@ This is covered in more detail in the next page.
 
 `resultsPerPage = 8`
 
-In all UI modes, an infinite scrolling intersection observer is attached to the bottom of the relevant container. When triggered, search result previews are fetched and/or generated for a number of these results only.
+In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.
 
 Lowering this can have a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.
 

@@ -89,7 +89,7 @@ function prepareOptions(options: SearchUiOptions) {
   }
 
   if (!('inputDebounce' in uiOptions)) {
-    uiOptions.inputDebounce = isMobileSizeGlobal ? 275 : 200;
+    uiOptions.inputDebounce = 200;
   }
 
   if (!uiOptions.preprocessQuery) {
