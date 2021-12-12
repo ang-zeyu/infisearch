@@ -19,7 +19,7 @@ export interface UiOptions {
   inputDebounce?: number,
   preprocessQuery: (input: string) => string,
   mode: UiMode,
-  dropdownAlignment?: 'left' | 'right',
+  dropdownAlignment?: 'bottom-start' | 'bottom-end',
   fullscreenContainer?: HTMLElement,
   target?: HTMLElement,
   resultsPerPage?: number,

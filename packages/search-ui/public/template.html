@@ -84,11 +84,12 @@
     </div>
   </body>
   <script>
+    const defaultHost = 'localhost';
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode') || 'auto';
-    const url = params.get('url') || 'http://localhost:3000/output/';
+    const url = params.get('url') || `http://${defaultHost}:3000/output/`;
     const resultsPerPage = params.get('resultsPerPage') || 8;
-    const sourceFilesUrl = params.get('sourceFilesUrl') || 'http://localhost:3000/source/';
+    const sourceFilesUrl = params.get('sourceFilesUrl') || `http://${defaultHost}:3000/source/`;
 
     initMorsels({
       searcherOptions: {

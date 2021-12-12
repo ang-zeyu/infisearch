@@ -1,3 +1,5 @@
+import { computePosition, size, offset, flip, shift, autoPlacement } from '@floating-ui/dom';
+
 import './styles/search.css';
 
 import { Query, Searcher } from '@morsels/search-lib';
@@ -98,6 +100,10 @@ function prepareOptions(options: SearchUiOptions) {
     uiOptions.fullscreenContainer = document.getElementById(uiOptions.fullscreenContainer) as HTMLElement;
   }
 
+  if (!('dropdownAlignment' in uiOptions)) {
+    uiOptions.dropdownAlignment = 'bottom-end';
+  }
+
   if (!uiOptions.fullscreenContainer) {
     uiOptions.fullscreenContainer = document.getElementsByTagName('body')[0] as HTMLElement;
   }
@@ -110,6 +116,31 @@ function prepareOptions(options: SearchUiOptions) {
     if (listContainer.childElementCount) {
       listContainer.style.display = 'block';
       (listContainer.previousSibling as HTMLElement).style.display = 'block';
+      computePosition(root, listContainer, {
+        placement: uiOptions.dropdownAlignment,
+        strategy: 'fixed',
+        middleware: [
+          offset(8),
+          flip({
+            padding: 10,
+            mainAxis: false,
+          }),
+          size({
+            apply({ width, height }) {
+              Object.assign(listContainer.style, {
+                maxWidth: `min(${width}px, var(--morsels-dropdown-max-width))`,
+                maxHeight: `min(${height}px, var(--morsels-dropdown-max-height))`,
+              });
+            },
+            padding: 10,
+          }),
+        ],
+      }).then(({ x, y }) => {
+        Object.assign(listContainer.style, {
+          left: `${x}px`,
+          top: `${y}px`,
+        });
+      });
     }
   });
 
@@ -135,12 +166,12 @@ function prepareOptions(options: SearchUiOptions) {
     const root = h('div', { class: 'morsels-root' }, inputEl);
 
     root.appendChild(h('div', {
-      class: `morsels-input-dropdown-separator ${opts.uiOptions.dropdownAlignment || 'right'}`,
+      class: `morsels-input-dropdown-separator ${uiOptions.dropdownAlignment}`,
       style: 'display: none;',
     }));
 
     const listContainer = h('ul', {
-      class: `morsels-list ${opts.uiOptions.dropdownAlignment || 'right'}`,
+      class: 'morsels-list',
       style: 'display: none;',
     });
     root.appendChild(listContainer);
@@ -354,9 +385,14 @@ function initMorsels(options: SearchUiOptions): {
     input.addEventListener('input', inputListener(dropdownRoot, dropdownListContainer));
     input.addEventListener('keydown', (ev) => ev.stopPropagation());
 
-    if (uiOptions.mode === UiMode.Auto) {
+    if (uiOptions.mode === UiMode.Auto || uiOptions.mode === UiMode.Dropdown) {
       let debounce;
       window.addEventListener('resize', () => {
+        if (uiOptions.mode === UiMode.Dropdown) {
+          uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+          return;
+        }
+
         clearTimeout(debounce);
         debounce = setTimeout(() => {
           const newIsMobileSize = isMobileDevice();

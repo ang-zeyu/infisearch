@@ -224,7 +224,7 @@ fn get_initialise_script_el(mode: Option<&Value>, base_url: &str) -> String {
         }},
         uiOptions: {{
             mode: {},
-            dropdownAlignment: 'left',
+            dropdownAlignment: 'bottom-start',
             target: document.getElementById('morsels-mdbook-target'),
             sourceFilesUrl: '{}',
         }}

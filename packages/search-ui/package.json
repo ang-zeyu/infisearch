@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@morsels/search-lib": "^0.0.2",
-    "escape-string-regexp": "^5.0.0"
+    "escape-string-regexp": "^5.0.0",
+    "@floating-ui/dom": "^0.1.7"
   }
 }

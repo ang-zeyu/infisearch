@@ -1,6 +1,5 @@
 .morsels-root {
-    --morsels-dropdown-width: 512px;
-    --morsels-dropdown-max-width: 80vw;
+    --morsels-dropdown-max-width: 512px;
     --morsels-dropdown-max-height: 30em;
     --morsels-font-size: 15px;
     --morsels-border: none;
@@ -49,6 +48,13 @@
     width: 100%;
     box-sizing: border-box;
     font-size: var(--morsels-font-size);
+}
+
+@media screen and (max-width: 1025px) {
+    .morsels-root {
+        --morsels-dropdown-max-width: 100vw;
+        --morsels-dropdown-max-height: 75vh;
+    }
 }
 
 .morsels-root * {
@@ -195,7 +201,7 @@
     border-bottom: 9px solid var(--morsels-dropdown-input-separator-bg);
 }
 
-.morsels-input-dropdown-separator.left {
+.morsels-input-dropdown-separator.bottom-start {
     left: 16px;
     right: unset;
 }
@@ -210,12 +216,11 @@
     border-radius: 5px;
     box-shadow: var(--morsels-box-shadow);
     margin: 0;
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    width: var(--morsels-dropdown-width);
+    position: fixed;
+    top: 0;
+    left: 100vw;
+    width: 100vw;
     max-width: var(--morsels-dropdown-max-width);
-    max-height: var(--morsels-dropdown-max-height);
     overflow-y: auto;
     list-style: none;
     background-color: var(--morsels-bg);
@@ -223,11 +228,6 @@
     z-index: 1000;
     scrollbar-color: var(--morsels-scrollbar-thumb-bg) var(--morsels-scrollbar-bg);
     scrollbar-width: thin;
-}
-
-.morsels-list.left {
-    left: 0;
-    right: unset;
 }
 
 .morsels-fs-root .morsels-list {
