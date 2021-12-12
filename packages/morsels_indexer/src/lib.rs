@@ -238,6 +238,8 @@ impl Indexer {
         preserve_output_folder: bool,
         delete_unencountered_external_ids: bool,
     ) -> Indexer {
+        fs::create_dir_all(output_folder_path).expect("could not create output directory!");
+
         let raw_config_normalised = &String::from_iter(normalized(config.raw_config.chars()));
 
         let dynamic_index_info = DynamicIndexInfo::new_from_output_folder(
