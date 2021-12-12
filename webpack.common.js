@@ -35,7 +35,6 @@ module.exports = {
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
       extraArgs: '-- --no-default-features --features lang_ascii',
-      forceMode: 'production',
       outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_ascii'),
     }),
     new DefinePlugin({
