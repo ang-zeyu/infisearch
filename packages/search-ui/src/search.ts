@@ -1,4 +1,4 @@
-import { computePosition, size, offset, flip, shift, autoPlacement } from '@floating-ui/dom';
+import { computePosition, size, offset, flip } from '@floating-ui/dom';
 
 import './styles/search.css';
 
