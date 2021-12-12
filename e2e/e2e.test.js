@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-jest.setTimeout(300000);
+jest.setTimeout(3000000);
 
 const INPUT_SELECTOR = '#morsels-search';
 
@@ -71,15 +71,20 @@ async function reloadPage() {
 
 function runIndexer(command) {
   execSync(command, {
-    env: { RUST_BACKTRACE: 1 },
+    env: { RUST_BACKTRACE: 1, ...process.env },
     stdio: 'inherit',
   });
 }
 
-const testSuite = async (configFile) => {
-  execSync(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output -c ${configFile}`);
+beforeAll(async () => {
+  // Wait for webpack-dev-server to complete before running indexer
+  await reloadPage();
+});
 
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+const testSuite = async (configFile) => {
+  runIndexer(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output -c ${configFile}`);
+
+  console.log('Ran full indexer run');
 
   await reloadPage();
 
@@ -251,13 +256,18 @@ const cleanup = () => {
 
 test('Test with different field and block size configs', async () => {
   cleanup();
+  console.log('Starting morsels_config_0 tests');
   await testSuite('e2e/input/morsels_config_0.json');
   cleanup();
+  console.log('Starting morsels_config_1 tests');
   await testSuite('e2e/input/morsels_config_1.json');
   cleanup();
+  console.log('Starting morsels_config_2 tests');
   await testSuite('e2e/input/morsels_config_2.json');
   cleanup();
+  console.log('Starting morsels_config_3 tests');
   await testSuite('e2e/input/morsels_config_3.json');
+  process.exit(0);
 });
 
 afterAll(cleanup);

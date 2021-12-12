@@ -247,10 +247,33 @@ impl Indexer {
         );
 
         if !is_dynamic && !preserve_output_folder {
-            if let Err(err) = fs::remove_dir_all(output_folder_path) {
-                eprintln!("{}\nFailed to clean output directory, continuing.", err);
+            if let Ok(read_dir) = fs::read_dir(output_folder_path) {
+                for dir_entry in read_dir {
+                    if let Err(err) = dir_entry {
+                        eprintln!("Failed to clean {}, continuing.", err);
+                        continue;
+                    }
+
+                    let dir_entry = dir_entry.unwrap();
+                    let file_type = dir_entry.file_type();
+                    if let Err(err) = file_type {
+                        eprintln!("Failed to get file type when cleaning output dir {}, continuing.", err);
+                        continue;
+                    }
+
+                    let file_type = file_type.unwrap();
+                    if file_type.is_file() {
+                        if let Err(err) = fs::remove_file(dir_entry.path()) {
+                            eprintln!("{}\nFailed to clean {}, continuing.", err, dir_entry.path().to_string_lossy());
+                        }
+                    } else if file_type.is_dir() {
+                        if let Err(err) = fs::remove_dir_all(dir_entry.path()) {
+                            eprintln!("{}\nFailed to clean directory {}, continuing.", err, dir_entry.path().to_string_lossy());
+                        }
+                    }
+                }
             } else {
-                fs::create_dir(output_folder_path).expect("failed to recreate output directory");
+                eprintln!("Failed to read output dir for cleaning, continuing.");
             }
         }
 
