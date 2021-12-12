@@ -340,6 +340,10 @@ impl Indexer {
         }));
 
         let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;
+
+        #[cfg(debug_assertions)]
+        println!("previous number of docs {}", doc_id_counter);
+
         let spimi_counter = doc_id_counter % config.indexing_config.num_docs_per_block;
 
         // Construct worker threads
@@ -583,6 +587,10 @@ impl Indexer {
             .unwrap();
     }
 
+    fn is_deletion_only_run(&self) -> bool {
+        self.doc_id_counter == self.start_doc_id
+    }
+
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
         #[cfg(debug_assertions)]
         println!("@finish_writing_docs");
@@ -604,14 +612,17 @@ impl Indexer {
                 main_thread_block_index_results, last_block, true, &mut * num_workers_writing_blocks
             );
             self.spimi_counter = 0;
-        } else {
+        } else if !self.is_deletion_only_run() {
             last_block -= 1;
         }
 
         self.wait_on_all_workers();
 
         #[cfg(debug_assertions)]
-        println!("Number of docs: {}", self.doc_id_counter);
+        println!(
+            "Number of docs: {}, First Block {}, Last Block {}",
+            self.doc_id_counter, first_block, last_block,
+        );
 
         if let Some(now) = instant {
             print_time_elapsed(now, "Block indexing done!");
@@ -626,6 +637,7 @@ impl Indexer {
             }
 
             spimireader::dynamic::modify_blocks(
+                self.is_deletion_only_run(),
                 self.doc_id_counter,
                 num_blocks,
                 first_block,
@@ -656,7 +668,9 @@ impl Indexer {
 
         self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter);
 
-        spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
+        if !self.is_deletion_only_run() {
+            spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
+        }
 
         if let Some(now) = instant {
             print_time_elapsed(now, "Blocks merged!");

@@ -160,6 +160,7 @@ impl ExistingPlWriter {
 
 #[allow(clippy::too_many_arguments)]
 pub fn modify_blocks(
+    is_deletion_only_run: bool,
     doc_id_counter: u32,
     num_blocks: u32,
     first_block: u32,
@@ -191,17 +192,19 @@ pub fn modify_blocks(
         Arc::from(doc_infos_unwrapped_inner)
     };
 
-    common::initialise_postings_stream_readers(
-        first_block,
-        last_block,
-        output_folder_path,
-        &mut postings_streams,
-        &postings_stream_decoders,
-        &doc_infos_unlocked_arc,
-        tx_main,
-        &blocking_sndr,
-        &blocking_rcvr,
-    );
+    if !is_deletion_only_run {
+        common::initialise_postings_stream_readers(
+            first_block,
+            last_block,
+            output_folder_path,
+            &mut postings_streams,
+            &postings_stream_decoders,
+            &doc_infos_unlocked_arc,
+            tx_main,
+            &blocking_sndr,
+            &blocking_rcvr,
+        );
+    }
 
     // Preallocate some things
     let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);

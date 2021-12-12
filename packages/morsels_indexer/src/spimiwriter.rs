@@ -174,15 +174,20 @@ pub fn combine_worker_results_and_write_block(
                 writer.write_all(b"]").unwrap();
                 writer.flush().unwrap();
             }
-        } /* else {
-            // possibly just a dynamic indexing run with a deletion
-        } */
-        // ---------------------------------------------
 
-        // Store in global
-        {
-            doc_infos.lock().unwrap().all_block_doc_lengths.push(BlockDocLengths(sorted_doc_infos));
+            #[cfg(debug_assertions)]
+            println!("Num docs in block {}: {}", block_number, sorted_doc_infos.len());
+
+            // Store in global
+            {
+                doc_infos.lock().unwrap().all_block_doc_lengths.push(BlockDocLengths(sorted_doc_infos));
+            }
+        } else {
+            // possibly just a dynamic indexing run with a deletion
+            #[cfg(debug_assertions)]
+            println!("Encountered empty block {}", block_number);
         }
+        // ---------------------------------------------
     }
 
     {
