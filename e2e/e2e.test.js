@@ -109,6 +109,24 @@ const testSuite = async (configFile) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
+  // JsonLoader tests
+  await clearInput();
+  await typePhrase('Lorem Ipsum is simply dummy text');
+  await assertSingle('lorem ipsum is simply dummy text');
+
+  await clearInput();
+  await typePhrase('test many json 2');
+  await assertSingle('test many json 2');
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
+  // CsvLoader tests
+  await clearInput();
+  await typePhrase('this is the second csv document');
+  await assertSingle('this is the second csv document');
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
   // Test dynamic indexing addition
 
   // 1, to be deleted later
