@@ -64,7 +64,7 @@ async function reloadPage() {
   await jestPuppeteer.resetBrowser();
   await page.goto(
     'http://localhost:8080?mode=target&url=http%3A%2F%2Flocalhost%3A3000%2F&resultsPerPage=100',
-    { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 100000 },
+    { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 },
   );
   await expect(page.title()).resolves.toMatch('Morsels');
 }
@@ -84,7 +84,26 @@ const testSuite = async (configFile) => {
   await reloadPage();
 
   // ------------------------------------------------------
-  // Simple phrase query test
+  // Various basic tests on docid=0
+  await typeText('npm AND run AND dev AND installmdbook');
+  await assertSingle('use the npm run dev script');
+
+  await clearInput();
+  await typeText('"npm run dev" AND (installmdbook 8080)');
+  await assertSingle('use the npm run dev script');
+
+  await clearInput();
+  await typeText('npm AND run AND dev AND nonexistentterm');
+  await waitNoResults();
+
+  await clearInput();
+  await typePhrase('Once you have you test files');
+  await assertSingle('once you have you test files');
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
+  // Simple phrase query test on another docid
+  await clearInput();
   await typePhrase('forenote on mobile device detection');
   await assertSingle('forenote on mobile device detection');
   // ------------------------------------------------------

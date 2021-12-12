@@ -282,7 +282,7 @@ impl Searcher {
             // ------------------------------------------
 
             // ------------------------------------------
-            // Okapi calculation
+            // BM25 calculation
 
             for pl_it in pl_its.iter_mut() {
                 let td = pl_it.td.unwrap();
