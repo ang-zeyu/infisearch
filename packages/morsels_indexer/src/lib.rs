@@ -176,6 +176,7 @@ pub struct MorselsConfig {
 struct MorselsIndexingOutputConfig {
     loader_configs: FxHashMap<String, Box<dyn Loader>>,
     pl_names_to_cache: Vec<u32>,
+    num_docs_per_block: u32,
     num_pls_per_dir: u32,
     num_stores_per_dir: u32,
     with_positions: bool,
@@ -218,6 +219,7 @@ pub struct Indexer {
     is_dynamic: bool,
     delete_unencountered_external_ids: bool,
     start_doc_id: u32,
+    start_block_number: u32,
     dynamic_index_info: DynamicIndexInfo,
 }
 
@@ -285,7 +287,7 @@ impl Indexer {
         }));
 
         let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;
-        let start_doc_id = doc_id_counter;
+        let spimi_counter = doc_id_counter % config.indexing_config.num_docs_per_block;
 
         // Construct worker threads
         let (tx_worker, rx_main): (
@@ -343,10 +345,10 @@ impl Indexer {
             &tokenizer,
         );
 
-        let indexer = Indexer {
+        let mut indexer = Indexer {
             indexing_config,
             doc_id_counter,
-            spimi_counter: 0,
+            spimi_counter,
             pl_names_to_cache: Vec::new(),
             field_infos,
             output_folder_path: output_folder_path.to_path_buf(),
@@ -361,9 +363,11 @@ impl Indexer {
             lang_config: config.lang_config,
             is_dynamic,
             delete_unencountered_external_ids,
-            start_doc_id,
+            start_doc_id: doc_id_counter,
+            start_block_number: 0,
             dynamic_index_info,
         };
+        indexer.start_block_number = indexer.block_number();
 
         indexer.make_workers_index(num_threads);
 
@@ -400,8 +404,7 @@ impl Indexer {
     }
 
     fn block_number(&self) -> u32 {
-        ((self.doc_id_counter - self.start_doc_id) as f64 / (self.indexing_config.num_docs_per_block as f64)).ceil()
-            as u32
+        ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).floor() as u32
     }
 
     fn make_workers_index(&self, n: usize) {
@@ -461,7 +464,7 @@ impl Indexer {
                         }
 
                         let main_thread_block_index_results = self.doc_miner.get_results(1000000);
-                        let block_number = self.block_number();
+                        let block_number = self.block_number() - 1;
                         self.write_block(
                             main_thread_block_index_results, block_number, false, &mut * num_workers_writing_blocks
                         );
@@ -502,6 +505,7 @@ impl Indexer {
                     .map(|loader| (loader.get_name(), loader))
                     .collect(),
                 pl_names_to_cache: std::mem::take(&mut self.pl_names_to_cache),
+                num_docs_per_block: self.indexing_config.num_docs_per_block,
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
                 num_stores_per_dir: self.indexing_config.num_stores_per_dir,
                 with_positions: self.indexing_config.with_positions,
@@ -546,7 +550,9 @@ impl Indexer {
 
         // Merge spimi blocks
         // Go through all blocks at once
-        let num_blocks = self.block_number();
+        let first_block = self.start_block_number;
+        let last_block = self.block_number();
+        let num_blocks = last_block - first_block + 1;
         if self.is_dynamic {
             if self.delete_unencountered_external_ids {
                 self.dynamic_index_info.delete_unencountered_external_ids();
@@ -555,6 +561,8 @@ impl Indexer {
             spimireader::dynamic::modify_blocks(
                 self.doc_id_counter,
                 num_blocks,
+                first_block,
+                last_block,
                 &self.indexing_config,
                 &mut self.pl_names_to_cache,
                 std::mem::take(&mut self.doc_infos),
@@ -566,6 +574,8 @@ impl Indexer {
             spimireader::full::merge_blocks(
                 self.doc_id_counter,
                 num_blocks,
+                first_block,
+                last_block,
                 &self.indexing_config,
                 &mut self.pl_names_to_cache,
                 std::mem::take(&mut self.doc_infos),
@@ -579,7 +589,7 @@ impl Indexer {
 
         self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter);
 
-        spimireader::common::cleanup_blocks(num_blocks, &self.output_folder_path);
+        spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
 
         if let Some(now) = instant {
             print_time_elapsed(now, "Blocks merged!");

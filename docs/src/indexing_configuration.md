@@ -13,15 +13,14 @@ The default configurations are as follows, already setup for interfacing with th
 ```json
 {
   "fields_config": {
-    "field_store_block_size": 300,
+    "field_store_block_size": 250,
     "fields": [
       {
         "name": "title",
         "do_store": false,
         "weight": 0.2,
         "k": 1.2,
-        "b": 0.25,
-        "": true
+        "b": 0.25
       },
       {
         "name": "heading",
@@ -70,6 +69,10 @@ Morsels stores fields that have `do_store: true` specified in the field configur
 At search time, these fields saved in this manner from the json files are retrieved as-is.
 
 The `field_store_block_size` parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.
+
+> ⚠️ Ensure `field_store_block_size` is a clean multiple or divisor of the `num_docs_per_block` parameter elaborated further below.<br>
+> This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
+> but should work well enough for most use cases.
 
 **`weight`**
 
@@ -370,7 +373,7 @@ Field mappings for csv can be configured using one of the `field_map / field_ord
 ```json
 {
   "fields_config": {
-    "field_store_block_size": 300,
+    "field_store_block_size": 250,
     "fields": [
       {
         "name": "title",

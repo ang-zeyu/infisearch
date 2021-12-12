@@ -4,6 +4,7 @@ export interface MorselsConfig {
   indexingConfig: {
     loaderConfigs: { [loader: string]: any },
     plNamesToCache: number[],
+    numDocsPerBlock: number,
     numPlsPerDir: number,
     numStoresPerDir: number,
     withPositions: boolean,
@@ -23,6 +24,7 @@ export interface MorselsConfigRaw {
   indexing_config: {
     loader_configs: { [loader: string]: any },
     pl_names_to_cache: number[],
+    num_docs_per_block: number,
     num_pls_per_dir: number,
     num_stores_per_dir: number,
     with_positions: boolean,

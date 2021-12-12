@@ -37,6 +37,8 @@ config = "morsels_config.json"
 
 # Don't add the default stylesheet from morsels/search-ui,
 # nor the inline css variables for the default mdbook themes
+#
+# Only needed if you want to use some custom styling
 no-css = false
 ```
 

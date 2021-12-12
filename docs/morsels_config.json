@@ -1,6 +1,6 @@
 {
   "fields_config": {
-    "field_store_block_size": 300,
+    "field_store_block_size": 250,
     "fields": [
       {
         "name": "title",

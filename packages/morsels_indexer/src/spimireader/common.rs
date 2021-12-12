@@ -71,7 +71,8 @@ pub fn get_dict_writers(output_folder_path: &Path) -> (BufWriter<File>, BufWrite
 
 #[allow(clippy::too_many_arguments)]
 pub fn initialise_postings_stream_readers(
-    num_blocks: u32,
+    first_block: u32,
+    last_block: u32,
     output_folder_path: &Path,
     postings_stream_heap: &mut BinaryHeap<PostingsStream>,
     postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
@@ -81,7 +82,7 @@ pub fn initialise_postings_stream_readers(
     blocking_rcvr: &Receiver<()>,
 ) {
     // Initialize postings streams and readers, start reading
-    for idx in 1..(num_blocks + 1) {
+    for idx in first_block..(last_block + 1) {
         let block_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", idx));
         let block_dict_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", idx));
 
@@ -104,7 +105,8 @@ pub fn initialise_postings_stream_readers(
 
     // Wait for all initial decoding to finish (for the heap to have initialised)
     PostingsStream::initialise_postings_streams(
-        num_blocks,
+        first_block,
+        last_block,
         postings_stream_heap,
         postings_stream_decoders,
         tx_main,
@@ -183,9 +185,9 @@ pub fn write_new_term_postings(
     start_pl_offset
 }
 
-pub fn cleanup_blocks(num_blocks: u32, output_folder_path: &Path) {
+pub fn cleanup_blocks(first_block: u32, last_block: u32, output_folder_path: &Path) {
     // Remove temporary spimi files
-    for idx in 1..(num_blocks + 1) {
+    for idx in first_block..(last_block + 1) {
         let block_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", idx));
         let block_dict_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", idx));
         std::fs::remove_file(&block_file_path).expect("Failed to cleanup temporary bsbi_block file!");

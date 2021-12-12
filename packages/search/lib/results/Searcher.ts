@@ -93,6 +93,7 @@ class Searcher {
       indexingConfig: {
         loaderConfigs: json.indexing_config.loader_configs,
         plNamesToCache: json.indexing_config.pl_names_to_cache,
+        numDocsPerBlock: json.indexing_config.num_docs_per_block,
         numPlsPerDir: json.indexing_config.num_pls_per_dir,
         numStoresPerDir: json.indexing_config.num_stores_per_dir,
         withPositions: json.indexing_config.with_positions,
@@ -157,8 +158,7 @@ class Searcher {
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url,
         tempJsonCache,
-        this.morselsConfig.fieldStoreBlockSize,
-        this.morselsConfig.indexingConfig.numStoresPerDir,
+        this.morselsConfig,
       )));
 
       return retrievedResults;

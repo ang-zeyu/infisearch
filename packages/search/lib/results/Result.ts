@@ -1,4 +1,4 @@
-import { FieldInfo } from './FieldInfo';
+import { FieldInfo, MorselsConfig } from './FieldInfo';
 import TempJsonCache from './TempJsonCache';
 
 class Result {
@@ -13,15 +13,23 @@ class Result {
   async populate(
     baseUrl: string,
     tempJsonCache: TempJsonCache,
-    fieldStoreBlockSize: number,
-    numStoresPerDir: number,
+    morselsConfig: MorselsConfig,
   ): Promise<void> {
+    const { fieldStoreBlockSize, indexingConfig } = morselsConfig;
+    const { numStoresPerDir, numDocsPerBlock } = indexingConfig;
     const fileNumber = Math.floor(this.docId / fieldStoreBlockSize);
+    const blockNumber = Math.floor(this.docId / numDocsPerBlock);
     const dirNumber = Math.floor(fileNumber / numStoresPerDir);
-    const fileUrl = `${baseUrl}field_store/${dirNumber}/${fileNumber}.json`;
+    const fileUrl = `${baseUrl}field_store/${dirNumber}/${fileNumber}--${blockNumber}.json`;
     try {
       const rawJson = await tempJsonCache.fetch(fileUrl);
-      this.storage = rawJson[this.docId % fieldStoreBlockSize];
+
+      let idx = this.docId % fieldStoreBlockSize;
+      if (numDocsPerBlock < fieldStoreBlockSize) {
+        idx %= numDocsPerBlock;
+      }
+
+      this.storage = rawJson[idx];
     } catch (ex) {
       console.log(ex);
     }

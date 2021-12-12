@@ -7,6 +7,7 @@
     "setup": "npm install && lerna bootstrap",
     "dev": "webpack-cli serve --config ./webpack.dev.js",
     "devDocs": "cd docs && mdbook serve -p 8000",
+    "devDocsFull": "npm run installIndexer && npm run buildSearch && npm run installMdbook && npm run devDocs",
     "buildDocs": "cd docs && mdbook build",
     "buildSearch": "webpack --config ./webpack.prod.js",
     "index1": "cargo run -p morsels_indexer --release ./test_files/1/source ./test_files/1/output --perf",

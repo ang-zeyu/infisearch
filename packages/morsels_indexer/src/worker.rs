@@ -59,8 +59,10 @@ pub enum MainToWorkerMessage {
         worker_index_results: Vec<WorkerBlockIndexResults>,
         output_folder_path: PathBuf,
         block_number: u32,
-        num_docs: u32,
-        total_num_docs: u32,
+        start_doc_id: u32,
+        start_block_number: u32,
+        spimi_counter: u32,
+        doc_id_counter: u32,
         doc_infos: Arc<Mutex<DocInfos>>,
     },
     Index,
@@ -128,8 +130,10 @@ pub fn worker(
                 worker_index_results,
                 output_folder_path,
                 block_number,
-                num_docs,
-                total_num_docs,
+                start_doc_id,
+                start_block_number,
+                spimi_counter,
+                doc_id_counter,
                 doc_infos,
             } => {
                 #[cfg(debug_assertions)]
@@ -141,10 +145,11 @@ pub fn worker(
                     output_folder_path,
                     &field_infos,
                     block_number,
-                    is_dynamic,
+                    start_doc_id,
+                    is_dynamic && block_number == start_block_number,
                     indexing_config.num_stores_per_dir,
-                    num_docs,
-                    total_num_docs,
+                    spimi_counter,
+                    doc_id_counter,
                 );
 
                 #[cfg(debug_assertions)]

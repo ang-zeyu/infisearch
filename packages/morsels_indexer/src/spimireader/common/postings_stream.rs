@@ -55,14 +55,15 @@ impl PartialOrd for PostingsStream {
 
 impl PostingsStream {
     pub fn initialise_postings_streams(
-        num_blocks: u32,
+        first_block: u32,
+        last_block: u32,
         postings_stream_heap: &mut BinaryHeap<PostingsStream>,
         postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
         tx_main: &Sender<MainToWorkerMessage>,
         blocking_sndr: &Sender<()>,
         blocking_rcvr: &Receiver<()>,
     ) {
-        for idx in 1..(num_blocks + 1) {
+        for idx in first_block..(last_block + 1) {
             postings_stream_heap.push(Self::create_postings_stream(
                 idx, postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr
             ));

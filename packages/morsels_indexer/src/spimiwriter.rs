@@ -1,5 +1,4 @@
 use std::collections::BinaryHeap;
-use std::env::consts::OS;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Seek, SeekFrom, Write};
@@ -20,14 +19,6 @@ use crate::DocInfos;
 use crate::FieldInfos;
 use crate::Indexer;
 use crate::MainToWorkerMessage;
-
-lazy_static! {
-    static ref NULL_HANDLER: &'static str = match OS {
-        "linux" | "macos" => "/dev/null",
-        "windows" => "nul",
-        _ => "",
-    };
-}
 
 impl Indexer {
     pub fn write_block(
@@ -64,7 +55,6 @@ impl Indexer {
         }
 
         let output_folder_path = PathBuf::from(&self.output_folder_path);
-        let total_num_docs = self.doc_id_counter - self.spimi_counter;
         if is_last_block {
             combine_worker_results_and_write_block(
                 worker_index_results,
@@ -72,10 +62,11 @@ impl Indexer {
                 output_folder_path,
                 &self.field_infos,
                 block_number,
-                self.is_dynamic,
+                self.start_doc_id,
+                self.is_dynamic && block_number == self.start_block_number,
                 self.indexing_config.num_stores_per_dir,
                 self.spimi_counter,
-                total_num_docs,
+                self.doc_id_counter,
             );
         } else {
             self.tx_main
@@ -83,8 +74,10 @@ impl Indexer {
                     worker_index_results,
                     output_folder_path,
                     block_number,
-                    num_docs: self.spimi_counter,
-                    total_num_docs,
+                    start_doc_id: self.start_doc_id,
+                    start_block_number: self.start_block_number,
+                    spimi_counter: self.spimi_counter,
+                    doc_id_counter: self.doc_id_counter,
                     doc_infos: Arc::clone(&self.doc_infos),
                 })
                 .expect("Failed to send work message to worker!");
@@ -99,10 +92,11 @@ pub fn combine_worker_results_and_write_block(
     output_folder_path: PathBuf,
     field_infos: &Arc<FieldInfos>,
     block_number: u32,
-    is_dynamic: bool,
+    start_doc_id: u32,
+    check_for_existing_field_store: bool,
     num_stores_per_dir: u32,
-    num_docs: u32,
-    total_num_docs: u32,
+    spimi_counter: u32,
+    doc_id_counter: u32,
 ) {
     let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
 
@@ -121,8 +115,9 @@ pub fn combine_worker_results_and_write_block(
     }
 
     {
-        let mut sorted_doc_infos: Vec<WorkerMinerDocInfo> = Vec::with_capacity(num_docs as usize);
+        let mut sorted_doc_infos: Vec<WorkerMinerDocInfo> = Vec::with_capacity(spimi_counter as usize);
 
+        // ---------------------------------------------
         // Heap sort by doc id
         while !heap.is_empty() {
             let mut top = heap.pop().unwrap();
@@ -133,76 +128,55 @@ pub fn combine_worker_results_and_write_block(
 
             sorted_doc_infos.push(top.0);
         }
+        // ---------------------------------------------
 
+        // ---------------------------------------------
         // Store field texts
-        let mut count = total_num_docs;
-        let mut block_count = 0;
-        let mut writer = BufWriter::new(if NULL_HANDLER.len() == 0 {
-            File::create(
-                field_infos.field_output_folder_path.join(".nul".to_owned() + &block_number.to_string()[..]),
-            )
-            .unwrap()
-        } else {
-            File::create(*NULL_HANDLER).unwrap()
-        });
-        for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
-            block_count += 1;
-
-            if block_count == 1 {
-                let store_num = count / field_infos.field_store_block_size;
-                let dir_output_folder_path =
-                    field_infos.field_output_folder_path.join((store_num / num_stores_per_dir).to_string());
-                if (store_num % num_stores_per_dir == 0)
-                    && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
-                {
-                    std::fs::create_dir(&dir_output_folder_path)
-                        .expect("Failed to create field store output dir!");
-                }
-
-                let output_file_path = dir_output_folder_path.join(format!("{}.json", store_num));
-                if is_dynamic && block_number == 1 && output_file_path.exists() {
-                    // The first block for dynamic indexing might have been left halfway through somewhere before
-                    let mut field_store_file = OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .open(output_file_path)
-                        .expect("Failed to open existing field store for editing");
-                    field_store_file
-                        .seek(SeekFrom::End(-1))
-                        .expect("Failed to seek to existing field store end");
-
-                    // Override ']' with ','
-                    field_store_file
-                        .write_all(b",")
-                        .expect("Failed to override existing field store ] with ,");
-
-                    writer = BufWriter::new(field_store_file);
-                } else {
-                    writer = BufWriter::new(
-                        File::create(output_file_path).expect("Failed to open field store for writing."),
-                    );
-                    writer.write_all(b"[").unwrap();
-                }
+        if !sorted_doc_infos.is_empty() {
+            let mut file_number = if check_for_existing_field_store {
+                start_doc_id / field_infos.field_store_block_size
             } else {
-                writer.write_all(b",").unwrap();
+                (doc_id_counter - spimi_counter) / field_infos.field_store_block_size
+            };
+            let mut curr_block_count = if check_for_existing_field_store {
+                start_doc_id % field_infos.field_store_block_size
+            } else {
+                (doc_id_counter - spimi_counter) % field_infos.field_store_block_size
+            };
+            let mut writer = open_new_block_file(file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
+            let mut is_first = true; // may mistakenly write extra comma due to dynamic indexing
+    
+            for worker_miner_doc_info in sorted_doc_infos.iter_mut() {
+                if curr_block_count == 0 {
+                    writer = open_new_block_file(file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
+                } else if !is_first {
+                    writer.write_all(b",").unwrap();
+                }
+    
+                is_first = false;
+    
+                writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
+    
+                curr_block_count += 1;
+                if curr_block_count == field_infos.field_store_block_size {
+                    writer.write_all(b"]").unwrap();
+                    writer.flush().unwrap();
+    
+                    file_number += 1;
+                    curr_block_count = 0;
+                }
             }
-
-            writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
-
-            if block_count == field_infos.field_store_block_size {
+    
+            if curr_block_count != 0 {
                 writer.write_all(b"]").unwrap();
                 writer.flush().unwrap();
-
-                count += block_count;
-                block_count = 0;
             }
-        }
+        } /* else {
+            // possibly just a dynamic indexing run with a deletion
+        } */
+        // ---------------------------------------------
 
-        if block_count != 0 {
-            writer.write_all(b"]").unwrap();
-            writer.flush().unwrap();
-        }
-
+        // Store in global
         {
             doc_infos.lock().unwrap().all_block_doc_lengths.push(BlockDocLengths(sorted_doc_infos));
         }
@@ -279,5 +253,49 @@ pub fn combine_worker_results_and_write_block(
 
         buffered_writer.flush().unwrap();
         buffered_writer_dict.flush().unwrap();
+    }
+}
+
+#[inline(always)]
+fn open_new_block_file(
+    file_number: u32,
+    field_infos: &Arc<FieldInfos>,
+    num_stores_per_dir: u32,
+    block_number: u32,
+    check_for_existing: bool,
+) -> BufWriter<File> {
+    let output_dir = field_infos.field_output_folder_path.join(
+        (file_number / num_stores_per_dir).to_string()
+    );
+    if (file_number % num_stores_per_dir == 0)
+        && !(output_dir.exists() && output_dir.is_dir())
+    {
+        std::fs::create_dir(&output_dir)
+            .expect("Failed to create field store output dir!");
+    }
+    let output_file_path = output_dir.join(format!("{}--{}.json", file_number, block_number));
+    if check_for_existing && output_file_path.exists() {
+        // The first block for dynamic indexing might have been left halfway through somewhere before
+        let mut field_store_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(output_file_path)
+            .expect("Failed to open existing field store for editing");
+        field_store_file
+            .seek(SeekFrom::End(-1))
+            .expect("Failed to seek to existing field store end");
+
+        // Override ']' with ','
+        field_store_file
+            .write_all(b",")
+            .expect("Failed to override existing field store ] with ,");
+
+        BufWriter::new(field_store_file)
+    } else {
+        let mut writer = BufWriter::new(
+            File::create(output_file_path).expect("Failed to open field store for writing."),
+        );
+        writer.write_all(b"[").unwrap();
+        writer
     }
 }

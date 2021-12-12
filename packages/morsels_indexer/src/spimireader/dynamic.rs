@@ -189,6 +189,8 @@ fn get_existing_pl_writer(
 pub fn modify_blocks(
     doc_id_counter: u32,
     num_blocks: u32,
+    first_block: u32,
+    last_block: u32,
     indexing_config: &MorselsIndexingConfig,
     pl_names_to_cache: &mut Vec<u32>,
     doc_infos: Arc<Mutex<DocInfos>>,
@@ -217,7 +219,8 @@ pub fn modify_blocks(
     };
 
     common::initialise_postings_stream_readers(
-        num_blocks,
+        first_block,
+        last_block,
         output_folder_path,
         &mut postings_streams,
         &postings_stream_decoders,
