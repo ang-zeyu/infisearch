@@ -1,4 +1,4 @@
-export default class TempJsonCache {
+export default class JsonCache {
   linkToJsons: { [link: string]: Promise<any> } = Object.create(null);
 
   fetch(url: string): Promise<any> {

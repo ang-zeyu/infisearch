@@ -55,6 +55,9 @@ function useDropdown(uiOptions: UiOptions): boolean {
 }
 
 function prepareOptions(options: SearchUiOptions) {
+  // ------------------------------------------------------------
+  // Search Lib Options
+
   options.searcherOptions = options.searcherOptions || ({} as any);
 
   if (!('numberOfExpandedTerms' in options.searcherOptions)) {
@@ -64,6 +67,13 @@ function prepareOptions(options: SearchUiOptions) {
   if (!('useQueryTermProximity' in options.searcherOptions)) {
     options.searcherOptions.useQueryTermProximity = !isMobileSizeGlobal;
   }
+
+  if (!('cacheAllFieldStores' in options.searcherOptions)) {
+    options.searcherOptions.cacheAllFieldStores = true;
+  }
+
+  // ------------------------------------------------------------
+  // Ui Options
 
   options.uiOptions = options.uiOptions || ({} as any);
   const { uiOptions } = options;

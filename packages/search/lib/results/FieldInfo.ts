@@ -1,6 +1,7 @@
 import { SearcherOptions } from './SearcherOptions';
 
 export interface MorselsConfig {
+  lastDocId: number,
   indexingConfig: {
     loaderConfigs: { [loader: string]: any },
     plNamesToCache: number[],
@@ -21,6 +22,7 @@ export interface MorselsConfig {
 
 export interface MorselsConfigRaw {
   ver: string,
+  last_doc_id: number,
   indexing_config: {
     loader_configs: { [loader: string]: any },
     pl_names_to_cache: number[],

@@ -8,6 +8,7 @@
 - [Search UI Configuration](./search_configuration.md)
   - [Renderers](./search_configuration_renderers.md)
 - [Indexing Configuration](./indexing_configuration.md)
+- [Tradeoffs](./tradeoffs.md)
 - [Dynamic Indexing](./dynamic_indexing.md)
 - [Search API]()
 - [Future Plans](./future_plans.md)

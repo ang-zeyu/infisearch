@@ -189,6 +189,7 @@ struct MorselsIndexingOutputConfig {
 #[derive(Serialize)]
 pub struct MorselsOutputConfig<'a> {
     ver: &'static str,
+    last_doc_id: u32,
     indexing_config: MorselsIndexingOutputConfig,
     lang_config: &'a MorselsLanguageConfig,
     field_infos: &'a FieldInfos,
@@ -527,6 +528,7 @@ impl Indexer {
     fn write_morsels_config(&mut self) {
         let serialized = serde_json::to_string(&MorselsOutputConfig {
             ver: MORSELS_VERSION,
+            last_doc_id: self.doc_id_counter,
             indexing_config: MorselsIndexingOutputConfig {
                 loader_configs: std::mem::take(&mut self.loaders)
                     .into_iter()

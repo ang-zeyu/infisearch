@@ -5,7 +5,7 @@ import {
 import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
-import TempJsonCache from './TempJsonCache';
+import JsonCache from './JsonCache';
 
 declare const MORSELS_VERSION;
 
@@ -24,6 +24,8 @@ class Searcher {
       }
     }
   } = Object.create(null);
+
+  private persistentJsonCache: JsonCache;
 
   constructor(private options: SearcherOptions) {
     this.worker = new Worker(new URL(
@@ -58,13 +60,45 @@ class Searcher {
       };
     });
 
-    this.setupPromise = this.retrieveConfig().then(() => {
-      options.useQueryTermProximity = options.useQueryTermProximity
-          && this.morselsConfig.indexingConfig.withPositions;
+    this.setupPromise = this.retrieveConfig()
+      .then(() => {
+        options.useQueryTermProximity = options.useQueryTermProximity
+            && this.morselsConfig.indexingConfig.withPositions;
 
-      this.worker.postMessage(this.morselsConfig);
+        this.worker.postMessage(this.morselsConfig);
+      })
+      .then(() => this.cacheFieldStores())
+      .then(() => workerSetup);
+  }
 
-      return workerSetup;
+  async cacheFieldStores() {
+    if (!this.options.cacheAllFieldStores) {
+      return;
+    }
+
+    this.persistentJsonCache = new JsonCache();
+    const promises: [string, Promise<any>][] = [];
+
+    const lastFileNumber = Math.floor(this.morselsConfig.lastDocId / this.morselsConfig.fieldStoreBlockSize);
+    const { numStoresPerDir, numDocsPerBlock } = this.morselsConfig.indexingConfig;
+    for (let i = 0; i < lastFileNumber; i++) {
+      const dirNumber = Math.floor(i / numStoresPerDir);
+      const blockNumber = Math.floor(i / numDocsPerBlock);
+      const url = `${this.options.url}field_store/${dirNumber}/${i}--${blockNumber}.json`;
+      promises.push([url, fetch(url).then(res => res.json())]);
+
+      // Throttle to 10 unresolved requests. A little arbitrary for now.
+      if (promises.length >= 10) {
+        // TODO make this non-sequential?
+        // (first promise that resolved might not be the earliest, although likely)
+        const first = promises.shift();
+        this.persistentJsonCache.linkToJsons[first[0]] = await first[1];
+      }
+    }
+
+    const jsons = await Promise.all(promises.map(p => p[1]));
+    promises.forEach((val, idx) => {
+      this.persistentJsonCache.linkToJsons[val[0]] = jsons[idx];
     });
   }
 
@@ -90,6 +124,7 @@ class Searcher {
     fieldInfos.sort((a, b) => a.id - b.id);
 
     this.morselsConfig = {
+      lastDocId: json.last_doc_id,
       indexingConfig: {
         loaderConfigs: json.indexing_config.loader_configs,
         plNamesToCache: json.indexing_config.pl_names_to_cache,
@@ -154,10 +189,10 @@ class Searcher {
         docId, score, this.morselsConfig.fieldInfos,
       ));
 
-      const tempJsonCache = new TempJsonCache();
+      const jsonCache = this.persistentJsonCache || new JsonCache();
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url,
-        tempJsonCache,
+        jsonCache,
         this.morselsConfig,
       )));
 

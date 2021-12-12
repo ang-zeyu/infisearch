@@ -162,6 +162,10 @@ initMorsels({
         // Override for using query term proximity ranking or not.
         // Disabled for mobile devices by default
         useQueryTermProximity: true,
+
+        // Whether to retrieve all field stores on initialisation
+        // (see chapter "Tradeoffs" for more details)
+        cacheAllFieldStores: true,
     },
 });
 ```

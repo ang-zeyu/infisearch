@@ -1,5 +1,5 @@
 import { FieldInfo, MorselsConfig } from './FieldInfo';
-import TempJsonCache from './TempJsonCache';
+import JsonCache from './JsonCache';
 
 class Result {
   storage: [number, string][] = Object.create(null);
@@ -12,7 +12,7 @@ class Result {
 
   async populate(
     baseUrl: string,
-    tempJsonCache: TempJsonCache,
+    tempJsonCache: JsonCache,
     morselsConfig: MorselsConfig,
   ): Promise<void> {
     const { fieldStoreBlockSize, indexingConfig } = morselsConfig;
