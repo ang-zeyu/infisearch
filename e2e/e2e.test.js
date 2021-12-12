@@ -82,7 +82,7 @@ beforeAll(async () => {
 });
 
 const testSuite = async (configFile) => {
-  runIndexer(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output -c ${configFile}`);
 
   console.log('Ran full indexer run');
 
@@ -143,7 +143,7 @@ const testSuite = async (configFile) => {
     path.join(__dirname, 'dynamic_indexing/deletions/404.html'),
     path.join(__dirname, 'input/404.html'),
   );
-  runIndexer(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
 
   await reloadPage();
   await typePhrase('This URL is invalid');
@@ -159,7 +159,7 @@ const testSuite = async (configFile) => {
     path.join(__dirname, 'dynamic_indexing/updates/contributing.html'),
     contributingHtmlOutputPath,
   );
-  runIndexer(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
   
   await reloadPage();
   await typePhrase('Contributions of any form');
@@ -171,7 +171,7 @@ const testSuite = async (configFile) => {
   // Test dynamic indexing deletion
 
   fs.rmSync(path.join(__dirname, 'input/404.html'));
-  runIndexer(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
   
   await reloadPage();
   await typePhrase('This URL is invalid');
@@ -197,7 +197,7 @@ const testSuite = async (configFile) => {
     'Contributions of any form', 'Contributions of all forms atquejxusd',
   );
   fs.writeFileSync(contributingHtmlOutputPath, contributingHtml);
-  runIndexer(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
 
   await reloadPage();
   await typePhrase('Contributions of any form');
@@ -219,7 +219,7 @@ const testSuite = async (configFile) => {
 
   // then delete it again
   fs.rmSync(contributingHtmlOutputPath);
-  runIndexer(`cargo run -p morsels_indexer --release ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
   
   await reloadPage();
   await typePhrase('Contributions of any form');
