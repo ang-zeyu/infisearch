@@ -79,7 +79,7 @@ class Searcher {
     this.persistentJsonCache = new JsonCache();
     const promises: [string, Promise<any>][] = [];
 
-    const lastFileNumber = Math.floor(this.morselsConfig.lastDocId / this.morselsConfig.fieldStoreBlockSize);
+    const lastFileNumber = Math.ceil(this.morselsConfig.lastDocId / this.morselsConfig.fieldStoreBlockSize);
     const { numStoresPerDir, numDocsPerBlock } = this.morselsConfig.indexingConfig;
     for (let i = 0; i < lastFileNumber; i++) {
       const dirNumber = Math.floor(i / numStoresPerDir);
