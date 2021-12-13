@@ -110,6 +110,7 @@ static INPUT_EL: &str = "\n<input
     id=\"morsels-search\"
     placeholder=\"Search\"
 />\n\n
+<span style=\"font-weight: 600;\"><!--preload weight 600--></span>\n\n
 <div class=\"morsels-root\" id=\"morsels-mdbook-target\"></div>\n\n";
 
 static STYLES: &str = r#"
