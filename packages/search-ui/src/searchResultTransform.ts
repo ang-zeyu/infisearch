@@ -398,6 +398,8 @@ export function resultsRender(
   ));
 }
 
+let iObserver: IntersectionObserver;
+
 export default async function transformResults(
   query: Query,
   config: MorselsConfig,
@@ -408,6 +410,8 @@ export default async function transformResults(
   const loader = options.uiOptions.loadingIndicatorRender(createElement, options);
   if (!isFirst) {
     container.appendChild(loader);
+  } else if (iObserver) {
+    iObserver.disconnect();
   }
 
   const fragment = document.createDocumentFragment();
@@ -441,7 +445,7 @@ export default async function transformResults(
 
   //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
-  const iObserver = new IntersectionObserver(async (entries, observer) => {
+  iObserver = new IntersectionObserver(async (entries, observer) => {
     if (!entries[0].isIntersecting) {
       return;
     }
