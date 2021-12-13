@@ -11,12 +11,12 @@
     --morsels-item-border-radius: 1px;
     --morsels-item-box-shadow: 0 3px 5px rgba(196, 192, 187, 0.5);
     --morsels-item-sub-border: none;
-    --morsels-title-fg: var(--morsels-fg);
-    --morsels-title-bg: rgba(245, 169, 86, 0.33);
+    --morsels-title-fg: rgb(30, 30, 30);
+    --morsels-title-bg: hsl(31, 95%, 88%);
     --morsels-title-hover-fg: var(--morsels-fg);
-    --morsels-title-hover-bg: rgba(245, 169, 86, 0.5);
+    --morsels-title-hover-bg: hsl(31, 95%, 83%);
     --morsels-heading-fg: var(--morsels-fg);
-    --morsels-heading-bg: rgba(255, 204, 147, 0.2);
+    --morsels-heading-bg: rgba(255, 204, 147, 0.1);
     --morsels-heading-hover-fg: var(--morsels-fg);
     --morsels-heading-hover-bg: rgba(255, 204, 147, 0.3);
     --morsels-body-fg: var(--morsels-fg);
@@ -24,6 +24,7 @@
     --morsels-body-hover-fg: var(--morsels-fg);
     --morsels-body-hover-bg: rgba(255, 234, 217, 0.3);
     --morsels-highlight: #ef9001;
+    --morsels-error-fg: black;
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
     --morsels-loading-bg: #fed;
     --morsels-scrollbar-bg: rgba(213, 177, 137, 0.15);
@@ -264,6 +265,16 @@
     background: var(--morsels-scrollbar-thumb-bg);
 }
 
+.morsels-error {
+    text-align: center;
+    color: var(--morsels-error-fg);
+    padding: 1em;
+}
+
+.morsels-error::before {
+    content: 'Oops! Something went wrong... 🙁';
+}
+
 .morsels-no-results {
     text-align: center;
     font-size: 0.9em;
@@ -303,9 +314,9 @@
 .morsels-title {
     color: var(--morsels-title-fg);
     word-break: break-word;
-    padding: 3px 0.5em;
+    padding: 0.2em 0.5em;
     background: var(--morsels-title-bg);
-    font-size: 1.05em;
+    font-size: 1.03em;
     font-weight: 600;
     transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
@@ -324,13 +335,12 @@
 
 .morsels-heading {
     width: 30%;
+    font-size: 0.99em;
     word-break: break-word;
-    padding: 0.2em 0.5em;
+    padding: 0.35em 0.5em;
     display: inline-block;
     vertical-align: top;
     background: var(--morsels-heading-bg);
-    font-size: 1.02em;
-    font-weight: 400;
     color: var(--morsels-heading-fg);
     transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
 }
@@ -346,7 +356,7 @@
 
 .morsels-body {
     height: 100%;
-    font-size: inherit;
+    font-size: 0.99em;
     word-break: break-word;
     grid-column-start: 2;
     padding: 0.3em 0.4em;

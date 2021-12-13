@@ -149,6 +149,7 @@
     --morsels-heading-hover-bg: var(--table-header-bg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
+    --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
@@ -193,6 +194,7 @@
     id="morsels-search"
     placeholder="Search"
 /></p>
+<p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
 <h1 id="tradeoffs"><a class="header" href="#tradeoffs">Tradeoffs</a></h1>
 <p>When configuring morsels, there are several tradeoffs you need to keep in mind, which varies greatly on depending on your collection and use case. </p>
@@ -201,7 +203,7 @@
 <p>The possible tradeoffs you can make are marked with ✔️. Those that are likely impossible are marked ❌, or in other words, you need a search server / SaaS for these options. Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked 😩.</p>
 <p>Latency is labelled in terms of <code>RTT</code> (round trip time), the maximum of which is <code>3</code>.
 Scalability and file bloat are inevitably labelled more <strong>subjectively</strong>.</p>
-<p>Also note that the labelled <code>RTT</code> times are <strong>maximums</strong>. (namely, if files are served from <strong>disk</strong> cache instead)</p>
+<p>Also note that the labelled <code>RTT</code> times are <strong>maximums</strong>. (namely, if files are served from cache instead)</p>
 <table><thead><tr><th>Factor</th><th><code>RTT=0</code></th><th><code>RTT=1</code></th><th><code>RTT=2</code></th><th><code>RTT=3</code></th></tr></thead><tbody>
 <tr><td>Fair Scalability,<br><span style="color: green">Little</span> File bloat</td><td>✔️</td><td>😩</td><td>😩</td><td>😩</td></tr>
 <tr><td>Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
