@@ -2,7 +2,6 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 use std::rc::Rc;
 
-use regex::Regex;
 use rust_stemmers::{Algorithm, Stemmer};
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
@@ -12,12 +11,9 @@ use morsels_common::tokenize::SearchTokenizeResult;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::tokenize::Tokenizer as TokenizerTrait;
 use morsels_lang_ascii::ascii_folding_filter;
+use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
 use morsels_lang_ascii::stop_words::{get_stop_words_set, get_default_stop_words_set};
 use morsels_lang_ascii::utils::term_filter;
-
-lazy_static! {
-    static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.,;?!]\s+"#).unwrap();
-}
 
 pub struct Tokenizer {
     pub stop_words: HashSet<String>,

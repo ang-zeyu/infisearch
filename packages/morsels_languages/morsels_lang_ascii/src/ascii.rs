@@ -15,7 +15,7 @@ use morsels_common::tokenize::TermInfo;
 use morsels_common::tokenize::Tokenizer as TokenizerTrait;
 
 lazy_static! {
-    static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.,;?!]\s+"#).unwrap();
+    pub static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.,;?!]\s+"#).unwrap();
 }
 
 pub struct Tokenizer {
