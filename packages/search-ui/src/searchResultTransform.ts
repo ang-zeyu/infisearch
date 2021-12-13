@@ -43,6 +43,8 @@ function transformText(
     lowerCasedSortedQueryTermsIndices[term.toLowerCase()] = idx;
   });
 
+  let overallBestNumberOfMatches: number = 0;
+
   function getBestMatchResult(str: string): MatchResult {
     let lastTermPositions: number[];
     let lastClosestTermPositions: number[];
@@ -95,7 +97,7 @@ function transformText(
       .filter((pair) => pair.pos >= 0)
       .sort((a, b) => a.pos - b.pos);
     const result: (string | HTMLElement)[] = [];
-    if (!lastClosestWindowPositions.length) {
+    if (!lastClosestWindowPositions.length || lastNumberMatchedTerms < overallBestNumberOfMatches) {
       return { result, numberTermsMatched: lastNumberMatchedTerms };
     }
 
@@ -123,7 +125,7 @@ function transformText(
 
   let lastIncludedHeading = -1;
   let bestBodyMatch: FinalMatchResult = { result: undefined, numberTermsMatched: 0 };
-  const finalMatchResults: FinalMatchResult[] = [];
+  let finalMatchResults: FinalMatchResult[] = [];
 
   let itemIdx = -1;
   for (const item of texts) {
@@ -133,8 +135,11 @@ function transformText(
     }
 
     const { result, numberTermsMatched } = getBestMatchResult(item[1]);
-    if (numberTermsMatched === 0) {
+    if (numberTermsMatched === 0 || numberTermsMatched < overallBestNumberOfMatches) {
       continue;
+    } else if (numberTermsMatched > overallBestNumberOfMatches) {
+      finalMatchResults = [];
+      overallBestNumberOfMatches = numberTermsMatched;
     }
 
     // Find a new heading this text is under
@@ -159,7 +164,7 @@ function transformText(
       }
     }
 
-    // Insert without heading
+    // Insert without heading; Prefer matches under headings
     if (!finalMatchResults.length && numberTermsMatched > bestBodyMatch.numberTermsMatched) {
       bestBodyMatch = {
         result: bodyOnlyRender(createElement, options, result),
@@ -173,7 +178,6 @@ function transformText(
   }
 
   return finalMatchResults
-    .sort((a, b) => b.numberTermsMatched - a.numberTermsMatched)
     .map((r) => r.result)
     .slice(0, MAX_SERP_HIGHLIGHT_PARTS);
 }
