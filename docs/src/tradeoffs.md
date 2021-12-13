@@ -11,7 +11,7 @@ The possible tradeoffs you can make are marked with ✔️. Those that are likel
 Latency is labelled in terms of `RTT` (round trip time), the maximum of which is `3`.
 Scalability and file bloat are inevitably labelled more **subjectively**.
 
-Also note that the labelled `RTT` times are **maximums**. (namely, if files are served from **disk** cache instead)
+Also note that the labelled `RTT` times are **maximums**. (namely, if files are served from cache instead)
 
 | Factor                                                                            | `RTT=0`         | `RTT=1`      | `RTT=2`     | `RTT=3`   |
 | -----------                                                                       | -----------     | -----------  | ----------- | --------- |

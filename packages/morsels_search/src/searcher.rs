@@ -112,11 +112,11 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     let build_trigram = tokenizer.use_default_trigram();
 
     let window: web_sys::Window = js_sys::global().unchecked_into();
-    let dictionary = setup_dictionary(&searcher_config.searcher_options.url, doc_info.num_docs, build_trigram).await?;
-
     let invalidation_vector_future = JsFuture::from(
         window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + BITMAP_FILE_NAME)),
     );
+
+    let dictionary = setup_dictionary(&searcher_config.searcher_options.url, doc_info.num_docs, build_trigram).await?;
 
     let pl_file_cache = PostingsListFileCache::create(
         &searcher_config.searcher_options.url,
