@@ -11,6 +11,9 @@ let currQuery: Query;
 
 let isMobileSizeGlobal = false;
 
+let dropdownShown = false;
+let fullscreenShown = false;
+
 let isUpdating = false;
 let nextUpdate: () => any;
 async function update(
@@ -123,7 +126,7 @@ function prepareOptions(options: SearchUiOptions) {
     uiOptions.resultsPerPage = 8;
   }
 
-  uiOptions.showDropdown = uiOptions.showDropdown || ((root, listContainer) => {
+  const showDropdown = uiOptions.showDropdown || ((root, listContainer) => {
     if (listContainer.childElementCount) {
       listContainer.style.display = 'block';
       (listContainer.previousSibling as HTMLElement).style.display = 'block';
@@ -154,24 +157,40 @@ function prepareOptions(options: SearchUiOptions) {
       });
     }
   });
+  uiOptions.showDropdown = (...args) => {
+    showDropdown(...args);
+    dropdownShown = true;
+  };
 
-  uiOptions.hideDropdown = uiOptions.hideDropdown || ((root, listContainer) => {
+  const hideDropdown = uiOptions.hideDropdown || ((root, listContainer) => {
     listContainer.style.display = 'none';
     (listContainer.previousSibling as HTMLElement).style.display = 'none';
   });
+  uiOptions.hideDropdown = (...args) => {
+    hideDropdown(...args);
+    dropdownShown = false;
+  };
 
-  uiOptions.showFullscreen = uiOptions.showFullscreen || ((root, listContainer, fullscreenContainer) => {
+  const showFullscreen = uiOptions.showFullscreen || ((root, listContainer, fullscreenContainer) => {
     fullscreenContainer.appendChild(root);
     const input: HTMLInputElement = root.querySelector('input.morsels-fs-input');
     if (input) {
       input.focus();
     }
   });
+  uiOptions.showFullscreen = (...args) => {
+    showFullscreen(...args);
+    fullscreenShown = true;
+  };
 
-  uiOptions.hideFullscreen = uiOptions.hideFullscreen || ((root) => {
+  const hideFullscreen = uiOptions.hideFullscreen || ((root) => {
     // useFullscreen
     root.remove();
   });
+  uiOptions.hideFullscreen = (...args) => {
+    hideFullscreen(...args);
+    fullscreenShown = false;
+  };
 
   uiOptions.dropdownRootRender = uiOptions.dropdownRootRender || ((h, opts, inputEl) => {
     const root = h('div', { class: 'morsels-root' }, inputEl);
@@ -202,13 +221,6 @@ function prepareOptions(options: SearchUiOptions) {
     innerRoot.onclick = (ev) => ev.stopPropagation();
 
     const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
-    rootBackdropEl.onclick = () => rootBackdropEl.remove();
-    rootBackdropEl.addEventListener('keyup', (ev) => {
-      if (ev.code === 'Escape') {
-        ev.stopPropagation();
-        rootBackdropEl.remove();
-      }
-    });
 
     const inputEl = h(
       'input', { class: 'morsels-fs-input', type: 'text', placeholder: 'Search...' },
@@ -224,6 +236,14 @@ function prepareOptions(options: SearchUiOptions) {
 
     const listContainer = h('ul', { class: 'morsels-list' });
     innerRoot.appendChild(listContainer);
+
+    rootBackdropEl.onclick = () => uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
+    rootBackdropEl.addEventListener('keyup', (ev) => {
+      if (ev.code === 'Escape') {
+        ev.stopPropagation();
+        uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
+      }
+    });
 
     return {
       root: rootBackdropEl,
@@ -373,7 +393,6 @@ function initMorsels(options: SearchUiOptions): {
   );
 
   fsInput.addEventListener('input', inputListener(fsRoot, fsListContainer));
-  fsInput.addEventListener('keydown', (ev) => ev.stopPropagation());
 
   // Initial state is blank
   fsListContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
@@ -382,6 +401,7 @@ function initMorsels(options: SearchUiOptions): {
   // --------------------------------------------------
   // Input element option handling
   // Applicable for all modes except the UiMode.Fullscreen which has its own input
+  let dropdownListContainer;
   const { input } = uiOptions;
   if (input && uiOptions.mode !== UiMode.Target) {
     // Auto / Dropdown
@@ -389,12 +409,12 @@ function initMorsels(options: SearchUiOptions): {
     const parent = input.parentElement;
     input.remove();
     const {
-      dropdownRoot, dropdownListContainer,
+      dropdownRoot, dropdownListContainer: dropdownListContainerr,
     } = uiOptions.dropdownRootRender(createElement, options, input);
+    dropdownListContainer = dropdownListContainerr;
     parent.appendChild(dropdownRoot);
 
     input.addEventListener('input', inputListener(dropdownRoot, dropdownListContainer));
-    input.addEventListener('keydown', (ev) => ev.stopPropagation());
 
     if (uiOptions.mode === UiMode.Auto || uiOptions.mode === UiMode.Dropdown) {
       let debounce;
@@ -426,7 +446,7 @@ function initMorsels(options: SearchUiOptions): {
           let activeEl = document.activeElement;
           while (activeEl) {
             activeEl = activeEl.parentElement;
-            if (activeEl === dropdownListContainer) {
+            if (activeEl === dropdownRoot) {
               input.focus();
               return;
             }
@@ -450,6 +470,73 @@ function initMorsels(options: SearchUiOptions): {
     input.addEventListener('input', inputListener(uiOptions.target, uiOptions.target));
   }
   // --------------------------------------------------
+
+  const loadingIndicator = uiOptions.loadingIndicatorRender(createElement, options);
+
+  // Keyboard Events
+  document.addEventListener('keydown', (ev) => {
+    if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(ev.key)) {
+      return;
+    }
+
+    let listContainer: HTMLElement;
+
+    let scrollListContainer = (targetEl: any) => {
+      listContainer.scrollTo({ top: targetEl.offsetTop - listContainer.offsetTop - 30 });
+    };
+
+    const isDropdown = useDropdown(uiOptions);
+    if (isDropdown) {
+      if (!dropdownShown) {
+        return;
+      }
+
+      listContainer = dropdownListContainer;
+      
+    } else if (uiOptions.mode === UiMode.Target) {
+      listContainer = uiOptions.target;
+      scrollListContainer = (targetEl: HTMLElement) => {
+        targetEl.scrollIntoView({
+          block: 'center',
+        });
+      };
+    } else {
+      if (!fullscreenShown) {
+        return;
+      }
+
+      listContainer = fsListContainer;
+    }
+
+    if (ev.key === 'ArrowDown') {
+      const currentFocusedResult = listContainer.querySelector('.focus');
+      if (currentFocusedResult) {
+        if (currentFocusedResult.nextElementSibling
+          && !loadingIndicator.isEqualNode(currentFocusedResult.nextElementSibling)) {
+          currentFocusedResult.classList.remove('focus');
+          currentFocusedResult.nextElementSibling.classList.add('focus');
+          scrollListContainer(currentFocusedResult.nextElementSibling);
+        }
+      } else {
+        listContainer.firstElementChild.classList.add('focus');
+      }
+    } else if (ev.key === 'ArrowUp') {
+      const currentFocusedResult = listContainer.querySelector('.focus');
+      if (currentFocusedResult && currentFocusedResult.previousElementSibling) {
+        currentFocusedResult.classList.remove('focus');
+        currentFocusedResult.previousElementSibling.classList.add('focus');
+        scrollListContainer(currentFocusedResult.previousElementSibling);
+      }
+    } else if (ev.key === 'Enter') {
+      const currentFocusedResult = listContainer.querySelector('.focus');
+      if (currentFocusedResult) {
+        const link = currentFocusedResult.querySelector('a[href]');
+        if (link) {
+          window.location.href = link.getAttribute('href');
+        }
+      }
+    }
+  });
 
   return {
     showFullscreen: () => {
