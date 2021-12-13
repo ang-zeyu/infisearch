@@ -512,6 +512,13 @@ impl Indexer {
 
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
                         let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
+                        // Minimally need 1 worker to take up this job still
+                        while *num_workers_writing_blocks == self.indexing_config.num_threads {
+                            drop(num_workers_writing_blocks);
+                            std::thread::sleep(std::time::Duration::from_millis(10));
+                            num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
+                        }
+
                         let num_active_workers = self.indexing_config.num_threads - *num_workers_writing_blocks;
                         for _i in 0..num_active_workers {
                             self.index_unit_queue.push(IndexMsg::Stop);
