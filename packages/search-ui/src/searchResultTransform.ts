@@ -1,7 +1,6 @@
 import escapeStringRegexp from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
-import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
 import Result from '@morsels/search-lib/lib/results/Result';
 import { SearchUiOptions } from './SearchUiOptions';
 import createElement, { CreateElement } from './utils/dom';
@@ -33,7 +32,11 @@ function transformText(
   baseUrl: string,
   options: SearchUiOptions,
 ): (string | HTMLElement)[] {
-  const { highlightRender, bodyOnlyRender, headingBodyRender } = options.uiOptions.resultsRenderOpts;
+  const {
+    highlightRender,
+    bodyOnlyRender,
+    headingBodyRender,
+  } = options.uiOptions.resultsRenderOpts;
 
   const lowerCasedSortedQueryTermsIndices: { [term: string]: number } = Object.create(null);
   sortedQueryTerms.forEach((term, idx) => {
@@ -146,7 +149,9 @@ function transformText(
             options,
             texts[i][1],
             result,
-            (i - 1 >= 0) && texts[i - 1][0] === 'headingLink' && `${baseUrl}#${texts[i - 1][1]}`,
+            (i - 1 >= 0)
+              && texts[i - 1][0] === 'headingLink'
+              && `${baseUrl}#${texts[i - 1][1]}`,
           ),
           numberTermsMatched,
         });
@@ -304,9 +309,18 @@ async function singleResultRender(
   const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
   const relativeLink = (relativeFpField && relativeFpField[1]) || '';
   const hasSourceFilesUrl = typeof options.uiOptions.sourceFilesUrl === 'string';
-  const fullLink = hasSourceFilesUrl ? `${options.uiOptions.sourceFilesUrl}${relativeLink}` : undefined;
+  let fullLink = hasSourceFilesUrl ? `${options.uiOptions.sourceFilesUrl}${relativeLink}` : undefined;
   const titleField = fields.find((v) => v[0] === 'title');
   let resultTitle = (titleField && titleField[1]) || relativeLink;
+
+  let linkToAttach = fullLink;
+  if (options.uiOptions.resultsRenderOpts.addSearchRegex) {
+    const fullLinkUrl = new URL(fullLink);
+    fullLinkUrl.searchParams.append(
+      options.uiOptions.resultsRenderOpts.addSearchRegex, termRegexes[0].source,
+    );
+    linkToAttach = fullLinkUrl.toString();
+  }
 
   let resultHeadingsAndTexts: (string | HTMLElement)[];
   if (hasStoredContentField) {
@@ -314,7 +328,7 @@ async function singleResultRender(
       fields.filter((v) => v[0] !== RELATIVE_LINK_FIELD_NAME && v[0] !== 'title'),
       query.searchedTerms,
       termRegexes,
-      relativeLink,
+      linkToAttach,
       options,
     );
   } else if (!relativeFpField || !hasSourceFilesUrl) {
@@ -325,7 +339,7 @@ async function singleResultRender(
     const doc = domParser.parseFromString(asText, 'text/html');
 
     const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
-      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegexes, relativeLink, options,
+      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegexes, linkToAttach, options,
     );
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
@@ -337,7 +351,7 @@ async function singleResultRender(
       const { title: newTitle, bodies: newBodies } = transformJson(
         fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
         loaderConfigs.JsonLoader,
-        query.searchedTerms, termRegexes, relativeLink, options,
+        query.searchedTerms, termRegexes, linkToAttach, options,
       );
       resultTitle = newTitle || resultTitle;
       resultHeadingsAndTexts = newBodies;

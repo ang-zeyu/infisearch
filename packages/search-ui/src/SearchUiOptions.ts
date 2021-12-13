@@ -23,6 +23,8 @@ export interface UiOptions {
   fullscreenContainer?: HTMLElement,
   target?: HTMLElement,
   resultsPerPage?: number,
+  // This is specific to the default resultsRender implementation,
+  // pulling it up as its a common option
   sourceFilesUrl?: string,
 
   // -----------------------------------------------------
@@ -83,6 +85,7 @@ export interface UiOptions {
     query: Query,
   ) => Promise<HTMLElement[]>,
   resultsRenderOpts?: {
+    addSearchRegex?: string,
     listItemRender?: (
       h: CreateElement,
       opts: SearchUiOptions,
