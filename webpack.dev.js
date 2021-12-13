@@ -5,7 +5,7 @@ const { merge } = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const common = require('./webpack.common');
 
-module.exports = merge(common, {
+module.exports = (env) => merge(common(env), {
   mode: 'development',
   devtool: 'inline-source-map',
   devServer: {

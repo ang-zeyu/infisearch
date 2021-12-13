@@ -7,7 +7,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const common = require('./webpack.common');
 
-module.exports = merge(common, {
+module.exports = (env) => merge(common(env), {
   mode: 'production',
   output: {
     filename: '[name].bundle.js',

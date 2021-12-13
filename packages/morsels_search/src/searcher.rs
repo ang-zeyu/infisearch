@@ -162,14 +162,18 @@ fn get_searched_terms(query_parts: &[QueryPart], seen: &mut HashSet<String>, res
 #[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query::Query, JsValue> {
-    /* let window: web_sys::Window = js_sys::global().unchecked_into();
-     let performance = window.performance().unwrap();
-     let start = performance.now();
-    */
+    #[cfg(feature = "perf")]
+    let window: web_sys::Window = js_sys::global().unchecked_into();
+    #[cfg(feature = "perf")]
+    let performance = window.performance().unwrap();
+    #[cfg(feature = "perf")]
+    let start = performance.now();
+
     let searcher_val = unsafe { &*searcher };
     let mut query_parts = parse_query(query, &*searcher_val.tokenizer);
 
-    // web_sys::console::log_1(&format!("parse query took {}", performance.now() - start).into());
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(&format!("parse query took {}", performance.now() - start).into());
 
     let is_free_text_query = query_parts.iter().all(|query_part| {
         if let QueryPartType::Term = query_part.part_type {
@@ -181,22 +185,26 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
 
     searcher_val.preprocess(&mut query_parts, is_free_text_query);
 
-    // web_sys::console::log_1(&format!("Preprocess took {}, is_free_text_query {}", performance.now() - start, is_free_text_query).into());
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(&format!("Preprocess took {}, is_free_text_query {}", performance.now() - start, is_free_text_query).into());
 
     let term_pls = searcher_val.populate_term_pls(&mut query_parts).await?;
 
-    // web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
     let pls = searcher_val.process(&mut query_parts, term_pls);
 
-    // web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
 
     let mut searched_terms: Vec<String> = Vec::new();
     get_searched_terms(&query_parts, &mut HashSet::new(), &mut searched_terms);
 
     let query = searcher_val.create_query(10, searched_terms, query_parts, pls, is_free_text_query);
 
-    // web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());
 
     Ok(query)
 }

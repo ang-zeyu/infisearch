@@ -6,6 +6,7 @@
   "scripts": {
     "setup": "npm install && lerna bootstrap",
     "dev": "webpack-cli serve --config ./webpack.dev.js",
+    "devPerf": "webpack-cli serve --config ./webpack.dev.js --env perf",
     "devDocs": "cd docs && mdbook serve -p 8000",
     "devDocsFull": "npm run installIndexer && npm run buildSearch && npm run installMdbook && npm run devDocs",
     "buildDocs": "cd docs && mdbook build",
