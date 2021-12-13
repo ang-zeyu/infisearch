@@ -36,7 +36,8 @@ async function update(
     root.scrollTo({ top: 0 });
     listContainer.scrollTo({ top: 0 });
   } catch (ex) {
-    listContainer.innerHTML = ex.message;
+    console.error(ex);
+    listContainer.innerHTML = '<div class="morsels-error"></div>';
     throw ex;
   } finally {
     if (nextUpdate) {

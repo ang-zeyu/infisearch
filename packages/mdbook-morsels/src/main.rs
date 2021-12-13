@@ -128,6 +128,7 @@ static STYLES: &str = r#"
     --morsels-heading-hover-bg: var(--table-header-bg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
+    --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);

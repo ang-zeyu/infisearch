@@ -24,6 +24,7 @@
     --morsels-body-hover-fg: var(--morsels-fg);
     --morsels-body-hover-bg: rgba(255, 234, 217, 0.3);
     --morsels-highlight: #ef9001;
+    --morsels-error-fg: black;
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
     --morsels-loading-bg: #fed;
     --morsels-scrollbar-bg: rgba(213, 177, 137, 0.15);
@@ -262,6 +263,16 @@
 .morsels-list::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background: var(--morsels-scrollbar-thumb-bg);
+}
+
+.morsels-error {
+    text-align: center;
+    color: var(--morsels-error-fg);
+    padding: 1em;
+}
+
+.morsels-error::before {
+    content: 'Oops! Something went wrong... 🙁';
 }
 
 .morsels-no-results {
