@@ -4,6 +4,7 @@ import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldI
 import Result from '@morsels/search-lib/lib/results/Result';
 import { SearchUiOptions } from './SearchUiOptions';
 import createElement, { CreateElement } from './utils/dom';
+import { parseURL } from './utils/url';
 
 const domParser = new DOMParser();
 
@@ -348,7 +349,7 @@ async function singleResultRender(
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
   } else {
-    const fullLinkUrl = new URL(fullLink);
+    const fullLinkUrl = parseURL(fullLink);
     if (fullLinkUrl.pathname.endsWith('.json') && loaderConfigs.JsonLoader) {
       const asJson = await (await fetch(fullLink)).json();
 
