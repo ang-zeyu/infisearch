@@ -51,10 +51,16 @@ async function assertSingle(text) {
     });
 
     expect(result.resultCount).toBe(1);
-    expect(result.text.toLowerCase().includes(text)).toBe(true);
+    expect(result.text.toLowerCase().includes(text.toLowerCase())).toBe(true);
   } catch (ex) {
-    const output = await page.evaluate(() => document.getElementById('target-mode-el').innerHTML);
-    console.error('assertSingle failed, output in target:', output);
+    const output = await page.evaluate(() => {
+      return {
+        html: document.getElementById('target-mode-el').innerHTML,
+        text: document.getElementById('target-mode-el').textContent,
+      };
+    });
+    console.error('assertSingle failed, html in target:', output.html);
+    console.error('assertSingle failed, text in target:', output.text);
     throw ex;
   }
 }
