@@ -14,7 +14,7 @@ This is in contrast to a more traditional "segment" based approach you might fin
 
 ## Caveats
 
-There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern -- for example, updating the index immediately when writing this documentation (on saving a file).
+There are certain caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising dynamic indexing only when indexing speed is of concern -- for example, updating the index repeatedly when writing this documentation (although, the mdbook plugin this documentation is built on currently dosen't do that).
 
 Note however, that the following circumstances will forcibly trigger a **full** reindex:
 - If the output folder path does not contain any files indexed by morsels
