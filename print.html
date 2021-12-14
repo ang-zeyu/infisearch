@@ -519,19 +519,19 @@ if (window.location.search) {
 <h1 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h1>
 <p>This page assumes the following use case:</p>
 <ul>
-<li>You have some <code>.html</code> files you want to index</li>
-<li>These <code>.html</code> files are served in a static file server, and are accessible by the search-ui to generate result previews</li>
-<li>You have a input element to attach a search dropdown to
+<li>You have some <code>.html</code> files you want to index.</li>
+<li>These <code>.html</code> files are served in a static file server, and are accessible by the search-ui to generate result previews.</li>
+<li>You have a <code>&lt;input&gt;</code> element to attach a search dropdown to:
 <ul>
 <li>For mobile devices, a fullscreen UI will show instead when this input element is focused.</li>
-<li>Note that this documentation is using an alternative UI mode (try the search function!), which is covered later under <a href="./search_configuration.html#ui-mode">search configuration</a>.</li>
+<li>Note that this documentation is using an alternative UI mode (try out the search function!), which is covered later under <a href="./search_configuration.html#ui-mode">search configuration</a>.</li>
 <li>To preview the default mode, head on over to the mdbook page <a href="./getting_started_mdbook.html#preview">here</a>, and click on the <strong>auto</strong> button.</li>
 </ul>
 </li>
 </ul>
 <p>If you require more, have a look through here first, then jump into the subsequent configuration pages to learn more.</p>
 <h2 id="installing-the-indexer"><a class="header" href="#installing-the-indexer">Installing the indexer</a></h2>
-<p>If you have the rust / cargo toolchain setup, simply run <code>cargo install morsels_indexer</code>.</p>
+<p>If you have the rust / cargo toolchains setup, simply run <code>cargo install morsels_indexer</code>.</p>
 <p>The cli binaries are also available <a href="https://github.com/ang-zeyu/morsels/releases">here</a> if preferred.</p>
 <h2 id="running-the-indexer"><a class="header" href="#running-the-indexer">Running the indexer</a></h2>
 <p>Run the executable as such, replacing <code>&lt;source-folder-path&gt;</code> with the relative or absolute folder path of your source html files, and <code>&lt;output-folder-path&gt;</code> with your desired index output folder.</p>
@@ -1066,14 +1066,8 @@ if (window.location.search) {
 <p>Some examples of tuned settings for mobile devices:</p>
 <ul>
 <li>Query term proximity ranking is disabled</li>
-<li>Whether to use the fullscreen version (more later) of the user interface instead</li>
+<li>Whether to use the fullscreen version (see <a href="search_configuration.html#ui-mode">UI Mode</a>) of the user interface instead</li>
 </ul>
-<p>The check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
-<p>An override may be provided through the <code>isMobileDevice</code> option shown below, which is simply a function returning a boolean.</p>
-<pre><code class="language-ts">initMorsels({
-    isMobileDevice: () =&gt; true,
-})
-</code></pre>
 <hr />
 <h2 id="search-ui-options"><a class="header" href="#search-ui-options">Search UI Options</a></h2>
 <p>Search UI options are organised under the <code>uiOptions</code> key:</p>
@@ -1147,6 +1141,13 @@ if (window.location.search) {
 <p><code>resultsPerPage = 8</code></p>
 <p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
 <p>Lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
+<h3 id="changing-the-mobile-device-detection-method"><a class="header" href="#changing-the-mobile-device-detection-method">Changing The Mobile Device Detection Method</a></h3>
+<p>The mobile device check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
+<p>An override may be provided through the <code>isMobileDevice</code> option shown below, which is simply a function returning a boolean.</p>
+<pre><code class="language-ts">initMorsels({
+    isMobileDevice: () =&gt; true,
+})
+</code></pre>
 <hr />
 <h2 id="search-library-options"><a class="header" href="#search-library-options">Search Library Options</a></h2>
 <p>The options for the search library are rather brief, and can be summarised in this snippet:</p>
@@ -1832,7 +1833,7 @@ if (window.location.search) {
 <p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
-    &quot;cache_all_field_stores&quot;: false,
+    &quot;cache_all_field_stores&quot;: true,
     &quot;field_store_block_size&quot;: 250,
     &quot;fields&quot;: [
       {
@@ -2130,6 +2131,7 @@ The <code>field_order</code> controls in which order these fields are indexed, w
 <h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
+    &quot;cache_all_field_stores&quot;: true,
     &quot;field_store_block_size&quot;: 250,
     &quot;fields&quot;: [
       {

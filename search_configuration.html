@@ -204,14 +204,8 @@
 <p>Some examples of tuned settings for mobile devices:</p>
 <ul>
 <li>Query term proximity ranking is disabled</li>
-<li>Whether to use the fullscreen version (more later) of the user interface instead</li>
+<li>Whether to use the fullscreen version (see <a href="#ui-mode">UI Mode</a>) of the user interface instead</li>
 </ul>
-<p>The check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
-<p>An override may be provided through the <code>isMobileDevice</code> option shown below, which is simply a function returning a boolean.</p>
-<pre><code class="language-ts">initMorsels({
-    isMobileDevice: () =&gt; true,
-})
-</code></pre>
 <hr />
 <h2 id="search-ui-options"><a class="header" href="#search-ui-options">Search UI Options</a></h2>
 <p>Search UI options are organised under the <code>uiOptions</code> key:</p>
@@ -285,6 +279,13 @@
 <p><code>resultsPerPage = 8</code></p>
 <p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
 <p>Lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
+<h3 id="changing-the-mobile-device-detection-method"><a class="header" href="#changing-the-mobile-device-detection-method">Changing The Mobile Device Detection Method</a></h3>
+<p>The mobile device check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
+<p>An override may be provided through the <code>isMobileDevice</code> option shown below, which is simply a function returning a boolean.</p>
+<pre><code class="language-ts">initMorsels({
+    isMobileDevice: () =&gt; true,
+})
+</code></pre>
 <hr />
 <h2 id="search-library-options"><a class="header" href="#search-library-options">Search Library Options</a></h2>
 <p>The options for the search library are rather brief, and can be summarised in this snippet:</p>

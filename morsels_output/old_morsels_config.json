@@ -41,7 +41,7 @@
     ]
   },
   "indexing_config": {
-    "_total_len": "This is debugging metadata for the mdbook plugin. Total len: 78734",
+    "_total_len": "This is debugging metadata for the mdbook plugin. Total len: 78856",
     "exclude": [
       "index.html",
       "print.html",
