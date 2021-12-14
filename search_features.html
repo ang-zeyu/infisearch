@@ -133,7 +133,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
 <style>
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
@@ -238,23 +238,60 @@ One of the main reasons is that there is simply no way of parsing html (the orig
 <p>Top-level disjunctive expressions (e.g. <code>lorem ipsum</code>) are ranked using the BM25 model.</p>
 <p>Pure free-text queries (e.g. “lorem ipsum”) also use the <a href="https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand">WAND algorithm</a> to improve query speed, although, the benefits should be marginal for most cases.</p>
 <p>Query term proximity ranking is also supported and enabled by default - results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</p>
+<script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    initMorsels({
-        searcherOptions: {
-          url: '/morsels/morsels_output/',
-        },
-        uiOptions: {
-            mode: (function () {
+const base_url = '/morsels/';
+const mode = (function () {
                 // This IIFE is documentation specific, for demoing the different modes.
                 // It would be the string mode (e.g. 'target') normally
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
-            })(),
-            dropdownAlignment: 'bottom-start',
-            target: document.getElementById('morsels-mdbook-target'),
-            sourceFilesUrl: '/morsels/',
+            })();
+initMorsels({
+  searcherOptions: {
+    url: base_url + 'morsels_output/',
+  },
+  uiOptions: {
+    mode,
+    dropdownAlignment: 'bottom-start',
+    target: document.getElementById('morsels-mdbook-target'),
+    sourceFilesUrl: base_url,
+    resultsRenderOpts: {
+      addSearchedTerms: 'search',
+    },
+  },
+});
+
+if (window.location.search) {
+  // Adapted from the original searcher.js for mdbook
+  // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
+  const target = document.getElementById('content');
+  const marker = new Mark(target);
+
+  function doSearchOrMarkFromUrl() {
+    // Check current URL for search request
+    var url = new URL(window.location.href);
+    var urlParams = new URLSearchParams(url.search);
+
+    if (urlParams.has('search')) {
+      var words = JSON.parse(decodeURIComponent(urlParams.get('search')));
+      marker.mark(words);
+
+      var markers = document.querySelectorAll('mark');
+      function hide() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].classList.add('fade-out');
+          window.setTimeout(function () { marker.unmark(); }, 300);
         }
-    });
+      }
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].addEventListener('click', hide);
+      }
+    }
+  }
+  doSearchOrMarkFromUrl();
+}
 </script>
                     </main>
 

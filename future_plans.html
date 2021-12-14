@@ -133,7 +133,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
 <style>
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
@@ -214,23 +214,60 @@
 <p>Language modules are “bundled” into the <code>morsels_search</code> wasm module at the moment. In order to reduce binary size, each module is configured via feature flags and bundled separately. This however does mean that any and all language modules have to be PR-ed to the upstream repo (otherwise, one would have to maintain a separate fork of morsels on its own distribution channels). This is pending better dynamic linking support in wasm.</p>
 <h2 id="exposing-morsels_indexer-package-api"><a class="header" href="#exposing-morsels_indexer-package-api">Exposing <code>morsels_indexer</code> Package API</a></h2>
 <p>The plan is for the morsels_indexer package to also expose its API. This is still a WIP at this point, and I’m not exactly sure if there would even be a demand for this given the very specific use cases of this tool – raise an issue if so!</p>
+<script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    initMorsels({
-        searcherOptions: {
-          url: '/morsels/morsels_output/',
-        },
-        uiOptions: {
-            mode: (function () {
+const base_url = '/morsels/';
+const mode = (function () {
                 // This IIFE is documentation specific, for demoing the different modes.
                 // It would be the string mode (e.g. 'target') normally
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
-            })(),
-            dropdownAlignment: 'bottom-start',
-            target: document.getElementById('morsels-mdbook-target'),
-            sourceFilesUrl: '/morsels/',
+            })();
+initMorsels({
+  searcherOptions: {
+    url: base_url + 'morsels_output/',
+  },
+  uiOptions: {
+    mode,
+    dropdownAlignment: 'bottom-start',
+    target: document.getElementById('morsels-mdbook-target'),
+    sourceFilesUrl: base_url,
+    resultsRenderOpts: {
+      addSearchedTerms: 'search',
+    },
+  },
+});
+
+if (window.location.search) {
+  // Adapted from the original searcher.js for mdbook
+  // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
+  const target = document.getElementById('content');
+  const marker = new Mark(target);
+
+  function doSearchOrMarkFromUrl() {
+    // Check current URL for search request
+    var url = new URL(window.location.href);
+    var urlParams = new URLSearchParams(url.search);
+
+    if (urlParams.has('search')) {
+      var words = JSON.parse(decodeURIComponent(urlParams.get('search')));
+      marker.mark(words);
+
+      var markers = document.querySelectorAll('mark');
+      function hide() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].classList.add('fade-out');
+          window.setTimeout(function () { marker.unmark(); }, 300);
         }
-    });
+      }
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].addEventListener('click', hide);
+      }
+    }
+  }
+  doSearchOrMarkFromUrl();
+}
 </script>
                     </main>
 

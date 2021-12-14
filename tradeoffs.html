@@ -133,7 +133,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
 <style>
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
@@ -251,6 +251,10 @@ Scalability and file bloat are inevitably labelled more <strong>subjectively</st
 <li>Ensure <code>pl_cache_threshold</code> is set to a very low number (or at least smaller than the inverted index file size), so that the postings list are loaded up front and cached in memory.</li>
 <li>You would also want to set <code>field_store_block_size</code> to a fairly high number, and correspondingly set <code>cacheAllFieldStores</code> to <code>true</code>. This allows morsels to load the few field stores during initilisation and persistently cache them.</li>
 </ul>
+<blockquote>
+<p>⭐ This is what’s being used by this documentation, since it is fairly small.<br>Nevertheless, <code>RTT=1/2</code> are still very acceptable settings under good network conditions. <code>RTT=3</code> may be slightly slow (<code>~600ms</code> assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br>
+Coming Soon: More repo / test github pages for demonstrating the other settings</p>
+</blockquote>
 <h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
 <p>The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation.</p>
 <h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
@@ -279,23 +283,70 @@ This is because in this option, field stores only store the relative file path f
 <p>(<code>RTT=2</code>, Excellent Scalability, Heavy File Bloat)</p>
 <p>Per section 2.2, one simply needs to avoid the assumption that the index can be cached.</p>
 <p>Scalability is then ensured here by fragmenting both the index (using <code>pl_limit</code>) and field stores (<code>field_store_block_size</code>).</p>
+<h3 id="other-options"><a class="header" href="#other-options">Other Options</a></h3>
+<p>There are 2 other options worth highlighting that can help reduce the index size. </p>
+<ul>
+<li><a href="indexing_configuration.html#lang_config"><code>ignore_stop_words</code></a></li>
+<li><a href="indexing_configuration.html#indexing_config"><code>with_positions</code></a></li>
+</ul>
+<p>Since the default settings (<code>RTT=2</code>, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.</p>
+<p>Positional information also takes up a considerable proportion of the index size.</p>
+<p>If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.</p>
+<p>This would be especially useful if configuring for a monolithic index (<code>RTT=0</code>, Fair Scalability, Little File Bloat), as it reduces the index size to be retrieved up front.</p>
+<script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    initMorsels({
-        searcherOptions: {
-          url: '/morsels/morsels_output/',
-        },
-        uiOptions: {
-            mode: (function () {
+const base_url = '/morsels/';
+const mode = (function () {
                 // This IIFE is documentation specific, for demoing the different modes.
                 // It would be the string mode (e.g. 'target') normally
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
-            })(),
-            dropdownAlignment: 'bottom-start',
-            target: document.getElementById('morsels-mdbook-target'),
-            sourceFilesUrl: '/morsels/',
+            })();
+initMorsels({
+  searcherOptions: {
+    url: base_url + 'morsels_output/',
+  },
+  uiOptions: {
+    mode,
+    dropdownAlignment: 'bottom-start',
+    target: document.getElementById('morsels-mdbook-target'),
+    sourceFilesUrl: base_url,
+    resultsRenderOpts: {
+      addSearchedTerms: 'search',
+    },
+  },
+});
+
+if (window.location.search) {
+  // Adapted from the original searcher.js for mdbook
+  // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
+  const target = document.getElementById('content');
+  const marker = new Mark(target);
+
+  function doSearchOrMarkFromUrl() {
+    // Check current URL for search request
+    var url = new URL(window.location.href);
+    var urlParams = new URLSearchParams(url.search);
+
+    if (urlParams.has('search')) {
+      var words = JSON.parse(decodeURIComponent(urlParams.get('search')));
+      marker.mark(words);
+
+      var markers = document.querySelectorAll('mark');
+      function hide() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].classList.add('fade-out');
+          window.setTimeout(function () { marker.unmark(); }, 300);
         }
-    });
+      }
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].addEventListener('click', hide);
+      }
+    }
+  }
+  doSearchOrMarkFromUrl();
+}
 </script>
                     </main>
 

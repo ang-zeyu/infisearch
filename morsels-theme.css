@@ -63,9 +63,9 @@
     --morsels-title-hover-fg: var(--morsels-fg);
     --morsels-title-hover-bg: hsl(31, 95%, 83%);
     --morsels-heading-fg: var(--morsels-fg);
-    --morsels-heading-bg: rgba(255, 204, 147, 0.1);
+    --morsels-heading-bg: hsl(31, 95%, 95%);
     --morsels-heading-hover-fg: var(--morsels-fg);
-    --morsels-heading-hover-bg: rgba(255, 204, 147, 0.3);
+    --morsels-heading-hover-bg: hsl(31, 95%, 88%);
     --morsels-body-fg: var(--morsels-fg);
     --morsels-body-bg: var(--morsels-bg);
     --morsels-body-hover-fg: var(--morsels-fg);

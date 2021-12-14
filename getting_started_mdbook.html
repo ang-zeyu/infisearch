@@ -133,7 +133,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script><link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
 <style>
 .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
@@ -233,6 +233,10 @@ config = &quot;morsels_config.json&quot;
 #
 # Only needed if you want to use some custom styling
 no-css = false
+
+# This scales some settings of the indexer according to your collection size
+# (see chapter on &quot;Tradeoffs&quot;)
+scaling = true
 </code></pre>
 <h2 id="preview"><a class="header" href="#preview">Preview</a></h2>
 <p>Use the following (non-canonical, documentation specific) buttons to try out the different <a href="search_configuration.html#ui-mode"><strong><code>mode</code></strong> parameters</a>.</p>
@@ -269,23 +273,60 @@ no-css = false
 <figcaption style="text-align: center;"><em>Gif of `mode='fullscreen'` across the different themes</em></figcaption>
 </figure>
 <p>Also note that unlike the default search feature, the search bar is always there – there is no search icon on the navbar to click. I am still trying to figure how to add this nicely (without runtime hacks) within mdbook’s plugin framework :)</p>
+<script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    initMorsels({
-        searcherOptions: {
-          url: '/morsels/morsels_output/',
-        },
-        uiOptions: {
-            mode: (function () {
+const base_url = '/morsels/';
+const mode = (function () {
                 // This IIFE is documentation specific, for demoing the different modes.
                 // It would be the string mode (e.g. 'target') normally
                 const params = new URLSearchParams(window.location.search);
                 return params.get('mode') || 'target';
-            })(),
-            dropdownAlignment: 'bottom-start',
-            target: document.getElementById('morsels-mdbook-target'),
-            sourceFilesUrl: '/morsels/',
+            })();
+initMorsels({
+  searcherOptions: {
+    url: base_url + 'morsels_output/',
+  },
+  uiOptions: {
+    mode,
+    dropdownAlignment: 'bottom-start',
+    target: document.getElementById('morsels-mdbook-target'),
+    sourceFilesUrl: base_url,
+    resultsRenderOpts: {
+      addSearchedTerms: 'search',
+    },
+  },
+});
+
+if (window.location.search) {
+  // Adapted from the original searcher.js for mdbook
+  // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
+  const target = document.getElementById('content');
+  const marker = new Mark(target);
+
+  function doSearchOrMarkFromUrl() {
+    // Check current URL for search request
+    var url = new URL(window.location.href);
+    var urlParams = new URLSearchParams(url.search);
+
+    if (urlParams.has('search')) {
+      var words = JSON.parse(decodeURIComponent(urlParams.get('search')));
+      marker.mark(words);
+
+      var markers = document.querySelectorAll('mark');
+      function hide() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].classList.add('fade-out');
+          window.setTimeout(function () { marker.unmark(); }, 300);
         }
-    });
+      }
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].addEventListener('click', hide);
+      }
+    }
+  }
+  doSearchOrMarkFromUrl();
+}
 </script>
                     </main>
 

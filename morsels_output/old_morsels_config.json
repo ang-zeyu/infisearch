@@ -1,52 +1,47 @@
 {
   "fields_config": {
+    "cache_all_field_stores": true,
     "field_store_block_size": 250,
     "fields": [
       {
-        "name": "title",
-        "do_store": false,
-        "weight": 0.2,
-        "k": 1.2,
-        "b": 0.25
-      },
-      {
-        "name": "heading",
-        "do_store": false,
-        "weight": 0.3,
-        "k": 1.2,
-        "b": 0.3
-      },
-      {
-        "name": "body",
-        "do_store": false,
-        "weight": 0.5,
-        "k": 1.2,
-        "b": 0.75
-      },
-      {
-        "name": "headingLink",
-        "do_store": false,
-        "weight": 0.0,
-        "k": 1.2,
-        "b": 0.75
-      },
-      {
-        "name": "_relative_fp",
+        "b": 0.25,
         "do_store": true,
-        "weight": 0.0,
         "k": 1.2,
-        "b": 0.75
+        "name": "title",
+        "weight": 0.2
+      },
+      {
+        "b": 0.3,
+        "do_store": true,
+        "k": 1.2,
+        "name": "heading",
+        "weight": 0.3
+      },
+      {
+        "b": 0.75,
+        "do_store": true,
+        "k": 1.2,
+        "name": "body",
+        "weight": 0.5
+      },
+      {
+        "b": 0.75,
+        "do_store": true,
+        "k": 1.2,
+        "name": "headingLink",
+        "weight": 0.0
+      },
+      {
+        "b": 0.75,
+        "do_store": true,
+        "k": 1.2,
+        "name": "_relative_fp",
+        "weight": 0.0
       }
     ]
   },
-  "lang_config": {
-    "lang": "ascii",
-    "options": null
-  },
   "indexing_config": {
-    "num_docs_per_block": 1000,
-    "pl_limit": 16383,
-    "pl_cache_threshold": 1048576,
+    "_total_len": "This is debugging metadata for the mdbook plugin. Total len: 78163",
     "exclude": [
       "index.html",
       "print.html",
@@ -79,8 +74,15 @@
         "type": "HtmlLoader"
       }
     },
+    "num_docs_per_block": 1000,
     "num_pls_per_dir": 1000,
     "num_stores_per_dir": 1000,
+    "pl_cache_threshold": 0,
+    "pl_limit": 2097151,
     "with_positions": true
+  },
+  "lang_config": {
+    "lang": "ascii",
+    "options": null
   }
 }
