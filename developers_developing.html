@@ -200,9 +200,25 @@
 <h2 id="building-and-running-the-development-site"><a class="header" href="#building-and-running-the-development-site">Building and Running the Development Site</a></h2>
 <p>Once you have you test files placed in the correct folder per the previous chapter, run the <code>npm run index1</code> script to index your content, then run <code>npm run devServer1</code> to serve up the indexer’s output on port <code>3000</code>.</p>
 <p>Finally, use the <code>npm run dev</code> script to open the development site on port <code>8080</code>. This script runs the webpack build process, which in turn triggers the WebAssembly build process as well through the wasm-pack webpack plugin.</p>
-<h2 id="working-with-the-mdbook-morsels-plugin"><a class="header" href="#working-with-the-mdbook-morsels-plugin">Working With the mdbook-morsels Plugin</a></h2>
-<p>As mdbook plugins are basically separate executables, operating on <code>stdin / stdout</code>, you’ll need to first run <code>npm run installIndexer</code> to build and install the indexer command-line tool to your <code>PATH</code>. (including whenever changes are made to the indexer code)</p>
-<p>Next, run the <code>buildSearch</code> then <code>installMdbook</code> script, which builds the search binaries and installs the mdbook executable. Lastly, execute <code>devDocs</code>, which serves up the documentation at port <code>8000</code>. The commands are segregated to reduce iterative build times if you only need to execute the last few script(s).</p>
+<p>There are also <code>npm run index2</code> / <code>devServer2</code> scripts available. An interactive script may be added in the future, but for now 2 should suffice (1 to test a smaller site, 1 to test a very large collection).</p>
+<h2 id="working-with-the-mdbook-morsels-plugin--documentation-edits"><a class="header" href="#working-with-the-mdbook-morsels-plugin--documentation-edits">Working With the mdbook-morsels Plugin / Documentation Edits</a></h2>
+<p>Simply run <code>npm run devDocsFull</code> to get serve up the documentation on port <code>8000</code>!</p>
+<p>This script runs the following subscripts:</p>
+<ol>
+<li>
+<p><code>npm run installIndexer</code>, this builds and install the indexer command-line tool to your <code>PATH</code> (mdbook plugins are basically separate executables, operating on <code>stdin / stdout</code>).</p>
+</li>
+<li>
+<p><code>npm run buildSearch</code>, which builds the search-ui bundles, to ensure the documentation is being developed on the latest changes.</p>
+</li>
+<li>
+<p><code>npm run installMdbook</code>, which builds and installs the mdbook plugin executable.</p>
+</li>
+<li>
+<p><code>npm run devDocs</code>, which serves up the documentation at port <code>8000</code>. The commands are segregated to reduce iterative build times if you only need to execute the last few script(s).</p>
+</li>
+</ol>
+<p>You can also run the individual commands separately to reduce iterative build times if you only need to execute the last few script(s).</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
