@@ -17,6 +17,7 @@ use morsels_lang_ascii::utils::term_filter;
 
 pub struct Tokenizer {
     pub stop_words: HashSet<String>,
+    ignore_stop_words: bool,
     stemmer: Stemmer,
     max_term_len: usize,
 }
@@ -25,10 +26,15 @@ fn get_default_max_term_len() -> usize {
     80
 }
 
+fn get_default_ignore_stop_words() -> bool {
+    false
+}
+
 impl Default for Tokenizer {
     fn default() -> Tokenizer {
         Tokenizer {
             stop_words: get_default_stop_words_set(),
+            ignore_stop_words: get_default_ignore_stop_words(),
             stemmer: Stemmer::create(Algorithm::English),
             max_term_len: get_default_max_term_len(),
         }
@@ -38,12 +44,14 @@ impl Default for Tokenizer {
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
+    #[serde(default="get_default_ignore_stop_words")]
+    ignore_stop_words: bool,
     pub stemmer: Option<String>,
     #[serde(default = "get_default_max_term_len")]
     pub max_term_len: usize,
 }
 
-pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
+pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenizer {
     let stop_words = if let Some(stop_words) = options.stop_words {
         get_stop_words_set(stop_words)
     } else {
@@ -78,6 +86,7 @@ pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
 
     Tokenizer {
         stop_words,
+        ignore_stop_words: if for_search { false } else { options.ignore_stop_words },
         stemmer,
         max_term_len: options.max_term_len
     }
@@ -88,14 +97,13 @@ impl Tokenizer {
     fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
         slice
             .split_ascii_whitespace()
+            .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(&term_slice)))
+            .filter(|term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
             .map(|term_slice| {
-                let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
-                let filtered = term_filter(ascii_folded);
-
-                if let Cow::Owned(v) = self.stemmer.stem(&filtered) {
+                if let Cow::Owned(v) = self.stemmer.stem(&term_slice) {
                     Cow::Owned(v)
                 } else {
-                    filtered // unchanged
+                    term_slice // unchanged
                 }
             })
             .filter(|term| {

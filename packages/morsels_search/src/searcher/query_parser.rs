@@ -460,8 +460,20 @@ pub mod test {
     pub fn parse(query: &str) -> Vec<QueryPart> {
         let tokenizer = ascii::new_with_options(TokenizerOptions {
             stop_words: None,
+            ignore_stop_words: false,
             max_term_len: 80,
-        });
+        }, true);
+
+        super::parse_query(query.to_owned(), &tokenizer)
+    }
+
+    // The tokenizer should not remove stop words no matter what when searching
+    pub fn parse_with_sw_removal(query: &str) -> Vec<QueryPart> {
+        let tokenizer = ascii::new_with_options(TokenizerOptions {
+            stop_words: None,
+            ignore_stop_words: true,
+            max_term_len: 80,
+        }, true);
 
         super::parse_query(query.to_owned(), &tokenizer)
     }
@@ -470,10 +482,12 @@ pub mod test {
     fn free_text_test() {
         assert_eq!(parse("lorem ipsum"), vec![get_lorem(), get_ipsum()]);
         assert_eq!(parse("lorem ipsum "), vec![get_lorem().no_expand(), get_ipsum().no_expand()]);
+        assert_eq!(parse_with_sw_removal("for by and"), vec![get_term("for"), get_term("by"), get_term("and")]);
     }
 
     #[test]
     fn boolean_test() {
+        assert_eq!(parse("NOT "), vec![get_term("not").no_expand()]);
         assert_eq!(parse("NOT lorem"), vec![wrap_in_not(get_lorem())]);
         assert_eq!(parse("NOT NOT lorem"), vec![wrap_in_not(wrap_in_not(get_lorem()))]);
         assert_eq!(parse("NOT lorem ipsum"), vec![wrap_in_not(get_lorem()), get_ipsum()]);
@@ -500,6 +514,7 @@ pub mod test {
                 wrap_in_not(get_ipsum())
             ]
         );
+        assert_eq!(parse_with_sw_removal("for AND by"), vec![wrap_in_and(vec![get_term("for"), get_term("by")])]);
     }
 
     #[test]
@@ -518,6 +533,10 @@ pub mod test {
                 get_lorem().no_expand(),
                 get_phrase(vec!["lorem", "ipsum"]),
             ]
+        );
+        assert_eq!(
+            parse_with_sw_removal("\"for by and\""),
+            vec![get_phrase(vec!["for", "by", "and"])]
         );
     }
 
@@ -563,6 +582,10 @@ pub mod test {
                 wrap_in_parentheses(vec![get_lorem(), wrap_in_parentheses(vec![get_ipsum()]),]),
             ]
         );
+        assert_eq!(
+            parse_with_sw_removal("(for and by)"),
+            vec![wrap_in_parentheses(vec![get_term("for"), get_term("and"), get_term("by")])]
+        );
     }
 
     #[test]
@@ -597,6 +620,10 @@ pub mod test {
         assert_eq!(
             parse("title: lorem NOT ipsum)"),
             vec![get_lorem().with_field("title").no_expand(), wrap_in_not(get_ipsum())]
+        );
+        assert_eq!(
+            parse_with_sw_removal("title:for)"),
+            vec![get_term("for").with_field("title")]
         );
     }
 

@@ -20,7 +20,6 @@ lazy_static! {
 fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
     let mut set: HashSet<String> = HashSet::default();
 
-    // From tantivy
     for word in stop_words_vec {
         set.insert(word.to_owned());
     }
@@ -28,30 +27,45 @@ fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
     set
 }
 
+fn get_default_ignore_stop_words() -> bool {
+    false
+}
+
 pub struct Tokenizer {
     pub stop_words: HashSet<String>,
+    ignore_stop_words: bool,
     jieba: Jieba,
 }
 
 impl Default for Tokenizer {
     fn default() -> Tokenizer {
-        Tokenizer { stop_words: get_stop_words_set(Vec::new()), jieba: Jieba::empty() }
+        Tokenizer {
+            stop_words: get_stop_words_set(Vec::new()),
+            ignore_stop_words: get_default_ignore_stop_words(),
+            jieba: Jieba::empty(),
+        }
     }
 }
 
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
     stop_words: Option<Vec<String>>,
+    #[serde(default="get_default_ignore_stop_words")]
+    ignore_stop_words: bool,
 }
 
-pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
+pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenizer {
     let stop_words = if let Some(stop_words) = options.stop_words {
         get_stop_words_set(stop_words)
     } else {
         get_stop_words_set(Vec::new())
     };
 
-    Tokenizer { stop_words, jieba: Jieba::empty() }
+    Tokenizer {
+        stop_words,
+        ignore_stop_words: if for_search { false } else { options.ignore_stop_words },
+        jieba: Jieba::empty(),
+    }
 }
 
 impl TokenizerTrait for Tokenizer {
@@ -65,7 +79,7 @@ impl TokenizerTrait for Tokenizer {
             .fold(vec![Vec::new()], |mut acc, next| {
                 if next.trim().is_empty() {
                     acc.push(Vec::new()); // Split on punctuation
-                } else {
+                } else if !(self.ignore_stop_words && self.stop_words.contains(next.as_ref())) {
                     acc.last_mut().unwrap().push(next);
                 }
                 acc

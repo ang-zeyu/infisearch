@@ -437,21 +437,21 @@ impl Indexer {
         match lang_config.lang.as_str() {
             "ascii" => {
                 if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(ascii::new_with_options(serde_json::from_value(options.clone()).unwrap()))
+                    Arc::new(ascii::new_with_options(serde_json::from_value(options.clone()).unwrap(), false))
                 } else {
                     Arc::new(ascii::Tokenizer::default())
                 }
             }
             "latin" => {
                 if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(latin::new_with_options(serde_json::from_value(options.clone()).unwrap()))
+                    Arc::new(latin::new_with_options(serde_json::from_value(options.clone()).unwrap(), false))
                 } else {
                     Arc::new(latin::Tokenizer::default())
                 }
             }
             "chinese" => {
                 if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(chinese::new_with_options(serde_json::from_value(options.clone()).unwrap()))
+                    Arc::new(chinese::new_with_options(serde_json::from_value(options.clone()).unwrap(), false))
                 } else {
                     Arc::new(chinese::Tokenizer::default())
                 }

@@ -20,6 +20,7 @@ lazy_static! {
 
 pub struct Tokenizer {
     pub stop_words: HashSet<String>,
+    ignore_stop_words: bool,
     max_term_len: usize,
 }
 
@@ -27,10 +28,15 @@ fn get_default_max_term_len() -> usize {
     80
 }
 
+fn get_default_ignore_stop_words() -> bool {
+    false
+}
+
 impl Default for Tokenizer {
     fn default() -> Tokenizer {
         Tokenizer {
             stop_words: crate::stop_words::get_default_stop_words_set(),
+            ignore_stop_words: get_default_ignore_stop_words(),
             max_term_len: get_default_max_term_len(),
         }
     }
@@ -39,11 +45,13 @@ impl Default for Tokenizer {
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
+    #[serde(default="get_default_ignore_stop_words")]
+    pub ignore_stop_words: bool,
     #[serde(default = "get_default_max_term_len")]
     pub max_term_len: usize,
 }
 
-pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
+pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenizer {
     let stop_words = if let Some(stop_words) = options.stop_words {
         get_stop_words_set(stop_words)
     } else {
@@ -52,6 +60,7 @@ pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
 
     Tokenizer {
         stop_words,
+        ignore_stop_words: if for_search { false } else { options.ignore_stop_words },
         max_term_len: options.max_term_len
     }
 }
@@ -59,7 +68,7 @@ pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
 impl Tokenizer {
     #[inline(always)]
     fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
-        slice
+        let iter = slice
             .split_ascii_whitespace()
             .map(|term_slice| {
                 let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
@@ -68,8 +77,13 @@ impl Tokenizer {
             .filter(|term| {
                 let term_byte_len = term.len();
                 term_byte_len > 0 && term_byte_len <= self.max_term_len
-            })
-            .collect()
+            });
+
+        if self.ignore_stop_words {
+            return iter.filter(|term| !self.stop_words.contains(term.as_ref())).collect();
+        }
+
+        iter.collect()
     }
 }
 

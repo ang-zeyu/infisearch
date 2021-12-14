@@ -112,3 +112,18 @@ This is because as the collection grows, we cannot guarantee that document links
 Per section 2.2, one simply needs to avoid the assumption that the index can be cached.
 
 Scalability is then ensured here by fragmenting both the index (using `pl_limit`) and field stores (`field_store_block_size`).
+
+### Other Options
+
+There are 2 other options worth highlighting that can help reduce the index size. 
+
+- [`ignore_stop_words`](indexing_configuration.md#lang_config)
+- [`with_positions`](indexing_configuration.md#indexing_config)
+
+Since the default settings (`RTT=2`, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.
+
+Positional information also takes up a considerable proportion of the index size.
+
+If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.
+
+This would be especially useful if configuring for a monolithic index (`RTT=0`, Fair Scalability, Little File Bloat), as it reduces the index size to be retrieved up front.

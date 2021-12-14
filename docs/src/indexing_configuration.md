@@ -136,12 +136,14 @@ These options are also applied to `@morsels/search-ui`, which sources this infor
 
 ### Forenote on Stop Words
 
-A slightly different approach with stop words is taken in that stop words are only filtered at **query time** for certain types of queries (currently this is for free-text queries with more than two terms).
+A slightly different approach with stop words is taken **by default** in that stop words are only filtered at **query time** for certain types of queries (currently this is for free-text queries with more than two terms).
 
 This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:
 - For processing phrase queries (eg. `"for tomorrow"`)
 - Boolean queries (eg. `if AND forecast AND sunny`)
 - One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.
+
+Nevertheless, all tokenizers also support forcibly removing stop words using the `ignore_stop_words` option, should you wish to keep the index size down (discussed again under chapter on ["Tradeoffs"](./tradeoffs.md)).
 
 ### Ascii Tokenizer
 
@@ -159,6 +161,7 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
       "such", "that", "the", "their", "then", "there", "these",
       "they", "this", "to", "was", "will", "with"
     ],
+    "ignore_stop_words": false,
 
     "max_term_len": 80
   }
@@ -173,7 +176,10 @@ This is essentially the same as the ascii tokenizer, but adds a `stemmer` option
 "lang_config": {
   "lang": "latin",
   "options": {
+    // ----------------------------------
     // Ascii Tokenizer options also apply
+    // ...
+    // ----------------------------------
 
     // Any of the languages here
     // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
@@ -195,7 +201,8 @@ This tokenizer applies jieba's `cut` method to obtain various tokens, then appli
 "lang_config": {
   "lang": "chinese",
   "options": {
-    "stop_words": []
+    "stop_words": [],
+    "ignore_stop_words": false
   }
 }
 ```
