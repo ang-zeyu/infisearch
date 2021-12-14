@@ -3,9 +3,10 @@ import { computePosition, size, offset, flip } from '@floating-ui/dom';
 import './styles/search.css';
 
 import { Query, Searcher } from '@morsels/search-lib';
-import createElement from './utils/dom';
 import transformResults, { resultsRender } from './searchResultTransform';
 import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';
+import createElement from './utils/dom';
+import { parseURL } from './utils/url';
 
 let currQuery: Query;
 
@@ -268,7 +269,7 @@ function prepareOptions(options: SearchUiOptions) {
   uiOptions.resultsRenderOpts = uiOptions.resultsRenderOpts || {};
 
   uiOptions.resultsRenderOpts.listItemRender = uiOptions.resultsRenderOpts.listItemRender || ((
-    h, opts, fullLink, title, resultHeadingsAndTexts,
+    h, opts, searchedTermsJSON, fullLink, title, resultHeadingsAndTexts,
   ) => {
     const linkEl = h(
       'a', { class: 'morsels-link' },
@@ -277,7 +278,16 @@ function prepareOptions(options: SearchUiOptions) {
     );
 
     if (fullLink) {
-      linkEl.setAttribute('href', fullLink);
+      let linkToAttach = fullLink;
+      if (opts.uiOptions.resultsRenderOpts.addSearchedTerms) {
+        const fullLinkUrl = parseURL(fullLink);
+        fullLinkUrl.searchParams.append(
+          options.uiOptions.resultsRenderOpts.addSearchedTerms,
+          searchedTermsJSON,
+        );
+        linkToAttach = fullLinkUrl.toString();
+      }
+      linkEl.setAttribute('href', linkToAttach);
     }
 
     return h(

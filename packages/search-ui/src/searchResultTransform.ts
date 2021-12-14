@@ -306,6 +306,7 @@ async function singleResultRender(
   configs: MorselsConfig,
   hasStoredContentField: FieldInfo,
   query: Query,
+  searchedTermsJSON: string,
   termRegexes: RegExp[],
 ) {
   const { loaderConfigs } = configs.indexingConfig;
@@ -319,10 +320,11 @@ async function singleResultRender(
   let resultTitle = (titleField && titleField[1]) || relativeLink;
 
   let linkToAttach = fullLink;
-  if (options.uiOptions.resultsRenderOpts.addSearchRegex) {
-    const fullLinkUrl = new URL(fullLink);
+  if (options.uiOptions.resultsRenderOpts.addSearchedTerms) {
+    const fullLinkUrl = parseURL(fullLink);
     fullLinkUrl.searchParams.append(
-      options.uiOptions.resultsRenderOpts.addSearchRegex, termRegexes[0].source,
+      options.uiOptions.resultsRenderOpts.addSearchedTerms,
+      searchedTermsJSON,
     );
     linkToAttach = fullLinkUrl.toString();
   }
@@ -366,6 +368,7 @@ async function singleResultRender(
   return options.uiOptions.resultsRenderOpts.listItemRender(
     createElement,
     options,
+    searchedTermsJSON,
     fullLink,
     resultTitle,
     resultHeadingsAndTexts,
@@ -398,8 +401,11 @@ export function resultsRender(
   const hasStoredContentField = config.fieldInfos.find((info) => info.do_store
       && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
 
+  const searchedTermsJSON = JSON.stringify(query.searchedTerms);
   return Promise.all(results.map(
-    (result) => singleResultRender(result, options, config, hasStoredContentField, query, termRegexes),
+    (result) => singleResultRender(
+      result, options, config, hasStoredContentField, query, searchedTermsJSON, termRegexes,
+    ),
   ));
 }
 

@@ -3,6 +3,7 @@ extern crate mdbook;
 use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, Read};
+use std::path::Path;
 use std::process::Command;
 
 use anyhow::Error;
@@ -19,6 +20,8 @@ use mdbook::renderer::RenderContext;
 use toml::value::Value::{self, Boolean as TomlBoolean, String as TomlString};
 
 const SEARCH_UI_DIST: Dir = include_dir!("$CARGO_MANIFEST_DIR/search-ui-dist");
+
+const MARK_MIN_JS: &[u8] = include_bytes!("../mark.min.js");
 
 pub fn make_app() -> App<'static, 'static> {
     App::new("morsels").about("Morsels preprocessor + renderer for mdbook").subcommand(
@@ -37,6 +40,8 @@ fn main() {
     if let Ok(ctx) = RenderContext::from_json(&*buf) {
         let html_renderer_path = ctx.destination.join("../html");
 
+        // ---------------------------------
+        // Copy assets
         let assets_output_dir = html_renderer_path.join("morsels_assets");
         fs::create_dir_all(&assets_output_dir)
             .expect("mdbook-morsels: Failed to create assets output directory");
@@ -45,6 +50,10 @@ fn main() {
                 .expect("mdbook-morsels: Failed to open asset write handler");
             output_file.write_all(file.contents()).expect("mdbook-morsels: Failed to copy search-ui assets!");
         }
+        let mut mark_js = File::create((&assets_output_dir).join(Path::new("mark.min.js")))
+            .expect("mdbook-morsels: Failed to open asset write handler");
+        mark_js.write_all(MARK_MIN_JS).expect("mdbook-morsels: Failed to copy search-ui asset (mark.min.js)!");
+        // ---------------------------------
 
         let morsels_config_path = if let Some(TomlString(morsels_config_file_path)) = ctx.config.get("output.morsels.config") {
             ctx.root.join(morsels_config_file_path)
@@ -171,12 +180,8 @@ static STYLES: &str = r#"
 </style>
 "#;
 
-fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
+fn get_css_el(base_url: &str, ctx: &PreprocessorContext) -> String {
     let mut output = String::new();
-    output.push_str(&format!(
-        r#"<script src="{}morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>"#,
-        base_url
-    ));
 
     let add_css = if let Some(TomlBoolean(no_css)) = ctx.config.get("output.morsels.no-css") {
         !(*no_css)
@@ -186,7 +191,7 @@ fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
 
     if add_css {
         output.push_str(&format!(
-            r#"<link rel="stylesheet" href="{}morsels_assets/search-ui.css">"#,
+            "<link rel=\"stylesheet\" href=\"{}morsels_assets/search-ui.css\">\n",
             base_url
         ));
         output.push_str(STYLES);
@@ -195,7 +200,7 @@ fn get_assets_els(base_url: &str, ctx: &PreprocessorContext) -> String {
     output
 }
 
-fn get_initialise_script_el(mode: Option<&Value>, base_url: &str) -> String {
+fn get_script_els(mode: Option<&Value>, base_url: &str) -> String {
     let mode = if let Some(TomlString(mode)) = mode {
         if mode == "query_param" {
             // Documentation specific, do not use!
@@ -218,21 +223,17 @@ fn get_initialise_script_el(mode: Option<&Value>, base_url: &str) -> String {
         "'target'".to_owned()
     };
 
+    let morsels_js = include_bytes!("morsels.js");
     format!(
-        "\n\n<script>
-    initMorsels({{
-        searcherOptions: {{
-          url: '{}morsels_output/',
-        }},
-        uiOptions: {{
-            mode: {},
-            dropdownAlignment: 'bottom-start',
-            target: document.getElementById('morsels-mdbook-target'),
-            sourceFilesUrl: '{}',
-        }}
-    }});
+"\n
+<script src=\"{}morsels_assets/search-ui.bundle.js\" type=\"text/javascript\" charset=\"utf-8\"></script>
+<script src=\"{}morsels_assets/mark.min.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n
+<script>
+const base_url = '{}';
+const mode = {};
+{}
 </script>",
-        base_url, mode, base_url
+        base_url, base_url, base_url, mode, std::str::from_utf8(morsels_js).unwrap(),
     )
 }
 
@@ -254,11 +255,11 @@ impl Preprocessor for Morsels {
             "/"
         };
 
-        let init_morsels_el = get_initialise_script_el(ctx.config.get("output.morsels.mode"), site_url);
+        let init_morsels_el = get_script_els(ctx.config.get("output.morsels.mode"), site_url);
 
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
-                ch.content = get_assets_els(&site_url, &ctx) + INPUT_EL + &ch.content + &init_morsels_el;
+                ch.content = get_css_el(&site_url, &ctx) + INPUT_EL + &ch.content + &init_morsels_el;
             }
         });
 

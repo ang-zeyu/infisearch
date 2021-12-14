@@ -85,10 +85,11 @@ export interface UiOptions {
     query: Query,
   ) => Promise<HTMLElement[]>,
   resultsRenderOpts?: {
-    addSearchRegex?: string,
+    addSearchedTerms?: string,
     listItemRender?: (
       h: CreateElement,
       opts: SearchUiOptions,
+      searchedTermsJSON: string,
       fullLink: string,
       resultTitle: string,
       resultHeadingsAndTexts: (HTMLElement | string)[],
