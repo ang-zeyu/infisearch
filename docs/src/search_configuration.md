@@ -10,17 +10,7 @@ Several options in both the search library and UI are by default tuned based on 
 
 Some examples of tuned settings for mobile devices:
 - Query term proximity ranking is disabled
-- Whether to use the fullscreen version (more later) of the user interface instead
-
-The check is done through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query at initialisation time, which may not be robust enough for your use case.
- 
-An override may be provided through the `isMobileDevice` option shown below, which is simply a function returning a boolean.
-
-```ts
-initMorsels({
-    isMobileDevice: () => true,
-})
-```
+- Whether to use the fullscreen version (see [UI Mode](#ui-mode)) of the user interface instead
 
 ---
 
@@ -142,6 +132,18 @@ This is covered in more detail in the next page.
 In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.
 
 Lowering this can have a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.
+
+### Changing The Mobile Device Detection Method
+
+The mobile device check is done through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query at initialisation time, which may not be robust enough for your use case.
+ 
+An override may be provided through the `isMobileDevice` option shown below, which is simply a function returning a boolean.
+
+```ts
+initMorsels({
+    isMobileDevice: () => true,
+})
+```
 
 ---
 

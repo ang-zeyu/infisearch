@@ -6,9 +6,7 @@ A complete and more scalable pre-built index approach to client-side search.
 
 > :warning: This is still a very new project, and some things may completely change over releases! (fingers crossed)<br>
 >
-> Please keep the version fixed and check back for version updates.
->
-> Also, high possibility of bugs :bug::bug:. Please don't use this in absolutely critical applications yet.
+> Please keep the version fixed and check back for version updates, and be careful with using this in critical applications.
 
 ## Description
 
