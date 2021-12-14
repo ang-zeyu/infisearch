@@ -113,7 +113,7 @@ impl Searcher {
                                 if term_idx == num_pls - 1 {
                                     // Complete the match
                                     has_match = true;
-                                    result_doc_field.field_positions.push(*pos - (num_pls as u32) + 1);
+                                    result_doc_field.field_positions.push((*pos) + 1 - (num_pls as u32));
 
                                     // Reset
                                     term_idx = 0;
