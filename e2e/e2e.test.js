@@ -102,8 +102,20 @@ const testSuite = async (configFile) => {
   await waitNoResults();
 
   await clearInput();
-  await typePhrase('Once you have you test files');
+  await typeText('body:"Once you have you test files"');
   await assertSingle('once you have you test files');
+
+  await clearInput();
+  await typeText('title:"Once you have you test files"');
+  await waitNoResults();
+
+  await clearInput();
+  await typeText('title:"Developing - Morsels Documentation"');
+  await assertSingle('developing - morsels documentation');
+
+  await clearInput();
+  await typeText('heading:"Developing - Morsels Documentation"');
+  await waitNoResults();
   // ------------------------------------------------------
 
   // ------------------------------------------------------
