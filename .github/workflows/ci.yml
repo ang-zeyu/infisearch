@@ -21,6 +21,7 @@ jobs:
       - run: npm run setup
       - run: cargo test
       - run: npm run e2e
+      - run: cargo clean --release -p morsels_indexer
       - run: npm run installIndexer
       - run: npm run buildSearch
       - run: cargo clean --release -p mdbook-morsels
