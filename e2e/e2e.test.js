@@ -17,13 +17,13 @@ async function clearInput() {
 }
 
 async function typePhrase(phrase) {
-  await page.type(INPUT_SELECTOR, `"${phrase}"`, { delay: 20 });
+  await page.type(INPUT_SELECTOR, `"${phrase}"`);
   const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
   expect(inputVal).toBe(`"${phrase}"`);
 }
 
 async function typeText(text) {
-  await page.type(INPUT_SELECTOR, text, { delay: 20 });
+  await page.type(INPUT_SELECTOR, text);
   const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
   expect(inputVal).toBe(text);
 }
