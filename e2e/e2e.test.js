@@ -258,15 +258,44 @@ test('Test with different field and block size configs', async () => {
   cleanup();
   console.log('Starting morsels_config_0 tests');
   await testSuite('e2e/input/morsels_config_0.json');
+
+  // Assert what's cached
+  // Slightly different pl_cache_thresholds for the 4 tests
+  let outputConfig = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
+  );
+  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(6);
+  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1, 2, 3, 4, 5]);
+
   cleanup();
   console.log('Starting morsels_config_1 tests');
   await testSuite('e2e/input/morsels_config_1.json');
+
+  outputConfig = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
+  );
+  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(2);
+  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1]);
+
   cleanup();
   console.log('Starting morsels_config_2 tests');
   await testSuite('e2e/input/morsels_config_2.json');
+
+  outputConfig = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
+  );
+  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(2);
+  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1]);
+
   cleanup();
   console.log('Starting morsels_config_3 tests');
   await testSuite('e2e/input/morsels_config_3.json');
+
+  outputConfig = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
+  );
+  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(0);
+
   process.exit(0);
 });
 

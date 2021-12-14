@@ -26,7 +26,6 @@ pub fn merge_blocks(
     first_block: u32,
     last_block: u32,
     indexing_config: &MorselsIndexingConfig,
-    pl_names_to_cache: &mut Vec<u32>,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
@@ -128,7 +127,7 @@ pub fn merge_blocks(
             doc_freq,
             curr_term_max_score,
             num_docs_double,
-            pl_names_to_cache,
+            &mut dynamic_index_info.pl_names_to_cache,
             indexing_config,
             output_folder_path,
         );
@@ -155,11 +154,12 @@ pub fn merge_blocks(
         // ---------------------------------------------
     }
 
+    pl_writer.flush(curr_pl_offset, indexing_config.pl_cache_threshold, &mut dynamic_index_info.pl_names_to_cache);
+
     dynamic_index_info.last_pl_number =
         if curr_pl_offset != 0 || curr_pl == 0 { curr_pl } else { curr_pl - 1 };
     dynamic_index_info.num_docs = doc_id_counter;
 
     dict_table_writer.flush().unwrap();
-    pl_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
 }

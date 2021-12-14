@@ -41,8 +41,22 @@ pub enum PostingsStreamDecoder {
     None,
 }
 
+pub struct PlWriter {
+    writer: BufWriter<File>,
+    pl: u32,
+}
+
+impl PlWriter {
+    pub fn flush(&mut self, pl_offset: u32, pl_cache_threshold: u32, pl_names_to_cache: &mut Vec<u32>) {
+        self.writer.flush().unwrap();
+        if pl_offset > pl_cache_threshold {
+            pl_names_to_cache.push(self.pl);
+        }
+    }
+}
+
 #[inline(always)]
-pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> BufWriter<File> {
+pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> PlWriter {
     let dir_output_folder_path = output_folder_path.join(format!("pl_{}", curr_pl / num_pls_per_dir));
     if (curr_pl % num_pls_per_dir == 0)
         && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
@@ -50,10 +64,11 @@ pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u
         std::fs::create_dir(&dir_output_folder_path).expect("Failed to create pl output dir!");
     }
 
-    BufWriter::new(
+    let writer = BufWriter::new(
         File::create(dir_output_folder_path.join(Path::new(&format!("pl_{}", curr_pl))))
             .expect("Failed to open postings list for writing."),
-    )
+    );
+    PlWriter { writer, pl: curr_pl }
 }
 
 pub fn get_dict_writers(output_folder_path: &Path) -> (BufWriter<File>, BufWriter<File>) {
@@ -122,7 +137,7 @@ pub fn write_new_term_postings(
     varint_buf: &mut [u8],
     dict_table_writer: Option<&mut BufWriter<File>>,
     curr_pl: &mut u32,
-    pl_writer: &mut BufWriter<File>,
+    pl_writer: &mut PlWriter,
     pl_offset: &mut u32,
     prev_pl_start_offset: &mut u32,
     doc_freq: u32,
@@ -150,11 +165,7 @@ pub fn write_new_term_postings(
         }
         // --------------------------------
 
-        pl_writer.flush().unwrap();
-
-        if *pl_offset > indexing_config.pl_cache_threshold {
-            pl_names_to_cache.push(*curr_pl);
-        }
+        pl_writer.flush(*pl_offset, indexing_config.pl_cache_threshold, pl_names_to_cache);
 
         *curr_pl += 1;
         *pl_offset = 0;
@@ -169,17 +180,17 @@ pub fn write_new_term_postings(
     for term_docs in curr_combined_term_docs.iter_mut() {
         // Link up the gap between the first doc id of the current block and the previous block
         let block_doc_id_gap_varint = varint::get_var_int(term_docs.first_doc_id - prev_block_last_doc_id, varint_buf);
-        pl_writer.write_all(block_doc_id_gap_varint).unwrap();
+        pl_writer.writer.write_all(block_doc_id_gap_varint).unwrap();
         *pl_offset += block_doc_id_gap_varint.len() as u32;
 
         prev_block_last_doc_id = term_docs.last_doc_id;
 
-        pl_writer.write_all(&term_docs.combined_var_ints).unwrap();
+        pl_writer.writer.write_all(&term_docs.combined_var_ints).unwrap();
         *pl_offset += term_docs.combined_var_ints.len() as u32;
     }
 
     let max_doc_term_score: f32 = curr_term_max_score * get_idf(num_docs, doc_freq as f64) as f32;
-    pl_writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
+    pl_writer.writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
     *pl_offset += 4;
 
     start_pl_offset

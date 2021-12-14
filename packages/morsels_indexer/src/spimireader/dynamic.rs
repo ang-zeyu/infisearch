@@ -166,7 +166,6 @@ pub fn modify_blocks(
     first_block: u32,
     last_block: u32,
     indexing_config: &MorselsIndexingConfig,
-    pl_names_to_cache: &mut Vec<u32>,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
@@ -286,7 +285,7 @@ pub fn modify_blocks(
                 doc_freq,
                 curr_term_max_score,
                 new_num_docs,
-                pl_names_to_cache,
+                &mut dynamic_index_info.pl_names_to_cache,
                 indexing_config,
                 output_folder_path,
             );
@@ -309,7 +308,7 @@ pub fn modify_blocks(
         pl_writer.commit(&mut pl_file_length_differences);
     }
 
-    new_pl_writer.flush().unwrap();
+    new_pl_writer.flush(new_pls_offset, indexing_config.pl_cache_threshold, &mut dynamic_index_info.pl_names_to_cache);
 
     // ---------------------------------------------
     // Dictionary

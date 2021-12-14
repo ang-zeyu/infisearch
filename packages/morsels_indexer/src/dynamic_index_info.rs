@@ -40,6 +40,8 @@ pub struct DynamicIndexInfo {
 
     pub num_deleted_docs: u32,
 
+    pub pl_names_to_cache: Vec<u32>,
+
     #[serde(skip)]
     pub invalidation_vector: Vec<u8>,
 
@@ -55,6 +57,7 @@ impl DynamicIndexInfo {
             last_pl_number: 0,
             num_docs: 0,
             num_deleted_docs: 0,
+            pl_names_to_cache: Vec::new(),
             invalidation_vector: Vec::new(),
             dictionary: get_default_dictionary(),
         }
