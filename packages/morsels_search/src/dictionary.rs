@@ -16,7 +16,7 @@ use morsels_common::dictionary::{self, DICTIONARY_STRING_FILE_NAME, DICTIONARY_T
 pub type Dictionary = dictionary::Dictionary;
 
 static TERM_EXPANSION_ALPHA: f32 = 0.85;
-static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.6;
+static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.3;
 
 struct TermWeightPair(Rc<String>, f64);
 

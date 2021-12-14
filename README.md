@@ -30,7 +30,7 @@ That said, the indexing tool was built with support for a few other file formats
 
 ## Getting Started & Demo
 
-Please check out the [docs](http://ang-zeyu.github.io/morsels/).
+Please check out the [docs](http://ang-zeyu.github.io/morsels/)!
 
 ## Contributing
 

@@ -46,7 +46,7 @@ The subsequent section on [renderers](./search_configuration_renderers.md) provi
 | Option      | Default Value | Description |
 | ----------- | ----------- | ----------- |
 | `input`     | `'morsels-search'` | id of the input element or a html element reference |
-| `inputDebounce`     | `200` | debounce time of keystrokes to the input element |
+| `inputDebounce`     | `100` | debounce time of keystrokes to the input element |
 | `preprocessQuery`   | `(q) => q` | any function for preprocessing the query. Can be used to add a [field filter](./search_features.md#field-search) for example. |
 
 The `input` option is the most important option, and required in most use cases. Its purpose varies depending on the ui mode specified below.

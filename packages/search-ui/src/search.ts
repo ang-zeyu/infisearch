@@ -100,7 +100,7 @@ function prepareOptions(options: SearchUiOptions) {
   }
 
   if (!('inputDebounce' in uiOptions)) {
-    uiOptions.inputDebounce = 200;
+    uiOptions.inputDebounce = 100;
   }
 
   if (!uiOptions.preprocessQuery) {
