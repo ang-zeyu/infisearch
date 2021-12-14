@@ -55,17 +55,19 @@ impl Searcher {
             return Rc::new(result_pl);
         }
         
-        let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> =
-            pl_iterators.iter().map(|pl_it| Reverse(Rc::clone(pl_it))).collect();
+        let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> = pl_iterators
+            .iter()
+            .map(|pl_it| Reverse(Rc::clone(pl_it)))
+            .collect();
         let num_pls = iterator_heap.len();
 
-
-        let mut curr_doc_id = self.doc_info.doc_length_factors_len + 1;
+        let mut curr_doc_id = self.doc_info.doc_length_factors_len + 1; // a dummy value that will never be matched
         let mut curr_num_docs = 0;
         while !iterator_heap.is_empty() {
             let min_pl_iterator_rc = iterator_heap.pop().unwrap();
             let mut min_pl_iterator = min_pl_iterator_rc.0.borrow_mut();
 
+            // Do an "AND" query first
             if min_pl_iterator.td.unwrap().doc_id == curr_doc_id {
                 curr_num_docs += 1;
 
@@ -80,11 +82,15 @@ impl Searcher {
                     continue;
                 }
 
+                // Now do the phrase query on curr_doc_id
+
                 let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new() };
                 let mut has_match = false;
 
-                let term_termdocs: Vec<_> =
-                    pl_iterators.iter().map(|pl_it| pl_it.borrow().peek_prev().unwrap()).collect();
+                let terms_termdocs: Vec<_> = pl_iterators
+                    .iter()
+                    .map(|pl_it| pl_it.borrow().peek_prev().unwrap())
+                    .collect();
 
                 for field_id in 0..self.searcher_config.num_scored_fields as usize {
                     let mut result_doc_field = DocField { field_tf: 0.0, field_positions: Vec::new() };
@@ -92,22 +98,22 @@ impl Searcher {
                     let mut term_field_position_idxes = vec![0; num_pls];
                     let mut curr_pos: u32 = 0;
                     let mut term_idx = 0;
-                    loop {
-                        let curr_term_termdocs = term_termdocs.get(term_idx).unwrap();
-                        if field_id >= curr_term_termdocs.fields.len() {
+                    loop { // go through each term
+                        let curr_term_termdoc = terms_termdocs[term_idx];
+                        if field_id >= curr_term_termdoc.fields.len() {
                             break;
                         }
 
-                        let curr_pl_field = &curr_term_termdocs.fields[field_id];
-                        if let Some(pos) =
-                            curr_pl_field.field_positions.get(term_field_position_idxes[term_idx])
-                        {
+                        let curr_pl_field = &curr_term_termdoc.fields[field_id];
+                        if let Some(pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
                             if term_idx == 0 {
-                                term_field_position_idxes[term_idx] += 1;
+                                // First term in the query
+                                term_field_position_idxes[0] += 1;
 
                                 curr_pos = *pos;
                                 term_idx += 1;
                             } else if *pos == (curr_pos + 1) {
+                                // Matched the next term
                                 term_field_position_idxes[term_idx] += 1;
 
                                 if term_idx == num_pls - 1 {
@@ -115,7 +121,7 @@ impl Searcher {
                                     has_match = true;
                                     result_doc_field.field_positions.push((*pos) + 1 - (num_pls as u32));
 
-                                    // Reset
+                                    // Reset to look for first term
                                     term_idx = 0;
                                 } else {
                                     // Match next term
