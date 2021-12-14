@@ -50,15 +50,14 @@ releaseIndexer:
 	cd packages/morsels_indexer &&\
 	cargo publish
 
-# Self-reminder: Update package.json version manually before npm run buildSearch (used in webpack build)
-# git checkout -- . to discard wasm-pack package.json changes
+# git checkout -- . is to discard wasm-pack package.json changes
 preReleaseSearch:
 	npm run setup
+	npx lerna version --no-push
 	npm run buildSearch
 	git add packages/search-ui/dist/*
-	git commit -m "Update search-ui dist"
+	git commit --amend -m "Bump search"
 	git checkout -- .
-	npx lerna version --no-push
 
 releaseSearch:
 	npx lerna publish from-git
@@ -68,7 +67,7 @@ preReleaseMdbook:
 	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
 	git add packages/mdbook-morsels/search-ui-dist/*
 	git commit -m "Update mdbook search-ui dist"
-	cargo clean -p mdbook-morsels
+	cargo clean --release -p mdbook-morsels
 	cd packages/mdbook-morsels &&\
 	cargo package &&\
 	cargo package --list
