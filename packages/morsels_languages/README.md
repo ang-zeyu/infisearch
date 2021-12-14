@@ -1,3 +1,3 @@
 # Morsels Language Package
 
-This is tokenizer crate for `morsels_indexer`, not intended to be used directly.
+This is a tokenizer crate for the `morsels_indexer` cli tool, not intended to be used directly.
