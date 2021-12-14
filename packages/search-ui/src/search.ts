@@ -73,10 +73,6 @@ function prepareOptions(options: SearchUiOptions) {
     options.searcherOptions.useQueryTermProximity = !isMobileSizeGlobal;
   }
 
-  if (!('cacheAllFieldStores' in options.searcherOptions)) {
-    options.searcherOptions.cacheAllFieldStores = true;
-  }
-
   // ------------------------------------------------------------
   // Ui Options
 

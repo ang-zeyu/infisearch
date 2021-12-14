@@ -58,6 +58,8 @@ To achieve this result, you will need to ensure **everything** that is **potenti
 - Ensure `pl_cache_threshold` is set to a very low number (or at least smaller than the inverted index file size), so that the postings list are loaded up front and cached in memory.
 - You would also want to set `field_store_block_size` to a fairly high number, and correspondingly set `cacheAllFieldStores` to `true`. This allows morsels to load the few field stores during initilisation and persistently cache them.
 
+> ⭐ This is what's being used by this documentation, since it is fairly small.<br>Nevertheless, `RTT=1/2` are still very acceptable settings under good network conditions. `RTT=3` may be slightly slow (`~600ms` assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br>
+> Coming Soon: More repo / test github pages for demonstrating the other settings
 
 ### 2. `RTT=1/2`, Good Scalability, Moderate / Heavy File Bloat
 

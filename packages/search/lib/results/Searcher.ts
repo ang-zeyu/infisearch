@@ -114,6 +114,10 @@ class Searcher {
       throw new Error('Morsels search version not equal to indexer version!');
     }
 
+    if (!('cacheAllFieldStores' in this.options)) {
+      this.options.cacheAllFieldStores = !!json.cache_all_field_stores;
+    }
+
     const { field_infos: fieldInfosRaw } = json;
 
     const fieldInfos: FieldInfo[] = [];

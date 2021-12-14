@@ -192,6 +192,7 @@ pub struct MorselsOutputConfig<'a> {
     last_doc_id: u32,
     indexing_config: MorselsIndexingOutputConfig,
     lang_config: &'a MorselsLanguageConfig,
+    cache_all_field_stores: bool,
     field_infos: &'a FieldInfos,
 }
 
@@ -210,6 +211,7 @@ pub struct Indexer {
     indexing_config: Arc<MorselsIndexingConfig>,
     doc_id_counter: u32,
     spimi_counter: u32,
+    cache_all_field_stores: bool,
     pl_names_to_cache: Vec<u32>,
     field_infos: Arc<FieldInfos>,
     output_folder_path: PathBuf,
@@ -407,6 +409,7 @@ impl Indexer {
             indexing_config,
             doc_id_counter,
             spimi_counter,
+            cache_all_field_stores: config.fields_config.cache_all_field_stores,
             pl_names_to_cache: Vec::new(),
             field_infos,
             output_folder_path: output_folder_path.to_path_buf(),
@@ -577,6 +580,7 @@ impl Indexer {
                 with_positions: self.indexing_config.with_positions,
             },
             lang_config: &self.lang_config,
+            cache_all_field_stores: self.cache_all_field_stores,
             field_infos: &self.field_infos,
         })
         .unwrap();

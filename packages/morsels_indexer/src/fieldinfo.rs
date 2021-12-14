@@ -5,9 +5,15 @@ use rustc_hash::FxHashMap;
 
 use serde::{Deserialize, Serialize};
 
+fn get_default_cache_all_field_stores() -> bool {
+    true
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct FieldsConfig {
     pub field_store_block_size: u32,
+    #[serde(default="get_default_cache_all_field_stores")]
+    pub cache_all_field_stores: bool,
     pub fields: Vec<FieldConfig>,
 }
 
@@ -16,6 +22,7 @@ impl Default for FieldsConfig {
         // The default configuration required for @morsels/search-ui
         FieldsConfig {
             field_store_block_size: 250,
+            cache_all_field_stores: get_default_cache_all_field_stores(),
             fields: vec![
                 FieldConfig { name: "title".to_owned(), do_store: false, weight: 0.2, k: 1.2, b: 0.25 },
                 FieldConfig { name: "heading".to_owned(), do_store: false, weight: 0.3, k: 1.2, b: 0.3 },

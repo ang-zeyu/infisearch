@@ -40,6 +40,10 @@ config = "morsels_config.json"
 #
 # Only needed if you want to use some custom styling
 no-css = false
+
+# This scales some settings of the indexer according to your collection size
+# (see chapter on "Tradeoffs")
+scaling = true
 ```
 
 ## Preview

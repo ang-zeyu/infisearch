@@ -3,7 +3,7 @@ extern crate mdbook;
 use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::Error;
@@ -18,6 +18,7 @@ use mdbook::preprocess::Preprocessor;
 use mdbook::preprocess::PreprocessorContext;
 use mdbook::renderer::RenderContext;
 use toml::value::Value::{self, Boolean as TomlBoolean, String as TomlString};
+use serde_json::{Value as JsonValue, json};
 
 const SEARCH_UI_DIST: Dir = include_dir!("$CARGO_MANIFEST_DIR/search-ui-dist");
 
@@ -55,29 +56,7 @@ fn main() {
         mark_js.write_all(MARK_MIN_JS).expect("mdbook-morsels: Failed to copy search-ui asset (mark.min.js)!");
         // ---------------------------------
 
-        let morsels_config_path = if let Some(TomlString(morsels_config_file_path)) = ctx.config.get("output.morsels.config") {
-            ctx.root.join(morsels_config_file_path)
-        } else {
-            ctx.root.join("morsels_config.json")
-        };
-
-        if !morsels_config_path.exists() || !morsels_config_path.is_file() {
-            let mut init_config_command = Command::new("morsels");
-            init_config_command.current_dir(ctx.root.clone()).args(&["./", "./morsels_output", "--init"]);
-            init_config_command.arg("-c");
-            init_config_command.arg(&morsels_config_path);
-            init_config_command
-                .output()
-                .expect("mdbook-morsels: failed to create default configuration file");
-
-            let config = fs::read_to_string(&morsels_config_path).unwrap();
-            fs::write(
-                &morsels_config_path,
-                config.replace("\"exclude\": [", "\"exclude\": [\n      \"index.html\",\n      \"print.html\",")
-                    .replace("script,style", "script,style,#sidebar,#menu-bar"),
-            )
-            .unwrap();
-        }
+        let morsels_config_path = get_config_file_path(&ctx.root, ctx.config.get("output.morsels.config"));
 
         let mut command = Command::new("morsels");
         command
@@ -109,6 +88,138 @@ fn main() {
             std::process::exit(0);
         }
     }
+}
+
+fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::PathBuf {
+    let morsels_config_path = get_config_file_path(&ctx.root, ctx.config.get("output.morsels.config"));
+
+    if !morsels_config_path.exists() || !morsels_config_path.is_file() {
+        let mut init_config_command = Command::new("morsels");
+        init_config_command.current_dir(ctx.root.clone()).args(&["./", "./morsels_output", "--init"]);
+        init_config_command.arg("-c");
+        init_config_command.arg(&morsels_config_path);
+        init_config_command
+            .output()
+            .expect("mdbook-morsels: failed to create default configuration file");
+
+        let config = fs::read_to_string(&morsels_config_path).unwrap();
+        fs::write(
+            &morsels_config_path,
+            config.replace("\"exclude\": [", "\"exclude\": [\n      \"index.html\",\n      \"print.html\", \n      \"404.html\",")
+                .replace("script,style", "script,style,#sidebar,#menu-bar"),
+        )
+        .unwrap();
+    }
+
+    let scaling_config = ctx.config.get("output.morsels.scaling");
+    let do_scale = scaling_config.is_none()
+        || (scaling_config.unwrap().is_bool() && scaling_config.unwrap().as_bool().unwrap());
+    if do_scale  {
+        auto_scale_config(&morsels_config_path, total_len);
+    }
+
+    morsels_config_path
+}
+
+fn auto_scale_config(morsels_config_path: &PathBuf, total_len: u64) {
+    let config = fs::read_to_string(morsels_config_path).unwrap();
+    let mut config_as_value: JsonValue = serde_json::from_str(&config).expect("unexpected error parsing search config file");
+    let indexing_config = config_as_value.get_mut("indexing_config");
+    if indexing_config.is_none() {
+        config_as_value.as_object_mut().unwrap().insert("indexing_config".to_owned(), json!("{}"));
+    }
+    let indexing_config = config_as_value
+        .get_mut("indexing_config")
+        .unwrap()
+        .as_object_mut()
+        .expect("indexing_config is not an object");
+
+    indexing_config.insert("_total_len".to_owned(), json!(format!("This is debugging metadata for the mdbook plugin. Total len: {}", total_len)));
+    
+    const BOUNDARY_1_END: u64   = 10000000;
+    // 10MB
+    const BOUNDARY_2_START: u64 = 10000001;
+    // 100MB
+    const BOUNDARY_2_END: u64   = 100000000;
+    match total_len {
+        0..=BOUNDARY_2_END => {
+            indexing_config.insert("num_docs_per_block".to_owned(), json!(1000));
+            indexing_config.insert("pl_limit".to_owned(), json!(2097151));
+            indexing_config.insert("pl_cache_threshold".to_owned(), json!(0));
+        },
+        _ => {
+            indexing_config.insert("num_docs_per_block".to_owned(), json!(1000));
+            indexing_config.insert("pl_limit".to_owned(), json!(16383));
+            indexing_config.insert("pl_cache_threshold".to_owned(), json!(1048576));
+        }
+    }
+    let fields_config = config_as_value.get_mut("fields_config");
+    if fields_config.is_none() {
+        config_as_value.as_object_mut().unwrap().insert("fields_config".to_owned(), json!("{}"));
+    }
+    let fields_config = config_as_value
+        .get_mut("fields_config")
+        .expect("fields_config is missing!")
+        .as_object_mut()
+        .expect("fields_config is not an object");
+    let set_field_do_store = |fields: &mut Vec<JsonValue>, name: &str, val: bool| {
+        let field = fields
+            .iter_mut()
+            .find(|val|
+                val.as_object()
+                    .expect("encountered non object in fields_config.fields")
+                    .get("name")
+                    .expect("fields_config.fields object missing key \"name\"")
+                    .as_str()
+                    .expect("fields_config.fields.name is not a string")
+                == name
+            )
+            .expect(&("fields_config.fields is missing ".to_owned() + name))
+            .as_object_mut()
+            .unwrap();
+        field.insert("do_store".to_owned(), json!(val));
+    };
+    match total_len {
+        0..=BOUNDARY_1_END => {
+            fields_config.insert("field_store_block_size".to_owned(), json!(250));
+            fields_config.insert("cache_all_field_stores".to_owned(), json!(true));
+        },
+        BOUNDARY_2_START..=BOUNDARY_2_END => {
+            fields_config.insert("field_store_block_size".to_owned(), json!(3));
+            fields_config.insert("cache_all_field_stores".to_owned(), json!(false));
+        },
+        _ => {
+            fields_config.insert("field_store_block_size".to_owned(), json!(1));
+            fields_config.insert("cache_all_field_stores".to_owned(), json!(false));
+        }
+    }
+
+    let mut fields = fields_config
+        .get_mut("fields")
+        .expect("fields_config.fields is missing!")
+        .as_array_mut()
+        .expect("fields_config.fields is not an array");
+
+    // All scaling levels prefer json stores for now
+    set_field_do_store(&mut fields, "title", true);
+    set_field_do_store(&mut fields, "heading", true);
+    set_field_do_store(&mut fields, "headingLink", true);
+    set_field_do_store(&mut fields, "body", true);
+
+    fs::write(
+        &morsels_config_path,
+        serde_json::to_string_pretty(&config_as_value).unwrap(),
+    )
+    .unwrap();
+}
+
+fn get_config_file_path(root: &PathBuf, config: Option<&Value>) -> std::path::PathBuf {
+    let morsels_config_path = if let Some(TomlString(morsels_config_file_path)) = config {
+        root.join(morsels_config_file_path)
+    } else {
+        root.join("morsels_config.json")
+    };
+    morsels_config_path
 }
 
 // Preprocessor for adding input search box
@@ -257,11 +368,16 @@ impl Preprocessor for Morsels {
 
         let init_morsels_el = get_script_els(ctx.config.get("output.morsels.mode"), site_url);
 
+        let mut total_len: u64 = 0;
+
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
+                total_len += ch.content.len() as u64;
                 ch.content = get_css_el(&site_url, &ctx) + INPUT_EL + &ch.content + &init_morsels_el;
             }
         });
+
+        setup_config_file(&ctx, total_len);
 
         Ok(book)
     }

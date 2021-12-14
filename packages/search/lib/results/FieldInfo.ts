@@ -35,6 +35,7 @@ export interface MorselsConfigRaw {
     lang: string,
     options: any,
   },
+  cache_all_field_stores: boolean,
   field_infos: FieldInfosRaw,
 }
 

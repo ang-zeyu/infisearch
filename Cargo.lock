@@ -1097,6 +1097,7 @@ dependencies = [
  "clap",
  "include_dir",
  "mdbook",
+ "serde",
  "serde_json",
  "toml",
 ]
