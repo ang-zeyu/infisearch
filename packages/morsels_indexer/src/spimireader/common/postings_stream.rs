@@ -140,10 +140,11 @@ impl PostingsStream {
         {
             // Request for an in-advance worker decode...
 
-            match std::mem::replace(
+            let decoder = std::mem::replace(
                 postings_stream_decoders.get_mut(&self.idx).unwrap().value_mut(),
                 PostingsStreamDecoder::None,
-            ) {
+            );
+            match decoder {
                 PostingsStreamDecoder::Reader(postings_stream_reader) => {
                     postings_stream_reader.read_next_batch(POSTINGS_STREAM_BUFFER_SIZE, tx_main, Arc::clone(postings_stream_decoders));
                     self.is_reader_decoding = true;
