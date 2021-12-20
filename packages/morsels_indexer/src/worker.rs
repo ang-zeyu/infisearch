@@ -9,7 +9,6 @@ use std::sync::Mutex;
 use std::thread;
 
 use crossbeam::channel::{Receiver, Sender};
-use crossbeam::deque::{Injector as CrossbeamInjector, Worker as CrossbeamWorker};
 
 use crate::loader::LoaderResult;
 use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
@@ -44,14 +43,6 @@ impl Indexer {
     }
 }
 
-pub enum IndexMsg {
-    Index {
-        doc_id: u32,
-        loader_result: Box<dyn LoaderResult + Send>,
-    },
-    Stop
-}
-
 pub enum MainToWorkerMessage {
     Synchronize(Arc<Barrier>),
     Reset(Arc<Barrier>),
@@ -65,7 +56,10 @@ pub enum MainToWorkerMessage {
         doc_id_counter: u32,
         doc_infos: Arc<Mutex<DocInfos>>,
     },
-    Index,
+    Index {
+        doc_id: u32,
+        loader_result: Box<dyn LoaderResult + Send>,
+    },
     Decode {
         n: usize,
         postings_stream_reader: PostingsStreamReader,
@@ -78,27 +72,6 @@ pub struct WorkerToMainMessage {
     pub block_index_results: Option<WorkerBlockIndexResults>,
 }
 
-fn handle_index(local_queue: &CrossbeamWorker<IndexMsg>, doc_miner: &mut WorkerMiner, global_queue: &Arc<CrossbeamInjector<IndexMsg>>) {
-    loop {
-        let task = local_queue.pop().or_else(|| {
-            // Go back to global queue
-            std::iter::repeat_with(|| global_queue.steal_batch_and_pop(local_queue))
-                .find(|s| s.is_success())
-                .and_then(|s| s.success())
-        }).expect("Worker should not fail in extracting index unit");
-
-        if let IndexMsg::Index { doc_id, mut loader_result } = task {
-            doc_miner.index_doc(doc_id, loader_result.get_field_texts());
-        } else {
-            // Push back Stop messages, if any
-            while let Some(msg) = local_queue.pop() {
-                global_queue.push(msg);
-            }
-            break;
-        }
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 pub fn worker(
     id: usize,
@@ -109,7 +82,6 @@ pub fn worker(
     indexing_config: Arc<MorselsIndexingConfig>,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
-    global_queue: Arc<CrossbeamInjector<IndexMsg>>,
 ) {
     let mut doc_miner = WorkerMiner::new(
         &field_infos,
@@ -120,12 +92,10 @@ pub fn worker(
         id,
     );
 
-    let local_queue: CrossbeamWorker<IndexMsg> = CrossbeamWorker::new_fifo();
-
     for msg in rcvr.into_iter() {
         match msg {
-            MainToWorkerMessage::Index => {
-                handle_index(&local_queue, &mut doc_miner, &global_queue);
+            MainToWorkerMessage::Index { doc_id, mut loader_result } => {
+                doc_miner.index_doc(doc_id, loader_result.get_field_texts());
             }
             MainToWorkerMessage::Combine {
                 worker_index_results,
@@ -137,6 +107,8 @@ pub fn worker(
                 doc_id_counter,
                 doc_infos,
             } => {
+                sndr.send(WorkerToMainMessage { id: 0, block_index_results: None }).expect("Worker failed to notify combine started");
+
                 #[cfg(debug_assertions)]
                 println!("Worker {} writing spimi block {}!", id, block_number);
 
@@ -162,8 +134,6 @@ pub fn worker(
 
                 #[cfg(debug_assertions)]
                 println!("Worker {} decremented num_workers_writing_blocks_clone!", id);
-
-                handle_index(&local_queue, &mut doc_miner, &global_queue);
             }
             MainToWorkerMessage::Reset(barrier) => {
                 #[cfg(debug_assertions)]

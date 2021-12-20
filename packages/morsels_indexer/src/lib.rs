@@ -35,10 +35,9 @@ use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
 use crate::loader::Loader;
 use crate::worker::miner::WorkerMiner;
-use crate::worker::{IndexMsg, MainToWorkerMessage, Worker, WorkerToMainMessage};
+use crate::worker::{MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
-use crossbeam::deque::Injector as CrossbeamInjector;
 use glob::Pattern;
 use normalize_line_endings::normalized;
 use rustc_hash::FxHashMap;
@@ -218,9 +217,9 @@ pub struct Indexer {
     workers: Vec<Worker>,
     loaders: Vec<Box<dyn Loader>>,
     doc_infos: Arc<Mutex<DocInfos>>,
-    index_unit_queue: Arc<CrossbeamInjector<IndexMsg>>,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
+    rx_worker: Receiver<MainToWorkerMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
     lang_config: MorselsLanguageConfig,
     is_dynamic: bool,
@@ -353,9 +352,7 @@ impl Indexer {
         ) = channel::bounded(config.indexing_config.num_threads);
         let (tx_main, rx_worker): (
             Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
-        ) = channel::bounded(config.indexing_config.num_threads);
-
-        let index_unit_queue = Arc::from(CrossbeamInjector::new());
+        ) = channel::bounded(100); // TODO 100 may be a little arbitrary
 
         let expected_num_docs_per_thread =
             (config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2) as usize;
@@ -375,7 +372,6 @@ impl Indexer {
             let field_info_clone = Arc::clone(&field_infos);
             let indexing_config_clone = Arc::clone(&indexing_config);
             let num_workers_writing_blocks_clone = Arc::clone(&num_workers_writing_blocks);
-            let index_unit_queue = Arc::clone(&index_unit_queue);
 
             workers.push(Worker {
                 id: i as usize,
@@ -389,7 +385,6 @@ impl Indexer {
                         indexing_config_clone,
                         expected_num_docs_per_thread,
                         num_workers_writing_blocks_clone,
-                        index_unit_queue,
                     )
                 }),
             });
@@ -415,9 +410,9 @@ impl Indexer {
             workers,
             loaders,
             doc_infos,
-            index_unit_queue,
             tx_main,
             rx_main,
+            rx_worker,
             num_workers_writing_blocks,
             lang_config: config.lang_config,
             is_dynamic,
@@ -427,8 +422,6 @@ impl Indexer {
             dynamic_index_info,
         };
         indexer.start_block_number = indexer.block_number();
-
-        indexer.make_workers_index(num_threads);
 
         indexer
     }
@@ -466,12 +459,6 @@ impl Indexer {
         ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).floor() as u32
     }
 
-    fn make_workers_index(&self, n: usize) {
-        for _i in 0..n {
-            self.tx_main.send(MainToWorkerMessage::Index).expect("Failed to restart index phase");
-        }
-    }
-
     pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
         let timestamp = if let Ok(metadata) = std::fs::metadata(path) {
             if let Ok(modified) = metadata.modified() {
@@ -503,12 +490,14 @@ impl Indexer {
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
             {
-                for mut loader_result in loader_results {
-                    if self.index_unit_queue.len() > 100 { // TODO 100 may be a little arbitrary
-                        self.doc_miner.index_doc(self.doc_id_counter, loader_result.get_field_texts());
-                    } else {
-                        self.index_unit_queue.push(IndexMsg::Index { doc_id: self.doc_id_counter, loader_result });
-                    }
+                for loader_result in loader_results {
+                    self.tx_main.send(MainToWorkerMessage::Index {
+                        doc_id: self.doc_id_counter,
+                        loader_result,
+                    }).expect("Failed to send index msg to worker!");
+
+
+                    Self::try_index_doc(&mut self.doc_miner, &self.rx_worker, 30); // TODO 30 a little arbitrary?
 
                     self.dynamic_index_info.add_doc_to_external_id(external_id, self.doc_id_counter);
 
@@ -516,30 +505,30 @@ impl Indexer {
                     self.spimi_counter += 1;
 
                     if self.spimi_counter == self.indexing_config.num_docs_per_block {
-                        let mut num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
-                        // Minimally need 1 worker to take up this job still
-                        while *num_workers_writing_blocks == self.indexing_config.num_threads {
-                            drop(num_workers_writing_blocks);
-                            std::thread::sleep(std::time::Duration::from_millis(10));
-                            num_workers_writing_blocks = self.num_workers_writing_blocks.lock().unwrap();
-                        }
-
-                        let num_active_workers = self.indexing_config.num_threads - *num_workers_writing_blocks;
-                        for _i in 0..num_active_workers {
-                            self.index_unit_queue.push(IndexMsg::Stop);
-                        }
+                        Self::try_index_doc(&mut self.doc_miner, &self.rx_worker, 0);
 
                         let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number() - 1;
+
                         self.write_block(
-                            main_thread_block_index_results, block_number, false, &mut * num_workers_writing_blocks
+                            main_thread_block_index_results, block_number, false,
                         );
                         self.spimi_counter = 0;
-
-                        self.make_workers_index(num_active_workers - 1);
                     }
                 }
                 break;
+            }
+        }
+    }
+
+    fn try_index_doc(doc_miner: &mut WorkerMiner, rx_worker: &Receiver<MainToWorkerMessage>, until: usize) {
+        while rx_worker.len() > until {
+            if let Ok(msg) = rx_worker.try_recv() {
+                if let MainToWorkerMessage::Index { doc_id, mut loader_result } = msg {
+                    doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+                } else {
+                    panic!("Unexpected message received @main thread");
+                }
             }
         }
     }
@@ -597,24 +586,22 @@ impl Indexer {
         #[cfg(debug_assertions)]
         println!("@finish_writing_docs");
 
-        for _i in 0..self.indexing_config.num_threads {
-            self.index_unit_queue.push(IndexMsg::Stop);
-        }
-
         let first_block = self.start_block_number;
         let mut last_block = self.block_number();
 
         if self.spimi_counter != 0 {
+            Self::try_index_doc(&mut self.doc_miner, &self.rx_worker, 0);
+
             #[cfg(debug_assertions)]
             println!("Writing extra last spimi block");
 
             let main_thread_block_index_results = self.doc_miner.get_results();
-            self.write_block(main_thread_block_index_results, last_block, true, &mut 0);
+            self.write_block(main_thread_block_index_results, last_block, true);
             self.spimi_counter = 0;
         } else if !self.is_deletion_only_run() {
             last_block -= 1;
-            self.wait_on_all_workers();
         }
+        self.wait_on_all_workers();
 
         #[cfg(debug_assertions)]
         println!(

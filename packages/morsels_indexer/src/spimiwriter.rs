@@ -26,9 +26,11 @@ impl Indexer {
         main_thread_block_results: WorkerBlockIndexResults,
         block_number: u32,
         is_last_block: bool,
-        num_workers_writing_blocks: &mut usize,
     ) {
         // Don't block on threads that are still writing blocks (long running)
+        let mut num_workers_writing_blocks = self.num_workers_writing_blocks
+            .lock()
+            .expect("Main thread failed to acquire num_workers_writing_blocks lock");
         let num_workers_to_collect = self.indexing_config.num_threads - *num_workers_writing_blocks;
         let mut worker_index_results: Vec<WorkerBlockIndexResults> = Vec::with_capacity(num_workers_to_collect + 1);
         worker_index_results.push(main_thread_block_results);
@@ -42,9 +44,7 @@ impl Indexer {
                 .expect("Failed to send reset message!");
         }
 
-        if !is_last_block {
-            *num_workers_writing_blocks += 1;
-        }
+        *num_workers_writing_blocks += 1;
 
         // Receive doc miners
         for worker_msg in self.rx_main.iter().take(num_workers_to_collect) {
@@ -53,6 +53,8 @@ impl Indexer {
             worker_index_results
                 .push(worker_msg.block_index_results.expect("Received non doc miner message!"));
         }
+
+        drop(num_workers_writing_blocks);
 
         let output_folder_path = PathBuf::from(&self.output_folder_path);
         let check_for_existing_field_store = self.is_dynamic && block_number == self.start_block_number;
@@ -82,6 +84,9 @@ impl Indexer {
                     doc_infos: Arc::clone(&self.doc_infos),
                 })
                 .expect("Failed to send work message to worker!");
+            if self.rx_main.recv().expect("Main failed to receive msg after combine msg sent").block_index_results.is_some() {
+                panic!("Main received unexpected msg after combine msg sent")
+            }
         }
     }
 }
