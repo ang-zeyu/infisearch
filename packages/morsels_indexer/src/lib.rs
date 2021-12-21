@@ -510,7 +510,7 @@ impl Indexer {
                         let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number() - 1;
 
-                        self.write_block(
+                        self.merge_block(
                             main_thread_block_index_results, block_number, false,
                         );
                         self.spimi_counter = 0;
@@ -551,37 +551,6 @@ impl Indexer {
             .unwrap();
     }
 
-    fn write_morsels_config(&mut self) {
-        let serialized = serde_json::to_string(&MorselsOutputConfig {
-            ver: MORSELS_VERSION,
-            last_doc_id: self.doc_id_counter,
-            indexing_config: MorselsIndexingOutputConfig {
-                loader_configs: std::mem::take(&mut self.loaders)
-                    .into_iter()
-                    .map(|loader| (loader.get_name(), loader))
-                    .collect(),
-                pl_names_to_cache: self.dynamic_index_info.pl_names_to_cache.clone(),
-                num_docs_per_block: self.indexing_config.num_docs_per_block,
-                num_pls_per_dir: self.indexing_config.num_pls_per_dir,
-                num_stores_per_dir: self.indexing_config.num_stores_per_dir,
-                with_positions: self.indexing_config.with_positions,
-            },
-            lang_config: &self.lang_config,
-            cache_all_field_stores: self.cache_all_field_stores,
-            field_infos: &self.field_infos,
-        })
-        .unwrap();
-
-        File::create(self.output_folder_path.join("morsels_config.json"))
-            .unwrap()
-            .write_all(serialized.as_bytes())
-            .unwrap();
-    }
-
-    fn is_deletion_only_run(&self) -> bool {
-        self.doc_id_counter == self.start_doc_id
-    }
-
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
         #[cfg(debug_assertions)]
         println!("@finish_writing_docs");
@@ -596,7 +565,7 @@ impl Indexer {
             println!("Writing extra last spimi block");
 
             let main_thread_block_index_results = self.doc_miner.get_results();
-            self.write_block(main_thread_block_index_results, last_block, true);
+            self.merge_block(main_thread_block_index_results, last_block, true);
             self.spimi_counter = 0;
         } else if !self.is_deletion_only_run() {
             last_block -= 1;
@@ -615,6 +584,28 @@ impl Indexer {
 
         // Merge spimi blocks
         // Go through all blocks at once
+        self.merge_blocks(first_block, last_block);
+
+        self.write_morsels_config();
+
+        self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter);
+
+        if !self.is_deletion_only_run() {
+            spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
+        }
+
+        if let Some(now) = instant {
+            print_time_elapsed(now, "Blocks merged!");
+        }
+
+        self.terminate_all_workers();
+    }
+
+    fn is_deletion_only_run(&self) -> bool {
+        self.doc_id_counter == self.start_doc_id
+    }
+
+    fn merge_blocks(&mut self, first_block: u32, last_block: u32) {
         let num_blocks = last_block - first_block + 1;
         if self.is_dynamic {
             if self.delete_unencountered_external_ids {
@@ -646,20 +637,33 @@ impl Indexer {
                 &mut self.dynamic_index_info,
             );
         }
+    }
 
-        self.write_morsels_config();
+    fn write_morsels_config(&mut self) {
+        let serialized = serde_json::to_string(&MorselsOutputConfig {
+            ver: MORSELS_VERSION,
+            last_doc_id: self.doc_id_counter,
+            indexing_config: MorselsIndexingOutputConfig {
+                loader_configs: std::mem::take(&mut self.loaders)
+                    .into_iter()
+                    .map(|loader| (loader.get_name(), loader))
+                    .collect(),
+                pl_names_to_cache: self.dynamic_index_info.pl_names_to_cache.clone(),
+                num_docs_per_block: self.indexing_config.num_docs_per_block,
+                num_pls_per_dir: self.indexing_config.num_pls_per_dir,
+                num_stores_per_dir: self.indexing_config.num_stores_per_dir,
+                with_positions: self.indexing_config.with_positions,
+            },
+            lang_config: &self.lang_config,
+            cache_all_field_stores: self.cache_all_field_stores,
+            field_infos: &self.field_infos,
+        })
+        .unwrap();
 
-        self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter);
-
-        if !self.is_deletion_only_run() {
-            spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
-        }
-
-        if let Some(now) = instant {
-            print_time_elapsed(now, "Blocks merged!");
-        }
-
-        self.terminate_all_workers();
+        File::create(self.output_folder_path.join("morsels_config.json"))
+            .unwrap()
+            .write_all(serialized.as_bytes())
+            .unwrap();
     }
 }
 

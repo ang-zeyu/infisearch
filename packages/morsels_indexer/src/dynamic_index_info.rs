@@ -184,6 +184,8 @@ impl DynamicIndexInfo {
     }
 
     pub fn write(&mut self, output_folder_path: &Path, doc_id_counter: u32) {
+        self.num_docs = doc_id_counter - self.num_deleted_docs;
+
         let serialized = serde_json::to_string(self).unwrap();
 
         File::create(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME))

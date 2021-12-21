@@ -1,7 +1,4 @@
 use std::collections::BinaryHeap;
-use std::fs::File;
-use std::fs::OpenOptions;
-use std::io::{BufWriter, Seek, SeekFrom, Write};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Barrier;
@@ -12,7 +9,6 @@ use rustc_hash::FxHashMap;
 use crate::docinfo::BlockDocLengths;
 use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
-use crate::worker::miner::TermDocComparator;
 use crate::worker::miner::WorkerBlockIndexResults;
 use crate::worker::miner::WorkerMinerDocInfo;
 use crate::DocInfos;
@@ -20,8 +16,11 @@ use crate::FieldInfos;
 use crate::Indexer;
 use crate::MainToWorkerMessage;
 
+mod fields;
+mod write_block;
+
 impl Indexer {
-    pub fn write_block(
+    pub fn merge_block(
         &self,
         main_thread_block_results: WorkerBlockIndexResults,
         block_number: u32,
@@ -139,196 +138,32 @@ pub fn combine_worker_results_and_write_block(
         // ---------------------------------------------
         // Store field texts
         if !sorted_doc_infos.is_empty() {
-            let mut file_number = if check_for_existing_field_store {
-                start_doc_id / field_infos.field_store_block_size
-            } else {
-                (doc_id_counter - spimi_counter) / field_infos.field_store_block_size
-            };
-            let mut curr_block_count = if check_for_existing_field_store {
-                start_doc_id % field_infos.field_store_block_size
-            } else {
-                (doc_id_counter - spimi_counter) % field_infos.field_store_block_size
-            };
-            let mut writer = open_new_block_file(file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
-
-            write_field_texts(
-                &mut writer,
-                sorted_doc_infos.first_mut().unwrap(),
-                &mut curr_block_count,
+            fields::store_fields(
+                check_for_existing_field_store,
+                start_doc_id,
                 field_infos,
-                &mut file_number,
+                doc_id_counter,
+                spimi_counter,
+                num_stores_per_dir,
+                block_number,
+                &mut sorted_doc_infos
             );
-    
-            for worker_miner_doc_info in sorted_doc_infos.iter_mut().skip(1) {
-                if curr_block_count == 0 {
-                    writer = open_new_block_file(file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
-                } else {
-                    writer.write_all(b",").unwrap();
-                }
-    
-                write_field_texts(
-                    &mut writer,
-                    worker_miner_doc_info,
-                    &mut curr_block_count,
-                    field_infos,
-                    &mut file_number,
-                );
-            }
-    
-            if curr_block_count != 0 {
-                writer.write_all(b"]").unwrap();
-                writer.flush().unwrap();
-            }
 
             #[cfg(debug_assertions)]
             println!("Num docs in block {}: {}", block_number, sorted_doc_infos.len());
-
-            // Store in global
-            {
-                doc_infos.lock().unwrap().all_block_doc_lengths.push(BlockDocLengths(sorted_doc_infos));
-            }
         } else {
             // possibly just a dynamic indexing run with a deletion
             #[cfg(debug_assertions)]
             println!("Encountered empty block {}", block_number);
         }
         // ---------------------------------------------
-    }
 
-    {
-        let mut combined_terms_vec: Vec<_> = combined_terms.into_iter().collect();
-        // Sort by lexicographical order
-        combined_terms_vec.sort_by(|a, b| a.0.cmp(&b.0));
-
-        let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
-        let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
-
-        #[cfg(debug_assertions)]
-        println!(
-            "Writing bsbi block {} to {}, num terms {}",
-            block_number,
-            output_file_path.to_str().unwrap(),
-            combined_terms_vec.len()
-        );
-
-        let df = File::create(dict_output_file_path)
-            .expect("Failed to open temporary dictionary table for writing.");
-        let mut buffered_writer_dict = BufWriter::new(df);
-
-        let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");
-        let mut buffered_writer = BufWriter::with_capacity(819200, f);
-
-        // Sort and aggregate worker docIds of each term into one vector
-        for (term, workers_term_docs) in combined_terms_vec {
-            buffered_writer_dict.write_all(&(term.len() as u8).to_le_bytes()).unwrap();
-            buffered_writer_dict.write_all(term.as_bytes()).unwrap();
-            let mut doc_freq = 0;
-
-            // Initialise heap sort
-            let mut heap: BinaryHeap<TermDocComparator> = BinaryHeap::new();
-            for term_docs in workers_term_docs {
-                doc_freq += term_docs.len() as u32;
-                let mut iter = term_docs.into_iter();
-                if let Some(term_doc) = iter.next() {
-                    heap.push(TermDocComparator(term_doc, iter));
-                }
-            }
-
-            buffered_writer_dict.write_all(&doc_freq.to_le_bytes()).unwrap();
-
-            while !heap.is_empty() {
-                let mut term_doc_and_iter = heap.pop().unwrap();
-
-                buffered_writer.write_all(&term_doc_and_iter.0.doc_id.to_le_bytes()).unwrap();
-
-                let num_fields =
-                    term_doc_and_iter.0.doc_fields.iter().filter(|doc_field| doc_field.field_tf > 0).count() as u8;
-                buffered_writer.write_all(&[num_fields]).unwrap();
-
-                for (field_id, doc_field) in term_doc_and_iter.0.doc_fields.into_iter().enumerate() {
-                    if doc_field.field_tf == 0 {
-                        continue;
-                    }
-
-                    buffered_writer.write_all(&[field_id as u8]).unwrap();
-                    buffered_writer.write_all(&doc_field.field_tf.to_le_bytes()).unwrap();
-
-                    for pos in doc_field.positions {
-                        buffered_writer.write_all(&pos.to_le_bytes()).unwrap();
-                    }
-                }
-
-                if let Some(term_doc) = term_doc_and_iter.1.next() {
-                    heap.push(TermDocComparator(term_doc, term_doc_and_iter.1));
-                }
-            }
+        if !sorted_doc_infos.is_empty() {
+            doc_infos.lock().unwrap().all_block_doc_lengths.push(BlockDocLengths(sorted_doc_infos));
         }
-
-        buffered_writer.flush().unwrap();
-        buffered_writer_dict.flush().unwrap();
     }
+
+    write_block::write_block(combined_terms, output_folder_path, block_number);
 }
 
-#[inline(always)]
-fn write_field_texts(
-    writer: &mut BufWriter<File>,
-    worker_miner_doc_info:
-    &mut WorkerMinerDocInfo,
-    curr_block_count: &mut u32,
-    field_infos: &Arc<FieldInfos>,
-    file_number: &mut u32,
-) {
-    writer.write_all(&std::mem::take(&mut worker_miner_doc_info.field_texts)).unwrap();
-    *curr_block_count += 1;
-    if *curr_block_count == field_infos.field_store_block_size {
-        writer.write_all(b"]").unwrap();
-        writer.flush().unwrap();
-    
-        *file_number += 1;
-        *curr_block_count = 0;
-    }
-}
 
-#[inline(always)]
-fn open_new_block_file(
-    file_number: u32,
-    field_infos: &Arc<FieldInfos>,
-    num_stores_per_dir: u32,
-    block_number: u32,
-    check_for_existing: bool,
-) -> BufWriter<File> {
-    let output_dir = field_infos.field_output_folder_path.join(
-        (file_number / num_stores_per_dir).to_string()
-    );
-    if (file_number % num_stores_per_dir == 0)
-        && !(output_dir.exists() && output_dir.is_dir())
-    {
-        std::fs::create_dir(&output_dir)
-            .expect("Failed to create field store output dir!");
-    }
-    let output_file_path = output_dir.join(format!("{}--{}.json", file_number, block_number));
-    if check_for_existing && output_file_path.exists() {
-        // The first block for dynamic indexing might have been left halfway through somewhere before
-        let mut field_store_file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .open(output_file_path)
-            .expect("Failed to open existing field store for editing");
-        field_store_file
-            .seek(SeekFrom::End(-1))
-            .expect("Failed to seek to existing field store end");
-
-        // Override ']' with ','
-        field_store_file
-            .write_all(b",")
-            .expect("Failed to override existing field store ] with ,");
-
-        BufWriter::new(field_store_file)
-    } else {
-        let mut writer = BufWriter::new(
-            File::create(output_file_path).expect("Failed to open field store for writing."),
-        );
-        writer.write_all(b"[").unwrap();
-        writer
-    }
-}
