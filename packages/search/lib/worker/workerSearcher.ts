@@ -4,7 +4,7 @@ import WorkerQuery from './workerQuery';
 export default class WorkerSearcher {
   workerQueries: {
     [query: string]: {
-      [timestamp: number]: WorkerQuery
+      [queryId: number]: WorkerQuery
     }
   } = Object.create(null);
 
@@ -14,28 +14,28 @@ export default class WorkerSearcher {
 
   constructor(private config: MorselsConfig) {}
 
-  async processQuery(query: string, timestamp: number): Promise<WorkerQuery> {
+  async processQuery(query: string, queryId: number): Promise<WorkerQuery> {
     const wasmQuery: any = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
 
     this.workerQueries[query] = this.workerQueries[query] || {};
-    this.workerQueries[query][timestamp] = new WorkerQuery(
+    this.workerQueries[query][queryId] = new WorkerQuery(
       wasmQuery.get_searched_terms(),
       wasmQuery.get_query_parts(),
       wasmQuery,
     );
 
-    return this.workerQueries[query][timestamp];
+    return this.workerQueries[query][queryId];
   }
 
-  getQueryNextN(query: string, timestamp: number, n: number): number[] {
-    return this.workerQueries[query][timestamp].getNextN(n);
+  getQueryNextN(query: string, queryId: number, n: number): number[] {
+    return this.workerQueries[query][queryId].getNextN(n);
   }
 
-  freeQuery(query: string, timestamp: number) {
-    if (this.workerQueries[query][timestamp]) {
-      this.workerQueries[query][timestamp].free();
+  freeQuery(query: string, queryId: number) {
+    if (this.workerQueries[query][queryId]) {
+      this.workerQueries[query][queryId].free();
     }
-    delete this.workerQueries[query][timestamp];
+    delete this.workerQueries[query][queryId];
     if (Object.keys(this.workerQueries[query]).length === 0) {
       delete this.workerQueries[query];
     }

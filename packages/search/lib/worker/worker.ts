@@ -12,22 +12,22 @@ onmessage = async function worker(ev) {
     // console.log(`Worker setup took ${performance.now() - now} ms`);
   } else if (ev.data.query) {
     const {
-      query, timestamp, n, isFree, isGetNextN,
+      query, queryId, n, isFree, isGetNextN,
     } = ev.data;
     if (isFree) {
-      workerSearcher.freeQuery(query, timestamp);
+      workerSearcher.freeQuery(query, queryId);
     } else if (isGetNextN) {
-      const nextResults = workerSearcher.getQueryNextN(query, timestamp, n);
+      const nextResults = workerSearcher.getQueryNextN(query, queryId, n);
       postMessage({
         query,
-        timestamp,
+        queryId,
         nextResults,
       });
     } else {
-      const workerQuery = await workerSearcher.processQuery(query, timestamp);
+      const workerQuery = await workerSearcher.processQuery(query, queryId);
       postMessage({
         query,
-        timestamp,
+        queryId,
         searchedTerms: workerQuery.searchedTerms,
         queryParts: workerQuery.queryParts,
       });

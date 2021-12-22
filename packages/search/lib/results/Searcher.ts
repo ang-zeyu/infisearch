@@ -18,12 +18,14 @@ class Searcher {
 
   private workerQueryPromises: {
     [query: string]: {
-      [timestamp: number]: {
+      [queryId: number]: {
         promise: Promise<any>,
         resolve: any,
       }
     }
   } = Object.create(null);
+
+  private nextId = 0;
 
   private persistentJsonCache: JsonCache;
 
@@ -40,13 +42,13 @@ class Searcher {
         } else if (ev.data.query) {
           const {
             query,
-            timestamp,
+            queryId,
             nextResults,
             searchedTerms,
             queryParts,
           } = ev.data;
 
-          this.workerQueryPromises[query][timestamp].resolve({
+          this.workerQueryPromises[query][queryId].resolve({
             query,
             nextResults,
             searchedTerms,
@@ -146,8 +148,8 @@ class Searcher {
     };
   }
 
-  private deleteQuery(query: string, timestamp: number) {
-    delete this.workerQueryPromises[query][timestamp];
+  private deleteQuery(query: string, queryId: number) {
+    delete this.workerQueryPromises[query][queryId];
     if (Object.keys(this.workerQueryPromises[query]).length === 0) {
       delete this.workerQueryPromises[query];
     }
@@ -156,39 +158,42 @@ class Searcher {
   async getQuery(query: string): Promise<Query> {
     await this.setupPromise;
 
-    const timestamp = new Date().getTime();
+    // The same query may be launched multiple times,
+    // a "sub" id is needed to differentiate them
+    const queryId = this.nextId;
+    this.nextId += 1;
 
     this.workerQueryPromises[query] = this.workerQueryPromises[query] || {};
-    this.workerQueryPromises[query][timestamp] = {
+    this.workerQueryPromises[query][queryId] = {
       promise: undefined,
       resolve: undefined,
     };
 
-    this.workerQueryPromises[query][timestamp].promise = new Promise((resolve) => {
-      this.workerQueryPromises[query][timestamp].resolve = resolve;
+    this.workerQueryPromises[query][queryId].promise = new Promise((resolve) => {
+      this.workerQueryPromises[query][queryId].resolve = resolve;
 
-      this.worker.postMessage({ query, timestamp });
+      this.worker.postMessage({ query, queryId });
     });
 
     const result: {
       searchedTerms: string[],
       queryParts: QueryPart[],
-    } = await this.workerQueryPromises[query][timestamp].promise;
+    } = await this.workerQueryPromises[query][queryId].promise;
 
     const getNextN = async (n: number) => {
-      await this.workerQueryPromises[query][timestamp].promise;
+      await this.workerQueryPromises[query][queryId].promise;
 
-      this.workerQueryPromises[query][timestamp].promise = new Promise((resolve) => {
-        this.workerQueryPromises[query][timestamp].resolve = resolve;
+      this.workerQueryPromises[query][queryId].promise = new Promise((resolve) => {
+        this.workerQueryPromises[query][queryId].resolve = resolve;
 
         this.worker.postMessage({
-          query, timestamp, isGetNextN: true, n,
+          query, queryId, isGetNextN: true, n,
         });
       });
 
       const getNextNResult: {
         nextResults: [number, number][]
-      } = await this.workerQueryPromises[query][timestamp].promise;
+      } = await this.workerQueryPromises[query][queryId].promise;
 
       const retrievedResults = getNextNResult.nextResults.map(([docId, score]) => new Result(
         docId, score, this.morselsConfig.fieldInfos,
@@ -205,7 +210,7 @@ class Searcher {
     };
 
     const free = () => {
-      this.deleteQuery(query, timestamp);
+      this.deleteQuery(query, queryId);
       this.worker.postMessage({ query, isFree: true });
     };
 
