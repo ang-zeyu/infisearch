@@ -48,6 +48,11 @@ pub struct PlWriter {
 }
 
 impl PlWriter {
+    fn change_file(&mut self, file: File, pl: u32) {
+        self.writer.change_file(file);
+        self.pl = pl;
+    }
+
     pub fn flush(&mut self, pl_offset: u32, pl_cache_threshold: u32, pl_names_to_cache: &mut Vec<u32>) {
         self.writer.flush();
         if pl_offset > pl_cache_threshold {
@@ -176,7 +181,7 @@ pub fn write_new_term_postings(
         *prev_pl_start_offset = 0;
 
         let new_pl_file = get_pl_file(output_folder_path, *curr_pl, indexing_config.num_pls_per_dir);
-        pl_writer.writer.change_file(new_pl_file);
+        pl_writer.change_file(new_pl_file, *curr_pl);
     }
     // ---------------------------------------------
 
