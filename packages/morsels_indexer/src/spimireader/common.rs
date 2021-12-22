@@ -19,6 +19,7 @@ use morsels_common::utils::idf::get_idf;
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
 use crate::docinfo::DocInfos;
+use crate::utils::bufwriter::ReusableWriter;
 use crate::utils::varint;
 use crate::MainToWorkerMessage;
 use crate::MorselsIndexingConfig;
@@ -42,13 +43,13 @@ pub enum PostingsStreamDecoder {
 }
 
 pub struct PlWriter {
-    writer: BufWriter<File>,
+    writer: ReusableWriter,
     pl: u32,
 }
 
 impl PlWriter {
     pub fn flush(&mut self, pl_offset: u32, pl_cache_threshold: u32, pl_names_to_cache: &mut Vec<u32>) {
-        self.writer.flush().unwrap();
+        self.writer.flush();
         if pl_offset > pl_cache_threshold {
             pl_names_to_cache.push(self.pl);
         }
@@ -56,7 +57,7 @@ impl PlWriter {
 }
 
 #[inline(always)]
-pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> PlWriter {
+pub fn get_pl_file(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> File {
     let dir_output_folder_path = output_folder_path.join(format!("pl_{}", curr_pl / num_pls_per_dir));
     if (curr_pl % num_pls_per_dir == 0)
         && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
@@ -64,10 +65,13 @@ pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u
         std::fs::create_dir(&dir_output_folder_path).expect("Failed to create pl output dir!");
     }
 
-    let writer = BufWriter::new(
-        File::create(dir_output_folder_path.join(Path::new(&format!("pl_{}", curr_pl))))
-            .expect("Failed to open postings list for writing."),
-    );
+    File::create(dir_output_folder_path.join(Path::new(&format!("pl_{}", curr_pl))))
+        .expect("Failed to open postings list for writing.")
+}
+
+pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> PlWriter {
+    let mut writer = ReusableWriter::new();
+    writer.change_file(get_pl_file(output_folder_path, curr_pl, num_pls_per_dir));
     PlWriter { writer, pl: curr_pl }
 }
 
@@ -170,7 +174,9 @@ pub fn write_new_term_postings(
         *curr_pl += 1;
         *pl_offset = 0;
         *prev_pl_start_offset = 0;
-        *pl_writer = get_pl_writer(output_folder_path, *curr_pl, indexing_config.num_pls_per_dir);
+
+        let new_pl_file = get_pl_file(output_folder_path, *curr_pl, indexing_config.num_pls_per_dir);
+        pl_writer.writer.change_file(new_pl_file);
     }
     // ---------------------------------------------
 
@@ -180,17 +186,17 @@ pub fn write_new_term_postings(
     for term_docs in curr_combined_term_docs.iter_mut() {
         // Link up the gap between the first doc id of the current block and the previous block
         let block_doc_id_gap_varint = varint::get_var_int(term_docs.first_doc_id - prev_block_last_doc_id, varint_buf);
-        pl_writer.writer.write_all(block_doc_id_gap_varint).unwrap();
+        pl_writer.writer.write(block_doc_id_gap_varint);
         *pl_offset += block_doc_id_gap_varint.len() as u32;
 
         prev_block_last_doc_id = term_docs.last_doc_id;
 
-        pl_writer.writer.write_all(&term_docs.combined_var_ints).unwrap();
+        pl_writer.writer.write(&term_docs.combined_var_ints);
         *pl_offset += term_docs.combined_var_ints.len() as u32;
     }
 
     let max_doc_term_score: f32 = curr_term_max_score * get_idf(num_docs, doc_freq as f64) as f32;
-    pl_writer.writer.write_all(&max_doc_term_score.to_le_bytes()).unwrap();
+    pl_writer.writer.write(&max_doc_term_score.to_le_bytes());
     *pl_offset += 4;
 
     start_pl_offset
