@@ -120,6 +120,7 @@ pub fn worker(
                     block_number,
                     start_doc_id,
                     check_for_existing_field_store,
+                    indexing_config.num_docs_per_block,
                     indexing_config.num_stores_per_dir,
                     spimi_counter,
                     doc_id_counter,

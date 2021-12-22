@@ -66,6 +66,7 @@ impl Indexer {
                 block_number,
                 self.start_doc_id,
                 check_for_existing_field_store,
+                self.indexing_config.num_docs_per_block,
                 self.indexing_config.num_stores_per_dir,
                 self.spimi_counter,
                 self.doc_id_counter,
@@ -99,6 +100,7 @@ pub fn combine_worker_results_and_write_block(
     block_number: u32,
     start_doc_id: u32,
     check_for_existing_field_store: bool,
+    num_docs_per_block: u32,
     num_stores_per_dir: u32,
     spimi_counter: u32,
     doc_id_counter: u32,
@@ -144,6 +146,7 @@ pub fn combine_worker_results_and_write_block(
                 field_infos,
                 doc_id_counter,
                 spimi_counter,
+                num_docs_per_block,
                 num_stores_per_dir,
                 block_number,
                 &mut sorted_doc_infos

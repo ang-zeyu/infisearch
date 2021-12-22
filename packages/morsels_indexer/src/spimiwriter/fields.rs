@@ -14,6 +14,7 @@ pub fn store_fields(
     field_infos: &Arc<FieldInfos>,
     doc_id_counter: u32,
     spimi_counter: u32,
+    num_docs_per_block: u32,
     num_stores_per_dir: u32,
     block_number: u32,
     sorted_doc_infos: &mut Vec<WorkerMinerDocInfo>
@@ -31,7 +32,12 @@ pub fn store_fields(
 
     let mut writer = ReusableWriter::new();
 
-    open_new_block_file(&mut writer, file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
+    open_new_block_file(
+        &mut writer,
+         file_number, field_infos, 
+         num_docs_per_block, num_stores_per_dir,
+         block_number, check_for_existing_field_store
+    );
     write_field_texts(
         &mut writer,
         sorted_doc_infos.first_mut().unwrap(),
@@ -41,7 +47,12 @@ pub fn store_fields(
     );
     for worker_miner_doc_info in sorted_doc_infos.iter_mut().skip(1) {
         if curr_block_count == 0 {
-            open_new_block_file(&mut writer,  file_number, field_infos, num_stores_per_dir, block_number, check_for_existing_field_store);
+            open_new_block_file(
+                &mut writer, 
+                file_number, field_infos,
+                num_docs_per_block, num_stores_per_dir,
+                block_number, check_for_existing_field_store
+            );
         } else {
             writer.write(b",");
         }
@@ -65,6 +76,7 @@ fn open_new_block_file(
     buf_writer: &mut ReusableWriter,
     file_number: u32,
     field_infos: &Arc<FieldInfos>,
+    num_docs_per_block: u32,
     num_stores_per_dir: u32,
     block_number: u32,
     check_for_existing: bool,
@@ -72,7 +84,7 @@ fn open_new_block_file(
     let output_dir = field_infos.field_output_folder_path.join(
         (file_number / num_stores_per_dir).to_string()
     );
-    if (file_number % num_stores_per_dir == 0)
+    if ((file_number % num_stores_per_dir == 0) || (file_number % num_docs_per_block == 0))
         && !(output_dir.exists() && output_dir.is_dir())
     {
         std::fs::create_dir(&output_dir)
