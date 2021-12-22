@@ -80,7 +80,8 @@ class Searcher {
     const promises: [string, Promise<any>][] = [];
 
     const lastFileNumber = Math.ceil(this.morselsConfig.lastDocId / this.morselsConfig.fieldStoreBlockSize);
-    const { numStoresPerDir, numDocsPerBlock } = this.morselsConfig.indexingConfig;
+    const { numStoresPerDir, indexingConfig } = this.morselsConfig;
+    const { numDocsPerBlock } = indexingConfig;
     for (let i = 0; i < lastFileNumber; i++) {
       const dirNumber = Math.floor(i / numStoresPerDir);
       const blockNumber = Math.floor(i / numDocsPerBlock);
@@ -134,13 +135,13 @@ class Searcher {
         plNamesToCache: json.indexing_config.pl_names_to_cache,
         numDocsPerBlock: json.indexing_config.num_docs_per_block,
         numPlsPerDir: json.indexing_config.num_pls_per_dir,
-        numStoresPerDir: json.indexing_config.num_stores_per_dir,
         withPositions: json.indexing_config.with_positions,
       },
       langConfig: json.lang_config,
       fieldInfos,
       numScoredFields: fieldInfosRaw.num_scored_fields,
       fieldStoreBlockSize: fieldInfosRaw.field_store_block_size,
+      numStoresPerDir: fieldInfosRaw.num_stores_per_dir,
       searcherOptions: this.options,
     };
   }

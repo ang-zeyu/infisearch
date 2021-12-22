@@ -15,6 +15,7 @@ The default configurations are as follows, already setup for interfacing with th
   "fields_config": {
     "cache_all_field_stores": true,
     "field_store_block_size": 250,
+    "num_stores_per_dir": 1000,
     "fields": [
       {
         "name": "title",
@@ -63,13 +64,13 @@ The default configurations are as follows, already setup for interfacing with th
 }
 ```
 
-**`field_store_block_size` and `do_store`**
+**`field_store_block_size`, `num_stores_per_dir`, and `do_store`**
 
 Morsels stores fields that have `do_store: true` specified in the field configuration into a json file in the output folder.
 
 At search time, the fields saved in this manner from the json files are retrieved as-is.
 
-The `field_store_block_size` parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.
+The `field_store_block_size` parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The `num_stores_per_dir` parameter controls how many json files should be stored together in one directory.
 
 > ⚠️ Ensure `field_store_block_size` is a clean multiple or divisor of the `num_docs_per_block` parameter elaborated further below.<br>
 > This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
@@ -261,9 +262,6 @@ The snippet below shows the default values, which need not be altered if you are
     // Number of index files ("morsels") to store per directory
     "num_pls_per_dir": 1000,
 
-    // Number of field stores (`.json` files) to store per directory
-    "num_stores_per_dir": 1000,
-
     // Whether positions will be stored.
     //
     // Phrase queries and Query Term Proximity Ranking
@@ -394,6 +392,7 @@ Field mappings for csv can be configured using one of the `field_map / field_ord
   "fields_config": {
     "cache_all_field_stores": true,
     "field_store_block_size": 250,
+    "num_stores_per_dir": 1000,
     "fields": [
       {
         "name": "title",
@@ -466,7 +465,6 @@ Field mappings for csv can be configured using one of the `field_map / field_ord
     },
     "pl_names_to_cache": [],
     "num_pls_per_dir": 1000,
-    "num_stores_per_dir": 1000,
     "with_positions": true
   }
 }

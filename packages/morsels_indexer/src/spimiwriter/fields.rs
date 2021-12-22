@@ -15,7 +15,6 @@ pub fn store_fields(
     doc_id_counter: u32,
     spimi_counter: u32,
     num_docs_per_block: u32,
-    num_stores_per_dir: u32,
     block_number: u32,
     sorted_doc_infos: &mut Vec<WorkerMinerDocInfo>
 ) {
@@ -35,7 +34,7 @@ pub fn store_fields(
     open_new_block_file(
         &mut writer,
          file_number, field_infos, 
-         num_docs_per_block, num_stores_per_dir,
+         num_docs_per_block,
          block_number, check_for_existing_field_store
     );
     write_field_texts(
@@ -50,7 +49,7 @@ pub fn store_fields(
             open_new_block_file(
                 &mut writer, 
                 file_number, field_infos,
-                num_docs_per_block, num_stores_per_dir,
+                num_docs_per_block,
                 block_number, check_for_existing_field_store
             );
         } else {
@@ -77,10 +76,10 @@ fn open_new_block_file(
     file_number: u32,
     field_infos: &Arc<FieldInfos>,
     num_docs_per_block: u32,
-    num_stores_per_dir: u32,
     block_number: u32,
     check_for_existing: bool,
 ) {
+    let num_stores_per_dir = field_infos.num_stores_per_dir;
     let output_dir = field_infos.field_output_folder_path.join(
         (file_number / num_stores_per_dir).to_string()
     );

@@ -15,8 +15,8 @@ class Result {
     tempJsonCache: JsonCache,
     morselsConfig: MorselsConfig,
   ): Promise<void> {
-    const { fieldStoreBlockSize, indexingConfig } = morselsConfig;
-    const { numStoresPerDir, numDocsPerBlock } = indexingConfig;
+    const { fieldStoreBlockSize, numStoresPerDir, indexingConfig } = morselsConfig;
+    const { numDocsPerBlock } = indexingConfig;
     const fileNumber = Math.floor(this.docId / fieldStoreBlockSize);
     const blockNumber = Math.floor(this.docId / numDocsPerBlock);
     const dirNumber = Math.floor(fileNumber / numStoresPerDir);

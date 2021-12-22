@@ -38,7 +38,8 @@
         "name": "_relative_fp",
         "weight": 0.0
       }
-    ]
+    ],
+    "num_stores_per_dir": 1000
   },
   "indexing_config": {
     "_total_len": "This is debugging metadata for the mdbook plugin. Total len: 78652",
@@ -76,7 +77,6 @@
     },
     "num_docs_per_block": 1000,
     "num_pls_per_dir": 1000,
-    "num_stores_per_dir": 1000,
     "pl_cache_threshold": 0,
     "pl_limit": 2097151,
     "with_positions": true

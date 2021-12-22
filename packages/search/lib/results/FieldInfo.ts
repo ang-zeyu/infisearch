@@ -7,7 +7,6 @@ export interface MorselsConfig {
     plNamesToCache: number[],
     numDocsPerBlock: number,
     numPlsPerDir: number,
-    numStoresPerDir: number,
     withPositions: boolean,
   },
   langConfig: {
@@ -17,6 +16,7 @@ export interface MorselsConfig {
   fieldInfos: FieldInfo[],
   numScoredFields: number,
   fieldStoreBlockSize: number,
+  numStoresPerDir: number,
   searcherOptions: SearcherOptions
 }
 
@@ -28,7 +28,6 @@ export interface MorselsConfigRaw {
     pl_names_to_cache: number[],
     num_docs_per_block: number,
     num_pls_per_dir: number,
-    num_stores_per_dir: number,
     with_positions: boolean,
   },
   lang_config: {
@@ -52,4 +51,5 @@ interface FieldInfosRaw {
   field_infos_map: { [fieldName: string]: FieldInfo },
   num_scored_fields: number,
   field_store_block_size: number,
+  num_stores_per_dir: number,
 }

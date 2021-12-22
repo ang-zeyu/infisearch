@@ -1,6 +1,7 @@
 {
   "fields_config": {
     "field_store_block_size": 2,
+    "num_stores_per_dir": 1000,
     "fields": [
       {
         "name": "title",
@@ -115,7 +116,6 @@
       }
     },
     "num_pls_per_dir": 1000,
-    "num_stores_per_dir": 1000,
     "with_positions": true
   }
 }

@@ -5,6 +5,10 @@ use rustc_hash::FxHashMap;
 
 use serde::{Deserialize, Serialize};
 
+fn get_default_num_field_stores_per_dir() -> u32 {
+    1000
+}
+
 fn get_default_cache_all_field_stores() -> bool {
     true
 }
@@ -12,6 +16,8 @@ fn get_default_cache_all_field_stores() -> bool {
 #[derive(Serialize, Deserialize)]
 pub struct FieldsConfig {
     pub field_store_block_size: u32,
+    #[serde(default = "get_default_num_field_stores_per_dir")]
+    pub num_stores_per_dir: u32,
     #[serde(default="get_default_cache_all_field_stores")]
     pub cache_all_field_stores: bool,
     pub fields: Vec<FieldConfig>,
@@ -22,6 +28,7 @@ impl Default for FieldsConfig {
         // The default configuration required for @morsels/search-ui
         FieldsConfig {
             field_store_block_size: 250,
+            num_stores_per_dir: get_default_num_field_stores_per_dir(),
             cache_all_field_stores: get_default_cache_all_field_stores(),
             fields: vec![
                 FieldConfig { name: "title".to_owned(), do_store: false, weight: 0.2, k: 1.2, b: 0.25 },
@@ -59,6 +66,7 @@ pub struct FieldInfos {
     pub field_infos_by_id: Vec<FieldInfo>,
     pub num_scored_fields: usize,
     pub field_store_block_size: u32,
+    pub num_stores_per_dir: u32,
     #[serde(skip_serializing)]
     pub field_output_folder_path: PathBuf,
 }
@@ -67,6 +75,7 @@ impl FieldInfos {
     pub fn init(
         field_infos_map: FxHashMap<String, FieldInfo>,
         field_store_block_size: u32,
+        num_stores_per_dir: u32,
         output_folder_path: &Path,
     ) -> FieldInfos {
         let num_scored_fields = field_infos_map
@@ -86,6 +95,7 @@ impl FieldInfos {
             field_infos_by_id,
             num_scored_fields,
             field_store_block_size,
+            num_stores_per_dir,
             field_output_folder_path,
         }
     }

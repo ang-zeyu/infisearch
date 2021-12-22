@@ -84,10 +84,6 @@ fn get_default_num_pls_per_dir() -> u32 {
     1000
 }
 
-fn get_default_num_field_stores_per_dir() -> u32 {
-    1000
-}
-
 fn get_default_with_positions() -> bool {
     true
 }
@@ -115,9 +111,6 @@ pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_num_pls_per_dir")]
     num_pls_per_dir: u32,
 
-    #[serde(default = "get_default_num_field_stores_per_dir")]
-    num_stores_per_dir: u32,
-
     #[serde(default = "get_default_with_positions")]
     with_positions: bool,
 }
@@ -132,7 +125,6 @@ impl Default for MorselsIndexingConfig {
             exclude: get_default_exclude_patterns(),
             loader_configs: get_default_loader_configs(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
-            num_stores_per_dir: get_default_num_field_stores_per_dir(),
             with_positions: get_default_with_positions(),
         }
     }
@@ -181,7 +173,6 @@ struct MorselsIndexingOutputConfig {
     pl_names_to_cache: Vec<u32>,
     num_docs_per_block: u32,
     num_pls_per_dir: u32,
-    num_stores_per_dir: u32,
     with_positions: bool,
 }
 
@@ -323,6 +314,7 @@ impl Indexer {
             Arc::new(FieldInfos::init(
                 field_infos_by_name,
                 config.fields_config.field_store_block_size,
+                config.fields_config.num_stores_per_dir,
                 output_folder_path,
             ))
         };
@@ -651,7 +643,6 @@ impl Indexer {
                 pl_names_to_cache: self.dynamic_index_info.pl_names_to_cache.clone(),
                 num_docs_per_block: self.indexing_config.num_docs_per_block,
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
-                num_stores_per_dir: self.indexing_config.num_stores_per_dir,
                 with_positions: self.indexing_config.with_positions,
             },
             lang_config: &self.lang_config,

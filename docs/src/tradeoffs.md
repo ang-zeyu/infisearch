@@ -44,9 +44,9 @@ The relevant options you will want to keep in mind are:
 - Indexing Configuration:
   - what fields are stored (`do_store`)
   - [`field_store_block_size`](indexing_configuration.md#fields_config)
+  - [`num_stores_per_dir`](indexing_configuration.md#fields_config)
   - [`pl_limit`](indexing_configuration.md#indexing_config)
   - [`pl_cache_threshold`](indexing_configuration.md#indexing_config)
-  - [`num_stores_per_dir`](indexing_configuration.md#indexing_config)
 
 The following sections discusses some combinations of options that generate the outputs in the table above.
 
