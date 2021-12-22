@@ -16,7 +16,7 @@
 </style>
 
 <div class="alert alert-warning" role="alert">
-  Certain parts of the APIs here (highlighted in <span style="color: red;">red</span>) may be particularly unstable still.
+  The APIs here (especially those highlighted in <span style="color: red;">red</span>) may be particularly unstable still!
 </div>
 
 This page covers the a more advanced API, "renderers", that allows you to customise the html output structure to some degree.
@@ -71,16 +71,16 @@ export type CreateElement = (
 All renderer functions are also passed an `opts` parameter. This is the original input object that you provided to the `initMorsels` call. Default parameters are however populated at this point.
 
 i.e.,
-```
+```ts
 opts = export interface SearchUiOptions {
   searcherOptions?: SearcherOptions,
   uiOptions?: UiOptions,
   isMobileDevice: () => boolean,
-  otherOptions: ArbitraryOptions
+  otherOptions: any
 }
 ```
 
-If you want to include some custom options (e.g. an API base url) somehwere, you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
+If you want to include some custom options (e.g. an API base url), you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
 
 ## Default Html Output Structure
 
@@ -207,11 +207,11 @@ It first checks if the `listContainer` (the dropdown), which contains result mat
 
 This API renders the root element for the **fullscreen version** of the user interface.
 
-- `fsCloseHandler`: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.
+- `fsCloseHandler`: A function used for closing the fullscreen UI.
 
 It should return 3 elements:
 - `root`: The root element. This is passed to the `hide / show` APIs below.
-- `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
+- `listContainer`: The element to attach matches for a single document (rendered by `listItemRender`) to.
 - `input`: Input element. This is required for morsels to attach input event handlers.
 
 #### Supplementary Mandatory Functions
