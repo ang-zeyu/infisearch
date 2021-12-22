@@ -11,7 +11,7 @@ After you have installed the above dependencies, run `npm run setup` to install 
 
 ## Test Files
 
-You'll also need to source a suitable set of html, json, or csv files that is loadable by one of the command-line [loaders](./indexing_configuration.md#Loaders). The data in the collection should be mappable to the [fields](./indexing_configuration.md#fields-needed-for-morselssearch-ui) required by `@morsels/search-ui` for easy testing.
+You'll also need to source a suitable set of html, json, or csv files that is loadable by one of the command-line [loaders](./indexer/indexing.md#mapping-file-data-to-fields-loader_configs). The data in the collection should be mappable to the [fields](./indexer/fields.md) required by `@morsels/search-ui` for easy testing.
 
 The test collection I used for the majority of development is a `380mb` csv corpus for example, in the following format.
 
@@ -21,7 +21,7 @@ The test collection I used for the majority of development is a `380mb` csv corp
 unused, | mapped to 'title' field, | mapped to 'body' field, | mapped to 'heading' field
 ```
 
-Once you have your test files, place them under the `<project-root>/test_files/1/source` directory. If using a custom file format, you will likely need to configure the [data and field mappings](./indexing_configuration.md) as well. You can run `cargo run -p morsels_indexer <project-root>/test_files/1/source --init` to create the default configuration file as a template, and proceed from there.
+Once you have your test files, place them under the `<project-root>/test_files/1/source` directory. If using a custom file format, you will likely need to configure the [data and field mappings](./indexer/fields.md) as well. You can run `cargo run -p morsels_indexer <project-root>/test_files/1/source --init` to create the default configuration file as a template, and proceed from there.
 
 ---
 

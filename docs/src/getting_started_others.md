@@ -32,6 +32,6 @@ jobs:
 
 Some use cases may not always have `.html` files readily available (e.g. pure client-side rendered ones) or in the right format.
 
-In such cases, morsels also supports `.json` and `.csv` files, which is covered in greater detail later under [indexing configuration](./indexing_configuration.md).
+In such cases, morsels also supports `.json` and `.csv` files, which is covered in greater detail later under [indexer configuration](./indexer_configuration.md).
 
 Another simpler (but likely slow) alternative you could consider specifically for client-side rendered projects is to display the page in a headless browser, then index said html file.

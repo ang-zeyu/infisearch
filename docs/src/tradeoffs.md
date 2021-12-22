@@ -42,11 +42,10 @@ The relevant options you will want to keep in mind are:
   - ⭐⭐ The method of [result preview generation](search_configuration.md#default-rendering-output--purpose)
   - [`cacheAllFieldStores`](search_configuration.md#search-library-options)
 - Indexing Configuration:
-  - what fields are stored (`do_store`)
-  - [`field_store_block_size`](indexing_configuration.md#fields_config)
-  - [`num_stores_per_dir`](indexing_configuration.md#fields_config)
-  - [`pl_limit`](indexing_configuration.md#indexing_config)
-  - [`pl_cache_threshold`](indexing_configuration.md#indexing_config)
+  - what [fields](./indexer/fields.md) are stored (`do_store`)
+  - [`field_store_block_size`](./indexer/fields.md)
+  - [`pl_limit`](./indexer/indexing.md#search-performance)
+  - [`pl_cache_threshold`](./indexer/indexing.md#search-performance)
 
 The following sections discusses some combinations of options that generate the outputs in the table above.
 
@@ -101,7 +100,7 @@ The settings here follow from the section directly above, disregarding the compr
 
 (`RTT=3`, Excellent Scalability, Little-Moderate File Bloat)
 
-The `RTT` compromise is accepted as is, without performing the caching mentioned in section 2.1.
+The `RTT` compromise is accepted as is, without performing the caching mentioned in **section 2.1**.
 
 This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached.
 
@@ -109,16 +108,26 @@ This is because as the collection grows, we cannot guarantee that document links
 
 (`RTT=2`, Excellent Scalability, Heavy File Bloat)
 
-Per section 2.2, one simply needs to avoid the assumption that the index can be cached.
+Per **section 2.2**, one simply needs to avoid the assumption that the index can be cached.
 
 Scalability is then ensured here by fragmenting both the index (using `pl_limit`) and field stores (`field_store_block_size`).
+
+#### Limits of Scalability
+
+While the index is split into many chunks, some chunks may exceed the default "split size" (`pl_limit`) of `16383` bytes. This occurs when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.
+
+#### Estimations
+
+As a rough estimate from testing, this library should be able to handle collections < `800mb` with positional indexing. Without it, the index shrinks 3-4 fold, making it potentially possible to index collections `~2gb` in size. 
+
+[Removing stop words](./indexer/language.md#note-on-stop-words) when indexing would have little to no effect, as such terms are already separated into different postings lists and never retrieved unless necessary.
 
 ### Other Options
 
 There are 2 other options worth highlighting that can help reduce the index size. 
 
-- [`ignore_stop_words`](indexing_configuration.md#lang_config)
-- [`with_positions`](indexing_configuration.md#indexing_config)
+- [`ignore_stop_words`](./indexer/language.md#note-on-stop-words)
+- [`with_positions`](./indexer/indexing.md#miscellaneous-options)
 
 Since the default settings (`RTT=2`, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.
 
@@ -126,4 +135,4 @@ Positional information also takes up a considerable proportion of the index size
 
 If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.
 
-This would be especially useful if configuring for a monolithic index (`RTT=0`, Fair Scalability, Little File Bloat), as it reduces the index size to be retrieved up front.
+This would be especially useful if configuring for a **monolithic index** (`RTT=0`, Fair Scalability, Little File Bloat), as it reduces the index size to be retrieved up front.

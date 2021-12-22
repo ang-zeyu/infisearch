@@ -111,7 +111,7 @@ As csv files are often used to hold multiple documents (and can therefore get ve
 
 If source documents are unavailable, morsels is able to generate result previews from its own json field stores generated at indexing time.
 
-In order to specify what fields to store, take a look at the `do_store` option in this [section](./indexing_configuration.md#fields_config) of the indexing configuration page. To use this method of result preview generation for the default use case / result rendering behaviour, enable the `do_store` option for the relevant fields.
+In order to specify what fields to store, and how to map file data to these fields, refer to the chapter on [fields](./indexer/fields.md) under indexer configuration.
 
 You may also wish to use this method even if source documents are available, if filesystem bloat isn't too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant to perform result preview generation on.
 
@@ -176,11 +176,11 @@ initMorsels({
 
 `numberOfExpandedTerms`
 
-By default, stemming is turned off in the [language modules](indexing_configuration.md#language). This does mean a bigger dictionary (but not that much anyway), and lower recall, but much more precise searches.
+Stemming is turned off in the default [language module](./indexer/language.md#ascii-tokenizer). This does mean a bigger dictionary (but not too much usually), and lower recall, but much more precise searches.
 
 To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.
 
-For both of the [language](./indexing_configuration.md#latin-tokenizer) modules available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (quite similar to Algolia Docsearch's behaviour)
+For all [language modules](./indexer/language.md) available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (similar to Algolia Docsearch's behaviour)
 
 ### Term Proximity Ranking
 

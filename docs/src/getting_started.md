@@ -27,7 +27,7 @@ morsels <source-folder-path> <output-folder-path>
 ### Other Cli Options
 
 While optional, if it is your first time running the tool, you can run the above command with the `--init` or `-i` flag, then run it again without this flag.
-This flag outputs the default `morsels_config.json` that can be used to [configure the indexer](./indexing_configuration.md) later on.
+This flag outputs the default `morsels_config.json` that can be used to [configure the indexer](./indexer_configuration.md) later on.
 
 You may also change the config file location (relative to the `source-folder-path`) using the `-c <config-file-path>` option.
 

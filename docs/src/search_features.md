@@ -17,7 +17,7 @@ lorem AND NOT (ipsum dolor) - documents with "lorem" but not ("ipsum" OR "dolor"
 
 ## Phrase Queries
 
-Phrase queries are also supported. However, these will not work if the [`withPositions`](./indexing_configuration.md) index feature is disabled.
+Phrase queries are also supported. However, these will not work if the [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature is disabled.
 
 ```
 "lorem ipsum" - documents containing "lorem" and "ipsum" appearing one after the other
