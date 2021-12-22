@@ -4,9 +4,6 @@ A complete and more scalable pre-built index approach to client-side search.
 
 ---
 
-> :warning: This is still a very new project, and some things may completely change over releases! (fingers crossed)<br>
->
-> Please keep the version fixed and check back for version updates, and be careful with using this in critical applications.
 
 ## Description
 
@@ -28,9 +25,15 @@ The main target use case for this tool right now is providing a complete search 
 
 That said, the indexing tool was built with support for a few other file formats (`.json`, `.csv`, `.html`) in mind, and might be useful elsewhere as such.
 
-## Getting Started & Demo
+## Getting Started
 
 Please check out the [docs](http://ang-zeyu.github.io/morsels/)!
+
+## Preview
+
+<img alt="preview gif of morsels search" src="./docs/src/images/mdbook-preview.gif" width="70%" />
+
+<br>
 
 ## Contributing
 

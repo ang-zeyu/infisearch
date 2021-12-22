@@ -4,9 +4,6 @@ A complete and more scalable pre-built index approach to client-side search.
 
 ---
 
-> :warning: This is still a very new project, and some things may completely change over releases! (fingers crossed)<br>
->
-> Please keep the version fixed and check back for version updates.
 
 ## Description
 
