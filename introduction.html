@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -197,47 +197,37 @@
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
 <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Morsels is a client-side search library and user-interface that depends on a <strong>pre-built index</strong> generated by its <strong>cli build tool</strong>.</p>
-<p>The difference with other search libraries like lunr.js is that this tool is focused on providing more <strong>scalability</strong> (but not infinitely so) using a pre-built index split into many small files. (versus other tools that provide this in a monolithic format)</p>
+<p>Morsels is a complete <strong>client-side</strong> search solution, including a search <strong>user interface and library</strong> that depends on a <strong>pre-built index</strong> generated by a <strong>command-line build tool</strong>.</p>
+<p>The secondary value proposition here versus other pre-built index options is the splitting of this index to many smaller chunks (“morsels”), which enables the client to retrieve and load only what it needs when searched. This avoids blowing up network and memory usage immediately on startup.</p>
 <h2 id="what"><a class="header" href="#what">What</a></h2>
-<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence the name <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to <code>16383</code> bytes (configurable) as much as possible.</p>
+<p>The core idea of this tool is to split up a monolithic postings list into many smaller files (hence the name <em>“Morsels”</em>), organised by the indexed terms. Multiple index files are batched into the same file, keeping to a certain configurable limit as much as possible.</p>
 <p>On the client, supporting information (e.g. dictionary, document lengths, field weights) is retrieved on startup, which is usually less than a few MB even for fairly large collections.</p>
 <p>The index files containing searched terms will be requested only on-demand from a static file server.</p>
-<h2 id="limits"><a class="header" href="#limits">Limits</a></h2>
-<p>The practicality / scalability of this tool is mainly bound by the following 2 factors as such.</p>
-<h3 id="size-of-the-largest-index-chunk-retrieved"><a class="header" href="#size-of-the-largest-index-chunk-retrieved">Size of the Largest Index Chunk Retrieved</a></h3>
-<p>While the index is split into many chunks, some chunks may exceed the “split size” of <code>16383</code> bytes at times. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, all such chunks will still inevitably have to be retrieved when the term is searched, diminishing its benefit.</p>
-<p>Certain <a href="./indexing_configuration.html">indexing options</a> like removing positions and pre-caching larger chunks on startup are available to alleviate this to some extent, though not infinitely.</p>
-<h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
-<p>As a rough estimate from testing, this library should be able to handle collections &lt; <code>800mb</code> with positional indexing. Without it, the index shrinks 3-4 fold, making it potentially possible to index collections <code>~2gb</code> in size.</p>
-<h3 id="hardware-capabilities"><a class="header" href="#hardware-capabilities">Hardware Capabilities</a></h3>
-<p>Device capabilities is also another concern (performance when ranking and populating results), although in practice, you should be hitting limits due to the first factor (network transfer times) long before experiencing issues with this.</p>
 <h2 id="use-cases"><a class="header" href="#use-cases">Use Cases</a></h2>
-<p>In short, this tool is tailored for a very specific audience:</p>
+<p>In short, you may want to use this tool if:</p>
 <ul>
-<li>You have a fairly large collection of html, csv, or json (only these are supported for now) files that cannot be monolithically retrieved feasibly</li>
-<li>You don’t want or can’t run a search server / search Saas (eg. Algolia Docsearch)</li>
-<li>You don’t want the user downloading and loading a gigantic <code>&gt; 50mb</code> index, blowing up memory usage everytime they visit your site.</li>
-<li>You want a complete, end-to-end and customisable search UI and file indexing solution.</li>
+<li>You want a complete, end-to-end and customisable search UI and cli-based file indexing solution</li>
+<li>You have a fairly large collection of html, csv, or json (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly</li>
+<li>Running a search server / SaaS (eg. Algolia Docsearch) is not an option</li>
 </ul>
 <blockquote>
 <p>⚠️ 
-It is <strong>not possible</strong> to use morsels for client-side indexing + searching as such since the indexer is a cli tool.</p>
+It is <strong>not possible</strong> to use morsels for <strong>client-side indexing</strong> as such since the indexer is a cli tool.</p>
 <p>If this is the use case, consider other lighter-weight libraries like lunr.js that already fit well.</p>
 </blockquote>
 <h2 id="libraries"><a class="header" href="#libraries">Libraries</a></h2>
-<p>This project is made up of 3 crates and 2 packages, which may be referred to in the subsequent sections of the documentation.</p>
-<h4 id="rust-crates"><a class="header" href="#rust-crates">Rust crates:</a></h4>
+<p>This project is currently made up of 1 exposed crate and npm package, which may be referred to in the subsequent sections of the documentation.</p>
+<h4 id="exposed-crates-and-packages"><a class="header" href="#exposed-crates-and-packages">Exposed Crates and Packages:</a></h4>
 <ul>
 <li><strong>morsels_indexer</strong>: the cli tool providing indexing functionalities for several file formats</li>
-<li><strong>morsels_search</strong>: internal rust wasm crate, used by the <strong>@morsels/search-lib</strong> package below.</li>
-<li><strong>morsels_common</strong>: internal library containing common functionalities for the above 2 crates.</li>
-</ul>
-<h4 id="npm-packages"><a class="header" href="#npm-packages">Npm packages:</a></h4>
-<ul>
 <li><strong>@morsels/search-ui</strong>: interfaces with @morsels/search-lib to provide basic search UI functionalities (e.g. SERP generation)</li>
-<li><strong>@morsels/search-lib</strong>: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the <code>@morsels/search-ui</code> package in the future. For now, it only serves to separate some concerns from the UI package.</li>
-<li><strong>@morsels/lang-XX</strong>: internal tokenizer packages for different languages generated by wasm pack.</li>
+</ul>
+<h4 id="internal-crates-and-packages"><a class="header" href="#internal-crates-and-packages">Internal Crates and Packages:</a></h4>
+<ul>
+<li><strong>morsels_search</strong>: internal rust wasm crate, used by the <strong>@morsels/search-lib</strong> package below.</li>
+<li><strong>morsels_common</strong>: internal rust crate containing some common functionalities</li>
+<li><strong>@morsels/search-lib</strong>: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the <code>@morsels/search-ui</code> package in the future. For now, it only serves to separate some concerns from the UI package</li>
+<li><strong>@morsels/lang-XX</strong>: internal tokenizer packages for different languages generated by wasm pack</li>
 </ul>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>

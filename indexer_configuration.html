@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Developing - Morsels Documentation</title>
+        <title>Indexer Configuration - Morsels Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html" class="active"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -196,29 +196,91 @@
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <div class="morsels-root" id="morsels-mdbook-target"></div>
-<h1 id="developing"><a class="header" href="#developing">Developing</a></h1>
-<h2 id="building-and-running-the-development-site"><a class="header" href="#building-and-running-the-development-site">Building and Running the Development Site</a></h2>
-<p>Once you have you test files placed in the correct folder per the previous chapter, run the <code>npm run index1</code> script to index your content, then run <code>npm run devServer1</code> to serve up the indexer’s output on port <code>3000</code>.</p>
-<p>Finally, use the <code>npm run dev</code> script to open the development site on port <code>8080</code>. This script runs the webpack build process, which in turn triggers the WebAssembly build process as well through the wasm-pack webpack plugin.</p>
-<p>There are also <code>npm run index2</code> / <code>devServer2</code> scripts available. An interactive script may be added in the future, but for now 2 should suffice (1 to test a smaller site, 1 to test a very large collection).</p>
-<h2 id="working-with-the-mdbook-morsels-plugin--documentation-edits"><a class="header" href="#working-with-the-mdbook-morsels-plugin--documentation-edits">Working With the mdbook-morsels Plugin / Documentation Edits</a></h2>
-<p>Simply run <code>npm run devDocsFull</code> to get serve up the documentation on port <code>8000</code>!</p>
-<p>This script runs the following subscripts:</p>
-<ol>
-<li>
-<p><code>npm run installIndexer</code>, this builds and install the indexer command-line tool to your <code>PATH</code> (mdbook plugins are basically separate executables, operating on <code>stdin / stdout</code>).</p>
-</li>
-<li>
-<p><code>npm run buildSearch</code>, which builds the search-ui bundles, to ensure the documentation is being developed on the latest changes.</p>
-</li>
-<li>
-<p><code>npm run installMdbook</code>, which builds and installs the mdbook plugin executable.</p>
-</li>
-<li>
-<p><code>npm run devDocs</code>, which serves up the documentation at port <code>8000</code>. The commands are segregated to reduce iterative build times if you only need to execute the last few script(s).</p>
-</li>
-</ol>
-<p>You can also run the individual commands separately to reduce iterative build times if you only need to execute the last few script(s).</p>
+<h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
+<p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>morsels_config.json</code> in the source folder (first argument specified in the command).</p>
+<p>You can run the cli command with the <code>--init</code> option to initialise the default configuration file in the source folder.</p>
+<h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
+<pre><code class="language-json">{
+  &quot;fields_config&quot;: {
+    &quot;cache_all_field_stores&quot;: true,
+    &quot;field_store_block_size&quot;: 250,
+    &quot;num_stores_per_dir&quot;: 1000,
+    &quot;fields&quot;: [
+      {
+        &quot;name&quot;: &quot;title&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.2,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.25
+      },
+      {
+        &quot;name&quot;: &quot;heading&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.3,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.3
+      },
+      {
+        &quot;name&quot;: &quot;body&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.5,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;headingLink&quot;,
+        &quot;do_store&quot;: false,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      },
+      {
+        &quot;name&quot;: &quot;_relative_fp&quot;,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 0.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.75
+      }
+    ]
+  },
+  &quot;lang_config&quot;: {
+    &quot;lang&quot;: &quot;latin&quot;,
+    &quot;options&quot;: null
+  },
+  &quot;indexing_config&quot;: {
+    &quot;num_docs_per_block&quot;: 1000,
+    &quot;pl_limit&quot;: 16383,
+    &quot;pl_cache_threshold&quot;: 1048576,
+    &quot;exclude&quot;: [
+      &quot;morsels_config.json&quot;
+    ],
+    &quot;loader_configs&quot;: {
+      &quot;HtmlLoader&quot;: {
+        &quot;exclude_selectors&quot;: [
+          &quot;.no-index&quot;
+        ]
+      },
+      &quot;JsonLoader&quot;: {
+        &quot;field_map&quot;: {
+          &quot;body&quot;: &quot;body&quot;,
+          &quot;heading&quot;: &quot;heading&quot;,
+          &quot;link&quot;: &quot;_relative_fp&quot;,
+          &quot;title&quot;: &quot;title&quot;
+        },
+        &quot;field_order&quot;: [
+          &quot;title&quot;,
+          &quot;heading&quot;,
+          &quot;body&quot;,
+          &quot;link&quot;
+        ]
+      }
+    },
+    &quot;pl_names_to_cache&quot;: [],
+    &quot;num_pls_per_dir&quot;: 1000,
+    &quot;with_positions&quot;: true
+  }
+}
+</code></pre>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -278,10 +340,13 @@ if (window.location.search) {
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="developers_setting_up.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="search_configuration_renderers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next" href="indexer/fields.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -289,10 +354,13 @@ if (window.location.search) {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="developers_setting_up.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="search_configuration_renderers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next" href="indexer/fields.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

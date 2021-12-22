@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -212,7 +212,7 @@
     }
 </style>
 <div class="alert alert-warning" role="alert">
-  Certain parts of the APIs here (highlighted in <span style="color: red;">red</span>) may be particularly unstable still.
+  The APIs here (especially those highlighted in <span style="color: red;">red</span>) may be particularly unstable still!
 </div>
 <p>This page covers the a more advanced API, “renderers”, that allows you to customise the html output structure to some degree.</p>
 <p>Some use cases for this include:</p>
@@ -252,14 +252,14 @@
 <p><code>opts</code></p>
 <p>All renderer functions are also passed an <code>opts</code> parameter. This is the original input object that you provided to the <code>initMorsels</code> call. Default parameters are however populated at this point.</p>
 <p>i.e.,</p>
-<pre><code>opts = export interface SearchUiOptions {
+<pre><code class="language-ts">opts = export interface SearchUiOptions {
   searcherOptions?: SearcherOptions,
   uiOptions?: UiOptions,
   isMobileDevice: () =&gt; boolean,
-  otherOptions: ArbitraryOptions
+  otherOptions: any
 }
 </code></pre>
-<p>If you want to include some custom options (e.g. an API base url) somehwere, you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
+<p>If you want to include some custom options (e.g. an API base url), you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
 <h2 id="default-html-output-structure"><a class="header" href="#default-html-output-structure">Default Html Output Structure</a></h2>
 <p>You can have a look at the documentation further below on each API to understand each renderer, then refer back to the following output placement snippet to understand which renderers are responsible for which parts of the html output.</p>
 <p>The output also varies depending on the <a href="./search_configuration.html#ui-mode">UI mode</a> specified earlier. As usual, note that <code>dropdown</code> and <code>fullscreen</code> modes both apply to the <code>auto</code> mode.</p>
@@ -367,12 +367,12 @@
 <p><code>fsRootRender(h, opts, fsCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }</code></p>
 <p>This API renders the root element for the <strong>fullscreen version</strong> of the user interface.</p>
 <ul>
-<li><code>fsCloseHandler</code>: A void function used for closing the fullscreen UI. This may also be used to check if the current render is for the fullscreen UI or dropdown UI.</li>
+<li><code>fsCloseHandler</code>: A function used for closing the fullscreen UI.</li>
 </ul>
 <p>It should return 3 elements:</p>
 <ul>
 <li><code>root</code>: The root element. This is passed to the <code>hide / show</code> APIs below.</li>
-<li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.</li>
+<li><code>listContainer</code>: The element to attach matches for a single document (rendered by <code>listItemRender</code>) to.</li>
 <li><code>input</code>: Input element. This is required for morsels to attach input event handlers.</li>
 </ul>
 <h4 id="supplementary-mandatory-functions-1"><a class="header" href="#supplementary-mandatory-functions-1">Supplementary Mandatory Functions</a></h4>
@@ -671,7 +671,7 @@ if (window.location.search) {
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="indexing_configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="indexer_configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -685,7 +685,7 @@ if (window.location.search) {
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="indexing_configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="indexer_configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexing_configuration.html"><strong aria-hidden="true">5.</strong> Indexing Configuration</a></li><li class="chapter-item expanded "><a href="tradeoffs.html" class="active"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html" class="active"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -235,11 +235,10 @@ Scalability and file bloat are inevitably labelled more <strong>subjectively</st
 </li>
 <li>Indexing Configuration:
 <ul>
-<li>what fields are stored (<code>do_store</code>)</li>
-<li><a href="indexing_configuration.html#fields_config"><code>field_store_block_size</code></a></li>
-<li><a href="indexing_configuration.html#indexing_config"><code>pl_limit</code></a></li>
-<li><a href="indexing_configuration.html#indexing_config"><code>pl_cache_threshold</code></a></li>
-<li><a href="indexing_configuration.html#indexing_config"><code>num_stores_per_dir</code></a></li>
+<li>what <a href="./indexer/fields.html">fields</a> are stored (<code>do_store</code>)</li>
+<li><a href="./indexer/fields.html"><code>field_store_block_size</code></a></li>
+<li><a href="./indexer/indexing.html#search-performance"><code>pl_limit</code></a></li>
+<li><a href="./indexer/indexing.html#search-performance"><code>pl_cache_threshold</code></a></li>
 </ul>
 </li>
 </ul>
@@ -277,22 +276,49 @@ This is because in this option, field stores only store the relative file path f
 <p>The settings here follow from the section directly above, disregarding the compromises. That is,</p>
 <h4 id="31-generating-result-previews-from-source-files"><a class="header" href="#31-generating-result-previews-from-source-files">3.1. Generating Result Previews from Source Files</a></h4>
 <p>(<code>RTT=3</code>, Excellent Scalability, Little-Moderate File Bloat)</p>
-<p>The <code>RTT</code> compromise is accepted as is, without performing the caching mentioned in section 2.1.</p>
+<p>The <code>RTT</code> compromise is accepted as is, without performing the caching mentioned in <strong>section 2.1</strong>.</p>
 <p>This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached.</p>
 <h4 id="32-generating-result-previews-from-field-stores"><a class="header" href="#32-generating-result-previews-from-field-stores">3.2. Generating Result Previews from Field Stores</a></h4>
 <p>(<code>RTT=2</code>, Excellent Scalability, Heavy File Bloat)</p>
-<p>Per section 2.2, one simply needs to avoid the assumption that the index can be cached.</p>
+<p>Per <strong>section 2.2</strong>, one simply needs to avoid the assumption that the index can be cached.</p>
 <p>Scalability is then ensured here by fragmenting both the index (using <code>pl_limit</code>) and field stores (<code>field_store_block_size</code>).</p>
 <h3 id="other-options"><a class="header" href="#other-options">Other Options</a></h3>
 <p>There are 2 other options worth highlighting that can help reduce the index size. </p>
 <ul>
-<li><a href="indexing_configuration.html#lang_config"><code>ignore_stop_words</code></a></li>
-<li><a href="indexing_configuration.html#indexing_config"><code>with_positions</code></a></li>
+<li><a href="./indexer/language.html#note-on-stop-words"><code>ignore_stop_words</code></a></li>
+<li><a href="./indexer/indexing.html#miscellaneous-options"><code>with_positions</code></a></li>
 </ul>
 <p>Since the default settings (<code>RTT=2</code>, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.</p>
 <p>Positional information also takes up a considerable proportion of the index size.</p>
 <p>If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.</p>
-<p>This would be especially useful if configuring for a monolithic index (<code>RTT=0</code>, Fair Scalability, Little File Bloat), as it reduces the index size to be retrieved up front.</p>
+<p>This would be especially useful if configuring for a <strong>monolithic index</strong> (<code>RTT=0</code>, Fair Scalability, Little File Bloat), as it reduces the index size to be retrieved up front.</p>
+<h3 id="scalability-limits"><a class="header" href="#scalability-limits">Scalability Limits</a></h3>
+<p>While the index is split into many chunks, some chunks may exceed the default “split size” (<code>pl_limit</code>) of <code>16383</code> bytes. This occurs when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.</p>
+<h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
+<p>As a rough estimate from testing, this library should be able to handle  text collections &lt; <code>800mb</code> with positional indexing.</p>
+<p>The following distribution of postings list file sizes (before gzip) under the default <code>pl_limit</code> was produced with:</p>
+<ul>
+<li>A <code>380MB</code> <strong>csv</strong> corpus (no html soup!)</li>
+<li>Duplicated once to total about <code>760MB</code>, and 19088 documents</li>
+</ul>
+<pre><code># Counts
+[7335  219   76   13    7    14    4     1     1     1     0     0     0     1]
+# (Left) Bin Edges, in KB
+[0     100   250  500   750  1000  2000  3000  4000  5000  6000  7000  8000  9000]
+</code></pre>
+<p>Most of the postings list files are well below the default <code>pl_cache_threshold</code> of <code>1048576</code> bytes, while the select few above it totals roughly <code>45Mb</code>.</p>
+<h5 id="disabling-positions"><a class="header" href="#disabling-positions">Disabling Positions</a></h5>
+<p>Without positional indexing, the index shrinks <strong>3-4 fold</strong>, making it potentially possible to index collections <code>~2gb</code> in size, or even more.</p>
+<p>In addition, large postings lists are all but removed in this case:</p>
+<pre><code># Counts with positional information removed
+[4350    0    0    0    0    0    0    0    0    0    0    0    0    0]
+</code></pre>
+<h5 id="removing-stop-words"><a class="header" href="#removing-stop-words">Removing Stop Words</a></h5>
+<p>If disabling caching via setting a very high <code>pl_cache_threshold</code>, <a href="./indexer/language.html#note-on-stop-words">removing stop words</a> when indexing would have little to no effect as such terms are already separated into different postings lists and never retrieved unless necessary.</p>
+<p>On the other hand, removing stop words with a lower <code>pl_cache_threshold</code> would help to avoid caching the “outliers” on the right of the distribution up front, if initial network usage is a concern.</p>
+<pre><code># Counts with stop words removed
+[7234  209   65   11    5    1    0    0    0    0    0    0    0    0]
+</code></pre>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -352,7 +378,7 @@ if (window.location.search) {
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="indexing_configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="indexer/indexing.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -366,7 +392,7 @@ if (window.location.search) {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="indexing_configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="indexer/indexing.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
