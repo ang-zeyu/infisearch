@@ -3,6 +3,8 @@
 
 # Update the cargo.toml version numbers before running anything!
 
+VERSION=v0.0.4
+
 # Run in order
 # Check preReleaseXX outputs manually before running release
 
@@ -58,6 +60,7 @@ preReleaseSearch:
 	git add packages/search-ui/dist/*
 	git commit --amend -m "Bump search"
 	git checkout -- .
+	git tag --force $(VERSION)
 
 releaseSearch:
 	npx lerna publish from-git
@@ -67,6 +70,7 @@ preReleaseMdbook:
 	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
 	git add packages/mdbook-morsels/search-ui-dist/*
 	git commit -m "Update mdbook search-ui dist"
+	git tag --force $(VERSION)
 	cargo clean --release -p mdbook-morsels
 	cd packages/mdbook-morsels &&\
 	cargo package &&\
