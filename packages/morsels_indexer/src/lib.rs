@@ -352,7 +352,7 @@ impl Indexer {
         ) = channel::bounded(config.indexing_config.num_threads);
         let (tx_main, rx_worker): (
             Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
-        ) = channel::bounded(100); // TODO 100 may be a little arbitrary
+        ) = channel::bounded(32); // TODO may be a little arbitrary
 
         let expected_num_docs_per_thread =
             (config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2) as usize;
