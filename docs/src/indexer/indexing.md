@@ -1,8 +1,8 @@
 # `indexing_config`
 
-The configurations in this section mainly specify **how (mapping file data to fields)** and **which** files to index.
+The configurations in this section mainly specify **how (mapping file contents to fields)** and **which** files to index.
 
-All configurations are optional (reasonable defaults provided otherwise), save for the `loader_configs` key. The cli tool **will do nothing** if no loaders are specified.
+All configurations are optional, save for the `loader_configs` key. The cli tool **will do nothing** if no loaders are specified.
 
 The snippet below shows the default values:
 
@@ -51,19 +51,21 @@ If your documents are very small, increasing this *may* help improve indexing pe
 
 **`exclude`**
 
-Global file exclusions can be specified in this parameter, which is an array of file globs.
+Global file exclusions can be specified in this parameter, which is simply an array of file globs.
 
 
-## Mapping File Data to Fields (`loader_configs`)
+## Mapping File Data to Fields
 
-The indexer is able to handle data from html, json or csv files. Support for each file type is provided by a "`Loader`" abstraction.
+`loader_configs`
 
-You may configure loaders by including them under the `loader_configs` key, with any applicable options.
+The indexer is able to handle data from html, json or csv files. Support for each file type is provided by a `Loader` abstraction.
+
+You may configure loaders by **including them under the `loader_configs` key**, with any applicable options.
 
 **`HtmlLoader`**
 
 ```json
-{
+"loader_configs": {
   "HtmlLoader": {
     // list of selectors to exclude from indexing
     "exclude_selectors": [
@@ -94,14 +96,14 @@ You may configure loaders by including them under the `loader_configs` key, with
 
 The html loader traverses the document depth-first, in the order text nodes and attributes appear.
 
-At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by `field_name`. If another of the element's descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).
+At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by the corresponding `field_name`. If another of the element's descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).
 
 The `attr_map` allows indexing attributes of elements (not including descendants) under fields as well.
 
 **`JsonLoader`**
 
 ```json
-{
+"loader_configs": {
   "JsonLoader": {
     "field_map": {
       "body": "body",
@@ -121,7 +123,7 @@ The `attr_map` allows indexing attributes of elements (not including descendants
 ```
 
 Json files can also be indexed. The `field_map` key must be specified, which contains a mapping of **json key -> field name**.
-The `field_order` array controls the order in which these fields are indexed, which can influence position based functions such as query term proximity ranking.
+The `field_order` array controls the order in which these fields are indexed, which can have a minor influence on query term proximity ranking.
 
 The json file can be either:
 1. An object, following the schema set out in `field_map`
@@ -130,7 +132,7 @@ The json file can be either:
 **`CsvLoader`**
 
 ```json
-{
+"loader_configs": {
   "CsvLoader": {
     "use_headers": false,
     "header_field_map": {},

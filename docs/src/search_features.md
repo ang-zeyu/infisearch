@@ -5,7 +5,7 @@ This page outlines the available search features common to both `@morsels/search
 ## Boolean Operators, Parentheses
 
 `AND` and `NOT` operators are supported.
-`OR` operators are not supported, but is implicitly left to the tokenizer (see below for an example).
+`OR` operators are not supported, but its function is implicitly left to the tokenizer (see below for an example).
 Parentheses `(...)` can be used to group expressions together.
 
 ```
@@ -17,11 +17,13 @@ lorem AND NOT (ipsum dolor) - documents with "lorem" but not ("ipsum" OR "dolor"
 
 ## Phrase Queries
 
-Phrase queries are also supported. However, these will not work if the [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature is disabled.
+Phrase queries are also supported by enclosing the relevant terms in `"..."`.
 
 ```
 "lorem ipsum" - documents containing "lorem" and "ipsum" appearing one after the other
 ```
+
+However, note these will not work if the [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature is disabled (enabled by default).
 
 ## Field Search
 
@@ -47,23 +49,32 @@ lorem\ AND ipsum            - interpreted literally as "lorem AND ipsum"
 title\:lorem
 ```
 
-## Other Details
+## Non User-Facing Features
 
-This section briefly details some non user-facing features.
+This section briefly details some non-user-facing features.
 
 ### WebWorker Built-in
 
 Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.
 
-Population of stored document fields is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.
+Population of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.
 
 Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
 One of the main reasons is that there is simply no way of parsing html (the original html document can be used as an alternative to storing document fields) faster than the implementations provided by the browser.
 
+
+### Low-Level Inverted Index Format
+
+Besides splitting the inverted index into many files, the inverted index is constructed in a binary format with various compression schemes employed:
+- Gap encoding for document ids, positions
+- Bytewise variable integer encoding
+
+To facilitate decompression efficiency of such a low-level format, most of the search library is powered by WebAssembly (Rust) as such.
+
 ### Ranking Specifics
 
-Top-level disjunctive expressions (e.g. `lorem ipsum`) are ranked using the BM25 model.
+Top-level **disjunctive** expressions (e.g. free text queries like `lorem ipsum`) are ranked using the BM25 model.
 
 Pure free-text queries (e.g. "lorem ipsum") also use the [WAND algorithm](https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand) to improve query speed, although, the benefits should be marginal for most cases.
 
-Query term proximity ranking is also supported and enabled by default - results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.
+A simple form of **query term proximity ranking** is also supported and enabled by default. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.

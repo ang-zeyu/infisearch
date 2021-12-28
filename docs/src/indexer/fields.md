@@ -4,9 +4,9 @@ The first step to indexing any documents is defining the fields to store.
 
 The default configurations are as follows, already setup for interfacing with the `@morsels/search-ui` package.
 
-> If you are using morsels' search UI **as-is** (e.g. not adding additional fields to display), you can skip configuring `fields_config.fields`.
->
-> You may want to briefly take note of the other parameters under `fields_config` however, which can be used to adjust response times / file bloat. The possible adjustments will be discussed under the chapter [Tradeoffs](../tradeoffs.md).
+If you are using morsels' search UI **as-is** (e.g. not adding additional fields to display), you can skip configuring `fields_config.fields`.
+
+You may want to briefly take note of the other parameters under `fields_config` however, which can be used to adjust response times / file bloat. The possible adjustments will be discussed under the chapter [Tradeoffs](../tradeoffs.md).
 
 ```json
 {
