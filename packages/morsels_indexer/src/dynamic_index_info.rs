@@ -74,10 +74,12 @@ impl DynamicIndexInfo {
 
         if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) {
             if !meta.is_file() {
+                println!("Old dynamic index info missing. Running a full reindex.");
                 *is_dynamic = false;
                 return DynamicIndexInfo::empty();
             }
         } else {
+            println!("Old dynamic index info missing. Running a full reindex.");
             *is_dynamic = false;
             return DynamicIndexInfo::empty();
         }
@@ -92,6 +94,7 @@ impl DynamicIndexInfo {
                 return DynamicIndexInfo::empty();
             }
         } else {
+            eprintln!("Old configuration file missing. Running a full reindex.");
             *is_dynamic = false;
             return DynamicIndexInfo::empty();
         }
@@ -103,6 +106,7 @@ impl DynamicIndexInfo {
             .expect("dynamic index info deserialization failed!");
 
         if &info.ver[..] != MORSELS_VERSION {
+            println!("Indexer version changed. Running a full reindex.");
             *is_dynamic = false;
             return DynamicIndexInfo::empty();
         }

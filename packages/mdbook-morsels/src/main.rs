@@ -69,7 +69,13 @@ fn main() {
             command.arg("--dynamic");
         }
 
-        command.output().expect("mdbook-morsels: failed to execute indexer process");
+        let output = command.output().expect("mdbook-morsels: failed to execute indexer process");
+        let mut log_file = File::create(ctx.destination.join(Path::new("morsels_indexer_log.txt"))).unwrap();
+        log_file.write_all("\n".as_bytes()).unwrap();
+        log_file.write_all(&output.stdout).unwrap();
+        log_file.write_all("\n".as_bytes()).unwrap();
+        log_file.write_all(&output.stderr).unwrap();
+        log_file.flush().unwrap();
     } else {
         let morsels_preprocessor = Morsels;
 
@@ -115,13 +121,17 @@ fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::Pa
     let do_scale = scaling_config.is_none()
         || (scaling_config.unwrap().is_bool() && scaling_config.unwrap().as_bool().unwrap());
     if do_scale  {
-        auto_scale_config(&morsels_config_path, total_len);
+        auto_scale_config(
+            &morsels_config_path,
+            total_len,
+            ctx.config.get("debug").unwrap_or_else(|| &Value::Boolean(false)).as_bool().unwrap_or_else(|| false),
+        );
     }
 
     morsels_config_path
 }
 
-fn auto_scale_config(morsels_config_path: &PathBuf, total_len: u64) {
+fn auto_scale_config(morsels_config_path: &PathBuf, total_len: u64, debug: bool) {
     let config = fs::read_to_string(morsels_config_path).unwrap();
     let mut config_as_value: JsonValue = serde_json::from_str(&config).expect("unexpected error parsing search config file");
     let indexing_config = config_as_value.get_mut("indexing_config");
@@ -134,7 +144,12 @@ fn auto_scale_config(morsels_config_path: &PathBuf, total_len: u64) {
         .as_object_mut()
         .expect("indexing_config is not an object");
 
-    indexing_config.insert("_total_len".to_owned(), json!(format!("This is debugging metadata for the mdbook plugin. Total len: {}", total_len)));
+    if debug {
+        indexing_config.insert(
+            "_total_len".to_owned(),
+            json!(format!("This is debugging metadata for the mdbook plugin. Total len: {}", total_len))
+        );
+    }
     
     const BOUNDARY_1_END: u64   = 10000000;
     // 10MB
