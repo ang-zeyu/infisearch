@@ -406,7 +406,6 @@ function initMorsels(options: SearchUiOptions): {
 
   // --------------------------------------------------
   // Input element option handling
-  // Applicable for all modes except the UiMode.Fullscreen which has its own input
   let dropdownListContainer;
   const { input } = uiOptions;
   if (input && uiOptions.mode !== UiMode.Target) {
@@ -422,29 +421,27 @@ function initMorsels(options: SearchUiOptions): {
 
     input.addEventListener('input', inputListener(dropdownRoot, dropdownListContainer));
 
-    if (uiOptions.mode === UiMode.Auto || uiOptions.mode === UiMode.Dropdown) {
-      let debounce;
-      window.addEventListener('resize', () => {
-        if (uiOptions.mode === UiMode.Dropdown) {
-          uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
-          return;
-        }
+    let debounce;
+    window.addEventListener('resize', () => {
+      if (uiOptions.mode === UiMode.Dropdown) {
+        uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+        return;
+      }
 
-        clearTimeout(debounce);
-        debounce = setTimeout(() => {
-          const newIsMobileSize = isMobileDevice();
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        const newIsMobileSize = isMobileDevice();
 
-          if (isMobileSizeGlobal !== newIsMobileSize) {
-            isMobileSizeGlobal = newIsMobileSize;
-            if (isMobileSizeGlobal) {
-              uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
-            } else {
-              uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
-            }
+        if (isMobileSizeGlobal !== newIsMobileSize) {
+          isMobileSizeGlobal = newIsMobileSize;
+          if (isMobileSizeGlobal) {
+            uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+          } else {
+            uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
           }
-        }, 250);
-      });
-    }
+        }
+      }, 250);
+    });
 
     input.addEventListener('blur', () => {
       if (useDropdown(uiOptions)) {
@@ -468,7 +465,12 @@ function initMorsels(options: SearchUiOptions): {
         return;
       }
 
-      // useFullscreen
+      // When using 'auto' mode, may still be using fullscreen UI
+      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
+    });
+  } else if (input && uiOptions.mode === UiMode.Fullscreen) {
+    // Fullscreen-only mode
+    input.addEventListener('focus', () => {
       uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
     });
   } else if (input && uiOptions.mode === UiMode.Target) {
