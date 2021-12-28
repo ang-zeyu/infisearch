@@ -134,7 +134,7 @@ impl DynamicIndexInfo {
         info
     }
 
-    pub fn add_doc_to_external_id(&mut self, external_id: &str, doc_id: u32) {
+    pub fn add_doc_to_file(&mut self, external_id: &str, doc_id: u32) {
         self.mappings
             .get_mut(external_id)
             .expect("Get path for index file should always have an entry when adding doc id")
@@ -142,9 +142,9 @@ impl DynamicIndexInfo {
             .push(doc_id);
     }
 
-    pub fn update_doc_if_modified(&mut self, external_id: &str, new_modified: u128) -> bool {
+    pub fn set_file(&mut self, external_id: &str, new_modified: u128) -> bool {
         if let Some(old_modified) = self.mappings.get_mut(external_id) {
-            // Old document
+            // Old file
 
             // Set encountered flag to know which files were deleted later on
             old_modified.2 = true;
@@ -158,15 +158,15 @@ impl DynamicIndexInfo {
                     self.invalidation_vector[byte_num] |= 1_u8 << (doc_id % 8) as u8;
                 }
 
-                return true;
+                return false;
             }
 
-            false
+            true
         } else {
-            // New document
+            // New file
             self.mappings.insert(external_id.to_owned(), DocIdsAndFileHash(Vec::new(), new_modified, true));
 
-            true
+            false
         }
     }
 

@@ -6,7 +6,7 @@ class Query {
     public readonly query: string,
     public readonly searchedTerms: string[],
     public readonly queryParts: QueryPart[],
-    public readonly retrieve: (n: number) => Promise<Result[]>,
+    public readonly getNextN: (n: number) => Promise<Result[]>,
     public readonly free: () => void,
   ) {}
 }

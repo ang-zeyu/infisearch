@@ -452,19 +452,7 @@ impl Indexer {
     }
 
     pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
-        let timestamp = if let Ok(metadata) = std::fs::metadata(path) {
-            if let Ok(modified) = metadata.modified() {
-                modified.duration_since(UNIX_EPOCH).unwrap().as_millis()
-            } else {
-                /*
-                 Use program execution time if metadata unavailable.
-                 This results in the path always being updated.
-                */
-                *CURRENT_MILLIS
-            }
-        } else {
-            *CURRENT_MILLIS
-        };
+        let timestamp = get_timestamp(path);
 
         let relative_path_lossy;
         let external_id = if let Some(relative_path) = relative_path.to_str() {
@@ -474,14 +462,14 @@ impl Indexer {
             &relative_path_lossy
         };
 
-        let is_doc_modified = self.dynamic_index_info.update_doc_if_modified(external_id, timestamp);
-        if !is_doc_modified && self.is_dynamic {
-            return;
-        }
-
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
             {
+                let is_not_modified = self.dynamic_index_info.set_file(external_id, timestamp);
+                if is_not_modified && self.is_dynamic {
+                    return;
+                }
+
                 for loader_result in loader_results {
                     self.tx_main.send(MainToWorkerMessage::Index {
                         doc_id: self.doc_id_counter,
@@ -491,7 +479,7 @@ impl Indexer {
 
                     Self::try_index_doc(&mut self.doc_miner, &self.rx_worker, 30); // TODO 30 a little arbitrary?
 
-                    self.dynamic_index_info.add_doc_to_external_id(external_id, self.doc_id_counter);
+                    self.dynamic_index_info.add_doc_to_file(external_id, self.doc_id_counter);
 
                     self.doc_id_counter += 1;
                     self.spimi_counter += 1;
@@ -508,6 +496,7 @@ impl Indexer {
                         self.spimi_counter = 0;
                     }
                 }
+
                 break;
             }
         }
@@ -656,6 +645,23 @@ impl Indexer {
             .write_all(serialized.as_bytes())
             .unwrap();
     }
+}
+
+fn get_timestamp(path: &Path) -> u128 {
+    let timestamp = if let Ok(metadata) = std::fs::metadata(path) {
+        if let Ok(modified) = metadata.modified() {
+            modified.duration_since(UNIX_EPOCH).unwrap().as_millis()
+        } else {
+            /*
+                 Use program execution time if metadata unavailable.
+                 This results in the path always being updated.
+                */
+            *CURRENT_MILLIS
+        }
+    } else {
+        *CURRENT_MILLIS
+    };
+    timestamp
 }
 
 fn print_time_elapsed(instant: Instant, extra_message: &str) {

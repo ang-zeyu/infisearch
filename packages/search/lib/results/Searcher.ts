@@ -183,6 +183,7 @@ class Searcher {
     const getNextN = async (n: number) => {
       await this.workerQueryPromises[query][queryId].promise;
 
+      // Initiate worker request
       this.workerQueryPromises[query][queryId].promise = new Promise((resolve) => {
         this.workerQueryPromises[query][queryId].resolve = resolve;
 
@@ -191,14 +192,17 @@ class Searcher {
         });
       });
 
+      // Wait for worker to finish
       const getNextNResult: {
         nextResults: [number, number][]
       } = await this.workerQueryPromises[query][queryId].promise;
 
-      const retrievedResults = getNextNResult.nextResults.map(([docId, score]) => new Result(
+      // Simple transform into Result objects
+      const retrievedResults: Result[] = getNextNResult.nextResults.map(([docId, score]) => new Result(
         docId, score, this.morselsConfig.fieldInfos,
       ));
 
+      // Retrieve field stores
       const jsonCache = this.persistentJsonCache || new JsonCache();
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url,

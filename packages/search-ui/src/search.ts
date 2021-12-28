@@ -8,51 +8,11 @@ import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';
 import createElement from './utils/dom';
 import { parseURL } from './utils/url';
 
-let currQuery: Query;
-
 let isMobileSizeGlobal = false;
 
 let dropdownShown = false;
 let fullscreenShown = false;
 
-let isUpdating = false;
-let nextUpdate: () => any;
-async function update(
-  queryString: string,
-  root: HTMLElement,
-  listContainer: HTMLElement,
-  searcher: Searcher,
-  options: SearchUiOptions,
-): Promise<void> {
-  try {
-    // const now = performance.now();
-
-    if (currQuery) {
-      currQuery.free();
-    }
-
-    currQuery = await searcher.getQuery(queryString);
-
-    // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
-
-    await transformResults(currQuery, searcher.morselsConfig, true, listContainer, options);
-
-    root.scrollTo({ top: 0 });
-    listContainer.scrollTo({ top: 0 });
-  } catch (ex) {
-    console.error(ex);
-    listContainer.innerHTML = '<div class="morsels-error"></div>';
-    throw ex;
-  } finally {
-    if (nextUpdate) {
-      const nextUpdateTemp = nextUpdate;
-      nextUpdate = undefined;
-      await nextUpdateTemp();
-    } else {
-      isUpdating = false;
-    }
-  }
-}
 
 function useDropdown(uiOptions: UiOptions): boolean {
   return (uiOptions.mode === UiMode.Auto && !isMobileSizeGlobal)
@@ -321,6 +281,104 @@ function prepareOptions(options: SearchUiOptions) {
   options.otherOptions = options.otherOptions || {};
 }
 
+
+function createInputListener(
+  root: HTMLElement,
+  listContainer: HTMLElement,
+  searcher: Searcher,
+  options: SearchUiOptions,
+) {
+  const { uiOptions } = options;
+
+  let inputTimer: any = -1;
+  let isFirstQueryFromBlank = true;
+
+  let currQuery: Query;
+  let isUpdating = false;
+  let nextQuery: () => any;
+  async function runNewQuery(queryString: string): Promise<void> {
+    try {
+      // const now = performance.now();
+  
+      if (currQuery) {
+        currQuery.free();
+      }
+  
+      currQuery = await searcher.getQuery(queryString);
+  
+      // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
+  
+      await transformResults(currQuery, searcher.morselsConfig, true, listContainer, options);
+  
+      root.scrollTo({ top: 0 });
+      listContainer.scrollTo({ top: 0 });
+    } catch (ex) {
+      console.error(ex);
+      listContainer.innerHTML = '<div class="morsels-error"></div>';
+      throw ex;
+    } finally {
+      if (nextQuery) {
+        const nextQueryTemp = nextQuery;
+        nextQuery = undefined;
+        await nextQueryTemp();
+      } else {
+        isUpdating = false;
+      }
+    }
+  }
+
+  return (ev: InputEvent) => {
+    const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
+  
+    clearTimeout(inputTimer);
+    if (query.length) {
+      inputTimer = setTimeout(() => {
+        if (isFirstQueryFromBlank) {
+          listContainer.innerHTML = '';
+          listContainer.appendChild(
+            uiOptions.loadingIndicatorRender(createElement, options),
+          );
+  
+          if (useDropdown(uiOptions)) {
+            uiOptions.showDropdown(root, listContainer, options);
+          }
+        }
+  
+        if (isUpdating) {
+          nextQuery = () => runNewQuery(query);
+        } else {
+          isUpdating = true;
+          runNewQuery(query);
+        }
+  
+        isFirstQueryFromBlank = false;
+      }, uiOptions.inputDebounce);
+    } else {
+      const reset = () => {
+        if (uiOptions.mode === UiMode.Target) {
+          listContainer.innerHTML = '';
+        } else if (useDropdown(uiOptions)) {
+          uiOptions.hideDropdown(root, listContainer, options);
+        } else {
+          // useFullscreen
+          listContainer.innerHTML = '';
+          listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
+        }
+  
+        isUpdating = false;
+        isFirstQueryFromBlank = true;
+      };
+  
+      if (isUpdating) {
+        nextQuery = reset;
+      } else {
+        reset();
+      }
+    }
+  };
+}
+
+
 function initMorsels(options: SearchUiOptions): {
   showFullscreen: () => void,
   hideFullscreen: () => void,
@@ -335,57 +393,6 @@ function initMorsels(options: SearchUiOptions): {
 
   const searcher = new Searcher(options.searcherOptions);
 
-  let inputTimer: any = -1;
-  let isFirstQueryFromBlank = true;
-  const inputListener = (root: HTMLElement, listContainer: HTMLElement) => (ev) => {
-    const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
-
-    clearTimeout(inputTimer);
-    if (query.length) {
-      inputTimer = setTimeout(() => {
-        if (isFirstQueryFromBlank) {
-          listContainer.innerHTML = '';
-          listContainer.appendChild(
-            uiOptions.loadingIndicatorRender(createElement, options),
-          );
-
-          if (useDropdown(uiOptions)) {
-            uiOptions.showDropdown(root, listContainer, options);
-          }
-        }
-
-        if (isUpdating) {
-          nextUpdate = () => update(query, root, listContainer, searcher, options);
-        } else {
-          isUpdating = true;
-          update(query, root, listContainer, searcher, options);
-        }
-
-        isFirstQueryFromBlank = false;
-      }, uiOptions.inputDebounce);
-    } else {
-      const reset = () => {
-        if (uiOptions.mode === UiMode.Target) {
-          listContainer.innerHTML = '';
-        } else if (useDropdown(uiOptions)) {
-          uiOptions.hideDropdown(root, listContainer, options);
-        } else {
-          // useFullscreen
-          listContainer.innerHTML = '';
-          listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
-        }
-
-        isUpdating = false;
-        isFirstQueryFromBlank = true;
-      };
-
-      if (isUpdating) {
-        nextUpdate = reset;
-      } else {
-        reset();
-      }
-    }
-  };
 
   // --------------------------------------------------
   // Fullscreen version
@@ -398,7 +405,7 @@ function initMorsels(options: SearchUiOptions): {
     () => uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options),
   );
 
-  fsInput.addEventListener('input', inputListener(fsRoot, fsListContainer));
+  fsInput.addEventListener('input', createInputListener(fsRoot, fsListContainer, searcher, options));
 
   // Initial state is blank
   fsListContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
@@ -419,7 +426,10 @@ function initMorsels(options: SearchUiOptions): {
     dropdownListContainer = dropdownListContainerr;
     parent.appendChild(dropdownRoot);
 
-    input.addEventListener('input', inputListener(dropdownRoot, dropdownListContainer));
+    input.addEventListener(
+      'input',
+      createInputListener(dropdownRoot, dropdownListContainer, searcher, options),
+    );
 
     let debounce;
     window.addEventListener('resize', () => {
@@ -475,13 +485,19 @@ function initMorsels(options: SearchUiOptions): {
     });
   } else if (input && uiOptions.mode === UiMode.Target) {
     // Target
-    input.addEventListener('input', inputListener(uiOptions.target, uiOptions.target));
+    input.addEventListener(
+      'input',
+      createInputListener(uiOptions.target, uiOptions.target, searcher, options),
+    );
   }
   // --------------------------------------------------
 
+  // --------------------------------------------------
+  // Keyboard Events
+
+  // Not attached, just used for isEqualNode
   const loadingIndicator = uiOptions.loadingIndicatorRender(createElement, options);
 
-  // Keyboard Events
   document.addEventListener('keydown', (ev) => {
     if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(ev.key)) {
       return;
@@ -545,6 +561,7 @@ function initMorsels(options: SearchUiOptions): {
       }
     }
   });
+  // --------------------------------------------------
 
   return {
     showFullscreen: () => {

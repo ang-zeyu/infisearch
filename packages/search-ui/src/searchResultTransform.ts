@@ -433,7 +433,7 @@ export default async function transformResults(
 
   //let now = performance.now();
 
-  const results = await query.retrieve(options.uiOptions.resultsPerPage);
+  const results = await query.getNextN(options.uiOptions.resultsPerPage);
 
   //console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   //now = performance.now();
