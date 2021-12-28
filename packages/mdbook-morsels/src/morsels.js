@@ -13,6 +13,13 @@ initMorsels({
   },
 });
 
+document.getElementById('morsels-search').addEventListener('keydown', (ev) => {
+  if (['ArrowLeft', 'ArrowRight'].includes(ev.key)) {
+    ev.stopPropagation(); // used in global listener to change pages
+    return;
+  }
+});
+
 if (window.location.search) {
   // Adapted from the original searcher.js for mdbook
   // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
