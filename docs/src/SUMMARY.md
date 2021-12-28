@@ -14,7 +14,6 @@
 - [Tradeoffs](./tradeoffs.md)
 - [Dynamic Indexing](./dynamic_indexing.md)
 - [Search API]()
-- [Future Plans](./future_plans.md)
 - [Contributing](./contributing.md)
   - [Setting Up](./developers_setting_up.md)
   - [Developing](./developers_developing.md)
