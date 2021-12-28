@@ -5,6 +5,7 @@ import Result from '@morsels/search-lib/lib/results/Result';
 import { SearchUiOptions } from './SearchUiOptions';
 import createElement, { CreateElement } from './utils/dom';
 import { parseURL } from './utils/url';
+import { InputState } from './utils/input';
 
 const domParser = new DOMParser();
 
@@ -409,20 +410,26 @@ export function resultsRender(
   ));
 }
 
-let iObserver: IntersectionObserver;
-
 export default async function transformResults(
+  inputState: InputState,
   query: Query,
   config: MorselsConfig,
   isFirst: boolean,
   container: HTMLElement,
   options: SearchUiOptions,
 ): Promise<void> {
+  if (query !== inputState.currQuery) {
+    // If a new query interrupts the current one
+    return;
+  }
+
   const loader = options.uiOptions.loadingIndicatorRender(createElement, options);
   if (!isFirst) {
     container.appendChild(loader);
-  } else if (iObserver) {
-    iObserver.disconnect();
+  }
+
+  if (inputState.lastElObserver) {
+    inputState.lastElObserver.disconnect();
   }
 
   const fragment = document.createDocumentFragment();
@@ -438,7 +445,19 @@ export default async function transformResults(
   //console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   //now = performance.now();
 
-  const resultsEls = await options.uiOptions.resultsRender(createElement, options, config, results, query);
+  if (query !== inputState.currQuery) {
+    // If a new query interrupts the current one
+    return;
+  }
+
+  const resultsEls = await options.uiOptions.resultsRender(
+    createElement, options, config, results, query,
+  );
+
+  if (query !== inputState.currQuery) {
+    // If a new query interrupts the current one
+    return;
+  }
 
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
@@ -456,16 +475,16 @@ export default async function transformResults(
 
   //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
-  iObserver = new IntersectionObserver(async (entries, observer) => {
-    if (!entries[0].isIntersecting) {
-      return;
-    }
-
-    observer.unobserve(sentinel);
-    await transformResults(query, config, false, container, options);
-  }, { rootMargin: '10px 10px 10px 10px' });
-
   if (resultsEls.length) {
-    iObserver.observe(sentinel);
+    inputState.lastElObserver = new IntersectionObserver(async (entries, observer) => {
+      if (!entries[0].isIntersecting) {
+        return;
+      }
+  
+      observer.unobserve(sentinel);
+      await transformResults(inputState, query, config, false, container, options);
+    }, { rootMargin: '10px 10px 10px 10px' });
+
+    inputState.lastElObserver.observe(sentinel);
   }
 }

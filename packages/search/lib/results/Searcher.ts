@@ -181,6 +181,10 @@ class Searcher {
     } = await this.workerQueryPromises[query][queryId].promise;
 
     const getNextN = async (n: number) => {
+      if (!this.workerQueryPromises[query] || !this.workerQueryPromises[query][queryId]) {
+        return []; // free() already called
+      }
+
       await this.workerQueryPromises[query][queryId].promise;
 
       // Initiate worker request
@@ -191,6 +195,10 @@ class Searcher {
           query, queryId, isGetNextN: true, n,
         });
       });
+
+      if (!this.workerQueryPromises[query] || !this.workerQueryPromises[query][queryId]) {
+        return []; // free() already called
+      }
 
       // Wait for worker to finish
       const getNextNResult: {

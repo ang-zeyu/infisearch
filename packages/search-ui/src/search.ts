@@ -2,10 +2,11 @@ import { computePosition, size, offset, flip } from '@floating-ui/dom';
 
 import './styles/search.css';
 
-import { Query, Searcher } from '@morsels/search-lib';
+import { Searcher } from '@morsels/search-lib';
 import transformResults, { resultsRender } from './searchResultTransform';
 import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';
 import createElement from './utils/dom';
+import { InputState } from './utils/input';
 import { parseURL } from './utils/url';
 
 let isMobileSizeGlobal = false;
@@ -290,25 +291,24 @@ function createInputListener(
 ) {
   const { uiOptions } = options;
 
-  let inputTimer: any = -1;
-  let isFirstQueryFromBlank = true;
-
-  let currQuery: Query;
-  let isUpdating = false;
-  let nextQuery: () => any;
+  /*
+   Behaviour:
+   - Wait for the **first** run of the previous active query to finish before running a new one.
+   - Do not wait for subsequent runs however -- should be able to "change queries" quickly
+   */
+  const inputState = new InputState();
   async function runNewQuery(queryString: string): Promise<void> {
     try {
       // const now = performance.now();
   
-      if (currQuery) {
-        currQuery.free();
-      }
-  
-      currQuery = await searcher.getQuery(queryString);
+      inputState.currQuery?.free();
+      inputState.currQuery = await searcher.getQuery(queryString);
   
       // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
   
-      await transformResults(currQuery, searcher.morselsConfig, true, listContainer, options);
+      await transformResults(
+        inputState, inputState.currQuery, searcher.morselsConfig, true, listContainer, options,
+      );
   
       root.scrollTo({ top: 0 });
       listContainer.scrollTo({ top: 0 });
@@ -317,16 +317,18 @@ function createInputListener(
       listContainer.innerHTML = '<div class="morsels-error"></div>';
       throw ex;
     } finally {
-      if (nextQuery) {
-        const nextQueryTemp = nextQuery;
-        nextQuery = undefined;
+      if (inputState.nextQuery) {
+        const nextQueryTemp = inputState.nextQuery;
+        inputState.nextQuery = undefined;
         await nextQueryTemp();
       } else {
-        isUpdating = false;
+        inputState.isRunningNewQuery = false;
       }
     }
   }
 
+  let inputTimer: any = -1;
+  let isFirstQueryFromBlank = true;
   return (ev: InputEvent) => {
     const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
   
@@ -344,10 +346,10 @@ function createInputListener(
           }
         }
   
-        if (isUpdating) {
-          nextQuery = () => runNewQuery(query);
+        if (inputState.isRunningNewQuery) {
+          inputState.nextQuery = () => runNewQuery(query);
         } else {
-          isUpdating = true;
+          inputState.isRunningNewQuery = true;
           runNewQuery(query);
         }
   
@@ -365,12 +367,12 @@ function createInputListener(
           listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
         }
   
-        isUpdating = false;
+        inputState.isRunningNewQuery = false;
         isFirstQueryFromBlank = true;
       };
   
-      if (isUpdating) {
-        nextQuery = reset;
+      if (inputState.isRunningNewQuery) {
+        inputState.nextQuery = reset;
       } else {
         reset();
       }
