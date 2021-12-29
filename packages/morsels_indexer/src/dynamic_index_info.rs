@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{BufReader, Read, Write};
 use std::iter::FromIterator;
 use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
@@ -12,6 +13,10 @@ use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME, 
 use morsels_common::{bitmap, BITMAP_FILE_NAME};
 
 use crate::MORSELS_VERSION;
+
+lazy_static! {
+    static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+}
 
 // Not used for search
 static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
@@ -30,6 +35,8 @@ struct DocIdsAndFileHash(
 #[derive(Serialize, Deserialize)]
 pub struct DynamicIndexInfo {
     pub ver: String,
+
+    pub use_content_hash: bool,
 
     // Mapping of external doc identifier -> internal doc id(s) / hashes, used for dynamic indexing
     mappings: FxHashMap<String, DocIdsAndFileHash>,
@@ -50,9 +57,10 @@ pub struct DynamicIndexInfo {
 }
 
 impl DynamicIndexInfo {
-    pub fn empty() -> DynamicIndexInfo {
+    pub fn empty(use_content_hash: bool) -> DynamicIndexInfo {
         DynamicIndexInfo {
             ver: MORSELS_VERSION.to_owned(),
+            use_content_hash,
             mappings: FxHashMap::default(),
             last_pl_number: 0,
             num_docs: 0,
@@ -67,21 +75,22 @@ impl DynamicIndexInfo {
         output_folder_path: &Path,
         raw_config_normalised: &str,
         is_dynamic: &mut bool,
+        use_content_hash: bool,
     ) -> DynamicIndexInfo {
         if !*is_dynamic {
-            return DynamicIndexInfo::empty();
+            return DynamicIndexInfo::empty(use_content_hash);
         }
 
         if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) {
             if !meta.is_file() {
                 println!("Old dynamic index info missing. Running a full reindex.");
                 *is_dynamic = false;
-                return DynamicIndexInfo::empty();
+                return DynamicIndexInfo::empty(use_content_hash);
             }
         } else {
             println!("Old dynamic index info missing. Running a full reindex.");
             *is_dynamic = false;
-            return DynamicIndexInfo::empty();
+            return DynamicIndexInfo::empty(use_content_hash);
         }
 
         if let Ok(mut file) = File::open(output_folder_path.join("old_morsels_config.json")) {
@@ -91,14 +100,13 @@ impl DynamicIndexInfo {
             if raw_config_normalised != old_config_normalised {
                 println!("Configuration file changed. Running a full reindex.");
                 *is_dynamic = false;
-                return DynamicIndexInfo::empty();
+                return DynamicIndexInfo::empty(use_content_hash);
             }
         } else {
             eprintln!("Old configuration file missing. Running a full reindex.");
             *is_dynamic = false;
-            return DynamicIndexInfo::empty();
+            return DynamicIndexInfo::empty(use_content_hash);
         }
-
 
         let info_file = File::open(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)).unwrap();
 
@@ -108,7 +116,11 @@ impl DynamicIndexInfo {
         if &info.ver[..] != MORSELS_VERSION {
             println!("Indexer version changed. Running a full reindex.");
             *is_dynamic = false;
-            return DynamicIndexInfo::empty();
+            return DynamicIndexInfo::empty(use_content_hash);
+        } else if info.use_content_hash != use_content_hash {
+            println!("Content hash option changed. Running a full reindex.");
+            *is_dynamic = false;
+            return DynamicIndexInfo::empty(use_content_hash);
         }
 
         // Dictionary
@@ -142,18 +154,20 @@ impl DynamicIndexInfo {
             .push(doc_id);
     }
 
-    pub fn set_file(&mut self, external_id: &str, new_modified: u128) -> bool {
-        if let Some(old_modified) = self.mappings.get_mut(external_id) {
+    pub fn set_file(&mut self, external_id: &str, path: &Path) -> bool {
+        let new_hash = self.get_file_hash(path);
+
+        if let Some(old_hash) = self.mappings.get_mut(external_id) {
             // Old file
 
             // Set encountered flag to know which files were deleted later on
-            old_modified.2 = true;
+            old_hash.2 = true;
 
-            if old_modified.1 != new_modified {
-                old_modified.1 = new_modified;
+            if old_hash.1 != new_hash {
+                old_hash.1 = new_hash;
 
-                self.num_deleted_docs += old_modified.0.len() as u32;
-                for doc_id in old_modified.0.drain(..) {
+                self.num_deleted_docs += old_hash.0.len() as u32;
+                for doc_id in old_hash.0.drain(..) {
                     let byte_num = (doc_id / 8) as usize;
                     self.invalidation_vector[byte_num] |= 1_u8 << (doc_id % 8) as u8;
                 }
@@ -164,9 +178,31 @@ impl DynamicIndexInfo {
             true
         } else {
             // New file
-            self.mappings.insert(external_id.to_owned(), DocIdsAndFileHash(Vec::new(), new_modified, true));
+            self.mappings.insert(external_id.to_owned(), DocIdsAndFileHash(Vec::new(), new_hash, true));
 
             false
+        }
+    }
+
+    fn get_file_hash(&self, path: &Path) -> u128 {
+        if self.use_content_hash {
+            let buf = std::fs::read(path).expect("Failed to read file for calculating content hash!");
+            crc32fast::hash(&buf) as u128
+        } else {
+            // Use last modified timestamp otherwise
+            if let Ok(metadata) = std::fs::metadata(path) {
+                if let Ok(modified) = metadata.modified() {
+                    modified.duration_since(UNIX_EPOCH).unwrap().as_millis()
+                } else {
+                    /*
+                      Use program execution time if metadata is unavailable.
+                      This results in the path always being updated.
+                    */
+                    *CURRENT_MILLIS
+                }
+            } else {
+                *CURRENT_MILLIS
+            }
         }
     }
 

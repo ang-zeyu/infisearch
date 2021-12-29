@@ -16,7 +16,6 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Instant;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use morsels_common::tokenize::Tokenizer;
 use morsels_common::MorselsLanguageConfig;
@@ -47,10 +46,6 @@ use serde::{Deserialize, Serialize};
 extern crate lazy_static;
 
 pub const MORSELS_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-lazy_static! {
-    static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-}
 
 fn get_default_num_threads() -> usize {
     std::cmp::max(num_cpus::get_physical() - 1, 1)
@@ -226,6 +221,7 @@ impl Indexer {
         output_folder_path: &Path,
         config: MorselsConfig,
         mut is_dynamic: bool,
+        use_content_hash: bool,
         preserve_output_folder: bool,
         delete_unencountered_external_ids: bool,
     ) -> Indexer {
@@ -236,7 +232,8 @@ impl Indexer {
         let dynamic_index_info = DynamicIndexInfo::new_from_output_folder(
             &output_folder_path,
             raw_config_normalised,
-            &mut is_dynamic
+            &mut is_dynamic,
+            use_content_hash
         );
 
         if !is_dynamic && !preserve_output_folder {
@@ -452,8 +449,6 @@ impl Indexer {
     }
 
     pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
-        let timestamp = get_timestamp(path);
-
         let relative_path_lossy;
         let external_id = if let Some(relative_path) = relative_path.to_str() {
             relative_path
@@ -465,7 +460,7 @@ impl Indexer {
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
             {
-                let is_not_modified = self.dynamic_index_info.set_file(external_id, timestamp);
+                let is_not_modified = self.dynamic_index_info.set_file(external_id, path);
                 if is_not_modified && self.is_dynamic {
                     return;
                 }
@@ -645,23 +640,6 @@ impl Indexer {
             .write_all(serialized.as_bytes())
             .unwrap();
     }
-}
-
-fn get_timestamp(path: &Path) -> u128 {
-    let timestamp = if let Ok(metadata) = std::fs::metadata(path) {
-        if let Ok(modified) = metadata.modified() {
-            modified.duration_since(UNIX_EPOCH).unwrap().as_millis()
-        } else {
-            /*
-                 Use program execution time if metadata unavailable.
-                 This results in the path always being updated.
-                */
-            *CURRENT_MILLIS
-        }
-    } else {
-        *CURRENT_MILLIS
-    };
-    timestamp
 }
 
 fn print_time_elapsed(instant: Instant, extra_message: &str) {

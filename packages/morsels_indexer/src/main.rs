@@ -31,6 +31,11 @@ struct CliArgs {
         help = "Prefer dynamic indexing if the resources in output folder are available and compatible"
     )]
     dynamic: bool,
+    #[structopt(
+        long,
+        help = "Prefer dynamic indexing using content hashes. This flag is required even when running a full (re)index, if intending to use dynamic indexing runs later"
+    )]
+    dynamic_content_hash: bool,
     #[structopt(long, hidden = true)]
     perf: bool,
 }
@@ -111,6 +116,7 @@ fn main() {
         &output_folder_path,
         config,
         args.dynamic,
+        args.dynamic_content_hash,
         args.preserve_output_folder,
         true,
     );
