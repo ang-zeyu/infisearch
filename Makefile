@@ -80,6 +80,10 @@ releaseMdbook:
 	cd packages/mdbook-morsels &&\
 	cargo publish
 
-buildBinaries:
-	cargo build --release -p morsels_indexer
-	cargo build --release -p mdbook-morsels
+buildWinBinaries:
+	cargo build --release --target x86_64-pc-windows-msvc -p morsels_indexer
+	cargo build --release --target x86_64-pc-windows-msvc -p mdbook-morsels
+
+buildLinuxBinaries:
+	cargo build --release --target x86_64-unknown-linux-gnu -p morsels_indexer
+	cargo build --release --target x86_64-unknown-linux-gnu -p mdbook-morsels
