@@ -69,7 +69,7 @@ impl Tokenizer {
     #[inline(always)]
     fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
         let iter = slice
-            .split_ascii_whitespace()
+            .split_whitespace()
             .map(|term_slice| {
                 let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
                 term_filter(ascii_folded)
