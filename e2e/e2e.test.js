@@ -150,7 +150,7 @@ const testSuite = async (configFile) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
-  // Test dynamic indexing addition
+  // Test incremental indexing addition
 
   // 1, to be deleted later
   await clearInput();
@@ -158,10 +158,10 @@ const testSuite = async (configFile) => {
   await waitNoResults();
 
   fs.copyFileSync(
-    path.join(__dirname, 'dynamic_indexing/deletions/404.html'),
+    path.join(__dirname, 'incremental_indexing/deletions/404.html'),
     path.join(__dirname, 'input/404.html'),
   );
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
 
   await reloadPage();
   await typePhrase('This URL is invalid');
@@ -174,10 +174,10 @@ const testSuite = async (configFile) => {
 
   const contributingHtmlOutputPath = path.join(__dirname, 'input/contributing.html');
   fs.copyFileSync(
-    path.join(__dirname, 'dynamic_indexing/updates/contributing.html'),
+    path.join(__dirname, 'incremental_indexing/updates/contributing.html'),
     contributingHtmlOutputPath,
   );
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
   
   await reloadPage();
   await typePhrase('Contributions of any form');
@@ -186,25 +186,25 @@ const testSuite = async (configFile) => {
   // ------------------------------------------------------
   
   // ------------------------------------------------------
-  // Test dynamic indexing deletion
+  // Test incremental indexing deletion
 
   fs.rmSync(path.join(__dirname, 'input/404.html'));
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
   
   await reloadPage();
   await typePhrase('This URL is invalid');
   await waitNoResults();
 
-  // also assert dynamic indexing is actually run
-  let dynamicIndexInfo = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/_dynamic_index_info.json'), 'utf-8'),
+  // also assert incremental indexing is actually run
+  let incrementalIndexInfo = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/_incremental_info.json'), 'utf-8'),
   );
-  expect(dynamicIndexInfo.num_deleted_docs).toBe(1);
+  expect(incrementalIndexInfo.num_deleted_docs).toBe(1);
 
   // ------------------------------------------------------
 
   // ------------------------------------------------------
-  // Test dynamic indexing update
+  // Test incremental indexing update
 
   await clearInput();
   await typePhrase('Contributions of all forms');
@@ -215,7 +215,7 @@ const testSuite = async (configFile) => {
     'Contributions of any form', 'Contributions of all forms atquejxusd',
   );
   fs.writeFileSync(contributingHtmlOutputPath, contributingHtml);
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
 
   await reloadPage();
   await typePhrase('Contributions of any form');
@@ -229,15 +229,15 @@ const testSuite = async (configFile) => {
   await typeText('atquejxusd ');
   await assertSingle('contributions of all forms atquejxusd');
 
-  // also assert dynamic indexing is actually run
-  dynamicIndexInfo = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/_dynamic_index_info.json'), 'utf-8'),
+  // also assert incremental indexing is actually run
+  incrementalIndexInfo = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/_incremental_info.json'), 'utf-8'),
   );
-  expect(dynamicIndexInfo.num_deleted_docs).toBe(2);
+  expect(incrementalIndexInfo.num_deleted_docs).toBe(2);
 
   // then delete it again
   fs.rmSync(contributingHtmlOutputPath);
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --dynamic -c ${configFile}`);
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
   
   await reloadPage();
   await typePhrase('Contributions of any form');
@@ -251,11 +251,11 @@ const testSuite = async (configFile) => {
   await typeText('atquejxusd');
   await waitNoResults();
 
-  // also assert dynamic indexing is actually run
-  dynamicIndexInfo = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/_dynamic_index_info.json'), 'utf-8'),
+  // also assert incremental indexing is actually run
+  incrementalIndexInfo = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/_incremental_info.json'), 'utf-8'),
   );
-  expect(dynamicIndexInfo.num_deleted_docs).toBe(3);
+  expect(incrementalIndexInfo.num_deleted_docs).toBe(3);
 
   // ------------------------------------------------------
 };

@@ -25,7 +25,7 @@ use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
 use crate::utils::varint;
-use crate::DynamicIndexInfo;
+use crate::IncrementalIndexInfo;
 use crate::MainToWorkerMessage;
 use crate::MorselsIndexingConfig;
 use crate::Receiver;
@@ -148,7 +148,7 @@ impl ExistingPlWriter {
     }
 }
 
-// The same as merge_blocks, but for dynamic indexing.
+// The same as merge_blocks, but for incremental indexing.
 //
 // Goes through things term-at-a-time (all terms found in the current iteration) as well,
 // but is different in all other ways:
@@ -169,15 +169,15 @@ pub fn modify_blocks(
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
-    dynamic_index_info: &mut DynamicIndexInfo,
+    incremental_info: &mut IncrementalIndexInfo,
 ) {
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
     let postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>> =
         Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
-    let old_num_docs = dynamic_index_info.num_docs as f64;
-    let new_num_docs = (doc_id_counter - dynamic_index_info.num_deleted_docs) as f64;
+    let old_num_docs = incremental_info.num_docs as f64;
+    let new_num_docs = (doc_id_counter - incremental_info.num_deleted_docs) as f64;
 
     // Unwrap the inner mutex to avoid locks as it is now read-only
     let doc_infos_unlocked_arc = {
@@ -211,10 +211,10 @@ pub fn modify_blocks(
     // Dictionary table / Postings list trackers
     let mut new_pl_writer = common::get_pl_writer(
         output_folder_path,
-        dynamic_index_info.last_pl_number + 1,
+        incremental_info.last_pl_number + 1,
         indexing_config.num_pls_per_dir,
     );
-    let mut new_pl = dynamic_index_info.last_pl_number + 1;
+    let mut new_pl = incremental_info.last_pl_number + 1;
     let mut new_pls_offset: u32 = 0;
 
     let mut existing_pl_writers: FxHashMap<u32, ExistingPlWriter> = FxHashMap::default();
@@ -233,7 +233,7 @@ pub fn modify_blocks(
             &blocking_rcvr,
         );
 
-        let existing_term_info = dynamic_index_info.dictionary.get_term_info(&curr_term);
+        let existing_term_info = incremental_info.dictionary.get_term_info(&curr_term);
         if let Some(old_term_info) = existing_term_info {
             // Existing term
 
@@ -268,7 +268,7 @@ pub fn modify_blocks(
                 doc_freq,
                 curr_term_max_score,
                 &mut curr_combined_term_docs,
-                &dynamic_index_info.invalidation_vector,
+                &incremental_info.invalidation_vector,
                 &mut varint_buf,
             );
 
@@ -285,7 +285,7 @@ pub fn modify_blocks(
                 doc_freq,
                 curr_term_max_score,
                 new_num_docs,
-                &mut dynamic_index_info.pl_names_to_cache,
+                &mut incremental_info.pl_names_to_cache,
                 indexing_config,
                 output_folder_path,
             );
@@ -308,7 +308,7 @@ pub fn modify_blocks(
         pl_writer.commit(&mut pl_file_length_differences);
     }
 
-    new_pl_writer.flush(new_pls_offset, indexing_config.pl_cache_threshold, &mut dynamic_index_info.pl_names_to_cache);
+    new_pl_writer.flush(new_pls_offset, indexing_config.pl_cache_threshold, &mut incremental_info.pl_names_to_cache);
 
     // ---------------------------------------------
     // Dictionary
@@ -325,7 +325,7 @@ pub fn modify_blocks(
     let mut prev_term = Rc::new(SmartString::from(""));
     let mut prev_dict_pl = 0;
 
-    let mut old_pairs_sorted: Vec<_> = std::mem::take(&mut dynamic_index_info.dictionary.term_infos).into_iter().collect();
+    let mut old_pairs_sorted: Vec<_> = std::mem::take(&mut incremental_info.dictionary.term_infos).into_iter().collect();
 
     // Sort by old postings list order
     old_pairs_sorted.sort_by(|a, b| match a.1.postings_file_name.cmp(&b.1.postings_file_name) {
@@ -437,7 +437,7 @@ pub fn modify_blocks(
     dict_table_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
 
-    dynamic_index_info.last_pl_number = if new_pls_offset != 0 || new_pl == 0 {
+    incremental_info.last_pl_number = if new_pls_offset != 0 || new_pl == 0 {
         new_pl
     } else {
         new_pl - 1

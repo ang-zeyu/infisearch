@@ -12,7 +12,7 @@
   - [Language](./indexer/language.md)
   - [Indexing](./indexer/indexing.md)
 - [Tradeoffs](./tradeoffs.md)
-- [Dynamic Indexing](./dynamic_indexing.md)
+- [Incremental Indexing](./incremental_indexing.md)
 - [Search API]()
 - [Contributing](./contributing.md)
   - [Setting Up](./developers_setting_up.md)

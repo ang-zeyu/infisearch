@@ -56,7 +56,7 @@ impl Indexer {
         drop(num_workers_writing_blocks);
 
         let output_folder_path = PathBuf::from(&self.output_folder_path);
-        let check_for_existing_field_store = self.is_dynamic && block_number == self.start_block_number;
+        let check_for_existing_field_store = self.is_incremental && block_number == self.start_block_number;
         if is_last_block {
             combine_worker_results_and_write_block(
                 worker_index_results,
@@ -152,7 +152,7 @@ pub fn combine_worker_results_and_write_block(
             #[cfg(debug_assertions)]
             println!("Num docs in block {}: {}", block_number, sorted_doc_infos.len());
         } else {
-            // possibly just a dynamic indexing run with a deletion
+            // possibly just a incremental indexing run with a deletion
             #[cfg(debug_assertions)]
             println!("Encountered empty block {}", block_number);
         }

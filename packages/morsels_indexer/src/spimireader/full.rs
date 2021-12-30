@@ -13,7 +13,7 @@ use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
 use crate::utils::varint;
-use crate::DynamicIndexInfo;
+use crate::IncrementalIndexInfo;
 use crate::MainToWorkerMessage;
 use crate::MorselsIndexingConfig;
 use crate::Receiver;
@@ -29,7 +29,7 @@ pub fn merge_blocks(
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
-    dynamic_index_info: &mut DynamicIndexInfo,
+    incremental_info: &mut IncrementalIndexInfo,
 ) {
     /*
     Gist of this function:
@@ -127,7 +127,7 @@ pub fn merge_blocks(
             doc_freq,
             curr_term_max_score,
             num_docs_double,
-            &mut dynamic_index_info.pl_names_to_cache,
+            &mut incremental_info.pl_names_to_cache,
             indexing_config,
             output_folder_path,
         );
@@ -154,12 +154,12 @@ pub fn merge_blocks(
         // ---------------------------------------------
     }
 
-    pl_writer.flush(curr_pl_offset, indexing_config.pl_cache_threshold, &mut dynamic_index_info.pl_names_to_cache);
+    pl_writer.flush(curr_pl_offset, indexing_config.pl_cache_threshold, &mut incremental_info.pl_names_to_cache);
 
     dict_table_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
 
-    dynamic_index_info.last_pl_number = if curr_pl_offset != 0 || curr_pl == 0 {
+    incremental_info.last_pl_number = if curr_pl_offset != 0 || curr_pl == 0 {
         curr_pl
     } else {
         curr_pl - 1

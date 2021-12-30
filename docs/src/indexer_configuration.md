@@ -2,7 +2,7 @@
 
 All indexer configurations are sourced from a json file. By default, the cli tool looks for `morsels_config.json` in the source folder (first argument specified in the command).
 
-You can run the cli command with the `--init` option to initialise the default configuration file in the source folder.
+You can run the cli command with the `--config-init` option to initialise the default configuration file in the source folder.
 
 
 ## Full Example

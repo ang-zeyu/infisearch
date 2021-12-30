@@ -66,7 +66,7 @@ fn main() {
             .arg(morsels_config_path);
 
         if let Some(_livereload_url) = ctx.config.get("output.html.livereload-url") {
-            command.arg("--dynamic");
+            command.arg("--incremental");
         }
 
         let output = command.output().expect("mdbook-morsels: failed to execute indexer process");
@@ -101,7 +101,7 @@ fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::Pa
 
     if !morsels_config_path.exists() || !morsels_config_path.is_file() {
         let mut init_config_command = Command::new("morsels");
-        init_config_command.current_dir(ctx.root.clone()).args(&["./", "./morsels_output", "--init"]);
+        init_config_command.current_dir(ctx.root.clone()).args(&["./", "./morsels_output", "--config-init"]);
         init_config_command.arg("-c");
         init_config_command.arg(&morsels_config_path);
         init_config_command

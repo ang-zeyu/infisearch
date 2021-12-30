@@ -19,7 +19,7 @@ lazy_static! {
 }
 
 // Not used for search
-static DYNAMIC_INDEX_INFO_FILE_NAME: &str = "_dynamic_index_info.json";
+static INCREMENTAL_INFO_FILE_NAME: &str = "_incremental_info.json";
 
 fn get_default_dictionary() -> Dictionary {
     Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() }
@@ -33,12 +33,12 @@ struct DocIdsAndFileHash(
 );
 
 #[derive(Serialize, Deserialize)]
-pub struct DynamicIndexInfo {
+pub struct IncrementalIndexInfo {
     pub ver: String,
 
     pub use_content_hash: bool,
 
-    // Mapping of external doc identifier -> internal doc id(s) / hashes, used for dynamic indexing
+    // Mapping of external doc identifier -> internal doc id(s) / hashes, used for incremental indexing
     mappings: FxHashMap<String, DocIdsAndFileHash>,
 
     pub last_pl_number: u32,
@@ -56,9 +56,9 @@ pub struct DynamicIndexInfo {
     pub dictionary: Dictionary,
 }
 
-impl DynamicIndexInfo {
-    pub fn empty(use_content_hash: bool) -> DynamicIndexInfo {
-        DynamicIndexInfo {
+impl IncrementalIndexInfo {
+    pub fn empty(use_content_hash: bool) -> IncrementalIndexInfo {
+        IncrementalIndexInfo {
             ver: MORSELS_VERSION.to_owned(),
             use_content_hash,
             mappings: FxHashMap::default(),
@@ -74,23 +74,23 @@ impl DynamicIndexInfo {
     pub fn new_from_output_folder(
         output_folder_path: &Path,
         raw_config_normalised: &str,
-        is_dynamic: &mut bool,
+        is_incremental: &mut bool,
         use_content_hash: bool,
-    ) -> DynamicIndexInfo {
-        if !*is_dynamic {
-            return DynamicIndexInfo::empty(use_content_hash);
+    ) -> IncrementalIndexInfo {
+        if !*is_incremental {
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
 
-        if let Ok(meta) = std::fs::metadata(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)) {
+        if let Ok(meta) = std::fs::metadata(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME)) {
             if !meta.is_file() {
-                println!("Old dynamic index info missing. Running a full reindex.");
-                *is_dynamic = false;
-                return DynamicIndexInfo::empty(use_content_hash);
+                println!("Old incremental index info missing. Running a full reindex.");
+                *is_incremental = false;
+                return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
-            println!("Old dynamic index info missing. Running a full reindex.");
-            *is_dynamic = false;
-            return DynamicIndexInfo::empty(use_content_hash);
+            println!("Old incremental index info missing. Running a full reindex.");
+            *is_incremental = false;
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
 
         if let Ok(mut file) = File::open(output_folder_path.join("old_morsels_config.json")) {
@@ -99,28 +99,28 @@ impl DynamicIndexInfo {
             let old_config_normalised = &String::from_iter(normalized(old_config.chars()));
             if raw_config_normalised != old_config_normalised {
                 println!("Configuration file changed. Running a full reindex.");
-                *is_dynamic = false;
-                return DynamicIndexInfo::empty(use_content_hash);
+                *is_incremental = false;
+                return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
             eprintln!("Old configuration file missing. Running a full reindex.");
-            *is_dynamic = false;
-            return DynamicIndexInfo::empty(use_content_hash);
+            *is_incremental = false;
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
 
-        let info_file = File::open(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME)).unwrap();
+        let info_file = File::open(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME)).unwrap();
 
-        let mut info: DynamicIndexInfo = serde_json::from_reader(BufReader::new(info_file))
-            .expect("dynamic index info deserialization failed!");
+        let mut info: IncrementalIndexInfo = serde_json::from_reader(BufReader::new(info_file))
+            .expect("incremental index info deserialization failed!");
 
         if &info.ver[..] != MORSELS_VERSION {
             println!("Indexer version changed. Running a full reindex.");
-            *is_dynamic = false;
-            return DynamicIndexInfo::empty(use_content_hash);
+            *is_incremental = false;
+            return IncrementalIndexInfo::empty(use_content_hash);
         } else if info.use_content_hash != use_content_hash {
             println!("Content hash option changed. Running a full reindex.");
-            *is_dynamic = false;
-            return DynamicIndexInfo::empty(use_content_hash);
+            *is_incremental = false;
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
 
         // Dictionary
@@ -228,7 +228,7 @@ impl DynamicIndexInfo {
 
         let serialized = serde_json::to_string(self).unwrap();
 
-        File::create(output_folder_path.join(DYNAMIC_INDEX_INFO_FILE_NAME))
+        File::create(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME))
             .unwrap()
             .write_all(serialized.as_bytes())
             .unwrap();

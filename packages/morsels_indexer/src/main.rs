@@ -23,19 +23,19 @@ struct CliArgs {
     preserve_output_folder: bool,
     #[structopt(short, long, parse(from_os_str))]
     config_file_path: Option<PathBuf>,
-    #[structopt(short, long, help = "Initialise the configuration file in the source folder")]
-    init: bool,
+    #[structopt(long, help = "Initialises the configuration file in the source folder. Does not run any indexing.")]
+    config_init: bool,
     #[structopt(
         short,
         long,
-        help = "Prefer dynamic indexing if the resources in output folder are available and compatible"
+        help = "Prefer incremental indexing if the resources in output folder are available and compatible"
     )]
-    dynamic: bool,
+    incremental: bool,
     #[structopt(
         long,
-        help = "Prefer dynamic indexing using content hashes. This flag is required even when running a full (re)index, if intending to use dynamic indexing runs later"
+        help = "Prefer incremental indexing using content hashes. This flag is required even when running a full (re)index, if intending to use incremental indexing runs later"
     )]
-    dynamic_content_hash: bool,
+    incremental_content_hash: bool,
     #[structopt(long, hidden = true)]
     perf: bool,
 }
@@ -93,7 +93,7 @@ fn main() {
         config_file_path.to_str().unwrap(),
     );
 
-    if args.init {
+    if args.config_init {
         morsels_indexer::Indexer::write_morsels_source_config(MorselsConfig::default(), &config_file_path);
         return;
     }
@@ -115,8 +115,8 @@ fn main() {
     let mut indexer = morsels_indexer::Indexer::new(
         &output_folder_path,
         config,
-        args.dynamic,
-        args.dynamic_content_hash,
+        args.incremental,
+        args.incremental_content_hash,
         args.preserve_output_folder,
         true,
     );

@@ -1,5 +1,5 @@
 mod docinfo;
-mod dynamic_index_info;
+mod incremental_info;
 pub mod fieldinfo;
 pub mod loader;
 mod spimireader;
@@ -25,7 +25,7 @@ use morsels_lang_latin::latin;
 use morsels_lang_chinese::chinese;
 
 use crate::docinfo::DocInfos;
-use crate::dynamic_index_info::DynamicIndexInfo;
+use crate::incremental_info::IncrementalIndexInfo;
 use crate::fieldinfo::FieldInfo;
 use crate::fieldinfo::FieldInfos;
 use crate::fieldinfo::FieldsConfig;
@@ -161,7 +161,7 @@ pub struct MorselsConfig {
     pub raw_config: String,
 }
 
-// Separate struct to support serializing for --init option but not output config
+// Separate struct to support serializing for --config-init option but not output config
 #[derive(Serialize)]
 struct MorselsIndexingOutputConfig {
     loader_configs: FxHashMap<String, Box<dyn Loader>>,
@@ -208,11 +208,11 @@ pub struct Indexer {
     rx_worker: Receiver<MainToWorkerMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
     lang_config: MorselsLanguageConfig,
-    is_dynamic: bool,
+    is_incremental: bool,
     delete_unencountered_external_ids: bool,
     start_doc_id: u32,
     start_block_number: u32,
-    dynamic_index_info: DynamicIndexInfo,
+    incremental_info: IncrementalIndexInfo,
 }
 
 impl Indexer {
@@ -220,7 +220,7 @@ impl Indexer {
     pub fn new(
         output_folder_path: &Path,
         config: MorselsConfig,
-        mut is_dynamic: bool,
+        mut is_incremental: bool,
         use_content_hash: bool,
         preserve_output_folder: bool,
         delete_unencountered_external_ids: bool,
@@ -229,14 +229,14 @@ impl Indexer {
 
         let raw_config_normalised = &String::from_iter(normalized(config.raw_config.chars()));
 
-        let dynamic_index_info = DynamicIndexInfo::new_from_output_folder(
+        let incremental_info = IncrementalIndexInfo::new_from_output_folder(
             &output_folder_path,
             raw_config_normalised,
-            &mut is_dynamic,
+            &mut is_incremental,
             use_content_hash
         );
 
-        if !is_dynamic && !preserve_output_folder {
+        if !is_incremental && !preserve_output_folder {
             if let Ok(read_dir) = fs::read_dir(output_folder_path) {
                 for dir_entry in read_dir {
                     if let Err(err) = dir_entry {
@@ -316,7 +316,7 @@ impl Indexer {
             ))
         };
 
-        let doc_infos = Arc::from(Mutex::from(if is_dynamic {
+        let doc_infos = Arc::from(Mutex::from(if is_incremental {
             let mut doc_infos_vec: Vec<u8> = Vec::new();
             File::open(output_folder_path.join(DOC_INFO_FILE_NAME))
                 .unwrap()
@@ -404,11 +404,11 @@ impl Indexer {
             rx_worker,
             num_workers_writing_blocks,
             lang_config: config.lang_config,
-            is_dynamic,
+            is_incremental,
             delete_unencountered_external_ids,
             start_doc_id: doc_id_counter,
             start_block_number: 0,
-            dynamic_index_info,
+            incremental_info,
         };
         indexer.start_block_number = indexer.block_number();
 
@@ -460,8 +460,8 @@ impl Indexer {
         for loader in self.loaders.iter() {
             if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
             {
-                let is_not_modified = self.dynamic_index_info.set_file(external_id, path);
-                if is_not_modified && self.is_dynamic {
+                let is_not_modified = self.incremental_info.set_file(external_id, path);
+                if is_not_modified && self.is_incremental {
                     return;
                 }
 
@@ -474,7 +474,7 @@ impl Indexer {
 
                     Self::try_index_doc(&mut self.doc_miner, &self.rx_worker, 30); // TODO 30 a little arbitrary?
 
-                    self.dynamic_index_info.add_doc_to_file(external_id, self.doc_id_counter);
+                    self.incremental_info.add_doc_to_file(external_id, self.doc_id_counter);
 
                     self.doc_id_counter += 1;
                     self.spimi_counter += 1;
@@ -521,7 +521,7 @@ impl Indexer {
             .unwrap()
             .write_all(
                 serde_json::to_string_pretty(&config)
-                    .expect("Failed to serialize morsels config for --init!")
+                    .expect("Failed to serialize morsels config for --config-init!")
                     .as_bytes(),
             )
             .unwrap();
@@ -564,7 +564,7 @@ impl Indexer {
 
         self.write_morsels_config();
 
-        self.dynamic_index_info.write(&self.output_folder_path, self.doc_id_counter);
+        self.incremental_info.write(&self.output_folder_path, self.doc_id_counter);
 
         if !self.is_deletion_only_run() {
             spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
@@ -583,12 +583,12 @@ impl Indexer {
 
     fn merge_blocks(&mut self, first_block: u32, last_block: u32) {
         let num_blocks = last_block - first_block + 1;
-        if self.is_dynamic {
+        if self.is_incremental {
             if self.delete_unencountered_external_ids {
-                self.dynamic_index_info.delete_unencountered_external_ids();
+                self.incremental_info.delete_unencountered_external_ids();
             }
 
-            spimireader::dynamic::modify_blocks(
+            spimireader::incremental::modify_blocks(
                 self.is_deletion_only_run(),
                 self.doc_id_counter,
                 num_blocks,
@@ -598,7 +598,7 @@ impl Indexer {
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
-                &mut self.dynamic_index_info,
+                &mut self.incremental_info,
             );
         } else {
             spimireader::full::merge_blocks(
@@ -610,7 +610,7 @@ impl Indexer {
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
-                &mut self.dynamic_index_info,
+                &mut self.incremental_info,
             );
         }
     }
@@ -624,7 +624,7 @@ impl Indexer {
                     .into_iter()
                     .map(|loader| (loader.get_name(), loader))
                     .collect(),
-                pl_names_to_cache: self.dynamic_index_info.pl_names_to_cache.clone(),
+                pl_names_to_cache: self.incremental_info.pl_names_to_cache.clone(),
                 num_docs_per_block: self.indexing_config.num_docs_per_block,
                 num_pls_per_dir: self.indexing_config.num_pls_per_dir,
                 with_positions: self.indexing_config.with_positions,

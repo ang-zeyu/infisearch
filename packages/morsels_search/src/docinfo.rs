@@ -26,7 +26,7 @@ impl DocInfo {
 
         let mut byte_offset = 0;
 
-        // num_docs =/= doc_length_factors.len() due to dynamic indexing
+        // num_docs =/= doc_length_factors.len() due to incremental indexing
         let num_docs = LittleEndian::read_u32(&doc_info_vec);
         byte_offset += 4;
 

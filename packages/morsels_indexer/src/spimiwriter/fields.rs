@@ -91,7 +91,7 @@ fn open_new_block_file(
     }
     let output_file_path = output_dir.join(format!("{}--{}.json", file_number, block_number));
     if check_for_existing && output_file_path.exists() {
-        // The first block for dynamic indexing might have been left halfway through somewhere before
+        // The first block for incremental indexing might have been left halfway through somewhere before
         let mut field_store_file = OpenOptions::new()
             .read(true)
             .write(true)

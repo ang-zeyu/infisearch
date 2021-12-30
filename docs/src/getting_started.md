@@ -28,7 +28,7 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 
 ### Other Cli Options
 
-- `--init` or `-i`: While optional, if it is your first time running the tool, you can run the above command with the `--init` or `-i` flag, then **run it again without this flag**.
+- `--config-init`: While optional, if it is your first time running the tool, you can run the above command with this flag, then **run it again without this flag**.
 This flag outputs the default `morsels_config.json` that can be used to [configure the indexer](./indexer_configuration.md) later on, and does not perform any indexing.
 - `-c <config-file-path>`: You may also change the config file location (relative to the `source-folder-path`) using the `-c <config-file-path>` option.
 - `--preserve-output-folder`: **All existing contents** in the output folder are also **removed** when running a full index. Specify this option to avoid this.
