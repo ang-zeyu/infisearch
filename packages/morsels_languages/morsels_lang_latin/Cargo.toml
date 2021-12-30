@@ -1,6 +1,6 @@
 [package]
 name = "morsels_lang_latin"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Ascii tokenizer with stemmers for morsels."
@@ -13,8 +13,8 @@ license = "MIT"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-morsels_common = { path = "../../morsels_common", version="0.0.4" }
-morsels_lang_ascii = { path = "../morsels_lang_ascii", version="0.0.4" }
+morsels_common = { path = "../../morsels_common", version="0.0.5" }
+morsels_lang_ascii = { path = "../morsels_lang_ascii", version="0.0.5" }
 rustc-hash = "1.1"
 rust-stemmers = "^1.0"
 serde = { version = "1.0", features = ["derive"] }
