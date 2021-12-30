@@ -439,7 +439,9 @@ function initMorsels(options: SearchUiOptions): {
       debounce = setTimeout(() => {
         if (uiOptions.mode === UiMode.Dropdown) {
           uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
-          uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+          if (document.activeElement === input) {
+            uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+          }
           return;
         }
 
