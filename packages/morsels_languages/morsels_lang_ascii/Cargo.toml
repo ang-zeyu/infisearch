@@ -1,6 +1,6 @@
 [package]
 name = "morsels_lang_ascii"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Basic ascii tokenizer for morsels."
@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 lazy_static = "1.4"
-morsels_common = { path = "../../morsels_common", version="0.0.5" }
+morsels_common = { path = "../../morsels_common", version="0.0.6" }
 regex = "1"
 rustc-hash = "1.1"
 serde = { version = "1.0", features = ["derive"] }
