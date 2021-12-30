@@ -113,7 +113,7 @@ impl TokenizerTrait for Tokenizer {
     fn get_best_corrected_term(
         &self,
         _term: &str,
-        _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>,
+        _dictionary: &FxHashMap<Rc<SmartString>, TermInfo>,
     ) -> Option<String> {
         None
     }
@@ -122,7 +122,7 @@ impl TokenizerTrait for Tokenizer {
         &self,
         _number_of_expanded_terms: usize,
         _term: &str,
-        _dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>,
+        _dictionary: &FxHashMap<Rc<SmartString>, TermInfo>,
     ) -> FxHashMap<String, f32> {
         FxHashMap::default()
     }

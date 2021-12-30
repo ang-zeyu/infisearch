@@ -15,7 +15,7 @@ pub static DICTIONARY_TABLE_FILE_NAME: &str = "_dictionary_table";
 pub static DICTIONARY_STRING_FILE_NAME: &str = "_dictionary_string";
 
 pub struct Dictionary {
-    pub term_infos: FxHashMap<Rc<String>, Rc<TermInfo>>,
+    pub term_infos: FxHashMap<Rc<String>, TermInfo>,
     pub trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
 }
 
@@ -26,7 +26,7 @@ pub fn setup_dictionary(
     num_docs: u32,
     build_trigram: bool,
 ) -> Dictionary {
-    let mut term_infos: FxHashMap<Rc<String>, Rc<TermInfo>> = FxHashMap::default();
+    let mut term_infos: FxHashMap<Rc<String>, TermInfo> = FxHashMap::default();
 
     let mut postings_file_name = 0;
     let mut postings_file_offset = 0;
@@ -65,12 +65,12 @@ pub fn setup_dictionary(
 
         term_infos.insert(
             Rc::clone(&term),
-            Rc::new(TermInfo {
+            TermInfo {
                 doc_freq,
                 idf: get_idf(num_docs as f64, doc_freq as f64),
                 postings_file_name,
                 postings_file_offset,
-            }),
+            },
         );
 
         prev_term = term;
@@ -82,7 +82,7 @@ pub fn setup_dictionary(
 }
 
 fn setup_trigrams(
-    term_infos: &FxHashMap<Rc<String>, Rc<TermInfo>>,
+    term_infos: &FxHashMap<Rc<String>, TermInfo>,
 ) -> FxHashMap<SmartString, Vec<Rc<String>>> {
     let mut trigrams: FxHashMap<SmartString, Vec<Rc<String>>> = FxHashMap::default();
 
@@ -105,7 +105,7 @@ fn setup_trigrams(
 }
 
 impl Dictionary {
-    pub fn get_term_info(&self, term: &str) -> Option<&Rc<TermInfo>> {
+    pub fn get_term_info(&self, term: &str) -> Option<&TermInfo> {
         self.term_infos.get(&String::from(term))
     }
 }
@@ -157,42 +157,42 @@ mod test {
 
             terms.insert(
                 Rc::new(String::from("foo")),
-                Rc::new(TermInfo {
+                TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),
                     postings_file_name: 0,
                     postings_file_offset: 65535,
-                }),
+                },
             );
 
             terms.insert(
                 Rc::new(String::from("foobar")),
-                Rc::new(TermInfo {
+                TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),
                     postings_file_name: 0,
                     postings_file_offset: 65535 + 65535,
-                }),
+                },
             );
 
             terms.insert(
                 Rc::new(String::from("test")),
-                Rc::new(TermInfo {
+                TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),
                     postings_file_name: 1,
                     postings_file_offset: 65535,
-                }),
+                },
             );
 
             terms.insert(
                 Rc::new(String::from("tetest")),
-                Rc::new(TermInfo {
+                TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),
                     postings_file_name: 1,
                     postings_file_offset: 65535 + 65535,
-                }),
+                },
             );
 
             terms

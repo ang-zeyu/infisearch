@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::rc::Rc;
 
 use byteorder::{ByteOrder, LittleEndian};
 use wasm_bindgen::JsCast;
@@ -103,7 +102,7 @@ pub struct PostingsList {
     pub include_in_proximity_ranking: bool,
     // For postings lists representing raw terms
     pub term: Option<String>,
-    pub term_info: Option<Rc<TermInfo>>,
+    pub term_info: Option<TermInfo>,
     pub max_term_score: f32,
 }
 

@@ -3,6 +3,7 @@ use smartstring::alias::String as SmartString;
 use std::borrow::Cow;
 use std::rc::Rc;
 
+#[derive(Clone)]
 #[cfg_attr(test, derive(Debug))]
 pub struct TermInfo {
     pub doc_freq: u32,
@@ -36,14 +37,14 @@ pub trait Tokenizer {
     fn get_best_corrected_term(
         &self,
         term: &str,
-        dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>,
+        dictionary: &FxHashMap<Rc<SmartString>, TermInfo>,
     ) -> Option<String>;
 
     fn get_expanded_terms(
         &self,
         number_of_expanded_terms: usize,
         term: &str,
-        dictionary: &FxHashMap<Rc<SmartString>, Rc<TermInfo>>,
+        dictionary: &FxHashMap<Rc<SmartString>, TermInfo>,
     ) -> FxHashMap<String, f32>;
 }
 

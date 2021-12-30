@@ -44,7 +44,7 @@ impl ExistingPlWriter {
     #[allow(clippy::too_many_arguments)]
     fn update_term_pl(
         &mut self,
-        old_term_info: &Rc<TermInfo>,
+        old_term_info: &TermInfo,
         old_num_docs: f64,
         num_docs: f64,
         num_new_docs: u32,
@@ -334,12 +334,12 @@ pub fn modify_blocks(
         Ordering::Less => Ordering::Less,
     });
 
-    let mut term_terminfo_pairs: Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)> = Vec::new();
+    let mut term_terminfo_pairs: Vec<(Rc<SmartString<LazyCompact>>, TermInfo)> = Vec::new();
 
     fn commit_pairs(
         dict_table_writer: &mut BufWriter<File>,
         varint_buf: &mut [u8],
-        term_terminfo_pairs: &mut Vec<(Rc<SmartString<LazyCompact>>, Rc<TermInfo>)>,
+        term_terminfo_pairs: &mut Vec<(Rc<SmartString<LazyCompact>>, TermInfo)>,
         prev_offset: &mut u32,
         curr_existing_pl_difference: i32,
     ) {

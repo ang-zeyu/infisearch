@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use futures::future::join_all;
 use rustc_hash::FxHashMap;
 use wasm_bindgen::JsCast;
@@ -80,7 +78,7 @@ num_desired_expanded_terms,
                         term_docs: Vec::new(),
                         idf: term_info.idf,
                         term: Some(term),
-                        term_info: Some(Rc::clone(term_info)),
+                        term_info: Some(term_info.to_owned()),
                         max_term_score: 0.0,
                     },
                 );
@@ -100,9 +98,9 @@ num_desired_expanded_terms,
                 for term in terms {
                     if !postings_lists.contains_key(term) {
                         let mut idf = 0.0;
-                        let term_info = if let Some(term_info_rc) = self.dictionary.get_term_info(term) {
-                            idf = term_info_rc.idf;
-                            Some(Rc::clone(term_info_rc))
+                        let term_info = if let Some(term_info) = self.dictionary.get_term_info(term) {
+                            idf = term_info.idf;
+                            Some(term_info.to_owned())
                         } else {
                             None
                         };
