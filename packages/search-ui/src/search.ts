@@ -433,27 +433,28 @@ function initMorsels(options: SearchUiOptions): {
       createInputListener(dropdownRoot, dropdownListContainer, searcher, options),
     );
 
+    function refreshDropdown() {
+      uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+      if (document.activeElement === input) {
+        uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+      }
+    }
+
     let debounce;
     window.addEventListener('resize', () => {
       clearTimeout(debounce);
       debounce = setTimeout(() => {
         if (uiOptions.mode === UiMode.Dropdown) {
-          uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
-          if (document.activeElement === input) {
-            uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
-          }
+          refreshDropdown();
           return;
         }
 
-        const newIsMobileSize = isMobileDevice();
-
-        if (isMobileSizeGlobal !== newIsMobileSize) {
-          isMobileSizeGlobal = newIsMobileSize;
-          if (isMobileSizeGlobal) {
-            uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
-          } else {
-            uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
-          }
+        isMobileSizeGlobal = isMobileDevice();
+        if (isMobileSizeGlobal) {
+          uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+        } else {
+          uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
+          refreshDropdown();
         }
       }, 10);
     });
