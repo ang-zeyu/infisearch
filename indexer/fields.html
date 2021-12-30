@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html" class="active"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="../dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="../future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="../developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html" class="active"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="../dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="../developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -140,7 +140,7 @@
     --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
     --morsels-item-border-radius: 10px;
-    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-item-sub-border: 0;
     --morsels-dropdown-input-separator-bg: var(--table-header-bg);
     --morsels-title-bg: var(--table-header-bg);
     --morsels-title-hover-fg: var(--bg);
@@ -199,10 +199,8 @@
 <h1 id="fields_config"><a class="header" href="#fields_config"><code>fields_config</code></a></h1>
 <p>The first step to indexing any documents is defining the fields to store.</p>
 <p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
-<blockquote>
 <p>If you are using morsels’ search UI <strong>as-is</strong> (e.g. not adding additional fields to display), you can skip configuring <code>fields_config.fields</code>.</p>
 <p>You may want to briefly take note of the other parameters under <code>fields_config</code> however, which can be used to adjust response times / file bloat. The possible adjustments will be discussed under the chapter <a href="../tradeoffs.html">Tradeoffs</a>.</p>
-</blockquote>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
     &quot;cache_all_field_stores&quot;: true,
@@ -315,6 +313,13 @@ initMorsels({
       addSearchedTerms: 'search',
     },
   },
+});
+
+document.getElementById('morsels-search').addEventListener('keydown', (ev) => {
+  if (['ArrowLeft', 'ArrowRight'].includes(ev.key)) {
+    ev.stopPropagation(); // used in global listener to change pages
+    return;
+  }
 });
 
 if (window.location.search) {

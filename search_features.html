@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html" class="active"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="future_plans.html"><strong aria-hidden="true">9.</strong> Future Plans</a></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">10.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">10.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">10.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html" class="active"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="dynamic_indexing.html"><strong aria-hidden="true">7.</strong> Dynamic Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -140,7 +140,7 @@
     --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
     --morsels-item-border-radius: 10px;
-    --morsels-item-sub-border:  1px solid var(--table-border-color);
+    --morsels-item-sub-border: 0;
     --morsels-dropdown-input-separator-bg: var(--table-header-bg);
     --morsels-title-bg: var(--table-header-bg);
     --morsels-title-hover-fg: var(--bg);
@@ -200,7 +200,7 @@
 <p>This page outlines the available search features common to both <code>@morsels/search-ui</code> and <code>@morsels/search-lib</code>.</p>
 <h2 id="boolean-operators-parentheses"><a class="header" href="#boolean-operators-parentheses">Boolean Operators, Parentheses</a></h2>
 <p><code>AND</code> and <code>NOT</code> operators are supported.
-<code>OR</code> operators are not supported, but is implicitly left to the tokenizer (see below for an example).
+<code>OR</code> operators are not supported, but its function is implicitly left to the tokenizer (see below for an example).
 Parentheses <code>(...)</code> can be used to group expressions together.</p>
 <pre><code>lorem ipsum                 - documents containing either lorem or ipsum.
 lorem AND ipsum             - documents with both &quot;lorem&quot; and &quot;ipsum&quot;
@@ -208,9 +208,10 @@ lorem AND NOT ipsum         - documents with &quot;lorem&quot; but not &quot;ips
 lorem AND NOT (ipsum dolor) - documents with &quot;lorem&quot; but not (&quot;ipsum&quot; OR &quot;dolor&quot;)
 </code></pre>
 <h2 id="phrase-queries"><a class="header" href="#phrase-queries">Phrase Queries</a></h2>
-<p>Phrase queries are also supported. However, these will not work if the <a href="./indexer/indexing.html#miscellaneous-options"><code>withPositions</code></a> index feature is disabled.</p>
+<p>Phrase queries are also supported by enclosing the relevant terms in <code>&quot;...&quot;</code>.</p>
 <pre><code>&quot;lorem ipsum&quot; - documents containing &quot;lorem&quot; and &quot;ipsum&quot; appearing one after the other
 </code></pre>
+<p>However, note these will not work if the <a href="./indexer/indexing.html#miscellaneous-options"><code>withPositions</code></a> index feature is disabled (enabled by default).</p>
 <h2 id="field-search"><a class="header" href="#field-search">Field Search</a></h2>
 <p>Field queries are supported via the following syntax <code>field_name:</code>, following the same syntax rules as the <code>NOT</code> operator.</p>
 <pre><code>title:lorem             - documents containing &quot;lorem&quot; in the field &quot;title&quot;
@@ -227,17 +228,24 @@ lorem AND title:ipsum   - documents with &quot;ipsum&quot; in the title and &quo
 &quot;phrase query with qu\&quot;ote inside&quot;
 title\:lorem
 </code></pre>
-<h2 id="other-details"><a class="header" href="#other-details">Other Details</a></h2>
-<p>This section briefly details some non user-facing features.</p>
+<h2 id="non-user-facing-features"><a class="header" href="#non-user-facing-features">Non User-Facing Features</a></h2>
+<p>This section briefly details some non-user-facing features.</p>
 <h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker Built-in</a></h3>
 <p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don’t have to worry about blocking the UI thread.</p>
-<p>Population of stored document fields is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
+<p>Population of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
 <p>Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
 One of the main reasons is that there is simply no way of parsing html (the original html document can be used as an alternative to storing document fields) faster than the implementations provided by the browser.</p>
+<h3 id="low-level-inverted-index-format"><a class="header" href="#low-level-inverted-index-format">Low-Level Inverted Index Format</a></h3>
+<p>Besides splitting the inverted index into many files, the inverted index is constructed in a binary format with various compression schemes employed:</p>
+<ul>
+<li>Gap encoding for document ids, positions</li>
+<li>Bytewise variable integer encoding</li>
+</ul>
+<p>To facilitate decompression efficiency of such a low-level format, most of the search library is powered by WebAssembly (Rust) as such.</p>
 <h3 id="ranking-specifics"><a class="header" href="#ranking-specifics">Ranking Specifics</a></h3>
-<p>Top-level disjunctive expressions (e.g. <code>lorem ipsum</code>) are ranked using the BM25 model.</p>
+<p>Top-level <strong>disjunctive</strong> expressions (e.g. free text queries like <code>lorem ipsum</code>) are ranked using the BM25 model.</p>
 <p>Pure free-text queries (e.g. “lorem ipsum”) also use the <a href="https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand">WAND algorithm</a> to improve query speed, although, the benefits should be marginal for most cases.</p>
-<p>Query term proximity ranking is also supported and enabled by default - results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</p>
+<p>A simple form of <strong>query term proximity ranking</strong> is also supported and enabled by default. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -261,6 +269,13 @@ initMorsels({
       addSearchedTerms: 'search',
     },
   },
+});
+
+document.getElementById('morsels-search').addEventListener('keydown', (ev) => {
+  if (['ArrowLeft', 'ArrowRight'].includes(ev.key)) {
+    ev.stopPropagation(); // used in global listener to change pages
+    return;
+  }
 });
 
 if (window.location.search) {
