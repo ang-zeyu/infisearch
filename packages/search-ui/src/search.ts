@@ -435,13 +435,14 @@ function initMorsels(options: SearchUiOptions): {
 
     let debounce;
     window.addEventListener('resize', () => {
-      if (uiOptions.mode === UiMode.Dropdown) {
-        uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
-        return;
-      }
-
       clearTimeout(debounce);
       debounce = setTimeout(() => {
+        if (uiOptions.mode === UiMode.Dropdown) {
+          uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+          uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+          return;
+        }
+
         const newIsMobileSize = isMobileDevice();
 
         if (isMobileSizeGlobal !== newIsMobileSize) {
@@ -452,7 +453,7 @@ function initMorsels(options: SearchUiOptions): {
             uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
           }
         }
-      }, 250);
+      }, 10);
     });
 
     input.addEventListener('blur', () => {
