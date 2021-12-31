@@ -20,6 +20,7 @@ In all, this avoids blowing up network and memory usage on startup, and increase
 - Standard search features, such as boolean queries and field filters
 - Positional search features: phrase queries, and query term proximity boosts
 - Gap and varint compression, giving you more *bang-per-byte*
+- Incremental indexing
 - Customisable dropdown / fullscreen popup user interface
 - A plugin for mdbook!
 
