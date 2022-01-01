@@ -561,7 +561,7 @@ impl Indexer {
 
         self.write_morsels_config();
 
-        self.incremental_info.write(&self.output_folder_path, self.doc_id_counter);
+        self.incremental_info.write_info(&self.output_folder_path);
 
         if !self.is_deletion_only_run() {
             spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
@@ -582,7 +582,7 @@ impl Indexer {
         let num_blocks = last_block - first_block + 1;
         if self.is_incremental {
             self.incremental_info.delete_unencountered_external_ids();
-
+            self.incremental_info.write_invalidation_vec(&self.output_folder_path, self.doc_id_counter);
 
             spimireader::incremental::modify_blocks(
                 self.is_deletion_only_run(),
@@ -591,18 +591,22 @@ impl Indexer {
                 first_block,
                 last_block,
                 &self.indexing_config,
+                &self.field_infos,
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
                 &mut self.incremental_info,
             );
         } else {
+            self.incremental_info.write_invalidation_vec(&self.output_folder_path, self.doc_id_counter);
+
             spimireader::full::merge_blocks(
                 self.doc_id_counter,
                 num_blocks,
                 first_block,
                 last_block,
                 &self.indexing_config,
+                &self.field_infos,
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,

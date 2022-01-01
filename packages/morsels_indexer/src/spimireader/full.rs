@@ -9,6 +9,7 @@ use dashmap::DashMap;
 use morsels_common::DOC_INFO_FILE_NAME;
 
 use crate::docinfo::DocInfos;
+use crate::fieldinfo::FieldInfos;
 use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
@@ -26,6 +27,7 @@ pub fn merge_blocks(
     first_block: u32,
     last_block: u32,
     indexing_config: &MorselsIndexingConfig,
+    field_infos: &Arc<FieldInfos>,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
@@ -55,8 +57,11 @@ pub fn merge_blocks(
             .expect("No thread should be holding doc infos arc when merging blocks")
             .into_inner()
             .expect("No thread should be holding doc infos mutex when merging blocks");
-        doc_infos_unwrapped_inner
-            .finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), doc_id_counter);
+        doc_infos_unwrapped_inner.finalize_and_flush(
+            output_folder_path.join(DOC_INFO_FILE_NAME),
+            doc_id_counter, field_infos.num_scored_fields,
+            incremental_info
+        );
 
         Arc::from(doc_infos_unwrapped_inner)
     };

@@ -101,15 +101,7 @@ impl PostingsStreamReader {
                                     }
                                 }
 
-                                let field_info = field_infos.field_infos_by_id.get(field_id as usize).unwrap();
-                                let k = field_info.k;
-                                let b = field_info.b;
-                                curr_doc_term_score += (field_tf as f32 * (k + 1.0))
-                                    / (field_tf as f32
-                                        + k * (1.0 - b
-                                            + b * (doc_infos
-                                                .get_field_len_factor(doc_id as usize, field_id as usize))))
-                                    * field_info.weight;
+                                super::tf_score::add_field_to_doc_score(field_infos, field_id, &mut curr_doc_term_score, field_tf, doc_infos, doc_id);
                             };
 
                         pl_reader.read_exact(u8_buf).unwrap();

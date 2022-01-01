@@ -1,6 +1,7 @@
 pub mod postings_stream;
 pub mod postings_stream_reader;
 pub mod terms;
+pub mod tf_score;
 
 use std::collections::BinaryHeap;
 use std::collections::VecDeque;

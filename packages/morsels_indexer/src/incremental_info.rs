@@ -43,8 +43,6 @@ pub struct IncrementalIndexInfo {
 
     pub last_pl_number: u32,
 
-    pub num_docs: u32,
-
     pub num_deleted_docs: u32,
 
     pub pl_names_to_cache: Vec<u32>,
@@ -63,7 +61,6 @@ impl IncrementalIndexInfo {
             use_content_hash,
             mappings: FxHashMap::default(),
             last_pl_number: 0,
-            num_docs: 0,
             num_deleted_docs: 0,
             pl_names_to_cache: Vec::new(),
             invalidation_vector: Vec::new(),
@@ -223,22 +220,24 @@ impl IncrementalIndexInfo {
             .collect();
     }
 
-    pub fn write(&mut self, output_folder_path: &Path, doc_id_counter: u32) {
-        self.num_docs = doc_id_counter - self.num_deleted_docs;
-
-        let serialized = serde_json::to_string(self).unwrap();
-
-        File::create(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME))
-            .unwrap()
-            .write_all(serialized.as_bytes())
-            .unwrap();
-
+    pub fn write_invalidation_vec(&mut self, output_folder_path: &Path, doc_id_counter: u32) {
         let num_bytes = (doc_id_counter as f64 / 8.0).ceil() as usize;
+        
+        // Extend with the added documents
         self.invalidation_vector.extend(vec![0; num_bytes - self.invalidation_vector.len()]);
 
         File::create(output_folder_path.join(BITMAP_FILE_NAME))
             .unwrap()
             .write_all(&*self.invalidation_vector)
+            .unwrap();
+    }
+
+    pub fn write_info(&mut self, output_folder_path: &Path) {
+        let serialized = serde_json::to_string(self).unwrap();
+
+        File::create(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME))
+            .unwrap()
+            .write_all(serialized.as_bytes())
             .unwrap();
     }
 }

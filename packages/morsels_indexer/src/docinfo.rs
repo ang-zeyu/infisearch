@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 
+use crate::incremental_info::IncrementalIndexInfo;
 use crate::worker::miner::WorkerMinerDocInfo;
 use std::fs::File;
 use std::io::BufWriter;
@@ -7,6 +8,8 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use byteorder::{ByteOrder, LittleEndian};
+
+use morsels_common::bitmap;
 
 #[derive(Debug)]
 pub struct BlockDocLengths(pub Vec<WorkerMinerDocInfo>);
@@ -89,35 +92,44 @@ impl DocInfos {
         );
     }
 
-    fn calculate_field_average_lengths(&mut self, writer: &mut BufWriter<std::fs::File>) {
-        let num_fields = if let Some(first) = self.doc_lengths.get(0) {
-            first.field_lengths.len()
-        } else {
-            0
-        };
-        let mut total_field_lengths: Vec<u64> = vec![0; num_fields];
-        for worker_miner_doc_info in self.doc_lengths.iter() {
-            for (field_id, field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {
-                *total_field_lengths.get_mut(field_id).unwrap() += (*field_length) as u64;
+    fn calculate_field_average_lengths(
+        &mut self,
+        writer: &mut BufWriter<std::fs::File>,
+        num_docs: u32,
+        num_scored_fields: usize,
+        incremental_info: &mut IncrementalIndexInfo,
+    ) {
+        let mut total_field_lengths: Vec<u64> = vec![0; num_scored_fields];
+        for (doc_id, worker_miner_doc_info) in self.doc_lengths.iter().enumerate() {
+            if !bitmap::check(&incremental_info.invalidation_vector, doc_id) {
+                for (field_id, field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {
+                    *total_field_lengths.get_mut(field_id).unwrap() += (*field_length) as u64;
+                }
             }
         }
 
-        let num_docs = self.doc_lengths.len() as u64;
+        let num_docs = num_docs as f64;
         for (field_id, total_length) in total_field_lengths.into_iter().enumerate() {
             let average_length = self.average_lengths.get_mut(field_id).unwrap();
-            *average_length = total_length as f64 / num_docs as f64;
+            *average_length = total_length as f64 / num_docs;
             writer.write_all(&(*average_length).to_le_bytes()).unwrap();
         }
     }
 
-    pub fn finalize_and_flush(&mut self, output_file_path: PathBuf, num_docs: u32) {
+    pub fn finalize_and_flush(
+        &mut self,
+        output_file_path: PathBuf,
+        num_docs: u32,
+        num_scored_fields: usize,
+        incremental_info: &mut IncrementalIndexInfo,
+    ) {
         self.sort_and_merge_block_doclengths();
 
         let mut doc_info_writer = BufWriter::new(File::create(output_file_path).unwrap());
 
         doc_info_writer.write_all(&num_docs.to_le_bytes()).unwrap();
 
-        self.calculate_field_average_lengths(&mut doc_info_writer);
+        self.calculate_field_average_lengths(&mut doc_info_writer, num_docs, num_scored_fields, incremental_info);
 
         for worker_miner_doc_info in self.doc_lengths.iter() {
             for field_length in worker_miner_doc_info.field_lengths.iter() {

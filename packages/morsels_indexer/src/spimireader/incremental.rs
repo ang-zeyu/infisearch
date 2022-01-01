@@ -8,7 +8,6 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use byteorder::{ByteOrder, LittleEndian};
 use dashmap::DashMap;
 use rustc_hash::FxHashMap;
 use smartstring::LazyCompact;
@@ -21,6 +20,7 @@ use morsels_common::utils::varint::decode_var_int;
 use morsels_common::DOC_INFO_FILE_NAME;
 
 use crate::docinfo::DocInfos;
+use crate::fieldinfo::FieldInfos;
 use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
@@ -45,13 +45,14 @@ impl ExistingPlWriter {
     fn update_term_pl(
         &mut self,
         old_term_info: &TermInfo,
-        old_num_docs: f64,
         num_docs: f64,
         num_new_docs: u32,
         new_max_term_score: f32,
         curr_combined_term_docs: &mut Vec<TermDocsForMerge>,
         invalidation_vector: &[u8],
         varint_buf: &mut [u8],
+        field_infos: &Arc<FieldInfos>,
+        doc_infos: &Arc<DocInfos>,
     ) -> TermInfo {
         self.pl_writer
             .write_all(&self.pl_vec[self.pl_vec_last_offset..(old_term_info.postings_file_offset as usize)])
@@ -64,6 +65,8 @@ impl ExistingPlWriter {
             postings_file_offset: self.pl_writer.len() as u32,
         };
 
+        let mut max_doc_term_score = new_max_term_score;
+
         let mut pl_vec_pos = old_term_info.postings_file_offset as usize;
         let mut prev_last_valid_id = 0;
 
@@ -75,12 +78,16 @@ impl ExistingPlWriter {
 
             let start = pl_vec_pos;
 
+            let mut curr_doc_term_score: f32 = 0.0;
             let mut is_last: u8 = 0;
             while is_last == 0 {
+                let field_id = self.pl_vec[pl_vec_pos] & 0x7f;
                 is_last = self.pl_vec[pl_vec_pos] & 0x80;
                 pl_vec_pos += 1;
 
                 let field_tf = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
+
+                common::tf_score::add_field_to_doc_score(field_infos, field_id, &mut curr_doc_term_score, field_tf, doc_infos, prev_doc_id);
 
                 if self.with_positions {
                     for _j in 0..field_tf {
@@ -93,6 +100,10 @@ impl ExistingPlWriter {
             if bitmap::check(invalidation_vector, prev_doc_id as usize) {
                 new_term_info.doc_freq -= 1;
             } else {
+                if curr_doc_term_score > max_doc_term_score {
+                    max_doc_term_score = curr_doc_term_score
+                }
+
                 // Doc id gaps need to be re-encoded due to possible doc deletions
                 self.pl_writer
                     .write_all(varint::get_var_int(prev_doc_id - prev_last_valid_id, varint_buf))
@@ -102,13 +113,7 @@ impl ExistingPlWriter {
             }
         }
 
-        // Old max term score
-        let old_doc_freq_double = old_term_info.doc_freq as f64;
-        let new_doc_freq_double = new_term_info.doc_freq as f64;
-
-        let old_idf = get_idf(old_num_docs, old_doc_freq_double);
-        let new_idf = get_idf(num_docs, new_doc_freq_double);
-        let old_max_term_score = LittleEndian::read_f32(&self.pl_vec[pl_vec_pos..]) * (new_idf / old_idf) as f32;
+        // Old max term score, not needed as it is recomputed for every document
         pl_vec_pos += 4;
 
         // Add in new documents
@@ -124,12 +129,8 @@ impl ExistingPlWriter {
         }
 
         // New max term score
-        let new_max_term_score = new_max_term_score * new_idf as f32;
-        if new_max_term_score > old_max_term_score {
-            self.pl_writer.write_all(&new_max_term_score.to_le_bytes()).unwrap();
-        } else {
-            self.pl_writer.write_all(&old_max_term_score.to_le_bytes()).unwrap();
-        }
+        let new_max_term_score = max_doc_term_score * get_idf(num_docs, new_term_info.doc_freq as f64) as f32;
+        self.pl_writer.write_all(&new_max_term_score.to_le_bytes()).unwrap();
 
         self.pl_vec_last_offset = pl_vec_pos;
 
@@ -166,6 +167,7 @@ pub fn modify_blocks(
     first_block: u32,
     last_block: u32,
     indexing_config: &MorselsIndexingConfig,
+    field_infos: &Arc<FieldInfos>,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
@@ -176,7 +178,6 @@ pub fn modify_blocks(
         Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
-    let old_num_docs = incremental_info.num_docs as f64;
     let new_num_docs = (doc_id_counter - incremental_info.num_deleted_docs) as f64;
 
     // Unwrap the inner mutex to avoid locks as it is now read-only
@@ -185,8 +186,11 @@ pub fn modify_blocks(
             .expect("No thread should be holding doc infos arc when merging blocks")
             .into_inner()
             .expect("No thread should be holding doc infos mutex when merging blocks");
-        doc_infos_unwrapped_inner
-            .finalize_and_flush(output_folder_path.join(DOC_INFO_FILE_NAME), new_num_docs as u32);
+        doc_infos_unwrapped_inner.finalize_and_flush(
+            output_folder_path.join(DOC_INFO_FILE_NAME),
+            new_num_docs as u32, field_infos.num_scored_fields,
+            incremental_info,
+        );
 
         Arc::from(doc_infos_unwrapped_inner)
     };
@@ -263,13 +267,14 @@ pub fn modify_blocks(
 
             let new_term_info = term_pl_writer.update_term_pl(
                 old_term_info,
-                old_num_docs,
                 new_num_docs,
                 doc_freq,
                 curr_term_max_score,
                 &mut curr_combined_term_docs,
                 &incremental_info.invalidation_vector,
                 &mut varint_buf,
+                field_infos,
+                &doc_infos_unlocked_arc,
             );
 
             term_info_updates.insert(curr_term, new_term_info);
