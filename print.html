@@ -407,9 +407,9 @@ One of the main reasons is that there is simply no way of parsing html (the orig
 </ul>
 <p>To facilitate decompression efficiency of such a low-level format, most of the search library is powered by WebAssembly (Rust) as such.</p>
 <h3 id="ranking-specifics"><a class="header" href="#ranking-specifics">Ranking Specifics</a></h3>
-<p>Top-level <strong>disjunctive</strong> expressions (e.g. free text queries like <code>lorem ipsum</code>) are ranked using the BM25 model.</p>
+<p>Most query expressions (e.g. free text queries like <code>lorem ipsum</code>) are ranked using the BM25 model, while <code>AND</code> and <code>()</code> operators sum the respective BM25 scores of their operands.</p>
 <p>Pure free-text queries (e.g. “lorem ipsum”) also use the <a href="https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand">WAND algorithm</a> to improve query speed, although, the benefits should be marginal for most cases.</p>
-<p>A simple form of <strong>query term proximity ranking</strong> is also supported and enabled by default. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</p>
+<p>A simple form of <strong>query term proximity ranking</strong> is also supported and enabled by default for top-level expressions. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -1111,10 +1111,10 @@ if (window.location.search) {
 <p>There are 2 categories of options, the first being related to the internal search library (<code>@morsels/search-lib</code>), and the second the user interface (<code>@morsels/search-ui</code>).</p>
 <hr />
 <h2 id="forenote-on-mobile-device-detection"><a class="header" href="#forenote-on-mobile-device-detection">Forenote on Mobile Device Detection</a></h2>
-<p>For now, note that several options in both the search library and UI are <strong>by default</strong> tuned based on whether the client is a “mobile device”:</p>
+<p>Note that several options in both the search library and UI are <strong>by default</strong> tuned based on whether the client is a “mobile device”:</p>
 <ul>
 <li>Query term proximity ranking is disabled</li>
-<li>Whether to use the fullscreen version (see <a href="search_configuration.html#ui-mode">UI Mode</a>) of the user interface instead</li>
+<li>The fullscreen version of the user interface is used for <code>mode='auto'</code> (see <a href="search_configuration.html#ui-mode">UI Mode</a>)</li>
 </ul>
 <p>Overrides and the process of this detection is configurable, and will be covered in subsequent sections.</p>
 <hr />
@@ -1216,6 +1216,11 @@ if (window.location.search) {
         // Whether to retrieve all field stores on initialisation
         // (see chapter &quot;Tradeoffs&quot; for more details)
         cacheAllFieldStores: true,
+
+        // The maximum number of results to retrieve (unlimited if null).
+        resultLimit: null,
+
+        useWand: 20,
     },
 });
 </code></pre>
@@ -1228,6 +1233,12 @@ if (window.location.search) {
 <p><code>useQueryTermProximity</code></p>
 <p>If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other.
 This may be costly for mobile devices however, and is disabled by default in such cases.</p>
+<h3 id="weak-and--weighted-and-wand"><a class="header" href="#weak-and--weighted-and-wand">Weak and / Weighted and (WAND)</a></h3>
+<p><code>useWand: number | null</code></p>
+<p>By default, pure <strong>free-text queries</strong> are run through the WAND algorithm, which <strong>increases query speed</strong> for the <strong>top-k</strong> documents.
+The main drawback with this algorithm is that the ranking of documents after these top-k documents <strong>may</strong> be inaccurate, although often, searchers won’t have the patience to dig through thousands of results anyway.</p>
+<p>If you want to increase the top-k threshold, simply increase the number here (<code>20</code> by default).</p>
+<p>Otherwise, setting this to <code>null</code> completely disables this algorithm.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>

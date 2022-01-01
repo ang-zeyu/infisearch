@@ -243,9 +243,9 @@ One of the main reasons is that there is simply no way of parsing html (the orig
 </ul>
 <p>To facilitate decompression efficiency of such a low-level format, most of the search library is powered by WebAssembly (Rust) as such.</p>
 <h3 id="ranking-specifics"><a class="header" href="#ranking-specifics">Ranking Specifics</a></h3>
-<p>Top-level <strong>disjunctive</strong> expressions (e.g. free text queries like <code>lorem ipsum</code>) are ranked using the BM25 model.</p>
+<p>Most query expressions (e.g. free text queries like <code>lorem ipsum</code>) are ranked using the BM25 model, while <code>AND</code> and <code>()</code> operators sum the respective BM25 scores of their operands.</p>
 <p>Pure free-text queries (e.g. “lorem ipsum”) also use the <a href="https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand">WAND algorithm</a> to improve query speed, although, the benefits should be marginal for most cases.</p>
-<p>A simple form of <strong>query term proximity ranking</strong> is also supported and enabled by default. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</p>
+<p>A simple form of <strong>query term proximity ranking</strong> is also supported and enabled by default for top-level expressions. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
