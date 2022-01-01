@@ -187,6 +187,8 @@
 
 #morsels-mdbook-target {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
 </style>
 <p><input
@@ -195,7 +197,7 @@
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
-<div class="morsels-root" id="morsels-mdbook-target"></div>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
 <p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>morsels_config.json</code> in the source folder (first argument specified in the command).</p>
 <p>You can run the cli command with the <code>--config-init</code> option to initialise the default configuration file in the source folder.</p>

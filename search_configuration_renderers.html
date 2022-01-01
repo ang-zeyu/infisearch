@@ -187,6 +187,8 @@
 
 #morsels-mdbook-target {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
 </style>
 <p><input
@@ -195,7 +197,7 @@
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
-<div class="morsels-root" id="morsels-mdbook-target"></div>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="renderers"><a class="header" href="#renderers">Renderers</a></h1>
 <style>
     .alert-warning {
@@ -380,22 +382,23 @@
 <pre><code class="language-ts">showFullscreen?: (
   root: HTMLElement,
   listContainer: HTMLElement,
-  fullscreenContainer: HTMLElement,
+  fsContainer: HTMLElement,
   opts: SearchUiOptions,
 ) =&gt; void,
 
 hideFullscreen?: (
   root: HTMLElement,
   listContainer: HTMLElement,
-  fullscreenContainer: HTMLElement,
+  fsContainer: HTMLElement,
   opts: SearchUiOptions
 ) =&gt; void,
 </code></pre>
-<p>The <code>fullscreenContainer</code> (by default the <code>&lt;body&gt;</code> element) to which to append the root element is also provided. You may also want to for example, refocus the fullscreen version’s <code>&lt;input&gt;</code> element once UI is shown.</p>
+<p>The <code>fsContainer</code> (by default the <code>&lt;body&gt;</code> element) to which to append the root element is also provided. You may also want to for example, refocus the fullscreen version’s <code>&lt;input&gt;</code> element once UI is shown.</p>
 <h3 id="target"><a class="header" href="#target">Target</a></h3>
 <p>There is no root element for the target, as it is specified by the <code>target</code> option. The equivalent of the <code>target</code> element would be the <code>listContainer</code> element for the dropdown / fullscreen versions  above.</p>
 <h2 id="miscellaneous-renderers"><a class="header" href="#miscellaneous-renderers">Miscellaneous Renderers</a></h2>
 <table><thead><tr><th>Function</th><th>Return</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>errorRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>Renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when an unexpected error occurs.</td></tr>
 <tr><td><code>noResultsRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when there are no results found for a given query.                                                                                     </td></tr>
 <tr><td><code>loadingIndicatorRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>This API renders the loading indicator attached under the <code>listContainer</code>. The loading indicator is shown when making the initial search (the first search from an empty search box).</td></tr>
 <tr><td><code>termInfoRender(h, opts, queryParts: QueryPart[])</code></td><td><code>HTMLElement[]</code></td><td>This API renders element(s) attached under the <code>listContainer</code> related to the searched terms, and is blank by default.<br><br>This can be used to render messages like “<em>Did you mean <u>spelling</u>?</em> “.</td></tr>

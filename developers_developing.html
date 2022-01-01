@@ -187,6 +187,8 @@
 
 #morsels-mdbook-target {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
 </style>
 <p><input
@@ -195,7 +197,7 @@
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
-<div class="morsels-root" id="morsels-mdbook-target"></div>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="developing"><a class="header" href="#developing">Developing</a></h1>
 <h2 id="building-and-running-the-development-site"><a class="header" href="#building-and-running-the-development-site">Building and Running the Development Site</a></h2>
 <p>Once you have you test files placed in the correct folder per the previous chapter, run the <code>npm run index1</code> script to index your content, then run <code>npm run devServer1</code> to serve up the indexer’s output on port <code>3000</code>.</p>

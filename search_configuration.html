@@ -187,6 +187,8 @@
 
 #morsels-mdbook-target {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
 </style>
 <p><input
@@ -195,7 +197,7 @@
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
-<div class="morsels-root" id="morsels-mdbook-target"></div>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="search-configuration"><a class="header" href="#search-configuration">Search Configuration</a></h1>
 <p>All search time related options can be provided through the <code>initMorsels</code> function, exposed by <code>@morsels/search-ui</code>.</p>
 <p>There are 2 categories of options, the first being related to the internal search library (<code>@morsels/search-lib</code>), and the second the user interface (<code>@morsels/search-ui</code>).</p>
@@ -238,8 +240,10 @@
 <h4 id="ui-mode-specific-options"><a class="header" href="#ui-mode-specific-options">UI Mode Specific Options</a></h4>
 <p>There are also several options specific to each UI. Note that <code>dropdown</code> and <code>fullscreen</code> options are both applicable to the <code>auto</code> mode.</p>
 <table><thead><tr><th>Mode</th><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td>all</td><td><code>label</code></td><td><code>'Search this site'</code></td><td>Accessibility label for the inputs and results listbox.</td></tr>
 <tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'bottom-end'</code></td><td><code>'bottom-start'</code> or <code>'bottom-end'</code>. Which side of the input element to align the dropdown results container and dropdown seperator against. The alignment of the dropdown container will be automatically flipped horizontally to ensure the most optimal size (see <a href="https://floating-ui.com/docs/size#using-with-flip">floating-ui</a> ’s docs for a demonstration).</td></tr>
-<tr><td><code>fullscreen</code></td><td><code>fullscreenContainer</code></td><td><code>&lt;body&gt;</code> element</td><td><code>id</code> of the element, or an element reference to attach the separate root container to.</td></tr>
+<tr><td><code>fullscreen</code></td><td><code>fsContainer</code></td><td><code>&lt;body&gt;</code> element</td><td><code>id</code> of the element, or an element reference to attach the separate root container to.</td></tr>
+<tr><td><code>fullscreen</code></td><td><code>fsPlaceholder</code></td><td><code>'Search this site...'</code></td><td>Placeholder of the input element in the fullscreen UI.</td></tr>
 <tr><td><code>target</code></td><td><code>target</code></td><td>-</td><td><code>id</code> of the element, or an element reference to attach results to. Required if using <code>mode='target'</code>.</td></tr>
 </tbody></table>
 <h4 id="manually-showing--hiding-the-fullscreen-ui"><a class="header" href="#manually-showing--hiding-the-fullscreen-ui">Manually Showing / Hiding the Fullscreen UI</a></h4>

@@ -187,6 +187,8 @@
 
 #morsels-mdbook-target {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
 </style>
 <p><input
@@ -195,7 +197,7 @@
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
-<div class="morsels-root" id="morsels-mdbook-target"></div>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h1>
 <p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key, while the <code>options</code> key supplies tokenization options unique to each module.</p>
 <blockquote>

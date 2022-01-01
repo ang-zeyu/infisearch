@@ -187,6 +187,8 @@
 
 #morsels-mdbook-target {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
 </style>
 <p><input
@@ -195,7 +197,7 @@
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
-<div class="morsels-root" id="morsels-mdbook-target"></div>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="incremental-indexing"><a class="header" href="#incremental-indexing">Incremental Indexing</a></h1>
 <p><em>Incremental</em> indexing is also supported by the indexer cli tool.</p>
 <p>Detecting <strong>deleted, changed, or added files</strong> is done by storing an <strong>internal file path –&gt; last modified timestamp</strong> map.</p>
