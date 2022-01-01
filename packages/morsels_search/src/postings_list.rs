@@ -39,7 +39,7 @@ impl Default for DocField {
     }
 }
 
-#[cfg_attr(test, derive(PartialEq, Debug))]
+#[cfg_attr(test, derive(Debug))]
 pub struct TermDoc {
     pub doc_id: u32,
     pub fields: Vec<DocField>,
@@ -47,7 +47,15 @@ pub struct TermDoc {
 }
 
 #[cfg(test)]
-impl Eq for TermDoc {}
+impl PartialEq for TermDoc {
+    fn eq(&self, other: &Self) -> bool {
+        self.doc_id == other.doc_id && self.fields == other.fields
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        self.doc_id != other.doc_id || self.fields != other.fields
+    }
+}
 
 impl TermDoc {
     pub fn to_owned(&self) -> Self {
