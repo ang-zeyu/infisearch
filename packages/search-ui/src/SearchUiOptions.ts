@@ -20,7 +20,10 @@ export interface UiOptions {
   preprocessQuery: (input: string) => string,
   mode: UiMode,
   dropdownAlignment?: 'bottom-start' | 'bottom-end',
-  fullscreenContainer?: HTMLElement,
+  label?: string,
+  fsContainer?: HTMLElement,
+  fsPlaceholder?: string,
+  fsCloseText?: string,
   target?: HTMLElement,
   resultsPerPage?: number,
   // This is specific to the default resultsRender implementation,
@@ -56,17 +59,18 @@ export interface UiOptions {
   showFullscreen?: (
     root: HTMLElement,
     listContainer: HTMLElement,
-    fullscreenContainer: HTMLElement,
+    fsContainer: HTMLElement,
     opts: SearchUiOptions,
   ) => void,
   hideFullscreen?: (
     root: HTMLElement,
     listContainer: HTMLElement,
-    fullscreenContainer: HTMLElement,
+    fsContainer: HTMLElement,
     opts: SearchUiOptions
   ) => void,
 
   // Miscellaneous
+  errorRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
   noResultsRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
   fsBlankRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
   loadingIndicatorRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,

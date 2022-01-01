@@ -222,19 +222,19 @@ Similarly, there are two `show / hide` variants for the fullscreen version:
 showFullscreen?: (
   root: HTMLElement,
   listContainer: HTMLElement,
-  fullscreenContainer: HTMLElement,
+  fsContainer: HTMLElement,
   opts: SearchUiOptions,
 ) => void,
 
 hideFullscreen?: (
   root: HTMLElement,
   listContainer: HTMLElement,
-  fullscreenContainer: HTMLElement,
+  fsContainer: HTMLElement,
   opts: SearchUiOptions
 ) => void,
 ```
 
-The `fullscreenContainer` (by default the `<body>` element) to which to append the root element is also provided. You may also want to for example, refocus the fullscreen version's `<input>` element once UI is shown.
+The `fsContainer` (by default the `<body>` element) to which to append the root element is also provided. You may also want to for example, refocus the fullscreen version's `<input>` element once UI is shown.
 
 ### Target
 
@@ -245,6 +245,7 @@ There is no root element for the target, as it is specified by the `target` opti
 
 | Function        | Return | Description |
 | ----- | ----- | ----------- |
+| `errorRender(h, opts)` | `HTMLElement`        | Renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when an unexpected error occurs.   |
 | `noResultsRender(h, opts)` | `HTMLElement`        | This API renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when there are no results found for a given query. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |
 | `loadingIndicatorRender(h, opts)` | `HTMLElement`  | This API renders the loading indicator attached under the `listContainer`. The loading indicator is shown when making the initial search (the first search from an empty search box).    |
 | `termInfoRender(h, opts, queryParts: QueryPart[])` | `HTMLElement[]`      | This API renders element(s) attached under the `listContainer` related to the searched terms, and is blank by default.<br><br>This can be used to render messages like "*Did you mean <u>spelling</u>?* ".    |

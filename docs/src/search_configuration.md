@@ -62,11 +62,13 @@ To **try the different modes out**, head on over to the [mdbook plugin](./gettin
 
 There are also several options specific to each UI. Note that `dropdown` and `fullscreen` options are both applicable to the `auto` mode.
 
-| Mode        | Option                | Default          | Description |
-| ----------- | -----------           | -----------      | ----------- |
-| `dropdown`  | `dropdownAlignment`   | `'bottom-end'`        | `'bottom-start'` or `'bottom-end'`. Which side of the input element to align the dropdown results container and dropdown seperator against. The alignment of the dropdown container will be automatically flipped horizontally to ensure the most optimal size (see [floating-ui](https://floating-ui.com/docs/size#using-with-flip) 's docs for a demonstration).
-| `fullscreen`| `fullscreenContainer` | `<body>` element | `id` of the element, or an element reference to attach the separate root container to.
-| `target`    | `target`              | -                | `id` of the element, or an element reference to attach results to. Required if using `mode='target'`.
+| Mode        | Option                | Default                 | Description |
+| ----------- | -----------           | -----------             | ----------- |
+| all         | `label`               | `'Search this site'`    | Accessibility label for the inputs and results listbox.
+| `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom-start'` or `'bottom-end'`. Which side of the input element to align the dropdown results container and dropdown seperator against. The alignment of the dropdown container will be automatically flipped horizontally to ensure the most optimal size (see [floating-ui](https://floating-ui.com/docs/size#using-with-flip) 's docs for a demonstration).
+| `fullscreen`| `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
+| `fullscreen`| `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
+| `target`    | `target`              | -                       | `id` of the element, or an element reference to attach results to. Required if using `mode='target'`.
 
 #### Manually Showing / Hiding the Fullscreen UI
 

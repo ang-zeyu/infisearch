@@ -246,7 +246,7 @@ static INPUT_EL: &str = "\n<input
     placeholder=\"Search\"
 />\n\n
 <span style=\"font-weight: 600;\"><!--preload weight 600--></span>\n\n
-<div class=\"morsels-root\" id=\"morsels-mdbook-target\"></div>\n\n";
+<ul class=\"morsels-root\" id=\"morsels-mdbook-target\"></ul>\n\n";
 
 static STYLES: &str = r#"
 <style>
@@ -302,6 +302,8 @@ static STYLES: &str = r#"
 
 #morsels-mdbook-target {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
 </style>
 "#;

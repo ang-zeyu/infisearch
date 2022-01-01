@@ -20,6 +20,21 @@ function useDropdown(uiOptions: UiOptions): boolean {
       || uiOptions.mode === UiMode.Dropdown;
 }
 
+function setCombobox(combobox: HTMLElement, listbox: HTMLElement, label: string) {
+  combobox.setAttribute('role', 'combobox');
+  combobox.setAttribute('aria-expanded', 'true');
+  combobox.setAttribute('aria-owns', listbox.getAttribute('id'));
+  listbox.setAttribute('role', 'listbox');
+  listbox.setAttribute('aria-label', label);
+  listbox.setAttribute('aria-live', 'polite');
+}
+
+function setInputAria(input: HTMLElement, listId: string) {
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-controls', listId);
+  input.setAttribute('aria-activedescendant', 'morsels-list-selected');
+}
+
 function prepareOptions(options: SearchUiOptions) {
   // ------------------------------------------------------------
   // Search Lib Options
@@ -76,16 +91,16 @@ function prepareOptions(options: SearchUiOptions) {
     uiOptions.preprocessQuery = (q) => q;
   }
 
-  if (typeof uiOptions.fullscreenContainer === 'string') {
-    uiOptions.fullscreenContainer = document.getElementById(uiOptions.fullscreenContainer) as HTMLElement;
+  if (typeof uiOptions.fsContainer === 'string') {
+    uiOptions.fsContainer = document.getElementById(uiOptions.fsContainer) as HTMLElement;
   }
 
   if (!('dropdownAlignment' in uiOptions)) {
     uiOptions.dropdownAlignment = 'bottom-end';
   }
 
-  if (!uiOptions.fullscreenContainer) {
-    uiOptions.fullscreenContainer = document.getElementsByTagName('body')[0] as HTMLElement;
+  if (!uiOptions.fsContainer) {
+    uiOptions.fsContainer = document.getElementsByTagName('body')[0] as HTMLElement;
   }
 
   if (!('resultsPerPage' in uiOptions)) {
@@ -136,16 +151,21 @@ function prepareOptions(options: SearchUiOptions) {
     dropdownShown = false;
   };
 
-  const showFullscreen = uiOptions.showFullscreen || ((root, listContainer, fullscreenContainer) => {
-    fullscreenContainer.appendChild(root);
+  const showFullscreen = uiOptions.showFullscreen || ((root, listContainer, fsContainer) => {
+    fsContainer.appendChild(root);
     const input: HTMLInputElement = root.querySelector('input.morsels-fs-input');
     if (input) {
       input.focus();
     }
   });
-  uiOptions.showFullscreen = (...args) => {
-    showFullscreen(...args);
+  uiOptions.showFullscreen = (root, listContainer, ...args) => {
+    showFullscreen(root, listContainer, ...args);
+    const currentFocusedResult = listContainer.querySelector('.focus') as HTMLElement;
+    if (currentFocusedResult) {
+      listContainer.scrollTo({ top: currentFocusedResult.offsetTop - listContainer.offsetTop - 30 });
+    }
     fullscreenShown = true;
+
   };
 
   const hideFullscreen = uiOptions.hideFullscreen || ((root) => {
@@ -157,6 +177,10 @@ function prepareOptions(options: SearchUiOptions) {
     fullscreenShown = false;
   };
 
+  uiOptions.label = uiOptions.label || 'Search this site';
+  uiOptions.fsPlaceholder = uiOptions.fsPlaceholder || 'Search this site...';
+  uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
+
   uiOptions.dropdownRootRender = uiOptions.dropdownRootRender || ((h, opts, inputEl) => {
     const root = h('div', { class: 'morsels-root' }, inputEl);
 
@@ -165,11 +189,15 @@ function prepareOptions(options: SearchUiOptions) {
       style: 'display: none;',
     }));
 
+    setInputAria(inputEl, 'morsels-dropdown-list');
+
     const listContainer = h('ul', {
+      id: 'morsels-dropdown-list',
       class: 'morsels-list',
       style: 'display: none;',
     });
     root.appendChild(listContainer);
+    setCombobox(root, listContainer, opts.uiOptions.label);
 
     return {
       dropdownRoot: root,
@@ -187,20 +215,38 @@ function prepareOptions(options: SearchUiOptions) {
 
     const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
 
-    const inputEl = h(
-      'input', { class: 'morsels-fs-input', type: 'text', placeholder: 'Search...' },
-    ) as HTMLInputElement;
+    const ariaLabel = h('label',
+      { id: 'morsels-fs-label', for: 'morsels-fs-input', style: 'display: none' },
+      opts.uiOptions.label,
+    );
 
-    const buttonEl = h('button', { class: 'morsels-input-close-fs' });
+    const inputEl = h(
+      'input', {
+        class: 'morsels-fs-input',
+        type: 'search',
+        placeholder: opts.uiOptions.fsPlaceholder,
+        autocomplete: 'false',
+        'aria-labelledby': 'morsels-fs-label',
+      },
+    ) as HTMLInputElement;
+    setInputAria(inputEl, 'morsels-fs-list');
+
+    const buttonEl = h('button', { class: 'morsels-input-close-fs' }, opts.uiOptions.fsCloseText);
     buttonEl.onclick = fsCloseHandler;
 
-    innerRoot.appendChild(h('div',
+    innerRoot.appendChild(h('form',
       { class: 'morsels-fs-input-button-wrapper' },
+      ariaLabel,
       inputEl,
       buttonEl));
 
-    const listContainer = h('ul', { class: 'morsels-list' });
+    const listContainer = h('ul', {
+      id: 'morsels-fs-list',
+      class: 'morsels-list',
+      'aria-labelledby': 'morsels-fs-label',
+    });
     innerRoot.appendChild(listContainer);
+    setCombobox(innerRoot, listContainer, opts.uiOptions.label);
 
     rootBackdropEl.onclick = () => uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
     rootBackdropEl.addEventListener('keyup', (ev) => {
@@ -217,11 +263,14 @@ function prepareOptions(options: SearchUiOptions) {
     };
   });
 
+  uiOptions.errorRender = uiOptions.errorRender
+      || ((h) => h('div', { class: 'morsels-error' }, 'Oops! Something went wrong... 🙁'));
+
   uiOptions.noResultsRender = uiOptions.noResultsRender
-      || ((h) => h('div', { class: 'morsels-no-results' }));
+      || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
 
   uiOptions.fsBlankRender = uiOptions.fsBlankRender
-      || ((h) => h('div', { class: 'morsels-fs-blank' }));
+      || ((h) => h('div', { class: 'morsels-fs-blank' }, 'Start Searching Above!'));
 
   uiOptions.loadingIndicatorRender = uiOptions.loadingIndicatorRender
       || ((h) => h('span', { class: 'morsels-loading-indicator' }));
@@ -255,7 +304,7 @@ function prepareOptions(options: SearchUiOptions) {
     }
 
     return h(
-      'li', { class: 'morsels-list-item' },
+      'li', { class: 'morsels-list-item', role: 'option' },
       linkEl,
     );
   });
@@ -321,7 +370,8 @@ function createInputListener(
       listContainer.scrollTo({ top: 0 });
     } catch (ex) {
       console.error(ex);
-      listContainer.innerHTML = '<div class="morsels-error"></div>';
+      listContainer.innerHTML = '';
+      listContainer.appendChild(uiOptions.errorRender(createElement, options));
       throw ex;
     } finally {
       if (inputState.nextQuery) {
@@ -411,7 +461,7 @@ function initMorsels(options: SearchUiOptions): {
     input: fsInput,
   } = uiOptions.fsRootRender(
     createElement, options,
-    () => uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options),
+    () => uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options),
   );
 
   fsInput.addEventListener('input', createInputListener(fsRoot, fsListContainer, searcher, options));
@@ -424,7 +474,7 @@ function initMorsels(options: SearchUiOptions): {
   // Input element option handling
   let dropdownListContainer;
   const { input } = uiOptions;
-  if (input && uiOptions.mode !== UiMode.Target) {
+  if (input && (uiOptions.mode === UiMode.Auto || uiOptions.mode === UiMode.Dropdown)) {
     // Auto / Dropdown
 
     const parent = input.parentElement;
@@ -460,7 +510,7 @@ function initMorsels(options: SearchUiOptions): {
         if (isMobileSizeGlobal) {
           uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
         } else {
-          uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
+          uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
           refreshDropdown();
         }
       }, 10);
@@ -489,12 +539,12 @@ function initMorsels(options: SearchUiOptions): {
       }
 
       // When using 'auto' mode, may still be using fullscreen UI
-      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
+      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
     });
   } else if (input && uiOptions.mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
     input.addEventListener('focus', () => {
-      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
+      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
     });
   } else if (input && uiOptions.mode === UiMode.Target) {
     // Target
@@ -502,6 +552,15 @@ function initMorsels(options: SearchUiOptions): {
       'input',
       createInputListener(uiOptions.target, uiOptions.target, searcher, options),
     );
+
+    let ariaControlsId = uiOptions.target.getAttribute('id');
+    if (!ariaControlsId) {
+      uiOptions.target.setAttribute('id', 'morsels-target-list');
+      ariaControlsId = 'morsels-target-list';
+    }
+
+    setInputAria(input, ariaControlsId);
+    setCombobox(input, uiOptions.target, uiOptions.label);
   }
   // --------------------------------------------------
 
@@ -511,8 +570,8 @@ function initMorsels(options: SearchUiOptions): {
   // Not attached, just used for isEqualNode
   const loadingIndicator = uiOptions.loadingIndicatorRender(createElement, options);
 
-  document.addEventListener('keydown', (ev) => {
-    if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(ev.key)) {
+  function keydownListener(ev: KeyboardEvent) {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(ev.key)) {
       return;
     }
 
@@ -529,7 +588,6 @@ function initMorsels(options: SearchUiOptions): {
       }
 
       listContainer = dropdownListContainer;
-      
     } else if (uiOptions.mode === UiMode.Target) {
       listContainer = uiOptions.target;
       scrollListContainer = (targetEl: HTMLElement) => {
@@ -545,43 +603,78 @@ function initMorsels(options: SearchUiOptions): {
       listContainer = fsListContainer;
     }
 
+    function currentFocused() {
+      return listContainer.querySelector('.focus');
+    }
+
+    function focusEl(el: Element) {
+      el.classList.add('focus');
+      el.setAttribute('aria-selected', 'true');
+      el.setAttribute('id', 'morsels-list-selected');
+      scrollListContainer(el);
+    }
+
+    function unfocusEl(el: Element) {
+      el.classList.remove('focus');
+      el.removeAttribute('aria-selected');
+      el.removeAttribute('id');
+    }
+
     if (ev.key === 'ArrowDown') {
-      const currentFocusedResult = listContainer.querySelector('.focus');
-      if (currentFocusedResult) {
-        if (currentFocusedResult.nextElementSibling
-          && !loadingIndicator.isEqualNode(currentFocusedResult.nextElementSibling)) {
-          currentFocusedResult.classList.remove('focus');
-          currentFocusedResult.nextElementSibling.classList.add('focus');
-          scrollListContainer(currentFocusedResult.nextElementSibling);
+      const focusedItem = currentFocused();
+      if (focusedItem) {
+        if (focusedItem.nextElementSibling
+          && !loadingIndicator.isEqualNode(focusedItem.nextElementSibling)) {
+          unfocusEl(focusedItem);
+          focusEl(focusedItem.nextElementSibling);
         }
       } else {
-        listContainer.firstElementChild.classList.add('focus');
+        focusEl(listContainer.firstElementChild);
       }
     } else if (ev.key === 'ArrowUp') {
-      const currentFocusedResult = listContainer.querySelector('.focus');
-      if (currentFocusedResult && currentFocusedResult.previousElementSibling) {
-        currentFocusedResult.classList.remove('focus');
-        currentFocusedResult.previousElementSibling.classList.add('focus');
-        scrollListContainer(currentFocusedResult.previousElementSibling);
+      const focusedItem = currentFocused();
+      if (focusedItem && focusedItem.previousElementSibling) {
+        unfocusEl(focusedItem);
+        focusEl(focusedItem.previousElementSibling);
+      }
+    } if (ev.key === 'Home' || ev.key === 'End') {
+      const focusedItem = currentFocused();
+      if (focusedItem) {
+        unfocusEl(focusedItem);
+      }
+
+      let elToFocus = ev.key === 'Home' ? listContainer.firstElementChild : listContainer.lastElementChild;
+      if (elToFocus && loadingIndicator.isEqualNode(elToFocus)) {
+        elToFocus = elToFocus.previousElementSibling;
+      }
+
+      if (elToFocus) {
+        focusEl(elToFocus);
       }
     } else if (ev.key === 'Enter') {
-      const currentFocusedResult = listContainer.querySelector('.focus');
-      if (currentFocusedResult) {
-        const link = currentFocusedResult.querySelector('a[href]');
+      const focusedItem = currentFocused();
+      if (focusedItem) {
+        const link = focusedItem.querySelector('a[href]');
         if (link) {
           window.location.href = link.getAttribute('href');
         }
       }
     }
-  });
+
+    ev.preventDefault();
+  }
+
+  input?.addEventListener('keydown', keydownListener);
+  fsInput.addEventListener('keydown', keydownListener);
+  
   // --------------------------------------------------
 
   return {
     showFullscreen: () => {
-      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
+      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
     },
     hideFullscreen: () => {
-      uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fullscreenContainer, options);
+      uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
     },
   };
 }

@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <title>Morsels</title>
@@ -68,15 +67,20 @@
     <div id="app">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark app-navbar">
         <div class="d-flex justify-content-end">
-          <input id="morsels-search" placeholder="Search" />
+          <input id="morsels-search" type="search" placeholder="Search" />
         </div>
       </nav>
       <h1 class="app-heading">Morsels Dev Site</h1>
       <div class="d-flex justify-content-center w-75 flex-wrap">
-        <a class="btn btn-outline-primary m-1" href="/?mode=auto">Auto</a>
-        <a class="btn btn-outline-success m-1" href="/?mode=dropdown">Dropdown</a>
-        <a class="btn btn-outline-warning m-1" href="/?mode=fullscreen">Fullscreen</a>
-        <a class="btn btn-outline-info m-1" href="/?mode=target">Target</a>
+        <script>
+          function changeMode(mode) {
+            window.location.href = window.location.href.replace(/mode=\w+/, `mode=${mode}`);
+          }
+        </script>
+        <button class="btn btn-outline-primary m-1" onclick="changeMode('auto')">Auto</a>
+        <button class="btn btn-outline-success m-1" onclick="changeMode('dropdown')">Dropdown</a>
+        <button class="btn btn-outline-warning m-1" onclick="changeMode('fullscreen')">Fullscreen</a>
+        <button class="btn btn-outline-info m-1" onclick="changeMode('target')">Target</a>
       </div>
       <div class="morsels-root d-flex justify-content-center w-75">
         <div id="target-mode-el"></div>
