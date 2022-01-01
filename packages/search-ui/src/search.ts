@@ -38,6 +38,10 @@ function prepareOptions(options: SearchUiOptions) {
     options.searcherOptions.useWand = 20;
   }
 
+  if (!('resultLimit' in options.searcherOptions)) {
+    options.searcherOptions.resultLimit = null; // unlimited
+  }
+
   // ------------------------------------------------------------
   // Ui Options
 

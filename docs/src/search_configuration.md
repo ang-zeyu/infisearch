@@ -8,9 +8,9 @@ There are 2 categories of options, the first being related to the internal searc
 
 ## Forenote on Mobile Device Detection
 
-For now, note that several options in both the search library and UI are **by default** tuned based on whether the client is a "mobile device":
+Note that several options in both the search library and UI are **by default** tuned based on whether the client is a "mobile device":
 - Query term proximity ranking is disabled
-- Whether to use the fullscreen version (see [UI Mode](#ui-mode)) of the user interface instead
+- The fullscreen version of the user interface is used for `mode='auto'` (see [UI Mode](#ui-mode))
 
 Overrides and the process of this detection is configurable, and will be covered in subsequent sections.
 
@@ -169,6 +169,9 @@ initMorsels({
         // Whether to retrieve all field stores on initialisation
         // (see chapter "Tradeoffs" for more details)
         cacheAllFieldStores: true,
+
+        // The maximum number of results to retrieve (unlimited if null).
+        resultLimit: null,
 
         useWand: 20,
     },

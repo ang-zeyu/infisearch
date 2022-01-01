@@ -64,6 +64,7 @@ struct SearcherOptions {
     number_of_expanded_terms: usize,
     pub use_query_term_proximity: bool,
     use_wand: Option<usize>,
+    result_limit: Option<u32>,
 }
 
 #[wasm_bindgen]
@@ -204,7 +205,8 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
 
     let use_wand = is_free_text_query && searcher_val.searcher_config.searcher_options.use_wand.is_some();
     let wand_n = searcher_val.searcher_config.searcher_options.use_wand.unwrap_or(20);
-    let query = searcher_val.create_query(searched_terms, query_parts, pls, use_wand, wand_n);
+    let result_limit = searcher_val.searcher_config.searcher_options.result_limit;
+    let query = searcher_val.create_query(searched_terms, query_parts, pls, result_limit, use_wand, wand_n);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());
@@ -261,6 +263,7 @@ pub mod test {
                     number_of_expanded_terms: 0,
                     use_query_term_proximity: true,
                     use_wand: None,
+                    result_limit: None,
                 },
             },
             invalidation_vector: vec![0; num_docs],

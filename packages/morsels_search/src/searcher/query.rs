@@ -79,6 +79,8 @@ pub struct Query {
     searched_terms: Vec<String>,
     query_parts: Vec<QueryPart>,
     result_heap: BinaryHeap<DocResult>,
+    results_retrieved: u32,
+    result_limit: Option<u32>,
     wand_leftovers: Vec<u32>,
     did_dedup_wand: bool,
 }
@@ -87,17 +89,25 @@ pub struct Query {
 impl Query {
     pub fn get_next_n(&mut self, n: usize) -> JsValue {
         let mut doc_ids: Vec<DocResult> = Vec::with_capacity(n);
-        while !self.result_heap.is_empty() && doc_ids.len() < n {
+        while !self.result_heap.is_empty()
+            && doc_ids.len() < n
+            && (self.result_limit.is_none() || self.results_retrieved < self.result_limit.unwrap())
+        {
             doc_ids.push(self.result_heap.pop().unwrap());
+            self.results_retrieved += 1;
         }
 
-        while !self.wand_leftovers.is_empty() && doc_ids.len() < n {
+        while !self.wand_leftovers.is_empty()
+            && doc_ids.len() < n
+            && (self.result_limit.is_none() || self.results_retrieved < self.result_limit.unwrap())
+        {
             if !self.did_dedup_wand {
                 self.did_dedup_wand = true;
                 self.wand_leftovers.sort_unstable();
                 self.wand_leftovers.dedup();
             }
             doc_ids.push(DocResult(self.wand_leftovers.pop().unwrap(), 0.0));
+            self.results_retrieved += 1;
         }
 
         JsValue::from_serde(&doc_ids).unwrap()
@@ -118,6 +128,7 @@ impl Searcher {
         searched_terms: Vec<String>,
         query_parts: Vec<QueryPart>,
         postings_lists: Vec<Rc<PostingsList>>,
+        result_limit: Option<u32>,
         use_wand: bool,
         wand_n: usize,
     ) -> Query {
@@ -332,6 +343,8 @@ impl Searcher {
             searched_terms,
             query_parts,
             result_heap,
+            results_retrieved: 0,
+            result_limit,
             wand_leftovers,
             did_dedup_wand: false,
         }
