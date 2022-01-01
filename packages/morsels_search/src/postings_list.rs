@@ -39,15 +39,19 @@ impl Default for DocField {
     }
 }
 
-#[cfg_attr(test, derive(Eq, PartialEq, Debug))]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct TermDoc {
     pub doc_id: u32,
     pub fields: Vec<DocField>,
+    pub score: f32, 
 }
+
+#[cfg(test)]
+impl Eq for TermDoc {}
 
 impl TermDoc {
     pub fn to_owned(&self) -> Self {
-        TermDoc { doc_id: self.doc_id, fields: self.fields.clone() }
+        TermDoc { doc_id: self.doc_id, fields: self.fields.clone(), score: self.score }
     }
 }
 
@@ -136,7 +140,7 @@ impl PostingsList {
     pub fn merge_term_docs(term_doc_1: &TermDoc, term_doc_2: &TermDoc) -> TermDoc {
         let max_fields_length = std::cmp::max(term_doc_1.fields.len(), term_doc_2.fields.len());
 
-        let mut td = TermDoc { doc_id: term_doc_1.doc_id, fields: Vec::with_capacity(max_fields_length) };
+        let mut td = TermDoc { doc_id: term_doc_1.doc_id, fields: Vec::with_capacity(max_fields_length), score: 0.0 };
 
         for field_id in 0..max_fields_length {
             let term_doc_1_field_opt = term_doc_1.fields.get(field_id);
@@ -246,6 +250,7 @@ impl PostingsList {
             let mut term_doc = TermDoc {
                 doc_id: prev_doc_id + docfreq,
                 fields: Vec::with_capacity(num_scored_fields),
+                score: 0.0,
             };
             prev_doc_id = term_doc.doc_id;
 
@@ -329,7 +334,7 @@ pub mod test {
             .map(|(field_tf, field_positions)| DocField { field_tf, field_positions })
             .collect();
 
-        TermDoc { doc_id, fields }
+        TermDoc { doc_id, fields, score: 0.0 }
     }
 
     pub fn to_pl_rc(text: &str) -> Rc<PostingsList> {

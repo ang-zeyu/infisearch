@@ -299,23 +299,11 @@ impl Searcher {
             for pl_it in pl_its.iter_mut() {
                 let td = pl_it.td.unwrap();
                 if td.doc_id == pivot_doc_id {
-                    let mut doc_term_score = 0.0;
-
-                    for (field_id, field) in td.fields.iter().enumerate() {
-                        if field.field_tf > 0.0 {
-                            let field_info = self.searcher_config.field_infos.get(field_id).unwrap();
-                            let field_len_factor =
-                                self.doc_info.doc_length_factors[pivot_doc_id as usize][field_id as usize] as f32;
-
-                            doc_term_score += ((field.field_tf * (field_info.k + 1.0))
-                                / (field.field_tf
-                                    + field_info.k * (1.0 - field_info.b + field_info.b * field_len_factor)))
-                                * field_info.weight;
-                        }
-                    }
-
-                    doc_term_score *= pl_it.pl.idf as f32 * pl_it.pl.weight;
-                    result.1 += doc_term_score;
+                    result.1 += if td.score != 0.0 {
+                        td.score
+                    } else {
+                        self.calc_doc_bm25_score(td, pivot_doc_id, &pl_it.pl)
+                    };
 
                     pl_it.next();
                 }
@@ -349,5 +337,24 @@ impl Searcher {
             wand_leftovers,
             did_dedup_wand: false,
         }
+    }
+
+    pub fn calc_doc_bm25_score(&self, td: &crate::postings_list::TermDoc, doc_id: u32, pl: &PostingsList) -> f32 {
+        let mut doc_term_score = 0.0;
+
+        for (field_id, field) in td.fields.iter().enumerate() {
+            if field.field_tf > 0.0 {
+                let field_info = self.searcher_config.field_infos.get(field_id).unwrap();
+                let field_len_factor =
+                    self.doc_info.doc_length_factors[doc_id as usize][field_id as usize] as f32;
+
+                doc_term_score += ((field.field_tf * (field_info.k + 1.0))
+                    / (field.field_tf
+                        + field_info.k * (1.0 - field_info.b + field_info.b * field_len_factor)))
+                    * field_info.weight;
+            }
+        }
+        doc_term_score *= pl.idf as f32 * pl.weight;
+        doc_term_score
     }
 }

@@ -15,6 +15,18 @@ use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
 
+/*
+ Processes query operators before the final round in query.rs which ranks the results.
+ Postings lists are always still in document id order after being processed here.
+ (for efficient processing in AND / NOT / () / Phrase operators)
+
+ Scoring:
+ - AND / () operators: scores of expressions within are calculated if necessary and summed
+ - Field filters: the filtered expression's score is calculated if necessary
+ - NOT: the same score is calculated and assigned to every document in the result set
+ - Phrase: scoring is delayed until necessary
+ */
+
 fn empty_pl() -> PostingsList {
     PostingsList {
         weight: 1.0,
@@ -84,7 +96,7 @@ impl Searcher {
 
                 // Now do the phrase query on curr_doc_id
 
-                let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new() };
+                let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
                 let mut has_match = false;
 
                 let terms_termdocs: Vec<_> = pl_iterators
@@ -214,10 +226,13 @@ impl Searcher {
                 curr_num_docs += 1;
 
                 if curr_num_docs == num_pls {
-                    let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new() };
+                    let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
                     for td in doc_heap.iter().map(|pl_it| pl_it.0.peek_prev().unwrap()) {
                         acc = PostingsList::merge_term_docs(td, &acc);
                     }
+
+                    acc.score = self.sum_scores(doc_heap.iter(), curr_doc_id);
+
                     result_pl.term_docs.push(acc);
 
                     curr_doc_id = self.doc_info.doc_length_factors_len + 1;
@@ -256,7 +271,7 @@ impl Searcher {
             for td in not_child_postings_list.term_docs.iter() {
                 for doc_id in prev..td.doc_id {
                     if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                        result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new() });
+                        result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new(), score: 0.0 });
                     }
                 }
                 prev = td.doc_id + 1;
@@ -265,11 +280,17 @@ impl Searcher {
 
         for doc_id in prev..self.doc_info.doc_length_factors_len {
             if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new() });
+                result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new(), score: 0.0 });
             }
         }
 
         result_pl.calc_pseudo_idf(self.doc_info.num_docs);
+
+        // Same score for every result. Score resulting from field tf is taken as 1.
+        let score = result_pl.idf as f32 * result_pl.weight;
+        for term_doc in result_pl.term_docs.iter_mut() {
+            term_doc.score = score;
+        }
 
         Rc::new(result_pl)
     }
@@ -320,13 +341,16 @@ impl Searcher {
                 curr_pl_iterators.push(doc_heap.pop().unwrap());
             }
 
-            let merged_term_docs = if curr_pl_iterators.len() == 1 {
+            let mut merged_term_docs = if curr_pl_iterators.len() == 1 {
                 curr_pl_iterators[0].0.td.unwrap().to_owned()
             } else {
-                curr_pl_iterators.iter().fold(TermDoc { doc_id, fields: Vec::new() }, |acc, next| {
+                curr_pl_iterators.iter().fold(TermDoc { doc_id, fields: Vec::new(), score: 0.0 }, |acc, next| {
                     PostingsList::merge_term_docs(&acc, next.0.td.unwrap())
                 })
             };
+
+            merged_term_docs.score = self.sum_scores(curr_pl_iterators.iter(), doc_id);
+
             new_pl.term_docs.push(merged_term_docs);
 
             for mut pl_it in curr_pl_iterators.drain(..) {
@@ -340,6 +364,25 @@ impl Searcher {
 
         Rc::new(new_pl)
     }
+
+    // ---------------------------------------
+    // Calculate the new score of the disjunctive expression now (before query.rs)
+    // for preserving the **original** ranking of documents once propagated to the top.
+    fn sum_scores<'a, T>(&self, curr_pl_iterators: T, doc_id: u32) -> f32
+    where T: Iterator<Item = &'a Reverse<PlIterator<'a>>>
+    {
+        let mut new_score = 0.0;
+        for pl_it in curr_pl_iterators {
+            let score = pl_it.0.td.unwrap().score;
+            new_score += if score != 0.0 {
+                score
+            } else {
+                self.calc_doc_bm25_score(pl_it.0.td.unwrap(), doc_id, &pl_it.0.pl)
+            };
+        }
+        new_score
+    }
+    // ---------------------------------------
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
         if let Some(tup) = self
@@ -370,7 +413,12 @@ impl Searcher {
                     let mut fields: Vec<DocField> = fields_before.clone();
                     fields.push(doc_field.clone()); // TODO reduce potential allocations?
 
-                    new_pl.term_docs.push(TermDoc { doc_id: term_doc.doc_id, fields })
+                    let score = if term_doc.score != 0.0 {
+                        term_doc.score
+                    } else {
+                        self.calc_doc_bm25_score(&term_doc, term_doc.doc_id, &pl)
+                    };
+                    new_pl.term_docs.push(TermDoc { doc_id: term_doc.doc_id, fields, score })
                 }
             }
 

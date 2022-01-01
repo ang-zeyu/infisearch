@@ -73,8 +73,8 @@ To facilitate decompression efficiency of such a low-level format, most of the s
 
 ### Ranking Specifics
 
-Top-level **disjunctive** expressions (e.g. free text queries like `lorem ipsum`) are ranked using the BM25 model.
+Most query expressions (e.g. free text queries like `lorem ipsum`) are ranked using the BM25 model, while `AND` and `()` operators sum the respective BM25 scores of their operands.
 
 Pure free-text queries (e.g. "lorem ipsum") also use the [WAND algorithm](https://www.elastic.co/blog/faster-retrieval-of-top-hits-in-elasticsearch-with-block-max-wand) to improve query speed, although, the benefits should be marginal for most cases.
 
-A simple form of **query term proximity ranking** is also supported and enabled by default. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.
+A simple form of **query term proximity ranking** is also supported and enabled by default for top-level expressions. That is, results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.
