@@ -90,7 +90,6 @@ function prepareOptions(options: SearchUiOptions) {
       (listContainer.previousSibling as HTMLElement).style.display = 'block';
       computePosition(root, listContainer, {
         placement: uiOptions.dropdownAlignment,
-        strategy: 'fixed',
         middleware: [
           offset(8),
           flip({

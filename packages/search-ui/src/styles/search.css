@@ -217,7 +217,7 @@
     border-radius: 5px;
     box-shadow: var(--morsels-box-shadow);
     margin: 0;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 100vw;
     width: 100vw;
