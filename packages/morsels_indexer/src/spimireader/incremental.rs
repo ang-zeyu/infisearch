@@ -106,9 +106,9 @@ impl ExistingPlWriter {
         let old_doc_freq_double = old_term_info.doc_freq as f64;
         let new_doc_freq_double = new_term_info.doc_freq as f64;
 
-        let old_max_term_score = LittleEndian::read_f32(&self.pl_vec[pl_vec_pos..])
-            / (get_idf(old_num_docs, old_doc_freq_double)
-            * get_idf(num_docs, new_doc_freq_double)) as f32;
+        let old_idf = get_idf(old_num_docs, old_doc_freq_double);
+        let new_idf = get_idf(num_docs, new_doc_freq_double);
+        let old_max_term_score = LittleEndian::read_f32(&self.pl_vec[pl_vec_pos..]) * (new_idf / old_idf) as f32;
         pl_vec_pos += 4;
 
         // Add in new documents
@@ -124,7 +124,7 @@ impl ExistingPlWriter {
         }
 
         // New max term score
-        let new_max_term_score = new_max_term_score * get_idf(num_docs, new_doc_freq_double) as f32;
+        let new_max_term_score = new_max_term_score * new_idf as f32;
         if new_max_term_score > old_max_term_score {
             self.pl_writer.write_all(&new_max_term_score.to_le_bytes()).unwrap();
         } else {
