@@ -209,7 +209,6 @@ pub struct Indexer {
     num_workers_writing_blocks: Arc<Mutex<usize>>,
     lang_config: MorselsLanguageConfig,
     is_incremental: bool,
-    delete_unencountered_external_ids: bool,
     start_doc_id: u32,
     start_block_number: u32,
     incremental_info: IncrementalIndexInfo,
@@ -223,7 +222,6 @@ impl Indexer {
         mut is_incremental: bool,
         use_content_hash: bool,
         preserve_output_folder: bool,
-        delete_unencountered_external_ids: bool,
     ) -> Indexer {
         fs::create_dir_all(output_folder_path).expect("could not create output directory!");
 
@@ -405,7 +403,6 @@ impl Indexer {
             num_workers_writing_blocks,
             lang_config: config.lang_config,
             is_incremental,
-            delete_unencountered_external_ids,
             start_doc_id: doc_id_counter,
             start_block_number: 0,
             incremental_info,
@@ -584,9 +581,8 @@ impl Indexer {
     fn merge_blocks(&mut self, first_block: u32, last_block: u32) {
         let num_blocks = last_block - first_block + 1;
         if self.is_incremental {
-            if self.delete_unencountered_external_ids {
-                self.incremental_info.delete_unencountered_external_ids();
-            }
+            self.incremental_info.delete_unencountered_external_ids();
+
 
             spimireader::incremental::modify_blocks(
                 self.is_deletion_only_run(),

@@ -118,7 +118,6 @@ fn main() {
         args.incremental,
         args.incremental_content_hash,
         args.preserve_output_folder,
-        true,
     );
 
     let now = if args.perf { Some(Instant::now()) } else { None };
