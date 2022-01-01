@@ -63,6 +63,7 @@ struct SearcherOptions {
     url: String,
     number_of_expanded_terms: usize,
     pub use_query_term_proximity: bool,
+    use_wand: Option<usize>,
 }
 
 #[wasm_bindgen]
@@ -201,7 +202,9 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     let mut searched_terms: Vec<String> = Vec::new();
     get_searched_terms(&query_parts, &mut HashSet::new(), &mut searched_terms);
 
-    let query = searcher_val.create_query(10, searched_terms, query_parts, pls, is_free_text_query);
+    let use_wand = is_free_text_query && searcher_val.searcher_config.searcher_options.use_wand.is_some();
+    let wand_n = searcher_val.searcher_config.searcher_options.use_wand.unwrap_or(20);
+    let query = searcher_val.create_query(searched_terms, query_parts, pls, use_wand, wand_n);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());
@@ -257,6 +260,7 @@ pub mod test {
                     url: "/".to_owned(),
                     number_of_expanded_terms: 0,
                     use_query_term_proximity: true,
+                    use_wand: None,
                 },
             },
             invalidation_vector: vec![0; num_docs],

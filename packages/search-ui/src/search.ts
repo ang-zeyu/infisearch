@@ -34,6 +34,10 @@ function prepareOptions(options: SearchUiOptions) {
     options.searcherOptions.useQueryTermProximity = !isMobileSizeGlobal;
   }
 
+  if (!('useWand' in options.searcherOptions)) {
+    options.searcherOptions.useWand = 20;
+  }
+
   // ------------------------------------------------------------
   // Ui Options
 

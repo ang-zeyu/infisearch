@@ -169,6 +169,8 @@ initMorsels({
         // Whether to retrieve all field stores on initialisation
         // (see chapter "Tradeoffs" for more details)
         cacheAllFieldStores: true,
+
+        useWand: 20,
     },
 });
 ```
@@ -189,3 +191,14 @@ For all [language modules](./indexer/language.md) available currently, this is o
 
 If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other.
 This may be costly for mobile devices however, and is disabled by default in such cases.
+
+### Weak and / Weighted and (WAND)
+
+`useWand: number | null`
+
+By default, pure **free-text queries** are run through the WAND algorithm, which **increases query speed** for the **top-k** documents.
+The main drawback with this algorithm is that the ranking of documents after these top-k documents **may** be inaccurate, although often, searchers won't have the patience to dig through thousands of results anyway.
+
+If you want to increase the top-k threshold, simply increase the number here (`20` by default).
+
+Otherwise, setting this to `null` completely disables this algorithm.

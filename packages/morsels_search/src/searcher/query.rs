@@ -78,7 +78,6 @@ impl PartialOrd for Position {
 pub struct Query {
     searched_terms: Vec<String>,
     query_parts: Vec<QueryPart>,
-    pub is_free_text_query: bool,
     result_heap: BinaryHeap<DocResult>,
     wand_leftovers: Vec<u32>,
     did_dedup_wand: bool,
@@ -116,11 +115,11 @@ impl Query {
 impl Searcher {
     pub fn create_query(
         &self,
-        n: usize,
         searched_terms: Vec<String>,
         query_parts: Vec<QueryPart>,
         postings_lists: Vec<Rc<PostingsList>>,
-        is_free_text_query: bool,
+        use_wand: bool,
+        wand_n: usize,
     ) -> Query {
         let mut result_heap: BinaryHeap<DocResult> = BinaryHeap::new();
         let mut top_n_min_heap: BinaryHeap<Reverse<DocResult>> = BinaryHeap::new();
@@ -144,7 +143,7 @@ impl Searcher {
 
             // ------------------------------------------
             // WAND
-            if is_free_text_query && top_n_min_heap.len() >= n {
+            if use_wand && top_n_min_heap.len() >= wand_n {
                 let nth_highest_score = top_n_min_heap.peek().unwrap().0 .1;
                 let mut wand_acc = 0.0;
                 let mut pivot_list_idx = 0;
@@ -309,8 +308,8 @@ impl Searcher {
                 }
             }
 
-            if is_free_text_query {
-                if top_n_min_heap.len() < n {
+            if use_wand {
+                if top_n_min_heap.len() < wand_n {
                     top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
                 } else if result.1 > top_n_min_heap.peek().unwrap().0 .1 {
                     top_n_min_heap.pop();
@@ -332,7 +331,6 @@ impl Searcher {
         Query {
             searched_terms,
             query_parts,
-            is_free_text_query,
             result_heap,
             wand_leftovers,
             did_dedup_wand: false,
