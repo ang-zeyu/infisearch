@@ -321,11 +321,13 @@ impl Searcher {
                 }
             }
 
-            if top_n_min_heap.len() < n {
-                top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
-            } else if result.1 > top_n_min_heap.peek().unwrap().0 .1 {
-                top_n_min_heap.pop();
-                top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
+            if is_free_text_query {
+                if top_n_min_heap.len() < n {
+                    top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
+                } else if result.1 > top_n_min_heap.peek().unwrap().0 .1 {
+                    top_n_min_heap.pop();
+                    top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
+                }
             }
 
             result.1 *= scaling_factor;
