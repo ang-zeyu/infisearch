@@ -160,6 +160,18 @@ impl Searcher {
                 }
 
                 if wand_acc < nth_highest_score {
+                    /*
+                     At this point, summation of max scores of all remaining postings list
+                     is still lesser than nth_highest_score.
+
+                     Lump all of them into the leftovers as well.
+                    */
+                    for curr_it in pl_its.iter_mut().take(pivot_list_idx) {
+                        while let Some(term_doc) = curr_it.td {
+                            wand_leftovers.push(term_doc.doc_id);
+                            curr_it.next();
+                        }
+                    }
                     break;
                 }
 
