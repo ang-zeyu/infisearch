@@ -41,6 +41,12 @@ function prepareOptions(options: SearchUiOptions) {
 
   options.searcherOptions = options.searcherOptions || ({} as any);
 
+  if (!('url' in options.searcherOptions)) {
+    throw new Error('Mandatory url parameter not specified');
+  } else if (!options.searcherOptions.url.endsWith('/')) {
+    options.searcherOptions.url += '/';
+  }
+
   if (!('numberOfExpandedTerms' in options.searcherOptions)) {
     options.searcherOptions.numberOfExpandedTerms = 3;
   }
@@ -62,6 +68,10 @@ function prepareOptions(options: SearchUiOptions) {
 
   options.uiOptions = options.uiOptions || ({} as any);
   const { uiOptions } = options;
+
+  if (!uiOptions.sourceFilesUrl.endsWith('/')) {
+    uiOptions.sourceFilesUrl += '/';
+  }
 
   uiOptions.mode = uiOptions.mode || UiMode.Auto;
 
