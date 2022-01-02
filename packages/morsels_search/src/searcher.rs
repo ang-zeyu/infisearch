@@ -19,6 +19,7 @@ use web_sys::Response;
 
 use crate::dictionary::Dictionary;
 use crate::docinfo::DocInfo;
+use crate::postings_list::initiate_fetch;
 use crate::postings_list_file_cache::PostingsListFileCache;
 
 #[cfg(feature = "lang_ascii")]
@@ -112,12 +113,21 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
 
     let window: web_sys::Window = js_sys::global().unchecked_into();
 
+    #[cfg(feature = "perf")]
+    let performance = window.performance().unwrap();
+    #[cfg(feature = "perf")]
+    let start = performance.now();
+
     let bitmap_docinfo_dt_future = JsFuture::from(
         window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + BITMAP_DOCINFO_DICT_TABLE_FILE)),
     );
     let string_resp_future = JsFuture::from(
         window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + DICTIONARY_STRING_FILE_NAME))
     );
+    let mut v = Vec::new();
+    for pl_num in searcher_config.indexing_config.pl_names_to_cache.iter() {
+        v.push(initiate_fetch(&window, &searcher_config.searcher_options.url, *pl_num, searcher_config.indexing_config.num_pls_per_dir));
+    }
 
     let bitmap_docinfo_dt_resp: Response = bitmap_docinfo_dt_future.await?.dyn_into().unwrap();
     let bitmap_docinfo_dt_buf = JsFuture::from(bitmap_docinfo_dt_resp.array_buffer()?).await?;
@@ -136,11 +146,6 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     let string_array_buffer = JsFuture::from(string_resp.array_buffer()?).await?;
     let string_vec = js_sys::Uint8Array::new(&string_array_buffer).to_vec();
 
-    #[cfg(feature = "perf")]
-    let performance = window.performance().unwrap();
-    #[cfg(feature = "perf")]
-    let start = performance.now();
-
     let dictionary = dictionary::setup_dictionary(
         bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec, doc_info.num_docs, build_trigram,
     );
@@ -157,12 +162,10 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
         performance.now() - start, dictionary.term_infos.len(),
     ).into());
 
-    let pl_file_cache = PostingsListFileCache::create(
-        &searcher_config.searcher_options.url,
-        &searcher_config.indexing_config.pl_names_to_cache,
-        searcher_config.indexing_config.num_pls_per_dir,
-    )
-    .await;
+    let pl_file_cache = PostingsListFileCache::create(v, &searcher_config.indexing_config.pl_names_to_cache).await;
+
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(&format!("Setup took {}", performance.now() - start).into());
 
     Ok(Searcher { dictionary, tokenizer, doc_info, pl_file_cache, searcher_config, invalidation_vector })
 }
@@ -274,9 +277,10 @@ pub mod test {
             dictionary: Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() },
             tokenizer: Box::new(ascii::Tokenizer::default()),
             doc_info: DocInfo {
-                doc_length_factors: vec![vec![1.0; num_fields]; num_docs],
+                doc_length_factors: vec![1.0; num_docs * num_fields],
                 doc_length_factors_len: num_docs as u32,
                 num_docs: num_docs as u32,
+                num_fields,
             },
             pl_file_cache: postings_list_file_cache::test::get_empty(),
             searcher_config: SearcherConfig {

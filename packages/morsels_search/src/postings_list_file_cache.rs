@@ -1,6 +1,5 @@
 use futures::future::join_all;
 use rustc_hash::FxHashMap;
-use wasm_bindgen::JsCast;
 
 use crate::postings_list::PostingsList;
 
@@ -9,12 +8,11 @@ pub struct PostingsListFileCache {
 }
 
 impl PostingsListFileCache {
-    pub async fn create(base_url: &str, pl_numbers: &[u32], num_pls_per_dir: u32) -> PostingsListFileCache {
-        let window: web_sys::Window = js_sys::global().unchecked_into();
+    pub async fn create(promises: Vec<js_sys::Promise>, pl_numbers: &[u32]) -> PostingsListFileCache {
         let pls = join_all(
-            pl_numbers
-                .iter()
-                .map(|pl_num| PostingsList::fetch_pl_to_vec(&window, base_url, *pl_num, num_pls_per_dir)),
+            promises
+                .into_iter()
+                .map(|promise| PostingsList::fetch_pl_to_vec(promise)),
         )
         .await;
 

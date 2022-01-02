@@ -199,20 +199,8 @@ impl PostingsList {
     }
 
     #[inline]
-    pub async fn fetch_pl_to_vec(
-        window: &web_sys::Window,
-        base_url: &str,
-        pl_num: u32,
-        num_pls_per_dir: u32,
-    ) -> Result<Vec<u8>, JsValue> {
-        let pl_resp_value = JsFuture::from(window.fetch_with_str(
-            &(base_url.to_owned()
-                + "pl_"
-                + &(pl_num / num_pls_per_dir).to_string()[..]
-                + "/pl_"
-                + &pl_num.to_string()[..]),
-        ))
-        .await?;
+    pub async fn fetch_pl_to_vec(fetch_promise: js_sys::Promise) -> Result<Vec<u8>, JsValue> {
+        let pl_resp_value = JsFuture::from(fetch_promise).await?;
         let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
         let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
         Ok(js_sys::Uint8Array::new(&pl_array_buffer).to_vec())
@@ -240,10 +228,7 @@ impl PostingsList {
             pl_vec
         } else {
             fetched_pl = PostingsList::fetch_pl_to_vec(
-                window,
-                base_url,
-                term_info.postings_file_name,
-                num_pls_per_dir,
+                initiate_fetch(window, base_url, term_info.postings_file_name, num_pls_per_dir)
             )
             .await?;
             &fetched_pl
@@ -302,6 +287,16 @@ impl PostingsList {
 
         Ok(())
     }
+}
+
+pub fn initiate_fetch(window: &web_sys::Window, base_url: &str, pl_num: u32, num_pls_per_dir: u32) -> js_sys::Promise {
+    window.fetch_with_str(
+        &(base_url.to_owned()
+            + "pl_"
+            + &(pl_num / num_pls_per_dir).to_string()[..]
+            + "/pl_"
+            + &pl_num.to_string()[..]),
+    )
 }
 
 #[cfg(test)]
