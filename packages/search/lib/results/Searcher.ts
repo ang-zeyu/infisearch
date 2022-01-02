@@ -86,16 +86,24 @@ class Searcher {
     const { numDocsPerBlock } = indexingConfig;
     for (let i = 0; i < lastFileNumber; i++) {
       const dirNumber = Math.floor(i / numStoresPerDir);
-      const blockNumber = Math.floor(i / numDocsPerBlock);
-      const url = `${this.options.url}field_store/${dirNumber}/${i}--${blockNumber}.json`;
-      promises.push([url, fetch(url).then(res => res.json())]);
+      const lastDocIdOfFile = Math.min(
+        this.morselsConfig.lastDocId,
+        (i + 1) * this.morselsConfig.fieldStoreBlockSize,
+      );
 
-      // Throttle to 10 unresolved requests. A little arbitrary for now.
-      if (promises.length >= 10) {
-        // TODO make this non-sequential?
-        // (first promise that resolved might not be the earliest, although likely)
-        const first = promises.shift();
-        this.persistentJsonCache.linkToJsons[first[0]] = await first[1];
+      for (
+        let docId = i * this.morselsConfig.fieldStoreBlockSize;
+        docId < lastDocIdOfFile; docId += numDocsPerBlock
+      ) {
+        const blockNumber = Math.floor(docId / numDocsPerBlock);
+        const url = `${this.options.url}field_store/${dirNumber}/${i}--${blockNumber}.json`;
+        promises.push([url, fetch(url).then(res => res.json())]);
+  
+        // Throttle to 10 unresolved requests. A little arbitrary for now.
+        if (promises.length >= 10) {
+          const first = promises.shift();
+          this.persistentJsonCache.linkToJsons[first[0]] = await first[1];
+        }
       }
     }
 
