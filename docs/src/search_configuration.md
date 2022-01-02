@@ -90,29 +90,33 @@ There are 3 ways to generate result previews, the first of the below being the d
 Unless you have modified the default result renderer (covered in the next page on renderers), morsels requires **at least** one of the `body` / `heading` / `title` fields. This is configured by default, and covered in the next section on indexing configuration in more detail.
 
 
-### Default Rendering Output / Purpose
+#### Default Rendering Output / Purpose
 
 The default result generation assumes the simple but common use case of **linking to a source document** (`<a />` tag). 
 
-Therefore, source documents are assumed to be available. To generate alternative outputs (e.g. buttons, perform some action), you will need to use option 3 below.
+Therefore, source documents are assumed to be **available and linkable** to. The url of this source document is **either**:
+1. The **`sourceFilesUrl` option adjoined** with the **relative file path of the document** at the time of indexing (default).
+
+   > The relative file path is stored in the `_relative_fp` field, which is an internally generated field. Combining this with the base url (`sourceFilesUrl`) forms the full source document link.
+1. The [`link` field](./indexer/fields.md#default-fields-in-morselssearch-ui), a custom field that has to manually mapped from file data.
+
+The use of the default indexed fields in the UI is as shown in the following diagram, and will be covered in more detail in the chapter on [fields](./indexer/fields.md):
+
+![](./images/fields_annotated.png)
+
+To generate alternative outputs (e.g. buttons, perform some action), you will need to use option 3 below.
 
 #### 1. From Source Documents (default)
 
-`sourceFilesUrl`
+When option 2 below (field stores) is not configured or unavailable, morsels will attempt to retrieve and reparse the source document and its fields in order to generate result previews.
 
-When option 2 below (field stores) is not configured or unavailable, morsels will attempt to fetch the source document from **`sourceFilesUrl` adjoined with the relative file path of the document** at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.
-
-The `_relative_fp` field is an internally generated field that can be stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (`sourceFilesUrl`) and this field forms the full source document link, used for:
-- Attaching a link to the source document in the generated result match
-- Retrieving the source document
-
-Note that this option is only applicable for indexed html and json files at this time.
+Note that this option is only applicable for indexed html, json, and txt files at this time.
 
 As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, options 2 or 3 can be used.
 
 #### 2. From Field Stores
 
-If source documents are unavailable, morsels is able to generate result previews from its own json field stores generated at indexing time.
+Morsels is also able to generate result previews from its own json field stores generated at indexing time.
 
 In order to specify what fields to store, and how to map file data to these fields, refer to the chapter on [fields](./indexer/fields.md) under indexer configuration.
 

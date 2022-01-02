@@ -15,7 +15,7 @@ Latency is labelled in terms of `RTT` (round trip time), the maximum of which is
 | Fair Scalability,<br><span style="color: green">Little</span> File bloat          | ✔️ | 😩 | 😩 | 😩
 | Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | 😩 | 😩 | 😩 | 😩
 | Fair Scalability,<br><span style="color: red">Heavy</span> File bloat             | 😩 | 😩 | 😩 | 😩
-| Good Scalability,<br><span style="color: green">Little</span> File bloat          | ❌ | ❌ | ✔️ | 😩
+| Good Scalability,<br><span style="color: green">Little</span> File bloat          | ❌ | ✔️ | ✔️ | 😩
 | Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | ❌ | ✔️ | 😩 | 😩
 | Good Scalability,<br><span style="color: red">Heavy</span> File bloat             | ❌ | ✔️ | 😩 | 😩
 | Excellent Scalability,<br><span style="color: green">Little</span> File bloat     | ❌ | ❌ | ❌ | ✔️
@@ -61,14 +61,14 @@ To achieve this result, you will need to ensure **everything** that is **potenti
 
 ### 2. `RTT=1/2`, Good Scalability, Moderate / Heavy File Bloat
 
-The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation.
+The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation discussed earlier [here](search_configuration.md#options-for-generating-result-previews).
 
 #### 2.1. Generating Result Previews from Source Files
 
 On one hand, while generating result previews from source files greatly reduces file bloat, it does mean that an extra round (`RTT`) of network requests has to be made to retrieve said source files. Therefore, the tradeoff here is between **file bloat** and **`RTT`**.
 
 However, it is also more feasible with this option to remove a round of network requests by **compressing and caching** all field stores up front.
-This is because in this option, field stores only store the [relative file path](indexer/fields.md#special-fields) from which to retrieve the source files, and are therefore fairly small.
+This is because in this option, field stores only store the [relative file path](indexer/fields.md#special-fields) / link from which to retrieve the source files, and are therefore fairly small.
 
 For example, assuming each link takes an average of `25` bytes to encode (including json fluff), and `3MB` (ungzipped) is your "comfort zone", you can store up to `120000` document links in a single, cached field store!
 
@@ -129,7 +129,7 @@ This would be especially useful if configuring for a **monolithic index** (`RTT=
 
 Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the default `pl_limit` of `16383` bytes, especially when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.
 
-Since larger index chunks are cached according to `pl_cache_threshold` by default, the limit is relevant mostly during **startup / initialisation** only. That is, scalability is limited by the **total size** of **index chunks which exceed the `pl_cache_threshold`** that will be retrieved upfront.
+Since larger index chunks are cached according to the `pl_cache_threshold`, the limit is relevant mostly during startup / initialisation only. That is, scalability is limited by the **total size** of **index chunks which exceed the `pl_cache_threshold`** that will be **retrieved upfront**.
 
 If configuring for a much higher `pl_cache_threshold` however, such that no files are cached, then the limit is imposed during **search** by the total size of the index chunks that need to be retrieved for the query.
 

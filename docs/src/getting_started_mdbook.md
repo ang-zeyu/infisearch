@@ -2,7 +2,14 @@
 
 `mdbook-morsels` is a simple search plugin replacement for [mdbook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
 
-It uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. You can switch the themes in this documentation to try out the different themes.
+> Dosen't Mdbook already have a search feature?
+>
+> That's right. At this point, this plugin serves mostly as a **proof-of-concept for integrating into other static site generators**. ;)<br>
+> You might want to use this plugin nonetheless if your mdbook site is extremely large.
+
+## Styling
+
+This plugin uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. Switch the themes in this documentation to try out the different themes!
 
 Note: The "Morsels" theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without mdbook-morsels).
 
@@ -84,7 +91,11 @@ You can also try out the different **themes** on this documentation using mdbook
 <figure>
 
 ![mdbook morsels plugin preview](./images/mdbook-preview.gif)
-<figcaption style="text-align: center;"><em>Gif of `mode='fullscreen'` across the different themes</em></figcaption>
+
+<figcaption style="text-align: center;">
+
+*Gif of* `mode='fullscreen'` *across the different themes*
+</figcaption>
 </figure>
 
 

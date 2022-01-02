@@ -36,9 +36,9 @@ There are some additional caveats to note when using this option. Whenever possi
 
 ### Collection Statistics
 
-Collection statistics will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of incremental indexing (from added / updated documents). Detecting such terms is difficult, as there is no guarantee the deleted documents are available anymore. The alternative would be to store such information in a non-inverted index, but that again takes up extra space =(.
+Collection statistics used to rank documents will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of incremental indexing (from added / updated documents). Detecting such terms is difficult, as there is no guarantee the deleted documents are available anymore. The alternative would be to store such information in a non-inverted index, but that again takes up extra space =(.
 
-As such, the information for these terms may not be "patched". As a result, you *may* notice some slight drifting in the relative ranking of documents returned after some number of incremental indexing runs.
+As such, the information for these terms may not be "patched". You *may* notice some slight drifting in the relative ranking of documents returned after some number of incremental indexing runs.
 
 ### File Bloat
 

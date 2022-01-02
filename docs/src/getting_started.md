@@ -1,6 +1,6 @@
 # Getting Started
 
-This page assumes the use case of a static site, that is:
+This page assumes the use case of a **static site**, that is:
 - You have some `.html` files you want to index.
 - These `.html` files are served in a static file server, and are accessible by `@morsels/search-ui` to generate result previews.
 - You have an `<input>` element to attach a search dropdown to.
@@ -50,9 +50,7 @@ This flag outputs the default `morsels_config.json` that can be used to [configu
 
 #### Hosting the Files Locally
 
-If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). All files except the indexer executables (`.zip`) are required.
-
-The following files will be present in each release:
+If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). All files inside `search.morsels.zip` are required, and their functions are as follows:
 
 - `search-ui.bundle.js`
 - `search-ui.css`

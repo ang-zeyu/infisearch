@@ -102,17 +102,23 @@ This only affects how the fields are stored when the `do_store` parameter is spe
 Moreover, sorting (also WIP) operations are only supported on `u32` fields.
 </div>
 
-## Default Fields
+## Default Fields in `@morsels/search-ui`
 
-The default fields are setup for interfacing with the `@morsels/search-ui` package. Their functions are as follows:
-- `title`: This the header for a single document match
-- `heading`: These are any `<h1-6>` tags, which appear on the left of corresponding `body` fields
+The default fields are setup for interfacing with the `@morsels/search-ui` package. Their functions in the search-ui are as follows:
+- `title`: This is the header for a single document match. 
+- `heading`: These are section headers which appear on the left of corresponding `body` fields. THey are sourced from `<h1-6>` tags by default.
 - `headingLink`: These are the `id` attributes of corresponding `<h1-6>` tags. If available, an `#anchor` is attached to the linked document for the particular heading
 - `body`: This field is the text that appears to the right of headings (or on its own if there is no corresponding heading).
+- `_relative_fp` / `link`: If the `title` field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the `<a />` tag) or for generating result previews (more [here](../search_configuration.md#default-rendering-output--purpose)).
+  - Note: The `link` field is not setup by default; The combination of `sourceFilesUrl` + `_relative_fp` serves the same purpose. The `link` field serves to accomodate more custom use cases (e.g. linking to another site, or linking to a html page by indexing a json document).
+
+Their functions are also annotated in the following diagram:
+
+<img alt="annotation for fields" src="../images/fields_annotated.png" />
 
 ## Mapping File Data to Fields
 
-Defining fields is not enough. You will also need a way to map file data to each of these fields, which is discussed later under [indexing](./indexing.md#mapping-file-data-to-fields-loader_configs).
+Defining fields is all good, but you may also need a way to map custom file data to each of these fields if the defaults are insufficient, which is discussed later under [indexing](./indexing.md#mapping-file-data-to-fields-loader_configs).
 
 The exception are "special" fields below, which sources data from elsewhere.
 

@@ -51,8 +51,6 @@ title\:lorem
 
 ## Non User-Facing Features
 
-This section briefly details some non-user-facing features.
-
 ### WebWorker Built-in
 
 Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.

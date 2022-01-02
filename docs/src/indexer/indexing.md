@@ -33,36 +33,15 @@ The snippet below shows the default values:
 ```
 
 
-## Indexing Performance
-
-**`num_threads`**
-
-This is the number of threads to use, excluding the main thread. When unspecified, this is `max(num physical cores - 1, 1)`.
-
-**`num_docs_per_block`**
-
-This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
-
-If your documents are very small, increasing this *may* help improve indexing performance.
-
-> ⚠️ Ensure [`field_store_block_size`](./fields.md) is a clean multiple or divisor of this parameter.
-
-## File Exclusions
-
-**`exclude`**
-
-Global file exclusions can be specified in this parameter, which is simply an array of file globs.
-
-
 ## Mapping File Data to Fields
 
-`loader_configs`
+**`loader_configs`**
 
 The indexer is able to handle data from html, json or csv files. Support for each file type is provided by a `Loader` abstraction.
 
 You may configure loaders by **including them under the `loader_configs` key**, with any applicable options.
 
-**`HtmlLoader`**
+**`loader_configs.HtmlLoader`**
 
 ```json
 "loader_configs": {
@@ -100,23 +79,21 @@ At each element, it checks if any of the selectors under the `selectors.selector
 
 The `attr_map` allows indexing attributes of elements (not including descendants) under fields as well.
 
-**`JsonLoader`**
+**`loader_configs.JsonLoader`**
 
 ```json
 "loader_configs": {
   "JsonLoader": {
     "field_map": {
-      "body": "body",
-      "heading": "heading",
-      "link": "_relative_fp",
-      "title": "title"
+      "chapter_text": "body",
+      "book_link": "link",
+      "chapter_title": "title"
     },
-    // Order in which to index the fields of the json {} document
+    // Order in which to index the keys of the json {} document
     "field_order": [
-      "title",
-      "heading",
-      "body",
-      "link"
+      "book_link",
+      "chapter_title",
+      "chapter_text"
     ]
   }
 }
@@ -129,7 +106,7 @@ The json file can be either:
 1. An object, following the schema set out in `field_map`
 2. An array of objects following the schema set out in `field_map`
 
-**`CsvLoader`**
+**`loader_configs.CsvLoader`**
 
 ```json
 "loader_configs": {
@@ -166,7 +143,7 @@ Field mappings for csv files can be configured using one of the `field_map / fie
 The `parse_options` key specifies options for parsing the csv file. In particular, note that the `has_headers` key is distinct from and does not influence the `use_headers` parameter.
 
 
-**`TxtLoader`**
+**`loader_configs.TxtLoader`**
 
 ```json
 "loader_configs": {
@@ -177,6 +154,26 @@ The `parse_options` key specifies options for parsing the csv file. In particula
 ```
 
 This loader simply reads `.txt` files and indexes all of the content into a single `field`.
+
+## File Exclusions
+
+**`exclude`**
+
+Global file exclusions can be specified in this parameter, which is simply an array of file globs.
+
+## Indexing Performance
+
+**`num_threads`**
+
+This is the number of threads to use, excluding the main thread. When unspecified, this is `max(num physical cores - 1, 1)`.
+
+**`num_docs_per_block`**
+
+This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
+
+If your documents are very small, increasing this *may* help improve indexing performance.
+
+> ⚠️ Ensure [`field_store_block_size`](./fields.md) is a clean multiple or divisor of this parameter.
 
 
 ## Search Performance
