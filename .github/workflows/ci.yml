@@ -19,8 +19,7 @@ jobs:
           node-version: '14'
       - run: npm i -g npm
       - run: npm run setup
-      - run: cargo test
-      - run: npm run e2e
+      - run: npm run test
       - run: cargo clean --release -p morsels_indexer
       - run: npm run installIndexer
       - run: npm run buildSearch
