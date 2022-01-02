@@ -331,6 +331,14 @@ The <code>field_order</code> array controls the order in which these fields are 
 </code></pre>
 <p>Field mappings for csv files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
 <p>The <code>parse_options</code> key specifies options for parsing the csv file. In particular, note that the <code>has_headers</code> key is distinct from and does not influence the <code>use_headers</code> parameter.</p>
+<p><strong><code>TxtLoader</code></strong></p>
+<pre><code class="language-json">&quot;loader_configs&quot;: {
+  &quot;TxtLoader&quot;: {
+    &quot;field&quot;: &quot;field_name&quot;,
+  }
+}
+</code></pre>
+<p>This loader simply reads <code>.txt</code> files and indexes all of the content into a single <code>field</code>.</p>
 <h2 id="search-performance"><a class="header" href="#search-performance">Search Performance</a></h2>
 <p><strong><code>pl_limit</code></strong></p>
 <p>This the main threshold parameter (in bytes) at which to “cut” index (postings list) files.</p>

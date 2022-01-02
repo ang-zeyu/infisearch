@@ -579,7 +579,7 @@ This flag outputs the default <code>morsels_config.json</code> that can be used 
 &lt;!--  Search UI package script, which bundles the search library together with it --&gt;
 &lt;script src=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.bundle.js&quot;&gt;&lt;/script&gt;
 &lt;!-- Search UI css, this provides very basic styling for the search dropdown, and can be omitted if desired --&gt;
-&lt;script src=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css&quot;&gt;&lt;/script&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css&quot; /&gt;
 </code></pre>
 <blockquote>
 <p>⚠️ Ensure the versions here <strong>tally with the indexer version</strong> used.</p>
@@ -2681,6 +2681,14 @@ The <code>field_order</code> array controls the order in which these fields are 
 </code></pre>
 <p>Field mappings for csv files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
 <p>The <code>parse_options</code> key specifies options for parsing the csv file. In particular, note that the <code>has_headers</code> key is distinct from and does not influence the <code>use_headers</code> parameter.</p>
+<p><strong><code>TxtLoader</code></strong></p>
+<pre><code class="language-json">&quot;loader_configs&quot;: {
+  &quot;TxtLoader&quot;: {
+    &quot;field&quot;: &quot;field_name&quot;,
+  }
+}
+</code></pre>
+<p>This loader simply reads <code>.txt</code> files and indexes all of the content into a single <code>field</code>.</p>
 <h2 id="search-performance"><a class="header" href="#search-performance">Search Performance</a></h2>
 <p><strong><code>pl_limit</code></strong></p>
 <p>This the main threshold parameter (in bytes) at which to “cut” index (postings list) files.</p>
