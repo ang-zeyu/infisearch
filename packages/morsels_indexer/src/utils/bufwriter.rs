@@ -39,7 +39,7 @@ impl ReusableWriter {
 #[cfg(debug_assertions)]
 impl Drop for ReusableWriter {
     fn drop(&mut self) {
-        if self.buf.len() > 0 {
+        if !self.buf.is_empty() {
             panic!("Dropped ReusableWriter before flushing!");
         }
     }

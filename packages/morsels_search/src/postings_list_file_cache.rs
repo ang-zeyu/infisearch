@@ -12,7 +12,7 @@ impl PostingsListFileCache {
         let pls = join_all(
             promises
                 .into_iter()
-                .map(|promise| PostingsList::fetch_pl_to_vec(promise)),
+                .map(PostingsList::fetch_pl_to_vec),
         )
         .await;
 

@@ -117,9 +117,9 @@ pub fn initialise_postings_stream_readers(
             buffered_reader: BufReader::new(block_file),
             buffered_dict_reader: BufReader::new(block_dict_file),
             future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE),
-            doc_infos_unlocked: Arc::clone(&doc_infos),
+            doc_infos_unlocked: Arc::clone(doc_infos),
         })
-        .read_next_batch(POSTINGS_STREAM_INITIAL_READ, tx_main, Arc::clone(&postings_stream_decoders));
+        .read_next_batch(POSTINGS_STREAM_INITIAL_READ, tx_main, Arc::clone(postings_stream_decoders));
     }
 
     // Wait for all initial decoding to finish (for the heap to have initialised)

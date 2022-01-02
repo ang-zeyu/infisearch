@@ -11,6 +11,7 @@ use rustc_hash::FxHashMap;
 use crate::FieldInfo;
 use crate::FieldInfos;
 
+#[derive(Default)]
 pub struct DocField {
     pub field_tf: u32,
     pub positions: Vec<u32>,
@@ -19,12 +20,6 @@ pub struct DocField {
 impl Clone for DocField {
     fn clone(&self) -> Self {
         DocField { field_tf: self.field_tf, positions: self.positions.clone() }
-    }
-}
-
-impl Default for DocField {
-    fn default() -> Self {
-        DocField { field_tf: 0, positions: Vec::new() }
     }
 }
 

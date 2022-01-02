@@ -97,7 +97,7 @@ impl Tokenizer {
     fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
         slice
             .split_whitespace()
-            .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(&term_slice)))
+            .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
             .filter(|term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
             .map(|term_slice| {
                 if let Cow::Owned(v) = self.stemmer.stem(&term_slice) {

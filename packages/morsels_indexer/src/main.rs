@@ -57,13 +57,13 @@ fn resolve_folder_paths(
 
     match cwd_result {
         Ok(cwd) => {
-            let source_return = get_relative_or_absolute_path(&cwd, &source_folder_path);
+            let source_return = get_relative_or_absolute_path(&cwd, source_folder_path);
 
-            let output_return = get_relative_or_absolute_path(&cwd, &output_folder_path);
+            let output_return = get_relative_or_absolute_path(&cwd, output_folder_path);
             std::fs::create_dir_all(&output_return).expect("Failed to create output directory!");
 
             let config_return = if let Some(config_raw_file_path) = config_file_path {
-                get_relative_or_absolute_path(&cwd, &config_raw_file_path)
+                get_relative_or_absolute_path(&cwd, config_raw_file_path)
             } else {
                 source_return.join("morsels_config.json")
             };
@@ -137,7 +137,7 @@ fn main() {
                     continue;
                 }
 
-                indexer.index_file(&input_folder_path_clone, &path, &relative_path);
+                indexer.index_file(&input_folder_path_clone, path, relative_path);
             }
             Err(e) => {
                 eprintln!("Error processing entry. {}", e)

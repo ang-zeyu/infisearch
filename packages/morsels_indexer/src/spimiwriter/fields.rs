@@ -8,6 +8,7 @@ use crate::worker::miner::WorkerMinerDocInfo;
 use crate::FieldInfos;
 
 
+#[allow(clippy::too_many_arguments)]
 pub fn store_fields(
     check_for_existing_field_store: bool,
     start_doc_id: u32,

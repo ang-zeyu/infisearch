@@ -67,7 +67,7 @@ impl PostingsStream {
             let postings_stream = Self::create_postings_stream(
                 idx, postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr
             );
-            if postings_stream.curr_term.term.len() != 0 {
+            if !postings_stream.curr_term.term.is_empty() {
                 postings_stream_heap.push(postings_stream);
             }
         }
@@ -87,7 +87,7 @@ impl PostingsStream {
             curr_term: Default::default(),
             term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE), // transfer ownership of future term buffer to the main postings stream
         };
-        postings_stream.get_term(&postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, false);
+        postings_stream.get_term(postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, false);
         postings_stream
     }
 
@@ -181,7 +181,7 @@ impl PostingsStream {
         let mut curr_term_max_score = postings_stream.curr_term.max_doc_term_score;
         curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term));
 
-        postings_stream.get_term(&postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, true);
+        postings_stream.get_term(postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, true);
         if !postings_stream.is_empty {
             postings_streams.push(postings_stream);
         }
@@ -197,7 +197,7 @@ impl PostingsStream {
             }
             curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term));
 
-            postings_stream.get_term(&postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, true);
+            postings_stream.get_term(postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, true);
             if !postings_stream.is_empty {
                 postings_streams.push(postings_stream);
             }

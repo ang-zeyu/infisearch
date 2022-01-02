@@ -377,7 +377,7 @@ impl Searcher {
             new_score += if score != 0.0 {
                 score
             } else {
-                self.calc_doc_bm25_score(pl_it.0.td.unwrap(), doc_id, &pl_it.0.pl)
+                self.calc_doc_bm25_score(pl_it.0.td.unwrap(), doc_id, pl_it.0.pl)
             };
         }
         new_score
@@ -416,7 +416,7 @@ impl Searcher {
                     let score = if term_doc.score != 0.0 {
                         term_doc.score
                     } else {
-                        self.calc_doc_bm25_score(&term_doc, term_doc.doc_id, &pl)
+                        self.calc_doc_bm25_score(term_doc, term_doc.doc_id, pl)
                     };
                     new_pl.term_docs.push(TermDoc { doc_id: term_doc.doc_id, fields, score })
                 }
@@ -467,7 +467,7 @@ impl Searcher {
 
             if let Some(mut pl) = pl_opt {
                 if let Some(field_name) = &query_part.field_name {
-                    self.filter_field_postings_list(&field_name, &mut pl);
+                    self.filter_field_postings_list(field_name, &mut pl);
                 }
 
                 result.push(pl);

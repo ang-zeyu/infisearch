@@ -76,7 +76,7 @@ fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usi
     query_chars[i..j]
         .iter()
         .enumerate()
-        .filter(|(idx, _char)| escape_indices.iter().find(|escape_idx| **escape_idx == (*idx + i)).is_none())
+        .filter(|(idx, _char)| !escape_indices.iter().any(|escape_idx| *escape_idx == (*idx + i)))
         .map(|(_idx, c)| c)
         .collect()
 }
@@ -95,7 +95,7 @@ fn handle_terminator(
         return;
     }
 
-    let tokenize_result = tokenizer.wasm_tokenize(collect_slice(query_chars, i, j, &escape_indices));
+    let tokenize_result = tokenizer.wasm_tokenize(collect_slice(query_chars, i, j, escape_indices));
     if tokenize_result.terms.is_empty() {
         return;
     }

@@ -22,7 +22,7 @@ pub fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
 
 #[inline(always)]
 pub fn frontcode_and_store_term(prev_term: &str, curr_term: &str, dict_string_writer: &mut BufWriter<File>) {
-    let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(&prev_term, &curr_term);
+    let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(prev_term, curr_term);
 
     dict_string_writer
         .write_all(&[

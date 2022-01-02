@@ -312,7 +312,7 @@ impl Searcher {
                     result.1 += if td.score != 0.0 {
                         td.score
                     } else {
-                        self.calc_doc_bm25_score(td, pivot_doc_id, &pl_it.pl)
+                        self.calc_doc_bm25_score(td, pivot_doc_id, pl_it.pl)
                     };
 
                     pl_it.next();

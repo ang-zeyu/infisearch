@@ -3,7 +3,7 @@ extern crate mdbook;
 use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, Read};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 use anyhow::Error;
@@ -124,14 +124,14 @@ fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::Pa
         auto_scale_config(
             &morsels_config_path,
             total_len,
-            ctx.config.get("debug").unwrap_or_else(|| &Value::Boolean(false)).as_bool().unwrap_or_else(|| false),
+            ctx.config.get("debug").unwrap_or(&Value::Boolean(false)).as_bool().unwrap_or(false),
         );
     }
 
     morsels_config_path
 }
 
-fn auto_scale_config(morsels_config_path: &PathBuf, total_len: u64, debug: bool) {
+fn auto_scale_config(morsels_config_path: &Path, total_len: u64, debug: bool) {
     let config = fs::read_to_string(morsels_config_path).unwrap();
     let mut config_as_value: JsonValue = serde_json::from_str(&config).expect("unexpected error parsing search config file");
     let indexing_config = config_as_value.get_mut("indexing_config");
@@ -209,17 +209,17 @@ fn auto_scale_config(morsels_config_path: &PathBuf, total_len: u64, debug: bool)
         }
     }
 
-    let mut fields = fields_config
+    let fields = fields_config
         .get_mut("fields")
         .expect("fields_config.fields is missing!")
         .as_array_mut()
         .expect("fields_config.fields is not an array");
 
     // All scaling levels prefer json stores for now
-    set_field_do_store(&mut fields, "title", true);
-    set_field_do_store(&mut fields, "heading", true);
-    set_field_do_store(&mut fields, "headingLink", true);
-    set_field_do_store(&mut fields, "body", true);
+    set_field_do_store(fields, "title", true);
+    set_field_do_store(fields, "heading", true);
+    set_field_do_store(fields, "headingLink", true);
+    set_field_do_store(fields, "body", true);
 
     fs::write(
         &morsels_config_path,
@@ -228,13 +228,12 @@ fn auto_scale_config(morsels_config_path: &PathBuf, total_len: u64, debug: bool)
     .unwrap();
 }
 
-fn get_config_file_path(root: &PathBuf, config: Option<&Value>) -> std::path::PathBuf {
-    let morsels_config_path = if let Some(TomlString(morsels_config_file_path)) = config {
+fn get_config_file_path(root: &Path, config: Option<&Value>) -> std::path::PathBuf {
+    if let Some(TomlString(morsels_config_file_path)) = config {
         root.join(morsels_config_file_path)
     } else {
         root.join("morsels_config.json")
-    };
-    morsels_config_path
+    }
 }
 
 // Preprocessor for adding input search box
@@ -390,11 +389,11 @@ impl Preprocessor for Morsels {
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
                 total_len += ch.content.len() as u64;
-                ch.content = get_css_el(&site_url, &ctx) + INPUT_EL + &ch.content + &init_morsels_el;
+                ch.content = get_css_el(site_url, ctx) + INPUT_EL + &ch.content + &init_morsels_el;
             }
         });
 
-        setup_config_file(&ctx, total_len);
+        setup_config_file(ctx, total_len);
 
         Ok(book)
     }

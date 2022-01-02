@@ -94,7 +94,7 @@ impl HtmlLoader {
             exclude_selectors: html_loader_options_raw
                 .exclude_selectors
                 .iter()
-                .map(|selector| Selector::parse(&selector).expect("Invalid exclude selector!"))
+                .map(|selector| Selector::parse(selector).expect("Invalid exclude selector!"))
                 .collect(),
         });
 

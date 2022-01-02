@@ -236,7 +236,7 @@ impl Indexer {
         };
 
         let mut incremental_info = IncrementalIndexInfo::new_from_output_folder(
-            &output_folder_path,
+            output_folder_path,
             raw_config_normalised,
             &mut is_incremental,
             use_content_hash,
@@ -334,7 +334,10 @@ impl Indexer {
         }));
 
         if is_incremental {
-            incremental_info.setup_dictionary(&output_folder_path, bitmap_docinfo_dicttable_rdr.as_mut().expect("missing dicttable metadata file!"));
+            incremental_info.setup_dictionary(
+                output_folder_path,
+                bitmap_docinfo_dicttable_rdr.as_mut().expect("missing dicttable metadata file!"),
+            );
         }
 
         let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;

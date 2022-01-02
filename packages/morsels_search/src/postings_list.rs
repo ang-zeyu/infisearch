@@ -238,7 +238,7 @@ impl PostingsList {
 
         let mut prev_doc_id = 0;
         for _i in 0..term_info.doc_freq {
-            let docfreq = decode_var_int(&pl_vec, &mut pos);
+            let docfreq = decode_var_int(pl_vec, &mut pos);
 
             let mut term_doc = TermDoc {
                 doc_id: prev_doc_id + docfreq,
@@ -255,14 +255,14 @@ impl PostingsList {
                 let field_id = next_int & 0x7f;
                 is_last = next_int & 0x80;
 
-                let field_tf = decode_var_int(&pl_vec, &mut pos);
+                let field_tf = decode_var_int(pl_vec, &mut pos);
 
                 let field_positions = if with_positions {
                     let mut field_positions = Vec::with_capacity(field_tf as usize);
 
                     let mut prev_pos = 0;
                     for _j in 0..field_tf {
-                        prev_pos += decode_var_int(&pl_vec, &mut pos);
+                        prev_pos += decode_var_int(pl_vec, &mut pos);
                         field_positions.push(prev_pos);
                     }
 

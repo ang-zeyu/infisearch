@@ -71,7 +71,7 @@ impl Tokenizer {
         let iter = slice
             .split_whitespace()
             .map(|term_slice| {
-                let ascii_folded = ascii_folding_filter::to_ascii(&term_slice);
+                let ascii_folded = ascii_folding_filter::to_ascii(term_slice);
                 term_filter(ascii_folded)
             })
             .filter(|term| {
