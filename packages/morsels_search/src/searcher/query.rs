@@ -356,8 +356,7 @@ impl Searcher {
         for (field_id, field) in td.fields.iter().enumerate() {
             if field.field_tf > 0.0 {
                 let field_info = self.searcher_config.field_infos.get(field_id).unwrap();
-                let field_len_factor =
-                    self.doc_info.doc_length_factors[doc_id as usize][field_id as usize] as f32;
+                let field_len_factor = self.doc_info.get_doc_length_factor(doc_id as usize, field_id as usize);
 
                 doc_term_score += ((field.field_tf * (field_info.k + 1.0))
                     / (field.field_tf
