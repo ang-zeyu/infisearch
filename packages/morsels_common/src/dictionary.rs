@@ -11,7 +11,6 @@ use crate::utils::idf::get_idf;
 use crate::utils::varint;
 use trigrams::get_tri_grams;
 
-pub static DICTIONARY_TABLE_FILE_NAME: &str = "_dictionary_table";
 pub static DICTIONARY_STRING_FILE_NAME: &str = "_dictionary_string";
 
 pub struct Dictionary {
@@ -21,7 +20,7 @@ pub struct Dictionary {
 
 #[inline(always)]
 pub fn setup_dictionary(
-    table_vec: Vec<u8>,
+    table_vec: &[u8],
     string_vec: Vec<u8>,
     num_docs: u32,
     build_trigram: bool,
@@ -123,7 +122,7 @@ mod test {
     #[test]
     fn test_dictionary_setup() {
         let dictionary = super::setup_dictionary(
-            vec![
+            &vec![
                 // Format: doc freq var-int, then pl offset var-int
                 129, 127, 127, 131,
                 129, 127, 127, 131,

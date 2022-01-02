@@ -6,6 +6,10 @@ pub mod query_retriever;
 
 use std::collections::HashSet;
 
+use morsels_common::BITMAP_DOCINFO_DICT_TABLE_FILE;
+use morsels_common::BitmapDocinfoDicttableReader;
+use morsels_common::dictionary;
+use morsels_common::dictionary::DICTIONARY_STRING_FILE_NAME;
 use serde::Deserialize;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsCast;
@@ -13,9 +17,6 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::Response;
 
-use morsels_common::BITMAP_FILE_NAME;
-
-use crate::dictionary::setup_dictionary;
 use crate::dictionary::Dictionary;
 use crate::docinfo::DocInfo;
 use crate::postings_list_file_cache::PostingsListFileCache;
@@ -108,17 +109,53 @@ fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> 
 #[wasm_bindgen]
 pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Morsels config does not match schema");
-    let doc_info = DocInfo::create(&searcher_config.searcher_options.url, searcher_config.num_scored_fields).await?;
+
+    let window: web_sys::Window = js_sys::global().unchecked_into();
+
+    let bitmap_docinfo_dt_future = JsFuture::from(
+        window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + BITMAP_DOCINFO_DICT_TABLE_FILE)),
+    );
+    let string_resp_future = JsFuture::from(
+        window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + DICTIONARY_STRING_FILE_NAME))
+    );
+
+    let bitmap_docinfo_dt_resp: Response = bitmap_docinfo_dt_future.await?.dyn_into().unwrap();
+    let bitmap_docinfo_dt_buf = JsFuture::from(bitmap_docinfo_dt_resp.array_buffer()?).await?;
+    let bitmap_docinfo_dt = js_sys::Uint8Array::new(&bitmap_docinfo_dt_buf).to_vec();
+    let mut bitmap_docinfo_dt_rdr = BitmapDocinfoDicttableReader { buf: bitmap_docinfo_dt, pos: 0 };
+
+    let mut invalidation_vector = Vec::new();
+    bitmap_docinfo_dt_rdr.read_invalidation_vec(&mut invalidation_vector);
+
+    let doc_info = DocInfo::create(&mut bitmap_docinfo_dt_rdr, searcher_config.num_scored_fields);
 
     let tokenizer = get_tokenizer(&mut searcher_config.lang_config);
     let build_trigram = tokenizer.use_default_trigram();
 
-    let window: web_sys::Window = js_sys::global().unchecked_into();
-    let invalidation_vector_future = JsFuture::from(
-        window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + BITMAP_FILE_NAME)),
+    let string_resp: Response = string_resp_future.await?.dyn_into().unwrap();
+    let string_array_buffer = JsFuture::from(string_resp.array_buffer()?).await?;
+    let string_vec = js_sys::Uint8Array::new(&string_array_buffer).to_vec();
+
+    #[cfg(feature = "perf")]
+    let performance = window.performance().unwrap();
+    #[cfg(feature = "perf")]
+    let start = performance.now();
+
+    let dictionary = dictionary::setup_dictionary(
+        bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec, doc_info.num_docs, build_trigram,
     );
 
-    let dictionary = setup_dictionary(&searcher_config.searcher_options.url, doc_info.num_docs, build_trigram).await?;
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(
+        &format!("Finished reading bitmap_docinfo_dt_rdr. Pos {} Len {}",
+        bitmap_docinfo_dt_rdr.pos, bitmap_docinfo_dt_rdr.buf.len(),
+    ).into());
+
+    #[cfg(feature = "perf")]
+    web_sys::console::log_1(
+        &format!("Dictionary initial setup took {}, num terms {}",
+        performance.now() - start, dictionary.term_infos.len(),
+    ).into());
 
     let pl_file_cache = PostingsListFileCache::create(
         &searcher_config.searcher_options.url,
@@ -126,10 +163,6 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
         searcher_config.indexing_config.num_pls_per_dir,
     )
     .await;
-
-    let invalidation_vec_resp: Response = invalidation_vector_future.await?.dyn_into().unwrap();
-    let invalidation_vec_buf = JsFuture::from(invalidation_vec_resp.array_buffer()?).await?;
-    let invalidation_vector = js_sys::Uint8Array::new(&invalidation_vec_buf).to_vec();
 
     Ok(Searcher { dictionary, tokenizer, doc_info, pl_file_cache, searcher_config, invalidation_vector })
 }

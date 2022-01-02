@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 use dashmap::DashMap;
 
-use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
+use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME};
 use morsels_common::utils::idf::get_idf;
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
@@ -81,17 +81,11 @@ pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u
     PlWriter { writer, pl: curr_pl }
 }
 
-pub fn get_dict_writers(output_folder_path: &Path) -> (BufWriter<File>, BufWriter<File>) {
-    let dict_table_writer = BufWriter::new(
-        File::create(Path::new(output_folder_path).join(DICTIONARY_TABLE_FILE_NAME))
-            .expect("Failed to open final dictionary table for writing."),
-    );
-    let dict_string_writer = BufWriter::new(
+pub fn get_dictstring_writer(output_folder_path: &Path) -> BufWriter<File> {
+    BufWriter::new(
         File::create(Path::new(output_folder_path).join(DICTIONARY_STRING_FILE_NAME))
             .expect("Failed to open final dictionary string for writing."),
-    );
-
-    (dict_table_writer, dict_string_writer)
+    )
 }
 
 #[allow(clippy::too_many_arguments)]

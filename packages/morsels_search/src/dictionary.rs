@@ -2,16 +2,11 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
-use futures::join;
 use rustc_hash::FxHashMap;
 use smartstring::alias::String;
 use strsim::levenshtein;
-use wasm_bindgen::JsCast;
-use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::Response;
 
-use morsels_common::dictionary::{self, DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
+use morsels_common::dictionary;
 
 pub type Dictionary = dictionary::Dictionary;
 
@@ -50,38 +45,6 @@ impl PartialOrd for TermWeightPair {
             Some(Ordering::Equal)
         }
     }
-}
-
-pub async fn setup_dictionary(url: &str, num_docs: u32, build_trigram: bool) -> Result<Dictionary, JsValue> {
-    let window: web_sys::Window = js_sys::global().unchecked_into();
-
-    #[cfg(feature = "perf")]
-    let performance = window.performance().unwrap();
-    #[cfg(feature = "perf")]
-    let start = performance.now();
-
-    let (table_resp_value, string_resp_value) = join!(
-        JsFuture::from(window.fetch_with_str(&(url.to_owned() + DICTIONARY_TABLE_FILE_NAME))),
-        JsFuture::from(window.fetch_with_str(&(url.to_owned() + DICTIONARY_STRING_FILE_NAME)))
-    );
-
-    let table_resp: Response = table_resp_value.unwrap().dyn_into().unwrap();
-    let string_resp: Response = string_resp_value.unwrap().dyn_into().unwrap();
-    let (table_array_buffer, string_array_buffer) =
-        join!(JsFuture::from(table_resp.array_buffer()?), JsFuture::from(string_resp.array_buffer()?));
-
-    let table_vec = js_sys::Uint8Array::new(&table_array_buffer.unwrap()).to_vec();
-    let string_vec = js_sys::Uint8Array::new(&string_array_buffer.unwrap()).to_vec();
-
-    #[cfg(feature = "perf")]
-    web_sys::console::log_1(&format!("Dictionary table and string retrieval took {} {} {}", performance.now() - start, table_vec.len(), string_vec.len()).into());
-
-    let dictionary = dictionary::setup_dictionary(table_vec, string_vec, num_docs, build_trigram);
-
-    #[cfg(feature = "perf")]
-    web_sys::console::log_1(&format!("Dictionary initial setup took {}", performance.now() - start).into());
-
-    Ok(dictionary)
 }
 
 pub trait SearchDictionary {

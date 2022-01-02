@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufReader, Read, Write};
+use std::io::{BufReader, Read, Write, BufWriter};
 use std::iter::FromIterator;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 
 use normalize_line_endings::normalized;
 
-use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME, DICTIONARY_TABLE_FILE_NAME};
-use morsels_common::{bitmap, BITMAP_FILE_NAME};
+use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME};
+use morsels_common::{bitmap, BitmapDocinfoDicttableReader};
 
 use crate::MORSELS_VERSION;
 
@@ -73,6 +73,7 @@ impl IncrementalIndexInfo {
         raw_config_normalised: &str,
         is_incremental: &mut bool,
         use_content_hash: bool,
+        bitmap_docinfo_dicttable: Option<&mut BitmapDocinfoDicttableReader>,
     ) -> IncrementalIndexInfo {
         if !*is_incremental {
             return IncrementalIndexInfo::empty(use_content_hash);
@@ -120,27 +121,23 @@ impl IncrementalIndexInfo {
             return IncrementalIndexInfo::empty(use_content_hash);
         }
 
-        // Dictionary
-        let mut dictionary_table_vec: Vec<u8> = Vec::new();
+        // Invalidation vector
+        bitmap_docinfo_dicttable
+            .expect("dynamic_index_info.json exists but bitmap_docinfo_dicttable does not")
+            .read_invalidation_vec(&mut info.invalidation_vector);
+
+        info
+    }
+
+    pub fn setup_dictionary(&mut self, output_folder_path: &Path, dicttable_rdr: &BitmapDocinfoDicttableReader) {
+        let dictionary_table_vec = dicttable_rdr.get_dicttable_slice();
         let mut dictionary_string_vec: Vec<u8> = Vec::new();
-        File::open(output_folder_path.join(DICTIONARY_TABLE_FILE_NAME))
-            .unwrap()
-            .read_to_end(&mut dictionary_table_vec)
-            .unwrap();
         File::open(output_folder_path.join(DICTIONARY_STRING_FILE_NAME))
             .unwrap()
             .read_to_end(&mut dictionary_string_vec)
             .unwrap();
 
-        info.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false);
-
-        // Invalidation vector
-        File::open(output_folder_path.join(BITMAP_FILE_NAME))
-            .unwrap()
-            .read_to_end(&mut info.invalidation_vector)
-            .unwrap();
-
-        info
+        self.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false);
     }
 
     pub fn add_doc_to_file(&mut self, external_id: &str, doc_id: u32) {
@@ -220,16 +217,14 @@ impl IncrementalIndexInfo {
             .collect();
     }
 
-    pub fn write_invalidation_vec(&mut self, output_folder_path: &Path, doc_id_counter: u32) {
+    pub fn write_invalidation_vec(&mut self, bitmap_writer: &mut BufWriter<File>, doc_id_counter: u32) {
         let num_bytes = (doc_id_counter as f64 / 8.0).ceil() as usize;
         
         // Extend with the added documents
         self.invalidation_vector.extend(vec![0; num_bytes - self.invalidation_vector.len()]);
 
-        File::create(output_folder_path.join(BITMAP_FILE_NAME))
-            .unwrap()
-            .write_all(&*self.invalidation_vector)
-            .unwrap();
+        bitmap_writer.write_all(&(self.invalidation_vector.len() as u32).to_le_bytes()).unwrap();
+        bitmap_writer.write_all(&*self.invalidation_vector).unwrap();
     }
 
     pub fn write_info(&mut self, output_folder_path: &Path) {

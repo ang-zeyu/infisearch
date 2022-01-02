@@ -17,7 +17,6 @@ use morsels_common::bitmap;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
-use morsels_common::DOC_INFO_FILE_NAME;
 
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldInfos;
@@ -171,6 +170,7 @@ pub fn modify_blocks(
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
+    mut docinfo_dicttable_writer: BufWriter<File>,
     incremental_info: &mut IncrementalIndexInfo,
 ) {
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
@@ -187,7 +187,7 @@ pub fn modify_blocks(
             .into_inner()
             .expect("No thread should be holding doc infos mutex when merging blocks");
         doc_infos_unwrapped_inner.finalize_and_flush(
-            output_folder_path.join(DOC_INFO_FILE_NAME),
+            &mut docinfo_dicttable_writer,
             new_num_docs as u32, field_infos.num_scored_fields,
             incremental_info,
         );
@@ -318,7 +318,7 @@ pub fn modify_blocks(
     // ---------------------------------------------
     // Dictionary
 
-    let (mut dict_table_writer, mut dict_string_writer) = common::get_dict_writers(output_folder_path);
+    let mut dict_string_writer = common::get_dictstring_writer(output_folder_path);
     let mut prev_offset = 0;
 
     /*
@@ -366,31 +366,31 @@ pub fn modify_blocks(
 
         if prev_dict_pl != term_info.postings_file_name {
             commit_pairs(
-                &mut dict_table_writer,
+                &mut docinfo_dicttable_writer,
                 &mut varint_buf,
                 &mut term_terminfo_pairs,
                 &mut prev_offset,
                 if let Some(diff) = pl_file_length_differences.get(&prev_dict_pl) { *diff } else { 0 },
             );
 
-            dict_table_writer.write_all(&[128_u8]).unwrap();
+            docinfo_dicttable_writer.write_all(&[128_u8]).unwrap();
             prev_offset = 0;
             prev_dict_pl = term_info.postings_file_name;
         }
 
         if let Some(updated_term_info) = term_info_updates.get(&prev_term[..]) {
             commit_pairs(
-                &mut dict_table_writer,
+                &mut docinfo_dicttable_writer,
                 &mut varint_buf,
                 &mut term_terminfo_pairs,
                 &mut prev_offset,
                 updated_term_info.postings_file_offset as i32 - term_info.postings_file_offset as i32,
             );
 
-            dict_table_writer
+            docinfo_dicttable_writer
                 .write_all(varint::get_var_int(updated_term_info.doc_freq, &mut varint_buf))
                 .unwrap();
-            dict_table_writer
+            docinfo_dicttable_writer
                 .write_all(varint::get_var_int(
                     updated_term_info.postings_file_offset - prev_offset,
                     &mut varint_buf,
@@ -404,7 +404,7 @@ pub fn modify_blocks(
 
     if !term_terminfo_pairs.is_empty() {
         commit_pairs(
-            &mut dict_table_writer,
+            &mut docinfo_dicttable_writer,
             &mut varint_buf,
             &mut term_terminfo_pairs,
             &mut prev_offset,
@@ -426,20 +426,20 @@ pub fn modify_blocks(
         prev_term = term;
 
         if prev_dict_pl != term_info.postings_file_name {
-            dict_table_writer.write_all(&[128_u8]).unwrap();
+            docinfo_dicttable_writer.write_all(&[128_u8]).unwrap();
             prev_offset = 0;
             prev_dict_pl = term_info.postings_file_name;
         }
 
-        dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf)).unwrap();
-        dict_table_writer
+        docinfo_dicttable_writer.write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf)).unwrap();
+        docinfo_dicttable_writer
             .write_all(varint::get_var_int(term_info.postings_file_offset - prev_offset, &mut varint_buf))
             .unwrap();
 
         prev_offset = term_info.postings_file_offset;
     }
 
-    dict_table_writer.flush().unwrap();
+    docinfo_dicttable_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
 
     incremental_info.last_pl_number = if new_pls_offset != 0 || new_pl == 0 {

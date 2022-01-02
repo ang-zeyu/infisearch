@@ -9,7 +9,7 @@ mod worker;
 
 use std::cmp::Ordering;
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::{Read, Write, BufWriter};
 use std::iter::FromIterator;
 use std::path::Path;
 use std::path::PathBuf;
@@ -18,8 +18,7 @@ use std::sync::Mutex;
 use std::time::Instant;
 
 use morsels_common::tokenize::Tokenizer;
-use morsels_common::MorselsLanguageConfig;
-use morsels_common::DOC_INFO_FILE_NAME;
+use morsels_common::{MorselsLanguageConfig, BITMAP_DOCINFO_DICT_TABLE_FILE, BitmapDocinfoDicttableReader};
 use morsels_lang_ascii::ascii;
 use morsels_lang_latin::latin;
 use morsels_lang_chinese::chinese;
@@ -227,11 +226,21 @@ impl Indexer {
 
         let raw_config_normalised = &String::from_iter(normalized(config.raw_config.chars()));
 
-        let incremental_info = IncrementalIndexInfo::new_from_output_folder(
+        let bitmap_docinfo_dicttable_path = output_folder_path.join(BITMAP_DOCINFO_DICT_TABLE_FILE);
+        let mut bitmap_docinfo_dicttable_rdr = if let Ok(mut file) = File::open(bitmap_docinfo_dicttable_path) {
+            let mut buf = Vec::new();
+            file.read_to_end(&mut buf).unwrap();
+            Some(BitmapDocinfoDicttableReader { buf, pos: 0 })
+        } else {
+            None
+        };
+
+        let mut incremental_info = IncrementalIndexInfo::new_from_output_folder(
             &output_folder_path,
             raw_config_normalised,
             &mut is_incremental,
-            use_content_hash
+            use_content_hash,
+            bitmap_docinfo_dicttable_rdr.as_mut(),
         );
 
         if !is_incremental && !preserve_output_folder {
@@ -314,17 +323,19 @@ impl Indexer {
             ))
         };
 
-        let doc_infos = Arc::from(Mutex::from(if is_incremental {
-            let mut doc_infos_vec: Vec<u8> = Vec::new();
-            File::open(output_folder_path.join(DOC_INFO_FILE_NAME))
-                .unwrap()
-                .read_to_end(&mut doc_infos_vec)
-                .unwrap();
 
-            DocInfos::from_search_docinfo(doc_infos_vec, field_infos.num_scored_fields)
+        let doc_infos = Arc::from(Mutex::from(if is_incremental {
+            DocInfos::from_search_docinfo(
+                bitmap_docinfo_dicttable_rdr.as_mut().expect("missing docinfo metadata file!"),
+                field_infos.num_scored_fields,
+            )
         } else {
             DocInfos::init_doc_infos(field_infos.num_scored_fields)
         }));
+
+        if is_incremental {
+            incremental_info.setup_dictionary(&output_folder_path, bitmap_docinfo_dicttable_rdr.as_mut().expect("missing dicttable metadata file!"));
+        }
 
         let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;
 
@@ -579,10 +590,15 @@ impl Indexer {
     }
 
     fn merge_blocks(&mut self, first_block: u32, last_block: u32) {
+        let bitmap_docinfo_dicttable_file = self.output_folder_path.join(BITMAP_DOCINFO_DICT_TABLE_FILE);
+        let mut bitmap_docinfo_dicttable_writer = BufWriter::new(
+            File::create(bitmap_docinfo_dicttable_file).unwrap()
+        );
+
         let num_blocks = last_block - first_block + 1;
         if self.is_incremental {
             self.incremental_info.delete_unencountered_external_ids();
-            self.incremental_info.write_invalidation_vec(&self.output_folder_path, self.doc_id_counter);
+            self.incremental_info.write_invalidation_vec(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter);
 
             spimireader::incremental::modify_blocks(
                 self.is_deletion_only_run(),
@@ -595,10 +611,11 @@ impl Indexer {
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
+                bitmap_docinfo_dicttable_writer,
                 &mut self.incremental_info,
             );
         } else {
-            self.incremental_info.write_invalidation_vec(&self.output_folder_path, self.doc_id_counter);
+            self.incremental_info.write_invalidation_vec(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter);
 
             spimireader::full::merge_blocks(
                 self.doc_id_counter,
@@ -610,6 +627,7 @@ impl Indexer {
                 std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
+                bitmap_docinfo_dicttable_writer,
                 &mut self.incremental_info,
             );
         }

@@ -5,10 +5,8 @@ use crate::worker::miner::WorkerMinerDocInfo;
 use std::fs::File;
 use std::io::BufWriter;
 use std::io::Write;
-use std::path::PathBuf;
 
-use byteorder::{ByteOrder, LittleEndian};
-
+use morsels_common::BitmapDocinfoDicttableReader;
 use morsels_common::bitmap;
 
 #[derive(Debug)]
@@ -42,26 +40,23 @@ pub struct DocInfos {
 }
 
 impl DocInfos {
-    pub fn from_search_docinfo(doc_info_vec: Vec<u8>, num_fields: usize) -> DocInfos {
-        let mut byte_offset = 4; // first 4 bytes is number of documents
-
+    pub fn from_search_docinfo(bitmap_docinfo_dicttable: &mut BitmapDocinfoDicttableReader, num_fields: usize) -> DocInfos {
+        let mut doc_id_counter = 0;
         let mut average_lengths: Vec<f64> = Vec::new();
-        for _i in 0..num_fields {
-            average_lengths.push(LittleEndian::read_f64(&doc_info_vec[byte_offset..]));
-            byte_offset += 8;
-        }
+        bitmap_docinfo_dicttable.read_docinfo_inital_metadata(&mut 0, &mut doc_id_counter, &mut average_lengths, num_fields);
 
-        let total_bytes = doc_info_vec.len();
         let mut doc_lengths = Vec::new();
         let mut doc_id = 0;
-        while byte_offset < total_bytes {
-            let mut doc_info =
-                WorkerMinerDocInfo { doc_id, field_lengths: vec![0; num_fields], field_texts: Vec::new() };
+        while doc_id < doc_id_counter {
+            let mut doc_info = WorkerMinerDocInfo {
+                doc_id,
+                field_lengths: Vec::with_capacity(num_fields),
+                field_texts: Vec::new(),
+            };
             doc_id += 1;
 
-            for i in 0..num_fields {
-                doc_info.field_lengths[i] = LittleEndian::read_u32(&doc_info_vec[byte_offset..]);
-                byte_offset += 4;
+            for _i in 0..num_fields {
+                doc_info.field_lengths.push(bitmap_docinfo_dicttable.read_field_length());
             }
 
             doc_lengths.push(doc_info);
@@ -118,26 +113,25 @@ impl DocInfos {
 
     pub fn finalize_and_flush(
         &mut self,
-        output_file_path: PathBuf,
+        doc_info_writer: &mut BufWriter<File>,
         num_docs: u32,
         num_scored_fields: usize,
         incremental_info: &mut IncrementalIndexInfo,
     ) {
         self.sort_and_merge_block_doclengths();
 
-        let mut doc_info_writer = BufWriter::new(File::create(output_file_path).unwrap());
-
         doc_info_writer.write_all(&num_docs.to_le_bytes()).unwrap();
+        
+        let doc_lengths_len = self.doc_lengths.len() as u32;
+        doc_info_writer.write_all(&doc_lengths_len.to_le_bytes()).unwrap();
 
-        self.calculate_field_average_lengths(&mut doc_info_writer, num_docs, num_scored_fields, incremental_info);
+        self.calculate_field_average_lengths(doc_info_writer, num_docs, num_scored_fields, incremental_info);
 
         for worker_miner_doc_info in self.doc_lengths.iter() {
             for field_length in worker_miner_doc_info.field_lengths.iter() {
                 doc_info_writer.write_all(&field_length.to_le_bytes()).unwrap();
             }
         }
-
-        doc_info_writer.flush().unwrap();
     }
 }
 
