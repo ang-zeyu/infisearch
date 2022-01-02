@@ -43,7 +43,7 @@ This flag outputs the default `morsels_config.json` that can be used to [configu
 <!--  Search UI package script, which bundles the search library together with it -->
 <script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.bundle.js"></script>
 <!-- Search UI css, this provides very basic styling for the search dropdown, and can be omitted if desired -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css" />
 ```
 
 > ⚠️ Ensure the versions here **tally with the indexer version** used.
