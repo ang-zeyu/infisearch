@@ -301,6 +301,8 @@ function transformHtml(
  Main transform function
  */
 
+const nonContentFields = new Set([RELATIVE_LINK_FIELD_NAME, 'title', 'link']);
+
 async function singleResultRender(
   result: Result,
   options: SearchUiOptions,
@@ -313,15 +315,36 @@ async function singleResultRender(
   const { loaderConfigs } = configs.indexingConfig;
 
   const fields = result.getStorageWithFieldNames();
-  const relativeFpField = fields.find((v) => v[0] === RELATIVE_LINK_FIELD_NAME);
-  const relativeLink = (relativeFpField && relativeFpField[1]) || '';
+
+  let link: string;
+  let relativeLink: string;
+  let resultTitle: string;
+  for (const fieldNameAndField of fields) {
+    const [fieldName, fieldText] = fieldNameAndField;
+    switch (fieldName) {
+      case 'link':
+        link = fieldText;
+        break;
+      case RELATIVE_LINK_FIELD_NAME:
+        relativeLink = fieldText;
+        break;
+      case 'title':
+        resultTitle = fieldText;
+        break;
+    }
+    if (link && relativeLink && resultTitle) {
+      break;
+    }
+  }
   const hasSourceFilesUrl = typeof options.uiOptions.sourceFilesUrl === 'string';
-  let fullLink = hasSourceFilesUrl ? `${options.uiOptions.sourceFilesUrl}${relativeLink}` : undefined;
-  const titleField = fields.find((v) => v[0] === 'title');
-  let resultTitle = (titleField && titleField[1]) || relativeLink;
+  const fullLink = link
+    || (hasSourceFilesUrl && relativeLink && `${options.uiOptions.sourceFilesUrl}${relativeLink}`)
+    || '';
+
+  resultTitle = resultTitle || relativeLink || link;
 
   let linkToAttach = fullLink;
-  if (options.uiOptions.resultsRenderOpts.addSearchedTerms) {
+  if (options.uiOptions.resultsRenderOpts.addSearchedTerms && fullLink) {
     const fullLinkUrl = parseURL(fullLink);
     fullLinkUrl.searchParams.append(
       options.uiOptions.resultsRenderOpts.addSearchedTerms,
@@ -333,13 +356,13 @@ async function singleResultRender(
   let resultHeadingsAndTexts: (string | HTMLElement)[];
   if (hasStoredContentField) {
     resultHeadingsAndTexts = transformText(
-      fields.filter((v) => v[0] !== RELATIVE_LINK_FIELD_NAME && v[0] !== 'title'),
+      fields.filter((v) => !nonContentFields.has(v[0])),
       query.searchedTerms,
       termRegexes,
       linkToAttach,
       options,
     );
-  } else if (!relativeFpField || !hasSourceFilesUrl) {
+  } else if (!fullLink) {
     // Unable to retrieve and load from source file
     resultHeadingsAndTexts = [];
   } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
