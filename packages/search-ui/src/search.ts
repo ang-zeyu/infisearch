@@ -69,7 +69,7 @@ function prepareOptions(options: SearchUiOptions) {
   options.uiOptions = options.uiOptions || ({} as any);
   const { uiOptions } = options;
 
-  if (!uiOptions.sourceFilesUrl.endsWith('/')) {
+  if (uiOptions.sourceFilesUrl && !uiOptions.sourceFilesUrl.endsWith('/')) {
     uiOptions.sourceFilesUrl += '/';
   }
 
