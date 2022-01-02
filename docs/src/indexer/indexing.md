@@ -166,6 +166,19 @@ Field mappings for csv files can be configured using one of the `field_map / fie
 The `parse_options` key specifies options for parsing the csv file. In particular, note that the `has_headers` key is distinct from and does not influence the `use_headers` parameter.
 
 
+**`TxtLoader`**
+
+```json
+"loader_configs": {
+  "TxtLoader": {
+    "field": "field_name",
+  }
+}
+```
+
+This loader simply reads `.txt` files and indexes all of the content into a single `field`.
+
+
 ## Search Performance
 
 **`pl_limit`**

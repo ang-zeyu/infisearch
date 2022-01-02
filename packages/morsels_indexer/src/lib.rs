@@ -31,6 +31,7 @@ use crate::fieldinfo::FieldsConfig;
 use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
+use crate::loader::txt::TxtLoader;
 use crate::loader::Loader;
 use crate::worker::miner::WorkerMiner;
 use crate::worker::{MainToWorkerMessage, Worker, WorkerToMainMessage};
@@ -133,6 +134,7 @@ impl MorselsIndexingConfig {
                 "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
                 "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
                 "JsonLoader" => loaders.push(JsonLoader::get_new_json_loader(value)),
+                "TxtLoader" => loaders.push(TxtLoader::get_new_txt_loader(value)),
                 _ => panic!("Unknown loader type encountered in config"),
             }
         }

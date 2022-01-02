@@ -351,6 +351,11 @@ async function singleResultRender(
     );
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
+  } else if (fullLink.endsWith('.txt') && loaderConfigs.TxtLoader) {
+    const asText = await (await fetch(fullLink)).text();
+    resultHeadingsAndTexts = transformText(
+      [['body', asText]], query.searchedTerms, termRegexes, linkToAttach, options,
+    );
   } else {
     const fullLinkUrl = parseURL(fullLink);
     if (fullLinkUrl.pathname.endsWith('.json') && loaderConfigs.JsonLoader) {

@@ -1,6 +1,7 @@
 pub mod csv;
 pub mod html;
 pub mod json;
+pub mod txt;
 
 use std::path::Path;
 
