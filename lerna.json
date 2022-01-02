@@ -4,5 +4,5 @@
     "packages/search-ui",
     "packages/morsels_search/pkg/*"
   ],
-  "version": "0.0.6"
+  "version": "0.0.7"
 }
