@@ -133,7 +133,7 @@ fn handle_terminator(
     }
 }
 
-pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
+pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: bool) -> Vec<QueryPart> {
     let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
 
     let mut query_parse_state: QueryParseState = QueryParseState::None;
@@ -179,7 +179,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer) -> Vec<QueryPart> {
                 }
             }
             QueryParseState::None => {
-                if !did_encounter_escape && (c == '"' || c == '(' || c == ')') {
+                if !did_encounter_escape && ((with_positions && c == '"') || c == '(' || c == ')') {
                     handle_terminator(
                         tokenizer,
                         &query_chars,
@@ -464,7 +464,17 @@ pub mod test {
             max_term_len: 80,
         }, true);
 
-        super::parse_query(query.to_owned(), &tokenizer)
+        super::parse_query(query.to_owned(), &tokenizer, true)
+    }
+
+    pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
+        let tokenizer = ascii::new_with_options(TokenizerOptions {
+            stop_words: None,
+            ignore_stop_words: false,
+            max_term_len: 80,
+        }, true);
+
+        super::parse_query(query.to_owned(), &tokenizer, false)
     }
 
     // The tokenizer should not remove stop words no matter what when searching
@@ -475,7 +485,7 @@ pub mod test {
             max_term_len: 80,
         }, true);
 
-        super::parse_query(query.to_owned(), &tokenizer)
+        super::parse_query(query.to_owned(), &tokenizer, true)
     }
 
     #[test]
@@ -519,6 +529,8 @@ pub mod test {
 
     #[test]
     fn phrase_test() {
+        assert_eq!(parse_wo_pos("\"lorem ipsum\""), vec![get_term("lorem"), get_term("ipsum")]);
+
         assert_eq!(parse("\"lorem ipsum\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
         assert_eq!(parse("\"(lorem ipsum)\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
         assert_eq!(parse("lorem\"lorem ipsum\""), vec![get_lorem(), get_phrase(vec!["lorem", "ipsum"])]);
