@@ -255,21 +255,29 @@
 <h3 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h3>
 <p>There are 3 ways to generate result previews, the first of the below being the default.</p>
 <p>Unless you have modified the default result renderer (covered in the next page on renderers), morsels requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields. This is configured by default, and covered in the next section on indexing configuration in more detail.</p>
-<h3 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h3>
+<h4 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h4>
 <p>The default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
-<p>Therefore, source documents are assumed to be available. To generate alternative outputs (e.g. buttons, perform some action), you will need to use option 3 below.</p>
+<p>Therefore, source documents are assumed to be <strong>available and linkable</strong> to. The url of this source document is <strong>either</strong>:</p>
+<ol>
+<li>
+<p>The <strong><code>sourceFilesUrl</code> option adjoined</strong> with the <strong>relative file path of the document</strong> at the time of indexing (default).</p>
+<blockquote>
+<p>The relative file path is stored in the <code>_relative_fp</code> field, which is an internally generated field. Combining this with the base url (<code>sourceFilesUrl</code>) forms the full source document link.</p>
+</blockquote>
+</li>
+<li>
+<p>The <a href="./indexer/fields.html#default-fields-in-morselssearch-ui"><code>link</code> field</a>, a custom field that has to manually mapped from file data.</p>
+</li>
+</ol>
+<p>The use of the default indexed fields in the UI is as shown in the following diagram, and will be covered in more detail in the chapter on <a href="./indexer/fields.html">fields</a>:</p>
+<p><img src="./images/fields_annotated.png" alt="" /></p>
+<p>To generate alternative outputs (e.g. buttons, perform some action), you will need to use option 3 below.</p>
 <h4 id="1-from-source-documents-default"><a class="header" href="#1-from-source-documents-default">1. From Source Documents (default)</a></h4>
-<p><code>sourceFilesUrl</code></p>
-<p>When option 2 below (field stores) is not configured or unavailable, morsels will attempt to fetch the source document from <strong><code>sourceFilesUrl</code> adjoined with the relative file path of the document</strong> at the time of indexing. The source document is then reparsed, and its fields are extracted again in order to generate result previews.</p>
-<p>The <code>_relative_fp</code> field is an internally generated field that can be stored during indexing, and retrieved during search time. The combination of the base url from which to retrieve these source files (<code>sourceFilesUrl</code>) and this field forms the full source document link, used for:</p>
-<ul>
-<li>Attaching a link to the source document in the generated result match</li>
-<li>Retrieving the source document</li>
-</ul>
-<p>Note that this option is only applicable for indexed html and json files at this time.</p>
+<p>When option 2 below (field stores) is not configured or unavailable, morsels will attempt to retrieve and reparse the source document and its fields in order to generate result previews.</p>
+<p>Note that this option is only applicable for indexed html, json, and txt files at this time.</p>
 <p>As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, options 2 or 3 can be used.</p>
 <h4 id="2-from-field-stores"><a class="header" href="#2-from-field-stores">2. From Field Stores</a></h4>
-<p>If source documents are unavailable, morsels is able to generate result previews from its own json field stores generated at indexing time.</p>
+<p>Morsels is also able to generate result previews from its own json field stores generated at indexing time.</p>
 <p>In order to specify what fields to store, and how to map file data to these fields, refer to the chapter on <a href="./indexer/fields.html">fields</a> under indexer configuration.</p>
 <p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant to perform result preview generation on.</p>
 <h4 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h4>

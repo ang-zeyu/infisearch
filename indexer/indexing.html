@@ -226,23 +226,11 @@
   }
 }
 </code></pre>
-<h2 id="indexing-performance"><a class="header" href="#indexing-performance">Indexing Performance</a></h2>
-<p><strong><code>num_threads</code></strong></p>
-<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(num physical cores - 1, 1)</code>.</p>
-<p><strong><code>num_docs_per_block</code></strong></p>
-<p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
-<p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
-<blockquote>
-<p>⚠️ Ensure <a href="./fields.html"><code>field_store_block_size</code></a> is a clean multiple or divisor of this parameter.</p>
-</blockquote>
-<h2 id="file-exclusions"><a class="header" href="#file-exclusions">File Exclusions</a></h2>
-<p><strong><code>exclude</code></strong></p>
-<p>Global file exclusions can be specified in this parameter, which is simply an array of file globs.</p>
 <h2 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h2>
-<p><code>loader_configs</code></p>
+<p><strong><code>loader_configs</code></strong></p>
 <p>The indexer is able to handle data from html, json or csv files. Support for each file type is provided by a <code>Loader</code> abstraction.</p>
 <p>You may configure loaders by <strong>including them under the <code>loader_configs</code> key</strong>, with any applicable options.</p>
-<p><strong><code>HtmlLoader</code></strong></p>
+<p><strong><code>loader_configs.HtmlLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;HtmlLoader&quot;: {
     // list of selectors to exclude from indexing
@@ -274,21 +262,19 @@
 <p>The html loader traverses the document depth-first, in the order text nodes and attributes appear.</p>
 <p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by the corresponding <code>field_name</code>. If another of the element’s descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).</p>
 <p>The <code>attr_map</code> allows indexing attributes of elements (not including descendants) under fields as well.</p>
-<p><strong><code>JsonLoader</code></strong></p>
+<p><strong><code>loader_configs.JsonLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;JsonLoader&quot;: {
     &quot;field_map&quot;: {
-      &quot;body&quot;: &quot;body&quot;,
-      &quot;heading&quot;: &quot;heading&quot;,
-      &quot;link&quot;: &quot;_relative_fp&quot;,
-      &quot;title&quot;: &quot;title&quot;
+      &quot;chapter_text&quot;: &quot;body&quot;,
+      &quot;book_link&quot;: &quot;link&quot;,
+      &quot;chapter_title&quot;: &quot;title&quot;
     },
-    // Order in which to index the fields of the json {} document
+    // Order in which to index the keys of the json {} document
     &quot;field_order&quot;: [
-      &quot;title&quot;,
-      &quot;heading&quot;,
-      &quot;body&quot;,
-      &quot;link&quot;
+      &quot;book_link&quot;,
+      &quot;chapter_title&quot;,
+      &quot;chapter_text&quot;
     ]
   }
 }
@@ -300,7 +286,7 @@ The <code>field_order</code> array controls the order in which these fields are 
 <li>An object, following the schema set out in <code>field_map</code></li>
 <li>An array of objects following the schema set out in <code>field_map</code></li>
 </ol>
-<p><strong><code>CsvLoader</code></strong></p>
+<p><strong><code>loader_configs.CsvLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;CsvLoader&quot;: {
     &quot;use_headers&quot;: false,
@@ -331,7 +317,7 @@ The <code>field_order</code> array controls the order in which these fields are 
 </code></pre>
 <p>Field mappings for csv files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
 <p>The <code>parse_options</code> key specifies options for parsing the csv file. In particular, note that the <code>has_headers</code> key is distinct from and does not influence the <code>use_headers</code> parameter.</p>
-<p><strong><code>TxtLoader</code></strong></p>
+<p><strong><code>loader_configs.TxtLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;TxtLoader&quot;: {
     &quot;field&quot;: &quot;field_name&quot;,
@@ -339,6 +325,18 @@ The <code>field_order</code> array controls the order in which these fields are 
 }
 </code></pre>
 <p>This loader simply reads <code>.txt</code> files and indexes all of the content into a single <code>field</code>.</p>
+<h2 id="file-exclusions"><a class="header" href="#file-exclusions">File Exclusions</a></h2>
+<p><strong><code>exclude</code></strong></p>
+<p>Global file exclusions can be specified in this parameter, which is simply an array of file globs.</p>
+<h2 id="indexing-performance"><a class="header" href="#indexing-performance">Indexing Performance</a></h2>
+<p><strong><code>num_threads</code></strong></p>
+<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(num physical cores - 1, 1)</code>.</p>
+<p><strong><code>num_docs_per_block</code></strong></p>
+<p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
+<p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
+<blockquote>
+<p>⚠️ Ensure <a href="./fields.html"><code>field_store_block_size</code></a> is a clean multiple or divisor of this parameter.</p>
+</blockquote>
 <h2 id="search-performance"><a class="header" href="#search-performance">Search Performance</a></h2>
 <p><strong><code>pl_limit</code></strong></p>
 <p>This the main threshold parameter (in bytes) at which to “cut” index (postings list) files.</p>

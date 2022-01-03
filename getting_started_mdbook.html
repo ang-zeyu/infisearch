@@ -200,7 +200,13 @@
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="mdbook-morsels"><a class="header" href="#mdbook-morsels">mdbook-morsels</a></h1>
 <p><code>mdbook-morsels</code> is a simple search plugin replacement for <a href="https://github.com/rust-lang/mdBook">mdbook</a> to use morsels’ search interface and library instead of elasticlunr.js.</p>
-<p>It uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. You can switch the themes in this documentation to try out the different themes.</p>
+<blockquote>
+<p>Dosen’t Mdbook already have a search feature?</p>
+<p>That’s right. At this point, this plugin serves mostly as a <strong>proof-of-concept for integrating into other static site generators</strong>. ;)<br>
+You might want to use this plugin nonetheless if your mdbook site is extremely large.</p>
+</blockquote>
+<h2 id="styling"><a class="header" href="#styling">Styling</a></h2>
+<p>This plugin uses the css variables provided by the 5 main default themes in mdbook to style the search user interface. Switch the themes in this documentation to try out the different themes!</p>
 <p>Note: The “Morsels” theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without mdbook-morsels).</p>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <p>You will need to have installed the following command-line crates (<code>cargo install &lt;crate-name&gt;</code> or with the binaries in your <code>PATH</code>):</p>
@@ -272,7 +278,9 @@ scaling = true
 <p>You can also try out the different <strong>themes</strong> on this documentation using mdbook’s paintbrush icon!</p>
 <figure>
 <p><img src="./images/mdbook-preview.gif" alt="mdbook morsels plugin preview" /></p>
-<figcaption style="text-align: center;"><em>Gif of `mode='fullscreen'` across the different themes</em></figcaption>
+<figcaption style="text-align: center;">
+<p><em>Gif of</em> <code>mode='fullscreen'</code> <em>across the different themes</em></p>
+</figcaption>
 </figure>
 <p>Also note that unlike the default search feature, the search bar is always there – there is no search icon on the navbar to click. I am still trying to figure how to add this nicely (without runtime hacks) within mdbook’s plugin framework :)</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>

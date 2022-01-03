@@ -231,7 +231,6 @@ lorem AND title:ipsum   - documents with &quot;ipsum&quot; in the title and &quo
 title\:lorem
 </code></pre>
 <h2 id="non-user-facing-features"><a class="header" href="#non-user-facing-features">Non User-Facing Features</a></h2>
-<p>This section briefly details some non-user-facing features.</p>
 <h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker Built-in</a></h3>
 <p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don’t have to worry about blocking the UI thread.</p>
 <p>Population of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>

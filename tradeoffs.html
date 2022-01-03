@@ -208,7 +208,7 @@
 <tr><td>Fair Scalability,<br><span style="color: green">Little</span> File bloat</td><td>✔️</td><td>😩</td><td>😩</td><td>😩</td></tr>
 <tr><td>Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
 <tr><td>Fair Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
-<tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>❌</td><td>✔️</td><td>😩</td></tr>
+<tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
 <tr><td>Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>✔️</td><td>😩</td><td>😩</td></tr>
 <tr><td>Good Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>✔️</td><td>😩</td><td>😩</td></tr>
 <tr><td>Excellent Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
@@ -252,15 +252,15 @@
 <li>You would also want to set <code>field_store_block_size</code> to a fairly high number, and correspondingly set <code>cacheAllFieldStores</code> to <code>true</code>. This allows morsels to load the few field stores during initilisation and persistently cache them.</li>
 </ol>
 <blockquote>
-<p>⭐ This is what’s being used by this documentation, since it is fairly small.<br><br>Nevertheless, <code>RTT=1/2</code> are still very acceptable settings under good network conditions. <code>RTT=3</code> may be slightly slow (<code>~600ms</code> assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br>
-Coming Soon: More repo / test github pages for demonstrating the other settings</p>
+<p>⭐ This is what’s being used by this documentation, since it is fairly small.<br><br>Nevertheless, <code>RTT=1/2</code> are still very acceptable settings under good network conditions. <code>RTT=3</code> may be slightly slow (<code>~600ms</code> assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br></p>
+<p>Refer to the demo <a href="https://ang-zeyu.github.io/morsels-demo-1/">here</a> to see what <code>RTT=2</code> is like.</p>
 </blockquote>
 <h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
-<p>The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation.</p>
+<p>The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation discussed earlier <a href="search_configuration.html#options-for-generating-result-previews">here</a>.</p>
 <h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
 <p>On one hand, while generating result previews from source files greatly reduces file bloat, it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files. Therefore, the tradeoff here is between <strong>file bloat</strong> and <strong><code>RTT</code></strong>.</p>
 <p>However, it is also more feasible with this option to remove a round of network requests by <strong>compressing and caching</strong> all field stores up front.
-This is because in this option, field stores only store the <a href="indexer/fields.html#special-fields">relative file path</a> from which to retrieve the source files, and are therefore fairly small.</p>
+This is because in this option, field stores only store the <a href="indexer/fields.html#special-fields">relative file path</a> / link from which to retrieve the source files, and are therefore fairly small.</p>
 <p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your “comfort zone”, you can store up to <code>120000</code> document links in a single, cached field store!</p>
 <p>The relevant options are <code>pl_cache_threshold</code> and <code>field_store_block_size</code> (simply configure them similar to the earlier <code>RTT=0</code> case).</p>
 <blockquote>
@@ -294,7 +294,7 @@ This is because in this option, field stores only store the <a href="indexer/fie
 <p>This would be especially useful if configuring for a <strong>monolithic index</strong> (<code>RTT=0</code>, Fair Scalability, Little File Bloat), or any other options which cache the index (not field stores) up front, as it reduces the index size to be retrieved up front.</p>
 <h3 id="limits-of-scalability"><a class="header" href="#limits-of-scalability">Limits of Scalability</a></h3>
 <p>Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the default <code>pl_limit</code> of <code>16383</code> bytes, especially when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.</p>
-<p>Since larger index chunks are cached according to <code>pl_cache_threshold</code> by default, the limit is relevant mostly during <strong>startup / initialisation</strong> only. That is, scalability is limited by the <strong>total size</strong> of <strong>index chunks which exceed the <code>pl_cache_threshold</code></strong> that will be retrieved upfront.</p>
+<p>Since larger index chunks are cached according to the <code>pl_cache_threshold</code>, the limit is relevant mostly during startup / initialisation only. That is, scalability is limited by the <strong>total size</strong> of <strong>index chunks which exceed the <code>pl_cache_threshold</code></strong> that will be <strong>retrieved upfront</strong>.</p>
 <p>If configuring for a much higher <code>pl_cache_threshold</code> however, such that no files are cached, then the limit is imposed during <strong>search</strong> by the total size of the index chunks that need to be retrieved for the query.</p>
 <h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
 <p>As a rough estimate from testing, this library should be able to handle <strong>text collections &lt; <code>800MB</code> with positional indexing</strong>.</p>
