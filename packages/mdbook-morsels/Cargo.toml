@@ -1,6 +1,6 @@
 [package]
 name = "mdbook-morsels"
-version = "0.0.8"
+version = "0.0.9"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Morsels plugin for Mdbook."
