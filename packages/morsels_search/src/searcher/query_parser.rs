@@ -1,4 +1,6 @@
-use morsels_common::tokenize::Tokenizer;
+use std::collections::HashSet;
+
+use morsels_common::tokenize::SearchTokenizer;
 use serde::Serialize;
 
 #[derive(Serialize, Debug, Eq, PartialEq)]
@@ -83,19 +85,20 @@ fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usi
 
 #[allow(clippy::too_many_arguments)]
 fn handle_terminator(
-    tokenizer: &dyn Tokenizer,
+    tokenizer: &dyn SearchTokenizer,
     query_chars: &[char],
     i: usize,
     j: usize,
     escape_indices: &[usize],
     query_parts: &mut Vec<QueryPart>,
     operator_stack: &mut Vec<Operator>,
+    terms_searched: &mut HashSet<String>,
 ) {
     if i == j {
         return;
     }
 
-    let tokenize_result = tokenizer.wasm_tokenize(collect_slice(query_chars, i, j, escape_indices));
+    let tokenize_result = tokenizer.search_tokenize(collect_slice(query_chars, i, j, escape_indices), terms_searched);
     if tokenize_result.terms.is_empty() {
         return;
     }
@@ -133,8 +136,9 @@ fn handle_terminator(
     }
 }
 
-pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: bool) -> Vec<QueryPart> {
+pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_positions: bool) -> (Vec<QueryPart>, HashSet<String>) {
     let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
+    let mut terms_searched: HashSet<String> = HashSet::new();
 
     let mut query_parse_state: QueryParseState = QueryParseState::None;
     let mut did_encounter_escape = false;
@@ -163,7 +167,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: boo
                         should_expand: false,
                         is_expanded: false,
                         original_terms: None,
-                        terms: Some(tokenizer.wasm_tokenize(content).terms),
+                        terms: Some(tokenizer.search_tokenize(content, &mut terms_searched).terms),
                         part_type: QueryPartType::Phrase,
                         field_name: None,
                         children: None,
@@ -188,6 +192,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: boo
                         &escape_indices,
                         &mut query_parts,
                         &mut op_stack,
+                        &mut terms_searched,
                     );
 
                     i = j + 1;
@@ -245,6 +250,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: boo
                         &escape_indices,
                         &mut query_parts,
                         &mut op_stack,
+                        &mut terms_searched,
                     );
 
                     op_stack.push(Operator::Field(collect_slice(
@@ -275,6 +281,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: boo
                             &escape_indices,
                             &mut query_parts,
                             &mut op_stack,
+                            &mut terms_searched,
                         );
 
                         if query_parts.is_empty()
@@ -325,6 +332,7 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: boo
                         &escape_indices,
                         &mut query_parts,
                         &mut op_stack,
+                        &mut terms_searched,
                     );
 
                     op_stack.push(Operator::Not);
@@ -350,9 +358,9 @@ pub fn parse_query(query: String, tokenizer: &dyn Tokenizer, with_positions: boo
         j += 1;
     }
 
-    handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut op_stack);
+    handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut op_stack, &mut terms_searched);
 
-    query_parts
+    (query_parts, terms_searched)
 }
 
 #[cfg(test)]
@@ -464,7 +472,7 @@ pub mod test {
             max_term_len: 80,
         }, true);
 
-        super::parse_query(query.to_owned(), &tokenizer, true)
+        super::parse_query(query.to_owned(), &tokenizer, true).0
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
@@ -474,7 +482,7 @@ pub mod test {
             max_term_len: 80,
         }, true);
 
-        super::parse_query(query.to_owned(), &tokenizer, false)
+        super::parse_query(query.to_owned(), &tokenizer, false).0
     }
 
     // The tokenizer should not remove stop words no matter what when searching
@@ -485,7 +493,7 @@ pub mod test {
             max_term_len: 80,
         }, true);
 
-        super::parse_query(query.to_owned(), &tokenizer, true)
+        super::parse_query(query.to_owned(), &tokenizer, true).0
     }
 
     #[test]

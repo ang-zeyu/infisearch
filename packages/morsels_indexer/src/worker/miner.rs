@@ -1,12 +1,13 @@
-use morsels_common::tokenize::Tokenizer;
-use regex::Regex;
 use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::io::Write;
 use std::str;
 use std::sync::Arc;
 
+use regex::Regex;
 use rustc_hash::FxHashMap;
+
+use morsels_common::tokenize::IndexerTokenizer;
 
 use crate::FieldInfo;
 use crate::FieldInfos;
@@ -42,7 +43,7 @@ pub struct WorkerMiner {
     pub with_positions: bool,
     pub terms: FxHashMap<String, Vec<TermDoc>>,
     pub doc_infos: Vec<WorkerMinerDocInfo>,
-    pub tokenizer: Arc<dyn Tokenizer + Send + Sync>,
+    pub tokenizer: Arc<dyn IndexerTokenizer + Send + Sync>,
 
     #[cfg(debug_assertions)]
     pub id: usize,
@@ -139,7 +140,7 @@ impl WorkerMiner {
         field_infos: &Arc<FieldInfos>,
         with_positions: bool,
         expected_num_docs_per_reset: usize,
-        tokenizer: &Arc<dyn Tokenizer + Send + Sync>,
+        tokenizer: &Arc<dyn IndexerTokenizer + Send + Sync>,
         #[cfg(debug_assertions)]
         id: usize,
     ) -> Self {

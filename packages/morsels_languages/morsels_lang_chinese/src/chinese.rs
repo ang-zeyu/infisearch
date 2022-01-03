@@ -8,9 +8,7 @@ use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use smartstring::alias::String as SmartString;
 
-use morsels_common::tokenize::SearchTokenizeResult;
-use morsels_common::tokenize::TermInfo;
-use morsels_common::tokenize::Tokenizer as TokenizerTrait;
+use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, IndexerTokenizer, SearchTokenizer};
 
 lazy_static! {
     static ref PUNCTUATION_FILTER: Regex =
@@ -68,7 +66,7 @@ pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenize
     }
 }
 
-impl TokenizerTrait for Tokenizer {
+impl IndexerTokenizer for Tokenizer {
     fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
         text.make_ascii_lowercase();
         self.jieba
@@ -85,8 +83,10 @@ impl TokenizerTrait for Tokenizer {
                 acc
             })
     }
+}
 
-    fn wasm_tokenize(&self, mut text: String) -> SearchTokenizeResult {
+impl SearchTokenizer for Tokenizer {
+    fn search_tokenize(&self, mut text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -95,7 +95,17 @@ impl TokenizerTrait for Tokenizer {
             .jieba
             .cut_for_search(&text, false)
             .into_iter()
-            .map(|s| PUNCTUATION_FILTER.replace_all(s, "").into_owned())
+            .map(|s| {
+                terms_searched.insert(s.to_owned());
+
+                let replaced = PUNCTUATION_FILTER.replace_all(s, "");
+                if let Cow::Owned(replaced) = replaced {
+                    terms_searched.insert(replaced.clone());
+                    replaced
+                } else {
+                    replaced.into_owned()
+                }
+            })
             .filter(|s| !s.trim().is_empty())
             .collect();
 

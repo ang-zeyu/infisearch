@@ -17,7 +17,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Instant;
 
-use morsels_common::tokenize::Tokenizer;
+use morsels_common::tokenize::IndexerTokenizer;
 use morsels_common::{MorselsLanguageConfig, BITMAP_DOCINFO_DICT_TABLE_FILE, BitmapDocinfoDicttableReader};
 use morsels_lang_ascii::ascii;
 use morsels_lang_latin::latin;
@@ -428,7 +428,7 @@ impl Indexer {
         indexer
     }
 
-    fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn Tokenizer + Send + Sync> {
+    fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn IndexerTokenizer + Send + Sync> {
         match lang_config.lang.as_str() {
             "ascii" => {
                 if let Some(options) = lang_config.options.as_ref() {

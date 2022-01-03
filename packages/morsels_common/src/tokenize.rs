@@ -1,6 +1,7 @@
 use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
 use std::borrow::Cow;
+use std::collections::HashSet;
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -24,10 +25,12 @@ impl PartialEq for TermInfo {
     }
 }
 
-pub trait Tokenizer {
+pub trait IndexerTokenizer {
     fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>>;
+}
 
-    fn wasm_tokenize(&self, text: String) -> SearchTokenizeResult;
+pub trait SearchTokenizer {
+    fn search_tokenize(&self, text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult;
 
     fn is_stop_word(&self, term: &str) -> bool;
 

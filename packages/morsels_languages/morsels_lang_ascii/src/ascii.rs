@@ -10,9 +10,7 @@ use smartstring::alias::String as SmartString;
 use crate::ascii_folding_filter;
 use crate::stop_words::{get_stop_words_set, get_default_stop_words_set};
 use crate::utils::term_filter;
-use morsels_common::tokenize::SearchTokenizeResult;
-use morsels_common::tokenize::TermInfo;
-use morsels_common::tokenize::Tokenizer as TokenizerTrait;
+use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, IndexerTokenizer, SearchTokenizer};
 
 lazy_static! {
     pub static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.,;?!]\s+"#).unwrap();
@@ -65,39 +63,70 @@ pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenize
     }
 }
 
-impl Tokenizer {
-    #[inline(always)]
-    fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
-        let iter = slice
-            .split_whitespace()
-            .map(|term_slice| {
-                let ascii_folded = ascii_folding_filter::to_ascii(term_slice);
-                term_filter(ascii_folded)
-            })
-            .filter(|term| {
-                let term_byte_len = term.len();
-                term_byte_len > 0 && term_byte_len <= self.max_term_len
-            });
+pub fn ascii_and_nonword_filter<'a>(terms_searched: &mut HashSet<String>, term_slice: &'a str) -> Cow<'a, str> {
+    terms_searched.insert(term_slice.to_owned());
 
-        if self.ignore_stop_words {
-            return iter.filter(|term| !self.stop_words.contains(term.as_ref())).collect();
-        }
+    let mut ascii_replaced = ascii_folding_filter::to_ascii(term_slice);
+    if let Cow::Owned(inner) = ascii_replaced {
+        terms_searched.insert(inner.clone());
+        ascii_replaced = Cow::Owned(inner);
+    }
 
-        iter.collect()
+    if ascii_replaced.contains('\'') {
+        // Somewhat hardcoded fix for this common keyboard "issue"
+        terms_searched.insert(ascii_replaced.replace("'", "’"));
+    }
+
+    let term_filtered = term_filter(ascii_replaced);
+    if let Cow::Owned(inner) = term_filtered {
+        terms_searched.insert(inner.clone());
+        Cow::Owned(inner)
+    } else {
+        term_filtered
     }
 }
 
-impl TokenizerTrait for Tokenizer {
+impl IndexerTokenizer for Tokenizer {
     fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
         text.make_ascii_lowercase();
-        SENTENCE_SPLITTER.split(text).map(|sent_slice| self.tokenize_slice(sent_slice)).collect()
+        SENTENCE_SPLITTER.split(text)
+            .map(|sent_slice| {
+                let iter = sent_slice
+                    .split_whitespace()
+                    .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
+                    .filter(|term| {
+                        let term_byte_len = term.len();
+                        term_byte_len > 0 && term_byte_len <= self.max_term_len
+                    });
+        
+                if self.ignore_stop_words {
+                    iter.filter(|term| !self.stop_words.contains(term.as_ref())).collect()
+                } else {
+                    iter.collect()
+                }
+            })
+            .collect()
     }
+}
 
-    fn wasm_tokenize(&self, mut text: String) -> SearchTokenizeResult {
+impl SearchTokenizer for Tokenizer {
+    fn search_tokenize(&self, mut text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
+
         let should_expand = !text.ends_with(' ');
+
+        let terms = text
+            .split_whitespace()
+            .map(|term_slice| ascii_and_nonword_filter(terms_searched, term_slice))
+            .filter(|term| {
+                let term_byte_len = term.len();
+                term_byte_len > 0 && term_byte_len <= self.max_term_len
+            })
+            .map(|cow| cow.into_owned())
+            .collect();
+
         SearchTokenizeResult {
-            terms: self.tokenize_slice(&text).into_iter().map(|cow| cow.into_owned()).collect(),
+            terms,
             should_expand,
         }
     }

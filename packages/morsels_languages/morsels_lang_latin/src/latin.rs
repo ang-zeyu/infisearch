@@ -2,14 +2,13 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
 use rust_stemmers::{Algorithm, Stemmer};
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use smartstring::alias::String as SmartString;
 
-use morsels_common::tokenize::SearchTokenizeResult;
-use morsels_common::tokenize::TermInfo;
-use morsels_common::tokenize::Tokenizer as TokenizerTrait;
+use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, IndexerTokenizer, SearchTokenizer};
 use morsels_lang_ascii::ascii_folding_filter;
 use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
 use morsels_lang_ascii::stop_words::{get_stop_words_set, get_default_stop_words_set};
@@ -92,39 +91,59 @@ pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenize
     }
 }
 
-impl Tokenizer {
-    #[inline(always)]
-    fn tokenize_slice<'a>(&self, slice: &'a str) -> Vec<Cow<'a, str>> {
-        slice
+impl IndexerTokenizer for Tokenizer {
+    fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
+        text.make_ascii_lowercase();
+        SENTENCE_SPLITTER.split(text)
+            .map(|sent_slice| {
+                sent_slice
+                    .split_whitespace()
+                    .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
+                    .filter(|term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
+                    .map(|term_slice| {
+                        if let Cow::Owned(v) = self.stemmer.stem(&term_slice) {
+                            Cow::Owned(v)
+                        } else {
+                            term_slice
+                        }
+                    })
+                    .filter(|term| {
+                        let term_byte_len = term.len();
+                        term_byte_len > 0 && term_byte_len <= self.max_term_len
+                    })
+                    .collect()
+            })
+            .collect()
+    }
+}
+
+impl SearchTokenizer for Tokenizer {
+    fn search_tokenize(&self, mut text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult {
+        text.make_ascii_lowercase();
+
+        let should_expand = !text.ends_with(' ');
+
+        let terms = text
             .split_whitespace()
-            .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
-            .filter(|term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
             .map(|term_slice| {
-                if let Cow::Owned(v) = self.stemmer.stem(&term_slice) {
+                let preprocessed = ascii_and_nonword_filter(terms_searched, term_slice);
+
+                if let Cow::Owned(v) = self.stemmer.stem(&preprocessed) {
+                    terms_searched.insert(v.clone());
                     Cow::Owned(v)
                 } else {
-                    term_slice // unchanged
+                    preprocessed
                 }
             })
             .filter(|term| {
                 let term_byte_len = term.len();
                 term_byte_len > 0 && term_byte_len <= self.max_term_len
             })
-            .collect()
-    }
-}
+            .map(|cow| cow.into_owned())
+            .collect();
 
-impl TokenizerTrait for Tokenizer {
-    fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
-        text.make_ascii_lowercase();
-        SENTENCE_SPLITTER.split(text).map(|sent_slice| self.tokenize_slice(sent_slice)).collect()
-    }
-
-    fn wasm_tokenize(&self, mut text: String) -> SearchTokenizeResult {
-        text.make_ascii_lowercase();
-        let should_expand = !text.ends_with(' ');
         SearchTokenizeResult {
-            terms: self.tokenize_slice(&text).into_iter().map(|cow| cow.into_owned()).collect(),
+            terms,
             should_expand,
         }
     }

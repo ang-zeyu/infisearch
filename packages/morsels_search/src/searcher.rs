@@ -29,7 +29,7 @@ use morsels_lang_latin::latin;
 #[cfg(feature = "lang_chinese")]
 use morsels_lang_chinese::chinese;
 
-use morsels_common::tokenize::Tokenizer;
+use morsels_common::tokenize::SearchTokenizer;
 use morsels_common::MorselsLanguageConfig;
 use query_parser::{parse_query, QueryPart, QueryPartType};
 
@@ -72,7 +72,7 @@ struct SearcherOptions {
 #[wasm_bindgen]
 pub struct Searcher {
     dictionary: Dictionary,
-    tokenizer: Box<dyn Tokenizer>,
+    tokenizer: Box<dyn SearchTokenizer>,
     doc_info: DocInfo,
     pl_file_cache: PostingsListFileCache,
     searcher_config: SearcherConfig,
@@ -80,7 +80,7 @@ pub struct Searcher {
 }
 
 #[cfg(feature = "lang_ascii")]
-fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
+fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
     if let Some(options) = &mut lang_config.options {
         Box::new(ascii::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap(), true))
     } else {
@@ -89,7 +89,7 @@ fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> 
 }
 
 #[cfg(feature = "lang_latin")]
-fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
+fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
     if let Some(options) = &mut lang_config.options {
         Box::new(latin::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap(), true))
     } else {
@@ -98,7 +98,7 @@ fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> 
 }
 
 #[cfg(feature = "lang_chinese")]
-fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn Tokenizer> {
+fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
     if let Some(options) = &mut lang_config.options {
         Box::new(chinese::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap(), true))
     } else {
@@ -177,22 +177,16 @@ impl Searcher {
     }
 }
 
-fn get_searched_terms(query_parts: &[QueryPart], seen: &mut HashSet<String>, result: &mut Vec<String>) {
+fn add_processed_terms(query_parts: &[QueryPart], result: &mut HashSet<String>) {
     for query_part in query_parts {
         if let Some(terms) = &query_part.terms {
-            if query_part.is_stop_word_removed {
-                result.push(query_part.original_terms.as_ref().unwrap()[0].clone());
-            }
-
-            for term in terms {
-                if seen.contains(term) {
-                    continue;
+            if query_part.is_expanded || query_part.is_corrected {
+                for term in terms {
+                    result.insert(term.clone());
                 }
-                seen.insert(term.clone());
-                result.push(term.clone());
             }
         } else if let Some(children) = &query_part.children {
-            get_searched_terms(children, seen, result);
+            add_processed_terms(children, result);
         }
     }
 }
@@ -208,7 +202,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     let start = performance.now();
 
     let searcher_val = unsafe { &*searcher };
-    let mut query_parts = parse_query(
+    let (mut query_parts, mut terms_searched) = parse_query(
         query,
         &*searcher_val.tokenizer,
         searcher_val.searcher_config.indexing_config.with_positions,
@@ -240,13 +234,13 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
 
-    let mut searched_terms: Vec<String> = Vec::new();
-    get_searched_terms(&query_parts, &mut HashSet::new(), &mut searched_terms);
+    add_processed_terms(&query_parts, &mut terms_searched);
+    let terms_searched_vec: Vec<String> = terms_searched.into_iter().collect();
 
     let use_wand = is_free_text_query && searcher_val.searcher_config.searcher_options.use_wand.is_some();
     let wand_n = searcher_val.searcher_config.searcher_options.use_wand.unwrap_or(20);
     let result_limit = searcher_val.searcher_config.searcher_options.result_limit;
-    let query = searcher_val.create_query(searched_terms, query_parts, pls, result_limit, use_wand, wand_n);
+    let query = searcher_val.create_query(terms_searched_vec, query_parts, pls, result_limit, use_wand, wand_n);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());

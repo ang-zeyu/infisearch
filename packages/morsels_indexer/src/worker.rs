@@ -1,7 +1,6 @@
 pub mod miner;
 
 use dashmap::DashMap;
-use morsels_common::tokenize::Tokenizer;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Barrier;
@@ -9,6 +8,8 @@ use std::sync::Mutex;
 use std::thread;
 
 use crossbeam::channel::{Receiver, Sender};
+
+use morsels_common::tokenize::IndexerTokenizer;
 
 use crate::loader::LoaderResult;
 use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
@@ -77,7 +78,7 @@ pub fn worker(
     id: usize,
     sndr: Sender<WorkerToMainMessage>,
     rcvr: Receiver<MainToWorkerMessage>,
-    tokenizer: Arc<dyn Tokenizer + Send + Sync>,
+    tokenizer: Arc<dyn IndexerTokenizer + Send + Sync>,
     field_infos: Arc<FieldInfos>,
     indexing_config: Arc<MorselsIndexingConfig>,
     expected_num_docs_per_reset: usize,
