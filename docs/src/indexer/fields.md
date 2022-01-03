@@ -12,7 +12,7 @@ You may want to briefly take note of the other parameters under `fields_config` 
 {
   "fields_config": {
     "cache_all_field_stores": true,
-    "field_store_block_size": 250,
+    "field_store_block_size": 10000,
     "num_stores_per_dir": 1000,
     "fields": [
       {

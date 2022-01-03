@@ -6,7 +6,7 @@ This chapter outlines the possible tradeoffs you can make and summarises the rel
 
 ## Possible Tradeoffs
 
-The possible tradeoffs you can make are marked with ✔️. Those that are likely impossible are marked ❌, or in other words, you likely need a search server / SaaS for these options. Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked 😩.
+The possible tradeoffs you can make are marked with ✔️. Those that are likely impossible are marked ❌, or in other words, you likely need a search server / SaaS for these options. Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked 😩. The default tradeoff is marked ⭐.
 
 Latency is labelled in terms of `RTT` (round trip time), the maximum of which is `3`. Also note that the labelled `RTT` times are **maximums**. (e.g. if files are served from cache instead)
 
@@ -15,7 +15,7 @@ Latency is labelled in terms of `RTT` (round trip time), the maximum of which is
 | Fair Scalability,<br><span style="color: green">Little</span> File bloat          | ✔️ | 😩 | 😩 | 😩
 | Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | 😩 | 😩 | 😩 | 😩
 | Fair Scalability,<br><span style="color: red">Heavy</span> File bloat             | 😩 | 😩 | 😩 | 😩
-| Good Scalability,<br><span style="color: green">Little</span> File bloat          | ❌ | ✔️ | ✔️ | 😩
+| Good Scalability,<br><span style="color: green">Little</span> File bloat          | ❌ | ⭐ | ✔️ | 😩
 | Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | ❌ | ✔️ | ✔️ | 😩
 | Good Scalability,<br><span style="color: red">Heavy</span> File bloat             | ❌ | ✔️ | ✔️ | 😩
 | Excellent Scalability,<br><span style="color: green">Little</span> File bloat     | ❌ | ❌ | ❌ | ✔️
@@ -23,7 +23,7 @@ Latency is labelled in terms of `RTT` (round trip time), the maximum of which is
 | Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat        | ❌ | ❌ | ✔️ | 😩
 | Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)      | ❌ | ❌ | ❌ | ❌
 
-> Some roughly equivalent / nearby options are marked ✔️ as it would depend on the collection / use case.
+> Some roughly equivalent / nearby options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.
 
 ### Monolithic Index
 
@@ -64,12 +64,11 @@ The impacts of the two options here are discussed under the 2 main methods of re
 
 #### 2.1. Generating Result Previews from Source Files
 
-(`RTT=2`, Little-Moderate file bloat, Good scalability) (⭐ default)
+(`RTT=2`, Little-Moderate file bloat, Good scalability)
 
 Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (`RTT`) of network requests has to be made to retrieve said source files.
 
-However, it is also more feasible with this option to remove a round of network requests by **caching all field stores** up front.
-This is because in this option, field stores only store the [relative file path / link](indexer/fields.md#special-fields) from which to retrieve the source files, and are therefore fairly small.
+However, it is also more feasible with this option to remove a round of network requests by **caching all field stores** up front, as field stores only store the [relative file path / link](indexer/fields.md#special-fields) from which to retrieve the source files, and are therefore fairly small.
 
 For example, assuming each link takes an average of `25` bytes to encode (including json fluff), and `3MB` (ungzipped) is your "comfort zone", you can store up to `120000` document links in a single, cached field store!
 
@@ -89,13 +88,16 @@ You may want to use this option over **2.1** nevertheless if:
 
 
 > Refer to the demo [here](https://ang-zeyu.github.io/morsels-demo-1/) to see what `RTT=2` is like.
+
 #### Improving Either Option to `RTT=1`
 
 For moderately sized collections, we may also surmise that the **size of the index** (a low-level, compressed inverted index) is often far smaller than the **size of field stores** (which contain the raw document texts).
 
 The idea here therefore is to additionally **cache the index** (using `pl_limit`, `pl_cache_threshold`), removing an entire round of network requests.
 
-To further reduce the size of the index to be cached, take a look at the [other options](#other-options) section.
+⭐ This is also the default tradeoff made, using method 2.1.
+
+To further reduce the size of the index to be cached, therefore extending the feasibility of caching the entire index, take a look at the [other options](#other-options) section.
 
 ### 3. Excellent Scalability
 
@@ -118,14 +120,11 @@ Per **section 2.2**. No changes are needed here, as both the field stores and in
 
 ### Other Options
 
-There are 2 other options worth highlighting that can help reduce the index size. 
+There are 2 other options worth highlighting that can help reduce the index size, both of which are not active by default.
 
 - [`ignore_stop_words`](./indexer/language.md#note-on-stop-words)
-- [`with_positions`](./indexer/indexing.md#miscellaneous-options)
-
-Since the default settings (`RTT=2`, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.
-
-Positional information also takes up a considerable (up to **3-4** times larger) proportion of the index size.
+- [`with_positions`](./indexer/indexing.md#miscellaneous-options)<br>
+  Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size!
 
 If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.
 

@@ -27,7 +27,7 @@ impl Default for FieldsConfig {
     fn default() -> Self {
         // The default configuration required for @morsels/search-ui
         FieldsConfig {
-            field_store_block_size: 250,
+            field_store_block_size: 10000,
             num_stores_per_dir: get_default_num_field_stores_per_dir(),
             cache_all_field_stores: get_default_cache_all_field_stores(),
             fields: vec![

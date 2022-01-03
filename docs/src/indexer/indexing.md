@@ -21,9 +21,9 @@ The snippet below shows the default values:
       "HtmlLoader": {}
     },
     
-    "pl_limit": 16383,
+    "pl_limit": 5242880,
 
-    "pl_cache_threshold": 1048576,
+    "pl_cache_threshold": 0,
 
     "num_pls_per_dir": 1000,
 

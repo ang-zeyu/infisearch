@@ -11,7 +11,7 @@ You can run the cli command with the `--config-init` option to initialise the de
 {
   "fields_config": {
     "cache_all_field_stores": true,
-    "field_store_block_size": 250,
+    "field_store_block_size": 10000,
     "num_stores_per_dir": 1000,
     "fields": [
       {
@@ -57,8 +57,8 @@ You can run the cli command with the `--config-init` option to initialise the de
   },
   "indexing_config": {
     "num_docs_per_block": 1000,
-    "pl_limit": 16383,
-    "pl_cache_threshold": 1048576,
+    "pl_limit": 5242880,
+    "pl_cache_threshold": 0,
     "exclude": [
       "morsels_config.json"
     ],

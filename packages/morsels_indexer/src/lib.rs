@@ -52,7 +52,7 @@ fn get_default_num_threads() -> usize {
 }
 
 fn get_default_pl_limit() -> u32 {
-    16383
+    5242880
 }
 
 fn get_default_num_docs_per_block() -> u32 {
@@ -60,7 +60,7 @@ fn get_default_num_docs_per_block() -> u32 {
 }
 
 fn get_default_pl_cache_threshold() -> u32 {
-    1048576
+    0
 }
 
 fn get_default_exclude_patterns() -> Vec<String> {
