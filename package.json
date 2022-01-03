@@ -24,7 +24,7 @@
     "lintFix": "eslint packages/search-ui --ext .ts --fix && eslint packages/search --ext .ts --fix",
     "test": "cargo test && npm run e2e",
     "e2e": "npm-run-all --race --parallel dev e2eServer e2etest",
-    "e2eServer": "http-server ./e2e/output -p 3000 --cors -c-1",
+    "e2eServer": "http-server ./e2e/output -p 3000 --cors",
     "e2etest": "jest --runInBand",
     "installIndexer": "cargo install --path packages/morsels_indexer",
     "installMdbook": "rimraf ./packages/mdbook-morsels/search-ui-dist/* && cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist && cargo clean --release -p mdbook-morsels && cargo install --path packages/mdbook-morsels"
