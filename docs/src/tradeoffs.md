@@ -57,7 +57,8 @@ To achieve this result, you will need to ensure **everything** that is **potenti
 1. You would also want to set `field_store_block_size` to a fairly high number, and correspondingly set `cacheAllFieldStores` to `true`. This allows morsels to load the few field stores during initilisation and persistently cache them.
 
 > ⭐ This is what's being used by this documentation, since it is fairly small.<br><br>Nevertheless, `RTT=1/2` are still very acceptable settings under good network conditions. `RTT=3` may be slightly slow (`~600ms` assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br>
-> Coming Soon: More repo / test github pages for demonstrating the other settings
+>
+> Refer to the demo [here](https://ang-zeyu.github.io/morsels-demo-1/) to see what `RTT=2` is like.
 
 ### 2. `RTT=1/2`, Good Scalability, Moderate / Heavy File Bloat
 
@@ -75,7 +76,6 @@ For example, assuming each link takes an average of `25` bytes to encode (includ
 The relevant options are `pl_cache_threshold` and `field_store_block_size` (simply configure them similar to the earlier `RTT=0` case).
 
 > ⭐ This is the default settings! (`RTT=2`, Little file bloat, Good scalability)
-
 
 #### 2.2. Generating Result Previews from Field Stores
 

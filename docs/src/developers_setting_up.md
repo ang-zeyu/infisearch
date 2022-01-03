@@ -23,8 +23,3 @@ unused, | mapped to 'title' field, | mapped to 'body' field, | mapped to 'headin
 
 Once you have your test files, place them under the `<project-root>/test_files/1/source` directory. If using a custom file format, you will likely need to configure the [data and field mappings](./indexer/fields.md) as well. You can run `cargo run -p morsels_indexer <project-root>/test_files/1/source --config-init` to create the default configuration file as a template, and proceed from there.
 
----
-
-I am unable to release my test collections I conveniently had on hand for licensing reasons =(, and have yet to search for a freely available one.
-
-If you are aware of a widely available and easily integrated dataset, feel free to help supplement the docs here!
