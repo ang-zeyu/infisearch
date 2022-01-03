@@ -87,3 +87,8 @@ buildWinBinaries:
 buildLinuxBinaries:
 	cargo build --release --target x86_64-unknown-linux-gnu -p morsels_indexer
 	cargo build --release --target x86_64-unknown-linux-gnu -p mdbook-morsels
+
+zipBinaries:
+	zip -j target/search.morsels.zip packages/search-ui/dist/*
+	zip -j target/indexer.x86_64-pc-windows-msvc.zip target/x86_64-pc-windows-msvc/release/morsels.exe target/x86_64-pc-windows-msvc/release/mdbook-morsels.exe
+	zip -j target/indexer.x86_64-unknown-linux-gnu.zip target/x86_64-unknown-linux-gnu/release/morsels target/x86_64-unknown-linux-gnu/release/mdbook-morsels
