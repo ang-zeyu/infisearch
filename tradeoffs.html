@@ -202,13 +202,13 @@
 <p>When configuring morsels, there are several tradeoffs you need to keep in mind, which varies greatly on depending on your collection and use case. </p>
 <p>This chapter outlines the possible tradeoffs you can make and summarises the relevant options you would want to keep in mind.</p>
 <h2 id="possible-tradeoffs"><a class="header" href="#possible-tradeoffs">Possible Tradeoffs</a></h2>
-<p>The possible tradeoffs you can make are marked with ✔️. Those that are likely impossible are marked ❌, or in other words, you likely need a search server / SaaS for these options. Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked 😩.</p>
+<p>The possible tradeoffs you can make are marked with ✔️. Those that are likely impossible are marked ❌, or in other words, you likely need a search server / SaaS for these options. Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked 😩. The default tradeoff is marked ⭐.</p>
 <p>Latency is labelled in terms of <code>RTT</code> (round trip time), the maximum of which is <code>3</code>. Also note that the labelled <code>RTT</code> times are <strong>maximums</strong>. (e.g. if files are served from cache instead)</p>
 <table><thead><tr><th>Factor</th><th><code>RTT=0</code></th><th><code>RTT=1</code></th><th><code>RTT=2</code></th><th><code>RTT=3</code></th></tr></thead><tbody>
 <tr><td>Fair Scalability,<br><span style="color: green">Little</span> File bloat</td><td>✔️</td><td>😩</td><td>😩</td><td>😩</td></tr>
 <tr><td>Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
 <tr><td>Fair Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
-<tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
+<tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>⭐</td><td>✔️</td><td>😩</td></tr>
 <tr><td>Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
 <tr><td>Good Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
 <tr><td>Excellent Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
@@ -217,7 +217,7 @@
 <tr><td>Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
 </tbody></table>
 <blockquote>
-<p>Some roughly equivalent / nearby options are marked ✔️ as it would depend on the collection / use case.</p>
+<p>Some roughly equivalent / nearby options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.</p>
 </blockquote>
 <h3 id="monolithic-index"><a class="header" href="#monolithic-index">Monolithic Index</a></h3>
 <p>Of particular note, the only possible option under <code>RTT=0</code> is equivalent to using some other existing client side search library and generating a monolithic prebuilt index.</p>
@@ -257,10 +257,9 @@
 <h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
 <p>The impacts of the two options here are discussed under the 2 main methods of result preview generation discussed <a href="search_configuration.html#options-for-generating-result-previews">earlier</a>.</p>
 <h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
-<p>(<code>RTT=2</code>, Little-Moderate file bloat, Good scalability) (⭐ default)</p>
+<p>(<code>RTT=2</code>, Little-Moderate file bloat, Good scalability)</p>
 <p>Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files.</p>
-<p>However, it is also more feasible with this option to remove a round of network requests by <strong>caching all field stores</strong> up front.
-This is because in this option, field stores only store the <a href="indexer/fields.html#special-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
+<p>However, it is also more feasible with this option to remove a round of network requests by <strong>caching all field stores</strong> up front, as field stores only store the <a href="indexer/fields.html#special-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
 <p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your “comfort zone”, you can store up to <code>120000</code> document links in a single, cached field store!</p>
 <p>The relevant options here are <code>field_store_block_size</code> and <code>cacheAllFieldStores</code> (simply configure them similar to the earlier <code>RTT=0</code> case).</p>
 <h4 id="22-generating-result-previews-from-field-stores"><a class="header" href="#22-generating-result-previews-from-field-stores">2.2. Generating Result Previews from Field Stores</a></h4>
@@ -278,7 +277,8 @@ This is because in this option, field stores only store the <a href="indexer/fie
 <h4 id="improving-either-option-to-rtt1"><a class="header" href="#improving-either-option-to-rtt1">Improving Either Option to <code>RTT=1</code></a></h4>
 <p>For moderately sized collections, we may also surmise that the <strong>size of the index</strong> (a low-level, compressed inverted index) is often far smaller than the <strong>size of field stores</strong> (which contain the raw document texts).</p>
 <p>The idea here therefore is to additionally <strong>cache the index</strong> (using <code>pl_limit</code>, <code>pl_cache_threshold</code>), removing an entire round of network requests.</p>
-<p>To further reduce the size of the index to be cached, take a look at the <a href="#other-options">other options</a> section.</p>
+<p>⭐ This is also the default tradeoff made, using method 2.1.</p>
+<p>To further reduce the size of the index to be cached, therefore extending the feasibility of caching the entire index, take a look at the <a href="#other-options">other options</a> section.</p>
 <h3 id="3-excellent-scalability"><a class="header" href="#3-excellent-scalability">3. Excellent Scalability</a></h3>
 <p>The settings here follow from the section directly above, disregarding the compromises. That is,</p>
 <h4 id="31-generating-result-previews-from-source-files"><a class="header" href="#31-generating-result-previews-from-source-files">3.1. Generating Result Previews from Source Files</a></h4>
@@ -289,13 +289,12 @@ This is because in this option, field stores only store the <a href="indexer/fie
 <p>(<code>RTT=2</code>, Heavy File Bloat, Excellent Scalability)</p>
 <p>Per <strong>section 2.2</strong>. No changes are needed here, as both the field stores and index are fragmented.</p>
 <h3 id="other-options"><a class="header" href="#other-options">Other Options</a></h3>
-<p>There are 2 other options worth highlighting that can help reduce the index size. </p>
+<p>There are 2 other options worth highlighting that can help reduce the index size, both of which are not active by default.</p>
 <ul>
 <li><a href="./indexer/language.html#note-on-stop-words"><code>ignore_stop_words</code></a></li>
-<li><a href="./indexer/indexing.html#miscellaneous-options"><code>with_positions</code></a></li>
+<li><a href="./indexer/indexing.html#miscellaneous-options"><code>with_positions</code></a><br>
+Positional information takes up a considerable (up to <strong>3-4</strong> times larger) proportion of the index size!</li>
 </ul>
-<p>Since the default settings (<code>RTT=2</code>, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.</p>
-<p>Positional information also takes up a considerable (up to <strong>3-4</strong> times larger) proportion of the index size.</p>
 <p>If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.</p>
 <p>This would be especially useful if configuring for a <strong>monolithic index</strong> (<code>RTT=0</code>, Fair Scalability, Little File Bloat), or any <a href="#improving-either-option-to-rtt1">other options</a> which cache the index (not field stores) up front, as it reduces the index size to be retrieved on initialisation.</p>
 <h3 id="limits-of-scalability"><a class="header" href="#limits-of-scalability">Limits of Scalability</a></h3>
