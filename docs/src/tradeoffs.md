@@ -16,14 +16,14 @@ Latency is labelled in terms of `RTT` (round trip time), the maximum of which is
 | Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | 😩 | 😩 | 😩 | 😩
 | Fair Scalability,<br><span style="color: red">Heavy</span> File bloat             | 😩 | 😩 | 😩 | 😩
 | Good Scalability,<br><span style="color: green">Little</span> File bloat          | ❌ | ✔️ | ✔️ | 😩
-| Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | ❌ | ✔️ | 😩 | 😩
-| Good Scalability,<br><span style="color: red">Heavy</span> File bloat             | ❌ | ✔️ | 😩 | 😩
+| Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | ❌ | ✔️ | ✔️ | 😩
+| Good Scalability,<br><span style="color: red">Heavy</span> File bloat             | ❌ | ✔️ | ✔️ | 😩
 | Excellent Scalability,<br><span style="color: green">Little</span> File bloat     | ❌ | ❌ | ❌ | ✔️
 | Excellent Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat | ❌ | ❌ | ❌ | ✔️ 
 | Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat        | ❌ | ❌ | ✔️ | 😩
 | Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)      | ❌ | ❌ | ❌ | ❌
 
-> Some roughly equivalent / nearby options are still marked ✔️ (vs 😩), since the labels are subjective.
+> Some roughly equivalent / nearby options are marked ✔️ as it would depend on the collection / use case.
 
 ### Monolithic Index
 
@@ -57,37 +57,45 @@ To achieve this result, you will need to ensure **everything** that is **potenti
 1. You would also want to set `field_store_block_size` to a fairly high number, and correspondingly set `cacheAllFieldStores` to `true`. This allows morsels to load the few field stores during initilisation and persistently cache them.
 
 > ⭐ This is what's being used by this documentation, since it is fairly small.<br><br>Nevertheless, `RTT=1/2` are still very acceptable settings under good network conditions. `RTT=3` may be slightly slow (`~600ms` assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br>
->
-> Refer to the demo [here](https://ang-zeyu.github.io/morsels-demo-1/) to see what `RTT=2` is like.
 
 ### 2. `RTT=1/2`, Good Scalability, Moderate / Heavy File Bloat
 
-The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation discussed earlier [here](search_configuration.md#options-for-generating-result-previews).
+The impacts of the two options here are discussed under the 2 main methods of result preview generation discussed [earlier](search_configuration.md#options-for-generating-result-previews).
 
 #### 2.1. Generating Result Previews from Source Files
 
-On one hand, while generating result previews from source files greatly reduces file bloat, it does mean that an extra round (`RTT`) of network requests has to be made to retrieve said source files. Therefore, the tradeoff here is between **file bloat** and **`RTT`**.
+(`RTT=2`, Little-Moderate file bloat, Good scalability) (⭐ default)
 
-However, it is also more feasible with this option to remove a round of network requests by **compressing and caching** all field stores up front.
-This is because in this option, field stores only store the [relative file path](indexer/fields.md#special-fields) / link from which to retrieve the source files, and are therefore fairly small.
+Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (`RTT`) of network requests has to be made to retrieve said source files.
+
+However, it is also more feasible with this option to remove a round of network requests by **caching all field stores** up front.
+This is because in this option, field stores only store the [relative file path / link](indexer/fields.md#special-fields) from which to retrieve the source files, and are therefore fairly small.
 
 For example, assuming each link takes an average of `25` bytes to encode (including json fluff), and `3MB` (ungzipped) is your "comfort zone", you can store up to `120000` document links in a single, cached field store!
 
-The relevant options are `pl_cache_threshold` and `field_store_block_size` (simply configure them similar to the earlier `RTT=0` case).
-
-> ⭐ This is the default settings! (`RTT=2`, Little file bloat, Good scalability)
+The relevant options here are `field_store_block_size` and `cacheAllFieldStores` (simply configure them similar to the earlier `RTT=0` case).
 
 #### 2.2. Generating Result Previews from Field Stores
 
-(`RTT=1`, Moderate-Heavy file bloat, Good scalability)
+(`RTT=2`, Moderate-Heavy file bloat, Good scalability)
 
-It is also possible to achieve another trade off by using this method of preview generation.
+Generating result previews directly from field stores (making sure to specify `do_store` on the appropriate fields) avoids the extra mentioned round of network requests to retrieve said source files.
 
-As mentioned, generating result previews directly from field stores (making sure to specify `do_store` on the appropriate fields) avoids the extra mentioned round of network requests to retrieve said source files.
+This however requires fragmenting the field stores, increasing file bloat.
 
-Moreover, for moderately sized collections, we may surmise that the **size of the index** (a low-level, compressed inverted index) is often far smaller than the **size of field stores** (which contain the raw document texts).
+You may want to use this option over **2.1** nevertheless if:
+- Result previews cannot be generated from source files (`csv` files)
+- You want to increase result preview generation performance (as mentioned [here](search_configuration.md#2-from-field-stores))
 
-The idea here therefore is to **cache the index** (using `pl_limit`, `pl_cache_threshold`) and fragment the **field stores** (`field_store_block_size`), therefore reducing another `RTT`.
+
+> Refer to the demo [here](https://ang-zeyu.github.io/morsels-demo-1/) to see what `RTT=2` is like.
+#### Improving Either Option to `RTT=1`
+
+For moderately sized collections, we may also surmise that the **size of the index** (a low-level, compressed inverted index) is often far smaller than the **size of field stores** (which contain the raw document texts).
+
+The idea here therefore is to additionally **cache the index** (using `pl_limit`, `pl_cache_threshold`), removing an entire round of network requests.
+
+To further reduce the size of the index to be cached, take a look at the [other options](#other-options) section.
 
 ### 3. Excellent Scalability
 
@@ -95,19 +103,17 @@ The settings here follow from the section directly above, disregarding the compr
 
 #### 3.1. Generating Result Previews from Source Files
 
-(`RTT=3`, Excellent Scalability, Little-Moderate File Bloat)
+(`RTT=3`, Little-Moderate File Bloat, Excellent Scalability)
 
-Per **section 2.1**, The `RTT` compromise is accepted as is, without performing the caching of field stores mentioned.
+Per **section 2.1**, The `RTT` compromise is accepted as is in this case, without performing the caching of field stores mentioned.
 
-This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached.
+This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached, although, this is highly unlikely even for the most extreme cases (see the earlier example calculation of `120000` documents).
 
 #### 3.2. Generating Result Previews from Field Stores
 
-(`RTT=2`, Excellent Scalability, Heavy File Bloat)
+(`RTT=2`, Heavy File Bloat, Excellent Scalability)
 
-Per **section 2.2**, one simply needs to avoid the assumption that the index can be cached.
-
-Scalability is then ensured here by fragmenting both the index (using `pl_limit`) and field stores (`field_store_block_size`).
+Per **section 2.2**. No changes are needed here, as both the field stores and index are fragmented.
 
 
 ### Other Options
@@ -119,11 +125,11 @@ There are 2 other options worth highlighting that can help reduce the index size
 
 Since the default settings (`RTT=2`, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.
 
-Positional information also takes up a considerable proportion of the index size.
+Positional information also takes up a considerable (up to **3-4** times larger) proportion of the index size.
 
 If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.
 
-This would be especially useful if configuring for a **monolithic index** (`RTT=0`, Fair Scalability, Little File Bloat), or any other options which cache the index (not field stores) up front, as it reduces the index size to be retrieved up front.
+This would be especially useful if configuring for a **monolithic index** (`RTT=0`, Fair Scalability, Little File Bloat), or any [other options](#improving-either-option-to-rtt1) which cache the index (not field stores) up front, as it reduces the index size to be retrieved on initialisation.
 
 ### Limits of Scalability
 
