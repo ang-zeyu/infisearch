@@ -2877,15 +2877,15 @@ if (window.location.search) {
 <tr><td>Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
 <tr><td>Fair Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
 <tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
-<tr><td>Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>✔️</td><td>😩</td><td>😩</td></tr>
-<tr><td>Good Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>✔️</td><td>😩</td><td>😩</td></tr>
+<tr><td>Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
+<tr><td>Good Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
 <tr><td>Excellent Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
 <tr><td>Excellent Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
 <tr><td>Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>❌</td><td>✔️</td><td>😩</td></tr>
 <tr><td>Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
 </tbody></table>
 <blockquote>
-<p>Some roughly equivalent / nearby options are still marked ✔️ (vs 😩), since the labels are subjective.</p>
+<p>Some roughly equivalent / nearby options are marked ✔️ as it would depend on the collection / use case.</p>
 </blockquote>
 <h3 id="monolithic-index"><a class="header" href="#monolithic-index">Monolithic Index</a></h3>
 <p>Of particular note, the only possible option under <code>RTT=0</code> is equivalent to using some other existing client side search library and generating a monolithic prebuilt index.</p>
@@ -2921,35 +2921,41 @@ if (window.location.search) {
 </ol>
 <blockquote>
 <p>⭐ This is what’s being used by this documentation, since it is fairly small.<br><br>Nevertheless, <code>RTT=1/2</code> are still very acceptable settings under good network conditions. <code>RTT=3</code> may be slightly slow (<code>~600ms</code> assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br></p>
-<p>Refer to the demo <a href="https://ang-zeyu.github.io/morsels-demo-1/">here</a> to see what <code>RTT=2</code> is like.</p>
 </blockquote>
 <h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
-<p>The tradeoffs here a a little more complex; The impacts of various options are discussed under the 2 main methods of result preview generation discussed earlier <a href="search_configuration.html#options-for-generating-result-previews">here</a>.</p>
+<p>The impacts of the two options here are discussed under the 2 main methods of result preview generation discussed <a href="search_configuration.html#options-for-generating-result-previews">earlier</a>.</p>
 <h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
-<p>On one hand, while generating result previews from source files greatly reduces file bloat, it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files. Therefore, the tradeoff here is between <strong>file bloat</strong> and <strong><code>RTT</code></strong>.</p>
-<p>However, it is also more feasible with this option to remove a round of network requests by <strong>compressing and caching</strong> all field stores up front.
-This is because in this option, field stores only store the <a href="indexer/fields.html#special-fields">relative file path</a> / link from which to retrieve the source files, and are therefore fairly small.</p>
+<p>(<code>RTT=2</code>, Little-Moderate file bloat, Good scalability) (⭐ default)</p>
+<p>Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files.</p>
+<p>However, it is also more feasible with this option to remove a round of network requests by <strong>caching all field stores</strong> up front.
+This is because in this option, field stores only store the <a href="indexer/fields.html#special-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
 <p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your “comfort zone”, you can store up to <code>120000</code> document links in a single, cached field store!</p>
-<p>The relevant options are <code>pl_cache_threshold</code> and <code>field_store_block_size</code> (simply configure them similar to the earlier <code>RTT=0</code> case).</p>
-<blockquote>
-<p>⭐ This is the default settings! (<code>RTT=2</code>, Little file bloat, Good scalability)</p>
-</blockquote>
+<p>The relevant options here are <code>field_store_block_size</code> and <code>cacheAllFieldStores</code> (simply configure them similar to the earlier <code>RTT=0</code> case).</p>
 <h4 id="22-generating-result-previews-from-field-stores"><a class="header" href="#22-generating-result-previews-from-field-stores">2.2. Generating Result Previews from Field Stores</a></h4>
-<p>(<code>RTT=1</code>, Moderate-Heavy file bloat, Good scalability)</p>
-<p>It is also possible to achieve another trade off by using this method of preview generation.</p>
-<p>As mentioned, generating result previews directly from field stores (making sure to specify <code>do_store</code> on the appropriate fields) avoids the extra mentioned round of network requests to retrieve said source files.</p>
-<p>Moreover, for moderately sized collections, we may surmise that the <strong>size of the index</strong> (a low-level, compressed inverted index) is often far smaller than the <strong>size of field stores</strong> (which contain the raw document texts).</p>
-<p>The idea here therefore is to <strong>cache the index</strong> (using <code>pl_limit</code>, <code>pl_cache_threshold</code>) and fragment the <strong>field stores</strong> (<code>field_store_block_size</code>), therefore reducing another <code>RTT</code>.</p>
+<p>(<code>RTT=2</code>, Moderate-Heavy file bloat, Good scalability)</p>
+<p>Generating result previews directly from field stores (making sure to specify <code>do_store</code> on the appropriate fields) avoids the extra mentioned round of network requests to retrieve said source files.</p>
+<p>This however requires fragmenting the field stores, increasing file bloat.</p>
+<p>You may want to use this option over <strong>2.1</strong> nevertheless if:</p>
+<ul>
+<li>Result previews cannot be generated from source files (<code>csv</code> files)</li>
+<li>You want to increase result preview generation performance (as mentioned <a href="search_configuration.html#2-from-field-stores">here</a>)</li>
+</ul>
+<blockquote>
+<p>Refer to the demo <a href="https://ang-zeyu.github.io/morsels-demo-1/">here</a> to see what <code>RTT=2</code> is like.</p>
+</blockquote>
+<h4 id="improving-either-option-to-rtt1"><a class="header" href="#improving-either-option-to-rtt1">Improving Either Option to <code>RTT=1</code></a></h4>
+<p>For moderately sized collections, we may also surmise that the <strong>size of the index</strong> (a low-level, compressed inverted index) is often far smaller than the <strong>size of field stores</strong> (which contain the raw document texts).</p>
+<p>The idea here therefore is to additionally <strong>cache the index</strong> (using <code>pl_limit</code>, <code>pl_cache_threshold</code>), removing an entire round of network requests.</p>
+<p>To further reduce the size of the index to be cached, take a look at the <a href="tradeoffs.html#other-options">other options</a> section.</p>
 <h3 id="3-excellent-scalability"><a class="header" href="#3-excellent-scalability">3. Excellent Scalability</a></h3>
 <p>The settings here follow from the section directly above, disregarding the compromises. That is,</p>
 <h4 id="31-generating-result-previews-from-source-files"><a class="header" href="#31-generating-result-previews-from-source-files">3.1. Generating Result Previews from Source Files</a></h4>
-<p>(<code>RTT=3</code>, Excellent Scalability, Little-Moderate File Bloat)</p>
-<p>Per <strong>section 2.1</strong>, The <code>RTT</code> compromise is accepted as is, without performing the caching of field stores mentioned.</p>
-<p>This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached.</p>
+<p>(<code>RTT=3</code>, Little-Moderate File Bloat, Excellent Scalability)</p>
+<p>Per <strong>section 2.1</strong>, The <code>RTT</code> compromise is accepted as is in this case, without performing the caching of field stores mentioned.</p>
+<p>This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached, although, this is highly unlikely even for the most extreme cases (see the earlier example calculation of <code>120000</code> documents).</p>
 <h4 id="32-generating-result-previews-from-field-stores"><a class="header" href="#32-generating-result-previews-from-field-stores">3.2. Generating Result Previews from Field Stores</a></h4>
-<p>(<code>RTT=2</code>, Excellent Scalability, Heavy File Bloat)</p>
-<p>Per <strong>section 2.2</strong>, one simply needs to avoid the assumption that the index can be cached.</p>
-<p>Scalability is then ensured here by fragmenting both the index (using <code>pl_limit</code>) and field stores (<code>field_store_block_size</code>).</p>
+<p>(<code>RTT=2</code>, Heavy File Bloat, Excellent Scalability)</p>
+<p>Per <strong>section 2.2</strong>. No changes are needed here, as both the field stores and index are fragmented.</p>
 <h3 id="other-options"><a class="header" href="#other-options">Other Options</a></h3>
 <p>There are 2 other options worth highlighting that can help reduce the index size. </p>
 <ul>
@@ -2957,9 +2963,9 @@ This is because in this option, field stores only store the <a href="indexer/fie
 <li><a href="./indexer/indexing.html#miscellaneous-options"><code>with_positions</code></a></li>
 </ul>
 <p>Since the default settings (<code>RTT=2</code>, Little file bloat, Good scalability) fragments the index, stop word removal at indexing time is not done.</p>
-<p>Positional information also takes up a considerable proportion of the index size.</p>
+<p>Positional information also takes up a considerable (up to <strong>3-4</strong> times larger) proportion of the index size.</p>
 <p>If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.</p>
-<p>This would be especially useful if configuring for a <strong>monolithic index</strong> (<code>RTT=0</code>, Fair Scalability, Little File Bloat), or any other options which cache the index (not field stores) up front, as it reduces the index size to be retrieved up front.</p>
+<p>This would be especially useful if configuring for a <strong>monolithic index</strong> (<code>RTT=0</code>, Fair Scalability, Little File Bloat), or any <a href="tradeoffs.html#improving-either-option-to-rtt1">other options</a> which cache the index (not field stores) up front, as it reduces the index size to be retrieved on initialisation.</p>
 <h3 id="limits-of-scalability"><a class="header" href="#limits-of-scalability">Limits of Scalability</a></h3>
 <p>Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the default <code>pl_limit</code> of <code>16383</code> bytes, especially when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.</p>
 <p>Since larger index chunks are cached according to the <code>pl_cache_threshold</code>, the limit is relevant mostly during startup / initialisation only. That is, scalability is limited by the <strong>total size</strong> of <strong>index chunks which exceed the <code>pl_cache_threshold</code></strong> that will be <strong>retrieved upfront</strong>.</p>
