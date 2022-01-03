@@ -235,7 +235,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
 
     add_processed_terms(&query_parts, &mut terms_searched);
-    let terms_searched_vec: Vec<String> = terms_searched.into_iter().collect();
+    let terms_searched_vec: Vec<String> = terms_searched.into_iter().filter(|t| !t.is_empty()).collect();
 
     let use_wand = is_free_text_query && searcher_val.searcher_config.searcher_options.use_wand.is_some();
     let wand_n = searcher_val.searcher_config.searcher_options.use_wand.unwrap_or(20);
