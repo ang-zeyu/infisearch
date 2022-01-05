@@ -4,8 +4,6 @@ pub mod query_preprocessor;
 pub mod query_processor;
 pub mod query_retriever;
 
-use std::collections::HashSet;
-
 use morsels_common::BITMAP_DOCINFO_DICT_TABLE_FILE;
 use morsels_common::BitmapDocinfoDicttableReader;
 use morsels_common::dictionary;
@@ -177,13 +175,15 @@ impl Searcher {
     }
 }
 
-fn add_processed_terms(query_parts: &[QueryPart], result: &mut HashSet<String>) {
+fn add_processed_terms(query_parts: &[QueryPart], result: &mut Vec<Vec<String>>) {
     for query_part in query_parts {
         if let Some(terms) = &query_part.terms {
             if query_part.is_expanded || query_part.is_corrected {
+                let mut searched_terms = Vec::new();
                 for term in terms {
-                    result.insert(term.clone());
+                    searched_terms.push(term.clone());
                 }
+                result.push(searched_terms);
             }
         } else if let Some(children) = &query_part.children {
             add_processed_terms(children, result);
@@ -235,12 +235,11 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
 
     add_processed_terms(&query_parts, &mut terms_searched);
-    let terms_searched_vec: Vec<String> = terms_searched.into_iter().filter(|t| !t.is_empty()).collect();
 
     let use_wand = is_free_text_query && searcher_val.searcher_config.searcher_options.use_wand.is_some();
     let wand_n = searcher_val.searcher_config.searcher_options.use_wand.unwrap_or(20);
     let result_limit = searcher_val.searcher_config.searcher_options.result_limit;
-    let query = searcher_val.create_query(terms_searched_vec, query_parts, pls, result_limit, use_wand, wand_n);
+    let query = searcher_val.create_query(terms_searched, query_parts, pls, result_limit, use_wand, wand_n);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());

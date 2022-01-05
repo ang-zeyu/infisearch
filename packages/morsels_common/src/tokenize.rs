@@ -1,7 +1,6 @@
 use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
 use std::borrow::Cow;
-use std::collections::HashSet;
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -30,7 +29,7 @@ pub trait IndexerTokenizer {
 }
 
 pub trait SearchTokenizer {
-    fn search_tokenize(&self, text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult;
+    fn search_tokenize(&self, text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult;
 
     fn is_stop_word(&self, term: &str) -> bool;
 

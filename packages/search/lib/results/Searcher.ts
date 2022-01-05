@@ -184,7 +184,7 @@ class Searcher {
     });
 
     const result: {
-      searchedTerms: string[],
+      searchedTerms: string[][],
       queryParts: QueryPart[],
     } = await this.workerQueryPromises[query][queryId].promise;
 

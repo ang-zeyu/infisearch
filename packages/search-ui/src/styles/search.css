@@ -377,8 +377,7 @@
     font-weight: bold;
 }
 
-.morsels-ellipsis::before {
-    content: ' ... ';
+.morsels-ellipsis {
     font-weight: 500;
     opacity: 0.75;
 }

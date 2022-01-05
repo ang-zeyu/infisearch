@@ -76,7 +76,7 @@ impl PartialOrd for Position {
 
 #[wasm_bindgen]
 pub struct Query {
-    searched_terms: Vec<String>,
+    searched_terms: Vec<Vec<String>>,
     query_parts: Vec<QueryPart>,
     result_heap: BinaryHeap<DocResult>,
     results_retrieved: u32,
@@ -125,7 +125,7 @@ impl Query {
 impl Searcher {
     pub fn create_query(
         &self,
-        searched_terms: Vec<String>,
+        searched_terms: Vec<Vec<String>>,
         query_parts: Vec<QueryPart>,
         postings_lists: Vec<Rc<PostingsList>>,
         result_limit: Option<u32>,

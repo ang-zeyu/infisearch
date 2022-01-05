@@ -118,7 +118,7 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -126,14 +126,19 @@ impl SearchTokenizer for Tokenizer {
         let terms = text
             .split_whitespace()
             .map(|term_slice| {
-                let preprocessed = ascii_and_nonword_filter(terms_searched, term_slice);
+                let mut terms = Vec::new();
+                let preprocessed = ascii_and_nonword_filter(&mut terms, term_slice);
 
-                if let Cow::Owned(v) = self.stemmer.stem(&preprocessed) {
-                    terms_searched.insert(v.clone());
+                let stemmed = if let Cow::Owned(v) = self.stemmer.stem(&preprocessed) {
+                    terms.push(v.clone());
                     Cow::Owned(v)
                 } else {
                     preprocessed
-                }
+                };
+
+                terms_searched.push(terms);
+
+                stemmed
             })
             .filter(|term| {
                 let term_byte_len = term.len();

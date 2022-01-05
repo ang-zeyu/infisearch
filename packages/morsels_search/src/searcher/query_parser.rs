@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use morsels_common::tokenize::SearchTokenizer;
 use serde::Serialize;
 
@@ -92,7 +90,7 @@ fn handle_terminator(
     escape_indices: &[usize],
     query_parts: &mut Vec<QueryPart>,
     operator_stack: &mut Vec<Operator>,
-    terms_searched: &mut HashSet<String>,
+    terms_searched: &mut Vec<Vec<String>>,
 ) {
     if i == j {
         return;
@@ -136,9 +134,9 @@ fn handle_terminator(
     }
 }
 
-pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_positions: bool) -> (Vec<QueryPart>, HashSet<String>) {
+pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_positions: bool) -> (Vec<QueryPart>, Vec<Vec<String>>) {
     let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
-    let mut terms_searched: HashSet<String> = HashSet::new();
+    let mut terms_searched: Vec<Vec<String>> = Vec::new();
 
     let mut query_parse_state: QueryParseState = QueryParseState::None;
     let mut did_encounter_escape = false;

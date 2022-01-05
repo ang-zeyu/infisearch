@@ -86,7 +86,7 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -96,15 +96,19 @@ impl SearchTokenizer for Tokenizer {
             .cut_for_search(&text, false)
             .into_iter()
             .map(|s| {
-                terms_searched.insert(s.to_owned());
+                let mut terms = vec![s.to_owned()];
 
                 let replaced = PUNCTUATION_FILTER.replace_all(s, "");
-                if let Cow::Owned(replaced) = replaced {
-                    terms_searched.insert(replaced.clone());
+                let filtered = if let Cow::Owned(replaced) = replaced {
+                    terms.push(replaced.clone());
                     replaced
                 } else {
                     replaced.into_owned()
-                }
+                };
+
+                terms_searched.push(terms);
+
+                filtered
             })
             .filter(|s| !s.trim().is_empty())
             .collect();

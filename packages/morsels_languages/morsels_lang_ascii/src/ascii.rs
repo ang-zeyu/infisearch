@@ -63,23 +63,23 @@ pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenize
     }
 }
 
-pub fn ascii_and_nonword_filter<'a>(terms_searched: &mut HashSet<String>, term_slice: &'a str) -> Cow<'a, str> {
-    terms_searched.insert(term_slice.to_owned());
+pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slice: &'a str) -> Cow<'a, str> {
+    base_term_terms.push(term_slice.to_owned());
 
     let mut ascii_replaced = ascii_folding_filter::to_ascii(term_slice);
     if let Cow::Owned(inner) = ascii_replaced {
-        terms_searched.insert(inner.clone());
+        base_term_terms.push(inner.clone());
         ascii_replaced = Cow::Owned(inner);
     }
 
     if ascii_replaced.contains('\'') {
         // Somewhat hardcoded fix for this common keyboard "issue"
-        terms_searched.insert(ascii_replaced.replace("'", "’"));
+        base_term_terms.push(ascii_replaced.replace("'", "’"));
     }
 
     let term_filtered = term_filter(ascii_replaced);
     if let Cow::Owned(inner) = term_filtered {
-        terms_searched.insert(inner.clone());
+        base_term_terms.push(inner.clone());
         Cow::Owned(inner)
     } else {
         term_filtered
@@ -110,14 +110,19 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String, terms_searched: &mut HashSet<String>) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
 
         let terms = text
             .split_whitespace()
-            .map(|term_slice| ascii_and_nonword_filter(terms_searched, term_slice))
+            .map(|term_slice| {
+                let mut terms = Vec::new();
+                let filtered = ascii_and_nonword_filter(&mut terms, term_slice);
+                terms_searched.push(terms);
+                filtered
+            })
             .filter(|term| {
                 let term_byte_len = term.len();
                 term_byte_len > 0 && term_byte_len <= self.max_term_len

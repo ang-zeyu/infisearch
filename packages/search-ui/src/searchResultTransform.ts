@@ -24,12 +24,15 @@ interface FinalMatchResult {
   numberTermsMatched: number,
 }
 
+function createEllipses() {
+  return createElement('span', { class: 'morsels-ellipsis', 'aria-label': 'ellipses' }, ' ... ');
+}
+
 /*
  Finds, cuts, and highlights the best matching excerpt
  */
 function transformText(
   texts: [string, string][], // field name - field content pairs
-  sortedQueryTerms: string[],
   termRegexes: RegExp[],
   baseUrl: string,
   options: SearchUiOptions,
@@ -40,89 +43,123 @@ function transformText(
     headingBodyRender,
   } = options.uiOptions.resultsRenderOpts;
 
-  const lowerCasedSortedQueryTermsIndices: { [term: string]: number } = Object.create(null);
-  sortedQueryTerms.forEach((term, idx) => {
-    lowerCasedSortedQueryTermsIndices[term.toLowerCase()] = idx;
-  });
-
-  let overallBestNumberOfMatches: number = 0;
+  let bestNumTermMatches: number = 0;
 
   function getBestMatchResult(str: string): MatchResult {
-    let lastTermPositions: number[];
-    let lastClosestTermPositions: number[];
-    let lastNumberMatchedTerms: number;
-
-    for (const termRegex of termRegexes) {
-      lastTermPositions = sortedQueryTerms.map(() => -100000000);
-      lastClosestTermPositions = lastTermPositions.map((i) => i);
-      lastNumberMatchedTerms = 0;
-      let lastClosestWindowLen = 100000000;
-
-      let match = termRegex.exec(str);
-      if (!match) {
-        termRegex.lastIndex = 0;
-        continue;
-      }
-
-      while (match) {
-        const matchedText = match[2].toLowerCase();
-
-        const matchedQueryTermIdx = lowerCasedSortedQueryTermsIndices[matchedText];
-        lastTermPositions[matchedQueryTermIdx] = match.index + match[1].length;
-        if (match[1].length > 0) {
-          // For non whitespace tokenized languages, need to backtrack to allow capturing consecutive terms
-          termRegex.lastIndex = lastTermPositions[matchedQueryTermIdx];
-        }
-
-        const validLastTermPositions = lastTermPositions.filter((p) => p >= 0);
-        const windowLen = Math.max(...validLastTermPositions) - Math.min(...validLastTermPositions);
-
-        const isMoreTermsMatched = validLastTermPositions.length > lastNumberMatchedTerms;
-        if (isMoreTermsMatched || windowLen < lastClosestWindowLen) {
-          if (isMoreTermsMatched) {
-            lastNumberMatchedTerms = validLastTermPositions.length;
-          }
-          lastClosestWindowLen = windowLen;
-
-          lastClosestTermPositions = lastTermPositions.map((pos) => pos);
-        }
-
-        match = termRegex.exec(str);
-      }
-      termRegex.lastIndex = 0;
-
-      break;
+    // Get all matches first
+    const matches = termRegexes.map(r => Array.from(str.matchAll(r)));
+    if (!matches.some(innerMatches => innerMatches.length)) {
+      return { result: [], numberTermsMatched: 0 };
     }
 
+    // Find the closest window
+
+    let lastClosestTermPositions = termRegexes.map(() => -100000000);
+    let lastClosestWindowLen = 100000000;
+    let lastClosestTermLengths = termRegexes.map(() => 0);
+
+    // At each iteration, increment the lowest index match
+    const matchIndices = matches.map(() => 0);
+    const hasFinished =  matches.map((innerMatches) => !innerMatches.length);
+    const maxMatchLengths = matches.map(() => 0);
+
+    // Local to the loop; To avoid .map and reallocating
+    const matchPositions = matches.map(() => -1);
+
+    while (true) {
+      let lowestMatchPos = 10000000000;
+      let lowestMatchPosExclFinished = 10000000000;
+      let lowestMatchIndex = undefined;
+      let highestMatchPos = 0;
+
+      let hasLongerMatch = false;
+      let isEqualMatch = true;
+      for (let idx = 0; idx < matchIndices.length; idx++) {
+        const match = matches[idx][matchIndices[idx]];
+        if (!match) {
+          // No matches at all for this regex in this str
+          continue;
+        }
+
+        const matchedText = match[2];
+        if (matchedText.length > maxMatchLengths[idx]) {
+          // Prefer longer matches across all regexes
+          hasLongerMatch = true;
+          maxMatchLengths[idx] = matchedText.length;
+        }
+        isEqualMatch = isEqualMatch && matchedText.length === maxMatchLengths[idx];
+
+        const pos = match.index;
+        if (!hasFinished[idx] && pos < lowestMatchPosExclFinished) {
+          lowestMatchPosExclFinished = pos;
+          // Find the match with the smallest position for forwarding later
+          lowestMatchIndex = idx;
+        }
+        lowestMatchPos = Math.min(lowestMatchPos, pos);
+        highestMatchPos = Math.max(highestMatchPos, pos);
+
+        matchPositions[idx] = pos;
+      }
+
+      const windowLen = highestMatchPos - lowestMatchPos;
+      if (
+        hasLongerMatch
+        // If all matches are equally long as before, prefer the smaller window
+        || (isEqualMatch && windowLen < lastClosestWindowLen)
+      ) {
+        lastClosestWindowLen = windowLen;
+        lastClosestTermPositions = [...matchPositions];
+        lastClosestTermLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][0].length);
+      }
+
+      // Forward the match with the smallest position
+      if (lowestMatchIndex !== undefined) {
+        matchIndices[lowestMatchIndex] += 1;
+        if (matchIndices[lowestMatchIndex] >= matches[lowestMatchIndex].length) {
+          hasFinished[lowestMatchIndex] = true;
+          matchIndices[lowestMatchIndex] -= 1;
+          if (!hasFinished.some(finished => !finished)) {
+            break;
+          }
+        }
+      } else {
+        break;
+      }
+    }
+
+
     const lastClosestWindowPositions = lastClosestTermPositions
-      .map((pos, idx) => ({ pos, term: sortedQueryTerms[idx] }))
+      .map((pos, idx) => ({ pos, idx }))
       .filter((pair) => pair.pos >= 0)
       .sort((a, b) => a.pos - b.pos);
     const result: (string | HTMLElement)[] = [];
-    if (!lastClosestWindowPositions.length || lastNumberMatchedTerms < overallBestNumberOfMatches) {
-      return { result, numberTermsMatched: lastNumberMatchedTerms };
+    const numberTermsMatched = lastClosestWindowPositions.length;
+    if (numberTermsMatched < bestNumTermMatches) {
+      return { result, numberTermsMatched };
     }
 
     let prevHighlightEndPos = 0;
     for (let i = 0; i < lastClosestWindowPositions.length; i += 1) {
-      const { pos, term } = lastClosestWindowPositions[i];
-      const highlightEndPos = pos + term.length;
+      const { pos, idx } = lastClosestWindowPositions[i];
+      const highlightEndPos = pos + lastClosestTermLengths[idx];
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
-        result.push(createElement('span', { class: 'morsels-ellipsis' }));
+        result.push(createEllipses());
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
-        result.push(highlightRender(createElement, options, term));
+        result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
-      } else {
+      } else if (pos >= prevHighlightEndPos) {
         result.pop();
         result.push(str.substring(prevHighlightEndPos, pos));
-        result.push(highlightRender(createElement, options, term));
+        result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
         result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
+      } else {
+        continue;
       }
       prevHighlightEndPos = highlightEndPos;
     }
-    result.push(createElement('span', { class: 'morsels-ellipsis' }));
+    result.push(createEllipses());
 
-    return { result, numberTermsMatched: lastNumberMatchedTerms };
+    return { result, numberTermsMatched };
   }
 
   let lastIncludedHeading = -1;
@@ -137,11 +174,11 @@ function transformText(
     }
 
     const { result, numberTermsMatched } = getBestMatchResult(item[1]);
-    if (numberTermsMatched === 0 || numberTermsMatched < overallBestNumberOfMatches) {
+    if (numberTermsMatched === 0 || numberTermsMatched < bestNumTermMatches) {
       continue;
-    } else if (numberTermsMatched > overallBestNumberOfMatches) {
+    } else if (numberTermsMatched > bestNumTermMatches) {
       finalMatchResults = [];
-      overallBestNumberOfMatches = numberTermsMatched;
+      bestNumTermMatches = numberTermsMatched;
     }
 
     // Find a new heading this text is under
@@ -187,7 +224,6 @@ function transformText(
 function transformJson(
   json: any,
   loaderConfig: any,
-  sortedQueryTerms: string[],
   termRegexes: RegExp[],
   baseUrl: string,
   options: SearchUiOptions,
@@ -211,7 +247,7 @@ function transformJson(
 
   return {
     title: titleKey && json[titleKey],
-    bodies: transformText(fields, sortedQueryTerms, termRegexes, baseUrl, options),
+    bodies: transformText(fields, termRegexes, baseUrl, options),
   };
 }
 
@@ -223,7 +259,6 @@ function transformJson(
 function transformHtml(
   doc: Document,
   loaderConfig: any,
-  sortedQueryTerms: string[],
   termRegexes: RegExp[],
   baseUrl: string,
   options: SearchUiOptions,
@@ -292,7 +327,7 @@ function transformHtml(
   return {
     title,
     bodies: transformText(
-      fields, sortedQueryTerms, termRegexes, baseUrl, options,
+      fields, termRegexes, baseUrl, options,
     ),
   };
 }
@@ -357,7 +392,6 @@ async function singleResultRender(
   if (hasStoredContentField) {
     resultHeadingsAndTexts = transformText(
       fields.filter((v) => !nonContentFields.has(v[0])),
-      query.searchedTerms,
       termRegexes,
       linkToAttach,
       options,
@@ -370,14 +404,14 @@ async function singleResultRender(
     const doc = domParser.parseFromString(asText, 'text/html');
 
     const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
-      doc, loaderConfigs.HtmlLoader, query.searchedTerms, termRegexes, linkToAttach, options,
+      doc, loaderConfigs.HtmlLoader, termRegexes, linkToAttach, options,
     );
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
   } else if (fullLink.endsWith('.txt') && loaderConfigs.TxtLoader) {
     const asText = await (await fetch(fullLink)).text();
     resultHeadingsAndTexts = transformText(
-      [['body', asText]], query.searchedTerms, termRegexes, linkToAttach, options,
+      [['body', asText]], termRegexes, linkToAttach, options,
     );
   } else {
     const fullLinkUrl = parseURL(fullLink);
@@ -387,7 +421,7 @@ async function singleResultRender(
       const { title: newTitle, bodies: newBodies } = transformJson(
         fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
         loaderConfigs.JsonLoader,
-        query.searchedTerms, termRegexes, linkToAttach, options,
+        termRegexes, linkToAttach, options,
       );
       resultTitle = newTitle || resultTitle;
       resultHeadingsAndTexts = newBodies;
@@ -412,19 +446,25 @@ export function resultsRender(
   results: Result[],
   query: Query,
 ): Promise<HTMLElement[]> {
-  const termsJoined = query.searchedTerms.map((t) => `(${escapeStringRegexp(t)})`).join('|');
-  const boundariedRegex = new RegExp(`(^|\\W)(${termsJoined})(?=\\W|$)`, 'gi');
-  const nonEndBoundariedRegex = new RegExp(`(^|\\W)(${termsJoined})`, 'gi');
-  const nonBoundariedRegex = new RegExp(`()(${termsJoined})`, 'gi');
-
   const termRegexes: RegExp[] = [];
-  // A little hardcoded, not so pretty but gets the job done for now
-  if (config.langConfig.lang === 'ascii') {
-    termRegexes.push(boundariedRegex);
-  } else if (config.langConfig.lang === 'latin') {
-    termRegexes.push(nonEndBoundariedRegex);
-  } else if (config.langConfig.lang === 'chinese') {
-    termRegexes.push(nonBoundariedRegex);
+
+  for (const innerTerms of query.searchedTerms) {
+    const innerTermsJoined = innerTerms
+      .map(t => `(${escapeStringRegexp(t)})`)
+      .sort((a, b) => b.length - a.length)
+      .join('|');
+
+    // A little hardcoded, not so pretty but gets the job done for now
+    if (config.langConfig.lang === 'ascii') {
+      const boundariedRegex = new RegExp(`(^|\\W)(${innerTermsJoined})(?=\\W|$)`, 'gi');
+      termRegexes.push(boundariedRegex);
+    } else if (config.langConfig.lang === 'latin') {
+      const nonEndBoundariedRegex = new RegExp(`(^|\\W)(${innerTermsJoined}\\W?)`, 'gi');
+      termRegexes.push(nonEndBoundariedRegex);
+    } else if (config.langConfig.lang === 'chinese') {
+      const nonBoundariedRegex = new RegExp(`()(${innerTermsJoined})`, 'gi');
+      termRegexes.push(nonBoundariedRegex);
+    }
   }
 
   const hasStoredContentField = config.fieldInfos.find((info) => info.do_store
