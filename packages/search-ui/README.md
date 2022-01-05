@@ -49,7 +49,7 @@ This tool should be able to handle `800MB` **pure text** (not counting things li
 
 1. **Latency** & File Bloat
 
-   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree (a demo on a 500MB 10000 document collection is available [here](https://ang-zeyu.github.io/morsels-demo-1/)).
+   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree (a demo on a roughly 500MB, 50000 document collection is available [here](https://ang-zeyu.github.io/morsels-demo-1/)).
 
    Nevertheless, this tradeoff can also be [configured](https://ang-zeyu.github.io/morsels/tradeoffs.html#tradeoffs) to varying degrees. I.e., morsels can also function much like other monolithic pre-built index options for smaller collections.
 
