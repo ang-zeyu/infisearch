@@ -95,12 +95,15 @@ impl SearchTokenizer for Tokenizer {
             .jieba
             .cut_for_search(&text, false)
             .into_iter()
+            .filter(|s| !s.trim().is_empty())
             .map(|s| {
                 let mut terms = vec![s.to_owned()];
 
                 let replaced = PUNCTUATION_FILTER.replace_all(s, "");
                 let filtered = if let Cow::Owned(replaced) = replaced {
-                    terms.push(replaced.clone());
+                    if !replaced.trim().is_empty() {
+                        terms.push(replaced.clone());
+                    }
                     replaced
                 } else {
                     replaced.into_owned()

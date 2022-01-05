@@ -183,7 +183,9 @@ fn add_processed_terms(query_parts: &[QueryPart], result: &mut Vec<Vec<String>>)
                 for term in terms {
                     searched_terms.push(term.clone());
                 }
-                result.push(searched_terms);
+                if !searched_terms.is_empty() {
+                    result.push(searched_terms);
+                }
             }
         } else if let Some(children) = &query_part.children {
             add_processed_terms(children, result);

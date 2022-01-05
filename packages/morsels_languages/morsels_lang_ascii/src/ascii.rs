@@ -79,7 +79,9 @@ pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slic
 
     let term_filtered = term_filter(ascii_replaced);
     if let Cow::Owned(inner) = term_filtered {
-        base_term_terms.push(inner.clone());
+        if !inner.is_empty() {
+            base_term_terms.push(inner.clone());
+        }
         Cow::Owned(inner)
     } else {
         term_filtered
