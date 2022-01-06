@@ -369,6 +369,7 @@ impl Indexer {
 
         let mut workers = Vec::with_capacity(num_threads);
         for i in 0..num_threads {
+            let id = i;
             let tx_worker_clone = tx_worker.clone();
             let rx_worker_clone = rx_worker.clone();
             let tokenize_clone = Arc::clone(&tokenizer);
@@ -377,10 +378,10 @@ impl Indexer {
             let num_workers_writing_blocks_clone = Arc::clone(&num_workers_writing_blocks);
 
             workers.push(Worker {
-                id: i as usize,
+                id,
                 join_handle: std::thread::spawn(move || {
                     worker::worker(
-                        i as usize,
+                        id,
                         tx_worker_clone,
                         rx_worker_clone,
                         tokenize_clone,

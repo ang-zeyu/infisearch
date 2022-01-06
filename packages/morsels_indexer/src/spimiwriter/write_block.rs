@@ -14,6 +14,7 @@ pub fn write_block(combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>>, output_
     combined_terms_vec.sort_by(|a, b| a.0.cmp(&b.0));
     let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
     let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
+
     #[cfg(debug_assertions)]
     println!(
         "Writing bsbi block {} to {}, num terms {}",
@@ -21,10 +22,11 @@ pub fn write_block(combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>>, output_
         output_file_path.to_str().unwrap(),
         combined_terms_vec.len()
     );
+
     let df = File::create(dict_output_file_path)
         .expect("Failed to open temporary dictionary table for writing.");
     let mut buffered_writer_dict = BufWriter::new(df);
-    let f = File::create(output_file_path).expect("Failed to open temporary dictionary string for writing.");
+    let f = File::create(output_file_path).expect("Failed to open temporary block file for writing.");
     let mut buffered_writer = BufWriter::with_capacity(819200, f);
     for (term, workers_term_docs) in combined_terms_vec {
         buffered_writer_dict.write_all(&(term.len() as u8).to_le_bytes()).unwrap();
@@ -48,8 +50,10 @@ pub fn write_block(combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>>, output_
 
             buffered_writer.write_all(&term_doc_and_iter.0.doc_id.to_le_bytes()).unwrap();
 
-            let num_fields =
-                term_doc_and_iter.0.doc_fields.iter().filter(|doc_field| doc_field.field_tf > 0).count() as u8;
+            let num_fields = term_doc_and_iter.0.doc_fields
+                .iter()
+                .filter(|doc_field| doc_field.field_tf > 0)
+                .count() as u8;
             buffered_writer.write_all(&[num_fields]).unwrap();
 
             for (field_id, doc_field) in term_doc_and_iter.0.doc_fields.into_iter().enumerate() {
