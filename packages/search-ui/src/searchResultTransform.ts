@@ -456,10 +456,10 @@ export function resultsRender(
 
     // A little hardcoded, not so pretty but gets the job done for now
     if (config.langConfig.lang === 'ascii') {
-      const boundariedRegex = new RegExp(`(^|\\W)(${innerTermsJoined})(?=\\W|$)`, 'gi');
+      const boundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})(?=\\W|$)`, 'gi');
       termRegexes.push(boundariedRegex);
     } else if (config.langConfig.lang === 'latin') {
-      const nonEndBoundariedRegex = new RegExp(`(^|\\W)(${innerTermsJoined}\\W?)`, 'gi');
+      const nonEndBoundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined}\\W?)`, 'gi');
       termRegexes.push(nonEndBoundariedRegex);
     } else if (config.langConfig.lang === 'chinese') {
       const nonBoundariedRegex = new RegExp(`()(${innerTermsJoined})`, 'gi');
