@@ -81,6 +81,21 @@ fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usi
         .collect()
 }
 
+fn is_double_quote(c: char) -> bool {
+    match c {
+        '"' |
+        '″' |
+        '‶' |
+        '“' |
+        '”' |
+        '❝' |
+        '❞' |
+        '＂'
+        => true,
+        _ => false
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn handle_terminator(
     tokenizer: &dyn SearchTokenizer,
@@ -155,7 +170,7 @@ pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_position
 
         match query_parse_state {
             QueryParseState::Quote => {
-                if !did_encounter_escape && c == '"' {
+                if !did_encounter_escape && is_double_quote(c) {
                     let content = collect_slice(&query_chars, i, j, &escape_indices);
                     query_parse_state = QueryParseState::None;
 
@@ -181,7 +196,7 @@ pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_position
                 }
             }
             QueryParseState::None => {
-                if !did_encounter_escape && ((with_positions && c == '"') || c == '(' || c == ')') {
+                if !did_encounter_escape && ((with_positions && is_double_quote(c)) || c == '(' || c == ')') {
                     handle_terminator(
                         tokenizer,
                         &query_chars,
@@ -195,49 +210,46 @@ pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_position
 
                     i = j + 1;
 
-                    match c {
-                        '"' => query_parse_state = QueryParseState::Quote,
-                        '(' => {
-                            query_parts.push(QueryPart {
-                                is_corrected: false,
-                                is_stop_word_removed: false,
-                                should_expand: false,
-                                is_expanded: false,
-                                original_terms: None,
-                                terms: None,
-                                part_type: QueryPartType::Bracket,
-                                field_name: None,
-                                children: None,
-                            });
-                            op_stack.push(Operator::OpenGroup);
-                            last_possible_unaryop_idx = i;
-                        }
-                        ')' => {
-                            if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup)
-                            {
-                                let mut children: Vec<QueryPart> = Vec::new();
-                                while let Some(mut last_part) = query_parts.pop() {
-                                    if let QueryPartType::Bracket = last_part.part_type {
-                                        if last_part.children.is_none() {
-                                            children.reverse();
-                                            last_part.children = Some(children);
-                                            query_parts.push(last_part);
+                    if is_double_quote(c) {
+                        query_parse_state = QueryParseState::Quote;
+                    } else if c == '(' {
+                        query_parts.push(QueryPart {
+                            is_corrected: false,
+                            is_stop_word_removed: false,
+                            should_expand: false,
+                            is_expanded: false,
+                            original_terms: None,
+                            terms: None,
+                            part_type: QueryPartType::Bracket,
+                            field_name: None,
+                            children: None,
+                        });
+                        op_stack.push(Operator::OpenGroup);
+                        last_possible_unaryop_idx = i;
+                    } else if c == ')' {
+                        if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup)
+                        {
+                            let mut children: Vec<QueryPart> = Vec::new();
+                            while let Some(mut last_part) = query_parts.pop() {
+                                if let QueryPartType::Bracket = last_part.part_type {
+                                    if last_part.children.is_none() {
+                                        children.reverse();
+                                        last_part.children = Some(children);
+                                        query_parts.push(last_part);
 
-                                            op_stack.pop();
-                                            handle_op(&mut query_parts, &mut op_stack);
-                                            break;
-                                        } else {
-                                            // Nested parentheses
-                                            children.push(last_part);
-                                        }
+                                        op_stack.pop();
+                                        handle_op(&mut query_parts, &mut op_stack);
+                                        break;
                                     } else {
+                                        // Nested parentheses
                                         children.push(last_part);
                                     }
+                                } else {
+                                    children.push(last_part);
                                 }
                             }
-                            last_possible_unaryop_idx = i;
                         }
-                        _ => {}
+                        last_possible_unaryop_idx = i;
                     }
                 } else if c == ':' && !did_encounter_escape && last_possible_unaryop_idx >= i && j > i {
                     handle_terminator(
