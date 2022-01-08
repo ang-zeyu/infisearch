@@ -1,0 +1,41 @@
+name: Build Binaries
+on:
+  push:
+    branches:
+      - "!*"
+    tags:
+      - "v*"
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-apple-darwin
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Build indexer x86_64
+        run: cargo build --release --target x86_64-apple-darwin -p morsels_indexer
+      - name: Build mdbook plugin x86_64
+        run: cargo build --release --target x86_64-apple-darwin -p mdbook-morsels
+      - name: Zip binaries
+        run: zip -j target/indexer.x86_64-apple-darwin.zip target/x86_64-apple-darwin/release/morsels target/x86_64-apple-darwin/release/mdbook-morsels
+
+      - name: Build indexer aarch64
+        run: cargo build --release --target aarch64-apple-darwin -p morsels_indexer
+      - name: Build mdbook plugin aarch64
+        run: cargo build --release --target aarch64-apple-darwin -p mdbook-morsels
+      - name: Zip binaries
+        run: zip -j target/indexer.aarch64-apple-darwin.zip target/aarch64-apple-darwin/release/morsels target/aarch64-apple-darwin/release/mdbook-morsels
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/indexer.*.zip
+          file_glob: True
+          tag: ${{ github.ref }}
