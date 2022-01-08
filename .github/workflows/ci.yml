@@ -5,6 +5,25 @@ on:
       - main
 jobs:
   ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v1
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14'
+      - run: npm i -g npm
+      - run: npm run setup
+      - run: npm run test
+  build-docs:
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,13 +32,12 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
       - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - run: cargo install mdbook
       - uses: actions/setup-node@v1
         with:
           node-version: '14'
       - run: npm i -g npm
       - run: npm run setup
-      - run: npm run test
+      - run: cargo install mdbook
       - run: cargo clean --release -p morsels_indexer
       - run: npm run installIndexer
       - run: npm run buildSearch
