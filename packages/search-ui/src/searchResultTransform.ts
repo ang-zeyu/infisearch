@@ -447,10 +447,13 @@ export function resultsRender(
   query: Query,
 ): Promise<HTMLElement[]> {
   const termRegexes: RegExp[] = [];
-
+  const searchedTerms: string[] = [];
   for (const innerTerms of query.searchedTerms) {
     const innerTermsJoined = innerTerms
-      .map(t => `(${escapeStringRegexp(t)})`)
+      .map(t => {
+        searchedTerms.push(t);
+        return `(${escapeStringRegexp(t)})`;
+      })
       .sort((a, b) => b.length - a.length)
       .join('|');
 
@@ -470,10 +473,9 @@ export function resultsRender(
   const hasStoredContentField = config.fieldInfos.find((info) => info.do_store
       && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
 
-  const searchedTermsJSON = JSON.stringify(query.searchedTerms);
   return Promise.all(results.map(
     (result) => singleResultRender(
-      result, options, config, hasStoredContentField, query, searchedTermsJSON, termRegexes,
+      result, options, config, hasStoredContentField, query, JSON.stringify(searchedTerms), termRegexes,
     ),
   ));
 }
