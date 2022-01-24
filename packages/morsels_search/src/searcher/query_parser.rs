@@ -118,33 +118,21 @@ fn handle_terminator(
 
     let mut is_first = true;
     for term in tokenize_result.terms {
+        query_parts.push(QueryPart {
+            is_corrected: false,
+            is_stop_word_removed: false,
+            should_expand: tokenize_result.should_expand,
+            is_expanded: false,
+            original_terms: None,
+            terms: Some(vec![term]),
+            part_type: QueryPartType::Term,
+            field_name: None,
+            children: None,
+        });
+
         if is_first {
             is_first = false;
-
-            query_parts.push(QueryPart {
-                is_corrected: false,
-                is_stop_word_removed: false,
-                should_expand: tokenize_result.should_expand,
-                is_expanded: false,
-                original_terms: None,
-                terms: Some(vec![term]),
-                part_type: QueryPartType::Term,
-                field_name: None,
-                children: None,
-            });
             handle_op(query_parts, operator_stack);
-        } else {
-            query_parts.push(QueryPart {
-                is_corrected: false,
-                is_stop_word_removed: false,
-                should_expand: tokenize_result.should_expand,
-                is_expanded: false,
-                original_terms: None,
-                terms: Some(vec![term]),
-                part_type: QueryPartType::Term,
-                field_name: None,
-                children: None,
-            });
         }
     }
 }
