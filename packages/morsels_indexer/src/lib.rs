@@ -101,6 +101,9 @@ pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_exclude_patterns")]
     exclude: Vec<String>,
 
+    #[serde(skip, default = "Vec::new")]
+    exclude_patterns: Vec<Pattern>,
+
     #[serde(default = "get_default_loader_configs")]
     loader_configs: FxHashMap<String, serde_json::Value>,
 
@@ -113,16 +116,20 @@ pub struct MorselsIndexingConfig {
 
 impl Default for MorselsIndexingConfig {
     fn default() -> Self {
-        MorselsIndexingConfig {
+        let mut indexing_config = MorselsIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
             pl_limit: get_default_pl_limit(),
             pl_cache_threshold: get_default_pl_cache_threshold(),
             exclude: get_default_exclude_patterns(),
+            exclude_patterns: Vec::new(),
             loader_configs: get_default_loader_configs(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
             with_positions: get_default_with_positions(),
-        }
+        };
+
+        indexing_config.init_excludes();
+        indexing_config
     }
 }
 
@@ -143,11 +150,11 @@ impl MorselsIndexingConfig {
         loaders
     }
 
-    pub fn get_excludes_from_config(&self) -> Vec<Pattern> {
-        self.exclude
+    pub fn init_excludes(&mut self) {
+        self.exclude_patterns = self.exclude
             .iter()
             .map(|pat_str| Pattern::new(pat_str).expect("Invalid exclude glob pattern!"))
-            .collect()
+            .collect();
     }
 }
 
@@ -161,6 +168,16 @@ pub struct MorselsConfig {
     pub indexing_config: MorselsIndexingConfig,
     #[serde(skip)]
     pub raw_config: String,
+}
+
+impl MorselsConfig {
+    pub fn new(raw_config: String) -> Self {
+        let mut config: MorselsConfig = serde_json::from_str(&raw_config)
+            .expect("morsels_config.json does not match schema!");
+        config.raw_config = raw_config;
+        config.indexing_config.init_excludes();
+        config
+    }
 }
 
 // Separate struct to support serializing for --config-init option but not output config
@@ -463,6 +480,10 @@ impl Indexer {
     }
 
     pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
+        if let Some(_match) = self.indexing_config.exclude_patterns.iter().find(|pat| pat.matches_path(relative_path)) {
+            return;
+        }
+
         let relative_path_lossy;
         let external_id = if let Some(relative_path) = relative_path.to_str() {
             relative_path

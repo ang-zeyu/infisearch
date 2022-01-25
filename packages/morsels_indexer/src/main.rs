@@ -117,18 +117,13 @@ fn main() {
     }
 
     let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
-        let raw_config = std::fs::read_to_string(&config_file_path).unwrap();
-        let mut config: MorselsConfig = serde_json::from_str(&raw_config).expect("morsels_config.json does not match schema!");
-        config.raw_config = raw_config;
-        config
+        MorselsConfig::new(std::fs::read_to_string(&config_file_path).unwrap())
     } else if args.config_file_path.is_some() {
         error!("Specified configuration file {} not found!", config_file_path.to_str().unwrap());
         return;
     } else {
         MorselsConfig::default()
     };
-
-    let exclude_patterns = config.indexing_config.get_excludes_from_config();
 
     let mut indexer = morsels_indexer::Indexer::new(
         &output_folder_path,
@@ -151,9 +146,6 @@ fn main() {
 
                 let path = dir_entry.path();
                 let relative_path = path.strip_prefix(&input_folder_path_clone).unwrap();
-                if let Some(_match) = exclude_patterns.iter().find(|pat| pat.matches_path(relative_path)) {
-                    continue;
-                }
 
                 indexer.index_file(&input_folder_path_clone, path, relative_path);
             }
