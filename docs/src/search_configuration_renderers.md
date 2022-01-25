@@ -19,15 +19,15 @@
   The APIs here (especially those highlighted in <span style="color: red;">red</span>) may be particularly unstable still!
 </div>
 
-This page covers the a more advanced API, "renderers", that allows you to customise the html output structure to some degree.
+This page covers a more advanced API, "renderers", that allows you to customise the html output structure to some degree.
 
 Some use cases for this include:
-- The default structure is not sufficient for your styling needs
+- The default html structure is not sufficient for your styling needs
 - You need to attach additional event listeners to elements
 - You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)
 - You want to change the [default use case](./search_configuration.md#default-rendering-output--purpose) of following through on a result preview to its source document entirely
 
-If you only need to style the dropdown or search popup, you can include your own css file to do so [and / or override the variables](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css) exposed by the default css bundle.
+> 💡 If you only need to style the dropdown or search popup, you can include your own css file to do so [and / or override the variables](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css) exposed by the default css bundle.
 
 These API options are similarly specified under the `uiOptions` key of the root configuration object.
 
@@ -39,13 +39,13 @@ initMorsels({
 });
 ```
 
-As the interfaces are rather low level, this page will cross reference the `UiOptions` interface [specification](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/SearchUiOptions.ts) directly.
+As the interfaces are rather low level, this page will cross reference the `UiOptions` typescript interface [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/SearchUiOptions.ts) directly.
 
 ## The `h` function
 
 `h`
 
-Almost all renderer functions are passed a "`h`" function. This is an **optional** helper function you may use to create your own renderer.
+Almost all renderer functions are passed a `h` function. This is an **optional** helper function you may use to create elements.
 
 The method signature is as such:
 
@@ -57,9 +57,11 @@ export type CreateElement = (
   // Element attribute map
   attrs: { [attrName: string]: string },
 
-  // Child elements (HTMLElement) OR text nodes (just put the string)
-  // string parameters utilise .textContent,
-  // so you don't have to worry about escaping potentially malicious content
+  /*
+   Child elements (HTMLElement) OR text nodes (just put the string)
+   string parameters utilise .textContent,
+   so you don't have to worry about escaping potentially malicious content
+  */
   ...children: (string | HTMLElement)[]
 ) => HTMLElement;
 ```
@@ -86,7 +88,7 @@ If you want to include some custom options (e.g. an API base url), you can use t
 
 You can have a look at the documentation further below on each API to understand each renderer, then refer back to the following output placement snippet to understand which renderers are responsible for which parts of the html output.
 
-The output also varies depending on the [UI mode](./search_configuration.md#ui-mode) specified earlier. As usual, note that `dropdown` and `fullscreen` modes both apply to the `auto` mode.
+The output also varies depending on the [UI mode](./search_configuration.md#ui-mode) specified earlier. Again, note that the `dropdown` and `fullscreen` ui modes both apply to the `auto` mode.
 
 <details>
 
@@ -182,7 +184,7 @@ It should return 2 elements:
 
 #### Supplementary Mandatory Functions
 
-The following two functions should be implemented **in tandem** with the above function; They are used internally to show / hide the dropdown on certain events (for example, on input focus / blur).
+The following two functions should be implemented **in tandem** with `dropdownRootRender`, and are used (internally) to show / hide the dropdown on certain events (for example, on input focus / blur).
 
 `showDropdown?: (root: HTMLElement, opts: SearchUiOptions) => void`
 
@@ -195,6 +197,7 @@ For example, the default `showDropdown` implementation is as such:
   if (listContainer.childElementCount) {
     listContainer.style.display = 'block';
     (listContainer.previousSibling as HTMLElement).style.display = 'block';
+    computePosition(...).then(({ x, y }) => ...); // floating-ui call to position the dropdown
   }
 }
 ```

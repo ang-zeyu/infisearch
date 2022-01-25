@@ -10,6 +10,7 @@ use dashmap::DashMap;
 
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldInfos;
+use crate::i_debug;
 use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
@@ -101,8 +102,7 @@ pub fn merge_blocks(
     // Varint buffer
     let mut varint_buf: [u8; 16] = [0; 16];
 
-    #[cfg(debug_assertions)]
-    println!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
+    i_debug!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
 
     while !postings_streams.is_empty() {
         let (curr_term, doc_freq, curr_term_max_score) = PostingsStream::aggregate_block_terms(

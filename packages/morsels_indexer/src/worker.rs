@@ -11,6 +11,7 @@ use crossbeam::channel::{Receiver, Sender};
 
 use morsels_common::tokenize::IndexerTokenizer;
 
+use crate::i_debug;
 use crate::loader::LoaderResult;
 use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
 use crate::spimiwriter;
@@ -110,8 +111,7 @@ pub fn worker(
             } => {
                 sndr.send(WorkerToMainMessage { id: 0, block_index_results: None }).expect("Worker failed to notify combine started");
 
-                #[cfg(debug_assertions)]
-                println!("Worker {} writing spimi block {}!", id, block_number);
+                i_debug!("Worker {} writing spimi block {}!", id, block_number);
 
                 spimiwriter::combine_worker_results_and_write_block(
                     worker_index_results,
@@ -126,19 +126,16 @@ pub fn worker(
                     doc_id_counter,
                 );
 
-                #[cfg(debug_assertions)]
-                println!("Worker {} wrote spimi block {}!", id, block_number);
+                i_debug!("Worker {} wrote spimi block {}!", id, block_number);
 
                 {
                     *num_workers_writing_blocks_clone.lock().unwrap() -= 1;
                 }
 
-                #[cfg(debug_assertions)]
-                println!("Worker {} decremented num_workers_writing_blocks_clone!", id);
+                i_debug!("Worker {} decremented num_workers_writing_blocks_clone!", id);
             }
             MainToWorkerMessage::Reset(barrier) => {
-                #[cfg(debug_assertions)]
-                println!("Worker {} resetting!", id);
+                i_debug!("Worker {} resetting!", id);
 
                 // return the indexed documents...
                 sndr.send(WorkerToMainMessage { id, block_index_results: Some(doc_miner.get_results()) })

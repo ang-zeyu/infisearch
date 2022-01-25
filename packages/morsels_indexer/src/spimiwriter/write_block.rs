@@ -5,6 +5,7 @@ use std::path::PathBuf;
 
 use rustc_hash::FxHashMap;
 
+use crate::i_debug;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::TermDocComparator;
 
@@ -15,8 +16,7 @@ pub fn write_block(combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>>, output_
     let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
     let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
 
-    #[cfg(debug_assertions)]
-    println!(
+    i_debug!(
         "Writing bsbi block {} to {}, num terms {}",
         block_number,
         output_file_path.to_str().unwrap(),

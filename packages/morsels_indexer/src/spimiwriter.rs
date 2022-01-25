@@ -7,6 +7,7 @@ use std::sync::Mutex;
 use rustc_hash::FxHashMap;
 
 use crate::docinfo::BlockDocLengths;
+use crate::i_debug;
 use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::WorkerBlockIndexResults;
@@ -47,8 +48,8 @@ impl Indexer {
 
         // Receive doc miners
         for worker_msg in self.rx_main.iter().take(num_workers_to_collect) {
-            #[cfg(debug_assertions)]
-            println!("Worker {} data received!", worker_msg.id);
+            i_debug!("Worker {} data received!", worker_msg.id);
+
             worker_index_results
                 .push(worker_msg.block_index_results.expect("Received non doc miner message!"));
         }
@@ -149,12 +150,10 @@ pub fn combine_worker_results_and_write_block(
                 &mut sorted_doc_infos
             );
 
-            #[cfg(debug_assertions)]
-            println!("Num docs in block {}: {}", block_number, sorted_doc_infos.len());
+            i_debug!("Num docs in block {}: {}", block_number, sorted_doc_infos.len());
         } else {
             // possibly just a incremental indexing run with a deletion
-            #[cfg(debug_assertions)]
-            println!("Encountered empty block {}", block_number);
+            i_debug!("Encountered empty block {}", block_number);
         }
         // ---------------------------------------------
 

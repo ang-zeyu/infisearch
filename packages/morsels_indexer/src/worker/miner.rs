@@ -9,6 +9,8 @@ use rustc_hash::FxHashMap;
 
 use morsels_common::tokenize::IndexerTokenizer;
 
+#[cfg(debug_assertions)]
+use crate::i_debug;
 use crate::FieldInfo;
 use crate::FieldInfos;
 
@@ -165,7 +167,7 @@ impl WorkerMiner {
 
         #[cfg(debug_assertions)]
         {
-            println!("Worker {}, total_len {}, total_terms {}!", self.id, self.total_len, self.total_terms);
+            i_debug!("Worker {}, total_len {}, total_terms {}!", self.id, self.total_len, self.total_terms);
             self.total_len = 0;
             self.total_terms = 0;
         }

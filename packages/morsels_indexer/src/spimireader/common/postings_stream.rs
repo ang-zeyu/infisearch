@@ -4,6 +4,8 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 
 use dashmap::DashMap;
+#[cfg(debug_assertions)]
+use log::warn;
 
 use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::MainToWorkerMessage;
@@ -109,7 +111,7 @@ impl PostingsStream {
                 PostingsStreamDecoder::None => {
                     #[cfg(debug_assertions)]
                     if _do_print_blocked_msg {
-                        println!("Blocked! Ouch! Consider increasing the decode buffer size...");
+                        warn!("Blocked! Ouch! Consider increasing the decode buffer size...");
                     }
 
                     // Set to notifier

@@ -3,8 +3,16 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use morsels_indexer::i_debug;
 use morsels_indexer::MorselsConfig;
 
+use log::LevelFilter;
+use log::error;
+use log4rs::Config;
+use log4rs::append::console::ConsoleAppender;
+use log4rs::config::Appender;
+use log4rs::config::Logger;
+use log4rs::config::Root;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 
@@ -76,6 +84,15 @@ fn resolve_folder_paths(
     }
 }
 
+fn initialize_logger() {
+    let log_config = Config::builder()
+        .appender(Appender::builder().build("morsels_stdout", Box::new(ConsoleAppender::builder().build())))
+        .logger(Logger::builder().build("morsels_indexer", LevelFilter::Info))
+        .build(Root::builder().appender("morsels_stdout").build(LevelFilter::Off))
+        .unwrap();
+    log4rs::init_config(log_config).expect("log4rs initialisation should not fail");
+}
+
 fn main() {
     let args: CliArgs = CliArgs::from_args();
 
@@ -85,8 +102,9 @@ fn main() {
         args.config_file_path.as_ref(),
     );
 
-    #[cfg(debug_assertions)]
-    println!(
+    initialize_logger();
+
+    i_debug!(
         "Resolved Paths:\n{}\n{}\n{}",
         input_folder_path.to_str().unwrap(),
         output_folder_path.to_str().unwrap(),
@@ -104,7 +122,7 @@ fn main() {
         config.raw_config = raw_config;
         config
     } else if args.config_file_path.is_some() {
-        eprintln!("Specified configuration file {} not found!", config_file_path.to_str().unwrap());
+        error!("Specified configuration file {} not found!", config_file_path.to_str().unwrap());
         return;
     } else {
         MorselsConfig::default()
@@ -140,7 +158,7 @@ fn main() {
                 indexer.index_file(&input_folder_path_clone, path, relative_path);
             }
             Err(e) => {
-                eprintln!("Error processing entry. {}", e)
+                error!("Error processing entry. {}", e)
             }
         }
     }

@@ -17,6 +17,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Instant;
 
+use log::{info, warn};
 use morsels_common::tokenize::IndexerTokenizer;
 use morsels_common::{MorselsLanguageConfig, BITMAP_DOCINFO_DICT_TABLE_FILE, BitmapDocinfoDicttableReader};
 use morsels_lang_ascii::ascii;
@@ -249,30 +250,30 @@ impl Indexer {
             if let Ok(read_dir) = fs::read_dir(output_folder_path) {
                 for dir_entry in read_dir {
                     if let Err(err) = dir_entry {
-                        eprintln!("Failed to clean {}, continuing.", err);
+                        warn!("Failed to clean {}, continuing.", err);
                         continue;
                     }
 
                     let dir_entry = dir_entry.unwrap();
                     let file_type = dir_entry.file_type();
                     if let Err(err) = file_type {
-                        eprintln!("Failed to get file type when cleaning output dir {}, continuing.", err);
+                        warn!("Failed to get file type when cleaning output dir {}, continuing.", err);
                         continue;
                     }
 
                     let file_type = file_type.unwrap();
                     if file_type.is_file() {
                         if let Err(err) = fs::remove_file(dir_entry.path()) {
-                            eprintln!("{}\nFailed to clean {}, continuing.", err, dir_entry.path().to_string_lossy());
+                            warn!("{}\nFailed to clean {}, continuing.", err, dir_entry.path().to_string_lossy());
                         }
                     } else if file_type.is_dir() {
                         if let Err(err) = fs::remove_dir_all(dir_entry.path()) {
-                            eprintln!("{}\nFailed to clean directory {}, continuing.", err, dir_entry.path().to_string_lossy());
+                            warn!("{}\nFailed to clean directory {}, continuing.", err, dir_entry.path().to_string_lossy());
                         }
                     }
                 }
             } else {
-                eprintln!("Failed to read output dir for cleaning, continuing.");
+                warn!("Failed to read output dir for cleaning, continuing.");
             }
         }
 
@@ -344,8 +345,7 @@ impl Indexer {
 
         let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;
 
-        #[cfg(debug_assertions)]
-        println!("previous number of docs {}", doc_id_counter);
+        i_debug!("Previous number of docs {}", doc_id_counter);
 
         let spimi_counter = doc_id_counter % config.indexing_config.num_docs_per_block;
 
@@ -542,8 +542,7 @@ impl Indexer {
     }
 
     pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
-        #[cfg(debug_assertions)]
-        println!("@finish_writing_docs");
+        i_debug!("@finish_writing_docs");
 
         let first_block = self.start_block_number;
         let mut last_block = self.block_number();
@@ -551,8 +550,7 @@ impl Indexer {
         if self.spimi_counter != 0 {
             Self::try_index_doc(&mut self.doc_miner, &self.rx_worker, 0);
 
-            #[cfg(debug_assertions)]
-            println!("Writing extra last spimi block");
+            i_debug!("Writing extra last spimi block");
 
             let main_thread_block_index_results = self.doc_miner.get_results();
             self.merge_block(main_thread_block_index_results, last_block, true);
@@ -562,8 +560,7 @@ impl Indexer {
         }
         self.wait_on_all_workers();
 
-        #[cfg(debug_assertions)]
-        println!(
+        i_debug!(
             "Number of docs: {}, First Block {}, Last Block {}",
             self.doc_id_counter, first_block, last_block,
         );
@@ -668,5 +665,5 @@ impl Indexer {
 
 fn print_time_elapsed(instant: Instant, extra_message: &str) {
     let elapsed = instant.elapsed().as_secs_f64();
-    println!("({}) {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
+    info!("({}) {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
 }

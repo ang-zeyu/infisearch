@@ -4,9 +4,9 @@ use std::iter::FromIterator;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use log::{info, warn};
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
-
 use normalize_line_endings::normalized;
 
 use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME};
@@ -81,12 +81,12 @@ impl IncrementalIndexInfo {
 
         if let Ok(meta) = std::fs::metadata(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME)) {
             if !meta.is_file() {
-                println!("Old incremental index info missing. Running a full reindex.");
+                warn!("Old incremental index info missing. Running a full reindex.");
                 *is_incremental = false;
                 return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
-            println!("Old incremental index info missing. Running a full reindex.");
+            warn!("Old incremental index info missing. Running a full reindex.");
             *is_incremental = false;
             return IncrementalIndexInfo::empty(use_content_hash);
         }
@@ -96,12 +96,12 @@ impl IncrementalIndexInfo {
             file.read_to_string(&mut old_config).expect("Unable to read old config file");
             let old_config_normalised = &String::from_iter(normalized(old_config.chars()));
             if raw_config_normalised != old_config_normalised {
-                println!("Configuration file changed. Running a full reindex.");
+                info!("Configuration file changed. Running a full reindex.");
                 *is_incremental = false;
                 return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
-            eprintln!("Old configuration file missing. Running a full reindex.");
+            warn!("Old configuration file missing. Running a full reindex.");
             *is_incremental = false;
             return IncrementalIndexInfo::empty(use_content_hash);
         }
@@ -112,11 +112,11 @@ impl IncrementalIndexInfo {
             .expect("incremental index info deserialization failed!");
 
         if &info.ver[..] != MORSELS_VERSION {
-            println!("Indexer version changed. Running a full reindex.");
+            info!("Indexer version changed. Running a full reindex.");
             *is_incremental = false;
             return IncrementalIndexInfo::empty(use_content_hash);
         } else if info.use_content_hash != use_content_hash {
-            println!("Content hash option changed. Running a full reindex.");
+            info!("Content hash option changed. Running a full reindex.");
             *is_incremental = false;
             return IncrementalIndexInfo::empty(use_content_hash);
         }
