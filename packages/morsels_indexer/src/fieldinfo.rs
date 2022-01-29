@@ -1,5 +1,7 @@
+use std::cmp::Ordering;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use rustc_hash::FxHashMap;
 
@@ -13,6 +15,7 @@ fn get_default_cache_all_field_stores() -> bool {
     true
 }
 
+// Raw Json field configuration
 #[derive(Serialize, Deserialize)]
 pub struct FieldsConfig {
     pub field_store_block_size: u32,
@@ -41,6 +44,47 @@ impl Default for FieldsConfig {
     }
 }
 
+impl FieldsConfig {
+    pub fn initialise(&self, output_folder_path: &Path) -> Arc<FieldInfos> {
+        let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
+        for field_config in self.fields.iter() {
+            field_infos_by_name.insert(
+                field_config.name.to_owned(),
+                FieldInfo {
+                    id: 0,
+                    do_store: field_config.do_store,
+                    weight: field_config.weight,
+                    k: field_config.k,
+                    b: field_config.b,
+                },
+            );
+        }
+
+        // Larger-weight fields are assigned lower ids
+        let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
+        field_entries.sort_by(|a, b| {
+            if a.1.weight < b.1.weight {
+                Ordering::Greater
+            } else if a.1.weight > b.1.weight {
+                Ordering::Less
+            } else {
+                Ordering::Equal
+            }
+        });
+
+        for (field_id, tup) in field_entries.iter_mut().enumerate() {
+            tup.1.id = field_id as u8;
+        }
+
+        Arc::new(FieldInfos::init(
+            field_infos_by_name,
+            self.field_store_block_size,
+            self.num_stores_per_dir,
+            output_folder_path,
+        ))
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct FieldConfig {
     pub name: String,
@@ -59,14 +103,20 @@ pub struct FieldInfo {
     pub b: f32,
 }
 
+// Initialised json field configuration
 #[derive(Serialize)]
 pub struct FieldInfos {
     pub field_infos_map: FxHashMap<String, FieldInfo>,
+
     #[serde(skip_serializing)]
     pub field_infos_by_id: Vec<FieldInfo>,
+
     pub num_scored_fields: usize,
+
     pub field_store_block_size: u32,
+
     pub num_stores_per_dir: u32,
+
     #[serde(skip_serializing)]
     pub field_output_folder_path: PathBuf,
 }

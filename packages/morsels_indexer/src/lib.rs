@@ -7,7 +7,6 @@ mod spimiwriter;
 mod utils;
 mod worker;
 
-use std::cmp::Ordering;
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::iter::FromIterator;
@@ -244,6 +243,9 @@ impl Indexer {
     ) -> Indexer {
         fs::create_dir_all(output_folder_path).expect("could not create output directory!");
 
+        // -----------------------------------------------------------
+        // Initialise the previously indexed metadata, if any
+
         let raw_config_normalised = &String::from_iter(normalized(config.raw_config.chars()));
 
         let bitmap_docinfo_dicttable_path = output_folder_path.join(BITMAP_DOCINFO_DICT_TABLE_FILE);
@@ -262,7 +264,10 @@ impl Indexer {
             use_content_hash,
             bitmap_docinfo_dicttable_rdr.as_mut(),
         );
+        // -----------------------------------------------------------
 
+        // -----------------------------------------------------------
+        // Clean the output folder if running a full index
         if !is_incremental && !preserve_output_folder {
             if let Ok(read_dir) = fs::read_dir(output_folder_path) {
                 for dir_entry in read_dir {
@@ -293,63 +298,34 @@ impl Indexer {
                 warn!("Failed to read output dir for cleaning, continuing.");
             }
         }
+        // -----------------------------------------------------------
 
-        {
-            File::create(output_folder_path.join("old_morsels_config.json"))
-                .expect("error creating old config file")
-                .write_all(raw_config_normalised.as_bytes())
-                .expect("error writing old config");
-        }
+        // -----------------------------------------------------------
+        // Store the current raw json configuration file, for checking if it changed in the next run
+
+        File::create(output_folder_path.join("old_morsels_config.json"))
+            .expect("error creating old config file")
+            .write_all(raw_config_normalised.as_bytes())
+            .expect("error writing old config");
+
+        // -----------------------------------------------------------
+
+        // -----------------------------------------------------------
+        // Misc
 
         let loaders = config.indexing_config.get_loaders_from_config();
 
-        let field_infos = {
-            let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
-            for field_config in config.fields_config.fields {
-                field_infos_by_name.insert(
-                    field_config.name.to_owned(),
-                    FieldInfo {
-                        id: 0,
-                        do_store: field_config.do_store,
-                        weight: field_config.weight,
-                        k: field_config.k,
-                        b: field_config.b,
-                    },
-                );
-            }
+        let field_infos = config.fields_config.initialise(output_folder_path);
 
-            // Assign field ids according to weight
-
-            let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
-            field_entries.sort_by(|a, b| {
-                if a.1.weight < b.1.weight {
-                    Ordering::Greater
-                } else if a.1.weight > b.1.weight {
-                    Ordering::Less
-                } else {
-                    Ordering::Equal
-                }
-            });
-
-            for (field_id, tup) in field_entries.iter_mut().enumerate() {
-                tup.1.id = field_id as u8;
-            }
-
-            Arc::new(FieldInfos::init(
-                field_infos_by_name,
-                config.fields_config.field_store_block_size,
-                config.fields_config.num_stores_per_dir,
-                output_folder_path,
-            ))
-        };
-
-
+        // ------------------------------
+        // Previous index info
         let doc_infos = Arc::from(Mutex::from(if is_incremental {
             DocInfos::from_search_docinfo(
                 bitmap_docinfo_dicttable_rdr.as_mut().expect("missing docinfo metadata file!"),
                 field_infos.num_scored_fields,
             )
         } else {
+            // No previous index info
             DocInfos::init_doc_infos(field_infos.num_scored_fields)
         }));
 
@@ -359,6 +335,7 @@ impl Indexer {
                 bitmap_docinfo_dicttable_rdr.as_mut().expect("missing dicttable metadata file!"),
             );
         }
+        // ------------------------------
 
         let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;
 
@@ -366,23 +343,24 @@ impl Indexer {
 
         let spimi_counter = doc_id_counter % config.indexing_config.num_docs_per_block;
 
+        let tokenizer = Indexer::resolve_tokenizer(&config.lang_config);
+
+        let indexing_config = Arc::from(config.indexing_config);
+
+        // -----------------------------------------------------------
         // Construct worker threads
         let (tx_worker, rx_main): (
             Sender<WorkerToMainMessage>, Receiver<WorkerToMainMessage>
-        ) = channel::bounded(config.indexing_config.num_threads);
+        ) = channel::bounded(indexing_config.num_threads);
         let (tx_main, rx_worker): (
             Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
         ) = channel::bounded(32); // TODO may be a little arbitrary
 
         let expected_num_docs_per_thread =
-            (config.indexing_config.num_docs_per_block / (config.indexing_config.num_threads as u32) * 2) as usize;
-        let num_threads = config.indexing_config.num_threads;
+            (indexing_config.num_docs_per_block / (indexing_config.num_threads as u32) * 2) as usize;
+        let num_threads = indexing_config.num_threads;
 
         let num_workers_writing_blocks = Arc::from(Mutex::from(0));
-
-        let tokenizer = Indexer::resolve_tokenizer(&config.lang_config);
-
-        let indexing_config = Arc::from(config.indexing_config);
 
         let mut workers = Vec::with_capacity(num_threads);
         for i in 0..num_threads {
@@ -410,6 +388,7 @@ impl Indexer {
                 }),
             });
         }
+        // -----------------------------------------------------------
 
         let doc_miner = WorkerMiner::new(
             &field_infos,
