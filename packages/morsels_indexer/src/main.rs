@@ -93,6 +93,18 @@ fn initialize_logger() {
     log4rs::init_config(log_config).expect("log4rs initialisation should not fail");
 }
 
+fn initialise_config(config_file_path: PathBuf, args: &CliArgs) -> Option<MorselsConfig> {
+    let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
+        MorselsConfig::new(std::fs::read_to_string(&config_file_path).unwrap())
+    } else if args.config_file_path.is_some() {
+        error!("Specified configuration file {} not found!", config_file_path.to_str().unwrap());
+        return None;
+    } else {
+        MorselsConfig::default()
+    };
+    Some(config)
+}
+
 fn main() {
     let args: CliArgs = CliArgs::from_args();
 
@@ -116,13 +128,9 @@ fn main() {
         return;
     }
 
-    let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
-        MorselsConfig::new(std::fs::read_to_string(&config_file_path).unwrap())
-    } else if args.config_file_path.is_some() {
-        error!("Specified configuration file {} not found!", config_file_path.to_str().unwrap());
-        return;
-    } else {
-        MorselsConfig::default()
+    let config = match initialise_config(config_file_path, &args) {
+        Some(value) => value,
+        None => return,
     };
 
     let mut indexer = morsels_indexer::Indexer::new(
@@ -135,9 +143,7 @@ fn main() {
 
     let now = if args.perf { Some(Instant::now()) } else { None };
 
-    let input_folder_path_clone = input_folder_path.clone();
-
-    for entry in WalkDir::new(input_folder_path) {
+    for entry in WalkDir::new(input_folder_path.clone()) {
         match entry {
             Ok(dir_entry) => {
                 if !dir_entry.file_type().is_file() {
@@ -145,9 +151,9 @@ fn main() {
                 }
 
                 let path = dir_entry.path();
-                let relative_path = path.strip_prefix(&input_folder_path_clone).unwrap();
+                let relative_path = path.strip_prefix(&input_folder_path).unwrap();
 
-                indexer.index_file(&input_folder_path_clone, path, relative_path);
+                indexer.index_file(&input_folder_path, path, relative_path);
             }
             Err(e) => {
                 error!("Error processing entry. {}", e)
