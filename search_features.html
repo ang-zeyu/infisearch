@@ -232,10 +232,10 @@ title\:lorem
 </code></pre>
 <h2 id="non-user-facing-features"><a class="header" href="#non-user-facing-features">Non User-Facing Features</a></h2>
 <h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker Built-in</a></h3>
-<p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don’t have to worry about blocking the UI thread.</p>
-<p>Population of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
-<p>Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
-One of the main reasons is that there is simply no way of parsing html (the original html document can be used as an alternative to storing document fields) faster than the implementations provided by the browser.</p>
+<p>Most of the search library operates on a WebWorker where it matters (e.g. setup, query ranking), so you don’t have to worry about blocking the UI thread.</p>
+<p>Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
+<p>Search UI (@morsels/search-ui) related functionalities, for example result preview generation, is also done on the main thread.
+The main rationale is that there is simply no way of parsing html faster than implementations provided by the browser. (the original html document can be used as an alternative to storing document fields for result preview generation)</p>
 <h3 id="low-level-inverted-index-format"><a class="header" href="#low-level-inverted-index-format">Low-Level Inverted Index Format</a></h3>
 <p>Besides splitting the inverted index into many files, the inverted index is constructed in a binary format with various compression schemes employed:</p>
 <ul>

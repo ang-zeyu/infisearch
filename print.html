@@ -223,6 +223,9 @@
 <p>Customisable dropdown / fullscreen popup user interface</p>
 </li>
 </ul>
+<h2 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h2>
+<p>The following diagram summarises how Morsels works:</p>
+<p><img src="./images/architecture.png" alt="Morsels’ architecture diagram" /></p>
 <h2 id="use-cases"><a class="header" href="#use-cases">Use Cases</a></h2>
 <p>You may want to use this tool if:</p>
 <ul>
@@ -414,10 +417,10 @@ title\:lorem
 </code></pre>
 <h2 id="non-user-facing-features"><a class="header" href="#non-user-facing-features">Non User-Facing Features</a></h2>
 <h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker Built-in</a></h3>
-<p>Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don’t have to worry about blocking the UI thread.</p>
-<p>Population of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
-<p>Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
-One of the main reasons is that there is simply no way of parsing html (the original html document can be used as an alternative to storing document fields) faster than the implementations provided by the browser.</p>
+<p>Most of the search library operates on a WebWorker where it matters (e.g. setup, query ranking), so you don’t have to worry about blocking the UI thread.</p>
+<p>Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
+<p>Search UI (@morsels/search-ui) related functionalities, for example result preview generation, is also done on the main thread.
+The main rationale is that there is simply no way of parsing html faster than implementations provided by the browser. (the original html document can be used as an alternative to storing document fields for result preview generation)</p>
 <h3 id="low-level-inverted-index-format"><a class="header" href="#low-level-inverted-index-format">Low-Level Inverted Index Format</a></h3>
 <p>Besides splitting the inverted index into many files, the inverted index is constructed in a binary format with various compression schemes employed:</p>
 <ul>
@@ -2168,7 +2171,7 @@ if (window.location.search) {
 <p>The first step to indexing any documents is defining the fields to store.</p>
 <p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
 <p>If you are using morsels’ search UI <strong>as-is</strong> (e.g. not adding additional fields to display), you can skip configuring <code>fields_config.fields</code>.</p>
-<p>You may want to briefly take note of the other parameters under <code>fields_config</code> however, which can be used to adjust response times / file bloat. The possible adjustments will be discussed under the chapter <a href="indexer/../tradeoffs.html">Tradeoffs</a>.</p>
+<p>You may want to briefly take note of the other parameters under <code>fields_config</code> however, which can be used to adjust response times / file bloat. The possible adjustments are discussed later in <a href="indexer/../tradeoffs.html">Tradeoffs</a>.</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
     &quot;cache_all_field_stores&quot;: true,
@@ -2233,7 +2236,7 @@ If both are specified, the value specified in the <code>initMorsels</code> call 
 <p>This parameter simply specifies the weight the field should have during scoring.</p>
 <p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
 <p><strong><code>k</code> &amp; <code>b</code></strong></p>
-<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these, although, the defaults should serve sufficiently.</p>
+<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these if the defaults are unsuitable for your use case.</p>
 <div style="display: none;">
 <p><strong><code>type</code> (WIP)</strong></p>
 <p>The only available types are <code>string</code> and <code>u32</code>.</p>
@@ -2243,22 +2246,21 @@ If both are specified, the value specified in the <code>initMorsels</code> call 
 <p>Moreover, sorting (also WIP) operations are only supported on <code>u32</code> fields.</p>
 </div>
 <h2 id="default-fields-in-morselssearch-ui"><a class="header" href="#default-fields-in-morselssearch-ui">Default Fields in <code>@morsels/search-ui</code></a></h2>
-<p>The default fields are setup for interfacing with the <code>@morsels/search-ui</code> package. Their functions in the search-ui are as follows:</p>
+<p>As mentioned, the default fields are already setup for interfacing with the <code>@morsels/search-ui</code> package. Their functions for the user interface are as follows:</p>
+<img alt="annotation for fields" src="indexer/../images/fields_annotated.png" />
 <ul>
 <li><code>title</code>: This is the header for a single document match. </li>
 <li><code>heading</code>: These are section headers which appear on the left of corresponding <code>body</code> fields. THey are sourced from <code>&lt;h1-6&gt;</code> tags by default.</li>
 <li><code>headingLink</code>: These are the <code>id</code> attributes of corresponding <code>&lt;h1-6&gt;</code> tags. If available, an <code>#anchor</code> is attached to the linked document for the particular heading</li>
 <li><code>body</code>: This field is the text that appears to the right of headings (or on its own if there is no corresponding heading).</li>
-<li><code>_relative_fp</code> / <code>link</code>: If the <code>title</code> field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the <code>&lt;a /&gt;</code> tag) or for generating result previews (more <a href="indexer/../search_configuration.html#default-rendering-output--purpose">here</a>).
+<li><code>_relative_fp</code> <strong>or</strong> <code>link</code>: If the <code>title</code> field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the <code>&lt;a /&gt;</code> tag) or for generating result previews (more <a href="indexer/../search_configuration.html#default-rendering-output--purpose">here</a>).
 <ul>
 <li>Note: The <code>link</code> field is not setup by default; The combination of <code>sourceFilesUrl</code> + <code>_relative_fp</code> serves the same purpose. The <code>link</code> field serves to accomodate more custom use cases (e.g. linking to another site, or linking to a html page by indexing a json document).</li>
 </ul>
 </li>
 </ul>
-<p>Their functions are also annotated in the following diagram:</p>
-<img alt="annotation for fields" src="indexer/../images/fields_annotated.png" />
 <h2 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h2>
-<p>Defining fields is all good, but you may also need a way to map custom file data to each of these fields if the defaults are insufficient, which is discussed later under <a href="indexer/./indexing.html#mapping-file-data-to-fields-loader_configs">indexing</a>.</p>
+<p>Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings are insufficient. This is discussed later under <a href="indexer/./indexing.html#mapping-file-data-to-fields-loader_configs">indexing</a>.</p>
 <p>The exception are “special” fields below, which sources data from elsewhere.</p>
 <h3 id="special-fields"><a class="header" href="#special-fields">Special Fields</a></h3>
 <p><strong><code>_relative_fp</code></strong></p>
@@ -2392,7 +2394,7 @@ if (window.location.search) {
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h1>
-<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key, while the <code>options</code> key supplies tokenization options unique to each module.</p>
+<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is <code>lang</code>, while the <code>options</code> key supplies tokenization options unique to each module.</p>
 <blockquote>
 <p>These options are also applied to <code>@morsels/search-ui</code>, which sources this information from some metadata available in the index output directory.</p>
 </blockquote>
@@ -2403,11 +2405,12 @@ if (window.location.search) {
   }
 }
 </code></pre>
+<p>Only the following 3 tokenizers are supported for now:</p>
 <h2 id="ascii-tokenizer"><a class="header" href="#ascii-tokenizer">Ascii Tokenizer</a></h2>
 <p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
 <p>An <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
-<pre><code class="language-json">&quot;lang_config&quot;: {
-  &quot;lang&quot;: &quot;latin&quot;,
+<pre><code class="language-json">{
+  &quot;lang&quot;: &quot;ascii&quot;,
   &quot;options&quot;: {
     &quot;stop_words&quot;: [
       &quot;a&quot;, &quot;an&quot;, &quot;and&quot;, &quot;are&quot;, &quot;as&quot;, &quot;at&quot;, &quot;be&quot;, &quot;but&quot;, &quot;by&quot;, &quot;for&quot;,
@@ -2423,7 +2426,7 @@ if (window.location.search) {
 </code></pre>
 <h2 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h2>
 <p>This is essentially the same as the ascii tokenizer, but adds a <code>stemmer</code> option.</p>
-<pre><code>&quot;lang_config&quot;: {
+<pre><code class="language-json">{
   &quot;lang&quot;: &quot;latin&quot;,
   &quot;options&quot;: {
     // ----------------------------------
@@ -2440,9 +2443,9 @@ if (window.location.search) {
 </code></pre>
 <p>It is separated from the ascii tokenizer to reduce binary size (about ~<code>220KB</code> savings before gzip).</p>
 <h2 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h2>
-<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
+<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it hasn’t been as extensively tested. Use at your own discretion!</p>
 <p>This tokenizer applies jieba’s <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
-<pre><code class="language-json">&quot;lang_config&quot;: {
+<pre><code class="language-json">{
   &quot;lang&quot;: &quot;chinese&quot;,
   &quot;options&quot;: {
     &quot;stop_words&quot;: [],
@@ -2451,7 +2454,7 @@ if (window.location.search) {
 }
 </code></pre>
 <h2 id="note-on-stop-words"><a class="header" href="#note-on-stop-words">Note on Stop Words</a></h2>
-<p>A slightly different approach with stop words is taken <strong>by default</strong> in that stop words are only filtered at <strong>query time</strong> for certain types of queries. Currently, this is for free-text queries with more than two terms, since the inverse document frequency of such terms are likely to have become negligible compared to other terms in the query at this point.</p>
+<p>A slightly different approach with stop words is taken <strong>by default</strong> in that stop words are only filtered at <strong>query time</strong> for certain types of queries. Currently, this is for <strong>free-text queries with more than two terms</strong>, since the impact of such terms are likely to have become negligible compared to other terms in the query at this point.</p>
 <p>Moreover, splitting up the index means that such commonly occuring words are likely to be completely and separately placed into one file. This means that information for stop words is never requested unless necessary:</p>
 <ul>
 <li>For processing phrase queries (eg. <code>&quot;for tomorrow&quot;</code>)</li>
@@ -2592,7 +2595,7 @@ if (window.location.search) {
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h1>
 <p>The configurations in this section mainly specify <strong>how (mapping file contents to fields)</strong> and <strong>which</strong> files to index.</p>
-<p>All configurations are optional, save for the <code>loader_configs</code> key. The cli tool <strong>will do nothing</strong> if no loaders are specified.</p>
+<p>All configurations are optional, save for the <code>loader_configs</code> key. The cli tool will simply do nothing if no loaders are specified.</p>
 <p>The snippet below shows the default values:</p>
 <pre><code class="language-json">{
   &quot;indexing_config&quot;: {
@@ -2620,8 +2623,9 @@ if (window.location.search) {
 </code></pre>
 <h2 id="mapping-file-data-to-fields-1"><a class="header" href="#mapping-file-data-to-fields-1">Mapping File Data to Fields</a></h2>
 <p><strong><code>loader_configs</code></strong></p>
-<p>The indexer is able to handle data from html, json or csv files. Support for each file type is provided by a <code>Loader</code> abstraction.</p>
+<p>The indexer is able to handle data from html, json, csv or txt files. Support for each file type is provided by a <code>Loader</code> abstraction.</p>
 <p>You may configure loaders by <strong>including them under the <code>loader_configs</code> key</strong>, with any applicable options.</p>
+<br>
 <p><strong><code>loader_configs.HtmlLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;HtmlLoader&quot;: {
@@ -2654,6 +2658,7 @@ if (window.location.search) {
 <p>The html loader traverses the document depth-first, in the order text nodes and attributes appear.</p>
 <p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by the corresponding <code>field_name</code>. If another of the element’s descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).</p>
 <p>The <code>attr_map</code> allows indexing attributes of elements (not including descendants) under fields as well.</p>
+<br>
 <p><strong><code>loader_configs.JsonLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;JsonLoader&quot;: {
@@ -2678,12 +2683,17 @@ The <code>field_order</code> array controls the order in which these fields are 
 <li>An object, following the schema set out in <code>field_map</code></li>
 <li>An array of objects following the schema set out in <code>field_map</code></li>
 </ol>
+<br>
 <p><strong><code>loader_configs.CsvLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;CsvLoader&quot;: {
+    // ---------------------
+    // Map data using csv headers
     &quot;use_headers&quot;: false,
     &quot;header_field_map&quot;: {},
     &quot;header_field_order&quot;: [],
+    // ---------------------
+    // Or simply csv header indices
     &quot;index_field_map&quot;: {
       &quot;0&quot;: &quot;link&quot;,
       &quot;1&quot;: &quot;title&quot;,
@@ -2696,6 +2706,8 @@ The <code>field_order</code> array controls the order in which these fields are 
       2,
       0
     ],
+    // ---------------------
+    // Options for csv parsing, from the Rust &quot;csv&quot; crate
     &quot;parse_options&quot;: {
       &quot;comment&quot;: null,
       &quot;delimiter&quot;: 44,
@@ -2709,6 +2721,7 @@ The <code>field_order</code> array controls the order in which these fields are 
 </code></pre>
 <p>Field mappings for csv files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
 <p>The <code>parse_options</code> key specifies options for parsing the csv file. In particular, note that the <code>has_headers</code> key is distinct from and does not influence the <code>use_headers</code> parameter.</p>
+<br>
 <p><strong><code>loader_configs.TxtLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;TxtLoader&quot;: {
@@ -2723,6 +2736,7 @@ The <code>field_order</code> array controls the order in which these fields are 
 <h2 id="indexing-performance"><a class="header" href="#indexing-performance">Indexing Performance</a></h2>
 <p><strong><code>num_threads</code></strong></p>
 <p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(num physical cores - 1, 1)</code>.</p>
+<br>
 <p><strong><code>num_docs_per_block</code></strong></p>
 <p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
 <p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
@@ -2731,19 +2745,21 @@ The <code>field_order</code> array controls the order in which these fields are 
 </blockquote>
 <h2 id="search-performance"><a class="header" href="#search-performance">Search Performance</a></h2>
 <p><strong><code>pl_limit</code></strong></p>
-<p>This the main threshold parameter (in bytes) at which to “cut” index (postings list) files.</p>
+<p>This is the main threshold parameter (in bytes) at which to “cut” index (<strong>pl</strong> meaning <a href="https://en.wikipedia.org/wiki/Inverted_index">postings list</a>) files.</p>
 <p>Increasing this value produces less but bigger files (which may take longer to retrieve), and vice versa.</p>
-<p>Increasing the value may however also be more convenient for caching when used in conjunction with <code>pl_cache_threshold</code> below, which is discussed in the chapter on <a href="indexer/../tradeoffs.html">Tradeoffs</a>.</p>
+<p>Increasing the value may also be useful for caching when used in conjunction with <code>pl_cache_threshold</code> below, since fewer index files will be produced.</p>
+<br>
 <p><strong><code>pl_cache_threshold</code></strong></p>
-<p>This parameter is the minimum file size at which <code>@morsels/search-lib</code> will cache the postings list file on initilisation.</p>
-<p>It can be used to configure morsels for response time (over scalability) for some use cases, which is also discussed in the chapter on <a href="indexer/../tradeoffs.html">Tradeoffs</a>.</p>
+<p>This parameter is the minimum index file size that <code>@morsels/search-lib</code> will cache on initilisation.</p>
+<p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="indexer/../tradeoffs.html">Tradeoffs</a>.</p>
 <h2 id="miscellaneous-options"><a class="header" href="#miscellaneous-options">Miscellaneous Options</a></h2>
 <p><strong><code>num_pls_per_dir</code></strong></p>
-<p>This parameter simply controls how many postings list files you want to store in a single directory.</p>
+<p>This parameter simply controls how many index files you want to store in a single directory.</p>
 <p>While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.</p>
+<br>
 <p><strong><code>with_positions</code></strong></p>
 <p>This option controls whether positions will be stored.</p>
-<p>Features such as phrase queries that require positional information will not work if this is false.</p>
+<p>Features such as phrase queries that require positional information will not work if this is disabled.</p>
 <p>Turning this off for very large collections (~&gt; 1GB) can increase the tool’s scalability, at the cost of such features.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
@@ -3140,8 +3156,8 @@ if (window.location.search) {
 <p><em>Incremental</em> indexing is also supported by the indexer cli tool.</p>
 <p>Detecting <strong>deleted, changed, or added files</strong> is done by storing an <strong>internal file path –&gt; last modified timestamp</strong> map.</p>
 <p>To use it, simply pass the <code>--incremental</code> or <code>-i</code> option when running the indexer.</p>
-<h2 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h2>
-<p>As the core idea of Morsels is to split up the index into many tiny parts (and not more than necessary), the incremental indexing feature works by “patching” only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.</p>
+<h2 id="how-it-works-1"><a class="header" href="#how-it-works-1">How it Works</a></h2>
+<p>As the core idea of Morsels is to split up the index into many tiny parts, the incremental indexing feature works by “patching” only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.</p>
 <p>This is in contrast to a more traditional “segment” based approach you might find in search servers, whereby each incremental indexing run generates an entirely separate “segment”, and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.</p>
 <h2 id="content-based-hashing"><a class="header" href="#content-based-hashing">Content Based Hashing</a></h2>
 <p>The default change detection currently relies on the last modified time in file metadata. This may not always be guaranteed by the tools that generate the files Morsels indexes, or be an accurate reflection of whether a file’s contents were updated.</p>
@@ -3159,8 +3175,8 @@ if (window.location.search) {
 <h2 id="caveats"><a class="header" href="#caveats">Caveats</a></h2>
 <p>There are some additional caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising incremental indexing only when indexing speed is of concern – for example, updating the index repeatedly when developing this documentation (although, the mdbook plugin this documentation is built on currently dosen’t do that).</p>
 <h3 id="collection-statistics"><a class="header" href="#collection-statistics">Collection Statistics</a></h3>
-<p>Collection statistics used to rank documents will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain terms that were not encountered during the current run of incremental indexing (from added / updated documents). Detecting such terms is difficult, as there is no guarantee the deleted documents are available anymore. The alternative would be to store such information in a non-inverted index, but that again takes up extra space =(.</p>
-<p>As such, the information for these terms may not be “patched”. You <em>may</em> notice some slight drifting in the relative ranking of documents returned after some number of incremental indexing runs.</p>
+<p>Collection statistics used to rank documents will tend to drift off when deleting documents (which also entails updating documents). This is because such documents may contain <strong>terms that were not encountered</strong> during the current run of incremental indexing (from added / updated documents). Detecting such terms is difficult, as there is no guarantee the deleted documents are available anymore. The alternative would be to store such information in a non-inverted index, but that again takes up extra space =(.</p>
+<p>As such, the information for these terms may not be “patched”. You <em>may</em> notice some slight drifting in the relative ranking of documents returned after some number of incremental indexing runs, until said terms are encountered again in some other document.</p>
 <h3 id="file-bloat"><a class="header" href="#file-bloat">File Bloat</a></h3>
 <p>When deleting documents or updating documents, old field stores are not removed. This may lead to file bloat after many incremental indexing runs.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>

@@ -199,7 +199,7 @@
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h1>
-<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the <code>lang</code> key, while the <code>options</code> key supplies tokenization options unique to each module.</p>
+<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is <code>lang</code>, while the <code>options</code> key supplies tokenization options unique to each module.</p>
 <blockquote>
 <p>These options are also applied to <code>@morsels/search-ui</code>, which sources this information from some metadata available in the index output directory.</p>
 </blockquote>
@@ -210,11 +210,12 @@
   }
 }
 </code></pre>
+<p>Only the following 3 tokenizers are supported for now:</p>
 <h2 id="ascii-tokenizer"><a class="header" href="#ascii-tokenizer">Ascii Tokenizer</a></h2>
 <p>The default tokenizer splits on sentences, then whitespaces to obtain tokens.</p>
 <p>An <a href="https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs">asciiFoldingFilter</a> is then applied to these tokens, followed by punctuation and non-word boundary removal.</p>
-<pre><code class="language-json">&quot;lang_config&quot;: {
-  &quot;lang&quot;: &quot;latin&quot;,
+<pre><code class="language-json">{
+  &quot;lang&quot;: &quot;ascii&quot;,
   &quot;options&quot;: {
     &quot;stop_words&quot;: [
       &quot;a&quot;, &quot;an&quot;, &quot;and&quot;, &quot;are&quot;, &quot;as&quot;, &quot;at&quot;, &quot;be&quot;, &quot;but&quot;, &quot;by&quot;, &quot;for&quot;,
@@ -230,7 +231,7 @@
 </code></pre>
 <h2 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h2>
 <p>This is essentially the same as the ascii tokenizer, but adds a <code>stemmer</code> option.</p>
-<pre><code>&quot;lang_config&quot;: {
+<pre><code class="language-json">{
   &quot;lang&quot;: &quot;latin&quot;,
   &quot;options&quot;: {
     // ----------------------------------
@@ -247,9 +248,9 @@
 </code></pre>
 <p>It is separated from the ascii tokenizer to reduce binary size (about ~<code>220KB</code> savings before gzip).</p>
 <h2 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h2>
-<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.</p>
+<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it hasn’t been as extensively tested. Use at your own discretion!</p>
 <p>This tokenizer applies jieba’s <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
-<pre><code class="language-json">&quot;lang_config&quot;: {
+<pre><code class="language-json">{
   &quot;lang&quot;: &quot;chinese&quot;,
   &quot;options&quot;: {
     &quot;stop_words&quot;: [],
@@ -258,7 +259,7 @@
 }
 </code></pre>
 <h2 id="note-on-stop-words"><a class="header" href="#note-on-stop-words">Note on Stop Words</a></h2>
-<p>A slightly different approach with stop words is taken <strong>by default</strong> in that stop words are only filtered at <strong>query time</strong> for certain types of queries. Currently, this is for free-text queries with more than two terms, since the inverse document frequency of such terms are likely to have become negligible compared to other terms in the query at this point.</p>
+<p>A slightly different approach with stop words is taken <strong>by default</strong> in that stop words are only filtered at <strong>query time</strong> for certain types of queries. Currently, this is for <strong>free-text queries with more than two terms</strong>, since the impact of such terms are likely to have become negligible compared to other terms in the query at this point.</p>
 <p>Moreover, splitting up the index means that such commonly occuring words are likely to be completely and separately placed into one file. This means that information for stop words is never requested unless necessary:</p>
 <ul>
 <li>For processing phrase queries (eg. <code>&quot;for tomorrow&quot;</code>)</li>
