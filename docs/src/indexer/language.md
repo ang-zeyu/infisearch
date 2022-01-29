@@ -1,6 +1,6 @@
 # `lang_config`
 
-The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is the `lang` key, while the `options` key supplies tokenization options unique to each module.
+The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is `lang`, while the `options` key supplies tokenization options unique to each module.
 
 > These options are also applied to `@morsels/search-ui`, which sources this information from some metadata available in the index output directory.
 
@@ -13,6 +13,8 @@ The snippet below shows the default values for language configuration. The key c
 }
 ```
 
+Only the following 3 tokenizers are supported for now:
+
 ## Ascii Tokenizer
 
 The default tokenizer splits on sentences, then whitespaces to obtain tokens.
@@ -20,8 +22,8 @@ The default tokenizer splits on sentences, then whitespaces to obtain tokens.
 An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to these tokens, followed by punctuation and non-word boundary removal.
 
 ```json
-"lang_config": {
-  "lang": "latin",
+{
+  "lang": "ascii",
   "options": {
     "stop_words": [
       "a", "an", "and", "are", "as", "at", "be", "but", "by", "for",
@@ -40,8 +42,8 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
 
 This is essentially the same as the ascii tokenizer, but adds a `stemmer` option.
 
-```
-"lang_config": {
+```json
+{
   "lang": "latin",
   "options": {
     // ----------------------------------
@@ -61,12 +63,12 @@ It is separated from the ascii tokenizer to reduce binary size (about ~`220KB` s
 
 ## Chinese Tokenizer
 
-A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieba-rs) is also available, although, it is still a heavy WIP at the moment. Use at your own discretion.
+A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieba-rs) is also available, although, it hasn't been as extensively tested. Use at your own discretion!
 
 This tokenizer applies jieba's `cut` method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.
 
 ```json
-"lang_config": {
+{
   "lang": "chinese",
   "options": {
     "stop_words": [],
@@ -77,7 +79,7 @@ This tokenizer applies jieba's `cut` method to obtain various tokens, then appli
 
 ## Note on Stop Words
 
-A slightly different approach with stop words is taken **by default** in that stop words are only filtered at **query time** for certain types of queries. Currently, this is for free-text queries with more than two terms, since the inverse document frequency of such terms are likely to have become negligible compared to other terms in the query at this point.
+A slightly different approach with stop words is taken **by default** in that stop words are only filtered at **query time** for certain types of queries. Currently, this is for **free-text queries with more than two terms**, since the impact of such terms are likely to have become negligible compared to other terms in the query at this point.
 
 Moreover, splitting up the index means that such commonly occuring words are likely to be completely and separately placed into one file. This means that information for stop words is never requested unless necessary:
 - For processing phrase queries (eg. `"for tomorrow"`)

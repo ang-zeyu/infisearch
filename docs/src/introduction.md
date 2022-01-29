@@ -18,6 +18,12 @@ The secondary value proposition versus other pre-built index alternatives is the
 
 - Customisable dropdown / fullscreen popup user interface
 
+## How it Works
+
+The following diagram summarises how Morsels works:
+
+![Morsels' architecture diagram](./images/architecture.png)
+
 
 ## Use Cases
 

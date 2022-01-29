@@ -53,12 +53,12 @@ title\:lorem
 
 ### WebWorker Built-in
 
-Most of the search library operates on a WebWorker where it matters (e.g. setup), so you don't have to worry about blocking the UI thread.
+Most of the search library operates on a WebWorker where it matters (e.g. setup, query ranking), so you don't have to worry about blocking the UI thread.
 
-Population of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying large documents to-and-fro WebWorker interfaces incurs substantial overhead.
+Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.
 
-Search UI (@morsels/search-ui) related functionalities, for example SERP generation, is also done on the main thread.
-One of the main reasons is that there is simply no way of parsing html (the original html document can be used as an alternative to storing document fields) faster than the implementations provided by the browser.
+Search UI (@morsels/search-ui) related functionalities, for example result preview generation, is also done on the main thread.
+The main rationale is that there is simply no way of parsing html faster than implementations provided by the browser. (the original html document can be used as an alternative to storing document fields for result preview generation)
 
 
 ### Low-Level Inverted Index Format

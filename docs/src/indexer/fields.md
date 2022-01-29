@@ -6,7 +6,7 @@ The default configurations are as follows, already setup for interfacing with th
 
 If you are using morsels' search UI **as-is** (e.g. not adding additional fields to display), you can skip configuring `fields_config.fields`.
 
-You may want to briefly take note of the other parameters under `fields_config` however, which can be used to adjust response times / file bloat. The possible adjustments will be discussed under the chapter [Tradeoffs](../tradeoffs.md).
+You may want to briefly take note of the other parameters under `fields_config` however, which can be used to adjust response times / file bloat. The possible adjustments are discussed later in [Tradeoffs](../tradeoffs.md).
 
 ```json
 {
@@ -85,7 +85,7 @@ Specifying `0.0` will result in the field not being indexed (although, it can st
 
 **`k` & `b`**
 
-These are Okapi BM25 model parameters. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these, although, the defaults should serve sufficiently.
+These are Okapi BM25 model parameters. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these if the defaults are unsuitable for your use case.
 
 <div style="display: none;">
 
@@ -104,21 +104,22 @@ Moreover, sorting (also WIP) operations are only supported on `u32` fields.
 
 ## Default Fields in `@morsels/search-ui`
 
-The default fields are setup for interfacing with the `@morsels/search-ui` package. Their functions in the search-ui are as follows:
+As mentioned, the default fields are already setup for interfacing with the `@morsels/search-ui` package. Their functions for the user interface are as follows:
+
+<img alt="annotation for fields" src="../images/fields_annotated.png" />
+
 - `title`: This is the header for a single document match. 
 - `heading`: These are section headers which appear on the left of corresponding `body` fields. THey are sourced from `<h1-6>` tags by default.
 - `headingLink`: These are the `id` attributes of corresponding `<h1-6>` tags. If available, an `#anchor` is attached to the linked document for the particular heading
 - `body`: This field is the text that appears to the right of headings (or on its own if there is no corresponding heading).
-- `_relative_fp` / `link`: If the `title` field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the `<a />` tag) or for generating result previews (more [here](../search_configuration.md#default-rendering-output--purpose)).
+- `_relative_fp` **or** `link`: If the `title` field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the `<a />` tag) or for generating result previews (more [here](../search_configuration.md#default-rendering-output--purpose)).
   - Note: The `link` field is not setup by default; The combination of `sourceFilesUrl` + `_relative_fp` serves the same purpose. The `link` field serves to accomodate more custom use cases (e.g. linking to another site, or linking to a html page by indexing a json document).
 
-Their functions are also annotated in the following diagram:
 
-<img alt="annotation for fields" src="../images/fields_annotated.png" />
 
 ## Mapping File Data to Fields
 
-Defining fields is all good, but you may also need a way to map custom file data to each of these fields if the defaults are insufficient, which is discussed later under [indexing](./indexing.md#mapping-file-data-to-fields-loader_configs).
+Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings are insufficient. This is discussed later under [indexing](./indexing.md#mapping-file-data-to-fields-loader_configs).
 
 The exception are "special" fields below, which sources data from elsewhere.
 
