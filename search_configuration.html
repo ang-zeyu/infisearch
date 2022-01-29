@@ -203,7 +203,7 @@
 <p>There are 2 categories of options, the first being related to the internal search library (<code>@morsels/search-lib</code>), and the second the user interface (<code>@morsels/search-ui</code>).</p>
 <hr />
 <h2 id="forenote-on-mobile-device-detection"><a class="header" href="#forenote-on-mobile-device-detection">Forenote on Mobile Device Detection</a></h2>
-<p>Note that several options in both the search library and UI are <strong>by default</strong> tuned based on whether the client is a “mobile device”:</p>
+<p>Note that several options in both the search library and UI are (by default) tuned based on whether the client is a “mobile device”:</p>
 <ul>
 <li>Query term proximity ranking is disabled</li>
 <li>The fullscreen version of the user interface is used for <code>mode='auto'</code> (see <a href="#ui-mode">UI Mode</a>)</li>
@@ -232,35 +232,35 @@
 <p>The search UI provides 4 main different behaviours.</p>
 <p>To <strong>try the different modes out</strong>, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation.</p>
 <table><thead><tr><th>Mode</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and <strong>combines the <code>dropdown</code> and <code>fullscreen</code> options</strong> below. If a mobile device is detected as per the <a href="#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.</td></tr>
+<tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.</td></tr>
 <tr><td><code>&quot;dropdown&quot;</code></td><td>This <strong>wraps the specified <code>input</code> element with a root container</strong>. Search results are displayed using an additional <code>&lt;ul&gt;</code> container appended to this root container, and next to the input element.</td></tr>
-<tr><td><code>&quot;fullscreen&quot;</code></td><td>This option <strong>creates a completely distinct root container</strong> with its own input element, and attaches it to the <code>&lt;body&gt;</code> element.<br><br>Under the default stylesheet, the user interface is fullscreen for devices satisfying <code>max-width: 1025px</code>, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the <code>input</code> element is specified, the interface is shown whenever the <code>input</code> is focused.<br><br>Alternatively, the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> call can be used to toggle the UI. This is also <strong>the only use case where you would not need to specify the <code>input</code> element</strong>.</td></tr>
+<tr><td><code>&quot;fullscreen&quot;</code></td><td>This option <strong>creates a completely distinct root container</strong> with its own input element, and attaches it to the <code>&lt;body&gt;</code> element.<br><br>Under the default stylesheet, the user interface is fullscreen for devices satisfying <code>max-width: 1025px</code>, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the <code>input</code> element is specified, the interface is shown whenever the <code>input</code> is focused.<br><br>Alternatively, the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> call can be used to toggle the UI. This is also <strong>the only use case</strong> where you would <strong>not need to specify the <code>input</code> element</strong>.</td></tr>
 <tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin and this documentation by default. The <code>input</code> element must be specified, but only for attaching keystroke listeners. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom target element of choice.</td></tr>
 </tbody></table>
 <h4 id="ui-mode-specific-options"><a class="header" href="#ui-mode-specific-options">UI Mode Specific Options</a></h4>
 <p>There are also several options specific to each UI. Note that <code>dropdown</code> and <code>fullscreen</code> options are both applicable to the <code>auto</code> mode.</p>
 <table><thead><tr><th>Mode</th><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody>
 <tr><td>all</td><td><code>label</code></td><td><code>'Search this site'</code></td><td>Accessibility label for the inputs and results listbox.</td></tr>
-<tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'bottom-end'</code></td><td><code>'bottom-start'</code> or <code>'bottom-end'</code>. Which side of the input element to align the dropdown results container and dropdown seperator against. The alignment of the dropdown container will be automatically flipped horizontally to ensure the most optimal size (see <a href="https://floating-ui.com/docs/size#using-with-flip">floating-ui’s</a> docs for a demonstration).</td></tr>
+<tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'bottom-end'</code></td><td><code>'bottom-start'</code> or <code>'bottom-end'</code>.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment of the dropdown container will also be automatically flipped horizontally to ensure the most optimal placement (see <a href="https://floating-ui.com/docs/size#using-with-flip">floating-ui’s</a> docs for a demonstration).</td></tr>
 <tr><td><code>fullscreen</code></td><td><code>fsContainer</code></td><td><code>&lt;body&gt;</code> element</td><td><code>id</code> of the element, or an element reference to attach the separate root container to.</td></tr>
 <tr><td><code>fullscreen</code></td><td><code>fsPlaceholder</code></td><td><code>'Search this site...'</code></td><td>Placeholder of the input element in the fullscreen UI.</td></tr>
-<tr><td><code>target</code></td><td><code>target</code></td><td>-</td><td><code>id</code> of the element, or an element reference to attach results to. Required if using <code>mode='target'</code>.</td></tr>
+<tr><td><code>target</code></td><td><code>target</code></td><td><code>undefined</code></td><td><code>id</code> of the element, or an element reference to attach results to.<br><br>Required if using <code>mode='target'</code>.</td></tr>
 </tbody></table>
 <h4 id="manually-showing--hiding-the-fullscreen-ui"><a class="header" href="#manually-showing--hiding-the-fullscreen-ui">Manually Showing / Hiding the Fullscreen UI</a></h4>
-<pre><code class="language-ts">const { showFullscreen, hideFullscreen } = initMorsels(/* ... */);
+<pre><code class="language-ts">const { showFullscreen, hideFullscreen } = initMorsels({ ... });
 </code></pre>
-<p>The default behaviour of showing the fullscreen search UI when focusing the input may be insufficient, for example to show the UI when clicking a “search icon”.</p>
-<p>You may call the <code>showFullscreen()</code> function returned by the initMorsels call in such a case for manual control. Correspondingly, the <code>hideFullscreen()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button (or by pressing <code>esc</code>) is available by default.</p>
+<p>You may call the <code>showFullscreen()</code> function returned by the initMorsels call to programatically show the fullscreen search UI.</p>
+<p>Correspondingly, the <code>hideFullscreen()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button (or by pressing <code>esc</code>) is available by default.</p>
 <p>These functions can also be used under <code>mode='auto'</code> if desired.</p>
 <h3 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h3>
-<p>There are 3 ways to generate result previews, the first of the below being the default.</p>
-<p>Unless you have modified the default result renderer (covered in the next page on renderers), morsels requires <strong>at least</strong> one of the <code>body</code> / <code>heading</code> / <code>title</code> fields. This is configured by default, and covered in the next section on indexing configuration in more detail.</p>
+<p>There are 3 ways to generate result previews of matched documents, the first of the below being the default.</p>
+<p>Unless you have modified the default result renderer (covered in the next page on renderers), morsels also requires <strong>at least one</strong> of the <code>body</code> / <code>heading</code> / <code>title</code> fields. This is configured by default, and covered in the next section on indexing configuration in more detail.</p>
 <h4 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h4>
-<p>The default result generation assumes the simple but common use case of <strong>linking to a source document</strong> (<code>&lt;a /&gt;</code> tag). </p>
-<p>Therefore, source documents are assumed to be <strong>available and linkable</strong> to. The url of this source document is <strong>either</strong>:</p>
+<p>The default result generation assumes the simple but common use case of linking to a source document (<code>&lt;a /&gt;</code> tag). </p>
+<p>Therefore, source documents are assumed to be <strong>available</strong> and <strong>linkable</strong> to. The url of this source document is <strong>either</strong>:</p>
 <ol>
 <li>
-<p>The <strong><code>sourceFilesUrl</code> option adjoined</strong> with the <strong>relative file path of the document</strong> at the time of indexing (default).</p>
+<p>The <code>sourceFilesUrl</code> option concatenated with the relative file path of the document at the time of indexing (default).</p>
 <blockquote>
 <p>The relative file path is stored in the <code>_relative_fp</code> field, which is an internally generated field. Combining this with the base url (<code>sourceFilesUrl</code>) forms the full source document link.</p>
 </blockquote>

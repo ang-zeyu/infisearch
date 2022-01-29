@@ -216,15 +216,17 @@
 <div class="alert alert-warning" role="alert">
   The APIs here (especially those highlighted in <span style="color: red;">red</span>) may be particularly unstable still!
 </div>
-<p>This page covers the a more advanced API, “renderers”, that allows you to customise the html output structure to some degree.</p>
+<p>This page covers a more advanced API, “renderers”, that allows you to customise the html output structure to some degree.</p>
 <p>Some use cases for this include:</p>
 <ul>
-<li>The default structure is not sufficient for your styling needs</li>
+<li>The default html structure is not sufficient for your styling needs</li>
 <li>You need to attach additional event listeners to elements</li>
 <li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)</li>
 <li>You want to change the <a href="./search_configuration.html#default-rendering-output--purpose">default use case</a> of following through on a result preview to its source document entirely</li>
 </ul>
-<p>If you only need to style the dropdown or search popup, you can include your own css file to do so <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css">and / or override the variables</a> exposed by the default css bundle.</p>
+<blockquote>
+<p>💡 If you only need to style the dropdown or search popup, you can include your own css file to do so <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css">and / or override the variables</a> exposed by the default css bundle.</p>
+</blockquote>
 <p>These API options are similarly specified under the <code>uiOptions</code> key of the root configuration object.</p>
 <pre><code class="language-ts">initMorsels({
     uiOptions: {
@@ -232,10 +234,10 @@
     }
 });
 </code></pre>
-<p>As the interfaces are rather low level, this page will cross reference the <code>UiOptions</code> interface <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/SearchUiOptions.ts">specification</a> directly.</p>
+<p>As the interfaces are rather low level, this page will cross reference the <code>UiOptions</code> typescript interface <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/SearchUiOptions.ts">here</a> directly.</p>
 <h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
 <p><code>h</code></p>
-<p>Almost all renderer functions are passed a “<code>h</code>” function. This is an <strong>optional</strong> helper function you may use to create your own renderer.</p>
+<p>Almost all renderer functions are passed a <code>h</code> function. This is an <strong>optional</strong> helper function you may use to create elements.</p>
 <p>The method signature is as such:</p>
 <pre><code class="language-ts">export type CreateElement = (
   // Element name
@@ -244,9 +246,11 @@
   // Element attribute map
   attrs: { [attrName: string]: string },
 
-  // Child elements (HTMLElement) OR text nodes (just put the string)
-  // string parameters utilise .textContent,
-  // so you don't have to worry about escaping potentially malicious content
+  /*
+   Child elements (HTMLElement) OR text nodes (just put the string)
+   string parameters utilise .textContent,
+   so you don't have to worry about escaping potentially malicious content
+  */
   ...children: (string | HTMLElement)[]
 ) =&gt; HTMLElement;
 </code></pre>
@@ -264,7 +268,7 @@
 <p>If you want to include some custom options (e.g. an API base url), you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
 <h2 id="default-html-output-structure"><a class="header" href="#default-html-output-structure">Default Html Output Structure</a></h2>
 <p>You can have a look at the documentation further below on each API to understand each renderer, then refer back to the following output placement snippet to understand which renderers are responsible for which parts of the html output.</p>
-<p>The output also varies depending on the <a href="./search_configuration.html#ui-mode">UI mode</a> specified earlier. As usual, note that <code>dropdown</code> and <code>fullscreen</code> modes both apply to the <code>auto</code> mode.</p>
+<p>The output also varies depending on the <a href="./search_configuration.html#ui-mode">UI mode</a> specified earlier. Again, note that the <code>dropdown</code> and <code>fullscreen</code> ui modes both apply to the <code>auto</code> mode.</p>
 <details>
 <summary><strong>Renderers and their output placement</strong></summary>
 <pre><code class="language-html">&lt;!--
@@ -353,7 +357,7 @@
 </li>
 </ul>
 <h4 id="supplementary-mandatory-functions"><a class="header" href="#supplementary-mandatory-functions">Supplementary Mandatory Functions</a></h4>
-<p>The following two functions should be implemented <strong>in tandem</strong> with the above function; They are used internally to show / hide the dropdown on certain events (for example, on input focus / blur).</p>
+<p>The following two functions should be implemented <strong>in tandem</strong> with <code>dropdownRootRender</code>, and are used (internally) to show / hide the dropdown on certain events (for example, on input focus / blur).</p>
 <p><code>showDropdown?: (root: HTMLElement, opts: SearchUiOptions) =&gt; void</code></p>
 <p><code>hideDropdown?: (root: HTMLElement, opts: SearchUiOptions) =&gt; void</code></p>
 <p>For example, the default <code>showDropdown</code> implementation is as such:</p>
@@ -361,6 +365,7 @@
   if (listContainer.childElementCount) {
     listContainer.style.display = 'block';
     (listContainer.previousSibling as HTMLElement).style.display = 'block';
+    computePosition(...).then(({ x, y }) =&gt; ...); // floating-ui call to position the dropdown
   }
 }
 </code></pre>
