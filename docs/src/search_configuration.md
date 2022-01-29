@@ -8,7 +8,7 @@ There are 2 categories of options, the first being related to the internal searc
 
 ## Forenote on Mobile Device Detection
 
-Note that several options in both the search library and UI are **by default** tuned based on whether the client is a "mobile device":
+Note that several options in both the search library and UI are (by default) tuned based on whether the client is a "mobile device":
 - Query term proximity ranking is disabled
 - The fullscreen version of the user interface is used for `mode='auto'` (see [UI Mode](#ui-mode))
 
@@ -52,9 +52,9 @@ To **try the different modes out**, head on over to the [mdbook plugin](./gettin
 
 | Mode        | Description |
 | ----------- | ----------- |
-| `"auto"`        | This option is the **default**, and **combines the `dropdown` and `fullscreen` options** below. If a mobile device is detected as per the [earlier section](#forenote-on-mobile-device-detection), the `fullscreen` mode is used. Otherwise, the `dropdown` mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.   |
+| `"auto"`        | This option is the **default**, and combines the `dropdown` and `fullscreen` options below. If a mobile device is detected as per the [earlier section](#forenote-on-mobile-device-detection), the `fullscreen` mode is used. Otherwise, the `dropdown` mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.   |
 | `"dropdown"`    | This **wraps the specified `input` element with a root container**. Search results are displayed using an additional `<ul>` container appended to this root container, and next to the input element.    |
-| `"fullscreen"`  | This option **creates a completely distinct root container** with its own input element, and attaches it to the `<body>` element.<br><br>Under the default stylesheet, the user interface is fullscreen for devices satisfying `max-width: 1025px`, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the `input` element is specified, the interface is shown whenever the `input` is focused.<br><br>Alternatively, the `showFullscreen` and `hideFullscreen` functions returned by the `initMorsels` call can be used to toggle the UI. This is also **the only use case where you would not need to specify the `input` element**.    |
+| `"fullscreen"`  | This option **creates a completely distinct root container** with its own input element, and attaches it to the `<body>` element.<br><br>Under the default stylesheet, the user interface is fullscreen for devices satisfying `max-width: 1025px`, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the `input` element is specified, the interface is shown whenever the `input` is focused.<br><br>Alternatively, the `showFullscreen` and `hideFullscreen` functions returned by the `initMorsels` call can be used to toggle the UI. This is also **the only use case** where you would **not need to specify the `input` element**.    |
 | `"target"`      | This option is the most flexible, and is used by the mdbook plugin and this documentation by default. The `input` element must be specified, but only for attaching keystroke listeners. No dom manipulation is performed unlike the `dropdown` or `auto` modes.<br><br>The search results are output to a custom target element of choice.    |
 
 
@@ -65,37 +65,37 @@ There are also several options specific to each UI. Note that `dropdown` and `fu
 | Mode        | Option                | Default                 | Description |
 | ----------- | -----------           | -----------             | ----------- |
 | all         | `label`               | `'Search this site'`    | Accessibility label for the inputs and results listbox.
-| `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom-start'` or `'bottom-end'`. Which side of the input element to align the dropdown results container and dropdown seperator against. The alignment of the dropdown container will be automatically flipped horizontally to ensure the most optimal size (see [floating-ui's](https://floating-ui.com/docs/size#using-with-flip) docs for a demonstration).
+| `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom-start'` or `'bottom-end'`.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment of the dropdown container will also be automatically flipped horizontally to ensure the most optimal placement (see [floating-ui's](https://floating-ui.com/docs/size#using-with-flip) docs for a demonstration).
 | `fullscreen`| `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
 | `fullscreen`| `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
-| `target`    | `target`              | -                       | `id` of the element, or an element reference to attach results to. Required if using `mode='target'`.
+| `target`    | `target`              | `undefined`                       | `id` of the element, or an element reference to attach results to.<br><br>Required if using `mode='target'`.
 
 #### Manually Showing / Hiding the Fullscreen UI
 
 ```ts
-const { showFullscreen, hideFullscreen } = initMorsels(/* ... */);
+const { showFullscreen, hideFullscreen } = initMorsels({ ... });
 ```
 
-The default behaviour of showing the fullscreen search UI when focusing the input may be insufficient, for example to show the UI when clicking a "search icon".
+You may call the `showFullscreen()` function returned by the initMorsels call to programatically show the fullscreen search UI.
 
-You may call the `showFullscreen()` function returned by the initMorsels call in such a case for manual control. Correspondingly, the `hideFullscreen()` method hides the fullscreen interface, although, this shouldn't be needed since a close button (or by pressing `esc`) is available by default.
+Correspondingly, the `hideFullscreen()` method hides the fullscreen interface, although, this shouldn't be needed since a close button (or by pressing `esc`) is available by default.
 
 These functions can also be used under `mode='auto'` if desired.
 
 
 ### Options for Generating Result Previews
 
-There are 3 ways to generate result previews, the first of the below being the default.
+There are 3 ways to generate result previews of matched documents, the first of the below being the default.
 
-Unless you have modified the default result renderer (covered in the next page on renderers), morsels requires **at least** one of the `body` / `heading` / `title` fields. This is configured by default, and covered in the next section on indexing configuration in more detail.
+Unless you have modified the default result renderer (covered in the next page on renderers), morsels also requires **at least one** of the `body` / `heading` / `title` fields. This is configured by default, and covered in the next section on indexing configuration in more detail.
 
 
 #### Default Rendering Output / Purpose
 
-The default result generation assumes the simple but common use case of **linking to a source document** (`<a />` tag). 
+The default result generation assumes the simple but common use case of linking to a source document (`<a />` tag). 
 
-Therefore, source documents are assumed to be **available and linkable** to. The url of this source document is **either**:
-1. The **`sourceFilesUrl` option adjoined** with the **relative file path of the document** at the time of indexing (default).
+Therefore, source documents are assumed to be **available** and **linkable** to. The url of this source document is **either**:
+1. The `sourceFilesUrl` option concatenated with the relative file path of the document at the time of indexing (default).
 
    > The relative file path is stored in the `_relative_fp` field, which is an internally generated field. Combining this with the base url (`sourceFilesUrl`) forms the full source document link.
 1. The [`link` field](./indexer/fields.md#default-fields-in-morselssearch-ui), a custom field that has to manually mapped from file data.
