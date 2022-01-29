@@ -153,7 +153,7 @@ fn main() {
                 let path = dir_entry.path();
                 let relative_path = path.strip_prefix(&input_folder_path).unwrap();
 
-                indexer.index_file(&input_folder_path, path, relative_path);
+                indexer.index_file(path, relative_path);
             }
             Err(e) => {
                 error!("Error processing entry. {}", e)

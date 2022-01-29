@@ -479,7 +479,7 @@ impl Indexer {
         ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).floor() as u32
     }
 
-    pub fn index_file(&mut self, input_folder_path_clone: &Path, path: &Path, relative_path: &Path) {
+    pub fn index_file(&mut self, path: &Path, relative_path: &Path) {
         if let Some(_match) = self.indexing_config.exclude_patterns.iter().find(|pat| pat.matches_path(relative_path)) {
             return;
         }
@@ -493,7 +493,7 @@ impl Indexer {
         };
 
         for loader in self.loaders.iter() {
-            if let Some(loader_results) = loader.try_index_file(input_folder_path_clone, path, relative_path)
+            if let Some(loader_results) = loader.try_index_file(path, relative_path)
             {
                 let is_not_modified = self.incremental_info.set_file(external_id, path);
                 if is_not_modified && self.is_incremental {

@@ -132,7 +132,6 @@ impl CsvLoader {
 impl Loader for CsvLoader {
     fn try_index_file<'a>(
         &'a self,
-        _input_folder_path: &Path,
         absolute_path: &Path,
         relative_path: &Path,
     ) -> Option<LoaderResultIterator<'a>> {
