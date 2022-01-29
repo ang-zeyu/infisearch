@@ -3,6 +3,7 @@
 
 # Update the cargo.toml version numbers before running anything!
 
+# And this
 VERSION=v0.0.11
 
 # Run in order
@@ -55,7 +56,7 @@ releaseIndexer:
 # git checkout -- . is to discard wasm-pack package.json changes
 preReleaseSearch:
 	npm run setup
-	npx lerna version --no-push
+	npx lerna version $(VERSION) --no-push
 	npm run buildSearch
 	git add packages/search-ui/dist/*
 	git commit --amend -m "Bump search"
