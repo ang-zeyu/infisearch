@@ -586,12 +586,9 @@ impl Indexer {
             self.doc_id_counter, first_block, last_block,
         );
 
-        if let Some(now) = instant {
-            print_time_elapsed(now, "Block indexing done!");
-        }
+        print_time_elapsed(&instant, "Block indexing done!");
 
-        // Merge spimi blocks
-        // Go through all blocks at once
+        // N-way merge of spimi blocks
         self.merge_blocks(first_block, last_block);
 
         self.write_morsels_config();
@@ -602,9 +599,7 @@ impl Indexer {
             spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
         }
 
-        if let Some(now) = instant {
-            print_time_elapsed(now, "Blocks merged!");
-        }
+        print_time_elapsed(&instant, "Blocks merged!");
 
         self.terminate_all_workers();
     }
@@ -684,7 +679,9 @@ impl Indexer {
     }
 }
 
-fn print_time_elapsed(instant: Instant, extra_message: &str) {
-    let elapsed = instant.elapsed().as_secs_f64();
-    info!("({}) {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
+fn print_time_elapsed(instant: &Option<Instant>, extra_message: &str) {
+    if let Some(instant) = instant {
+        let elapsed = instant.elapsed().as_secs_f64();
+        info!("({}) {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
+    }
 }
