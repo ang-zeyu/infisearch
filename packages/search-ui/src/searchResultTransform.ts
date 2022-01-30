@@ -308,9 +308,9 @@ function transformHtml(
     } else if (fieldName) {
       // Fast track
       if (fields.length && fields[fields.length - 1][0] === fieldName) {
-        fields[fields.length - 1][1] += el.innerText;
+        fields[fields.length - 1][1] += el.textContent;
       } else {
-        fields.push([fieldName, el.innerText || '']);
+        fields.push([fieldName, el.textContent || '']);
       }
     }
   }
