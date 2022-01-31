@@ -139,22 +139,29 @@ function transformText(
     }
 
     let prevHighlightEndPos = 0;
-    for (let i = 0; i < lastClosestWindowPositions.length; i += 1) {
-      const { pos, idx } = lastClosestWindowPositions[i];
+    for (const { pos, idx } of lastClosestWindowPositions) {
       const highlightEndPos = pos + lastClosestTermLengths[idx];
       if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
         result.push(createEllipses());
         result.push(str.substring(pos - BODY_SERP_BOUND, pos));
         result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
-        result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       } else if (pos >= prevHighlightEndPos) {
         result.pop();
         result.push(str.substring(prevHighlightEndPos, pos));
         result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
-        result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
       } else {
-        continue;
+        // Intersecting matches
+        if (highlightEndPos > prevHighlightEndPos) {
+          result.pop();
+          const previousHighlight = result[result.length - 1] as HTMLElement;
+          previousHighlight.textContent += str.substring(prevHighlightEndPos, highlightEndPos);
+        } else {
+          // The highlight is already contained within the previous highlight
+          continue;
+        }
       }
+      result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
+
       prevHighlightEndPos = highlightEndPos;
     }
     result.push(createEllipses());
