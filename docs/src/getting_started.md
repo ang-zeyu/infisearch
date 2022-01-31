@@ -50,7 +50,7 @@ This flag outputs the default `morsels_config.json` that can be used to [configu
 
 #### Hosting the Files Locally
 
-If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). All files inside `search.morsels.zip` are required, and their functions are as follows:
+If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). All files inside `search.morsels.zip` are required:
 
 - `search-ui.bundle.js`
 - `search-ui.css`
@@ -59,7 +59,7 @@ If you wish to serve the files locally instead, you can find the necessary files
   - `wasm.lang-latin-index-js.bundle`
   - an accompanying wasm binary
 
-`search.worker.bundle.js` and the `.wasm` files are expected to be **accessible in the same folder** relative to the linked `search-ui.bundle.js`.
+> ⚠️ All files are expected to be **accessible in the same folder** relative to the linked `search-ui.bundle.js`.
 
 ### Installation via Bundlers
 

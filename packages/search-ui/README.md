@@ -28,9 +28,7 @@ That said, the indexing tool was built with support for a few other file formats
 
 ## Getting Started
 
-Please check out the [docs](http://ang-zeyu.github.io/morsels/)!
-
-## Preview
+Please check out the [documentation](http://ang-zeyu.github.io/morsels/)!
 
 <img alt="preview gif of morsels search" src="./docs/src/images/mdbook-preview.gif" width="70%" />
 
@@ -42,11 +40,13 @@ Please check out the [docs](http://ang-zeyu.github.io/morsels/)!
 
 This tool should be able to handle `800MB` **pure text** (not counting things like html soup) collections with the full set of features enabled (numbers [here](https://ang-zeyu.github.io/morsels/tradeoffs.html#limits-of-scalability)).
 
+A punishing demo on a ~500MB, ~52000 document collection is also available [here](https://ang-zeyu.github.io/morsels-demo-1/).
+
 ### What's the Catch?
 
 1. **Latency** & File Bloat
 
-   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree. A demo on a ~500MB, ~52000 document collection is available [here](https://ang-zeyu.github.io/morsels-demo-1/).
+   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree.
 
    Nevertheless, this tradeoff can also be [configured](https://ang-zeyu.github.io/morsels/tradeoffs.html#tradeoffs) to varying degrees. Meaning, morsels can also function much like other existing monolithic pre-built index options for smaller collections in terms of the number of network requests.
 
