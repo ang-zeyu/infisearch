@@ -3,7 +3,7 @@ use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 
@@ -12,22 +12,25 @@ use crate::postings_list::PostingsList;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
 
-#[derive(Serialize)]
-struct DocResult(u32, f32);
+#[derive(Clone)]
+struct DocResult {
+    doc_id: u32,
+    score: f32,
+}
 
 impl Eq for DocResult {}
 
 impl PartialEq for DocResult {
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
+        self.doc_id == other.doc_id
     }
 }
 
 impl Ord for DocResult {
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.1 < other.1 {
+        if self.score < other.score {
             Ordering::Less
-        } else if self.1 > other.1 {
+        } else if self.score > other.score {
             Ordering::Greater
         } else {
             Ordering::Equal
@@ -37,13 +40,14 @@ impl Ord for DocResult {
 
 impl PartialOrd for DocResult {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.1 < other.1 {
-            Some(Ordering::Less)
-        } else if self.1 > other.1 {
-            Some(Ordering::Greater)
-        } else {
-            Some(Ordering::Equal)
-        }
+        Some(self.cmp(other))
+    }
+}
+
+impl Serialize for DocResult {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    {
+        (self.doc_id, self.score).serialize(serializer)
     }
 }
 
@@ -106,7 +110,10 @@ impl Query {
                 self.wand_leftovers.sort_unstable();
                 self.wand_leftovers.dedup();
             }
-            doc_ids.push(DocResult(self.wand_leftovers.pop().unwrap(), 0.0));
+            doc_ids.push(DocResult {
+                doc_id: self.wand_leftovers.pop().unwrap(),
+                score: 0.0
+            });
             self.results_retrieved += 1;
         }
 
@@ -155,7 +162,7 @@ impl Searcher {
             // ------------------------------------------
             // WAND
             if use_wand && top_n_min_heap.len() >= wand_n {
-                let nth_highest_score = top_n_min_heap.peek().unwrap().0 .1;
+                let nth_highest_score = top_n_min_heap.peek().unwrap().0.score;
                 let mut wand_acc = 0.0;
                 let mut pivot_list_idx = 0;
 
@@ -203,7 +210,7 @@ impl Searcher {
             }
             // ------------------------------------------
 
-            let mut result = DocResult(pivot_doc_id, 0.0);
+            let mut result = DocResult { doc_id: pivot_doc_id, score: 0.0 };
             let mut scaling_factor = 1.0;
 
             // ------------------------------------------
@@ -309,7 +316,7 @@ impl Searcher {
             for pl_it in pl_its.iter_mut() {
                 let td = pl_it.td.unwrap();
                 if td.doc_id == pivot_doc_id {
-                    result.1 += if td.score != 0.0 {
+                    result.score += if td.score != 0.0 {
                         td.score
                     } else {
                         self.calc_doc_bm25_score(td, pivot_doc_id, pl_it.pl)
@@ -321,14 +328,14 @@ impl Searcher {
 
             if use_wand {
                 if top_n_min_heap.len() < wand_n {
-                    top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
-                } else if result.1 > top_n_min_heap.peek().unwrap().0 .1 {
+                    top_n_min_heap.push(Reverse(result.clone()));
+                } else if result.score > top_n_min_heap.peek().unwrap().0.score {
                     top_n_min_heap.pop();
-                    top_n_min_heap.push(Reverse(DocResult(result.0, result.1)));
+                    top_n_min_heap.push(Reverse(result.clone()));
                 }
             }
 
-            result.1 *= scaling_factor;
+            result.score *= scaling_factor;
             result_heap.push(result);
 
             if pl_its.iter().any(|pl_it| pl_it.td.is_none()) {
