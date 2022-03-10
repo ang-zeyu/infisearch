@@ -463,8 +463,8 @@ interface SearchUiRenderOptions {
   headingBodyRender?: (
     h: CreateElement,
 
-    // Heading text
-    heading: string,    
+    // The highlighted elements under .morsels-heading. Intended to be used with the 'h' function.
+    headingHighlights: (HTMLElement | string)[],    
 
     // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
     bodyHighlights: (HTMLElement | string)[], 

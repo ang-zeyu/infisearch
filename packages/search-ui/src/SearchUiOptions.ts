@@ -102,7 +102,7 @@ export interface UiOptions {
     headingBodyRender?: (
       h: CreateElement,
       opts: SearchUiOptions,
-      heading: string,
+      headingHighlights: (HTMLElement | string)[],
       bodyHighlights: (HTMLElement | string)[],
       href?: string
     ) => HTMLElement,

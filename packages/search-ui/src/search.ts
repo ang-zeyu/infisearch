@@ -321,10 +321,10 @@ function prepareOptions(options: SearchUiOptions) {
 
   uiOptions.resultsRenderOpts.headingBodyRender = uiOptions.resultsRenderOpts.headingBodyRender
   || ((
-    h, opts, heading, bodyHighlights, href,
+    h, opts, headingHighlights, bodyHighlights, href,
   ) => {
     const el = h('a', { class: 'morsels-heading-body' },
-      h('div', { class: 'morsels-heading' }, heading),
+      h('div', { class: 'morsels-heading' }, ...headingHighlights),
       h('div', { class: 'morsels-bodies' },
         h('div', { class: 'morsels-body' }, ...bodyHighlights)));
     if (href) {

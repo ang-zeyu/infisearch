@@ -15,17 +15,168 @@ const BODY_SERP_BOUND = 40;
 const MAX_SERP_HIGHLIGHT_PARTS = 2;
 
 interface MatchResult {
-  result: (string | HTMLElement)[],
+  str: string,
+  lastClosestWindowPositions: { pos: number, idx: number }[],
+  lastClosestTermLengths: number[],
   numberTermsMatched: number,
 }
 
-interface FinalMatchResult {
-  result: string | HTMLElement,
-  numberTermsMatched: number,
+function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchResult {
+  // Get all matches first
+  const matches = termRegexes.map(r => Array.from(str.matchAll(r)));
+  if (!matches.some(innerMatches => innerMatches.length)) {
+    return {
+      str,
+      lastClosestTermLengths: [],
+      lastClosestWindowPositions: [],
+      numberTermsMatched: 0,
+    };
+  }
+
+  // Find the closest window
+
+  let lastClosestTermPositions = termRegexes.map(() => -100000000);
+  let lastClosestWindowLen = 100000000;
+  let lastClosestTermLengths = termRegexes.map(() => 0);
+
+  // At each iteration, increment the lowest index match
+  const matchIndices = matches.map(() => 0);
+  const hasFinished =  matches.map((innerMatches) => !innerMatches.length);
+  const maxMatchLengths = matches.map(() => 0);
+
+  // Local to the loop; To avoid .map and reallocating
+  const matchPositions = matches.map(() => -1);
+
+  while (true) {
+    let lowestMatchPos = 10000000000;
+    let lowestMatchPosExclFinished = 10000000000;
+    let lowestMatchIndex = undefined;
+    let highestMatchPos = 0;
+
+    let hasLongerMatch = false;
+    let isEqualMatch = true;
+    for (let idx = 0; idx < matchIndices.length; idx++) {
+      const match = matches[idx][matchIndices[idx]];
+      if (!match) {
+        // No matches at all for this regex in this str
+        continue;
+      }
+
+      const matchedText = match[2];
+      if (matchedText.length > maxMatchLengths[idx]) {
+        // Prefer longer matches across all regexes
+        hasLongerMatch = true;
+        maxMatchLengths[idx] = matchedText.length;
+      }
+      isEqualMatch = isEqualMatch && matchedText.length === maxMatchLengths[idx];
+
+      const pos = match.index;
+      if (!hasFinished[idx] && pos < lowestMatchPosExclFinished) {
+        lowestMatchPosExclFinished = pos;
+        // Find the match with the smallest position for forwarding later
+        lowestMatchIndex = idx;
+      }
+      lowestMatchPos = Math.min(lowestMatchPos, pos);
+      highestMatchPos = Math.max(highestMatchPos, pos);
+
+      matchPositions[idx] = pos;
+    }
+
+    const windowLen = highestMatchPos - lowestMatchPos;
+    if (
+      hasLongerMatch
+      // If all matches are equally long as before, prefer the smaller window
+      || (isEqualMatch && windowLen < lastClosestWindowLen)
+    ) {
+      lastClosestWindowLen = windowLen;
+      lastClosestTermPositions = [...matchPositions];
+      lastClosestTermLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][0].length);
+    }
+
+    // Forward the match with the smallest position
+    if (lowestMatchIndex !== undefined) {
+      matchIndices[lowestMatchIndex] += 1;
+      if (matchIndices[lowestMatchIndex] >= matches[lowestMatchIndex].length) {
+        hasFinished[lowestMatchIndex] = true;
+        matchIndices[lowestMatchIndex] -= 1;
+        if (!hasFinished.some(finished => !finished)) {
+          break;
+        }
+      }
+    } else {
+      break;
+    }
+  }
+
+  const lastClosestWindowPositions = lastClosestTermPositions
+    .map((pos, idx) => ({ pos, idx }))
+    .filter((pair) => pair.pos >= 0)
+    .sort((a, b) => a.pos - b.pos);
+  const numberTermsMatched = lastClosestWindowPositions.length;
+  return { str, lastClosestWindowPositions, lastClosestTermLengths, numberTermsMatched };
+}
+
+interface FinalMatchResult extends MatchResult {
+  itemIdx: number,
+  headingMatch?: MatchResult,
+  headingLink?: string,
 }
 
 function createEllipses() {
   return createElement('span', { class: 'morsels-ellipsis', 'aria-label': 'ellipses' }, ' ... ');
+}
+
+function highlightMatchResult(
+  matchResult: MatchResult,
+  addEllipses: boolean,
+  options: SearchUiOptions,
+): (string | HTMLElement)[] {
+  const { highlightRender } = options.uiOptions.resultsRenderOpts;
+  const { str, lastClosestWindowPositions, lastClosestTermLengths } = matchResult;
+
+  if (!lastClosestWindowPositions.some(({ pos }) => pos >= 0)) {
+    if (addEllipses) {
+      return [str.trimStart().substring(0, BODY_SERP_BOUND * 2), createEllipses()];
+    } else {
+      return [str];
+    }
+  }
+
+  const result: (string | HTMLElement)[] = [];
+  let prevHighlightEndPos = 0;
+  for (const { pos, idx } of lastClosestWindowPositions) {
+    const highlightEndPos = pos + lastClosestTermLengths[idx];
+    if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
+      if (addEllipses) {
+        result.push(createEllipses());
+      }
+      result.push(str.substring(pos - BODY_SERP_BOUND, pos));
+      result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
+    } else if (pos >= prevHighlightEndPos) {
+      result.pop();
+      result.push(str.substring(prevHighlightEndPos, pos));
+      result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
+    } else {
+      // Intersecting matches
+      if (highlightEndPos > prevHighlightEndPos) {
+        result.pop();
+        const previousHighlight = result[result.length - 1] as HTMLElement;
+        previousHighlight.textContent += str.substring(prevHighlightEndPos, highlightEndPos);
+      } else {
+        // The highlight is already contained within the previous highlight
+        continue;
+      }
+    }
+    result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
+
+    prevHighlightEndPos = highlightEndPos;
+  }
+
+  if (addEllipses) {
+    result.push(createEllipses());
+  }
+
+  return result;
 }
 
 /*
@@ -38,194 +189,95 @@ function transformText(
   options: SearchUiOptions,
 ): (string | HTMLElement)[] {
   const {
-    highlightRender,
     bodyOnlyRender,
     headingBodyRender,
   } = options.uiOptions.resultsRenderOpts;
 
-  let bestNumTermMatches: number = 0;
-
-  function getBestMatchResult(str: string): MatchResult {
-    // Get all matches first
-    const matches = termRegexes.map(r => Array.from(str.matchAll(r)));
-    if (!matches.some(innerMatches => innerMatches.length)) {
-      return { result: [], numberTermsMatched: 0 };
-    }
-
-    // Find the closest window
-
-    let lastClosestTermPositions = termRegexes.map(() => -100000000);
-    let lastClosestWindowLen = 100000000;
-    let lastClosestTermLengths = termRegexes.map(() => 0);
-
-    // At each iteration, increment the lowest index match
-    const matchIndices = matches.map(() => 0);
-    const hasFinished =  matches.map((innerMatches) => !innerMatches.length);
-    const maxMatchLengths = matches.map(() => 0);
-
-    // Local to the loop; To avoid .map and reallocating
-    const matchPositions = matches.map(() => -1);
-
-    while (true) {
-      let lowestMatchPos = 10000000000;
-      let lowestMatchPosExclFinished = 10000000000;
-      let lowestMatchIndex = undefined;
-      let highestMatchPos = 0;
-
-      let hasLongerMatch = false;
-      let isEqualMatch = true;
-      for (let idx = 0; idx < matchIndices.length; idx++) {
-        const match = matches[idx][matchIndices[idx]];
-        if (!match) {
-          // No matches at all for this regex in this str
-          continue;
-        }
-
-        const matchedText = match[2];
-        if (matchedText.length > maxMatchLengths[idx]) {
-          // Prefer longer matches across all regexes
-          hasLongerMatch = true;
-          maxMatchLengths[idx] = matchedText.length;
-        }
-        isEqualMatch = isEqualMatch && matchedText.length === maxMatchLengths[idx];
-
-        const pos = match.index;
-        if (!hasFinished[idx] && pos < lowestMatchPosExclFinished) {
-          lowestMatchPosExclFinished = pos;
-          // Find the match with the smallest position for forwarding later
-          lowestMatchIndex = idx;
-        }
-        lowestMatchPos = Math.min(lowestMatchPos, pos);
-        highestMatchPos = Math.max(highestMatchPos, pos);
-
-        matchPositions[idx] = pos;
-      }
-
-      const windowLen = highestMatchPos - lowestMatchPos;
-      if (
-        hasLongerMatch
-        // If all matches are equally long as before, prefer the smaller window
-        || (isEqualMatch && windowLen < lastClosestWindowLen)
-      ) {
-        lastClosestWindowLen = windowLen;
-        lastClosestTermPositions = [...matchPositions];
-        lastClosestTermLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][0].length);
-      }
-
-      // Forward the match with the smallest position
-      if (lowestMatchIndex !== undefined) {
-        matchIndices[lowestMatchIndex] += 1;
-        if (matchIndices[lowestMatchIndex] >= matches[lowestMatchIndex].length) {
-          hasFinished[lowestMatchIndex] = true;
-          matchIndices[lowestMatchIndex] -= 1;
-          if (!hasFinished.some(finished => !finished)) {
-            break;
-          }
-        }
-      } else {
-        break;
-      }
-    }
-
-
-    const lastClosestWindowPositions = lastClosestTermPositions
-      .map((pos, idx) => ({ pos, idx }))
-      .filter((pair) => pair.pos >= 0)
-      .sort((a, b) => a.pos - b.pos);
-    const result: (string | HTMLElement)[] = [];
-    const numberTermsMatched = lastClosestWindowPositions.length;
-    if (numberTermsMatched < bestNumTermMatches) {
-      return { result, numberTermsMatched };
-    }
-
-    let prevHighlightEndPos = 0;
-    for (const { pos, idx } of lastClosestWindowPositions) {
-      const highlightEndPos = pos + lastClosestTermLengths[idx];
-      if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
-        result.push(createEllipses());
-        result.push(str.substring(pos - BODY_SERP_BOUND, pos));
-        result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
-      } else if (pos >= prevHighlightEndPos) {
-        result.pop();
-        result.push(str.substring(prevHighlightEndPos, pos));
-        result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
-      } else {
-        // Intersecting matches
-        if (highlightEndPos > prevHighlightEndPos) {
-          result.pop();
-          const previousHighlight = result[result.length - 1] as HTMLElement;
-          previousHighlight.textContent += str.substring(prevHighlightEndPos, highlightEndPos);
-        } else {
-          // The highlight is already contained within the previous highlight
-          continue;
-        }
-      }
-      result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
-
-      prevHighlightEndPos = highlightEndPos;
-    }
-    result.push(createEllipses());
-
-    return { result, numberTermsMatched };
-  }
-
-  let lastIncludedHeading = -1;
-  let bestBodyMatch: FinalMatchResult = { result: undefined, numberTermsMatched: 0 };
+  let lastHeadingMatch: FinalMatchResult = undefined;
+  let lastHeadingLink = {
+    itemIdx: -100,
+    fieldText: '',
+  };
   let finalMatchResults: FinalMatchResult[] = [];
 
-  let itemIdx = -1;
-  for (const item of texts) {
-    itemIdx += 1;
-    if (item[0].startsWith('heading')) {
-      continue;
-    }
-
-    const { result, numberTermsMatched } = getBestMatchResult(item[1]);
-    if (numberTermsMatched === 0 || numberTermsMatched < bestNumTermMatches) {
-      continue;
-    } else if (numberTermsMatched > bestNumTermMatches) {
-      finalMatchResults = [];
-      bestNumTermMatches = numberTermsMatched;
-    }
-
-    // Find a new heading this text is under
-    let i = itemIdx - 1;
-    for (; i > lastIncludedHeading; i -= 1) {
-      if (texts[i][0] === 'heading') {
-        lastIncludedHeading = i;
-
-        finalMatchResults.push({
-          result: headingBodyRender(
-            createElement,
-            options,
-            texts[i][1],
-            result,
-            (i - 1 >= 0)
-              && texts[i - 1][0] === 'headingLink'
-              && `${baseUrl}#${texts[i - 1][1]}`,
-          ),
-          numberTermsMatched,
-        });
-        break;
-      }
-    }
-
-    // Insert without heading; Prefer matches under headings
-    if (!finalMatchResults.length && numberTermsMatched > bestBodyMatch.numberTermsMatched) {
-      bestBodyMatch = {
-        result: bodyOnlyRender(createElement, options, result),
-        numberTermsMatched,
+  for (let itemIdx = 0; itemIdx < texts.length; itemIdx += 1) {
+    const [fieldName, fieldText] = texts[itemIdx];
+    if (fieldName === 'headingLink') {
+      lastHeadingLink = {
+        itemIdx,
+        fieldText,
       };
+      continue;
+    }
+
+    const matchResult = getBestMatchResult(fieldText, termRegexes);
+    if (fieldName === 'heading') {
+      lastHeadingMatch = matchResult as FinalMatchResult;
+      lastHeadingMatch.itemIdx = itemIdx;
+      lastHeadingMatch.headingLink = lastHeadingLink.itemIdx === lastHeadingMatch.itemIdx - 1
+        ? lastHeadingLink.fieldText
+        : '';
+      
+      // Push a heading-only match in case there are no other matches (unlikely).
+      finalMatchResults.push({
+        str: '',
+        lastClosestTermLengths: [],
+        lastClosestWindowPositions: [],
+        numberTermsMatched: -2000, // even less preferable than body-only matches
+        headingMatch: lastHeadingMatch,
+        headingLink: lastHeadingMatch.headingLink,
+        itemIdx,
+      });
+    } else if (fieldName === 'body') {
+      const finalMatchResult = matchResult as FinalMatchResult;
+      if (lastHeadingMatch) {
+        // Link up body matches with headings, headingLinks if any
+        finalMatchResult.headingMatch = lastHeadingMatch;
+        finalMatchResult.headingLink = lastHeadingMatch.headingLink;
+        finalMatchResult.numberTermsMatched += lastHeadingMatch.numberTermsMatched;
+      } else {
+        // body-only match, add an offset to prefer heading-body matches
+        finalMatchResult.numberTermsMatched -= 1000;
+      }
+      finalMatchResults.push(finalMatchResult);
     }
   }
 
-  if (!finalMatchResults.length && bestBodyMatch.numberTermsMatched > 0) {
-    finalMatchResults.push(bestBodyMatch);
+  finalMatchResults.sort((a, b) => {
+    return a.numberTermsMatched === b.numberTermsMatched && a.numberTermsMatched === 0
+      // If there are 0 terms matched for both matches, prefer "longer snippets"
+      ? b.str.length - a.str.length
+      : b.numberTermsMatched - a.numberTermsMatched;
+  });
+
+  const matches = [];
+  const maxMatches = Math.min(finalMatchResults.length, MAX_SERP_HIGHLIGHT_PARTS);
+  for (let i = 0; i < maxMatches; i += 1) {
+    if (finalMatchResults[i].numberTermsMatched != finalMatchResults[0].numberTermsMatched) {
+      break;
+    }
+    matches.push(finalMatchResults[i]);
   }
 
-  return finalMatchResults
-    .map((r) => r.result)
-    .slice(0, MAX_SERP_HIGHLIGHT_PARTS);
+  return matches.map((finalMatchResult) => {
+    const bodyHighlights = highlightMatchResult(finalMatchResult, true, options);
+    if (finalMatchResult.headingMatch) {
+      const highlightedHeadings = highlightMatchResult(finalMatchResult.headingMatch, false, options);
+      const headingHighlights = highlightedHeadings.length
+        ? highlightedHeadings
+        : [finalMatchResult.headingMatch.str];
+      const href = finalMatchResult.headingLink && `${baseUrl}#${finalMatchResult.headingLink}`;
+      return headingBodyRender(
+        createElement,
+        options,
+        headingHighlights,
+        bodyHighlights,
+        href,
+      );
+    } else {
+      return bodyOnlyRender(createElement, options, bodyHighlights);
+    }
+  });
 }
 
 function transformJson(
