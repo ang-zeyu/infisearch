@@ -74,7 +74,13 @@
       <div class="d-flex justify-content-center w-75 flex-wrap">
         <script>
           function changeMode(mode) {
-            window.location.href = window.location.href.replace(/mode=\w+/, `mode=${mode}`);
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('mode')) {
+              params.set('mode', mode);
+            } else {
+              params.append('mode', mode);
+            }
+            window.location.href = window.location.href.replace(/(\?.+)|$/, `?${params.toString()}`);
           }
         </script>
         <button class="btn btn-outline-primary m-1" onclick="changeMode('auto')">Auto</a>
