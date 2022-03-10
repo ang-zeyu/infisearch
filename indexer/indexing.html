@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html" class="active"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="../incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="../developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html" class="active"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="../incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="../developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -262,7 +262,7 @@
 </code></pre>
 <p>The html loader traverses the document depth-first, in the order text nodes and attributes appear.</p>
 <p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by the corresponding <code>field_name</code>. If another of the element’s descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).</p>
-<p>The <code>attr_map</code> allows indexing attributes of elements (not including descendants) under fields as well.</p>
+<p>The <code>attr_map</code> option allows indexing attributes of each element under fields as well.</p>
 <br>
 <p><strong><code>loader_configs.JsonLoader</code></strong></p>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
@@ -282,7 +282,7 @@
 }
 </code></pre>
 <p>Json files can also be indexed. The <code>field_map</code> key must be specified, which contains a mapping of <strong>json key -&gt; field name</strong>.
-The <code>field_order</code> array controls the order in which these fields are indexed, which can have a minor influence on query term proximity ranking.</p>
+The <code>field_order</code> array controls the order in which these fields are indexed, which can have a minor influence on <a href="../search_features.html#ranking-specifics">query term proximity ranking</a>.</p>
 <p>The json file can be either:</p>
 <ol>
 <li>An object, following the schema set out in <code>field_map</code></li>
@@ -334,7 +334,7 @@ The <code>field_order</code> array controls the order in which these fields are 
   }
 }
 </code></pre>
-<p>This loader simply reads <code>.txt</code> files and indexes all of the content into a single <code>field</code>.</p>
+<p>This loader simply reads <code>.txt</code> files and indexes all its contents into a single field.</p>
 <h2 id="file-exclusions"><a class="header" href="#file-exclusions">File Exclusions</a></h2>
 <p><strong><code>exclude</code></strong></p>
 <p>Global file exclusions can be specified in this parameter, which is simply an array of file globs.</p>
@@ -355,7 +355,7 @@ The <code>field_order</code> array controls the order in which these fields are 
 <p>Increasing the value may also be useful for caching when used in conjunction with <code>pl_cache_threshold</code> below, since fewer index files will be produced.</p>
 <br>
 <p><strong><code>pl_cache_threshold</code></strong></p>
-<p>This parameter is the minimum index file size that <code>@morsels/search-lib</code> will cache on initilisation.</p>
+<p>Index files that exceed this number will be cached by the search library at initilisation.</p>
 <p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="../tradeoffs.html">Tradeoffs</a>.</p>
 <h2 id="miscellaneous-options"><a class="header" href="#miscellaneous-options">Miscellaneous Options</a></h2>
 <p><strong><code>num_pls_per_dir</code></strong></p>

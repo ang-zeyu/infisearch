@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Search UI Configuration - Morsels Documentation</title>
+        <title>Search UI - Morsels Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -199,8 +199,8 @@
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="search-configuration"><a class="header" href="#search-configuration">Search Configuration</a></h1>
-<p>All search time related options can be provided through the <code>initMorsels</code> function, exposed by <code>@morsels/search-ui</code>.</p>
-<p>There are 2 categories of options, the first being related to the internal search library (<code>@morsels/search-lib</code>), and the second the user interface (<code>@morsels/search-ui</code>).</p>
+<p>All search related options can be provided through the <code>initMorsels</code> function, exposed by <code>@morsels/search-ui</code>.</p>
+<p>There are 2 categories of options, the first being related to internal search library functionalities, and the second the user interface.</p>
 <hr />
 <h2 id="forenote-on-mobile-device-detection"><a class="header" href="#forenote-on-mobile-device-detection">Forenote on Mobile Device Detection</a></h2>
 <p>Note that several options in both the search library and UI are (by default) tuned based on whether the client is a “mobile device”:</p>
@@ -208,7 +208,7 @@
 <li>Query term proximity ranking is disabled</li>
 <li>The fullscreen version of the user interface is used for <code>mode='auto'</code> (see <a href="#ui-mode">UI Mode</a>)</li>
 </ul>
-<p>Overrides and the process of this detection is configurable, and will be covered in subsequent sections.</p>
+<p>Overrides and the process of this detection is configurable, and will be covered in a later section.</p>
 <hr />
 <h2 id="search-ui-options"><a class="header" href="#search-ui-options">Search UI Options</a></h2>
 <p>Search UI options are organised under the <code>uiOptions</code> key:</p>
@@ -219,23 +219,23 @@
 })
 </code></pre>
 <p>For brevity, this page covers only a subset of the most important options.</p>
-<p>The subsequent section on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!</p>
+<p>The subsequent sub-chapter on <a href="./search_configuration_renderers.html">renderers</a> provides a more advanced API to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!</p>
 <h3 id="input-element"><a class="header" href="#input-element">Input Element</a></h3>
 <table><thead><tr><th>Option</th><th>Default Value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>input</code></td><td><code>'morsels-search'</code></td><td><code>id</code> of the input element or a html element reference</td></tr>
 <tr><td><code>inputDebounce</code></td><td><code>100</code></td><td>debounce time of keystrokes to the input element</td></tr>
 <tr><td><code>preprocessQuery</code></td><td><code>(q) =&gt; q</code></td><td>any function for preprocessing the query. Can be used to add a <a href="./search_features.html#field-search">field filter</a> for example.</td></tr>
 </tbody></table>
-<p>The <code>input</code> option is the most important option, and required in most use cases. Its purpose varies depending on the ui mode specified below.</p>
+<p>The <code>input</code> element is the most important option, and is required in most cases. Its purpose varies depending on the <code>mode</code> specified below.</p>
 <h3 id="ui-mode"><a class="header" href="#ui-mode">UI Mode</a></h3>
 <p><code>mode = 'auto'</code></p>
 <p>The search UI provides 4 main different behaviours.</p>
-<p>To <strong>try the different modes out</strong>, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation.</p>
-<table><thead><tr><th>Mode</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.</td></tr>
-<tr><td><code>&quot;dropdown&quot;</code></td><td>This <strong>wraps the specified <code>input</code> element with a root container</strong>. Search results are displayed using an additional <code>&lt;ul&gt;</code> container appended to this root container, and next to the input element.</td></tr>
-<tr><td><code>&quot;fullscreen&quot;</code></td><td>This option <strong>creates a completely distinct root container</strong> with its own input element, and attaches it to the <code>&lt;body&gt;</code> element.<br><br>Under the default stylesheet, the user interface is fullscreen for devices satisfying <code>max-width: 1025px</code>, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the <code>input</code> element is specified, the interface is shown whenever the <code>input</code> is focused.<br><br>Alternatively, the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> call can be used to toggle the UI. This is also <strong>the only use case</strong> where you would <strong>not need to specify the <code>input</code> element</strong>.</td></tr>
-<tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin and this documentation by default. The <code>input</code> element must be specified, but only for attaching keystroke listeners. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom target element of choice.</td></tr>
+<p>To <strong>try the different modes out</strong>, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation!</p>
+<table><thead><tr><th>Mode</th><th>Details</th></tr></thead><tbody>
+<tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.</td></tr>
+<tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are placed in a <code>&lt;ul&gt;</code> container next to the input element.</td></tr>
+<tr><td><code>&quot;fullscreen&quot;</code></td><td>This option creates a completely distinct root container (complete with its own input element, backdrop, close button, …), and attaches it to the <code>&lt;body&gt;</code> element.<br><br>Under the default stylesheet, the user interface is fullscreen under <code>max-width: 1025px</code>, and takes up roughly 50% of the screen estate otherwise.<br><br>If the <code>input</code> element is specified, the interface is also shown whenever the <code>input</code> is focused.<br><br>Alternatively, the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> call can be used to toggle the UI programatically. This is also <em>the only use case you would not need to specify the <code>input</code> element</em>.</td></tr>
+<tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin (by default) and this documentation. The <code>input</code> element must be specified, where keystroke event listeners are attached. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom <code>target</code> element of choice.</td></tr>
 </tbody></table>
 <h4 id="ui-mode-specific-options"><a class="header" href="#ui-mode-specific-options">UI Mode Specific Options</a></h4>
 <p>There are also several options specific to each UI. Note that <code>dropdown</code> and <code>fullscreen</code> options are both applicable to the <code>auto</code> mode.</p>
@@ -250,17 +250,17 @@
 <pre><code class="language-ts">const { showFullscreen, hideFullscreen } = initMorsels({ ... });
 </code></pre>
 <p>You may call the <code>showFullscreen()</code> function returned by the initMorsels call to programatically show the fullscreen search UI.</p>
-<p>Correspondingly, the <code>hideFullscreen()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button (or by pressing <code>esc</code>) is available by default.</p>
-<p>These functions can also be used under <code>mode='auto'</code> if desired.</p>
+<p>Correspondingly, the <code>hideFullscreen()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button is available by default (the <kbd>Esc</kbd> key works too).</p>
+<p>These methods can also be used under <code>mode=&quot;auto&quot;</code>.</p>
 <h3 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h3>
 <p>There are 3 ways to generate result previews of matched documents, the first of the below being the default.</p>
 <p>Unless you have modified the default result renderer (covered in the next page on renderers), morsels also requires <strong>at least one</strong> of the <code>body</code> / <code>heading</code> / <code>title</code> fields. This is configured by default, and covered in the next section on indexing configuration in more detail.</p>
 <h4 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h4>
-<p>The default result generation assumes the simple but common use case of linking to a source document (<code>&lt;a /&gt;</code> tag). </p>
+<p>The default result generation assumes the simple but common use case of linking to a source document (via an <code>&lt;a&gt;</code> tag). </p>
 <p>Therefore, source documents are assumed to be <strong>available</strong> and <strong>linkable</strong> to. The url of this source document is <strong>either</strong>:</p>
 <ol>
 <li>
-<p>The <code>sourceFilesUrl</code> option concatenated with the relative file path of the document at the time of indexing (default).</p>
+<p>The <code>sourceFilesUrl</code> option concatenated with the relative file path of the document at the time of indexing <strong>(default)</strong>.</p>
 <blockquote>
 <p>The relative file path is stored in the <code>_relative_fp</code> field, which is an internally generated field. Combining this with the base url (<code>sourceFilesUrl</code>) forms the full source document link.</p>
 </blockquote>
@@ -271,13 +271,13 @@
 </ol>
 <p>The use of the default indexed fields in the UI is as shown in the following diagram, and will be covered in more detail in the chapter on <a href="./indexer/fields.html">fields</a>:</p>
 <p><img src="./images/fields_annotated.png" alt="" /></p>
-<p>To generate alternative outputs (e.g. buttons, perform some action), you will need to use option 3 below.</p>
+<p>To generate alternative outputs for other use cases (e.g. buttons, perform some action), you will need to use option 3 below.</p>
 <h4 id="1-from-source-documents-default"><a class="header" href="#1-from-source-documents-default">1. From Source Documents (default)</a></h4>
-<p>When option 2 below (field stores) is not configured or unavailable, morsels will attempt to retrieve and reparse the source document and its fields in order to generate result previews.</p>
+<p>When option 2 below (field stores) is not configured or unavailable, morsels will attempt to <em>retrieve and reparse the source document and its fields</em> in order to generate result previews.</p>
 <p>Note that this option is only applicable for indexed html, json, and txt files at this time.</p>
 <p>As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, options 2 or 3 can be used.</p>
 <h4 id="2-from-field-stores"><a class="header" href="#2-from-field-stores">2. From Field Stores</a></h4>
-<p>Morsels is also able to generate result previews from its own json field stores generated at indexing time.</p>
+<p>Morsels is also able to generate result previews from its own <em>json field stores</em> generated at indexing time.</p>
 <p>In order to specify what fields to store, and how to map file data to these fields, refer to the chapter on <a href="./indexer/fields.html">fields</a> under indexer configuration.</p>
 <p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant to perform result preview generation on.</p>
 <h4 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h4>
@@ -290,8 +290,8 @@
 <p>This is covered in more detail in the next page.</p>
 <h3 id="results-per-page"><a class="header" href="#results-per-page">Results Per Page</a></h3>
 <p><code>resultsPerPage = 8</code></p>
-<p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.</p>
-<p>Lowering this can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
+<p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result. When triggered, search result previews are fetched and generated for a number of results only.</p>
+<p>Lowering this value can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
 <h3 id="changing-the-mobile-device-detection-method"><a class="header" href="#changing-the-mobile-device-detection-method">Changing The Mobile Device Detection Method</a></h3>
 <p>The mobile device check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
 <p>An override may be provided through the <code>isMobileDevice</code> option shown below, which is simply a function returning a boolean.</p>

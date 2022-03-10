@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> Mdbook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html" class="active"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html" class="active"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -200,33 +200,31 @@
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="tradeoffs"><a class="header" href="#tradeoffs">Tradeoffs</a></h1>
 <p>When configuring morsels, there are several tradeoffs you need to keep in mind, which varies greatly on depending on your collection and use case. </p>
-<p>This chapter outlines the possible tradeoffs you can make and summarises the relevant options you would want to keep in mind.</p>
 <h2 id="possible-tradeoffs"><a class="header" href="#possible-tradeoffs">Possible Tradeoffs</a></h2>
-<p>The possible tradeoffs you can make are marked with ✔️. Those that are likely impossible are marked ❌, or in other words, you likely need a search server / SaaS for these options. Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked 😩. The default tradeoff is marked ⭐.</p>
+<p>The possible tradeoffs are marked with ✔️. Those that are likely impossible are marked ❌ (or in other words, you likely need a search server / SaaS for these options). Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked ⚪. The default tradeoff is marked ⭐.</p>
 <p>Latency is labelled in terms of <code>RTT</code> (round trip time), the maximum of which is <code>3</code>. Also note that the labelled <code>RTT</code> times are <strong>maximums</strong>. (e.g. if files are served from cache instead)</p>
 <table><thead><tr><th>Factor</th><th><code>RTT=0</code></th><th><code>RTT=1</code></th><th><code>RTT=2</code></th><th><code>RTT=3</code></th></tr></thead><tbody>
-<tr><td>Fair Scalability,<br><span style="color: green">Little</span> File bloat</td><td>✔️</td><td>😩</td><td>😩</td><td>😩</td></tr>
-<tr><td>Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
-<tr><td>Fair Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>😩</td><td>😩</td><td>😩</td><td>😩</td></tr>
-<tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>⭐</td><td>✔️</td><td>😩</td></tr>
-<tr><td>Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
-<tr><td>Good Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>😩</td></tr>
+<tr><td>Fair Scalability,<br><span style="color: green">Little</span> File bloat</td><td>✔️</td><td>⚪</td><td>⚪</td><td>⚪</td></tr>
+<tr><td>Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>⚪</td><td>⚪</td><td>⚪</td><td>⚪</td></tr>
+<tr><td>Fair Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>⚪</td><td>⚪</td><td>⚪</td><td>⚪</td></tr>
+<tr><td>Good Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>⭐</td><td>✔️</td><td>⚪</td></tr>
+<tr><td>Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>⚪</td></tr>
+<tr><td>Good Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>✔️</td><td>✔️</td><td>⚪</td></tr>
 <tr><td>Excellent Scalability,<br><span style="color: green">Little</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
 <tr><td>Excellent Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat</td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
-<tr><td>Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>❌</td><td>✔️</td><td>😩</td></tr>
+<tr><td>Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat</td><td>❌</td><td>❌</td><td>✔️</td><td>⚪</td></tr>
 <tr><td>Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
 </tbody></table>
 <blockquote>
 <p>Some roughly equivalent / nearby options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.</p>
 </blockquote>
 <h3 id="monolithic-index"><a class="header" href="#monolithic-index">Monolithic Index</a></h3>
-<p>Of particular note, the only possible option under <code>RTT=0</code> is equivalent to using some other existing client side search library and generating a monolithic prebuilt index.</p>
+<p>Of particular note, the only possible option under <code>RTT=0</code> is equivalent to using some other existing client side search library and generating a monolithic prebuilt index <strong>and</strong> document/field store (used for generating result previews).</p>
 <p>You may still want to use morsels since it packages a search UI, or, if you prefer the simplicity of a cli indexer tool (e.g. for CI).</p>
 <h2 id="configuration"><a class="header" href="#configuration">Configuration</a></h2>
 <blockquote>
-<p>This section assumes you have read chapters 4 (barring 4.1) and 5, the options will be discussed in briefer detail here.</p>
+<p>This section assumes some knowledge on the options listed below in chapters 4 (barring 4.1) and 5, which will be discussed in briefer detail here:</p>
 </blockquote>
-<p>The relevant options you will want to keep in mind are:</p>
 <ul>
 <li>Search Configuration: 
 <ul>
@@ -243,53 +241,56 @@
 </ul>
 </li>
 </ul>
-<p>The following sections discusses some combinations of options that generate the outputs in the table above.</p>
+<p>The following sections discusses some combinations of options that generate the tradeoff results in the table above.</p>
 <h3 id="1-rtt0-fair-scalability-little-file-bloat"><a class="header" href="#1-rtt0-fair-scalability-little-file-bloat">1. <code>RTT=0</code>, Fair Scalability, Little File Bloat</a></h3>
-<p>To achieve this result, you will need to ensure <strong>everything</strong> that is <strong>potentially</strong> needed is retrieved up front.</p>
+<p>To achieve this result, you will need to ensure <strong>everything</strong> that is potentially needed is retrieved up front.</p>
 <ol>
 <li>Set <code>pl_limit</code> to an arbitrarily large number. This compresses the inverted index into just one or a few files.</li>
-<li>Ensure <code>pl_cache_threshold</code> is set to a very low number (or at least smaller than the inverted index file size), so that all postings lists are loaded up front and cached in memory.</li>
+<li>Ensure <code>pl_cache_threshold</code> is set to a very low number (or, at least smaller than the generated inverted index file size), so that all postings lists are loaded up front and cached in memory.</li>
 <li>You would also want to set <code>field_store_block_size</code> to a fairly high number, and correspondingly set <code>cacheAllFieldStores</code> to <code>true</code>. This allows morsels to load the few field stores during initilisation and persistently cache them.</li>
 </ol>
 <blockquote>
 <p>⭐ This is what’s being used by this documentation, since it is fairly small.<br><br>Nevertheless, <code>RTT=1/2</code> are still very acceptable settings under good network conditions. <code>RTT=3</code> may be slightly slow (<code>~600ms</code> assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br></p>
 </blockquote>
 <h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
-<p>The impacts of the two options here are discussed under the 2 main methods of result preview generation discussed <a href="search_configuration.html#options-for-generating-result-previews">earlier</a>.</p>
+<p>The impacts of the two options here are discussed under the 2 main methods of result preview generation in the <a href="search_configuration.html#options-for-generating-result-previews">earlier chapter</a>.</p>
 <h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
 <p>(<code>RTT=2</code>, Little-Moderate file bloat, Good scalability)</p>
 <p>Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files.</p>
-<p>However, it is also more feasible with this option to remove a round of network requests by <strong>caching all field stores</strong> up front, as field stores only store the <a href="indexer/fields.html#special-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
-<p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your “comfort zone”, you can store up to <code>120000</code> document links in a single, cached field store!</p>
+<p>However, it is also more feasible with this option to reduce a round of network requests by <strong>caching all field stores</strong> up front, as field stores here only store the <a href="indexer/fields.html#special-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
+<blockquote>
+<p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your comfort zone, you can store up to <code>120000</code> document links in a single, cached field store!</p>
+</blockquote>
 <p>The relevant options here are <code>field_store_block_size</code> and <code>cacheAllFieldStores</code> (simply configure them similar to the earlier <code>RTT=0</code> case).</p>
 <h4 id="22-generating-result-previews-from-field-stores"><a class="header" href="#22-generating-result-previews-from-field-stores">2.2. Generating Result Previews from Field Stores</a></h4>
 <p>(<code>RTT=2</code>, Moderate-Heavy file bloat, Good scalability)</p>
-<p>Generating result previews directly from field stores (making sure to specify <code>do_store</code> on the appropriate fields) avoids the extra mentioned round of network requests to retrieve said source files.</p>
+<p>Generating result previews directly from field stores (using the <a href="./indexer/fields.html"><code>do_store</code></a> option) avoids having to make an extra round of network requests to retrieve said source files.</p>
 <p>This however requires fragmenting the field stores, increasing file bloat.</p>
 <p>You may want to use this option over <strong>2.1</strong> nevertheless if:</p>
 <ul>
 <li>Result previews cannot be generated from source files (<code>csv</code> files)</li>
-<li>You want to increase result preview generation performance (as mentioned <a href="search_configuration.html#2-from-field-stores">here</a>)</li>
+<li>You want to increase result preview generation performance (mentioned <a href="search_configuration.html#2-from-field-stores">here</a>)</li>
 </ul>
 <blockquote>
-<p>Refer to the demo <a href="https://ang-zeyu.github.io/morsels-demo-1/">here</a> to see what <code>RTT=2</code> is like.</p>
+<p>Refer <a href="https://ang-zeyu.github.io/morsels-demo-1/">here</a> for a demo of what <code>RTT=2</code> is like.</p>
 </blockquote>
-<h4 id="improving-either-option-to-rtt1"><a class="header" href="#improving-either-option-to-rtt1">Improving Either Option to <code>RTT=1</code></a></h4>
+<h4 id="improving-21-or-22-to-rtt1"><a class="header" href="#improving-21-or-22-to-rtt1">Improving 2.1 or 2.2 to <code>RTT=1</code></a></h4>
 <p>For moderately sized collections, we may also surmise that the <strong>size of the index</strong> (a low-level, compressed inverted index) is often far smaller than the <strong>size of field stores</strong> (which contain the raw document texts).</p>
 <p>The idea here therefore is to additionally <strong>cache the index</strong> (using <code>pl_limit</code>, <code>pl_cache_threshold</code>), removing an entire round of network requests.</p>
 <p>⭐ This is also the default tradeoff made, using method 2.1.</p>
 <p>To further reduce the size of the index to be cached, therefore extending the feasibility of caching the entire index, take a look at the <a href="#other-options">other options</a> section.</p>
 <h3 id="3-excellent-scalability"><a class="header" href="#3-excellent-scalability">3. Excellent Scalability</a></h3>
-<p>The settings here follow from the section directly above, disregarding the compromises. That is,</p>
+<p>The settings here follow from the section directly above, disregarding the assumptions. That is,</p>
 <h4 id="31-generating-result-previews-from-source-files"><a class="header" href="#31-generating-result-previews-from-source-files">3.1. Generating Result Previews from Source Files</a></h4>
 <p>(<code>RTT=3</code>, Little-Moderate File Bloat, Excellent Scalability)</p>
 <p>Per <strong>section 2.1</strong>, The <code>RTT</code> compromise is accepted as is in this case, without performing the caching of field stores mentioned.</p>
-<p>This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached, although, this is highly unlikely even for the most extreme cases (see the earlier example calculation of <code>120000</code> documents).</p>
+<p>This is because as the collection grows, we cannot guarantee that document links are at a size that can be feasibly and monolithically cached, although, this is highly unlikely even for the most extreme intended use cases of Morsels (see the earlier example calculation of <code>120000</code> documents).</p>
 <h4 id="32-generating-result-previews-from-field-stores"><a class="header" href="#32-generating-result-previews-from-field-stores">3.2. Generating Result Previews from Field Stores</a></h4>
 <p>(<code>RTT=2</code>, Heavy File Bloat, Excellent Scalability)</p>
-<p>Per <strong>section 2.2</strong>. No changes are needed here, as both the field stores and index are fragmented.</p>
+<p>This follows <strong>section 2.2</strong>. No changes are needed here, as both the field stores and index are fragmented.</p>
+<p>As the collection size grows however, many fragmented files will inevitably be generated, which may be of concern for your use case.</p>
 <h3 id="other-options"><a class="header" href="#other-options">Other Options</a></h3>
-<p>There are 2 other options worth highlighting that can help reduce the index size, both of which are not active by default.</p>
+<p>There are 2 other options especially worth highlighting that can help reduce the index size, both of which are not active by default (this may change in the future).</p>
 <ul>
 <li><a href="./indexer/language.html#note-on-stop-words"><code>ignore_stop_words</code></a></li>
 <li><a href="./indexer/indexing.html#miscellaneous-options"><code>with_positions</code></a><br>
@@ -297,10 +298,12 @@ Positional information takes up a considerable (up to <strong>3-4</strong> times
 </ul>
 <p>If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.</p>
 <p>This would be especially useful if configuring for a <strong>monolithic index</strong> (<code>RTT=0</code>, Fair Scalability, Little File Bloat), or any <a href="#improving-either-option-to-rtt1">other options</a> which cache the index (not field stores) up front, as it reduces the index size to be retrieved on initialisation.</p>
+<h2 id="other-performance-considerations"><a class="header" href="#other-performance-considerations">Other Performance Considerations</a></h2>
 <h3 id="gzip"><a class="header" href="#gzip">Gzip</a></h3>
 <p>Gzip can work hand in hand with the morsels’ own compression schemes.</p>
-<p>With a monolithic index, expect about 3-4x compression ratios without positions indexed.</p>
-<p>When opting to fragment the index heavily however, gzip would have little to no impact as:</p>
+<p>With a monolithic index, expect about 3-4x compression ratios <strong>without positions</strong> indexed.</p>
+<p>Compression ratios with positions tends to be poorer from some empircal testing, likely since the number of unique positions is fairly large.</p>
+<p>When opting to fragment the index heavily however, also note gzip would serve little to no purpose as:</p>
 <ul>
 <li>The fragmented files are already very small</li>
 <li>Compression ratios for smaller files tends to be poorer</li>
@@ -309,15 +312,15 @@ Positional information takes up a considerable (up to <strong>3-4</strong> times
 <p>⚠️ Most static file servers only gzip specific mime types. As the index files generated by morsels are of type <code>application/octet-stream</code>, you will need to configure the static file server as appropriate!</p>
 </blockquote>
 <h3 id="limits-of-scalability"><a class="header" href="#limits-of-scalability">Limits of Scalability</a></h3>
-<p>Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the default <code>pl_limit</code> of <code>16383</code> bytes, especially when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.</p>
-<p>Since larger index chunks are cached according to the <code>pl_cache_threshold</code>, the limit is relevant mostly during startup / initialisation only. That is, scalability is limited by the <strong>total size</strong> of <strong>index chunks which exceed the <code>pl_cache_threshold</code></strong> that will be <strong>retrieved upfront</strong>.</p>
-<p>If configuring for a much higher <code>pl_cache_threshold</code> however, such that no files are cached, then the limit is imposed during <strong>search</strong> by the total size of the index chunks that need to be retrieved for the query.</p>
-<h4 id="estimations"><a class="header" href="#estimations">Estimations</a></h4>
-<p>As a rough estimate from testing, this library should be able to handle <strong>text collections &lt; <code>800MB</code> with positional indexing</strong>.</p>
-<p>The following distribution of index chunk file sizes <strong>(before gzip)</strong> under the default <code>pl_limit</code> was produced with:</p>
+<p>Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the default index fragment size limit (<code>pl_limit</code>) of <code>16383</code> bytes, especially when the chunk contains a very common term (e.g. a stop word like “the”). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.</p>
+<p>Since larger index chunks are cached according to the <code>pl_cache_threshold</code>, the limit is relevant mostly during startup / initialisation only. That is, <em>scalability is limited by the total size of index chunks retrieved upfront, each of which exceed the defined <code>pl_cache_threshold</code></em>.</p>
+<p>If configuring for a much higher <code>pl_cache_threshold</code> however, such that no files are cached, then the <em>scalability is limited during <strong>search</strong> (runtime) by the total size of the index chunks that need to be retrieved for the query</em>.</p>
+<h4 id="some-data--estimations"><a class="header" href="#some-data--estimations">Some Data &amp; Estimations</a></h4>
+<p>As a rough estimate from testing, this library should be able to handle text collections &lt; <code>800MB</code> with positional indexing.</p>
+<p>The following distribution of index chunk file sizes (before gzip) under the default <code>pl_limit</code> was produced with:</p>
 <ul>
 <li>A <code>380MB</code> <strong>csv</strong> corpus (no html soup!)</li>
-<li><strong>Duplicated once</strong> to total about <code>760MB</code>, and 19088 documents</li>
+<li>Duplicated once to total about <code>760MB</code>, and 19088 documents</li>
 </ul>
 <pre><code># Counts
 [7335  219   76   13    7    14    4     1     1     1     0     0     0     1]
