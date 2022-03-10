@@ -2,7 +2,7 @@
 
 The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is `lang`, while the `options` key supplies tokenization options unique to each module.
 
-> These options are also applied to `@morsels/search-ui`, which sources this information from some metadata available in the index output directory.
+> These options are also applied to the search user interface and library where appropriate, and is stored in a metadata file in the index output directory.
 
 ```json
 {
@@ -77,13 +77,13 @@ This tokenizer applies jieba's `cut` method to obtain various tokens, then appli
 }
 ```
 
-## Note on Stop Words
+## Stop Words
 
 A slightly different approach with stop words is taken **by default** in that stop words are only filtered at **query time** for certain types of queries. Currently, this is for **free-text queries with more than two terms**, since the impact of such terms are likely to have become negligible compared to other terms in the query at this point.
 
 Moreover, splitting up the index means that such commonly occuring words are likely to be completely and separately placed into one file. This means that information for stop words is never requested unless necessary:
-- For processing phrase queries (eg. `"for tomorrow"`)
-- Boolean queries (eg. `if AND forecast AND sunny`)
+- For processing phrase queries (e.g. `"for tomorrow"`)
+- Boolean queries (e.g. `if AND forecast AND sunny`)
 - One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.
 
 Nevertheless, all tokenizers also support forcibly removing stop words using the `ignore_stop_words` option, should you wish to keep the index size down (discussed again under chapter on ["Tradeoffs"](../tradeoffs.md)).

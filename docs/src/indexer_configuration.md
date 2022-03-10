@@ -7,6 +7,8 @@ You can run the cli command with the `--config-init` option to initialise the de
 
 ## Full Example
 
+A typical full configuration file looks something like this:
+
 ```json
 {
   "fields_config": {

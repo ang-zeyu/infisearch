@@ -79,7 +79,7 @@ The html loader traverses the document depth-first, in the order text nodes and 
 
 At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by the corresponding `field_name`. If another of the element's descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).
 
-The `attr_map` allows indexing attributes of elements (not including descendants) under fields as well.
+The `attr_map` option allows indexing attributes of each element under fields as well.
 
 <br>
 
@@ -104,7 +104,7 @@ The `attr_map` allows indexing attributes of elements (not including descendants
 ```
 
 Json files can also be indexed. The `field_map` key must be specified, which contains a mapping of **json key -> field name**.
-The `field_order` array controls the order in which these fields are indexed, which can have a minor influence on query term proximity ranking.
+The `field_order` array controls the order in which these fields are indexed, which can have a minor influence on [query term proximity ranking](../search_features.md#ranking-specifics).
 
 The json file can be either:
 1. An object, following the schema set out in `field_map`
@@ -166,7 +166,7 @@ The `parse_options` key specifies options for parsing the csv file. In particula
 }
 ```
 
-This loader simply reads `.txt` files and indexes all of the content into a single `field`.
+This loader simply reads `.txt` files and indexes all its contents into a single field.
 
 ## File Exclusions
 
@@ -205,7 +205,7 @@ Increasing the value may also be useful for caching when used in conjunction wit
 
 **`pl_cache_threshold`**
 
-This parameter is the minimum index file size that `@morsels/search-lib` will cache on initilisation.
+Index files that exceed this number will be cached by the search library at initilisation.
 
 It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Tradeoffs](../tradeoffs.md).
 

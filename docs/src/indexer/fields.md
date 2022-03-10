@@ -4,7 +4,7 @@ The first step to indexing any documents is defining the fields to store.
 
 The default configurations are as follows, already setup for interfacing with the `@morsels/search-ui` package.
 
-If you are using morsels' search UI **as-is** (e.g. not adding additional fields to display), you can skip configuring `fields_config.fields`.
+If you are using morsels' search UI **as-is** (e.g. not adding additional fields to display), you can likely skip configuring `fields_config.fields`.
 
 You may want to briefly take note of the other parameters under `fields_config` however, which can be used to adjust response times / file bloat. The possible adjustments are discussed later in [Tradeoffs](../tradeoffs.md).
 
@@ -104,7 +104,7 @@ Moreover, sorting (also WIP) operations are only supported on `u32` fields.
 
 ## Default Fields in `@morsels/search-ui`
 
-As mentioned, the default fields are already setup for interfacing with the `@morsels/search-ui` package. Their functions for the user interface are as follows:
+The functions of the default fields for the user interface are as follows:
 
 <img alt="annotation for fields" src="../images/fields_annotated.png" />
 

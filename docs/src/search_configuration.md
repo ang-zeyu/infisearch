@@ -1,8 +1,8 @@
 # Search Configuration
 
-All search time related options can be provided through the `initMorsels` function, exposed by `@morsels/search-ui`.
+All search related options can be provided through the `initMorsels` function, exposed by `@morsels/search-ui`.
 
-There are 2 categories of options, the first being related to the internal search library (`@morsels/search-lib`), and the second the user interface (`@morsels/search-ui`).
+There are 2 categories of options, the first being related to internal search library functionalities, and the second the user interface.
 
 ---
 
@@ -12,7 +12,7 @@ Note that several options in both the search library and UI are (by default) tun
 - Query term proximity ranking is disabled
 - The fullscreen version of the user interface is used for `mode='auto'` (see [UI Mode](#ui-mode))
 
-Overrides and the process of this detection is configurable, and will be covered in subsequent sections.
+Overrides and the process of this detection is configurable, and will be covered in a later section.
 
 ---
 
@@ -30,7 +30,7 @@ initMorsels({
 
 For brevity, this page covers only a subset of the most important options.
 
-The subsequent section on [renderers](./search_configuration_renderers.md) provides a more advanced API to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!
+The subsequent sub-chapter on [renderers](./search_configuration_renderers.md) provides a more advanced API to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!
 
 ### Input Element
 
@@ -40,7 +40,7 @@ The subsequent section on [renderers](./search_configuration_renderers.md) provi
 | `inputDebounce`     | `100` | debounce time of keystrokes to the input element |
 | `preprocessQuery`   | `(q) => q` | any function for preprocessing the query. Can be used to add a [field filter](./search_features.md#field-search) for example. |
 
-The `input` option is the most important option, and required in most use cases. Its purpose varies depending on the ui mode specified below.
+The `input` element is the most important option, and is required in most cases. Its purpose varies depending on the `mode` specified below.
 
 ### UI Mode
 
@@ -48,14 +48,15 @@ The `input` option is the most important option, and required in most use cases.
 
 The search UI provides 4 main different behaviours.
 
-To **try the different modes out**, head on over to the [mdbook plugin](./getting_started_mdbook.md#preview) page, which provides various buttons for switching the modes in this documentation.
+To **try the different modes out**, head on over to the [mdbook plugin](./getting_started_mdbook.md#preview) page, which provides various buttons for switching the modes in this documentation!
 
-| Mode        | Description |
+
+| Mode        | Details |
 | ----------- | ----------- |
-| `"auto"`        | This option is the **default**, and combines the `dropdown` and `fullscreen` options below. If a mobile device is detected as per the [earlier section](#forenote-on-mobile-device-detection), the `fullscreen` mode is used. Otherwise, the `dropdown` mode is used.<br><br>A debounced window resize handler is also attached that reruns the mobile device check whenever the window is resized.   |
-| `"dropdown"`    | This **wraps the specified `input` element with a root container**. Search results are displayed using an additional `<ul>` container appended to this root container, and next to the input element.    |
-| `"fullscreen"`  | This option **creates a completely distinct root container** with its own input element, and attaches it to the `<body>` element.<br><br>Under the default stylesheet, the user interface is fullscreen for devices satisfying `max-width: 1025px`, and takes up roughly 50% - 75% of the screen otherwise.<br><br>If the `input` element is specified, the interface is shown whenever the `input` is focused.<br><br>Alternatively, the `showFullscreen` and `hideFullscreen` functions returned by the `initMorsels` call can be used to toggle the UI. This is also **the only use case** where you would **not need to specify the `input` element**.    |
-| `"target"`      | This option is the most flexible, and is used by the mdbook plugin and this documentation by default. The `input` element must be specified, but only for attaching keystroke listeners. No dom manipulation is performed unlike the `dropdown` or `auto` modes.<br><br>The search results are output to a custom target element of choice.    |
+| `"auto"`        | This option is the **default**, and combines the `dropdown` and `fullscreen` options below. If a mobile device is detected as per the [earlier section](#forenote-on-mobile-device-detection), the `fullscreen` mode is used. Otherwise, the `dropdown` mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.   |
+| `"dropdown"`    | This wraps the specified `input` element with a root container. Search results are placed in a `<ul>` container next to the input element.    |
+| `"fullscreen"`  | This option creates a completely distinct root container (complete with its own input element, backdrop, close button, ...), and attaches it to the `<body>` element.<br><br>Under the default stylesheet, the user interface is fullscreen under `max-width: 1025px`, and takes up roughly 50% of the screen estate otherwise.<br><br>If the `input` element is specified, the interface is also shown whenever the `input` is focused.<br><br>Alternatively, the `showFullscreen` and `hideFullscreen` functions returned by the `initMorsels` call can be used to toggle the UI programatically. This is also *the only use case you would not need to specify the `input` element*.    |
+| `"target"`      | This option is the most flexible, and is used by the mdbook plugin (by default) and this documentation. The `input` element must be specified, where keystroke event listeners are attached. No dom manipulation is performed unlike the `dropdown` or `auto` modes.<br><br>The search results are output to a custom `target` element of choice.    |
 
 
 #### UI Mode Specific Options
@@ -78,9 +79,9 @@ const { showFullscreen, hideFullscreen } = initMorsels({ ... });
 
 You may call the `showFullscreen()` function returned by the initMorsels call to programatically show the fullscreen search UI.
 
-Correspondingly, the `hideFullscreen()` method hides the fullscreen interface, although, this shouldn't be needed since a close button (or by pressing `esc`) is available by default.
+Correspondingly, the `hideFullscreen()` method hides the fullscreen interface, although, this shouldn't be needed since a close button is available by default (the <kbd>Esc</kbd> key works too).
 
-These functions can also be used under `mode='auto'` if desired.
+These methods can also be used under `mode="auto"`.
 
 
 ### Options for Generating Result Previews
@@ -92,10 +93,10 @@ Unless you have modified the default result renderer (covered in the next page o
 
 #### Default Rendering Output / Purpose
 
-The default result generation assumes the simple but common use case of linking to a source document (`<a />` tag). 
+The default result generation assumes the simple but common use case of linking to a source document (via an `<a>` tag). 
 
 Therefore, source documents are assumed to be **available** and **linkable** to. The url of this source document is **either**:
-1. The `sourceFilesUrl` option concatenated with the relative file path of the document at the time of indexing (default).
+1. The `sourceFilesUrl` option concatenated with the relative file path of the document at the time of indexing **(default)**.
 
    > The relative file path is stored in the `_relative_fp` field, which is an internally generated field. Combining this with the base url (`sourceFilesUrl`) forms the full source document link.
 1. The [`link` field](./indexer/fields.md#default-fields-in-morselssearch-ui), a custom field that has to manually mapped from file data.
@@ -104,11 +105,11 @@ The use of the default indexed fields in the UI is as shown in the following dia
 
 ![](./images/fields_annotated.png)
 
-To generate alternative outputs (e.g. buttons, perform some action), you will need to use option 3 below.
+To generate alternative outputs for other use cases (e.g. buttons, perform some action), you will need to use option 3 below.
 
 #### 1. From Source Documents (default)
 
-When option 2 below (field stores) is not configured or unavailable, morsels will attempt to retrieve and reparse the source document and its fields in order to generate result previews.
+When option 2 below (field stores) is not configured or unavailable, morsels will attempt to *retrieve and reparse the source document and its fields* in order to generate result previews.
 
 Note that this option is only applicable for indexed html, json, and txt files at this time.
 
@@ -116,7 +117,7 @@ As csv files are often used to hold multiple documents (and can therefore get ve
 
 #### 2. From Field Stores
 
-Morsels is also able to generate result previews from its own json field stores generated at indexing time.
+Morsels is also able to generate result previews from its own *json field stores* generated at indexing time.
 
 In order to specify what fields to store, and how to map file data to these fields, refer to the chapter on [fields](./indexer/fields.md) under indexer configuration.
 
@@ -136,9 +137,9 @@ This is covered in more detail in the next page.
 
 `resultsPerPage = 8`
 
-In all UI modes, an infinite scrolling intersection observer is attached to the last search result, if any. When triggered, search result previews are fetched and/or generated for a number of these results only.
+In all UI modes, an infinite scrolling intersection observer is attached to the last search result. When triggered, search result previews are fetched and generated for a number of results only.
 
-Lowering this can have a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.
+Lowering this value can have a noticeable performance improvement on result generation, as more `.html / .json` files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.
 
 ### Changing The Mobile Device Detection Method
 
