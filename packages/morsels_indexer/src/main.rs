@@ -7,7 +7,7 @@ use morsels_indexer::i_debug;
 use morsels_indexer::MorselsConfig;
 
 use log::LevelFilter;
-use log::error;
+use log::{info, error};
 use log4rs::Config;
 use log4rs::append::console::ConsoleAppender;
 use log4rs::config::Appender;
@@ -141,6 +141,8 @@ fn main() {
         args.preserve_output_folder,
     );
 
+    info!("Indexer initialised");
+
     let now = if args.perf { Some(Instant::now()) } else { None };
 
     for entry in WalkDir::new(input_folder_path.clone()) {
@@ -161,5 +163,9 @@ fn main() {
         }
     }
 
+    info!("All documents indexed! Merging results...");
+
     indexer.finish_writing_docs(now);
+
+    info!("Done!");
 }
