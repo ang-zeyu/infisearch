@@ -12,7 +12,9 @@ declare const MORSELS_VERSION;
 class Searcher {
   morselsConfig: MorselsConfig;
 
-  private readonly setupPromise: Promise<any>;
+  isSetupDone: boolean = false;
+
+  readonly setupPromise: Promise<any>;
 
   private worker: Worker;
 
@@ -70,7 +72,8 @@ class Searcher {
         this.worker.postMessage(this.morselsConfig);
       })
       .then(() => this.cacheFieldStores())
-      .then(() => workerSetup);
+      .then(() => workerSetup)
+      .then(() => this.isSetupDone = true);
   }
 
   async cacheFieldStores() {

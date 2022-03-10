@@ -282,8 +282,18 @@ function prepareOptions(options: SearchUiOptions) {
   uiOptions.fsBlankRender = uiOptions.fsBlankRender
       || ((h) => h('div', { class: 'morsels-fs-blank' }, 'Start Searching Above!'));
 
-  uiOptions.loadingIndicatorRender = uiOptions.loadingIndicatorRender
-      || ((h) => h('span', { class: 'morsels-loading-indicator' }));
+  uiOptions.loadingIndicatorRender = uiOptions.loadingIndicatorRender || ((
+    h, opts, isInitialising, initialisePromise,
+  ) => {
+    const loadingSpinner = h('span', { class: 'morsels-loading-indicator' });
+    if (!isInitialising) {
+      return loadingSpinner;
+    }
+
+    const initialisingText = h('div', { class: 'morsels-initialising-text' }, '... Initialising ...');
+    initialisePromise.then(() => initialisingText.remove());
+    return h('div', { class: 'morsels-initialising' }, initialisingText, loadingSpinner);
+  });
 
   uiOptions.termInfoRender = uiOptions.termInfoRender || (() => []);
 
@@ -404,9 +414,9 @@ function createInputListener(
       inputTimer = setTimeout(() => {
         if (isFirstQueryFromBlank) {
           listContainer.innerHTML = '';
-          listContainer.appendChild(
-            uiOptions.loadingIndicatorRender(createElement, options),
-          );
+          listContainer.appendChild(uiOptions.loadingIndicatorRender(
+            createElement, options, !searcher.isSetupDone, searcher.setupPromise,
+          ));
   
           if (useDropdown(uiOptions)) {
             uiOptions.showDropdown(root, listContainer, options);
@@ -578,7 +588,7 @@ function initMorsels(options: SearchUiOptions): {
   // Keyboard Events
 
   // Not attached, just used for isEqualNode
-  const loadingIndicator = uiOptions.loadingIndicatorRender(createElement, options);
+  const loadingIndicator = uiOptions.loadingIndicatorRender(createElement, options, false, Promise.resolve());
 
   function keydownListener(ev: KeyboardEvent) {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(ev.key)) {

@@ -382,6 +382,21 @@
     opacity: 0.75;
 }
 
+.morsels-initialising-text {
+    padding-top: 20px;
+    text-align: center;
+    animation-name: morsels-initialising-text;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes morsels-initialising-text {
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
 /* https://loading.io/css/ */
 .morsels-loading-indicator {
     display: flex;

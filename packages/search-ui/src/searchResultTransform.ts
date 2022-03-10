@@ -552,7 +552,7 @@ export default async function transformResults(
     return;
   }
 
-  const loader = options.uiOptions.loadingIndicatorRender(createElement, options);
+  const loader = options.uiOptions.loadingIndicatorRender(createElement, options, false, Promise.resolve());
   if (!isFirst) {
     container.appendChild(loader);
   }

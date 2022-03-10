@@ -73,7 +73,12 @@ export interface UiOptions {
   errorRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
   noResultsRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
   fsBlankRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
-  loadingIndicatorRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
+  loadingIndicatorRender?: (
+    h: CreateElement,
+    opts: SearchUiOptions,
+    isInitialising: boolean,
+    initialisePromise: Promise<any>,
+  ) => HTMLElement,
   termInfoRender?: (
     h: CreateElement,
     opts: SearchUiOptions,
