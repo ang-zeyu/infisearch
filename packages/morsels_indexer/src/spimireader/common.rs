@@ -14,6 +14,7 @@ use std::sync::Arc;
 
 use dashmap::DashMap;
 
+use morsels_common::FILE_EXT;
 use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME};
 use morsels_common::utils::idf::get_idf;
 
@@ -71,7 +72,7 @@ pub fn get_pl_file(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32
         std::fs::create_dir(&dir_output_folder_path).expect("Failed to create pl output dir!");
     }
 
-    File::create(dir_output_folder_path.join(Path::new(&format!("pl_{}", curr_pl))))
+    File::create(dir_output_folder_path.join(Path::new(&format!("pl_{}.{}", curr_pl, FILE_EXT))))
         .expect("Failed to open postings list for writing.")
 }
 

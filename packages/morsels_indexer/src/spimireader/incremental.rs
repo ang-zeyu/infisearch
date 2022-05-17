@@ -13,7 +13,7 @@ use rustc_hash::FxHashMap;
 use smartstring::LazyCompact;
 use smartstring::SmartString;
 
-use morsels_common::bitmap;
+use morsels_common::{bitmap, FILE_EXT};
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
@@ -246,7 +246,7 @@ pub fn modify_blocks(
             } else {
                 let output_path = output_folder_path
                     .join(format!("pl_{}", old_term_info.postings_file_name / indexing_config.num_pls_per_dir))
-                    .join(Path::new(&format!("pl_{}", old_term_info.postings_file_name)));
+                    .join(Path::new(&format!("pl_{}.{}", old_term_info.postings_file_name, FILE_EXT)));
             
                 // Load the entire postings list into memory
                 let mut pl_file = File::open(&output_path).unwrap();

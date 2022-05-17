@@ -6,7 +6,8 @@ pub mod dictionary;
 pub mod tokenize;
 pub mod utils;
 
-pub static BITMAP_DOCINFO_DICT_TABLE_FILE: &str = "bitmap_docinfo_dicttable";
+pub static FILE_EXT: &str = "json";
+pub static BITMAP_DOCINFO_DICT_TABLE_FILE: &str = "bitmap_docinfo_dicttable.json";
 
 pub struct BitmapDocinfoDicttableReader {
     pub buf: Vec<u8>,

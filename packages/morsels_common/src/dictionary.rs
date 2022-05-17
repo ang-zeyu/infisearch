@@ -11,7 +11,7 @@ use crate::utils::idf::get_idf;
 use crate::utils::varint;
 use trigrams::get_tri_grams;
 
-pub static DICTIONARY_STRING_FILE_NAME: &str = "dictionary_string";
+pub static DICTIONARY_STRING_FILE_NAME: &str = "dictionary_string.json";
 
 pub struct Dictionary {
     pub term_infos: FxHashMap<Rc<String>, TermInfo>,

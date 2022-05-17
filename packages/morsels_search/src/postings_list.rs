@@ -7,6 +7,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::Response;
 
 use crate::postings_list_file_cache::PostingsListFileCache;
+use morsels_common::FILE_EXT;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
@@ -295,7 +296,9 @@ pub fn initiate_fetch(window: &web_sys::Window, base_url: &str, pl_num: u32, num
             + "pl_"
             + &(pl_num / num_pls_per_dir).to_string()[..]
             + "/pl_"
-            + &pl_num.to_string()[..]),
+            + &pl_num.to_string()[..]
+            + "."
+            + FILE_EXT),
     )
 }
 
