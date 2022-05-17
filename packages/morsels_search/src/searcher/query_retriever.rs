@@ -38,9 +38,9 @@ impl Searcher {
 
         let term_to_expand = last_query_part.original_terms.as_ref().unwrap().first().unwrap();
         let expanded_terms = if self.tokenizer.use_default_trigram() {
-            self.dictionary.get_expanded_terms(num_desired_expanded_terms,term_to_expand)
+            self.dictionary.get_prefix_terms(num_desired_expanded_terms,term_to_expand)
         } else {
-            self.tokenizer.get_expanded_terms(
+            self.tokenizer.get_prefix_terms(
 num_desired_expanded_terms,
                 term_to_expand,
                 &self.dictionary.term_infos,

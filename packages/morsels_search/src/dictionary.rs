@@ -10,24 +10,28 @@ use morsels_common::dictionary;
 
 pub type Dictionary = dictionary::Dictionary;
 
-static TERM_EXPANSION_ALPHA: f32 = 0.85;
+static TERM_EXPANSION_ALPHA: f32 = 0.75;  // ceil(0.75x) in https://www.desmos.com/calculator to visualize
+static MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;  // **total** weight of expanded terms
 static SPELLING_CORRECTION_BASE_ALPHA: f32 = 0.3;
 
-struct TermWeightPair(Rc<String>, f64);
+struct TermWeightPair {
+    term: Rc<String>,
+    idf_difference: f64,
+}
 
 impl Eq for TermWeightPair {}
 
 impl PartialEq for TermWeightPair {
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
+        self.term == other.term
     }
 }
 
 impl Ord for TermWeightPair {
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.1 > other.1 {
+        if self.idf_difference > other.idf_difference {
             Ordering::Greater
-        } else if self.1 < other.1 {
+        } else if self.idf_difference < other.idf_difference {
             Ordering::Less
         } else {
             Ordering::Equal
@@ -37,9 +41,9 @@ impl Ord for TermWeightPair {
 
 impl PartialOrd for TermWeightPair {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.1 > other.1 {
+        if self.idf_difference > other.idf_difference {
             Some(Ordering::Greater)
-        } else if self.1 < other.1 {
+        } else if self.idf_difference < other.idf_difference {
             Some(Ordering::Less)
         } else {
             Some(Ordering::Equal)
@@ -52,7 +56,7 @@ pub trait SearchDictionary {
 
     fn get_corrected_terms(&self, misspelled_term: &str) -> Vec<Rc<String>>;
 
-    fn get_expanded_terms(
+    fn get_prefix_terms(
         &self,
         number_of_expanded_terms: usize,
         base_term: &str,
@@ -92,7 +96,7 @@ impl SearchDictionary for Dictionary {
             // (A intersect B) / (A union B)
             // For n-gram string, there are n - 2 tri-grams
             // Filter edit distance candidates by jacard coefficient first
-            if ((score as f32) / ((term.chars().count() + base_term_char_count - 4 - score) as f32))
+            if ((score as f32) / ((term.chars().count() + base_term_char_count - score) as f32))
                 < SPELLING_CORRECTION_BASE_ALPHA
             {
                 continue;
@@ -115,21 +119,26 @@ impl SearchDictionary for Dictionary {
         min_edit_distance_terms
     }
 
-    fn get_expanded_terms(
+    /// Gets terms for prefix search in the following manner:
+    /// 
+    /// 1. Retrieves candidates using the trigram map
+    /// 2. Filter candidates that don't at least have TERM_EXPANSION_ALPHA of the trigrams of the prefix
+    /// 3. Does a substring check on the remaining candidates, using the leftmost TERM_EXPANSION_ALPHA characters of the prefix
+    /// 4. Returns `number_of_expanded_terms` terms which have the closest idf to the original prefix
+    ///    - if the prefix is not a valid term, 0.0 is filled in (i.e. return the most common terms)
+    ///    - the terms are weighted in the query according to how long they are (versus the prefix)
+    fn get_prefix_terms(
         &self,
         number_of_expanded_terms: usize,
-        base_term: &str,
+        prefix: &str,
     ) -> FxHashMap<std::string::String, f32> {
-        let mut expanded_terms: FxHashMap<std::string::String, f32> = FxHashMap::default();
-        let base_term_char_count = base_term.chars().count();
-        if base_term_char_count < 4 {
-            return expanded_terms;
-        }
+        let prefix_char_count = prefix.chars().count();
 
-        let prefix_check_candidates = self.get_term_candidates(base_term);
-        let min_matching_trigrams = (TERM_EXPANSION_ALPHA * (base_term.chars().count() - 2) as f32).floor() as usize;
+        let prefix_check_candidates = self.get_term_candidates(prefix);
 
-        let base_idf = if let Some(term_info) = self.term_infos.get(&String::from(base_term)) {
+        let min_matching_trigrams = (TERM_EXPANSION_ALPHA * prefix_char_count as f32).ceil() as usize;
+
+        let prefix_idf = if let Some(term_info) = self.term_infos.get(&String::from(prefix)) {
             term_info.idf
         } else {
             0.0
@@ -137,37 +146,38 @@ impl SearchDictionary for Dictionary {
 
         // number_of_expanded_terms terms with the closest idfs
         let mut top_n_min_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(number_of_expanded_terms);
-        let mut max_idf_difference: f64 = 0.0;
 
-        let min_baseterm_substring =
-            &base_term[0..((TERM_EXPANSION_ALPHA * base_term_char_count as f32).floor() as usize)];
+        // string to do the prefix check with
+        let min_baseterm_substring: String = prefix.chars().take(
+            (TERM_EXPANSION_ALPHA * prefix_char_count as f32).ceil() as usize
+        ).collect();
+
         for (term, score) in prefix_check_candidates {
             // Filter away candidates that quite match in terms of number of trigrams first
             if score < min_matching_trigrams {
                 continue;
             }
 
-            if term.starts_with(min_baseterm_substring) && &term[..] != base_term {
+            if term.starts_with(min_baseterm_substring.as_str()) && term.as_str() != prefix {
                 let term_info = self.term_infos.get(&term).unwrap();
-                let idf_difference = (term_info.idf - base_idf).abs();
-                if idf_difference > max_idf_difference {
-                    max_idf_difference = idf_difference;
-                }
+                let idf_difference = (term_info.idf - prefix_idf).abs();
 
-                let idf = self.term_infos.get(&term).unwrap().idf;
                 if top_n_min_heap.len() < number_of_expanded_terms {
-                    top_n_min_heap.push(TermWeightPair(term, idf_difference));
-                } else if idf < top_n_min_heap.peek().unwrap().1 {
+                    top_n_min_heap.push(TermWeightPair { term, idf_difference });
+                } else if idf_difference < top_n_min_heap.peek().unwrap().idf_difference {
                     top_n_min_heap.pop();
-                    top_n_min_heap.push(TermWeightPair(term, idf_difference));
+                    top_n_min_heap.push(TermWeightPair { term, idf_difference });
                 }
             }
         }
 
-        for term_weight_pair in top_n_min_heap {
-            let idf_proportion = term_weight_pair.1 / max_idf_difference;
-            let weight = if idf_proportion > 0.3 { 0.3 } else { idf_proportion };
-            expanded_terms.insert(std::string::String::from(&term_weight_pair.0[..]), weight as f32);
+        let number_of_expanded_terms_found = top_n_min_heap.len() as f32;
+        let max_score_per_expanded_term = MAXIMUM_TERM_EXPANSION_WEIGHT / number_of_expanded_terms_found;
+        let mut expanded_terms: FxHashMap<std::string::String, f32> = FxHashMap::default();
+        for TermWeightPair { term, idf_difference: _ } in top_n_min_heap {
+            let length_proportion = prefix_char_count as f32 / term.chars().count() as f32;
+            let weight = length_proportion * max_score_per_expanded_term;
+            expanded_terms.insert(term.to_string(), weight); 
         }
 
         expanded_terms

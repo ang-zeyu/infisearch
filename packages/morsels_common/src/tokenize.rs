@@ -42,7 +42,7 @@ pub trait SearchTokenizer {
         dictionary: &FxHashMap<Rc<SmartString>, TermInfo>,
     ) -> Option<String>;
 
-    fn get_expanded_terms(
+    fn get_prefix_terms(
         &self,
         number_of_expanded_terms: usize,
         term: &str,

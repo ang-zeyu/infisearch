@@ -169,7 +169,7 @@ impl SearchTokenizer for Tokenizer {
         None
     }
 
-    fn get_expanded_terms(
+    fn get_prefix_terms(
         &self,
         _number_of_expanded_terms: usize,
         _term: &str,
