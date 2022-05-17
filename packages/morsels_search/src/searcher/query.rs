@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
@@ -85,8 +84,6 @@ pub struct Query {
     result_heap: BinaryHeap<DocResult>,
     results_retrieved: u32,
     result_limit: Option<u32>,
-    wand_leftovers: Vec<u32>,
-    did_dedup_wand: bool,
 }
 
 #[wasm_bindgen]
@@ -98,22 +95,6 @@ impl Query {
             && (self.result_limit.is_none() || self.results_retrieved < self.result_limit.unwrap())
         {
             doc_ids.push(self.result_heap.pop().unwrap());
-            self.results_retrieved += 1;
-        }
-
-        while !self.wand_leftovers.is_empty()
-            && doc_ids.len() < n
-            && (self.result_limit.is_none() || self.results_retrieved < self.result_limit.unwrap())
-        {
-            if !self.did_dedup_wand {
-                self.did_dedup_wand = true;
-                self.wand_leftovers.sort_unstable();
-                self.wand_leftovers.dedup();
-            }
-            doc_ids.push(DocResult {
-                doc_id: self.wand_leftovers.pop().unwrap(),
-                score: 0.0
-            });
             self.results_retrieved += 1;
         }
 
@@ -136,12 +117,8 @@ impl Searcher {
         query_parts: Vec<QueryPart>,
         postings_lists: Vec<Rc<PostingsList>>,
         result_limit: Option<u32>,
-        use_wand: bool,
-        wand_n: usize,
     ) -> Query {
         let mut result_heap: BinaryHeap<DocResult> = BinaryHeap::new();
-        let mut top_n_min_heap: BinaryHeap<Reverse<DocResult>> = BinaryHeap::new();
-        let mut wand_leftovers: Vec<u32> = Vec::new();
 
         let mut pl_its: Vec<PlIterator> = postings_lists
             .iter()
@@ -157,60 +134,8 @@ impl Searcher {
         let proximity_ranking_max_scale = total_proximity_ranking_terms * 1.8;
 
         while !pl_its.is_empty() {
-            let mut pivot_doc_id = pl_its.first().unwrap().td.unwrap().doc_id;
-
-            // ------------------------------------------
-            // WAND
-            if use_wand && top_n_min_heap.len() >= wand_n {
-                let nth_highest_score = top_n_min_heap.peek().unwrap().0.score;
-                let mut wand_acc = 0.0;
-                let mut pivot_list_idx = 0;
-
-                for pl_it in pl_its.iter() {
-                    wand_acc += pl_it.pl.max_term_score;
-                    if wand_acc > nth_highest_score {
-                        pivot_doc_id = pl_it.td.unwrap().doc_id;
-                        break;
-                    }
-
-                    pivot_list_idx += 1;
-                }
-
-                if wand_acc < nth_highest_score {
-                    /*
-                     At this point, summation of max scores of all remaining postings list
-                     is still lesser than nth_highest_score.
-
-                     Lump all of them into the leftovers as well.
-                    */
-                    for curr_it in pl_its.iter_mut().take(pivot_list_idx) {
-                        while let Some(term_doc) = curr_it.td {
-                            wand_leftovers.push(term_doc.doc_id);
-                            curr_it.next();
-                        }
-                    }
-                    break;
-                }
-
-                // Forward pls before the pivot list
-                for curr_it in pl_its.iter_mut().take(pivot_list_idx) {
-                    while let Some(term_doc) = curr_it.td {
-                        if term_doc.doc_id < pivot_doc_id {
-                            wand_leftovers.push(term_doc.doc_id);
-                            curr_it.next();
-                        } else {
-                            break;
-                        }
-                    }
-                }
-
-                if pl_its.iter().any(|pl_it| pl_it.td.is_none()) {
-                    pl_its = pl_its.into_iter().filter(|pl_it| pl_it.td.is_some()).collect();
-                }
-            }
-            // ------------------------------------------
-
-            let mut result = DocResult { doc_id: pivot_doc_id, score: 0.0 };
+            let curr_doc_id = pl_its.first().unwrap().td.unwrap().doc_id;
+            let mut result = DocResult { doc_id: curr_doc_id, score: 0.0 };
             let mut scaling_factor = 1.0;
 
             // ------------------------------------------
@@ -220,7 +145,7 @@ impl Searcher {
                     pl_its
                         .iter()
                         .filter(|pl_it| {
-                            pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == pivot_doc_id
+                            pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == curr_doc_id
                         })
                         .map(|pl_it| pl_it as *const PlIterator),
                 );
@@ -315,23 +240,14 @@ impl Searcher {
 
             for pl_it in pl_its.iter_mut() {
                 let td = pl_it.td.unwrap();
-                if td.doc_id == pivot_doc_id {
+                if td.doc_id == curr_doc_id {
                     result.score += if td.score != 0.0 {
                         td.score
                     } else {
-                        self.calc_doc_bm25_score(td, pivot_doc_id, pl_it.pl)
+                        self.calc_doc_bm25_score(td, curr_doc_id, pl_it.pl)
                     };
 
                     pl_it.next();
-                }
-            }
-
-            if use_wand {
-                if top_n_min_heap.len() < wand_n {
-                    top_n_min_heap.push(Reverse(result.clone()));
-                } else if result.score > top_n_min_heap.peek().unwrap().0.score {
-                    top_n_min_heap.pop();
-                    top_n_min_heap.push(Reverse(result.clone()));
                 }
             }
 
@@ -352,8 +268,6 @@ impl Searcher {
             result_heap,
             results_retrieved: 0,
             result_limit,
-            wand_leftovers,
-            did_dedup_wand: false,
         }
     }
 

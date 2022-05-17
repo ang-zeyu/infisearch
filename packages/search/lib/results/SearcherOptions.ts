@@ -3,6 +3,5 @@ export interface SearcherOptions {
   numberOfExpandedTerms?: number,
   useQueryTermProximity?: boolean,
   cacheAllFieldStores?: boolean,
-  useWand?: number,
   resultLimit?: number,
 }
