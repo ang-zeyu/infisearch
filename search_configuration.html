@@ -321,8 +321,6 @@
 
         // The maximum number of results to retrieve (unlimited if null).
         resultLimit: null,
-
-        useWand: 20,
     },
 });
 </code></pre>
@@ -335,12 +333,6 @@
 <p><code>useQueryTermProximity</code></p>
 <p>If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other.
 This may be costly for mobile devices however, and is disabled by default in such cases.</p>
-<h3 id="weak-and--weighted-and-wand"><a class="header" href="#weak-and--weighted-and-wand">Weak and / Weighted and (WAND)</a></h3>
-<p><code>useWand: number | null</code></p>
-<p>By default, pure <strong>free-text queries</strong> are run through the WAND algorithm, which <strong>increases query speed</strong> for the <strong>top-k</strong> documents.
-The main drawback with this algorithm is that the ranking of documents after these top-k documents <strong>may</strong> be inaccurate, although often, searchers won’t have the patience to dig through thousands of results anyway.</p>
-<p>If you want to increase the top-k threshold, simply increase the number here (<code>20</code> by default).</p>
-<p>Otherwise, setting this to <code>null</code> completely disables this algorithm.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
