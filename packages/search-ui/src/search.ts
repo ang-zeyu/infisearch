@@ -242,7 +242,10 @@ function prepareOptions(options: SearchUiOptions) {
     setInputAria(inputEl, 'morsels-fs-list');
 
     const buttonEl = h('button', { class: 'morsels-input-close-fs' }, opts.uiOptions.fsCloseText);
-    buttonEl.onclick = fsCloseHandler;
+    buttonEl.onclick = (ev) => {
+      ev.preventDefault();
+      fsCloseHandler();
+    };
 
     innerRoot.appendChild(h('form',
       { class: 'morsels-fs-input-button-wrapper' },
