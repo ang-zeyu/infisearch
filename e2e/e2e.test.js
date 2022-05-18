@@ -282,8 +282,8 @@ test('Test with different field and block size configs', async () => {
   let outputConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
   );
-  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(6);
-  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1, 2, 3, 4, 5]);
+  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(5);
+  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1, 2, 3, 4]);
 
   cleanup();
   console.log('Starting morsels_config_1 tests');

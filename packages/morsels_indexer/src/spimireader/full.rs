@@ -51,8 +51,6 @@ pub fn merge_blocks(
         Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
-    let num_docs_double = doc_id_counter as f64;
-
     // Unwrap the inner mutex to avoid locks as it is now read-only
     let doc_infos_unlocked_arc = {
         let mut doc_infos_unwrapped_inner = Arc::try_unwrap(doc_infos)
@@ -105,7 +103,7 @@ pub fn merge_blocks(
     i_debug!("Starting main decode loop...! Number of blocks {}", postings_streams.len());
 
     while !postings_streams.is_empty() {
-        let (curr_term, doc_freq, curr_term_max_score) = PostingsStream::aggregate_block_terms(
+        let (curr_term, doc_freq) = PostingsStream::aggregate_block_terms(
             &mut curr_combined_term_docs,
             &mut postings_streams,
             &postings_stream_decoders,
@@ -130,9 +128,6 @@ pub fn merge_blocks(
             &mut pl_writer,
             &mut curr_pl_offset,
             &mut prev_pl_start_offset,
-            doc_freq,
-            curr_term_max_score,
-            num_docs_double,
             &mut incremental_info.pl_names_to_cache,
             indexing_config,
             output_folder_path,

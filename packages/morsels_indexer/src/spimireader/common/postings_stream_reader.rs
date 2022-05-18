@@ -11,7 +11,6 @@ use dashmap::DashMap;
 use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::docinfo::DocInfos;
 use crate::utils::varint;
-use crate::FieldInfos;
 use crate::MainToWorkerMessage;
 use crate::Sender;
 
@@ -47,13 +46,11 @@ impl PostingsStreamReader {
         n: usize,
         postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>>,
         with_positions: bool,
-        field_infos: &Arc<FieldInfos>,
     ) {
         let mut u32_buf: [u8; 4] = [0; 4];
         let mut u8_buf: [u8; 1] = [0; 1];
 
         let pl_reader = &mut self.buffered_reader;
-        let doc_infos = &self.doc_infos_unlocked;
 
         for _unused in 0..n {
             if let Ok(()) = self.buffered_dict_reader.read_exact(&mut u8_buf) {
@@ -68,18 +65,13 @@ impl PostingsStreamReader {
                 // TODO improve the capacity heuristic
                 let mut combined_var_ints = Vec::with_capacity((doc_freq * 20) as usize);
 
-                let mut max_doc_term_score: f32 = 0.0;
-
-                let mut read_and_write_doc =
-                    |doc_id,
-                     pl_reader: &mut BufReader<File>,
+                let read_and_write_doc =
+                    |pl_reader: &mut BufReader<File>,
                      combined_var_ints: &mut Vec<u8>,
                      u8_buf: &mut [u8; 1],
                      u32_buf: &mut [u8; 4]| {
-                        let mut curr_doc_term_score: f32 = 0.0;
-                        let mut read_and_write_field =
-                            |field_id,
-                             pl_reader: &mut BufReader<File>,
+                        let read_and_write_field =
+                            |pl_reader: &mut BufReader<File>,
                              combined_var_ints: &mut Vec<u8>,
                              u32_buf: &mut [u8; 4]| {
                                 pl_reader.read_exact(u32_buf).unwrap();
@@ -100,8 +92,6 @@ impl PostingsStreamReader {
                                         prev_pos = curr_pos;
                                     }
                                 }
-
-                                super::tf_score::add_field_to_doc_score(field_infos, field_id, &mut curr_doc_term_score, field_tf, doc_infos, doc_id);
                             };
 
                         pl_reader.read_exact(u8_buf).unwrap();
@@ -111,18 +101,14 @@ impl PostingsStreamReader {
                             let field_id = u8_buf[0];
                             combined_var_ints.push(field_id);
 
-                            read_and_write_field(field_id, pl_reader, combined_var_ints, u32_buf);
+                            read_and_write_field(pl_reader, combined_var_ints, u32_buf);
                         }
 
                         // Delimit the last field with LAST_FIELD_MASK
                         pl_reader.read_exact(u8_buf).unwrap();
                         let field_id = u8_buf[0];
                         combined_var_ints.push(field_id | LAST_FIELD_MASK);
-                        read_and_write_field(field_id, pl_reader, combined_var_ints, u32_buf);
-
-                        if curr_doc_term_score > max_doc_term_score {
-                            max_doc_term_score = curr_doc_term_score;
-                        }
+                        read_and_write_field(pl_reader, combined_var_ints, u32_buf);
                     };
 
                 /*
@@ -134,7 +120,6 @@ impl PostingsStreamReader {
 
                 let mut prev_doc_id = first_doc_id;
                 read_and_write_doc(
-                    first_doc_id,
                     pl_reader,
                     &mut combined_var_ints,
                     &mut u8_buf,
@@ -147,12 +132,11 @@ impl PostingsStreamReader {
                     varint::get_var_int_vec(doc_id - prev_doc_id, &mut combined_var_ints);
 
                     prev_doc_id = doc_id;
-                    read_and_write_doc(doc_id, pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf);
+                    read_and_write_doc(pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf);
                 }
 
                 self.future_term_buffer.push_back(TermDocsForMerge {
                     term,
-                    max_doc_term_score,
                     doc_freq,
                     combined_var_ints,
                     first_doc_id,

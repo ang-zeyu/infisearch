@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 
-use byteorder::{ByteOrder, LittleEndian};
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
@@ -116,7 +115,6 @@ pub struct PostingsList {
     // For postings lists representing raw terms
     pub term: Option<String>,
     pub term_info: Option<TermInfo>,
-    pub max_term_score: f32,
 }
 
 #[cfg(test)]
@@ -284,8 +282,6 @@ impl PostingsList {
             }
         }
 
-        self.max_term_score = LittleEndian::read_f32(&pl_vec[pos..]) * self.weight;
-
         Ok(())
     }
 }
@@ -330,7 +326,6 @@ pub mod test {
             include_in_proximity_ranking: true,
             term: None,
             term_info: None,
-            max_term_score: 0.0,
         }
     }
 

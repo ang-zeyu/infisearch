@@ -1,7 +1,6 @@
 pub mod postings_stream;
 pub mod postings_stream_reader;
 pub mod terms;
-pub mod tf_score;
 
 use std::collections::BinaryHeap;
 use std::collections::VecDeque;
@@ -16,7 +15,6 @@ use dashmap::DashMap;
 
 use morsels_common::FILE_EXT;
 use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME};
-use morsels_common::utils::idf::get_idf;
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
@@ -31,7 +29,6 @@ use crate::Sender;
 #[derive(Default)]
 pub struct TermDocsForMerge {
     pub term: String,
-    pub max_doc_term_score: f32,
     pub doc_freq: u32,
     pub combined_var_ints: Vec<u8>,
     pub first_doc_id: u32,
@@ -145,9 +142,6 @@ pub fn write_new_term_postings(
     pl_writer: &mut PlWriter,
     pl_offset: &mut u32,
     prev_pl_start_offset: &mut u32,
-    doc_freq: u32,
-    curr_term_max_score: f32,
-    num_docs: f64,
     pl_names_to_cache: &mut Vec<u32>,
     indexing_config: &MorselsIndexingConfig,
     output_folder_path: &Path,
@@ -195,10 +189,6 @@ pub fn write_new_term_postings(
         pl_writer.writer.write(&term_docs.combined_var_ints);
         *pl_offset += term_docs.combined_var_ints.len() as u32;
     }
-
-    let max_doc_term_score: f32 = curr_term_max_score * get_idf(num_docs, doc_freq as f64) as f32;
-    pl_writer.writer.write(&max_doc_term_score.to_le_bytes());
-    *pl_offset += 4;
 
     start_pl_offset
 }

@@ -47,7 +47,7 @@
   "indexing_config": {
     "num_docs_per_block": 200,
     "pl_limit": 16383,
-    "pl_cache_threshold": 10000,
+    "pl_cache_threshold": 9000,
     "exclude": [
       "index.html",
       "print.html",

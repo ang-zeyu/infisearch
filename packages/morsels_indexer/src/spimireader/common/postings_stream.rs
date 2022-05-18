@@ -172,7 +172,7 @@ impl PostingsStream {
         tx_main: &Sender<MainToWorkerMessage>,
         blocking_sndr: &Sender<()>,
         blocking_rcvr: &Receiver<()>,
-    ) -> (String, u32, f32) {
+    ) -> (String, u32) {
         curr_combined_term_docs.clear();
 
         let mut postings_stream = postings_streams.pop().unwrap();
@@ -180,7 +180,6 @@ impl PostingsStream {
         let mut doc_freq = postings_stream.curr_term.doc_freq;
 
         let curr_term = std::mem::take(&mut postings_stream.curr_term.term);
-        let mut curr_term_max_score = postings_stream.curr_term.max_doc_term_score;
         curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term));
 
         postings_stream.get_term(postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, true);
@@ -194,9 +193,6 @@ impl PostingsStream {
 
             doc_freq += postings_stream.curr_term.doc_freq;
 
-            if postings_stream.curr_term.max_doc_term_score > curr_term_max_score {
-                curr_term_max_score = postings_stream.curr_term.max_doc_term_score;
-            }
             curr_combined_term_docs.push(std::mem::take(&mut postings_stream.curr_term));
 
             postings_stream.get_term(postings_stream_decoders, tx_main, blocking_sndr, blocking_rcvr, true);
@@ -205,6 +201,6 @@ impl PostingsStream {
             }
         }
 
-        (curr_term, doc_freq, curr_term_max_score)
+        (curr_term, doc_freq)
     }
 }

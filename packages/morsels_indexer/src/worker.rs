@@ -151,7 +151,6 @@ pub fn worker(
                     n,
                     postings_stream_decoders,
                     indexing_config.with_positions,
-                    &field_infos,
                 );
             }
         }

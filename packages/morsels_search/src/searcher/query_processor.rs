@@ -35,7 +35,6 @@ fn empty_pl() -> PostingsList {
         idf: 0.0,
         term: None,
         term_info: None,
-        max_term_score: 0.0,
     }
 }
 
@@ -399,7 +398,6 @@ impl Searcher {
                 idf: pl.idf,
                 term: pl.term.clone(),
                 term_info: pl.term_info.clone(),
-                max_term_score: pl.max_term_score,
             };
 
             let field_id = tup.0 as usize;

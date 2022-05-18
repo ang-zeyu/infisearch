@@ -15,7 +15,6 @@ use smartstring::SmartString;
 
 use morsels_common::{bitmap, FILE_EXT};
 use morsels_common::tokenize::TermInfo;
-use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
 
 use crate::docinfo::DocInfos;
@@ -44,14 +43,10 @@ impl ExistingPlWriter {
     fn update_term_pl(
         &mut self,
         old_term_info: &TermInfo,
-        num_docs: f64,
         num_new_docs: u32,
-        new_max_term_score: f32,
         curr_combined_term_docs: &mut Vec<TermDocsForMerge>,
         invalidation_vector: &[u8],
         varint_buf: &mut [u8],
-        field_infos: &Arc<FieldInfos>,
-        doc_infos: &Arc<DocInfos>,
     ) -> TermInfo {
         self.pl_writer
             .write_all(&self.pl_vec[self.pl_vec_last_offset..(old_term_info.postings_file_offset as usize)])
@@ -64,8 +59,6 @@ impl ExistingPlWriter {
             postings_file_offset: self.pl_writer.len() as u32,
         };
 
-        let mut max_doc_term_score = new_max_term_score;
-
         let mut pl_vec_pos = old_term_info.postings_file_offset as usize;
         let mut prev_last_valid_id = 0;
 
@@ -77,18 +70,13 @@ impl ExistingPlWriter {
 
             let start = pl_vec_pos;
 
-            let mut curr_doc_term_score: f32 = 0.0;
             let mut is_last: u8 = 0;
             while is_last == 0 {
-                let field_id = self.pl_vec[pl_vec_pos] & 0x7f;
                 is_last = self.pl_vec[pl_vec_pos] & 0x80;
                 pl_vec_pos += 1;
 
-                let field_tf = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
-
-                common::tf_score::add_field_to_doc_score(field_infos, field_id, &mut curr_doc_term_score, field_tf, doc_infos, prev_doc_id);
-
                 if self.with_positions {
+                    let field_tf = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
                     for _j in 0..field_tf {
                         // Not interested in positions here, just decode and forward pos
                         decode_var_int(&self.pl_vec, &mut pl_vec_pos);
@@ -99,10 +87,6 @@ impl ExistingPlWriter {
             if bitmap::check(invalidation_vector, prev_doc_id as usize) {
                 new_term_info.doc_freq -= 1;
             } else {
-                if curr_doc_term_score > max_doc_term_score {
-                    max_doc_term_score = curr_doc_term_score
-                }
-
                 // Doc id gaps need to be re-encoded due to possible doc deletions
                 self.pl_writer
                     .write_all(varint::get_var_int(prev_doc_id - prev_last_valid_id, varint_buf))
@@ -111,9 +95,6 @@ impl ExistingPlWriter {
                 prev_last_valid_id = prev_doc_id;
             }
         }
-
-        // Old max term score, not needed as it is recomputed for every document
-        pl_vec_pos += 4;
 
         // Add in new documents
         for term_docs in curr_combined_term_docs {
@@ -126,10 +107,6 @@ impl ExistingPlWriter {
 
             self.pl_writer.write_all(&term_docs.combined_var_ints).unwrap();
         }
-
-        // New max term score
-        let new_max_term_score = max_doc_term_score * get_idf(num_docs, new_term_info.doc_freq as f64) as f32;
-        self.pl_writer.write_all(&new_max_term_score.to_le_bytes()).unwrap();
 
         self.pl_vec_last_offset = pl_vec_pos;
 
@@ -228,7 +205,7 @@ pub fn modify_blocks(
     let mut varint_buf: [u8; 16] = [0; 16];
 
     while !postings_streams.is_empty() {
-        let (curr_term, doc_freq, curr_term_max_score) = PostingsStream::aggregate_block_terms(
+        let (curr_term, doc_freq) = PostingsStream::aggregate_block_terms(
             &mut curr_combined_term_docs,
             &mut postings_streams,
             &postings_stream_decoders,
@@ -267,14 +244,10 @@ pub fn modify_blocks(
 
             let new_term_info = term_pl_writer.update_term_pl(
                 old_term_info,
-                new_num_docs,
                 doc_freq,
-                curr_term_max_score,
                 &mut curr_combined_term_docs,
                 &incremental_info.invalidation_vector,
                 &mut varint_buf,
-                field_infos,
-                &doc_infos_unlocked_arc,
             );
 
             term_info_updates.insert(curr_term, new_term_info);
@@ -287,9 +260,6 @@ pub fn modify_blocks(
                 &mut new_pl_writer,
                 &mut new_pls_offset,
                 &mut 0,
-                doc_freq,
-                curr_term_max_score,
-                new_num_docs,
                 &mut incremental_info.pl_names_to_cache,
                 indexing_config,
                 output_folder_path,

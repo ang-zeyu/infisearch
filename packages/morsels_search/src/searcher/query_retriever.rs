@@ -79,7 +79,6 @@ num_desired_expanded_terms,
                         idf: term_info.idf,
                         term: Some(term),
                         term_info: Some(term_info.to_owned()),
-                        max_term_score: 0.0,
                     },
                 );
             }
@@ -111,7 +110,6 @@ num_desired_expanded_terms,
                             idf,
                             term: Some(term.clone()),
                             term_info,
-                            max_term_score: 0.0,
                         };
                         postings_lists.insert(term.to_owned(), postings_list);
                     }

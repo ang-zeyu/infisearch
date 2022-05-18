@@ -65,10 +65,6 @@ impl DocInfos {
         DocInfos { doc_lengths, all_block_doc_lengths: Vec::new(), average_lengths }
     }
 
-    pub fn get_field_len_factor(&self, doc_id: usize, field_id: usize) -> f32 {
-        ((self.doc_lengths[doc_id].field_lengths[field_id]) as f64 / self.average_lengths[field_id]) as f32
-    }
-
     pub fn init_doc_infos(num_scored_fields: usize) -> DocInfos {
         DocInfos {
             doc_lengths: Vec::new(),
