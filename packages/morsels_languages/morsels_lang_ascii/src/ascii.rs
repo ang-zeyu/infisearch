@@ -1,6 +1,5 @@
 use std::borrow::Cow;
-use std::collections::HashSet;
-use std::rc::Rc;
+use std::collections::{HashSet, BTreeMap};
 
 use regex::Regex;
 use rustc_hash::FxHashMap;
@@ -142,14 +141,14 @@ impl SearchTokenizer for Tokenizer {
         self.stop_words.contains(term)
     }
 
-    fn use_default_trigram(&self) -> bool {
+    fn use_default_fault_tolerance(&self) -> bool {
         true
     }
 
     fn get_best_corrected_term(
         &self,
         _term: &str,
-        _dictionary: &FxHashMap<Rc<SmartString>, TermInfo>,
+        _dictionary: &BTreeMap<SmartString, TermInfo>,
     ) -> Option<String> {
         None
     }
@@ -158,7 +157,7 @@ impl SearchTokenizer for Tokenizer {
         &self,
         _number_of_expanded_terms: usize,
         _term: &str,
-        _dictionary: &FxHashMap<Rc<SmartString>, TermInfo>,
+        _dictionary: &BTreeMap<SmartString, TermInfo>,
     ) -> FxHashMap<String, f32> {
         FxHashMap::default()
     }

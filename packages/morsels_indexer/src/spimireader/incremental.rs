@@ -4,7 +4,6 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -297,7 +296,7 @@ pub fn modify_blocks(
      Also resolve the new postings file offsets of terms that were not touched,
      but were in postings lists that were edited by other terms.
     */
-    let mut prev_term = Rc::new(SmartString::from(""));
+    let mut prev_term = SmartString::from("");
     let mut prev_dict_pl = 0;
 
     let mut old_pairs_sorted: Vec<_> = std::mem::take(&mut incremental_info.dictionary.term_infos).into_iter().collect();
@@ -309,12 +308,12 @@ pub fn modify_blocks(
         Ordering::Less => Ordering::Less,
     });
 
-    let mut term_terminfo_pairs: Vec<(Rc<SmartString<LazyCompact>>, TermInfo)> = Vec::new();
+    let mut term_terminfo_pairs: Vec<(SmartString<LazyCompact>, TermInfo)> = Vec::new();
 
     fn commit_pairs(
         dict_table_writer: &mut BufWriter<File>,
         varint_buf: &mut [u8],
-        term_terminfo_pairs: &mut Vec<(Rc<SmartString<LazyCompact>>, TermInfo)>,
+        term_terminfo_pairs: &mut Vec<(SmartString<LazyCompact>, TermInfo)>,
         prev_offset: &mut u32,
         curr_existing_pl_difference: i32,
     ) {

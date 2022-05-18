@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Write, BufWriter};
 use std::iter::FromIterator;
@@ -22,7 +23,7 @@ lazy_static! {
 static INCREMENTAL_INFO_FILE_NAME: &str = "_incremental_info.json";
 
 fn get_default_dictionary() -> Dictionary {
-    Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() }
+    Dictionary { term_infos: BTreeMap::default() }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -137,7 +138,7 @@ impl IncrementalIndexInfo {
             .read_to_end(&mut dictionary_string_vec)
             .unwrap();
 
-        self.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0, false);
+        self.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0);
     }
 
     pub fn add_doc_to_file(&mut self, external_id: &str, doc_id: u32) {

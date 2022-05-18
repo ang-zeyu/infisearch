@@ -25,7 +25,7 @@ impl Searcher {
                             query_part.original_terms = Some(terms.clone());
                         }
 
-                        let best_corrected_term = if self.tokenizer.use_default_trigram() {
+                        let best_corrected_term = if self.tokenizer.use_default_fault_tolerance() {
                             self.dictionary.get_best_corrected_term(term)
                         } else {
                             self.tokenizer.get_best_corrected_term(term, &self.dictionary.term_infos)

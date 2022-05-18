@@ -1,106 +1,97 @@
-pub mod trigrams;
+use std::collections::BTreeMap;
+use std::iter::FromIterator;
 
-use std::rc::Rc;
-
-use rustc_hash::FxHashMap;
 use smartstring::alias::String;
 use smartstring::alias::String as SmartString;
 
 use crate::tokenize::TermInfo;
 use crate::utils::idf::get_idf;
 use crate::utils::varint;
-use trigrams::get_tri_grams;
 
 pub static DICTIONARY_STRING_FILE_NAME: &str = "dictionary_string.json";
 
 pub struct Dictionary {
-    pub term_infos: FxHashMap<Rc<String>, TermInfo>,
-    pub trigrams: FxHashMap<SmartString, Vec<Rc<String>>>,
+    pub term_infos: BTreeMap<String, TermInfo>,
 }
 
-#[inline(always)]
+struct DictionaryConstructor<'a> {
+    table_vec: &'a [u8],
+    string_vec: Vec<u8>,
+    num_docs: u32,
+    postings_file_name: u32,
+    postings_file_offset: u32,
+    dict_string_pos: usize,
+    dict_table_pos: usize,
+    prev_term: String,
+}
+
+/// An iterator to avoid double collecting into Vec during BTreeMap::from_iter
+impl<'a> Iterator for DictionaryConstructor<'a> {
+    type Item = (String, TermInfo);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.dict_table_pos >= self.table_vec.len() {
+            return None;
+        }
+
+        let mut doc_freq = varint::decode_var_int(self.table_vec, &mut self.dict_table_pos);
+
+        // new postings list delimiter
+        if doc_freq == 0 {
+            self.postings_file_name += 1;
+            self.postings_file_offset = 0;
+            doc_freq = varint::decode_var_int(self.table_vec, &mut self.dict_table_pos);
+        }
+
+        self.postings_file_offset += varint::decode_var_int(self.table_vec, &mut self.dict_table_pos);
+
+        let prefix_len = self.string_vec[self.dict_string_pos] as usize;
+        self.dict_string_pos += 1;
+
+        let remaining_len = self.string_vec[self.dict_string_pos] as usize;
+        self.dict_string_pos += 1;
+
+        let term = SmartString::from(&self.prev_term[..prefix_len])
+            + unsafe {
+                std::str::from_utf8_unchecked(
+                    &self.string_vec[self.dict_string_pos..self.dict_string_pos + remaining_len],
+                )
+            };
+        self.dict_string_pos += remaining_len;
+
+        let ret = Some((
+            term.clone(),
+            TermInfo {
+                doc_freq,
+                idf: get_idf(self.num_docs as f64, doc_freq as f64),
+                postings_file_name: self.postings_file_name,
+                postings_file_offset: self.postings_file_offset,
+            },
+        ));
+
+        self.prev_term = term;
+
+        ret
+    }
+}
+
 pub fn setup_dictionary(
     table_vec: &[u8],
     string_vec: Vec<u8>,
     num_docs: u32,
-    build_trigram: bool,
 ) -> Dictionary {
-    let mut term_infos: FxHashMap<Rc<String>, TermInfo> = FxHashMap::default();
+    let term_infos = BTreeMap::from_iter(DictionaryConstructor {
+        table_vec,
+        string_vec,
+        num_docs,
+        postings_file_name: 0,
+        postings_file_offset: 0,
+        dict_string_pos: 0,
+        dict_table_pos: 0,
+        prev_term: SmartString::from(""),
+    });
 
-    let mut postings_file_name = 0;
-    let mut postings_file_offset = 0;
-    let mut dict_string_pos = 0;
-    let mut dict_table_pos = 0;
-    let mut prev_term: Rc<String> = Rc::new(SmartString::from(""));
-
-    let table_vec_len = table_vec.len();
-    while dict_table_pos < table_vec_len {
-        let doc_freq = varint::decode_var_int(table_vec, &mut dict_table_pos);
-
-        // new postings list delimiter
-        if doc_freq == 0 {
-            postings_file_name += 1;
-            postings_file_offset = 0;
-            continue;
-        }
-
-        postings_file_offset += varint::decode_var_int(table_vec, &mut dict_table_pos);
-
-        let prefix_len = string_vec[dict_string_pos] as usize;
-        dict_string_pos += 1;
-
-        let remaining_len = string_vec[dict_string_pos] as usize;
-        dict_string_pos += 1;
-
-        let term = Rc::new(
-            SmartString::from(&prev_term[..prefix_len])
-                + unsafe {
-                    std::str::from_utf8_unchecked(
-                        &string_vec[dict_string_pos..dict_string_pos + remaining_len],
-                    )
-                },
-        );
-        dict_string_pos += remaining_len;
-
-        term_infos.insert(
-            Rc::clone(&term),
-            TermInfo {
-                doc_freq,
-                idf: get_idf(num_docs as f64, doc_freq as f64),
-                postings_file_name,
-                postings_file_offset,
-            },
-        );
-
-        prev_term = term;
-    }
-
-    let trigrams = if build_trigram { setup_trigrams(&term_infos) } else { FxHashMap::default() };
-
-    Dictionary { term_infos, trigrams }
-}
-
-fn setup_trigrams(
-    term_infos: &FxHashMap<Rc<String>, TermInfo>,
-) -> FxHashMap<SmartString, Vec<Rc<String>>> {
-    let mut trigrams: FxHashMap<SmartString, Vec<Rc<String>>> = FxHashMap::default();
-
-    for term in term_infos.keys() {
-        for term_trigram in get_tri_grams(term) {
-            match trigrams.get_mut(term_trigram) {
-                Some(terms) => {
-                    terms.push(Rc::clone(term));
-                }
-                None => {
-                    let mut term_vec: Vec<Rc<String>> = Vec::with_capacity(20);
-                    term_vec.push(Rc::clone(term));
-                    trigrams.insert(SmartString::from(term_trigram), term_vec);
-                }
-            }
-        }
-    }
-
-    trigrams
+    Dictionary { term_infos }
 }
 
 impl Dictionary {
@@ -111,10 +102,9 @@ impl Dictionary {
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
+    use std::collections::BTreeMap;
 
     use pretty_assertions::assert_eq;
-    use rustc_hash::FxHashMap;
     use smartstring::alias::String;
 
     use crate::tokenize::TermInfo;
@@ -148,14 +138,13 @@ mod test {
                 string_vec
             },
             2,
-            false,
         );
 
         assert_eq!(dictionary.term_infos, {
-            let mut terms = FxHashMap::default();
+            let mut terms = BTreeMap::default();
 
             terms.insert(
-                Rc::new(String::from("foo")),
+                String::from("foo"),
                 TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),
@@ -165,7 +154,7 @@ mod test {
             );
 
             terms.insert(
-                Rc::new(String::from("foobar")),
+                String::from("foobar"),
                 TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),
@@ -175,7 +164,7 @@ mod test {
             );
 
             terms.insert(
-                Rc::new(String::from("test")),
+                String::from("test"),
                 TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),
@@ -185,7 +174,7 @@ mod test {
             );
 
             terms.insert(
-                Rc::new(String::from("tetest")),
+                String::from("tetest"),
                 TermInfo {
                     doc_freq: 1,
                     idf: 2f64.ln(),

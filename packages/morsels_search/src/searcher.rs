@@ -137,14 +137,13 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     let doc_info = DocInfo::create(&mut bitmap_docinfo_dt_rdr, searcher_config.num_scored_fields);
 
     let tokenizer = get_tokenizer(&mut searcher_config.lang_config);
-    let build_trigram = tokenizer.use_default_trigram();
 
     let string_resp: Response = string_resp_future.await?.dyn_into().unwrap();
     let string_array_buffer = JsFuture::from(string_resp.array_buffer()?).await?;
     let string_vec = js_sys::Uint8Array::new(&string_array_buffer).to_vec();
 
     let dictionary = dictionary::setup_dictionary(
-        bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec, doc_info.num_docs, build_trigram,
+        bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec, doc_info.num_docs,
     );
 
     #[cfg(feature = "perf")]
@@ -248,6 +247,8 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
 
 #[cfg(test)]
 pub mod test {
+    use std::collections::BTreeMap;
+
     use rustc_hash::FxHashMap;
 
     use morsels_common::MorselsLanguageConfig;
@@ -270,7 +271,7 @@ pub mod test {
         }
 
         Searcher {
-            dictionary: Dictionary { term_infos: FxHashMap::default(), trigrams: FxHashMap::default() },
+            dictionary: Dictionary { term_infos: BTreeMap::default() },
             tokenizer: Box::new(ascii::Tokenizer::default()),
             doc_info: DocInfo {
                 doc_length_factors: vec![1.0; num_docs * num_fields],
