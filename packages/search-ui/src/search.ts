@@ -218,6 +218,7 @@ function prepareOptions(options: SearchUiOptions) {
   ) => {
     const innerRoot = h('div', { class: 'morsels-root morsels-fs-root' });
     innerRoot.onclick = (ev) => ev.stopPropagation();
+    innerRoot.onmousedown = (ev) => ev.stopPropagation();
 
     const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
 
@@ -257,7 +258,9 @@ function prepareOptions(options: SearchUiOptions) {
     innerRoot.appendChild(listContainer);
     setCombobox(innerRoot, listContainer, opts.uiOptions.label);
 
-    rootBackdropEl.onclick = () => uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
+    rootBackdropEl.addEventListener('mousedown', () => {
+      uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
+    });
     rootBackdropEl.addEventListener('keyup', (ev) => {
       if (ev.code === 'Escape') {
         ev.stopPropagation();
