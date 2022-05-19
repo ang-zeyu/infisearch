@@ -1,4 +1,4 @@
-import { computePosition, size, offset, flip } from '@floating-ui/dom';
+import { computePosition, size, flip, arrow } from '@floating-ui/dom';
 
 import './styles/search.css';
 
@@ -115,12 +115,12 @@ function prepareOptions(options: SearchUiOptions) {
 
   const showDropdown = uiOptions.showDropdown || ((root, listContainer) => {
     if (listContainer.childElementCount) {
-      listContainer.style.display = 'block';
-      (listContainer.previousSibling as HTMLElement).style.display = 'block';
-      computePosition(root, listContainer, {
+      const innerRoot = root.lastElementChild as HTMLElement;
+      const caret = innerRoot.firstElementChild as HTMLElement;
+      innerRoot.style.display = 'block';
+      computePosition(root, innerRoot, {
         placement: uiOptions.dropdownAlignment,
         middleware: [
-          offset(8),
           flip({
             padding: 10,
             mainAxis: false,
@@ -134,11 +134,19 @@ function prepareOptions(options: SearchUiOptions) {
             },
             padding: 10,
           }),
+          arrow({
+            element: caret,
+          }),
         ],
-      }).then(({ x, y }) => {
-        Object.assign(listContainer.style, {
+      }).then(({ x, y, middlewareData }) => {
+        Object.assign(innerRoot.style, {
           left: `${x}px`,
           top: `${y}px`,
+        });
+
+        const { x: arrowX } = middlewareData.arrow;
+        Object.assign(caret.style, {
+          left: arrowX != null ? `${arrowX}px` : '',
         });
       });
     }
@@ -148,9 +156,8 @@ function prepareOptions(options: SearchUiOptions) {
     dropdownShown = true;
   };
 
-  const hideDropdown = uiOptions.hideDropdown || ((root, listContainer) => {
-    listContainer.style.display = 'none';
-    (listContainer.previousSibling as HTMLElement).style.display = 'none';
+  const hideDropdown = uiOptions.hideDropdown || ((root) => {
+    (root.lastElementChild as HTMLElement).style.display = 'none';
   });
   uiOptions.hideDropdown = (...args) => {
     hideDropdown(...args);
@@ -188,11 +195,14 @@ function prepareOptions(options: SearchUiOptions) {
   uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
 
   uiOptions.dropdownRootRender = uiOptions.dropdownRootRender || ((h, opts, inputEl) => {
-    const root = h('div', { class: 'morsels-root' }, inputEl);
-
-    root.appendChild(h('div', {
-      class: `morsels-input-dropdown-separator ${uiOptions.dropdownAlignment}`,
+    const innerRoot = h('div', {
+      class: 'morsels-inner-root',
       style: 'display: none;',
+    });
+    const root = h('div', { class: 'morsels-root' }, inputEl, innerRoot);
+
+    innerRoot.appendChild(h('div', {
+      class: `morsels-input-dropdown-separator ${uiOptions.dropdownAlignment}`,
     }));
 
     setInputAria(inputEl, 'morsels-dropdown-list');
@@ -200,9 +210,8 @@ function prepareOptions(options: SearchUiOptions) {
     const listContainer = h('ul', {
       id: 'morsels-dropdown-list',
       class: 'morsels-list',
-      style: 'display: none;',
     });
-    root.appendChild(listContainer);
+    innerRoot.appendChild(listContainer);
     setCombobox(root, listContainer, opts.uiOptions.label);
 
     return {

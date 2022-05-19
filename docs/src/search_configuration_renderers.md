@@ -110,7 +110,8 @@ The output also varies depending on the [UI mode](./search_configuration.md#ui-m
   <!-- fsRootRender has an additional "morsels-fs-root" class on this element -->
   <div class="morsels-root">
 
-    <!-- these two elements are for dropdownRootRender only -->
+    <!-- these 3 elements are for dropdownRootRender only -->
+    <div class="morsels-inner-root">
     <input id="morsels-search" placeholder="Search">
     <div class="morsels-input-dropdown-separator" style="display: none;"></div>
 
@@ -159,6 +160,9 @@ The output also varies depending on the [UI mode](./search_configuration.md#ui-m
 
         <!-- results placeholder (refer to "rendering search results") -->
     </ul>
+
+    <!-- this closes morsels-inner-root above -->
+    </div>
   </div>
 </div>
 ```
@@ -195,8 +199,9 @@ For example, the default `showDropdown` implementation is as such:
 ```ts
 (root, listContainer) => {
   if (listContainer.childElementCount) {
-    listContainer.style.display = 'block';
-    (listContainer.previousSibling as HTMLElement).style.display = 'block';
+    const innerRoot = root.lastElementChild as HTMLElement;
+    const caret = innerRoot.firstElementChild as HTMLElement;
+    innerRoot.style.display = 'block';
     computePosition(...).then(({ x, y }) => ...); // floating-ui call to position the dropdown
   }
 }

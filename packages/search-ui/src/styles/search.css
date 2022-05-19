@@ -163,10 +163,7 @@
  */
 
 .morsels-input-dropdown-separator {
-    position: absolute;
-    top: 100%;
-    right: 16px;
-    z-index: 1001;
+    position: relative;
     width: 0;
     height: 0;
     border-left: 9px solid transparent;
@@ -174,14 +171,15 @@
     border-bottom: 9px solid var(--morsels-dropdown-input-separator-bg);
 }
 
-.morsels-input-dropdown-separator.bottom-start {
-    left: 16px;
-    right: unset;
-}
-
 /*
  Both versions
  */
+
+.morsels-inner-root {
+    position: absolute;
+    top: 0;
+    left: 100vw;
+}
 
 .morsels-list {
     padding: 0;
@@ -189,9 +187,6 @@
     border-radius: 5px;
     box-shadow: var(--morsels-box-shadow);
     margin: 0;
-    position: absolute;
-    top: 0;
-    left: 100vw;
     width: 100vw;
     max-width: var(--morsels-dropdown-max-width);
     overflow-y: auto;
