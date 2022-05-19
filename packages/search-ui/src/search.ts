@@ -433,7 +433,7 @@ function createInputListener(
         if (isFirstQueryFromBlank) {
           listContainer.innerHTML = '';
           indicatorElement.v = uiOptions.loadingIndicatorRender(
-            createElement, options, !searcher.isSetupDone, false,
+            createElement, options, !searcher.isSetupDone, true,
           );
           listContainer.appendChild(indicatorElement.v);
 
