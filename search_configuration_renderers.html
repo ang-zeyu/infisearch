@@ -152,6 +152,7 @@
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
+    --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
     --morsels-fullscreen-box-shadow: none;
@@ -286,7 +287,8 @@
   &lt;!-- fsRootRender has an additional &quot;morsels-fs-root&quot; class on this element --&gt;
   &lt;div class=&quot;morsels-root&quot;&gt;
 
-    &lt;!-- these two elements are for dropdownRootRender only --&gt;
+    &lt;!-- these 3 elements are for dropdownRootRender only --&gt;
+    &lt;div class=&quot;morsels-inner-root&quot;&gt;
     &lt;input id=&quot;morsels-search&quot; placeholder=&quot;Search&quot;&gt;
     &lt;div class=&quot;morsels-input-dropdown-separator&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
 
@@ -335,6 +337,9 @@
 
         &lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;
     &lt;/ul&gt;
+
+    &lt;!-- this closes morsels-inner-root above --&gt;
+    &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
 </code></pre>
@@ -363,8 +368,9 @@
 <p>For example, the default <code>showDropdown</code> implementation is as such:</p>
 <pre><code class="language-ts">(root, listContainer) =&gt; {
   if (listContainer.childElementCount) {
-    listContainer.style.display = 'block';
-    (listContainer.previousSibling as HTMLElement).style.display = 'block';
+    const innerRoot = root.lastElementChild as HTMLElement;
+    const caret = innerRoot.firstElementChild as HTMLElement;
+    innerRoot.style.display = 'block';
     computePosition(...).then(({ x, y }) =&gt; ...); // floating-ui call to position the dropdown
   }
 }
