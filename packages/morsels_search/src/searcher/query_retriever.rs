@@ -3,6 +3,8 @@ use rustc_hash::FxHashMap;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
+use morsels_common::utils::idf::get_idf;
+
 use crate::dictionary::SearchDictionary;
 use crate::postings_list::PostingsList;
 use crate::searcher::query_parser::QueryPart;
@@ -76,7 +78,7 @@ num_desired_expanded_terms,
                         weight,
                         include_in_proximity_ranking: false,
                         term_docs: Vec::new(),
-                        idf: term_info.idf,
+                        idf: get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32),
                         term: Some(term),
                         term_info: Some(term_info.to_owned()),
                     },
@@ -98,7 +100,7 @@ num_desired_expanded_terms,
                     if !postings_lists.contains_key(term) {
                         let mut idf = 0.0;
                         let term_info = if let Some(term_info) = self.dictionary.get_term_info(term) {
-                            idf = term_info.idf;
+                            idf = get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
                             Some(term_info.to_owned())
                         } else {
                             None

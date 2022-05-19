@@ -5,7 +5,6 @@ use smartstring::alias::String;
 use smartstring::alias::String as SmartString;
 
 use crate::tokenize::TermInfo;
-use crate::utils::idf::get_idf;
 use crate::utils::varint;
 
 pub static DICTIONARY_STRING_FILE_NAME: &str = "dictionary_string.json";
@@ -17,7 +16,6 @@ pub struct Dictionary {
 struct DictionaryConstructor<'a> {
     table_vec: &'a [u8],
     string_vec: Vec<u8>,
-    num_docs: u32,
     postings_file_name: u32,
     postings_file_offset: u32,
     dict_string_pos: usize,
@@ -63,7 +61,6 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
             term.clone(),
             TermInfo {
                 doc_freq,
-                idf: get_idf(self.num_docs as f32, doc_freq as f32),
                 postings_file_name: self.postings_file_name,
                 postings_file_offset: self.postings_file_offset,
             },
@@ -78,12 +75,10 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
 pub fn setup_dictionary(
     table_vec: &[u8],
     string_vec: Vec<u8>,
-    num_docs: u32,
 ) -> Dictionary {
     let term_infos = BTreeMap::from_iter(DictionaryConstructor {
         table_vec,
         string_vec,
-        num_docs,
         postings_file_name: 0,
         postings_file_offset: 0,
         dict_string_pos: 0,
@@ -137,7 +132,6 @@ mod test {
 
                 string_vec
             },
-            2,
         );
 
         assert_eq!(dictionary.term_infos, {
@@ -147,7 +141,6 @@ mod test {
                 String::from("foo"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f32.ln(),
                     postings_file_name: 0,
                     postings_file_offset: 65535,
                 },
@@ -157,7 +150,6 @@ mod test {
                 String::from("foobar"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f32.ln(),
                     postings_file_name: 0,
                     postings_file_offset: 65535 + 65535,
                 },
@@ -167,7 +159,6 @@ mod test {
                 String::from("test"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f32.ln(),
                     postings_file_name: 1,
                     postings_file_offset: 65535,
                 },
@@ -177,7 +168,6 @@ mod test {
                 String::from("tetest"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f32.ln(),
                     postings_file_name: 1,
                     postings_file_offset: 65535 + 65535,
                 },

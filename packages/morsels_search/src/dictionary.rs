@@ -15,7 +15,7 @@ static MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;  // **total** weight of expande
 
 struct TermWeightPair {
     term: String,
-    idf_difference: f32,
+    doc_freq_diff: u32,
 }
 
 impl Eq for TermWeightPair {}
@@ -28,25 +28,13 @@ impl PartialEq for TermWeightPair {
 
 impl Ord for TermWeightPair {
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.idf_difference > other.idf_difference {
-            Ordering::Greater
-        } else if self.idf_difference < other.idf_difference {
-            Ordering::Less
-        } else {
-            Ordering::Equal
-        }
+        self.doc_freq_diff.cmp(&other.doc_freq_diff)
     }
 }
 
 impl PartialOrd for TermWeightPair {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.idf_difference > other.idf_difference {
-            Some(Ordering::Greater)
-        } else if self.idf_difference < other.idf_difference {
-            Some(Ordering::Less)
-        } else {
-            Some(Ordering::Equal)
-        }
+        self.doc_freq_diff.partial_cmp(&other.doc_freq_diff)
     }
 }
 
@@ -63,7 +51,7 @@ pub trait SearchDictionary {
 impl SearchDictionary for Dictionary {
     fn get_best_corrected_term(&self, misspelled_term: &str) -> Option<std::string::String> {
         let mut best_term = None;
-        let mut min_idf = f32::MAX;
+        let mut max_doc_freq = 0;
 
         let base_term_char_count = misspelled_term.chars().count();
         let mut min_edit_distance: usize = 3;
@@ -73,18 +61,18 @@ impl SearchDictionary for Dictionary {
                 continue;
             }
 
-            if min_edit_distance == 1 && term_info.idf > min_idf {
+            if min_edit_distance == 1 && term_info.doc_freq < max_doc_freq {
                 continue;
             }
 
             let edit_distance = levenshtein(&term, misspelled_term);
             if edit_distance < min_edit_distance {
                 min_edit_distance = edit_distance;
-                min_idf = term_info.idf;
+                max_doc_freq = term_info.doc_freq;
                 best_term = Some(term);
             } else if edit_distance == min_edit_distance {
-                if term_info.idf < min_idf {
-                    min_idf = term_info.idf;
+                if term_info.doc_freq > max_doc_freq {
+                    max_doc_freq = term_info.doc_freq;
                     best_term = Some(term);
                 }
             }
@@ -102,8 +90,8 @@ impl SearchDictionary for Dictionary {
     /// 
     /// 1. Does a substring check on the terms greater in the BTree,
     ///    using the leftmost TERM_EXPANSION_ALPHA characters of the prefix
-    /// 2. Returns `number_of_expanded_terms` terms which have the closest idf to the original prefix
-    ///    - if the prefix is not a valid term, 0.0 is filled in (i.e. return the most common terms)
+    /// 2. Returns `number_of_expanded_terms` terms which have the closest doc freq to the original prefix
+    ///    - if the prefix is not a valid term, u32::Max is filled in (i.e. return the most common terms)
     ///    - the terms are weighted in the query according to how long they are (versus the prefix)
     fn get_prefix_terms(
         &self,
@@ -112,14 +100,14 @@ impl SearchDictionary for Dictionary {
     ) -> FxHashMap<std::string::String, f32> {
         let prefix_char_count = prefix.chars().count();
 
-        let prefix_idf = if let Some(term_info) = self.term_infos.get(&String::from(prefix)) {
-            term_info.idf
+        let prefix_doc_freq = if let Some(term_info) = self.term_infos.get(&String::from(prefix)) {
+            term_info.doc_freq
         } else {
-            0.0
+            u32::MAX
         };
 
-        // number_of_expanded_terms terms with the closest idfs
-        let mut top_n_min_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(number_of_expanded_terms);
+        // number_of_expanded_terms terms with the closest document frequencies
+        let mut top_n_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(number_of_expanded_terms);
 
         // string to do the prefix check with
         let min_baseterm_substring: String = prefix.chars().take(
@@ -128,23 +116,23 @@ impl SearchDictionary for Dictionary {
 
         for (term, term_info) in self.term_infos.range((Excluded(min_baseterm_substring.clone()), Unbounded)) {
             if term.starts_with(min_baseterm_substring.as_str()) {
-                let idf_difference = (term_info.idf - prefix_idf).abs();
+                let doc_freq_diff = term_info.doc_freq.abs_diff(prefix_doc_freq);
 
-                if top_n_min_heap.len() < number_of_expanded_terms {
-                    top_n_min_heap.push(TermWeightPair { term: term.clone(), idf_difference });
-                } else if idf_difference < top_n_min_heap.peek().unwrap().idf_difference {
-                    top_n_min_heap.pop();
-                    top_n_min_heap.push(TermWeightPair { term: term.clone(), idf_difference });
+                if top_n_heap.len() < number_of_expanded_terms {
+                    top_n_heap.push(TermWeightPair { term: term.clone(), doc_freq_diff });
+                } else if doc_freq_diff < top_n_heap.peek().unwrap().doc_freq_diff {
+                    top_n_heap.pop();
+                    top_n_heap.push(TermWeightPair { term: term.clone(), doc_freq_diff });
                 }
             } else {
                 break;
             }
         }
 
-        let number_of_expanded_terms_found = top_n_min_heap.len() as f32;
+        let number_of_expanded_terms_found = top_n_heap.len() as f32;
         let max_score_per_expanded_term = MAXIMUM_TERM_EXPANSION_WEIGHT / number_of_expanded_terms_found;
         let mut expanded_terms: FxHashMap<std::string::String, f32> = FxHashMap::default();
-        for TermWeightPair { term, idf_difference: _ } in top_n_min_heap {
+        for TermWeightPair { term, doc_freq_diff: _ } in top_n_heap {
             let length_proportion = prefix_char_count as f32 / term.chars().count() as f32;
             let weight = length_proportion * max_score_per_expanded_term;
             expanded_terms.insert(term.to_string(), weight); 

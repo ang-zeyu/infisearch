@@ -138,7 +138,7 @@ impl IncrementalIndexInfo {
             .read_to_end(&mut dictionary_string_vec)
             .unwrap();
 
-        self.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec, 0);
+        self.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec);
     }
 
     pub fn add_doc_to_file(&mut self, external_id: &str, doc_id: u32) {

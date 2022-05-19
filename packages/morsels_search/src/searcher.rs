@@ -143,7 +143,7 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
     let string_vec = js_sys::Uint8Array::new(&string_array_buffer).to_vec();
 
     let dictionary = dictionary::setup_dictionary(
-        bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec, doc_info.num_docs,
+        bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec,
     );
 
     #[cfg(feature = "perf")]

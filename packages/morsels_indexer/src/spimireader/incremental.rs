@@ -53,7 +53,6 @@ impl ExistingPlWriter {
 
         let mut new_term_info = TermInfo {
             doc_freq: old_term_info.doc_freq + num_new_docs,
-            idf: 0.0, // unused
             postings_file_name: old_term_info.postings_file_name,
             postings_file_offset: self.pl_writer.len() as u32,
         };
@@ -269,7 +268,6 @@ pub fn modify_blocks(
                 curr_term,
                 TermInfo {
                     doc_freq,
-                    idf: 0.0,
                     postings_file_name: new_pl,
                     postings_file_offset: start_pl_offset,
                 },
