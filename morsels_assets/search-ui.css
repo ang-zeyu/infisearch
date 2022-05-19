@@ -27,6 +27,7 @@
     --morsels-error-fg: black;
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
     --morsels-loading-bg: #fed;
+    --morsels-loading-secondary-bg: #ef9001;
     --morsels-scrollbar-bg: rgba(213, 177, 137, 0.15);
     --morsels-scrollbar-thumb-bg: rgba(213, 177, 137, 0.5);
     --morsels-fullscreen-border: 3px solid var(--morsels-fullscreen-header-bg);
@@ -425,4 +426,32 @@
     }
 }
 
+.morsels-loading-indicator-subsequent {
+    position: sticky;
+    top: 10px;
+    padding-left: calc(100% - 40px);
+    margin: 0;
+    height: 0;
+    overflow: visible;
+}
+
+.morsels-loading-indicator-subsequent::after {
+    width: 25px;
+    height: 25px;
+    border-width: 4px;
+    border-color: var(--morsels-loading-secondary-bg) transparent var(--morsels-loading-secondary-bg) transparent;
+    animation: morsels-loading-indicator 1.2s linear infinite, morsels-loading-indicator-subsequent 1s linear 1;
+}
+
+@keyframes morsels-loading-indicator-subsequent {
+    0% {
+        opacity: 0.0;
+    }
+    15% {
+        opacity: 0.0;
+    }
+    100% {
+        opacity: 0.8;
+    }
+}
 
