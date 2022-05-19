@@ -126,10 +126,10 @@ function prepareOptions(options: SearchUiOptions) {
             mainAxis: false,
           }),
           size({
-            apply({ width, height }) {
+            apply({ availableWidth, availableHeight }) {
               Object.assign(listContainer.style, {
-                maxWidth: `min(${width}px, var(--morsels-dropdown-max-width))`,
-                maxHeight: `min(${height}px, var(--morsels-dropdown-max-height))`,
+                maxWidth: `min(${availableWidth}px, var(--morsels-dropdown-max-width))`,
+                maxHeight: `min(${availableHeight}px, var(--morsels-dropdown-max-height))`,
               });
             },
             padding: 10,
