@@ -11,7 +11,7 @@ async function clearInput() {
   await page.click(INPUT_SELECTOR, { clickCount: 3 });
   await page.keyboard.press('Backspace');
   const numChildren = await page.evaluate(() => {
-    return document.getElementById('morsels-search').childNodes.length;
+    return document.getElementById('target-mode-el').childNodes.length;
   });
   expect(numChildren).toBe(0);
 }
