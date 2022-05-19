@@ -65,6 +65,39 @@ async function assertSingle(text) {
   }
 }
 
+async function assertMultiple(texts, count) {
+  try {
+    await page.waitForSelector('.morsels-list-item', { timeout: 8000 });
+
+    const result = await page.evaluate(() => {
+      const queryResult = document.getElementsByClassName('morsels-list-item');
+      return {
+        texts: Array.from(queryResult).map((el) => el.textContent),
+        resultCount: queryResult.length,
+      };
+    });
+
+    expect(result.resultCount).toBe(count);
+    texts.forEach((text) => {
+      expect(
+        result.texts.some(
+          (resultText) => resultText.toLowerCase().includes(text.toLowerCase()),
+        ),
+      ).toBe(true);
+    });
+  } catch (ex) {
+    const output = await page.evaluate(() => {
+      return {
+        html: document.getElementById('target-mode-el').innerHTML,
+        text: document.getElementById('target-mode-el').textContent,
+      };
+    });
+    console.error('assertMultiple failed, html in target:', output.html);
+    console.error('assertMultiple failed, text in target:', output.text);
+    throw ex;
+  }
+}
+
 async function reloadPage() {
   await jestPuppeteer.resetPage();
   await jestPuppeteer.resetBrowser();
@@ -129,6 +162,34 @@ const testSuite = async (configFile) => {
   await clearInput();
   await typePhrase('forenote on mobile device detection');
   await assertSingle('forenote on mobile device detection');
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
+  // Spelling correction tests
+  await clearInput();
+  await typeText('fornote');
+  await assertMultiple([
+    'forenote on stop words',
+    'forenote on mobile device detection',
+  ], 2);
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
+  // Automatic term expansion / prefix search tests
+  await clearInput();
+  await typeText('foreno');
+  await assertMultiple([
+    'forenote on stop words',
+    'forenote on mobile device detection',
+  ], 2);
+
+  await clearInput();
+  await typeText('detec');
+  await assertMultiple([
+    'detecting deleted, changed, or added',
+    'detecting such terms',
+    'detected as per the earlier section',
+  ], 3);
   // ------------------------------------------------------
 
   // ------------------------------------------------------
