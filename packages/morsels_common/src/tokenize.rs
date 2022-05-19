@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 #[cfg_attr(test, derive(Debug))]
 pub struct TermInfo {
     pub doc_freq: u32,
-    pub idf: f64,
+    pub idf: f32,
     pub postings_file_name: u32,
     pub postings_file_offset: u32,
 }

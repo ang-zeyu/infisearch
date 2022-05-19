@@ -63,7 +63,7 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
             term.clone(),
             TermInfo {
                 doc_freq,
-                idf: get_idf(self.num_docs as f64, doc_freq as f64),
+                idf: get_idf(self.num_docs as f32, doc_freq as f32),
                 postings_file_name: self.postings_file_name,
                 postings_file_offset: self.postings_file_offset,
             },
@@ -147,7 +147,7 @@ mod test {
                 String::from("foo"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f64.ln(),
+                    idf: 2f32.ln(),
                     postings_file_name: 0,
                     postings_file_offset: 65535,
                 },
@@ -157,7 +157,7 @@ mod test {
                 String::from("foobar"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f64.ln(),
+                    idf: 2f32.ln(),
                     postings_file_name: 0,
                     postings_file_offset: 65535 + 65535,
                 },
@@ -167,7 +167,7 @@ mod test {
                 String::from("test"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f64.ln(),
+                    idf: 2f32.ln(),
                     postings_file_name: 1,
                     postings_file_offset: 65535,
                 },
@@ -177,7 +177,7 @@ mod test {
                 String::from("tetest"),
                 TermInfo {
                     doc_freq: 1,
-                    idf: 2f64.ln(),
+                    idf: 2f32.ln(),
                     postings_file_name: 1,
                     postings_file_offset: 65535 + 65535,
                 },

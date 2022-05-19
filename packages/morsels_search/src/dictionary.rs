@@ -15,7 +15,7 @@ static MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;  // **total** weight of expande
 
 struct TermWeightPair {
     term: String,
-    idf_difference: f64,
+    idf_difference: f32,
 }
 
 impl Eq for TermWeightPair {}
@@ -63,7 +63,7 @@ pub trait SearchDictionary {
 impl SearchDictionary for Dictionary {
     fn get_best_corrected_term(&self, misspelled_term: &str) -> Option<std::string::String> {
         let mut best_term = None;
-        let mut min_idf = f64::MAX;
+        let mut min_idf = f32::MAX;
 
         let base_term_char_count = misspelled_term.chars().count();
         let mut min_edit_distance: usize = 3;

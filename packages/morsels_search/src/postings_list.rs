@@ -110,7 +110,7 @@ impl<'a> PartialOrd for PlIterator<'a> {
 pub struct PostingsList {
     pub term_docs: Vec<TermDoc>,
     pub weight: f32,
-    pub idf: f64,
+    pub idf: f32,
     pub include_in_proximity_ranking: bool,
     // For postings lists representing raw terms
     pub term: Option<String>,
@@ -141,7 +141,7 @@ impl PostingsList {
 
     // Used for "processed" (e.g. phrase, bracket, AND) postings lists
     pub fn calc_pseudo_idf(&mut self, num_docs: u32) {
-        self.idf = get_idf(num_docs as f64, self.term_docs.len() as f64);
+        self.idf = get_idf(num_docs as f32, self.term_docs.len() as f32);
     }
 
     pub fn merge_term_docs(term_doc_1: &TermDoc, term_doc_2: &TermDoc) -> TermDoc {
