@@ -3,7 +3,7 @@ import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
 import Result from '@morsels/search-lib/lib/results/Result';
 import { SearchUiOptions } from './SearchUiOptions';
-import createElement, { CreateElement } from './utils/dom';
+import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
 
@@ -545,6 +545,7 @@ export default async function transformResults(
   config: MorselsConfig,
   isFirst: boolean,
   container: HTMLElement,
+  topLoader: { v: HTMLElement },
   options: SearchUiOptions,
 ): Promise<void> {
   if (query !== inputState.currQuery) {
@@ -552,9 +553,9 @@ export default async function transformResults(
     return;
   }
 
-  const loader = options.uiOptions.loadingIndicatorRender(createElement, options, false, Promise.resolve());
+  const bottomLoader = options.uiOptions.loadingIndicatorRender(createElement, options, false, false);
   if (!isFirst) {
-    container.appendChild(loader);
+    container.appendChild(bottomLoader);
   }
 
   if (inputState.lastElObserver) {
@@ -597,9 +598,11 @@ export default async function transformResults(
 
   if (isFirst) {
     container.innerHTML = '';
-    container.appendChild(fragment);
+    topLoader.v = createInvisibleLoadingIndicator();
+    container.append(topLoader.v);
+    container.append(fragment);
   } else {
-    loader.replaceWith(fragment);
+    bottomLoader.replaceWith(fragment);
   }
 
   //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
@@ -611,7 +614,7 @@ export default async function transformResults(
       }
   
       observer.unobserve(sentinel);
-      await transformResults(inputState, query, config, false, container, options);
+      await transformResults(inputState, query, config, false, container, topLoader, options);
     }, { rootMargin: '10px 10px 10px 10px' });
 
     inputState.lastElObserver.observe(sentinel);

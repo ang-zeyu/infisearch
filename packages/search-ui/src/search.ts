@@ -5,7 +5,7 @@ import './styles/search.css';
 import { Searcher } from '@morsels/search-lib';
 import transformResults, { resultsRender } from './searchResultTransform';
 import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';
-import createElement from './utils/dom';
+import createElement, { createInvisibleLoadingIndicator, LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState } from './utils/input';
 import { parseURL } from './utils/url';
 
@@ -284,18 +284,30 @@ function prepareOptions(options: SearchUiOptions) {
   uiOptions.fsBlankRender = uiOptions.fsBlankRender
       || ((h) => h('div', { class: 'morsels-fs-blank' }, 'Start Searching Above!'));
 
-  uiOptions.loadingIndicatorRender = uiOptions.loadingIndicatorRender || ((
-    h, opts, isInitialising, initialisePromise,
-  ) => {
-    const loadingSpinner = h('span', { class: 'morsels-loading-indicator' });
-    if (!isInitialising) {
+  if (!uiOptions.loadingIndicatorRender) {
+    uiOptions.loadingIndicatorRender = ((
+      h, opts, isInitialising, isFirstQueryFromBlank,
+    ) => {
+      const loadingSpinner = h('span', { class: 'morsels-loading-indicator' });
+      if (isInitialising) {
+        const initialisingText = h('div', { class: 'morsels-initialising-text' }, '... Initialising ...');
+        return h('div', { class: 'morsels-initialising' }, initialisingText, loadingSpinner);
+      }
+  
+      if (!isFirstQueryFromBlank) {
+        loadingSpinner.classList.add('morsels-loading-indicator-subsequent');
+      }
+  
       return loadingSpinner;
-    }
-
-    const initialisingText = h('div', { class: 'morsels-initialising-text' }, '... Initialising ...');
-    initialisePromise.then(() => initialisingText.remove());
-    return h('div', { class: 'morsels-initialising' }, initialisingText, loadingSpinner);
-  });
+    });
+  }
+  const loadingIndicatorRenderer = uiOptions.loadingIndicatorRender;
+  uiOptions.loadingIndicatorRender = (...args) => {
+    const loadingIndicator = loadingIndicatorRenderer(...args);
+    // Add an identifier for keyboard events (up / down / home / end)
+    loadingIndicator.setAttribute(LOADING_INDICATOR_ID, 'true');
+    return loadingIndicator;
+  };
 
   uiOptions.termInfoRender = uiOptions.termInfoRender || (() => []);
 
@@ -368,6 +380,7 @@ function createInputListener(
   options: SearchUiOptions,
 ) {
   const { uiOptions } = options;
+  let indicatorElement: { v: HTMLElement } = { v: createInvisibleLoadingIndicator() };
 
   /*
    Behaviour:
@@ -385,7 +398,10 @@ function createInputListener(
       // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
   
       await transformResults(
-        inputState, inputState.currQuery, searcher.morselsConfig, true, listContainer, options,
+        inputState, inputState.currQuery, searcher.morselsConfig,
+        true,
+        listContainer, indicatorElement,
+        options,
       );
   
       root.scrollTo({ top: 0 });
@@ -416,13 +432,30 @@ function createInputListener(
       inputTimer = setTimeout(() => {
         if (isFirstQueryFromBlank) {
           listContainer.innerHTML = '';
-          listContainer.appendChild(uiOptions.loadingIndicatorRender(
-            createElement, options, !searcher.isSetupDone, searcher.setupPromise,
-          ));
+          indicatorElement.v = uiOptions.loadingIndicatorRender(
+            createElement, options, !searcher.isSetupDone, false,
+          );
+          listContainer.appendChild(indicatorElement.v);
+
+          if (!searcher.isSetupDone) {
+            searcher.setupPromise.then(() => {
+              const newIndicatorElement = uiOptions.loadingIndicatorRender(
+                createElement, options, !searcher.isSetupDone, isFirstQueryFromBlank,
+              );
+              indicatorElement.v.replaceWith(newIndicatorElement);
+              indicatorElement.v = newIndicatorElement;
+            });
+          }
   
           if (useDropdown(uiOptions)) {
             uiOptions.showDropdown(root, listContainer, options);
           }
+        } else {
+          const newIndicatorElement = uiOptions.loadingIndicatorRender(
+            createElement, options, !searcher.isSetupDone, false,
+          );
+          indicatorElement.v.replaceWith(newIndicatorElement);
+          indicatorElement.v = newIndicatorElement;
         }
   
         if (inputState.isRunningNewQuery) {
@@ -589,9 +622,6 @@ function initMorsels(options: SearchUiOptions): {
   // --------------------------------------------------
   // Keyboard Events
 
-  // Not attached, just used for isEqualNode
-  const loadingIndicator = uiOptions.loadingIndicatorRender(createElement, options, false, Promise.resolve());
-
   function keydownListener(ev: KeyboardEvent) {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(ev.key)) {
       return;
@@ -629,52 +659,44 @@ function initMorsels(options: SearchUiOptions): {
       return listContainer.querySelector('.focus');
     }
 
+    const focusedItem = currentFocused();
     function focusEl(el: Element) {
+      if (focusedItem) {
+        focusedItem.classList.remove('focus');
+        focusedItem.removeAttribute('aria-selected');
+        focusedItem.removeAttribute('id');
+      }
       el.classList.add('focus');
       el.setAttribute('aria-selected', 'true');
       el.setAttribute('id', 'morsels-list-selected');
       scrollListContainer(el);
     }
 
-    function unfocusEl(el: Element) {
-      el.classList.remove('focus');
-      el.removeAttribute('aria-selected');
-      el.removeAttribute('id');
+    function focusOr(newItem: Element, newItem2: Element) {
+      if (newItem && !newItem.getAttribute(LOADING_INDICATOR_ID)) {
+        focusEl(newItem);
+      } else if (newItem2 && !newItem2.getAttribute(LOADING_INDICATOR_ID)) {
+        focusEl(newItem2);
+      }
     }
 
+    const firstItem = listContainer.firstElementChild;
+    const lastItem = listContainer.lastElementChild;
     if (ev.key === 'ArrowDown') {
-      const focusedItem = currentFocused();
       if (focusedItem) {
-        if (focusedItem.nextElementSibling
-          && !loadingIndicator.isEqualNode(focusedItem.nextElementSibling)) {
-          unfocusEl(focusedItem);
-          focusEl(focusedItem.nextElementSibling);
-        }
+        focusOr(focusedItem.nextElementSibling, null);
       } else {
-        focusEl(listContainer.firstElementChild);
+        focusOr(firstItem, firstItem?.nextElementSibling);
       }
     } else if (ev.key === 'ArrowUp') {
-      const focusedItem = currentFocused();
-      if (focusedItem && focusedItem.previousElementSibling) {
-        unfocusEl(focusedItem);
-        focusEl(focusedItem.previousElementSibling);
-      }
-    } if (ev.key === 'Home' || ev.key === 'End') {
-      const focusedItem = currentFocused();
       if (focusedItem) {
-        unfocusEl(focusedItem);
+        focusOr(focusedItem.previousElementSibling, null);
       }
-
-      let elToFocus = ev.key === 'Home' ? listContainer.firstElementChild : listContainer.lastElementChild;
-      if (elToFocus && loadingIndicator.isEqualNode(elToFocus)) {
-        elToFocus = elToFocus.previousElementSibling;
-      }
-
-      if (elToFocus) {
-        focusEl(elToFocus);
-      }
+    } else if (ev.key === 'Home') {
+      focusOr(firstItem, firstItem?.nextElementSibling);
+    } else if (ev.key === 'End') {
+      focusOr(lastItem, lastItem?.previousElementSibling);
     } else if (ev.key === 'Enter') {
-      const focusedItem = currentFocused();
       if (focusedItem) {
         const link = focusedItem.querySelector('a[href]');
         if (link) {

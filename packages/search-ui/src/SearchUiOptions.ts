@@ -77,7 +77,7 @@ export interface UiOptions {
     h: CreateElement,
     opts: SearchUiOptions,
     isInitialising: boolean,
-    initialisePromise: Promise<any>,
+    isFirstQueryFromBlank: boolean,
   ) => HTMLElement,
   termInfoRender?: (
     h: CreateElement,
