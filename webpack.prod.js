@@ -3,7 +3,7 @@ const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
 const { merge } = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const common = require('./webpack.common');
 
@@ -27,7 +27,8 @@ module.exports = (env) => merge(common(env), {
   },
   optimization: {
     minimizer: [
-      new TerserPlugin(),
+      '...',
+      new CssMinimizerPlugin(),
     ],
   },
   plugins: [

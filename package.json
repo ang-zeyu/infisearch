@@ -37,6 +37,7 @@
     "@wasm-tool/wasm-pack-plugin": "^1.6.0",
     "cpy-cli": "^3.1.1",
     "css-loader": "^6.5.1",
+    "css-minimizer-webpack-plugin": "^4.0.0",
     "eslint": "^8.4.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^16.1.0",
