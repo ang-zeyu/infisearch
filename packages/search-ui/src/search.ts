@@ -295,7 +295,7 @@ function prepareOptions(options: SearchUiOptions) {
 
   if (!uiOptions.loadingIndicatorRender) {
     uiOptions.loadingIndicatorRender = ((
-      h, opts, isInitialising, isFirstQueryFromBlank,
+      h, opts, isInitialising, wasResultsBlank,
     ) => {
       const loadingSpinner = h('span', { class: 'morsels-loading-indicator' });
       if (isInitialising) {
@@ -303,7 +303,7 @@ function prepareOptions(options: SearchUiOptions) {
         return h('div', { class: 'morsels-initialising' }, initialisingText, loadingSpinner);
       }
   
-      if (!isFirstQueryFromBlank) {
+      if (!wasResultsBlank) {
         loadingSpinner.classList.add('morsels-loading-indicator-subsequent');
       }
   
@@ -398,6 +398,12 @@ function createInputListener(
    */
   const inputState = new InputState();
   async function runNewQuery(queryString: string): Promise<void> {
+    const newIndicatorElement = uiOptions.loadingIndicatorRender(
+      createElement, options, false, inputState.wasResultsBlank,
+    );
+    indicatorElement.v.replaceWith(newIndicatorElement);
+    indicatorElement.v = newIndicatorElement;
+
     try {
       // const now = performance.now();
   
@@ -406,12 +412,15 @@ function createInputListener(
   
       // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
   
-      await transformResults(
+      const resultsDisplayed = await transformResults(
         inputState, inputState.currQuery, searcher.morselsConfig,
         true,
         listContainer, indicatorElement,
         options,
       );
+      if (resultsDisplayed) {
+        inputState.wasResultsBlank = false;
+      }
   
       root.scrollTo({ top: 0 });
       listContainer.scrollTo({ top: 0 });
@@ -421,79 +430,68 @@ function createInputListener(
       listContainer.appendChild(uiOptions.errorRender(createElement, options));
       throw ex;
     } finally {
-      if (inputState.nextQuery) {
-        const nextQueryTemp = inputState.nextQuery;
-        inputState.nextQuery = undefined;
-        await nextQueryTemp();
+      if (inputState.nextAction) {
+        const nextActionTemp = inputState.nextAction;
+        inputState.nextAction = undefined;
+        await nextActionTemp();
       } else {
-        inputState.isRunningNewQuery = false;
+        inputState.isRunningQuery = false;
       }
     }
   }
 
+  searcher.setupPromise.then(() => {
+    if (inputState.nextAction) {
+      inputState.nextAction();
+      inputState.nextAction = undefined;
+    }
+  });
+
   let inputTimer: any = -1;
-  let isFirstQueryFromBlank = true;
   return (ev: InputEvent) => {
     const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
   
     clearTimeout(inputTimer);
     if (query.length) {
       inputTimer = setTimeout(() => {
-        if (isFirstQueryFromBlank) {
+        if (inputState.wasResultsBlank
+          && !listContainer.firstElementChild?.getAttribute(LOADING_INDICATOR_ID)) {
           listContainer.innerHTML = '';
           indicatorElement.v = uiOptions.loadingIndicatorRender(
             createElement, options, !searcher.isSetupDone, true,
           );
           listContainer.appendChild(indicatorElement.v);
-
-          if (!searcher.isSetupDone) {
-            searcher.setupPromise.then(() => {
-              const newIndicatorElement = uiOptions.loadingIndicatorRender(
-                createElement, options, !searcher.isSetupDone, isFirstQueryFromBlank,
-              );
-              indicatorElement.v.replaceWith(newIndicatorElement);
-              indicatorElement.v = newIndicatorElement;
-            });
-          }
   
           if (useDropdown(uiOptions)) {
             uiOptions.showDropdown(root, listContainer, options);
           }
-        } else {
-          const newIndicatorElement = uiOptions.loadingIndicatorRender(
-            createElement, options, !searcher.isSetupDone, false,
-          );
-          indicatorElement.v.replaceWith(newIndicatorElement);
-          indicatorElement.v = newIndicatorElement;
         }
   
-        if (inputState.isRunningNewQuery) {
-          inputState.nextQuery = () => runNewQuery(query);
+        if (inputState.isRunningQuery || !searcher.isSetupDone) {
+          inputState.nextAction = () => runNewQuery(query);
         } else {
-          inputState.isRunningNewQuery = true;
+          inputState.isRunningQuery = true;
           runNewQuery(query);
         }
-  
-        isFirstQueryFromBlank = false;
       }, uiOptions.inputDebounce);
     } else {
       const reset = () => {
-        if (uiOptions.mode === UiMode.Target) {
-          listContainer.innerHTML = '';
-        } else if (useDropdown(uiOptions)) {
-          uiOptions.hideDropdown(root, listContainer, options);
-        } else {
-          // useFullscreen
-          listContainer.innerHTML = '';
-          listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
+        listContainer.innerHTML = '';
+        if (uiOptions.mode !== UiMode.Target) {
+          if (useDropdown(uiOptions)) {
+            uiOptions.hideDropdown(root, listContainer, options);
+          } else {
+            // useFullscreen
+            listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
+          }
         }
   
-        inputState.isRunningNewQuery = false;
-        isFirstQueryFromBlank = true;
+        inputState.isRunningQuery = false;
+        inputState.wasResultsBlank = true;
       };
   
-      if (inputState.isRunningNewQuery) {
-        inputState.nextQuery = reset;
+      if (inputState.isRunningQuery) {
+        inputState.nextAction = reset;
       } else {
         reset();
       }

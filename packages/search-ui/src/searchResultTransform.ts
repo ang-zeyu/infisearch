@@ -539,6 +539,9 @@ export function resultsRender(
   ));
 }
 
+/**
+ * @returns Whether the results were computed and displayed, or pre-emptively disrupted by a new query
+ */
 export default async function transformResults(
   inputState: InputState,
   query: Query,
@@ -547,10 +550,10 @@ export default async function transformResults(
   container: HTMLElement,
   topLoader: { v: HTMLElement },
   options: SearchUiOptions,
-): Promise<void> {
+): Promise<boolean> {
   if (query !== inputState.currQuery) {
     // If a new query interrupts the current one
-    return;
+    return false;
   }
 
   const bottomLoader = options.uiOptions.loadingIndicatorRender(createElement, options, false, false);
@@ -577,7 +580,7 @@ export default async function transformResults(
 
   if (query !== inputState.currQuery) {
     // If a new query interrupts the current one
-    return;
+    return false;
   }
 
   const resultsEls = await options.uiOptions.resultsRender(
@@ -586,7 +589,7 @@ export default async function transformResults(
 
   if (query !== inputState.currQuery) {
     // If a new query interrupts the current one
-    return;
+    return false;
   }
 
   if (resultsEls.length) {
@@ -619,4 +622,6 @@ export default async function transformResults(
 
     inputState.lastElObserver.observe(sentinel);
   }
+
+  return true;
 }

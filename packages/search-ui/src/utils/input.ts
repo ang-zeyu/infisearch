@@ -3,9 +3,11 @@ import { Query } from '@morsels/search-lib';
 export class InputState {
   currQuery: Query;
 
-  isRunningNewQuery = false;
+  wasResultsBlank = true;
 
-  nextQuery: () => any;
+  isRunningQuery = false;
+
+  nextAction: () => any;
 
   lastElObserver: IntersectionObserver;
 }
