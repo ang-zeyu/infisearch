@@ -93,25 +93,16 @@ function prepareOptions(options: SearchUiOptions) {
     uiOptions.inputDebounce = 100;
   }
 
-  if (!uiOptions.preprocessQuery) {
-    uiOptions.preprocessQuery = (q) => q;
-  }
+  uiOptions.preprocessQuery = uiOptions.preprocessQuery || ((q) => q);
+
+  uiOptions.dropdownAlignment = uiOptions.dropdownAlignment || 'bottom-end';
 
   if (typeof uiOptions.fsContainer === 'string') {
     uiOptions.fsContainer = document.getElementById(uiOptions.fsContainer) as HTMLElement;
   }
+  uiOptions.fsContainer = uiOptions.fsContainer || document.getElementsByTagName('body')[0] as HTMLElement;
 
-  if (!('dropdownAlignment' in uiOptions)) {
-    uiOptions.dropdownAlignment = 'bottom-end';
-  }
-
-  if (!uiOptions.fsContainer) {
-    uiOptions.fsContainer = document.getElementsByTagName('body')[0] as HTMLElement;
-  }
-
-  if (!('resultsPerPage' in uiOptions)) {
-    uiOptions.resultsPerPage = 8;
-  }
+  uiOptions.resultsPerPage = uiOptions.resultsPerPage || 8;
 
   const showDropdown = uiOptions.showDropdown || ((root, listContainer) => {
     if (listContainer.childElementCount) {
@@ -195,23 +186,20 @@ function prepareOptions(options: SearchUiOptions) {
   uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
 
   uiOptions.dropdownRootRender = uiOptions.dropdownRootRender || ((h, opts, inputEl) => {
-    const innerRoot = h('div', {
-      class: 'morsels-inner-root',
-      style: 'display: none;',
-    });
-    const root = h('div', { class: 'morsels-root' }, inputEl, innerRoot);
-
-    innerRoot.appendChild(h('div', {
-      class: `morsels-input-dropdown-separator ${uiOptions.dropdownAlignment}`,
-    }));
-
-    setInputAria(inputEl, 'morsels-dropdown-list');
-
     const listContainer = h('ul', {
       id: 'morsels-dropdown-list',
       class: 'morsels-list',
     });
-    innerRoot.appendChild(listContainer);
+    const root = h('div', { class: 'morsels-root' },
+      inputEl,
+      h('div',
+        { class: 'morsels-inner-root', style: 'display: none;' },
+        h('div', { class: 'morsels-input-dropdown-separator' }),
+        listContainer,
+      ),
+    );
+
+    setInputAria(inputEl, 'morsels-dropdown-list');
     setCombobox(root, listContainer, opts.uiOptions.label);
 
     return {
@@ -225,17 +213,6 @@ function prepareOptions(options: SearchUiOptions) {
     opts,
     fsCloseHandler,
   ) => {
-    const innerRoot = h('div', { class: 'morsels-root morsels-fs-root' });
-    innerRoot.onclick = (ev) => ev.stopPropagation();
-    innerRoot.onmousedown = (ev) => ev.stopPropagation();
-
-    const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
-
-    const ariaLabel = h('label',
-      { id: 'morsels-fs-label', for: 'morsels-fs-input', style: 'display: none' },
-      opts.uiOptions.label,
-    );
-
     const inputEl = h(
       'input', {
         class: 'morsels-fs-input',
@@ -253,29 +230,40 @@ function prepareOptions(options: SearchUiOptions) {
       fsCloseHandler();
     };
 
-    innerRoot.appendChild(h('form',
-      { class: 'morsels-fs-input-button-wrapper' },
-      ariaLabel,
-      inputEl,
-      buttonEl));
-
     const listContainer = h('ul', {
       id: 'morsels-fs-list',
       class: 'morsels-list',
       'aria-labelledby': 'morsels-fs-label',
     });
-    innerRoot.appendChild(listContainer);
+  
+    const innerRoot = h('div',
+      { class: 'morsels-root morsels-fs-root' },
+      h('form',
+        { class: 'morsels-fs-input-button-wrapper' },
+        h('label',
+          { id: 'morsels-fs-label', for: 'morsels-fs-input', style: 'display: none' },
+          opts.uiOptions.label,
+        ),
+        inputEl,
+        buttonEl,
+      ),
+      listContainer,
+    );
+    innerRoot.onclick = (ev) => ev.stopPropagation();
+    innerRoot.onmousedown = (ev) => ev.stopPropagation();
+
     setCombobox(innerRoot, listContainer, opts.uiOptions.label);
 
-    rootBackdropEl.addEventListener('mousedown', () => {
+    const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
+    rootBackdropEl.onmousedown = () => {
       uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
-    });
-    rootBackdropEl.addEventListener('keyup', (ev) => {
+    };
+    rootBackdropEl.onkeyup = (ev) => {
       if (ev.code === 'Escape') {
         ev.stopPropagation();
         uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
       }
-    });
+    };
 
     return {
       root: rootBackdropEl,
@@ -662,11 +650,7 @@ function initMorsels(options: SearchUiOptions): {
       listContainer = fsListContainer;
     }
 
-    function currentFocused() {
-      return listContainer.querySelector('.focus');
-    }
-
-    const focusedItem = currentFocused();
+    const focusedItem = listContainer.querySelector('.focus');
     function focusEl(el: Element) {
       if (focusedItem) {
         focusedItem.classList.remove('focus');
