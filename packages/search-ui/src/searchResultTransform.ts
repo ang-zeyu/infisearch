@@ -551,7 +551,7 @@ export default async function transformResults(
   topLoader: { v: HTMLElement },
   options: SearchUiOptions,
 ): Promise<boolean> {
-  if (query !== inputState.currQuery) {
+  if (inputState.nextAction) {
     // If a new query interrupts the current one
     return false;
   }
@@ -578,7 +578,7 @@ export default async function transformResults(
   //console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   //now = performance.now();
 
-  if (query !== inputState.currQuery) {
+  if (inputState.nextAction) {
     // If a new query interrupts the current one
     return false;
   }
@@ -587,7 +587,7 @@ export default async function transformResults(
     createElement, options, config, results, query,
   );
 
-  if (query !== inputState.currQuery) {
+  if (inputState.nextAction) {
     // If a new query interrupts the current one
     return false;
   }
