@@ -102,7 +102,7 @@ async function reloadPage() {
   await jestPuppeteer.resetPage();
   await jestPuppeteer.resetBrowser();
   await page.goto(
-    'http://localhost:8080?mode=target&url=http%3A%2F%2Flocalhost%3A3000%2F&resultsPerPage=100',
+    'http://localhost:8080?mode=target&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2F&resultsPerPage=100',
     { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 },
   );
   await expect(page.title()).resolves.toMatch('Morsels');

@@ -12,6 +12,24 @@ module.exports = (env) => merge(common(env), {
     hot: true,
     host: '0.0.0.0',
     open: false,
+    static: [
+      {
+        directory: path.join(__dirname, 'test_files/1'),
+        publicPath: '/1',
+      },
+      {
+        directory: path.join(__dirname, 'test_files/2'),
+        publicPath: '/2',
+      },
+      {
+        directory: path.join(__dirname, 'test_files/3'),
+        publicPath: '/3',
+      },
+      {
+        directory: path.join(__dirname, 'e2e/output'),
+        publicPath: '/e2e',
+      },
+    ],
   },
   output: {
     filename: '[name].bundle.js',

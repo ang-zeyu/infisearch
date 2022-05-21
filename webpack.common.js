@@ -45,6 +45,12 @@ module.exports = (env) => {
           forceMode: 'production',
           outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_ascii'),
         }),
+      new WasmPackPlugin({
+        crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
+        extraArgs: '-- --no-default-features --features lang_latin,perf',
+        forceMode: 'production',
+        outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_latin'),
+      }),
       new DefinePlugin({
         MORSELS_VERSION: `'${version}'`,
       }),
