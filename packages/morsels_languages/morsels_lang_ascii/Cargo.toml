@@ -9,6 +9,9 @@ repository = "https://github.com/ang-zeyu/morsels"
 readme = "../README.md"
 license = "MIT"
 
+[features]
+indexer = []
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 

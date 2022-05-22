@@ -9,6 +9,7 @@ use smartstring::alias::String as SmartString;
 
 use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, IndexerTokenizer, SearchTokenizer};
 use morsels_lang_ascii::ascii_folding_filter;
+#[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
 use morsels_lang_ascii::stop_words::{get_stop_words_set, get_default_stop_words_set};
 use morsels_lang_ascii::utils::term_filter;
@@ -90,6 +91,7 @@ pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenize
     }
 }
 
+#[cfg(feature = "indexer")]
 impl IndexerTokenizer for Tokenizer {
     fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
         text.make_ascii_lowercase();

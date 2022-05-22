@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::collections::{HashSet, BTreeMap};
 
+#[cfg(feature = "indexer")]
 use regex::Regex;
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
@@ -11,6 +12,7 @@ use crate::stop_words::{get_stop_words_set, get_default_stop_words_set};
 use crate::utils::term_filter;
 use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, IndexerTokenizer, SearchTokenizer};
 
+#[cfg(feature = "indexer")]
 lazy_static! {
     pub static ref SENTENCE_SPLITTER: Regex = Regex::new(r#"[.,;?!]\s+"#).unwrap();
 }
@@ -87,6 +89,7 @@ pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slic
     }
 }
 
+#[cfg(feature = "indexer")]
 impl IndexerTokenizer for Tokenizer {
     fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
         text.make_ascii_lowercase();
