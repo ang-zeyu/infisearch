@@ -343,8 +343,8 @@ test('Test with different field and block size configs', async () => {
   let outputConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
   );
-  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(5);
-  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1, 2, 3, 4]);
+  expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(5);
+  expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1, 2, 3, 4]);
 
   cleanup();
   console.log('Starting morsels_config_1 tests');
@@ -353,8 +353,8 @@ test('Test with different field and block size configs', async () => {
   outputConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
   );
-  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(2);
-  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1]);
+  expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
+  expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1]);
 
   cleanup();
   console.log('Starting morsels_config_2 tests');
@@ -363,8 +363,8 @@ test('Test with different field and block size configs', async () => {
   outputConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
   );
-  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(2);
-  expect(outputConfig.indexing_config.pl_names_to_cache).toEqual([0, 1]);
+  expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
+  expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1]);
 
   cleanup();
   console.log('Starting morsels_config_3 tests');
@@ -373,7 +373,7 @@ test('Test with different field and block size configs', async () => {
   outputConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
   );
-  expect(outputConfig.indexing_config.pl_names_to_cache).toHaveLength(0);
+  expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
   process.exit(0);
 });
