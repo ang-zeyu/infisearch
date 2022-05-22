@@ -41,19 +41,46 @@ export default class WorkerSearcher {
     }
   }
 
-  private async setupWasm() {
-    const language = this.config.langConfig.lang;
-    this.wasmModule = await import(
-      /* webpackChunkName: "wasm.[request]" */
-      `@morsels/lang-${language}/index.js`
-    );
-    this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config);
+  private async setupWasm(metadataDictStringWasmModule: [ArrayBuffer, ArrayBuffer, any]) {
+    const [metadata, dictString, wasmModule] = metadataDictStringWasmModule;
+    this.wasmModule = wasmModule;
+    this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config, metadata, dictString);
   }
 
   static async setup(data: MorselsConfig): Promise<WorkerSearcher> {
     const workerSearcher = new WorkerSearcher(data);
 
-    await workerSearcher.setupWasm();
+    const baseUrl = data.searcherOptions.url;
+    const metadataUrl = `${baseUrl}bitmap_docinfo_dicttable.json`;
+    const dictStringUrl = `${baseUrl}dictionary_string.json`;
+
+    let cache: Cache;
+    try {
+      cache = await caches.open(`morsels:${baseUrl}`);
+    } catch {
+      // Cache API blocked / unsupported (e.g. firefox private)
+    }
+
+    const metadataDictStringWasmModule = await Promise.all([
+      (cache
+        ? cache.match(metadataUrl)
+          .then((resp) => !resp && cache.add(metadataUrl))
+          .then(() => cache.match(metadataUrl))
+        : fetch(metadataUrl)
+      ).then((resp) => resp.arrayBuffer()),
+      (cache
+        ? cache.match(dictStringUrl)
+          .then((resp) => !resp && cache.add(dictStringUrl))
+          .then(() => cache.match(dictStringUrl))
+        : fetch(dictStringUrl)
+      ).then((resp) => resp.arrayBuffer()),
+      import(
+        /* webpackChunkName: "wasm.[request]" */
+        `@morsels/lang-${data.langConfig.lang}/index.js`
+      ),
+    ]);
+
+    await workerSearcher.setupWasm(metadataDictStringWasmModule);
 
     return workerSearcher;
   }

@@ -1,6 +1,7 @@
 import { SearcherOptions } from './SearcherOptions';
 
 export interface MorselsConfig {
+  indexVer: string,
   lastDocId: number,
   indexingConfig: {
     loaderConfigs: { [loader: string]: any },
@@ -22,6 +23,7 @@ export interface MorselsConfig {
 
 export interface MorselsConfigRaw {
   ver: string,
+  index_ver: string,
   last_doc_id: number,
   indexing_config: {
     loader_configs: { [loader: string]: any },

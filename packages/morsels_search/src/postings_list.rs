@@ -3,9 +3,9 @@ use std::cmp::Ordering;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::JsFuture;
+use web_sys::Cache;
 use web_sys::Response;
 
-use crate::postings_list_file_cache::PostingsListFileCache;
 use morsels_common::FILE_EXT;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
@@ -197,10 +197,7 @@ impl PostingsList {
         td
     }
 
-    #[inline]
-    pub async fn fetch_pl_to_vec(fetch_promise: js_sys::Promise) -> Result<Vec<u8>, JsValue> {
-        let pl_resp_value = JsFuture::from(fetch_promise).await?;
-        let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
+    pub async fn response_to_vec(pl_resp: Response) -> Result<Vec<u8>, JsValue> {
         let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
         Ok(js_sys::Uint8Array::new(&pl_array_buffer).to_vec())
     }
@@ -209,7 +206,6 @@ impl PostingsList {
     pub async fn fetch_term(
         &mut self,
         base_url: &str,
-        pl_file_cache: &PostingsListFileCache,
         invalidation_vector: &[u8],
         window: &web_sys::Window,
         num_scored_fields: usize,
@@ -222,22 +218,39 @@ impl PostingsList {
 
         let term_info = self.term_info.as_ref().unwrap();
 
-        let fetched_pl;
-        let pl_vec = if let Some(pl_vec) = pl_file_cache.get(term_info.postings_file_name) {
-            pl_vec
+        let url = base_url.to_owned()
+            + "pl_"
+            + &(term_info.postings_file_name / num_pls_per_dir).to_string()[..]
+            + "/pl_"
+            + &term_info.postings_file_name.to_string()[..]
+            + "."
+            + FILE_EXT;
+
+        let cache = JsFuture::from(
+            window.caches().unwrap().open(&("morsels:".to_owned() + base_url))
+        ).await;
+
+        let pl_resp = if let Ok(cache) = cache {
+            let cache: Cache = cache.dyn_into().unwrap();
+            let cache_entry = JsFuture::from(cache.match_with_str(&url)).await?;
+            let cache_response: Result<Response, _> = cache_entry.dyn_into();
+            if let Ok(pl_resp) = cache_response {
+                pl_resp
+            } else {
+                fetch_pl(window, url).await?
+            }
         } else {
-            fetched_pl = PostingsList::fetch_pl_to_vec(
-                initiate_fetch(window, base_url, term_info.postings_file_name, num_pls_per_dir)
-            )
-            .await?;
-            &fetched_pl
+            // Cache API blocked / unsupported (e.g. firefox private)
+            fetch_pl(window, url).await?
         };
+
+        let pl_vec = PostingsList::response_to_vec(pl_resp).await?;
 
         let mut pos = term_info.postings_file_offset as usize;
 
         let mut prev_doc_id = 0;
         for _i in 0..term_info.doc_freq {
-            let docfreq = decode_var_int(pl_vec, &mut pos);
+            let docfreq = decode_var_int(&pl_vec, &mut pos);
 
             let mut term_doc = TermDoc {
                 doc_id: prev_doc_id + docfreq,
@@ -254,14 +267,14 @@ impl PostingsList {
                 let field_id = next_int & 0x7f;
                 is_last = next_int & 0x80;
 
-                let field_tf = decode_var_int(pl_vec, &mut pos);
+                let field_tf = decode_var_int(&pl_vec, &mut pos);
 
                 let field_positions = if with_positions {
                     let mut field_positions = Vec::with_capacity(field_tf as usize);
 
                     let mut prev_pos = 0;
                     for _j in 0..field_tf {
-                        prev_pos += decode_var_int(pl_vec, &mut pos);
+                        prev_pos += decode_var_int(&pl_vec, &mut pos);
                         field_positions.push(prev_pos);
                     }
 
@@ -286,16 +299,11 @@ impl PostingsList {
     }
 }
 
-pub fn initiate_fetch(window: &web_sys::Window, base_url: &str, pl_num: u32, num_pls_per_dir: u32) -> js_sys::Promise {
-    window.fetch_with_str(
-        &(base_url.to_owned()
-            + "pl_"
-            + &(pl_num / num_pls_per_dir).to_string()[..]
-            + "/pl_"
-            + &pl_num.to_string()[..]
-            + "."
-            + FILE_EXT),
-    )
+async fn fetch_pl(window: &web_sys::Window, url: String) -> Result<Response, JsValue> {
+    let fetch_promise = window.fetch_with_str(&url);
+    let pl_resp_value = JsFuture::from(fetch_promise).await?;
+    let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
+    Ok(pl_resp)
 }
 
 #[cfg(test)]

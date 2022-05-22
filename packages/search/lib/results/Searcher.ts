@@ -5,7 +5,7 @@ import {
 import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
-import JsonCache from './JsonCache';
+import PersistentCache from './Cache';
 
 declare const MORSELS_VERSION;
 
@@ -29,7 +29,7 @@ class Searcher {
 
   private nextId = 0;
 
-  private persistentJsonCache: JsonCache;
+  private cache: PersistentCache;
 
   constructor(private options: SearcherOptions) {
     this.worker = new Worker(new URL(
@@ -64,25 +64,48 @@ class Searcher {
       };
     });
 
+    const cacheName = `morsels:${options.url}`;
+
     this.setupPromise = this.retrieveConfig()
+      .then(() => this.setupCache(cacheName))
       .then(() => {
         options.useQueryTermProximity = options.useQueryTermProximity
             && this.morselsConfig.indexingConfig.withPositions;
 
         this.worker.postMessage(this.morselsConfig);
       })
-      .then(() => this.cacheFieldStores())
       .then(() => workerSetup)
+      .then(() => {
+        this.setupFieldStoreCache();
+        this.setupIndexCache();
+      })
       .then(() => this.isSetupDone = true);
   }
 
-  async cacheFieldStores() {
+  private async setupCache(cacheName: string) {
+    try {
+      let cache = await caches.open(cacheName);
+      const cacheIndexVerResp = await cache.match('/index_ver');
+      if (cacheIndexVerResp) {
+        const cacheIndexVer = await cacheIndexVerResp.text();
+        if (this.morselsConfig.indexVer !== cacheIndexVer) {
+          await caches.delete(cacheName);
+          cache = await caches.open(cacheName);
+        }
+      }
+
+      await cache.put('/index_ver', new Response(this.morselsConfig.indexVer));
+      this.cache = new PersistentCache(cache);
+    } catch {
+      // Cache API blocked / unsupported (e.g. firefox private)
+      this.cache = new PersistentCache(undefined);
+    }
+  }
+
+  private setupFieldStoreCache() {
     if (!this.options.cacheAllFieldStores) {
       return;
     }
-
-    this.persistentJsonCache = new JsonCache();
-    const promises: [string, Promise<any>][] = [];
 
     const lastFileNumber = Math.ceil(this.morselsConfig.lastDocId / this.morselsConfig.fieldStoreBlockSize);
     const { numStoresPerDir, indexingConfig } = this.morselsConfig;
@@ -100,23 +123,21 @@ class Searcher {
       ) {
         const blockNumber = Math.floor(docId / numDocsPerBlock);
         const url = `${this.options.url}field_store/${dirNumber}/${i}--${blockNumber}.json`;
-        promises.push([url, fetch(url).then(res => res.json())]);
-  
-        // Throttle to 10 unresolved requests. A little arbitrary for now.
-        if (promises.length >= 10) {
-          const first = promises.shift();
-          this.persistentJsonCache.linkToJsons[first[0]] = await first[1];
-        }
+        this.cache.cacheJson(url);
       }
     }
+  }
 
-    const jsons = await Promise.all(promises.map(p => p[1]));
-    promises.forEach((val, idx) => {
-      this.persistentJsonCache.linkToJsons[val[0]] = jsons[idx];
+  private setupIndexCache() {
+    const pls = this.morselsConfig.indexingConfig.plNamesToCache;
+    pls.forEach((pl) => {
+      const folder = Math.floor(pl / this.morselsConfig.indexingConfig.numPlsPerDir);
+      const url = `${this.options.url}pl_${folder}/pl_${pl}.json`;
+      this.cache.cacheUrl(url);
     });
   }
 
-  async retrieveConfig(): Promise<void> {
+  private async retrieveConfig(): Promise<void> {
     const json: MorselsConfigRaw = await (await fetch(`${this.options.url}morsels_config.json`, {
       method: 'GET',
       headers: {
@@ -142,6 +163,7 @@ class Searcher {
     fieldInfos.sort((a, b) => a.id - b.id);
 
     this.morselsConfig = {
+      indexVer: json.index_ver,
       lastDocId: json.last_doc_id,
       indexingConfig: {
         loaderConfigs: json.indexing_config.loader_configs,
@@ -222,10 +244,9 @@ class Searcher {
       ));
 
       // Retrieve field stores
-      const jsonCache = this.persistentJsonCache || new JsonCache();
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url,
-        jsonCache,
+        this.cache,
         this.morselsConfig,
       )));
 

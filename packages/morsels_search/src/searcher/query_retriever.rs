@@ -135,7 +135,6 @@ num_desired_expanded_terms,
         join_all(postings_lists_map.values_mut().map(|pl| {
             (*pl).fetch_term(
                 &self.searcher_config.searcher_options.url,
-                &self.pl_file_cache,
                 &self.invalidation_vector,
                 &window,
                 self.searcher_config.num_scored_fields,

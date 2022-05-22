@@ -4,21 +4,16 @@ pub mod query_preprocessor;
 pub mod query_processor;
 pub mod query_retriever;
 
-use morsels_common::BITMAP_DOCINFO_DICT_TABLE_FILE;
 use morsels_common::BitmapDocinfoDicttableReader;
 use morsels_common::dictionary;
-use morsels_common::dictionary::DICTIONARY_STRING_FILE_NAME;
 use serde::Deserialize;
 use wasm_bindgen::prelude::wasm_bindgen;
+#[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::Response;
 
 use crate::dictionary::Dictionary;
 use crate::docinfo::DocInfo;
-use crate::postings_list::initiate_fetch;
-use crate::postings_list_file_cache::PostingsListFileCache;
 
 #[cfg(feature = "lang_ascii")]
 use morsels_lang_ascii::ascii;
@@ -44,7 +39,6 @@ struct SearcherConfig {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct IndexingConfig {
-    pl_names_to_cache: Vec<u32>,
     num_pls_per_dir: u32,
     with_positions: bool,
 }
@@ -71,7 +65,6 @@ pub struct Searcher {
     dictionary: Dictionary,
     tokenizer: Box<dyn SearchTokenizer>,
     doc_info: DocInfo,
-    pl_file_cache: PostingsListFileCache,
     searcher_config: SearcherConfig,
     invalidation_vector: Vec<u8>,
 }
@@ -105,29 +98,20 @@ fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchToken
 
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
+pub async fn get_new_searcher(
+    config_js: JsValue,
+    bitmap_docinfo_dt_buf: JsValue,
+    dict_string_buf: JsValue,
+) -> Result<Searcher, JsValue> {
     let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Morsels config does not match schema");
 
+    #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
-
     #[cfg(feature = "perf")]
     let performance = window.performance().unwrap();
     #[cfg(feature = "perf")]
     let start = performance.now();
 
-    let bitmap_docinfo_dt_future = JsFuture::from(
-        window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + BITMAP_DOCINFO_DICT_TABLE_FILE)),
-    );
-    let string_resp_future = JsFuture::from(
-        window.fetch_with_str(&(searcher_config.searcher_options.url.to_owned() + DICTIONARY_STRING_FILE_NAME))
-    );
-    let mut v = Vec::new();
-    for pl_num in searcher_config.indexing_config.pl_names_to_cache.iter() {
-        v.push(initiate_fetch(&window, &searcher_config.searcher_options.url, *pl_num, searcher_config.indexing_config.num_pls_per_dir));
-    }
-
-    let bitmap_docinfo_dt_resp: Response = bitmap_docinfo_dt_future.await?.dyn_into().unwrap();
-    let bitmap_docinfo_dt_buf = JsFuture::from(bitmap_docinfo_dt_resp.array_buffer()?).await?;
     let bitmap_docinfo_dt = js_sys::Uint8Array::new(&bitmap_docinfo_dt_buf).to_vec();
     let mut bitmap_docinfo_dt_rdr = BitmapDocinfoDicttableReader { buf: bitmap_docinfo_dt, pos: 0 };
 
@@ -138,9 +122,7 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
 
     let tokenizer = get_tokenizer(&mut searcher_config.lang_config);
 
-    let string_resp: Response = string_resp_future.await?.dyn_into().unwrap();
-    let string_array_buffer = JsFuture::from(string_resp.array_buffer()?).await?;
-    let string_vec = js_sys::Uint8Array::new(&string_array_buffer).to_vec();
+    let string_vec = js_sys::Uint8Array::new(&dict_string_buf).to_vec();
 
     let dictionary = dictionary::setup_dictionary(
         bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec,
@@ -158,12 +140,10 @@ pub async fn get_new_searcher(config_js: JsValue) -> Result<Searcher, JsValue> {
         performance.now() - start, dictionary.term_infos.len(),
     ).into());
 
-    let pl_file_cache = PostingsListFileCache::create(v, &searcher_config.indexing_config.pl_names_to_cache).await;
-
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Setup took {}", performance.now() - start).into());
 
-    Ok(Searcher { dictionary, tokenizer, doc_info, pl_file_cache, searcher_config, invalidation_vector })
+    Ok(Searcher { dictionary, tokenizer, doc_info, searcher_config, invalidation_vector })
 }
 
 #[wasm_bindgen]
@@ -249,15 +229,12 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
 pub mod test {
     use std::collections::BTreeMap;
 
-    use rustc_hash::FxHashMap;
-
     use morsels_common::MorselsLanguageConfig;
     use morsels_lang_ascii::ascii;
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
     use crate::dictionary::Dictionary;
     use crate::docinfo::DocInfo;
-    use crate::postings_list_file_cache;
 
     pub fn create_searcher(num_docs: usize, num_fields: usize) -> Searcher {
         let mut field_infos = Vec::new();
@@ -279,10 +256,8 @@ pub mod test {
                 num_docs: num_docs as u32,
                 num_fields,
             },
-            pl_file_cache: postings_list_file_cache::test::get_empty(),
             searcher_config: SearcherConfig {
                 indexing_config: IndexingConfig {
-                    pl_names_to_cache: Vec::new(),
                     num_pls_per_dir: 0,
                     with_positions: true,
                 },

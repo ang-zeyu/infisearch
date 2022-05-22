@@ -14,7 +14,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use log::{info, warn};
 use morsels_common::tokenize::IndexerTokenizer;
@@ -192,6 +192,7 @@ struct MorselsIndexingOutputConfig {
 #[derive(Serialize)]
 pub struct MorselsOutputConfig<'a> {
     ver: &'static str,
+    index_ver: String,
     last_doc_id: u32,
     indexing_config: MorselsIndexingOutputConfig,
     lang_config: &'a MorselsLanguageConfig,
@@ -634,6 +635,7 @@ impl Indexer {
     fn write_morsels_config(&mut self) {
         let serialized = serde_json::to_string(&MorselsOutputConfig {
             ver: MORSELS_VERSION,
+            index_ver: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis().to_string(),
             last_doc_id: self.doc_id_counter,
             indexing_config: MorselsIndexingOutputConfig {
                 loader_configs: std::mem::take(&mut self.loaders)

@@ -33,6 +33,8 @@ wasm-bindgen-futures = "0.4.24"
 [dependencies.web-sys]
 version = "0.3"
 features = [
+    "Cache",
+    "CacheStorage",
     "console",
     "Performance",
     "Request",

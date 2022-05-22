@@ -1,5 +1,5 @@
 import { FieldInfo, MorselsConfig } from './FieldInfo';
-import JsonCache from './JsonCache';
+import PersistentCache from './Cache';
 
 class Result {
   storage: [number, string][] = Object.create(null);
@@ -12,7 +12,7 @@ class Result {
 
   async populate(
     baseUrl: string,
-    tempJsonCache: JsonCache,
+    cache: PersistentCache,
     morselsConfig: MorselsConfig,
   ): Promise<void> {
     const { fieldStoreBlockSize, numStoresPerDir, indexingConfig } = morselsConfig;
@@ -22,7 +22,7 @@ class Result {
     const dirNumber = Math.floor(fileNumber / numStoresPerDir);
     const fileUrl = `${baseUrl}field_store/${dirNumber}/${fileNumber}--${blockNumber}.json`;
     try {
-      const rawJson = await tempJsonCache.fetch(fileUrl);
+      const rawJson = await cache.getJson(fileUrl);
 
       let idx = this.docId % fieldStoreBlockSize;
       if (numDocsPerBlock < fieldStoreBlockSize) {
