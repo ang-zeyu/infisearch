@@ -1,5 +1,7 @@
 # Morsels.`j/rs` 🧀
 
+![CI workflow](https://github.com/ang-zeyu/morsels/actions/workflows/ci.yml/badge.svg)
+
 A complete and more scalable pre-built index approach to client-side search.
 
 ## Description
