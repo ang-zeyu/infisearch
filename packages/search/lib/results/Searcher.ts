@@ -1,14 +1,14 @@
 import Query from './Query';
-import { MorselsConfig } from './FieldInfo';
-import { SearcherOptions } from './SearcherOptions';
+import { SearcherOptions, MorselsConfig } from './Config';
 import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
 import PersistentCache from './Cache';
+import { getFieldUrl } from '../utils/FieldStore';
 
 declare const MORSELS_VERSION;
 
 class Searcher {
-  morselsConfig: MorselsConfig;
+  config: MorselsConfig;
 
   isSetupDone: boolean = false;
 
@@ -16,7 +16,7 @@ class Searcher {
 
   private worker: Worker;
 
-  private workerQueryPromises: {
+  private queries: {
     [query: string]: {
       [queryId: number]: {
         promise: Promise<any>,
@@ -48,7 +48,7 @@ class Searcher {
             queryParts,
           } = ev.data;
 
-          this.workerQueryPromises[query][queryId].resolve({
+          this.queries[query][queryId].resolve({
             query,
             nextResults,
             searchedTerms,
@@ -66,7 +66,7 @@ class Searcher {
 
     this.setupPromise = this.retrieveConfig()
       .then(() => this.setupCache(cacheName))
-      .then(() => this.worker.postMessage(this.morselsConfig))
+      .then(() => this.worker.postMessage(this.config))
       .then(() => workerSetup)
       .then(() => {
         this.setupFieldStoreCache();
@@ -81,13 +81,13 @@ class Searcher {
       const cacheIndexVerResp = await cache.match('/index_ver');
       if (cacheIndexVerResp) {
         const cacheIndexVer = await cacheIndexVerResp.text();
-        if (this.morselsConfig.indexVer !== cacheIndexVer) {
+        if (this.config.indexVer !== cacheIndexVer) {
           await caches.delete(cacheName);
           cache = await caches.open(cacheName);
         }
       }
 
-      await cache.put('/index_ver', new Response(this.morselsConfig.indexVer));
+      await cache.put('/index_ver', new Response(this.config.indexVer));
       this.cache = new PersistentCache(cache);
     } catch {
       // Cache API blocked / unsupported (e.g. firefox private)
@@ -100,57 +100,44 @@ class Searcher {
       return;
     }
 
-    const lastFileNumber = Math.ceil(this.morselsConfig.lastDocId / this.morselsConfig.fieldStoreBlockSize);
-    const { numStoresPerDir, indexingConfig } = this.morselsConfig;
-    const { numDocsPerBlock } = indexingConfig;
-    for (let i = 0; i < lastFileNumber; i++) {
-      const dirNumber = Math.floor(i / numStoresPerDir);
-      const lastDocIdOfFile = Math.min(
-        this.morselsConfig.lastDocId,
-        (i + 1) * this.morselsConfig.fieldStoreBlockSize,
-      );
-
-      for (
-        let docId = i * this.morselsConfig.fieldStoreBlockSize;
-        docId < lastDocIdOfFile; docId += numDocsPerBlock
-      ) {
-        const blockNumber = Math.floor(docId / numDocsPerBlock);
-        const url = `${this.options.url}field_store/${dirNumber}/${i}--${blockNumber}.json`;
-        this.cache.cacheJson(url);
-      }
+    // These 2 parameters are "clean" multiples / divisors of each other
+    const { fieldStoreBlockSize, indexingConfig } = this.config;
+    const increment = Math.min(fieldStoreBlockSize, indexingConfig.numDocsPerBlock);
+    for (let docId = 0; docId < this.config.lastDocId; docId += increment) {
+      this.cache.cacheJson(getFieldUrl(this.options.url, docId, this.config));
     }
   }
 
   private setupIndexCache() {
-    const pls = this.morselsConfig.indexingConfig.plNamesToCache;
+    const pls = this.config.indexingConfig.plNamesToCache;
     pls.forEach((pl) => {
-      const folder = Math.floor(pl / this.morselsConfig.indexingConfig.numPlsPerDir);
+      const folder = Math.floor(pl / this.config.indexingConfig.numPlsPerDir);
       const url = `${this.options.url}pl_${folder}/pl_${pl}.json`;
       this.cache.cacheUrl(url);
     });
   }
 
   private async retrieveConfig(): Promise<void> {
-    this.morselsConfig = await (await fetch(`${this.options.url}morsels_config.json`)).json();
+    this.config = await (await fetch(`${this.options.url}morsels_config.json`)).json();
 
-    if (this.morselsConfig.ver !== MORSELS_VERSION) {
+    if (this.config.ver !== MORSELS_VERSION) {
       throw new Error('Morsels search !== indexer version!');
     }
 
     if (!('cacheAllFieldStores' in this.options)) {
-      this.options.cacheAllFieldStores = !!this.morselsConfig.cacheAllFieldStores;
+      this.options.cacheAllFieldStores = !!this.config.cacheAllFieldStores;
     }
 
     this.options.useQueryTermProximity = this.options.useQueryTermProximity
-        && this.morselsConfig.indexingConfig.withPositions;
+        && this.config.indexingConfig.withPositions;
 
-    this.morselsConfig.searcherOptions = this.options;
+    this.config.searcherOptions = this.options;
   }
 
   private deleteQuery(query: string, queryId: number) {
-    delete this.workerQueryPromises[query][queryId];
-    if (Object.keys(this.workerQueryPromises[query]).length === 0) {
-      delete this.workerQueryPromises[query];
+    delete this.queries[query][queryId];
+    if (Object.keys(this.queries[query]).length === 0) {
+      delete this.queries[query];
     }
   }
 
@@ -162,14 +149,14 @@ class Searcher {
     const queryId = this.nextId;
     this.nextId += 1;
 
-    this.workerQueryPromises[query] = this.workerQueryPromises[query] || {};
-    this.workerQueryPromises[query][queryId] = {
+    this.queries[query] = this.queries[query] || {};
+    this.queries[query][queryId] = {
       promise: undefined,
       resolve: undefined,
     };
 
-    this.workerQueryPromises[query][queryId].promise = new Promise((resolve) => {
-      this.workerQueryPromises[query][queryId].resolve = resolve;
+    this.queries[query][queryId].promise = new Promise((resolve) => {
+      this.queries[query][queryId].resolve = resolve;
 
       this.worker.postMessage({ query, queryId });
     });
@@ -177,43 +164,43 @@ class Searcher {
     const result: {
       searchedTerms: string[][],
       queryParts: QueryPart[],
-    } = await this.workerQueryPromises[query][queryId].promise;
+    } = await this.queries[query][queryId].promise;
 
     const getNextN = async (n: number) => {
-      if (!this.workerQueryPromises[query] || !this.workerQueryPromises[query][queryId]) {
+      if (!this.queries[query] || !this.queries[query][queryId]) {
         return []; // free() already called
       }
 
-      await this.workerQueryPromises[query][queryId].promise;
+      await this.queries[query][queryId].promise;
 
       // Initiate worker request
-      this.workerQueryPromises[query][queryId].promise = new Promise((resolve) => {
-        this.workerQueryPromises[query][queryId].resolve = resolve;
+      this.queries[query][queryId].promise = new Promise((resolve) => {
+        this.queries[query][queryId].resolve = resolve;
 
         this.worker.postMessage({
           query, queryId, isGetNextN: true, n,
         });
       });
 
-      if (!this.workerQueryPromises[query] || !this.workerQueryPromises[query][queryId]) {
+      if (!this.queries[query] || !this.queries[query][queryId]) {
         return []; // free() already called
       }
 
       // Wait for worker to finish
       const getNextNResult: {
         nextResults: [number, number][]
-      } = await this.workerQueryPromises[query][queryId].promise;
+      } = await this.queries[query][queryId].promise;
 
       // Simple transform into Result objects
       const retrievedResults: Result[] = getNextNResult.nextResults.map(([docId, score]) => new Result(
-        docId, score, this.morselsConfig.fieldInfos,
+        docId, score, this.config.fieldInfos,
       ));
 
       // Retrieve field stores
       await Promise.all(retrievedResults.map((res) => res.populate(
         this.options.url,
         this.cache,
-        this.morselsConfig,
+        this.config,
       )));
 
       return retrievedResults;

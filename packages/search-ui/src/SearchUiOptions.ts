@@ -1,5 +1,4 @@
-import { SearcherOptions } from '@morsels/search-lib/lib/results/SearcherOptions';
-import { MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
+import { SearcherOptions, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
 import { Query } from '@morsels/search-lib';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';

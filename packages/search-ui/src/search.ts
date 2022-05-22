@@ -401,7 +401,7 @@ function createInputListener(
       // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
   
       const resultsDisplayed = await transformResults(
-        inputState, inputState.currQuery, searcher.morselsConfig,
+        inputState, inputState.currQuery, searcher.config,
         true,
         listContainer, indicatorElement,
         options,

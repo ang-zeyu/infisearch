@@ -1,6 +1,6 @@
 import escapeStringRegexp from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
-import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/FieldInfo';
+import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
 import { SearchUiOptions } from './SearchUiOptions';
 import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';

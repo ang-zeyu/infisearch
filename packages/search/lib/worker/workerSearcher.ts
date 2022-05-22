@@ -1,4 +1,4 @@
-import { MorselsConfig } from '../results/FieldInfo';
+import { MorselsConfig } from '../results/Config';
 import WorkerQuery from './workerQuery';
 
 export default class WorkerSearcher {

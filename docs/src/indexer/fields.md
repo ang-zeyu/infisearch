@@ -87,21 +87,6 @@ Specifying `0.0` will result in the field not being indexed (although, it can st
 
 These are Okapi BM25 model parameters. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these if the defaults are unsuitable for your use case.
 
-<div style="display: none;">
-
-**`type` (WIP)**
-
-The only available types are `string` and `u32`.
-
-This only affects how the fields are stored when the `do_store` parameter is specified (but not the indexing process).
-
-`string` fields are stored in the manner illustrated above.
-
-`u32` fields however are stored monolithically in a single file, for the purpose of fast random access.
-
-Moreover, sorting (also WIP) operations are only supported on `u32` fields.
-</div>
-
 ## Default Fields in `@morsels/search-ui`
 
 The functions of the default fields for the user interface are as follows:

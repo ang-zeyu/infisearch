@@ -1,5 +1,6 @@
-import { FieldInfo, MorselsConfig } from './FieldInfo';
+import { FieldInfo, MorselsConfig } from './Config';
 import PersistentCache from './Cache';
+import { getFieldUrl } from '../utils/FieldStore';
 
 class Result {
   storage: [number, string][] = Object.create(null);
@@ -13,19 +14,15 @@ class Result {
   async populate(
     baseUrl: string,
     cache: PersistentCache,
-    morselsConfig: MorselsConfig,
+    config: MorselsConfig,
   ): Promise<void> {
-    const { fieldStoreBlockSize, numStoresPerDir, indexingConfig } = morselsConfig;
-    const { numDocsPerBlock } = indexingConfig;
-    const fileNumber = Math.floor(this.docId / fieldStoreBlockSize);
-    const blockNumber = Math.floor(this.docId / numDocsPerBlock);
-    const dirNumber = Math.floor(fileNumber / numStoresPerDir);
-    const fileUrl = `${baseUrl}field_store/${dirNumber}/${fileNumber}--${blockNumber}.json`;
+    const fileUrl = getFieldUrl(baseUrl, this.docId, config);
     try {
       const rawJson = await cache.getJson(fileUrl);
 
-      let idx = this.docId % fieldStoreBlockSize;
-      if (numDocsPerBlock < fieldStoreBlockSize) {
+      let idx = this.docId % config.fieldStoreBlockSize;
+      const { numDocsPerBlock } = config.indexingConfig;
+      if (numDocsPerBlock < config.fieldStoreBlockSize) {
         idx %= numDocsPerBlock;
       }
 
@@ -37,22 +34,12 @@ class Result {
 
   getSingleField(fieldName: string): string {
     const field = this.fieldInfos.find((fieldInfo) => fieldInfo.name === fieldName);
-    if (!field) {
-      return '';
-    }
-
-    const matchingPair: [number, string] = this.storage.find(
-      (fieldIdContentPair) => fieldIdContentPair[0] === field.id,
-    );
+    const matchingPair = this.storage.find(([fieldId]) => fieldId === field.id);
     return matchingPair ? matchingPair[1] : '';
   }
 
   getStorageWithFieldNames(): [string, string][] {
-    return this.storage.map((fieldIdContentPair) => {
-      const clonedPair = fieldIdContentPair.map((v) => v);
-      clonedPair[0] = this.fieldInfos[clonedPair[0]].name;
-      return clonedPair as [string, string];
-    });
+    return this.storage.map(([fieldId, content]) => [this.fieldInfos[fieldId].name, content]);
   }
 }
 
