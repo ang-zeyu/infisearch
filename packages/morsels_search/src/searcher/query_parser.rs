@@ -468,7 +468,7 @@ pub mod test {
             stop_words: None,
             ignore_stop_words: false,
             max_term_len: 80,
-        }, true);
+        });
 
         super::parse_query(query.to_owned(), &tokenizer, true).0
     }
@@ -478,7 +478,7 @@ pub mod test {
             stop_words: None,
             ignore_stop_words: false,
             max_term_len: 80,
-        }, true);
+        });
 
         super::parse_query(query.to_owned(), &tokenizer, false).0
     }
@@ -489,7 +489,7 @@ pub mod test {
             stop_words: None,
             ignore_stop_words: true,
             max_term_len: 80,
-        }, true);
+        });
 
         super::parse_query(query.to_owned(), &tokenizer, true).0
     }

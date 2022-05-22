@@ -72,7 +72,7 @@ pub struct Searcher {
 #[cfg(feature = "lang_ascii")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
     if let Some(options) = &mut lang_config.options {
-        Box::new(ascii::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap(), true))
+        Box::new(ascii::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
     } else {
         Box::new(ascii::Tokenizer::default())
     }
@@ -81,7 +81,7 @@ fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchToken
 #[cfg(feature = "lang_latin")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
     if let Some(options) = &mut lang_config.options {
-        Box::new(latin::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap(), true))
+        Box::new(latin::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
     } else {
         Box::new(latin::Tokenizer::default())
     }

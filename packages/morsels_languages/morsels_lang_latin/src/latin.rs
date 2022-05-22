@@ -7,15 +7,20 @@ use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use smartstring::alias::String as SmartString;
 
-use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, IndexerTokenizer, SearchTokenizer};
+#[cfg(feature = "indexer")]
+use morsels_common::tokenize::IndexerTokenizer;
+use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
+#[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
 use morsels_lang_ascii::stop_words::{get_stop_words_set, get_default_stop_words_set};
+#[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::term_filter;
 
 pub struct Tokenizer {
     pub stop_words: HashSet<String>,
+    #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
     stemmer: Stemmer,
     max_term_len: usize,
@@ -25,6 +30,7 @@ fn get_default_max_term_len() -> usize {
     80
 }
 
+#[cfg(feature = "indexer")]
 fn get_default_ignore_stop_words() -> bool {
     false
 }
@@ -33,6 +39,7 @@ impl Default for Tokenizer {
     fn default() -> Tokenizer {
         Tokenizer {
             stop_words: get_default_stop_words_set(),
+            #[cfg(feature = "indexer")]
             ignore_stop_words: get_default_ignore_stop_words(),
             stemmer: Stemmer::create(Algorithm::English),
             max_term_len: get_default_max_term_len(),
@@ -43,6 +50,7 @@ impl Default for Tokenizer {
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
+    #[cfg(feature = "indexer")]
     #[serde(default="get_default_ignore_stop_words")]
     ignore_stop_words: bool,
     pub stemmer: Option<String>,
@@ -50,7 +58,7 @@ pub struct TokenizerOptions {
     pub max_term_len: usize,
 }
 
-pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenizer {
+pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
     let stop_words = if let Some(stop_words) = options.stop_words {
         get_stop_words_set(stop_words)
     } else {
@@ -85,7 +93,8 @@ pub fn new_with_options(options: TokenizerOptions, for_search: bool) -> Tokenize
 
     Tokenizer {
         stop_words,
-        ignore_stop_words: if for_search { false } else { options.ignore_stop_words },
+        #[cfg(feature = "indexer")]
+        ignore_stop_words: options.ignore_stop_words,
         stemmer,
         max_term_len: options.max_term_len
     }

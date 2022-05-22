@@ -4,4 +4,5 @@ pub mod stop_words;
 pub mod utils;
 
 #[macro_use]
+#[cfg(feature = "indexer")]
 extern crate lazy_static;

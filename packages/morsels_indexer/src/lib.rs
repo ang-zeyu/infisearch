@@ -436,14 +436,14 @@ impl Indexer {
         match lang_config.lang.as_str() {
             "ascii" => {
                 if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(ascii::new_with_options(serde_json::from_value(options.clone()).unwrap(), false))
+                    Arc::new(ascii::new_with_options(serde_json::from_value(options.clone()).unwrap()))
                 } else {
                     Arc::new(ascii::Tokenizer::default())
                 }
             }
             "latin" => {
                 if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(latin::new_with_options(serde_json::from_value(options.clone()).unwrap(), false))
+                    Arc::new(latin::new_with_options(serde_json::from_value(options.clone()).unwrap()))
                 } else {
                     Arc::new(latin::Tokenizer::default())
                 }
