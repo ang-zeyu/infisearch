@@ -1,7 +1,5 @@
 import Query from './Query';
-import {
-  FieldInfo, MorselsConfigRaw, MorselsConfig,
-} from './FieldInfo';
+import { MorselsConfig } from './FieldInfo';
 import { SearcherOptions } from './SearcherOptions';
 import Result from './Result';
 import { QueryPart } from '../parser/queryParser';
@@ -68,12 +66,7 @@ class Searcher {
 
     this.setupPromise = this.retrieveConfig()
       .then(() => this.setupCache(cacheName))
-      .then(() => {
-        options.useQueryTermProximity = options.useQueryTermProximity
-            && this.morselsConfig.indexingConfig.withPositions;
-
-        this.worker.postMessage(this.morselsConfig);
-      })
+      .then(() => this.worker.postMessage(this.morselsConfig))
       .then(() => workerSetup)
       .then(() => {
         this.setupFieldStoreCache();
@@ -138,47 +131,20 @@ class Searcher {
   }
 
   private async retrieveConfig(): Promise<void> {
-    const json: MorselsConfigRaw = await (await fetch(`${this.options.url}morsels_config.json`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })).json();
+    this.morselsConfig = await (await fetch(`${this.options.url}morsels_config.json`)).json();
 
-    if (json.ver !== MORSELS_VERSION) {
-      throw new Error('Morsels search version not equal to indexer version!');
+    if (this.morselsConfig.ver !== MORSELS_VERSION) {
+      throw new Error('Morsels search !== indexer version!');
     }
 
     if (!('cacheAllFieldStores' in this.options)) {
-      this.options.cacheAllFieldStores = !!json.cache_all_field_stores;
+      this.options.cacheAllFieldStores = !!this.morselsConfig.cacheAllFieldStores;
     }
 
-    const { field_infos: fieldInfosRaw } = json;
+    this.options.useQueryTermProximity = this.options.useQueryTermProximity
+        && this.morselsConfig.indexingConfig.withPositions;
 
-    const fieldInfos: FieldInfo[] = [];
-    Object.entries(fieldInfosRaw.field_infos_map).forEach(([fieldName, fieldInfo]) => {
-      fieldInfo.name = fieldName;
-      fieldInfos.push(fieldInfo as FieldInfo);
-    });
-    fieldInfos.sort((a, b) => a.id - b.id);
-
-    this.morselsConfig = {
-      indexVer: json.index_ver,
-      lastDocId: json.last_doc_id,
-      indexingConfig: {
-        loaderConfigs: json.indexing_config.loader_configs,
-        plNamesToCache: json.indexing_config.pl_names_to_cache,
-        numDocsPerBlock: json.indexing_config.num_docs_per_block,
-        numPlsPerDir: json.indexing_config.num_pls_per_dir,
-        withPositions: json.indexing_config.with_positions,
-      },
-      langConfig: json.lang_config,
-      fieldInfos,
-      numScoredFields: fieldInfosRaw.num_scored_fields,
-      fieldStoreBlockSize: fieldInfosRaw.field_store_block_size,
-      numStoresPerDir: fieldInfosRaw.num_stores_per_dir,
-      searcherOptions: this.options,
-    };
+    this.morselsConfig.searcherOptions = this.options;
   }
 
   private deleteQuery(query: string, queryId: number) {

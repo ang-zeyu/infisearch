@@ -28,6 +28,7 @@ use crate::incremental_info::IncrementalIndexInfo;
 use crate::fieldinfo::FieldInfo;
 use crate::fieldinfo::FieldInfos;
 use crate::fieldinfo::FieldsConfig;
+use crate::fieldinfo::FieldInfoOutput;
 use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
@@ -181,6 +182,7 @@ impl MorselsConfig {
 
 // Separate struct to support serializing for --config-init option but not output config
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct MorselsIndexingOutputConfig {
     loader_configs: FxHashMap<String, Box<dyn Loader>>,
     pl_names_to_cache: Vec<u32>,
@@ -190,6 +192,7 @@ struct MorselsIndexingOutputConfig {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MorselsOutputConfig<'a> {
     ver: &'static str,
     index_ver: String,
@@ -197,7 +200,10 @@ pub struct MorselsOutputConfig<'a> {
     indexing_config: MorselsIndexingOutputConfig,
     lang_config: &'a MorselsLanguageConfig,
     cache_all_field_stores: bool,
-    field_infos: &'a FieldInfos,
+    field_infos: Vec<FieldInfoOutput>,
+    num_scored_fields: usize,
+    field_store_block_size: u32,
+    num_stores_per_dir: u32,
 }
 
 impl Default for MorselsConfig {
@@ -649,7 +655,10 @@ impl Indexer {
             },
             lang_config: &self.lang_config,
             cache_all_field_stores: self.cache_all_field_stores,
-            field_infos: &self.field_infos,
+            field_infos: self.field_infos.to_output(),
+            num_scored_fields: self.field_infos.num_scored_fields,
+            field_store_block_size: self.field_infos.field_store_block_size,
+            num_stores_per_dir: self.field_infos.num_stores_per_dir,
         })
         .unwrap();
 

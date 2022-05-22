@@ -94,7 +94,7 @@ pub struct FieldConfig {
     pub b: f32,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct FieldInfo {
     pub id: u8,
     pub do_store: bool,
@@ -104,11 +104,9 @@ pub struct FieldInfo {
 }
 
 // Initialised json field configuration
-#[derive(Serialize)]
 pub struct FieldInfos {
     pub field_infos_map: FxHashMap<String, FieldInfo>,
 
-    #[serde(skip_serializing)]
     pub field_infos_by_id: Vec<FieldInfo>,
 
     pub num_scored_fields: usize,
@@ -117,8 +115,17 @@ pub struct FieldInfos {
 
     pub num_stores_per_dir: u32,
 
-    #[serde(skip_serializing)]
     pub field_output_folder_path: PathBuf,
+}
+
+#[derive(Serialize)]
+pub struct FieldInfoOutput {
+    pub id: u8,
+    pub name: String,
+    pub do_store: bool,
+    pub weight: f32,
+    pub k: f32,
+    pub b: f32,
 }
 
 impl FieldInfos {
@@ -148,5 +155,23 @@ impl FieldInfos {
             num_stores_per_dir,
             field_output_folder_path,
         }
+    }
+
+    pub fn to_output(&self) -> Vec<FieldInfoOutput> {
+        let mut field_infos: Vec<FieldInfoOutput> = Vec::with_capacity(self.field_infos_map.len());
+
+        for (field_name, field_info) in self.field_infos_map.iter() {
+            field_infos.push(FieldInfoOutput {
+                id: field_info.id,
+                name: field_name.to_owned(),
+                do_store: field_info.do_store,
+                weight: field_info.weight,
+                k: field_info.k, b: field_info.b,
+            })
+        }
+
+        field_infos.sort_by(|field_info_1, field_info_2| field_info_1.id.cmp(&field_info_2.id));
+
+        field_infos
     }
 }
