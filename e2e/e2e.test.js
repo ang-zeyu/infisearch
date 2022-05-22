@@ -141,6 +141,14 @@ const testSuite = async (configFile) => {
   await waitNoResults();
 
   await clearInput();
+  await typeText('npm AND NOT run AND NOT packages');
+  await waitNoResults();
+
+  await clearInput();
+  await typeText('npm AND run AND setup');
+  await assertSingle('npm run setup');
+
+  await clearInput();
   await typeText('body:"Once you have you test files"');
   await assertSingle('once you have you test files');
 

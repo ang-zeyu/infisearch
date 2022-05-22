@@ -27,8 +27,12 @@ impl DocInfo {
             }
         }
 
-        let doc_length_factors_len = doc_length_factors.len() as u32;
-        DocInfo { doc_length_factors, doc_length_factors_len, num_docs, num_fields }
+        DocInfo {
+            doc_length_factors,
+            doc_length_factors_len: doc_id_counter,
+            num_docs,
+            num_fields,
+        }
     }
 
     #[inline(always)]
