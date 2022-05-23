@@ -392,9 +392,7 @@ impl Indexer {
 
         self.incremental_info.write_info(&self.output_folder_path);
 
-        if !self.is_deletion_only_run() {
-            spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
-        }
+        spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
 
         print_time_elapsed(&instant, "Blocks merged!");
 

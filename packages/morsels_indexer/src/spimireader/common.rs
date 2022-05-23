@@ -11,9 +11,9 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
+use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 
-use crossbeam::channel::{Receiver, Sender};
 use morsels_common::FILE_EXT;
 use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME};
 
@@ -197,8 +197,7 @@ pub fn cleanup_blocks(first_block: u32, last_block: u32, output_folder_path: &Pa
     for idx in first_block..(last_block + 1) {
         let block_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", idx));
         let block_dict_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", idx));
-        std::fs::remove_file(&block_file_path).expect("Failed to cleanup temporary bsbi_block file!");
-        std::fs::remove_file(&block_dict_file_path)
-            .expect("Failed to cleanup temporary bsbi_block_dict file!");
+        std::fs::remove_file(&block_file_path).unwrap_or(());
+        std::fs::remove_file(&block_dict_file_path).unwrap_or(());
     }
 }
