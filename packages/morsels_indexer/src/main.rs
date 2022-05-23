@@ -3,8 +3,9 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use morsels_indexer::indexer::Indexer;
+use morsels_indexer::indexer::input_config::MorselsConfig;
 use morsels_indexer::i_debug;
-use morsels_indexer::MorselsConfig;
 
 use log::LevelFilter;
 use log::{info, error};
@@ -124,7 +125,7 @@ fn main() {
     );
 
     if args.config_init {
-        morsels_indexer::Indexer::write_morsels_source_config(MorselsConfig::default(), &config_file_path);
+        Indexer::write_morsels_source_config(MorselsConfig::default(), &config_file_path);
         return;
     }
 
@@ -133,7 +134,7 @@ fn main() {
         None => return,
     };
 
-    let mut indexer = morsels_indexer::Indexer::new(
+    let mut indexer = Indexer::new(
         &output_folder_path,
         config,
         args.incremental,

@@ -9,10 +9,9 @@ use rustc_hash::FxHashMap;
 
 use morsels_common::tokenize::IndexerTokenizer;
 
+use crate::fieldinfo::{FieldInfo, FieldInfos};
 #[cfg(debug_assertions)]
 use crate::i_debug;
-use crate::FieldInfo;
-use crate::FieldInfos;
 
 #[derive(Default)]
 pub struct DocField {

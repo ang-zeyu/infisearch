@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 use rustc_hash::FxHashMap;
 use smartstring::LazyCompact;
@@ -18,15 +19,13 @@ use morsels_common::utils::varint::decode_var_int;
 
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldInfos;
+use crate::incremental_info::IncrementalIndexInfo;
+use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
 use crate::utils::varint;
-use crate::IncrementalIndexInfo;
-use crate::MainToWorkerMessage;
-use crate::MorselsIndexingConfig;
-use crate::Receiver;
-use crate::Sender;
+use crate::worker::MainToWorkerMessage;
 
 struct ExistingPlWriter {
     curr_pl: u32,

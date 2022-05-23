@@ -6,13 +6,13 @@ use std::str;
 use std::sync::Arc;
 
 use byteorder::{ByteOrder, LittleEndian};
+use crossbeam::channel::Sender;
 use dashmap::DashMap;
 
 use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::docinfo::DocInfos;
 use crate::utils::varint;
-use crate::MainToWorkerMessage;
-use crate::Sender;
+use crate::worker::MainToWorkerMessage;
 
 pub struct PostingsStreamReader {
     pub idx: u32,

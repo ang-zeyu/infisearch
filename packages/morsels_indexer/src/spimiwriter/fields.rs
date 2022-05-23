@@ -3,9 +3,9 @@ use std::fs::OpenOptions;
 use std::io::{Seek, SeekFrom, Write};
 use std::sync::Arc;
 
+use crate::fieldinfo::FieldInfos;
 use crate::utils::bufwriter::ReusableWriter;
 use crate::worker::miner::WorkerMinerDocInfo;
-use crate::FieldInfos;
 
 
 #[allow(clippy::too_many_arguments)]

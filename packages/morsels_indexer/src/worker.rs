@@ -12,37 +12,18 @@ use crossbeam::channel::{Receiver, Sender};
 use morsels_common::tokenize::IndexerTokenizer;
 
 use crate::i_debug;
+use crate::docinfo::DocInfos;
+use crate::fieldinfo::FieldInfos;
+use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::loader::LoaderResult;
 use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
 use crate::spimiwriter;
 use crate::worker::miner::WorkerBlockIndexResults;
-use crate::DocInfos;
-use crate::FieldInfos;
-use crate::Indexer;
-use crate::MorselsIndexingConfig;
 use miner::WorkerMiner;
 
 pub struct Worker {
     pub id: usize,
     pub join_handle: thread::JoinHandle<()>,
-}
-
-impl Indexer {
-    pub fn terminate_all_workers(self) {
-        drop(self.tx_main);
-
-        for worker in self.workers {
-            worker.join_handle.join().expect("Failed to join worker.");
-        }
-    }
-
-    pub fn wait_on_all_workers(&self) {
-        let receive_work_barrier: Arc<Barrier> = Arc::new(Barrier::new(self.indexing_config.num_threads + 1));
-        for _i in 0..self.indexing_config.num_threads {
-            self.tx_main.send(MainToWorkerMessage::Synchronize(Arc::clone(&receive_work_barrier))).unwrap();
-        }
-        receive_work_barrier.wait();
-    }
 }
 
 pub enum MainToWorkerMessage {
@@ -75,7 +56,7 @@ pub struct WorkerToMainMessage {
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn worker(
+pub fn create_worker(
     id: usize,
     sndr: Sender<WorkerToMainMessage>,
     rcvr: Receiver<MainToWorkerMessage>,

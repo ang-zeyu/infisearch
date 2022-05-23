@@ -3,14 +3,13 @@ use std::collections::BinaryHeap;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
+use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 #[cfg(debug_assertions)]
 use log::warn;
 
 use super::{PostingsStreamDecoder, TermDocsForMerge};
-use crate::MainToWorkerMessage;
-use crate::Receiver;
-use crate::Sender;
+use crate::worker::MainToWorkerMessage;
 
 pub static POSTINGS_STREAM_BUFFER_SIZE: usize = 3000;
 

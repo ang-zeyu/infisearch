@@ -13,18 +13,17 @@ use std::sync::Arc;
 
 use dashmap::DashMap;
 
+use crossbeam::channel::{Receiver, Sender};
 use morsels_common::FILE_EXT;
 use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME};
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
 use crate::docinfo::DocInfos;
+use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::utils::bufwriter::ReusableWriter;
 use crate::utils::varint;
-use crate::MainToWorkerMessage;
-use crate::MorselsIndexingConfig;
-use crate::Receiver;
-use crate::Sender;
+use crate::worker::MainToWorkerMessage;
 
 #[derive(Default)]
 pub struct TermDocsForMerge {

@@ -6,20 +6,19 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldInfos;
+use crate::incremental_info::IncrementalIndexInfo;
+use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::i_debug;
 use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
 use crate::utils::varint;
-use crate::IncrementalIndexInfo;
-use crate::MainToWorkerMessage;
-use crate::MorselsIndexingConfig;
-use crate::Receiver;
-use crate::Sender;
+use crate::worker::MainToWorkerMessage;
 
 #[allow(clippy::too_many_arguments)]
 pub fn merge_blocks(
