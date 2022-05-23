@@ -26,7 +26,7 @@ module.exports = (env) => merge(common(env), {
         publicPath: '/3',
       },
       {
-        directory: path.join(__dirname, 'e2e/output'),
+        directory: path.join(__dirname, 'e2e'),
         publicPath: '/e2e',
       },
     ],

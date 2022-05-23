@@ -16,10 +16,17 @@ async function clearInput() {
   expect(numChildren).toBe(0);
 }
 
-async function typePhrase(phrase) {
-  await page.type(INPUT_SELECTOR, `"${phrase}"`);
-  const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
-  expect(inputVal).toBe(`"${phrase}"`);
+async function typePhraseOrAnd(phrase, with_positions) {
+  if (with_positions) {
+    await page.type(INPUT_SELECTOR, `"${phrase}"`);
+    const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
+    expect(inputVal).toBe(`"${phrase}"`);
+  } else {
+    const query = phrase.split(/\s+/g).join(' AND ');
+    await page.type(INPUT_SELECTOR, query);
+    const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
+    expect(inputVal).toBe(query);
+  }
 }
 
 async function typeText(text) {
@@ -102,7 +109,10 @@ async function reloadPage() {
   await jestPuppeteer.resetPage();
   await jestPuppeteer.resetBrowser();
   await page.goto(
-    'http://localhost:8080?mode=target&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2F&resultsPerPage=100',
+    'http://localhost:8080?mode=target'
+      + '&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Foutput%2F'
+      + '&sourceFilesUrl=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Finput%2F'
+      + '&resultsPerPage=100',
     { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 },
   );
   await expect(page.title()).resolves.toMatch('Morsels');
@@ -120,7 +130,7 @@ beforeAll(async () => {
   await reloadPage();
 });
 
-const testSuite = async (configFile) => {
+const testSuite = async (configFile, with_positions = true) => {
   runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output -c ${configFile}`);
 
   console.log('Ran full indexer run');
@@ -132,9 +142,11 @@ const testSuite = async (configFile) => {
   await typeText('npm AND run AND dev AND installmdbook');
   await assertSingle('use the npm run dev script');
 
-  await clearInput();
-  await typeText('"npm run dev" AND (installmdbook 8080)');
-  await assertSingle('use the npm run dev script');
+  if (with_positions) {
+    await clearInput();
+    await typeText('"npm run dev" AND (installmdbook 8080)');
+    await assertSingle('use the npm run dev script');
+  }
 
   await clearInput();
   await typeText('npm AND run AND dev AND nonexistentterm');
@@ -148,27 +160,29 @@ const testSuite = async (configFile) => {
   await typeText('npm AND run AND setup');
   await assertSingle('npm run setup');
 
-  await clearInput();
-  await typeText('body:"Once you have you test files"');
-  await assertSingle('once you have you test files');
-
-  await clearInput();
-  await typeText('title:"Once you have you test files"');
-  await waitNoResults();
-
-  await clearInput();
-  await typeText('title:"Developing - Morsels Documentation"');
-  await assertSingle('developing - morsels documentation');
-
-  await clearInput();
-  await typeText('heading:"Developing - Morsels Documentation"');
-  await waitNoResults();
+  if (with_positions) {
+    await clearInput();
+    await typeText('body:"Once you have you test files"');
+    await assertSingle('once you have you test files');
+  
+    await clearInput();
+    await typeText('title:"Once you have you test files"');
+    await waitNoResults();
+  
+    await clearInput();
+    await typeText('title:"Developing - Morsels Documentation"');
+    await assertSingle('developing - morsels documentation');
+  
+    await clearInput();
+    await typeText('heading:"Developing - Morsels Documentation"');
+    await waitNoResults();
+  }
   // ------------------------------------------------------
 
   // ------------------------------------------------------
   // Simple phrase query test on another docid
   await clearInput();
-  await typePhrase('forenote on mobile device detection');
+  await typePhraseOrAnd('forenote on mobile device detection', with_positions);
   await assertSingle('forenote on mobile device detection');
   // ------------------------------------------------------
 
@@ -203,19 +217,23 @@ const testSuite = async (configFile) => {
   // ------------------------------------------------------
   // JsonLoader tests
   await clearInput();
-  await typePhrase('Lorem Ipsum is simply dummy text');
+  await typePhraseOrAnd('Lorem Ipsum is simply dummy text', with_positions);
   await assertSingle('lorem ipsum is simply dummy text');
 
   await clearInput();
-  await typePhrase('test many json 2');
+  await typePhraseOrAnd('test many json 2', with_positions);
   await assertSingle('test many json 2');
   // ------------------------------------------------------
 
   // ------------------------------------------------------
   // CsvLoader tests
-  await clearInput();
-  await typePhrase('this is the second csv document');
-  await assertSingle('this is the second csv document');
+  // For now, the only with_positions test also uses source files to generate result previews,
+  // and csvs aren't supported with this.
+  if (with_positions) {
+    await clearInput();
+    await typePhraseOrAnd('this is the second csv document', with_positions);
+    await assertSingle('this is the second csv document');
+  }
   // ------------------------------------------------------
 
   // ------------------------------------------------------
@@ -223,7 +241,7 @@ const testSuite = async (configFile) => {
 
   // 1, to be deleted later
   await clearInput();
-  await typePhrase('This URL is invalid');
+  await typePhraseOrAnd('This URL is invaldi', with_positions);
   await waitNoResults();
 
   fs.copyFileSync(
@@ -233,12 +251,12 @@ const testSuite = async (configFile) => {
   runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
 
   await reloadPage();
-  await typePhrase('This URL is invalid');
+  await typePhraseOrAnd('This URL is invaldi', with_positions);
   await assertSingle('this url is invalid');
 
   // 2, to be updated later
   await clearInput();
-  await typePhrase('Contributions of any form');
+  await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
   const contributingHtmlOutputPath = path.join(__dirname, 'input/contributing.html');
@@ -249,7 +267,7 @@ const testSuite = async (configFile) => {
   runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
   
   await reloadPage();
-  await typePhrase('Contributions of any form');
+  await typePhraseOrAnd('Contributions of any form', with_positions);
   await assertSingle('contributions of any form');
 
   // ------------------------------------------------------
@@ -261,7 +279,7 @@ const testSuite = async (configFile) => {
   runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
   
   await reloadPage();
-  await typePhrase('This URL is invalid');
+  await typePhraseOrAnd('This URL is invaldi', with_positions);
   await waitNoResults();
 
   // also assert incremental indexing is actually run
@@ -276,7 +294,7 @@ const testSuite = async (configFile) => {
   // Test incremental indexing update
 
   await clearInput();
-  await typePhrase('Contributions of all forms');
+  await typePhraseOrAnd('Contributions of all forms', with_positions);
   await waitNoResults();
 
   let contributingHtml = fs.readFileSync(contributingHtmlOutputPath, 'utf-8');
@@ -287,11 +305,11 @@ const testSuite = async (configFile) => {
   runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
 
   await reloadPage();
-  await typePhrase('Contributions of any form');
+  await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
   await clearInput();
-  await typePhrase('Contributions of all forms');
+  await typePhraseOrAnd('Contributions of all forms', with_positions);
   await assertSingle('contributions of all forms');
 
   await clearInput();
@@ -309,11 +327,11 @@ const testSuite = async (configFile) => {
   runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
   
   await reloadPage();
-  await typePhrase('Contributions of any form');
+  await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
   await clearInput();
-  await typePhrase('Contributions of all forms');
+  await typePhraseOrAnd('Contributions of all forms', with_positions);
   await waitNoResults();
 
   await clearInput();
@@ -377,6 +395,15 @@ test('Test with different field and block size configs', async () => {
   cleanup();
   console.log('Starting morsels_config_3 tests');
   await testSuite('e2e/input/morsels_config_3.json');
+
+  outputConfig = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
+  );
+  expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
+
+  // No positions, uses source files to generate result previews
+  console.log('Starting morsels_config_4 tests');
+  await testSuite('e2e/input/morsels_config_4.json', false);
 
   outputConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
