@@ -2,11 +2,12 @@
 
 This page assumes the use case of a **static site**, that is:
 - You have some `.html` files you want to index.
-- These `.html` files are served in a static file server, and are accessible by `@morsels/search-ui` to generate result previews.
+- These `.html` files are served in a static file server, and are linkable to.
 - You have an `<input>` element to attach a search dropdown to.
   - For mobile devices, a fullscreen UI will show instead when this input element is focused.
-  - Note that this documentation is using an alternative UI mode (try out the search function!), which is covered later under [search configuration](./search_configuration.md#ui-mode).
-    To preview the default mode, head on over to the mdbook page [here](./getting_started_mdbook.md#preview), and click on the **auto** button.
+
+> This documentation uses an alternative interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
+> To preview the defaults, head on over [here](./getting_started_mdbook.md#preview), and click on the <kbd>Auto</kbd> button.
 
 If you require more, have a look through here first, then head on over to the subsequent configuration pages.
 
@@ -28,10 +29,8 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 
 ### Other Cli Options
 
-- `--config-init`: While optional, if it is your first time running the tool, you can run the above command with this flag, then **run it again without this flag**.
-This flag outputs the default `morsels_config.json` that can be used to [configure the indexer](./indexer_configuration.md) later on, and does not perform any indexing.
 - `-c <config-file-path>`: You may also change the config file location (relative to the `source-folder-path`) using the `-c <config-file-path>` option.
-- `--preserve-output-folder`: **All existing contents** in the output folder are also **removed** when running a full index. Specify this option to avoid this.
+- `--preserve-output-folder`: All existing contents in the output folder are also removed when running a full index. Specify this option to avoid this.
 
 ## Installing the search library / UI
 

@@ -1,19 +1,23 @@
 # Tradeoffs
 
-When configuring morsels, there are several tradeoffs you need to keep in mind, which varies greatly on depending on your collection and use case. 
+> This page goes *into detail* on how the various indexer presets (`small`, `medium`, ...) are configured, what tradeoffs they make, and is a (mostly) optional read.
 
-## Possible Tradeoffs
+## Overview
 
-The possible tradeoffs are marked with ✔️. Those that are likely impossible are marked ❌ (or in other words, you likely need a search server / SaaS for these options). Some options that are possible but are relatively undesirable (for which better equivalent options exist) are marked ⚪. The default tradeoff is marked ⭐.
+Each preset largely makes a tradeoff between your document collection size and the number of rounds of network requests to make. File bloat is also discussed, if it is of concern.
+
+> The last column, `RTT=3`, is included only for hypothetical discussion but not present in any of the presets!
+
+The possible tradeoffs are marked with ✔️. Those that are likely impossible are marked ❌ (or in other words, you likely need a search server / SaaS for these options). Options that are possible but are relatively undesirable (for which better equivalent options exist) are marked ⚪. The default tradeoff is marked ⭐. Some roughly equivalent / adjacent options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.
 
 Latency is labelled in terms of `RTT` (round trip time), the maximum of which is `3`. Also note that the labelled `RTT` times are **maximums**. (e.g. if files are served from cache instead)
 
 | Factor                                                                            | `RTT=0`         | `RTT=1`      | `RTT=2`     | `RTT=3`   |
 | -----------                                                                       | -----------     | -----------  | ----------- | --------- |
-| Fair Scalability,<br><span style="color: green">Little</span> File bloat          | ✔️ | ⚪ | ⚪ | ⚪
+| Fair Scalability,<br><span style="color: green">Little</span> File bloat          | ⭐ | ⚪ | ⚪ | ⚪
 | Fair Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | ⚪ | ⚪ | ⚪ | ⚪
 | Fair Scalability,<br><span style="color: red">Heavy</span> File bloat             | ⚪ | ⚪ | ⚪ | ⚪
-| Good Scalability,<br><span style="color: green">Little</span> File bloat          | ❌ | ⭐ | ✔️ | ⚪
+| Good Scalability,<br><span style="color: green">Little</span> File bloat          | ❌ | ✔️ | ✔️ | ⚪
 | Good Scalability,<br><span style="color: #ff8a0f">Moderate</span> File bloat      | ❌ | ✔️ | ✔️ | ⚪
 | Good Scalability,<br><span style="color: red">Heavy</span> File bloat             | ❌ | ✔️ | ✔️ | ⚪
 | Excellent Scalability,<br><span style="color: green">Little</span> File bloat     | ❌ | ❌ | ❌ | ✔️
@@ -21,13 +25,11 @@ Latency is labelled in terms of `RTT` (round trip time), the maximum of which is
 | Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat        | ❌ | ❌ | ✔️ | ⚪
 | Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)      | ❌ | ❌ | ❌ | ❌
 
-> Some roughly equivalent / nearby options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.
-
 ### Monolithic Index
 
 Of particular note, the only possible option under `RTT=0` is equivalent to using some other existing client side search library and generating a monolithic prebuilt index **and** document/field store (used for generating result previews).
 
-You may still want to use morsels since it packages a search UI, or, if you prefer the simplicity of a cli indexer tool (e.g. for CI).
+You may still want to use morsels since it packages a search UI, or, if you prefer the simplicity of a cli indexer tool (e.g. for CI build tools).
 
 
 ## Configuration

@@ -1,14 +1,13 @@
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufReader, Read, Write, BufWriter};
-use std::iter::FromIterator;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use log::{info, warn};
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
-use normalize_line_endings::normalized;
+use serde_json::Value;
 
 use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME};
 use morsels_common::{bitmap, BitmapDocinfoDicttableReader};
@@ -71,7 +70,7 @@ impl IncrementalIndexInfo {
 
     pub fn new_from_output_folder(
         output_folder_path: &Path,
-        raw_config_normalised: &str,
+        json_config: &Value,
         is_incremental: &mut bool,
         use_content_hash: bool,
         bitmap_docinfo_dicttable: Option<&mut BitmapDocinfoDicttableReader>,
@@ -95,8 +94,9 @@ impl IncrementalIndexInfo {
         if let Ok(mut file) = File::open(output_folder_path.join("old_morsels_config.json")) {
             let mut old_config = "".to_owned();
             file.read_to_string(&mut old_config).expect("Unable to read old config file");
-            let old_config_normalised = &String::from_iter(normalized(old_config.chars()));
-            if raw_config_normalised != old_config_normalised {
+            let old_json_config: Value = serde_json::from_str(&old_config)
+                .expect("old_morsels_config.json does not match schema!");
+            if *json_config != old_json_config {
                 info!("Configuration file changed. Running a full reindex.");
                 *is_incremental = false;
                 return IncrementalIndexInfo::empty(use_content_hash);

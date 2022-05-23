@@ -1,3 +1,7 @@
+mod preset;
+mod preset_small;
+mod preset_medium;
+mod preset_large;
 
 use morsels_common::MorselsLanguageConfig;
 
@@ -11,13 +15,18 @@ use crate::loader::txt::TxtLoader;
 use glob::Pattern;
 use rustc_hash::FxHashMap;
 use serde::{Serialize, Deserialize};
+use serde_json::Value;
+
+fn get_default_preset() -> String {
+    "small".to_owned()
+}
 
 fn get_default_num_threads() -> usize {
     std::cmp::max(num_cpus::get_physical() - 1, 1)
 }
 
 fn get_default_pl_limit() -> u32 {
-    5242880
+    std::u32::MAX
 }
 
 fn get_default_num_docs_per_block() -> u32 {
@@ -45,7 +54,7 @@ fn get_default_num_pls_per_dir() -> u32 {
 }
 
 fn get_default_with_positions() -> bool {
-    true
+    false
 }
 
 #[derive(Serialize, Deserialize)]
@@ -124,6 +133,8 @@ impl MorselsIndexingConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct MorselsConfig {
+    #[serde(default = "get_default_preset")]
+    pub preset: String,
     #[serde(default)]
     pub fields_config: FieldsConfig,
     #[serde(default)]
@@ -131,26 +142,46 @@ pub struct MorselsConfig {
     #[serde(default)]
     pub indexing_config: MorselsIndexingConfig,
     #[serde(skip)]
-    pub raw_config: String,
+    pub json_config: Value,
 }
 
 impl MorselsConfig {
     pub fn new(raw_config: String) -> Self {
         let mut config: MorselsConfig = serde_json::from_str(&raw_config)
             .expect("morsels_config.json does not match schema!");
-        config.raw_config = raw_config;
+        let json_config: Value = serde_json::from_str(&raw_config)
+            .expect("morsels_config.json does not match schema!");
+
+        match config.preset.as_str() {
+            "small" => {
+                preset_small::apply_config(&mut config, &json_config);
+            },
+            "medium" => {
+                preset_medium::apply_config(&mut config, &json_config);
+            },
+            "medium_source" => {
+                preset_medium::apply_source_file_config(&mut config, &json_config);
+            },
+            "large" => {
+                preset_large::apply_config(&mut config, &json_config);
+            },
+            "large_source" => {
+                preset_large::apply_source_file_config(&mut config, &json_config);
+            },
+            _ => {
+                // ignore invalid presets
+            }
+        }
+
+        config.json_config = json_config;
         config.indexing_config.init_excludes();
+
         config
     }
 }
 
 impl Default for MorselsConfig {
     fn default() -> Self {
-        MorselsConfig {
-            indexing_config: MorselsIndexingConfig::default(),
-            lang_config: MorselsLanguageConfig::default(),
-            fields_config: FieldsConfig::default(),
-            raw_config: "".to_owned(),
-        }
+        MorselsConfig::new("{}".to_owned())
     }
 }

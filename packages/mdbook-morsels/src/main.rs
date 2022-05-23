@@ -134,18 +134,9 @@ fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::Pa
 fn auto_scale_config(morsels_config_path: &Path, total_len: u64, debug: bool) {
     let config = fs::read_to_string(morsels_config_path).unwrap();
     let mut config_as_value: JsonValue = serde_json::from_str(&config).expect("unexpected error parsing search config file");
-    let indexing_config = config_as_value.get_mut("indexing_config");
-    if indexing_config.is_none() {
-        config_as_value.as_object_mut().unwrap().insert("indexing_config".to_owned(), json!("{}"));
-    }
-    let indexing_config = config_as_value
-        .get_mut("indexing_config")
-        .unwrap()
-        .as_object_mut()
-        .expect("indexing_config is not an object");
 
     if debug {
-        indexing_config.insert(
+        config_as_value.as_object_mut().unwrap().insert(
             "_total_len".to_owned(),
             json!(format!("This is debugging metadata for the mdbook plugin. Total len: {}", total_len))
         );
@@ -156,70 +147,13 @@ fn auto_scale_config(morsels_config_path: &Path, total_len: u64, debug: bool) {
     const BOUNDARY_2_START: u64 = 10000001;
     // 100MB
     const BOUNDARY_2_END: u64   = 100000000;
-    match total_len {
-        0..=BOUNDARY_2_END => {
-            indexing_config.insert("num_docs_per_block".to_owned(), json!(1000));
-            indexing_config.insert("pl_limit".to_owned(), json!(2097151));
-            indexing_config.insert("pl_cache_threshold".to_owned(), json!(0));
-        },
-        _ => {
-            indexing_config.insert("num_docs_per_block".to_owned(), json!(1000));
-            indexing_config.insert("pl_limit".to_owned(), json!(16383));
-            indexing_config.insert("pl_cache_threshold".to_owned(), json!(1048576));
-        }
-    }
-    let fields_config = config_as_value.get_mut("fields_config");
-    if fields_config.is_none() {
-        config_as_value.as_object_mut().unwrap().insert("fields_config".to_owned(), json!("{}"));
-    }
-    let fields_config = config_as_value
-        .get_mut("fields_config")
-        .expect("fields_config is missing!")
-        .as_object_mut()
-        .expect("fields_config is not an object");
-    let set_field_do_store = |fields: &mut Vec<JsonValue>, name: &str, val: bool| {
-        let field = fields
-            .iter_mut()
-            .find(|val|
-                val.as_object()
-                    .expect("encountered non object in fields_config.fields")
-                    .get("name")
-                    .expect("fields_config.fields object missing key \"name\"")
-                    .as_str()
-                    .expect("fields_config.fields.name is not a string")
-                == name
-            )
-            .expect(&("fields_config.fields is missing ".to_owned() + name))
-            .as_object_mut()
-            .unwrap();
-        field.insert("do_store".to_owned(), json!(val));
+
+    let preset = match total_len {
+        0..=BOUNDARY_1_END => "small",
+        BOUNDARY_2_START..=BOUNDARY_2_END => "medium",
+        _ => "large"
     };
-    match total_len {
-        0..=BOUNDARY_1_END => {
-            fields_config.insert("field_store_block_size".to_owned(), json!(250));
-            fields_config.insert("cache_all_field_stores".to_owned(), json!(true));
-        },
-        BOUNDARY_2_START..=BOUNDARY_2_END => {
-            fields_config.insert("field_store_block_size".to_owned(), json!(3));
-            fields_config.insert("cache_all_field_stores".to_owned(), json!(false));
-        },
-        _ => {
-            fields_config.insert("field_store_block_size".to_owned(), json!(1));
-            fields_config.insert("cache_all_field_stores".to_owned(), json!(false));
-        }
-    }
-
-    let fields = fields_config
-        .get_mut("fields")
-        .expect("fields_config.fields is missing!")
-        .as_array_mut()
-        .expect("fields_config.fields is not an array");
-
-    // All scaling levels prefer json stores for now
-    set_field_do_store(fields, "title", true);
-    set_field_do_store(fields, "heading", true);
-    set_field_do_store(fields, "headingLink", true);
-    set_field_do_store(fields, "body", true);
+    config_as_value.as_object_mut().unwrap().insert("preset".to_owned(), json!(preset));
 
     fs::write(
         &morsels_config_path,

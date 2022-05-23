@@ -93,7 +93,7 @@ Unless you have modified the default result renderer (covered in the next page o
 
 #### Default Rendering Output / Purpose
 
-The default result generation assumes the simple but common use case of linking to a source document (via an `<a>` tag). 
+The default use case / result generation assumes the simple but common use case of linking to a source document (via an `<a>` tag). 
 
 Therefore, source documents are assumed to be **available** and **linkable** to. The url of this source document is **either**:
 1. The `sourceFilesUrl` option concatenated with the relative file path of the document at the time of indexing **(default)**.
@@ -105,9 +105,11 @@ The use of the default indexed fields in the UI is as shown in the following dia
 
 ![](./images/fields_annotated.png)
 
+Some indexer configuration [presets](./indexer/presets.md) are available to help with switching between options 1 and 2 easily.
+
 To generate alternative outputs for other use cases (e.g. buttons, perform some action), you will need to use option 3 below.
 
-#### 1. From Source Documents (default)
+#### 1. From Source Documents
 
 When option 2 below (field stores) is not configured or unavailable, morsels will attempt to *retrieve and reparse the source document and its fields* in order to generate result previews.
 
@@ -115,9 +117,9 @@ Note that this option is only applicable for indexed html, json, and txt files a
 
 As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, options 2 or 3 can be used.
 
-#### 2. From Field Stores
+#### 2. From Field Stores (default)
 
-Morsels is also able to generate result previews from its own *json field stores* generated at indexing time.
+Morsels is also able to generate result previews from its own json field stores generated at indexing time.
 
 In order to specify what fields to store, and how to map file data to these fields, refer to the chapter on [fields](./indexer/fields.md) under indexer configuration.
 

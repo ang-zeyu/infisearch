@@ -5,7 +5,6 @@ mod worker;
 
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
-use std::iter::FromIterator;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -29,7 +28,6 @@ use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
-use normalize_line_endings::normalized;
 
 pub struct Indexer {
     indexing_config: Arc<MorselsIndexingConfig>,
@@ -67,8 +65,6 @@ impl Indexer {
         // -----------------------------------------------------------
         // Initialise the previously indexed metadata, if any
 
-        let raw_config_normalised = &String::from_iter(normalized(config.raw_config.chars()));
-
         let bitmap_docinfo_dicttable_path = output_folder_path.join(BITMAP_DOCINFO_DICT_TABLE_FILE);
         let mut bitmap_docinfo_dicttable_rdr = if let Ok(mut file) = File::open(bitmap_docinfo_dicttable_path) {
             let mut buf = Vec::new();
@@ -80,7 +76,7 @@ impl Indexer {
 
         let mut incremental_info = IncrementalIndexInfo::new_from_output_folder(
             output_folder_path,
-            raw_config_normalised,
+            &config.json_config,
             &mut is_incremental,
             use_content_hash,
             bitmap_docinfo_dicttable_rdr.as_mut(),
@@ -124,10 +120,11 @@ impl Indexer {
         // -----------------------------------------------------------
         // Store the current raw json configuration file, for checking if it changed in the next run
 
-        File::create(output_folder_path.join("old_morsels_config.json"))
-            .expect("error creating old config file")
-            .write_all(raw_config_normalised.as_bytes())
-            .expect("error writing old config");
+        fs::write(
+            output_folder_path.join("old_morsels_config.json"),
+            serde_json::to_string_pretty(&config.json_config).unwrap(),
+        )
+        .expect("Failed to write old_morsels_config.json");
 
         // -----------------------------------------------------------
 

@@ -83,5 +83,6 @@
   "lang_config": {
     "lang": "ascii",
     "options": null
-  }
+  },
+  "preset": "small"
 }

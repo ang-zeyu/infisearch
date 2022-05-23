@@ -9,7 +9,7 @@ The snippet below shows the default values:
 ```json
 {
   "indexing_config": {
-    "num_threads": 5,
+    "num_threads": <number of physical cpus> - 1,
 
     "num_docs_per_block": 1000,
 
@@ -27,7 +27,7 @@ The snippet below shows the default values:
 
     "num_pls_per_dir": 1000,
 
-    "with_positions": true
+    "with_positions": false
   }
 }
 ```
