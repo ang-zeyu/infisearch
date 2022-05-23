@@ -72,8 +72,9 @@ impl ExistingPlWriter {
                 is_last = self.pl_vec[pl_vec_pos] & 0x80;
                 pl_vec_pos += 1;
 
+                let field_tf = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
+
                 if self.with_positions {
-                    let field_tf = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
                     for _j in 0..field_tf {
                         // Not interested in positions here, just decode and forward pos
                         decode_var_int(&self.pl_vec, &mut pl_vec_pos);
