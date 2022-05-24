@@ -48,7 +48,9 @@ module.exports = (env) => merge(common(env), {
   },
   plugins: [
     new HtmlWebpackPlugin({
+      title: 'Morsels Dev Site',
       scriptLoading: 'blocking',
+      favicon: path.join(__dirname, 'packages/search-ui/public/favicon.ico'),
       template: './packages/search-ui/public/template.html',
     }),
   ],

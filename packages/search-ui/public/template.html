@@ -90,18 +90,22 @@
       </div>
       <div class="d-flex justify-content-center w-75 flex-wrap">
         <script>
+          function getOrigin() {
+            return new URL(window.location.href).origin;
+          }
+
           function changeUrl(number) {
             const params = new URLSearchParams(window.location.search);
             if (params.get('url')) {
-              params.set('url', `http://localhost:8080/${number}/output/`);
+              params.set('url', `${getOrigin()}/${number}/output/`);
             } else {
-              params.set('url', `http://localhost:8080/${number}/output/`);
+              params.set('url', `${getOrigin()}/${number}/output/`);
             }
 
             if (params.get('sourceFilesUrl')) {
-              params.set('sourceFilesUrl', `http://localhost:8080/${number}/source/`);
+              params.set('sourceFilesUrl', `${getOrigin()}/${number}/source/`);
             } else {
-              params.set('sourceFilesUrl', `http://localhost:8080/${number}/source/`);
+              params.set('sourceFilesUrl', `${getOrigin()}/${number}/source/`);
             }
 
             window.location.href = window.location.href.replace(/(\?.+)|$/, `?${params.toString()}`);
@@ -189,12 +193,11 @@
     </div>
   </body>
   <script>
-    const defaultHost = 'localhost';
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode') || 'auto';
-    const url = params.get('url') || 'http://localhost:8080/2/output/';
+    const url = params.get('url') || `${getOrigin()}/2/output/`;
     const resultsPerPage = Number(params.get('resultsPerPage')) || 8;
-    const sourceFilesUrl = params.get('sourceFilesUrl') || 'http://localhost:8080/2/source/';
+    const sourceFilesUrl = params.get('sourceFilesUrl') || `${getOrigin()}/2/source/`;
 
     const searcherOptions = { url };
     const cacheAllFieldStores = params.get('cacheAllFieldStores')
