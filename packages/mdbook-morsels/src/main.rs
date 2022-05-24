@@ -190,13 +190,15 @@ static STYLES: &str = r#"
     --morsels-item-border-radius: 10px;
     --morsels-item-sub-border: 0;
     --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-fg: var(--fg);
     --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--bg);
-    --morsels-title-hover-bg: var(--fg);
+    --morsels-title-hover-fg: var(--fg);
+    --morsels-title-hover-bg: var(--table-header-bg);
     --morsels-heading-bg: var(--table-alternate-bg);
     --morsels-heading-hover-bg: var(--table-header-bg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
+    --morsels-highlight-bg: none;
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);

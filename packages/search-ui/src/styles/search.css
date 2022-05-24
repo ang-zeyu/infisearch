@@ -1,49 +1,50 @@
 .morsels-root {
     --morsels-dropdown-max-width: 512px;
-    --morsels-dropdown-max-height: 30em;
+    --morsels-dropdown-max-height: 32em;
     --morsels-font-size: 14px;
     --morsels-border: none;
-    --morsels-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
+    --morsels-box-shadow: 0 0 5px rgb(220, 220, 220);
     --morsels-fg: black;
     --morsels-bg: white;
     --morsels-dropdown-input-separator-bg: white;
     --morsels-item-border: none;
     --morsels-item-border-radius: 8px;
-    --morsels-item-box-shadow: 0 1px 3px rgba(196, 192, 187, 0.5);
+    --morsels-item-box-shadow: 0 1px 3px rgb(230, 230, 230), -2px 1px 3px rgb(238, 238, 238), 2px 1px 3px rgb(238, 238, 238);
     --morsels-item-sub-border: none;
     --morsels-title-fg: rgb(20, 20, 20);
-    --morsels-title-bg: hsl(35, 100%, 92%);
-    --morsels-title-hover-fg: rgb(10, 10, 10);
-    --morsels-title-hover-bg: hsl(35, 100%, 88%);
+    --morsels-title-bg: rgb(248, 248, 248);
+    --morsels-title-hover-fg: black;
+    --morsels-title-hover-bg: rgb(188, 224, 254);
     --morsels-heading-fg: var(--morsels-fg);
-    --morsels-heading-bg: hsl(35, 50%, 99%);
+    --morsels-heading-bg: rgb(253, 253, 253);
     --morsels-heading-hover-fg: var(--morsels-fg);
-    --morsels-heading-hover-bg: var(--morsels-title-bg);
+    --morsels-heading-hover-bg: rgb(188, 224, 254);
     --morsels-body-fg: var(--morsels-fg);
-    --morsels-body-bg: var(--morsels-bg);
+    --morsels-body-bg: rgb(253, 253, 253);
     --morsels-body-hover-fg: var(--morsels-fg);
-    --morsels-body-hover-bg: hsl(35, 95%, 97%);
-    --morsels-highlight: #ef9001;
+    --morsels-body-hover-bg: rgb(188, 224, 254);
+    --morsels-highlight: rgb(30, 148, 244);
+    --morsels-highlight-bg: none;
     --morsels-error-fg: black;
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
-    --morsels-loading-bg: #fed;
-    --morsels-loading-secondary-bg: #ef9001;
-    --morsels-scrollbar-bg: rgba(213, 177, 137, 0.15);
-    --morsels-scrollbar-thumb-bg: rgba(213, 177, 137, 0.5);
+    --morsels-loading-bg: rgba(99, 186, 255, 0.4);
+    --morsels-loading-secondary-bg: rgba(99, 186, 255, 0.7);
+    --morsels-scrollbar-bg: rgb(248, 248, 248);
+    --morsels-scrollbar-thumb-bg: rgb(240, 240, 240);
     --morsels-fullscreen-border: 3px solid var(--morsels-fullscreen-header-bg);
     --morsels-fullscreen-box-shadow: 0 0 10px 3px rgb(218, 214, 208);
     --morsels-fullscreen-desktop-width: 650px;
     --morsels-fullscreen-desktop-height: 70%;
-    --morsels-fullscreen-header-bg: rgb(255, 255, 255);
-    --morsels-fullscreen-header-border-bottom: 1px solid rgba(190, 190, 190, 0.3);
-    --morsels-fullscreen-input-border: 2px solid rgba(253, 202, 144, 0.37);
-    --morsels-fullscreen-input-focus-border: 2px solid rgba(255, 169, 66, 0.8);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px rgba(255, 169, 66, 0.8);
-    --morsels-fullscreen-header-close-bg: rgb(255, 255, 255);
-    --morsels-fullscreen-header-close-fg: rgb(253, 202, 144);
-    --morsels-fullscreen-header-close-hover-bg: rgba(246, 170, 73, 0.7);
+    --morsels-fullscreen-header-bg: rgb(248, 248, 248);
+    --morsels-fullscreen-header-border-bottom: 1px solid rgb(235, 235, 235);
+    --morsels-fullscreen-input-border: 2px solid rgb(240, 240, 240);
+    --morsels-fullscreen-input-focus-border: 2px solid rgba(99, 186, 255, 0.4);
+    --morsels-fullscreen-input-focus-box-shadow: 0 0 4px rgba(99, 186, 255, 0.7);
+    --morsels-fullscreen-header-close-bg: rgb(248, 248, 248);
+    --morsels-fullscreen-header-close-fg: rgb(80, 80, 80);
+    --morsels-fullscreen-header-close-hover-bg: rgba(80, 80, 80, 0.7);
     --morsels-fullscreen-header-close-hover-fg: rgb(255, 255, 255);
-    --morsels-fullscreen-header-close-active-bg: rgba(246, 170, 73, 0.95);
+    --morsels-fullscreen-header-close-active-bg: rgba(80, 80, 80, 0.95);
     --morsels-fullscreen-header-close-active-fg: rgb(255, 255, 255);
     display: inline-block;
     position: relative;
@@ -250,13 +251,13 @@
     border: var(--morsels-item-border);
     border-radius: var(--morsels-item-border-radius);
     box-shadow: var(--morsels-item-box-shadow);
-    margin: 18px 5px;
+    margin: 10px 5px 0 5px;
     overflow: hidden;
 }
 
 @media screen and (min-width: 1025px) {
     .morsels-list-item {
-        margin: 18px 12px;
+        margin: 15px 12px;
     }
 
     .morsels-list-item:first-child {
@@ -274,10 +275,10 @@
     color: var(--morsels-title-fg);
     line-height: 1.4em;
     word-break: break-word;
-    padding: 3px 50px 2px 7px;
+    padding: 3px 7px 2px 7px;
     background: var(--morsels-title-bg);
-    font-size: 1.03em;
-    font-weight: 600;
+    font-size: 1.02em;
+    font-weight: 500;
 }
 
 @media (hover: hover) {
@@ -306,7 +307,7 @@
 
 .morsels-heading {
     width: 25%;
-    font-size: 1em;
+    font-size: 0.96em;
     word-break: break-word;
     padding: 3px 3px 4px 7px;
     display: inline-block;
@@ -371,7 +372,8 @@
 }
 
 .morsels-highlight {
-    background-color: var(--morsels-highlight);
+    color: var(--morsels-highlight);
+    background-color: var(--morsels-highlight-bg);
     font-weight: bold;
 }
 
