@@ -57,7 +57,7 @@ impl SearchDictionary for Dictionary {
         let mut min_edit_distance: usize = 3;
 
         for (term, term_info) in self.term_infos.iter() {
-            if ((term.len() as i32 - base_term_char_count as i32).abs() as usize) > min_edit_distance {
+            if term.chars().count().abs_diff(base_term_char_count) > min_edit_distance {
                 continue;
             }
 
