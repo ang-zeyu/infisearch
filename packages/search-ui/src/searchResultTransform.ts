@@ -62,15 +62,16 @@ function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchResult {
         continue;
       }
 
-      const matchedText = match[2];
-      if (matchedText.length > maxMatchLengths[idx]) {
+      // match[3] is not highlighted but allows lookahead / changing the match length priority
+      const matchedTextLen = match[2].length + match[3].length;
+      if (matchedTextLen > maxMatchLengths[idx]) {
         // Prefer longer matches across all regexes
         hasLongerMatch = true;
-        maxMatchLengths[idx] = matchedText.length;
+        maxMatchLengths[idx] = matchedTextLen;
       }
-      isEqualMatch = isEqualMatch && matchedText.length === maxMatchLengths[idx];
+      isEqualMatch = isEqualMatch && matchedTextLen === maxMatchLengths[idx];
 
-      const pos = match.index;
+      const pos = match.index + match[1].length;
       if (!hasFinished[idx] && pos < lowestMatchPosExclFinished) {
         lowestMatchPosExclFinished = pos;
         // Find the match with the smallest position for forwarding later
@@ -90,7 +91,7 @@ function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchResult {
     ) {
       lastClosestWindowLen = windowLen;
       lastClosestTermPositions = [...matchPositions];
-      lastClosestTermLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][0].length);
+      lastClosestTermLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][2].length);
     }
 
     // Forward the match with the smallest position
@@ -511,20 +512,20 @@ export function resultsRender(
     const innerTermsJoined = innerTerms
       .map(t => {
         searchedTerms.push(t);
-        return `(${escapeStringRegexp(t)})`;
+        return escapeStringRegexp(t);
       })
       .sort((a, b) => b.length - a.length)
       .join('|');
 
     // A little hardcoded, not so pretty but gets the job done for now
     if (config.langConfig.lang === 'ascii') {
-      const boundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})(?=\\W|$)`, 'gi');
+      const boundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})((?=\\W|$))`, 'gi');
       termRegexes.push(boundariedRegex);
     } else if (config.langConfig.lang === 'latin') {
-      const nonEndBoundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined}\\W?)`, 'gi');
+      const nonEndBoundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})(\\W?)`, 'gi');
       termRegexes.push(nonEndBoundariedRegex);
     } else if (config.langConfig.lang === 'chinese') {
-      const nonBoundariedRegex = new RegExp(`()(${innerTermsJoined})`, 'gi');
+      const nonBoundariedRegex = new RegExp(`()(${innerTermsJoined})()`, 'gi');
       termRegexes.push(nonBoundariedRegex);
     }
   }
