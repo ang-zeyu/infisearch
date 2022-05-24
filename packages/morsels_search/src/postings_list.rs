@@ -197,11 +197,6 @@ impl PostingsList {
         td
     }
 
-    pub async fn response_to_vec(pl_resp: Response) -> Result<Vec<u8>, JsValue> {
-        let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
-        Ok(js_sys::Uint8Array::new(&pl_array_buffer).to_vec())
-    }
-
     #[allow(clippy::too_many_arguments)]
     pub async fn fetch_term(
         &mut self,
@@ -226,25 +221,9 @@ impl PostingsList {
             + "."
             + FILE_EXT;
 
-        let cache = JsFuture::from(
-            window.caches().unwrap().open(&("morsels:".to_owned() + base_url))
-        ).await;
-
-        let pl_resp = if let Ok(cache) = cache {
-            let cache: Cache = cache.dyn_into().unwrap();
-            let cache_entry = JsFuture::from(cache.match_with_str(&url)).await?;
-            let cache_response: Result<Response, _> = cache_entry.dyn_into();
-            if let Ok(pl_resp) = cache_response {
-                pl_resp
-            } else {
-                fetch_pl(window, url).await?
-            }
-        } else {
-            // Cache API blocked / unsupported (e.g. firefox private)
-            fetch_pl(window, url).await?
-        };
-
-        let pl_vec = PostingsList::response_to_vec(pl_resp).await?;
+        let pl_resp = fetch_pl(window, url, base_url).await?;
+        let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
+        let pl_vec = js_sys::Uint8Array::new(&pl_array_buffer).to_vec();
 
         let mut pos = term_info.postings_file_offset as usize;
 
@@ -299,7 +278,26 @@ impl PostingsList {
     }
 }
 
-async fn fetch_pl(window: &web_sys::Window, url: String) -> Result<Response, JsValue> {
+async fn fetch_pl(window: &web_sys::Window, url: String, base_url: &str) -> Result<Response, JsValue> {
+    if let Ok(caches) = window.caches() {
+        if !caches.is_undefined() {
+            let cache = JsFuture::from(
+                caches.open(&("morsels:".to_owned() + base_url))
+            ).await;
+    
+            if let Ok(cache) = cache {
+                let cache: Cache = cache.dyn_into().unwrap();
+                let cache_entry = JsFuture::from(cache.match_with_str(&url)).await?;
+                let cache_response: Result<Response, _> = cache_entry.dyn_into();
+                if let Ok(pl_resp) = cache_response {
+                    return Ok(pl_resp);
+                }
+            }
+        }
+    }
+
+    // Not in cache
+    // or Cache API blocked / unsupported (e.g. firefox private) / no https
     let fetch_promise = window.fetch_with_str(&url);
     let pl_resp_value = JsFuture::from(fetch_promise).await?;
     let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
