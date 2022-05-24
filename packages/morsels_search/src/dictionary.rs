@@ -54,7 +54,11 @@ impl SearchDictionary for Dictionary {
         let mut max_doc_freq = 0;
 
         let base_term_char_count = misspelled_term.chars().count();
-        let mut min_edit_distance: usize = 3;
+        let mut min_edit_distance: usize = match base_term_char_count {
+            0..=3 => 1,
+            4..=7 => 2,
+            _ => 3,
+        };
 
         for (term, term_info) in self.term_infos.iter() {
             if term.chars().count().abs_diff(base_term_char_count) > min_edit_distance {
