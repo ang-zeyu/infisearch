@@ -174,89 +174,14 @@ fn get_config_file_path(root: &Path, config: Option<&Value>) -> std::path::PathB
 pub struct Morsels;
 
 static INPUT_EL: &str = "\n<input
-    type=\"text\"
+    type=\"search\"
     id=\"morsels-search\"
     placeholder=\"Search\"
 />\n\n
 <span style=\"font-weight: 600;\"><!--preload weight 600--></span>\n\n
 <ul class=\"morsels-root\" id=\"morsels-mdbook-target\"></ul>\n\n";
 
-static STYLES: &str = r#"
-<style>
-.light .morsels-root,
-.rust .morsels-root,
-.coal .morsels-root,
-.navy .morsels-root,
-.ayu .morsels-root {
-    --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-bg: var(--bg);
-    --morsels-item-border-radius: 10px;
-    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
-    --morsels-item-sub-border: 0;
-    --morsels-title-fg: var(--fg);
-    --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--fg);
-    --morsels-title-hover-bg: var(--table-header-bg);
-    --morsels-heading-fg: var(--fg);
-    --morsels-heading-bg: var(--table-alternate-bg);
-    --morsels-heading-hover-fg: var(--fg);
-    --morsels-heading-hover-bg: var(--table-header-bg);
-    --morsels-body-fg: var(--fg);
-    --morsels-body-bg: var(--bg);
-    --morsels-body-hover-fg: var(--fg);
-    --morsels-body-hover-bg: var(--table-alternate-bg);
-    --morsels-highlight: var(--search-mark-bg);
-    --morsels-highlight-bg: none;
-    --morsels-error-fg: var(--fg);
-    --morsels-fine-print-fg: var(--fg);
-    --morsels-loading-bg: var(--fg);
-    --morsels-loading-secondary-bg: var(--fg);
-    --morsels-scrollbar-bg: var(--sidebar-bg);
-    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-box-shadow: none;
-    --morsels-fullscreen-header-bg: var(--sidebar-bg);
-    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
-    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
-    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
-    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
-}
-
-.coal .morsels-root,
-.navy .morsels-root,
-.ayu .morsels-root {
-    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
-}
-
-#morsels-search {
-    width: 100%;
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 16px;
-    padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
-    background: var(--searchbar-bg);
-    color: var(--searchbar-fg);
-    outline: none;
-}
-
-@media print {
-    #morsels-search {
-        display: none;
-    }
-}
-
-#morsels-mdbook-target {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-</style>
-"#;
+static STYLES: &str = include_str!("morsels.css");
 
 fn get_css_el(base_url: &str, ctx: &PreprocessorContext) -> String {
     let mut output = String::new();
@@ -269,10 +194,10 @@ fn get_css_el(base_url: &str, ctx: &PreprocessorContext) -> String {
 
     if add_css {
         output.push_str(&format!(
-            "<link rel=\"stylesheet\" href=\"{}morsels_assets/search-ui.css\">\n",
-            base_url
+            "<link rel=\"stylesheet\" href=\"{}morsels_assets/search-ui.css\">\n\n<style>{}</style>\n",
+            base_url,
+            STYLES,
         ));
-        output.push_str(STYLES);
     }
 
     output
