@@ -8,7 +8,7 @@ The secondary value proposition versus other pre-built index alternatives is the
 
 - Multi-threaded CLI indexer powered by Rust
 
-- Various search features, such as boolean queries, field filters, phrase queries, BM25 scoring, query term proximity boosts and WebWorker built-in
+- Various search features, such as boolean queries, field filters, phrase queries, BM25 scoring, query term proximity boosts, persistent caching and WebWorker built-in
 
 - Powered by WebAssembly, enabling efficient index decompression and query processing 
 
@@ -54,5 +54,17 @@ This project is currently made up of 1 exposed crate and npm package, which may 
 
 ## Other Limitations
 
-- The project uses WebAssembly. If IE support is needed, you'll have to look elsewhere =(
-- For now, the focus is on providing e2e search functionalities in the **browser**. That means no Node.js support and such.
+1. **Latency** & File Bloat
+
+   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree. (see this [demo](https://ang-zeyu.github.io/morsels-demo-1/))
+
+   This tool should be able to handle `800MB` **pure text** (not counting things like html soup) collections with the full set of features enabled and some configuration tweaking.
+
+   Nevertheless, this tradeoff can also be [configured](https://ang-zeyu.github.io/morsels/tradeoffs.html#tradeoffs) to varying degrees. That is, by default, Morsels can, and does function much like other existing monolithic pre-built index options in terms of the number of network requests.
+
+2. **Wasm** -- no IE support =(
+
+3. **Not production ready!**
+
+4. **Browser Focused**: For now, the focus is on providing e2e search functionalities in the browser. That means no Node.js support and such.
+

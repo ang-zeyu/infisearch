@@ -9,7 +9,7 @@ This page assumes the use case of a **static site**, that is:
 > This documentation uses an alternative interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
 > To preview the defaults, head on over [here](./getting_started_mdbook.md#preview), and click on the <kbd>Auto</kbd> button.
 
-If you require more, have a look through here first, then head on over to the subsequent configuration pages.
+If you require more (e.g. indexing custom json files), have a look through here first, then head on over to the subsequent configuration pages.
 
 ## Installing the indexer
 
@@ -32,7 +32,7 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 - `-c <config-file-path>`: You may also change the config file location (relative to the `source-folder-path`) using the `-c <config-file-path>` option.
 - `--preserve-output-folder`: All existing contents in the output folder are also removed when running a full index. Specify this option to avoid this.
 
-## Installing the search library / UI
+## Installing the search UI
 
 ### Installation via CDN
 
@@ -47,7 +47,7 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 
 > ⚠️ Ensure the versions here **tally with the indexer version** used.
 
-#### Hosting the Files Locally
+### Hosting the Files
 
 If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). All files inside `search.morsels.zip` are required:
 
@@ -60,37 +60,9 @@ If you wish to serve the files locally instead, you can find the necessary files
 
 > ⚠️ All files are expected to be **accessible in the same folder** relative to the linked `search-ui.bundle.js`.
 
-### Installation via Bundlers
+### UI Initialisation
 
-As morsels consists of a javascript (typescript) and rust portion enabled by WebAssembly, including it into your project's bundling / build process is likely infeasible, as rust / wasm compilation takes a lot of time (and requires [extra toolchains](./developers_setting_up.md)).
-
-Instead, use the file copying functionalities of your bundler to copy morsels' assets into the appropriate output directories.
-
-
-For example, using the [CopyWebpackPlugin](https://webpack.js.org/plugins/copy-webpack-plugin/), the following (untested) setup should be all you need:
-
-```js
-// Under plugins configuration
-new CopyPlugin({
-  patterns: [
-    {
-      from: path.join(require.resolve('@morsels/search-ui'), 'dist'),
-      to: "dest" // change as appropriate
-    },
-  ],
-})
-```
-
-
-```html
-<!-- Replace links as appropriate -->
-<script src=".../search-ui.bundle.js"></script>
-<script src=".../search-ui.css"></script>
-```
-
-### Initialisation Call
-
-Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function.
+Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function in your page.
 
 This **requires an input element** with an id of `morsels-search` to be present in the page by default, which can be configured via `uiOptions.input`.
 

@@ -97,6 +97,3 @@ You can also try out the different **themes** on this documentation using mdbook
 *Gif of* `mode='fullscreen'` *across the different themes*
 </figcaption>
 </figure>
-
-
-Also note that unlike the default search feature, the search bar is always there -- there is no search icon on the navbar to click. I am still trying to figure how to add this nicely (without runtime hacks) within mdbook's plugin framework :)
