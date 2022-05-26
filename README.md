@@ -31,9 +31,9 @@ That said, the indexing tool was built with support for a few other file formats
 
 ## Getting Started
 
-Powering static site search requires only a folder of your HTML files. Titles, links, headings, etc. are automatically sourced.
+Powering static site search requires just a folder of your HTML files! Titles, links, headings, etc. are automatically sourced.
 
-Please check out the [documentation](http://ang-zeyu.github.io/morsels/), which also uses Morsels for its search function.
+Please check out the [documentation](http://ang-zeyu.github.io/morsels/getting_started.html), which also uses Morsels for its search function.
 
 ## Demo
 

@@ -8,11 +8,11 @@ There are 2 categories of options, the first being related to internal search li
 
 ## Forenote on Mobile Device Detection
 
-Note that several options in both the search library and UI are (by default) tuned based on whether the client is a "mobile device":
+Note that some options in both the search library and UI are (by default) tuned based on whether the client is a "mobile device":
 - Query term proximity ranking is disabled
 - The fullscreen version of the user interface is used for `mode='auto'` (see [UI Mode](#ui-mode))
 
-Overrides and the process of this detection is configurable, and will be covered in a later section.
+Overrides and the process of this detection is configurable, and will be covered later.
 
 ---
 
@@ -30,13 +30,13 @@ initMorsels({
 
 For brevity, this page covers only a subset of the most important options.
 
-The subsequent sub-chapter on [renderers](./search_configuration_renderers.md) provides a more advanced API to customise the html output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!
+The subsequent [sub-chapter](./search_configuration_renderers.md) provides a few more APIs to customise the HTML output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!
 
 ### Input Element
 
 | Option      | Default Value | Description |
 | ----------- | ----------- | ----------- |
-| `input`     | `'morsels-search'` | `id` of the input element or a html element reference |
+| `input`     | `'morsels-search'` | `id` of the input element or a HTML element reference |
 | `inputDebounce`     | `100` | debounce time of keystrokes to the input element |
 | `preprocessQuery`   | `(q) => q` | any function for preprocessing the query. Can be used to add a [field filter](./search_features.md#field-search) for example. |
 
@@ -113,7 +113,7 @@ To generate alternative outputs for other use cases (e.g. buttons, perform some 
 
 When option 2 below (field stores) is not configured or unavailable, morsels will attempt to *retrieve and reparse the source document and its fields* in order to generate result previews.
 
-Note that this option is only applicable for indexed html, json, and txt files at this time.
+Note that this option is only applicable for indexed HTML, json, and txt files at this time.
 
 As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, options 2 or 3 can be used.
 

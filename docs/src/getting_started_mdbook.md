@@ -30,7 +30,7 @@ enable = false               # disable the default mdBook search feature impleme
 
 [preprocessor.morsels]
 command = "mdbook-morsels"
-renderer = ["html"]          # this should only be run for the html renderer
+renderer = ["html"]          # this should only be run for the HTML renderer
 
 # Plugin configuration options (optional)
 [output.morsels]

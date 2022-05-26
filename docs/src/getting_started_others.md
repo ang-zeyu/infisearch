@@ -28,10 +28,10 @@ jobs:
           folder: <docs_build_folder>
 ```
 
-## Custom Data Formats (non `.html`)
+## Custom Data Formats (non-HTML)
 
-Some use cases may not always have `.html` files readily available (e.g. pure client-side rendered ones) or in the right format.
+Some use cases may not always have HTML files readily available (e.g. pure client-side rendered projects).
 
 In such cases, morsels also supports `.json` and `.csv` files, which is covered in greater detail later under [indexer configuration](./indexer_configuration.md).
 
-Another simpler (but likely slow) alternative you could consider specifically for client-side rendered projects is to display the page in a headless browser, then index said html file.
+Another simpler (but likely slow) alternative you could consider specifically for client-side rendered projects is to display the page in a headless browser, then index said HTML file.

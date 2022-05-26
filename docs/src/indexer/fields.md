@@ -98,7 +98,7 @@ The functions of the default fields for the user interface are as follows:
 - `headingLink`: These are the `id` attributes of corresponding `<h1-6>` tags. If available, an `#anchor` is attached to the linked document for the particular heading
 - `body`: This field is the text that appears to the right of headings (or on its own if there is no corresponding heading).
 - `_relative_fp` **or** `link`: If the `title` field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the `<a />` tag) or for generating result previews (more [here](../search_configuration.md#default-rendering-output--purpose)).
-  - Note: The `link` field is not setup by default; The combination of `sourceFilesUrl` + `_relative_fp` serves the same purpose. The `link` field serves to accomodate more custom use cases (e.g. linking to another site, or linking to a html page by indexing a json document).
+  - Note: The `link` field is not setup by default; The combination of `sourceFilesUrl` + `_relative_fp` serves the same purpose. The `link` field serves to accomodate more custom use cases (e.g. linking to another site, or linking to a HTML page by indexing a json document).
 
 
 

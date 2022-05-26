@@ -37,7 +37,7 @@ The snippet below shows the default values:
 
 **`loader_configs`**
 
-The indexer is able to handle data from html, json, csv or txt files. Support for each file type is provided by a `Loader` abstraction.
+The indexer is able to handle data from HTML, json, csv or txt files. Support for each file type is provided by a `Loader` abstraction.
 
 You may configure loaders by **including them under the `loader_configs` key**, with any applicable options.
 

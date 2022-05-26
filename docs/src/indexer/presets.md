@@ -1,12 +1,12 @@
 # Presets
 
-5 configuration presets are designed primarily for use with Morsels' main intended use case supporting static site search).
+5 configuration presets are designed primarily for use with Morsels' main intended use case of supporting static site search.
 
 Each preset primarily makes a tradeoff between the document collection size it can support, and the number of rounds of network requests (`RTT`). Morsels also supports generating result previews from [source files](../search_configuration.md#1-from-source-documents), if it is preferable (e.g. to reduce file bloat from additional field stores).
 
-The default preset is `small`, which generates a monolithic index and field store, much like other client side indexing tools. You may still want to use morsels since it packages a search UI, or, if you prefer the simplicity of a cli indexer tool (e.g. for CI build tools)
+The default preset is `small`, which generates a monolithic index and field store, much like other client side indexing tools.
 
-Specify the `preset` key in your configuration file to change the preset.
+Specify the `preset` key in your configuration file to change this.
 
 ```json
 {
@@ -40,3 +40,14 @@ Presets modify the following properties:
   - [`pl_cache_threshold`](./indexer/indexing.md#search-performance)
 
 Any of these values specified in the configuration file will override that of the preset's.
+
+
+### Other Options
+
+There are 2 other options especially worth highlighting that can help reduce the index size (and hence support larger collections) in general.
+
+- [`ignore_stop_words=false`](./indexer/language.md#note-on-stop-words)
+- [`with_positions=false`](./indexer/indexing.md#miscellaneous-options)<br>
+  Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size!
+
+If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.

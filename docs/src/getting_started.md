@@ -1,8 +1,8 @@
 # Getting Started
 
 This page assumes the use case of a **static site**, that is:
-- You have some `.html` files you want to index.
-- These `.html` files are served in a static file server, and are linkable to.
+- You have some HTML files you want to index.
+- These HTML files are served in a static file server, and are linkable to.
 - You have an `<input>` element to attach a search dropdown to.
   - For mobile devices, a fullscreen UI will show instead when this input element is focused.
 
