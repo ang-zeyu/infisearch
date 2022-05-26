@@ -13,6 +13,9 @@ function getWorkerLangConfig(lang) {
 }
 
 module.exports = (env) => {
+  const perfOption = env.perf ? ',perf' : '';
+  const perfMode = env.perf ? { forceMode: 'production' } : {};
+
   return {
     entry: {
       'search-ui': {
@@ -43,23 +46,23 @@ module.exports = (env) => {
       ],
     },
     plugins: [
-      !env.perf
-        ? new WasmPackPlugin({
-          crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
-          extraArgs: '-- --no-default-features --features lang_ascii',
-          outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_ascii'),
-        })
-        : new WasmPackPlugin({
-          crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
-          extraArgs: '-- --no-default-features --features lang_ascii,perf',
-          forceMode: 'production',
-          outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_ascii'),
-        }),
       new WasmPackPlugin({
         crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
-        extraArgs: '-- --no-default-features --features lang_latin,perf',
-        forceMode: 'production',
+        extraArgs: '-- --no-default-features --features lang_ascii' + perfOption,
+        outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_ascii'),
+        ...perfMode,
+      }),
+      new WasmPackPlugin({
+        crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
+        extraArgs: '-- --no-default-features --features lang_latin' + perfOption,
         outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_latin'),
+        ...perfMode,
+      }),
+      new WasmPackPlugin({
+        crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
+        extraArgs: '-- --no-default-features --features lang_chinese' + perfOption,
+        outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_chinese'),
+        ...perfMode,
       }),
       new DefinePlugin({
         MORSELS_VERSION: `'${version}'`,
