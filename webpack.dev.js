@@ -52,6 +52,7 @@ module.exports = (env) => merge(common(env), {
       scriptLoading: 'blocking',
       favicon: path.join(__dirname, 'packages/search-ui/public/favicon.ico'),
       template: './packages/search-ui/public/template.html',
+      chunks: ['search-ui'],
     }),
   ],
 });

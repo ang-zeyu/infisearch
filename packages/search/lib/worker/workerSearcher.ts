@@ -41,13 +41,13 @@ export default class WorkerSearcher {
     }
   }
 
-  private async setupWasm(metadataDictStringWasmModule: [ArrayBuffer, ArrayBuffer, any]) {
-    const [metadata, dictString, wasmModule] = metadataDictStringWasmModule;
-    this.wasmModule = wasmModule;
+  private async setupWasm(metadataDictString: [ArrayBuffer, ArrayBuffer], wasmModule: Promise<any>) {
+    const [metadata, dictString] = metadataDictString;
+    this.wasmModule = await wasmModule;
     this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config, metadata, dictString);
   }
 
-  static async setup(data: MorselsConfig): Promise<WorkerSearcher> {
+  static async setup(data: MorselsConfig, wasmModule: Promise<any>): Promise<WorkerSearcher> {
     const workerSearcher = new WorkerSearcher(data);
 
     const baseUrl = data.searcherOptions.url;
@@ -61,7 +61,7 @@ export default class WorkerSearcher {
       // Cache API blocked / unsupported (e.g. firefox private)
     }
 
-    const metadataDictStringWasmModule = await Promise.all([
+    const metadataDictString = await Promise.all([
       (cache
         ? cache.match(metadataUrl)
           .then((resp) => !resp && cache.add(metadataUrl))
@@ -74,13 +74,9 @@ export default class WorkerSearcher {
           .then(() => cache.match(dictStringUrl))
         : fetch(dictStringUrl)
       ).then((resp) => resp.arrayBuffer()),
-      import(
-        /* webpackChunkName: "wasm.[request]" */
-        `@morsels/lang-${data.langConfig.lang}/index.js`
-      ),
     ]);
 
-    await workerSearcher.setupWasm(metadataDictStringWasmModule);
+    await workerSearcher.setupWasm(metadataDictString, wasmModule);
 
     return workerSearcher;
   }

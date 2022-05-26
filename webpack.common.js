@@ -5,6 +5,13 @@ const path = require('path');
 
 const { version } = require('./packages/search/package.json');
 
+function getWorkerLangConfig(lang) {
+  return {
+    import: path.resolve(__dirname, `packages/search/lib/worker/languages/worker-${lang}.ts`),
+    filename: `search-worker-${lang}.bundle.js`,
+  };
+}
+
 module.exports = (env) => {
   return {
     entry: {
@@ -17,6 +24,9 @@ module.exports = (env) => {
           export: 'default',
         },
       },
+      'search-worker-ascii': getWorkerLangConfig('ascii'),
+      'search-worker-latin': getWorkerLangConfig('latin'),
+      'search-worker-chinese': getWorkerLangConfig('chinese'),
     },
     experiments: {
       asyncWebAssembly: true,

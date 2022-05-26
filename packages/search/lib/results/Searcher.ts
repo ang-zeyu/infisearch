@@ -7,6 +7,19 @@ import { getFieldUrl } from '../utils/FieldStore';
 
 declare const MORSELS_VERSION;
 
+// Code from
+/* webpack/runtime/publicPath */
+// manually handled since the WebWorker url is dynamic (based on language)
+// TODO maybe require the worker URL be specified instead
+let scriptUrl: string;
+if (document.currentScript) {
+  scriptUrl = (document.currentScript as HTMLScriptElement).src;
+} else {
+  const scripts = document.getElementsByTagName('script');
+  scriptUrl = scripts.length && scripts[scripts.length - 1].src;
+}
+scriptUrl = scriptUrl.replace(/#.*$/, '').replace(/\?.*$/, '').replace(/\/[^\/]+$/, '/');
+
 class Searcher {
   config: MorselsConfig;
 
@@ -30,44 +43,45 @@ class Searcher {
   private cache: PersistentCache;
 
   constructor(private options: SearcherOptions) {
-    this.worker = new Worker(new URL(
-      /* webpackChunkName: "search.worker" */
-      '../worker/worker.ts', import.meta.url,
-    ));
-
-    const workerSetup: Promise<void> = new Promise((resolve) => {
-      this.worker.onmessage = (ev) => {
-        if (ev.data.isSetupDone) {
-          resolve();
-        } else if (ev.data.query) {
-          const {
-            query,
-            queryId,
-            nextResults,
-            searchedTerms,
-            queryParts,
-          } = ev.data;
-
-          this.queries[query][queryId].resolve({
-            query,
-            nextResults,
-            searchedTerms,
-            queryParts,
-          });
-        }
-      };
-
-      this.worker.onmessageerror = (ev) => {
-        console.log(ev);
-      };
-    });
 
     const cacheName = `morsels:${options.url}`;
 
     this.setupPromise = this.retrieveConfig()
+      .then(() => {
+        this.worker = new Worker(new URL(
+          scriptUrl + `search-worker-${this.config.langConfig.lang}.bundle.js`,
+          document.baseURI || self.location.href,
+        ));
+      })
       .then(() => this.setupCache(cacheName))
-      .then(() => this.worker.postMessage(this.config))
-      .then(() => workerSetup)
+      .then(() => new Promise<void>((resolve) => {
+        this.worker.onmessage = (ev) => {
+          if (ev.data.query) {
+            const {
+              query,
+              queryId,
+              nextResults,
+              searchedTerms,
+              queryParts,
+            } = ev.data;
+
+            this.queries[query][queryId].resolve({
+              query,
+              nextResults,
+              searchedTerms,
+              queryParts,
+            });
+          } else if (ev.data === '') {
+            this.worker.postMessage(this.config);
+          } else if (ev.data.isSetupDone) {
+            resolve();
+          }
+        };
+
+        this.worker.onmessageerror = (ev) => {
+          console.log(ev);
+        };
+      }))
       .then(() => {
         this.setupFieldStoreCache();
         this.setupIndexCache();
