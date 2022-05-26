@@ -297,7 +297,11 @@ function initMorsels(options: SearchUiOptions): {
     let listContainer: HTMLElement;
 
     let scrollListContainer = (targetEl: any) => {
-      listContainer.scrollTo({ top: targetEl.offsetTop - listContainer.offsetTop - 30 });
+      const top = targetEl.offsetTop
+        - listContainer.offsetTop
+        - listContainer.clientHeight / 2
+        + targetEl.clientHeight / 2;
+      listContainer.scrollTo({ top });
     };
 
     const isDropdown = useDropdown(uiOptions);
