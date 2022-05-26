@@ -1,16 +1,17 @@
-import { computePosition, size, flip, arrow } from '@floating-ui/dom';
-
 import './styles/search.css';
 
 import { Searcher } from '@morsels/search-lib';
-import transformResults, { resultsRender } from './searchResultTransform';
+import loadQueryResults from './searchResultTransform';
 import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';
 import createElement, { createInvisibleLoadingIndicator, LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState } from './utils/input';
-import { parseURL } from './utils/url';
+import { prepareOptions } from './search/options';
+import { setCombobox, setInputAria } from './utils/aria';
 
 let isMobileSizeGlobal = false;
 
+let showDropdown: () => void;
+let hideDropdown: () => void;
 let dropdownShown = false;
 let fullscreenShown = false;
 
@@ -19,356 +20,6 @@ function useDropdown(uiOptions: UiOptions): boolean {
   return (uiOptions.mode === UiMode.Auto && !isMobileSizeGlobal)
       || uiOptions.mode === UiMode.Dropdown;
 }
-
-function setCombobox(combobox: HTMLElement, listbox: HTMLElement, label: string) {
-  combobox.setAttribute('role', 'combobox');
-  combobox.setAttribute('aria-expanded', 'true');
-  combobox.setAttribute('aria-owns', listbox.getAttribute('id'));
-  listbox.setAttribute('role', 'listbox');
-  listbox.setAttribute('aria-label', label);
-  listbox.setAttribute('aria-live', 'polite');
-}
-
-function setInputAria(input: HTMLElement, listId: string) {
-  input.setAttribute('aria-autocomplete', 'list');
-  input.setAttribute('aria-controls', listId);
-  input.setAttribute('aria-activedescendant', 'morsels-list-selected');
-}
-
-function prepareOptions(options: SearchUiOptions) {
-  // ------------------------------------------------------------
-  // Search Lib Options
-
-  options.searcherOptions = options.searcherOptions || ({} as any);
-
-  if (!('url' in options.searcherOptions)) {
-    throw new Error('Mandatory url parameter not specified');
-  } else if (!options.searcherOptions.url.endsWith('/')) {
-    options.searcherOptions.url += '/';
-  }
-
-  if (!('numberOfExpandedTerms' in options.searcherOptions)) {
-    options.searcherOptions.numberOfExpandedTerms = 3;
-  }
-
-  if (!('useQueryTermProximity' in options.searcherOptions)) {
-    options.searcherOptions.useQueryTermProximity = !isMobileSizeGlobal;
-  }
-
-  if (!('resultLimit' in options.searcherOptions)) {
-    options.searcherOptions.resultLimit = null; // unlimited
-  }
-
-  // ------------------------------------------------------------
-  // Ui Options
-
-  options.uiOptions = options.uiOptions || ({} as any);
-  const { uiOptions } = options;
-
-  if (uiOptions.sourceFilesUrl && !uiOptions.sourceFilesUrl.endsWith('/')) {
-    uiOptions.sourceFilesUrl += '/';
-  }
-
-  uiOptions.mode = uiOptions.mode || UiMode.Auto;
-
-  if (uiOptions.mode === UiMode.Target) {
-    if (typeof uiOptions.target === 'string') {
-      uiOptions.target = document.getElementById(uiOptions.target);
-    }
-
-    if (!uiOptions.target) {
-      throw new Error('\'target\' mode specified but no valid target option specified');
-    }
-  }
-
-  if (!('input' in uiOptions) || typeof uiOptions.input === 'string') {
-    uiOptions.input = document.getElementById(uiOptions.input as any || 'morsels-search') as HTMLInputElement;
-  }
-
-  if ([UiMode.Dropdown, UiMode.Target].includes(uiOptions.mode) && !uiOptions.input) {
-    throw new Error('\'dropdown\' or \'target\' mode specified but no input element found');
-  }
-
-  if (!('inputDebounce' in uiOptions)) {
-    uiOptions.inputDebounce = 100;
-  }
-
-  uiOptions.preprocessQuery = uiOptions.preprocessQuery || ((q) => q);
-
-  uiOptions.dropdownAlignment = uiOptions.dropdownAlignment || 'bottom-end';
-
-  if (typeof uiOptions.fsContainer === 'string') {
-    uiOptions.fsContainer = document.getElementById(uiOptions.fsContainer) as HTMLElement;
-  }
-  uiOptions.fsContainer = uiOptions.fsContainer || document.getElementsByTagName('body')[0] as HTMLElement;
-
-  uiOptions.resultsPerPage = uiOptions.resultsPerPage || 8;
-
-  const showDropdown = uiOptions.showDropdown || ((root, listContainer) => {
-    if (listContainer.childElementCount) {
-      const innerRoot = root.lastElementChild as HTMLElement;
-      const caret = innerRoot.firstElementChild as HTMLElement;
-      innerRoot.style.display = 'block';
-      computePosition(root, innerRoot, {
-        placement: uiOptions.dropdownAlignment,
-        middleware: [
-          flip({
-            padding: 10,
-            mainAxis: false,
-          }),
-          size({
-            apply({ availableWidth, availableHeight }) {
-              Object.assign(listContainer.style, {
-                maxWidth: `min(${availableWidth}px, var(--morsels-dropdown-max-width))`,
-                maxHeight: `min(${availableHeight}px, var(--morsels-dropdown-max-height))`,
-              });
-            },
-            padding: 10,
-          }),
-          arrow({
-            element: caret,
-          }),
-        ],
-      }).then(({ x, y, middlewareData }) => {
-        Object.assign(innerRoot.style, {
-          left: `${x}px`,
-          top: `${y}px`,
-        });
-
-        const { x: arrowX } = middlewareData.arrow;
-        Object.assign(caret.style, {
-          left: arrowX != null ? `${arrowX}px` : '',
-        });
-      });
-    }
-  });
-  uiOptions.showDropdown = (...args) => {
-    showDropdown(...args);
-    dropdownShown = true;
-  };
-
-  const hideDropdown = uiOptions.hideDropdown || ((root) => {
-    (root.lastElementChild as HTMLElement).style.display = 'none';
-  });
-  uiOptions.hideDropdown = (...args) => {
-    hideDropdown(...args);
-    dropdownShown = false;
-  };
-
-  const showFullscreen = uiOptions.showFullscreen || ((root, listContainer, fsContainer) => {
-    fsContainer.appendChild(root);
-    const input: HTMLInputElement = root.querySelector('input.morsels-fs-input');
-    if (input) {
-      input.focus();
-    }
-  });
-  uiOptions.showFullscreen = (root, listContainer, ...args) => {
-    showFullscreen(root, listContainer, ...args);
-    const currentFocusedResult = listContainer.querySelector('.focus') as HTMLElement;
-    if (currentFocusedResult) {
-      listContainer.scrollTo({ top: currentFocusedResult.offsetTop - listContainer.offsetTop - 30 });
-    }
-    fullscreenShown = true;
-
-  };
-
-  const hideFullscreen = uiOptions.hideFullscreen || ((root) => {
-    // useFullscreen
-    root.remove();
-  });
-  uiOptions.hideFullscreen = (...args) => {
-    hideFullscreen(...args);
-    fullscreenShown = false;
-  };
-
-  uiOptions.label = uiOptions.label || 'Search this site';
-  uiOptions.fsPlaceholder = uiOptions.fsPlaceholder || 'Search this site...';
-  uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
-
-  uiOptions.dropdownRootRender = uiOptions.dropdownRootRender || ((h, opts, inputEl) => {
-    const listContainer = h('ul', {
-      id: 'morsels-dropdown-list',
-      class: 'morsels-list',
-    });
-    const root = h('div', { class: 'morsels-root' },
-      inputEl,
-      h('div',
-        { class: 'morsels-inner-root', style: 'display: none;' },
-        h('div', { class: 'morsels-input-dropdown-separator' }),
-        listContainer,
-      ),
-    );
-
-    setInputAria(inputEl, 'morsels-dropdown-list');
-    setCombobox(root, listContainer, opts.uiOptions.label);
-
-    return {
-      dropdownRoot: root,
-      dropdownListContainer: listContainer,
-    };
-  });
-
-  uiOptions.fsRootRender = uiOptions.fsRootRender || ((
-    h,
-    opts,
-    fsCloseHandler,
-  ) => {
-    const inputEl = h(
-      'input', {
-        class: 'morsels-fs-input',
-        type: 'search',
-        placeholder: opts.uiOptions.fsPlaceholder,
-        autocomplete: 'false',
-        'aria-labelledby': 'morsels-fs-label',
-      },
-    ) as HTMLInputElement;
-    setInputAria(inputEl, 'morsels-fs-list');
-
-    const buttonEl = h('button', { class: 'morsels-input-close-fs' }, opts.uiOptions.fsCloseText);
-    buttonEl.onclick = (ev) => {
-      ev.preventDefault();
-      fsCloseHandler();
-    };
-
-    const listContainer = h('ul', {
-      id: 'morsels-fs-list',
-      class: 'morsels-list',
-      'aria-labelledby': 'morsels-fs-label',
-    });
-  
-    const innerRoot = h('div',
-      { class: 'morsels-root morsels-fs-root' },
-      h('form',
-        { class: 'morsels-fs-input-button-wrapper' },
-        h('label',
-          { id: 'morsels-fs-label', for: 'morsels-fs-input', style: 'display: none' },
-          opts.uiOptions.label,
-        ),
-        inputEl,
-        buttonEl,
-      ),
-      listContainer,
-    );
-    innerRoot.onclick = (ev) => ev.stopPropagation();
-    innerRoot.onmousedown = (ev) => ev.stopPropagation();
-
-    setCombobox(innerRoot, listContainer, opts.uiOptions.label);
-
-    const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
-    rootBackdropEl.onmousedown = () => {
-      uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
-    };
-    rootBackdropEl.onkeyup = (ev) => {
-      if (ev.code === 'Escape') {
-        ev.stopPropagation();
-        uiOptions.hideFullscreen(rootBackdropEl, listContainer, innerRoot, opts);
-      }
-    };
-
-    return {
-      root: rootBackdropEl,
-      listContainer,
-      input: inputEl,
-    };
-  });
-
-  uiOptions.errorRender = uiOptions.errorRender
-      || ((h) => h('div', { class: 'morsels-error' }, 'Oops! Something went wrong... 🙁'));
-
-  uiOptions.noResultsRender = uiOptions.noResultsRender
-      || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
-
-  uiOptions.fsBlankRender = uiOptions.fsBlankRender
-      || ((h) => h('div', { class: 'morsels-fs-blank' }, 'Start Searching Above!'));
-
-  if (!uiOptions.loadingIndicatorRender) {
-    uiOptions.loadingIndicatorRender = ((
-      h, opts, isInitialising, wasResultsBlank,
-    ) => {
-      const loadingSpinner = h('span', { class: 'morsels-loading-indicator' });
-      if (isInitialising) {
-        const initialisingText = h('div', { class: 'morsels-initialising-text' }, '... Initialising ...');
-        return h('div', { class: 'morsels-initialising' }, initialisingText, loadingSpinner);
-      }
-  
-      if (!wasResultsBlank) {
-        loadingSpinner.classList.add('morsels-loading-indicator-subsequent');
-      }
-  
-      return loadingSpinner;
-    });
-  }
-  const loadingIndicatorRenderer = uiOptions.loadingIndicatorRender;
-  uiOptions.loadingIndicatorRender = (...args) => {
-    const loadingIndicator = loadingIndicatorRenderer(...args);
-    // Add an identifier for keyboard events (up / down / home / end)
-    loadingIndicator.setAttribute(LOADING_INDICATOR_ID, 'true');
-    return loadingIndicator;
-  };
-
-  uiOptions.termInfoRender = uiOptions.termInfoRender || (() => []);
-
-  uiOptions.resultsRender = uiOptions.resultsRender || resultsRender;
-
-  uiOptions.resultsRenderOpts = uiOptions.resultsRenderOpts || {};
-
-  uiOptions.resultsRenderOpts.listItemRender = uiOptions.resultsRenderOpts.listItemRender || ((
-    h, opts, searchedTermsJSON, fullLink, title, resultHeadingsAndTexts,
-  ) => {
-    const linkEl = h(
-      'a', { class: 'morsels-link' },
-      h('div', { class: 'morsels-title' }, title),
-      ...resultHeadingsAndTexts,
-    );
-
-    if (fullLink) {
-      let linkToAttach = fullLink;
-      if (opts.uiOptions.resultsRenderOpts.addSearchedTerms) {
-        const fullLinkUrl = parseURL(fullLink);
-        fullLinkUrl.searchParams.append(
-          options.uiOptions.resultsRenderOpts.addSearchedTerms,
-          searchedTermsJSON,
-        );
-        linkToAttach = fullLinkUrl.toString();
-      }
-      linkEl.setAttribute('href', linkToAttach);
-    }
-
-    return h(
-      'li', { class: 'morsels-list-item', role: 'option' },
-      linkEl,
-    );
-  });
-
-  uiOptions.resultsRenderOpts.headingBodyRender = uiOptions.resultsRenderOpts.headingBodyRender
-  || ((
-    h, opts, headingHighlights, bodyHighlights, href,
-  ) => {
-    const el = h('a', { class: 'morsels-heading-body' },
-      h('div', { class: 'morsels-heading' }, ...headingHighlights),
-      h('div', { class: 'morsels-bodies' },
-        h('div', { class: 'morsels-body' }, ...bodyHighlights)));
-    if (href) {
-      el.setAttribute('href', href);
-    }
-    return el;
-  });
-
-  uiOptions.resultsRenderOpts.bodyOnlyRender = uiOptions.resultsRenderOpts.bodyOnlyRender || ((
-    h, opts, bodyHighlights,
-  ) => h(
-    'div', { class: 'morsels-body' }, ...bodyHighlights,
-  ));
-
-  uiOptions.resultsRenderOpts.highlightRender = uiOptions.resultsRenderOpts.highlightRender || ((
-    h, opts, matchedPart,
-  ) => h(
-    'span', { class: 'morsels-highlight' }, matchedPart,
-  ));
-
-  options.otherOptions = options.otherOptions || {};
-}
-
 
 function createInputListener(
   root: HTMLElement,
@@ -400,7 +51,7 @@ function createInputListener(
   
       // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
   
-      const resultsDisplayed = await transformResults(
+      const resultsDisplayed = await loadQueryResults(
         inputState, inputState.currQuery, searcher.config,
         true,
         listContainer, indicatorElement,
@@ -451,7 +102,7 @@ function createInputListener(
           listContainer.appendChild(indicatorElement.v);
   
           if (useDropdown(uiOptions)) {
-            uiOptions.showDropdown(root, listContainer, options);
+            showDropdown();
           }
         }
   
@@ -467,7 +118,7 @@ function createInputListener(
         listContainer.innerHTML = '';
         if (uiOptions.mode !== UiMode.Target) {
           if (useDropdown(uiOptions)) {
-            uiOptions.hideDropdown(root, listContainer, options);
+            hideDropdown();
           } else {
             // useFullscreen
             listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
@@ -496,7 +147,7 @@ function initMorsels(options: SearchUiOptions): {
       || (() => window.matchMedia('only screen and (max-width: 1024px)').matches);
 
   isMobileSizeGlobal = isMobileDevice();
-  prepareOptions(options);
+  prepareOptions(options, isMobileSizeGlobal);
 
   const { uiOptions } = options;
 
@@ -505,19 +156,29 @@ function initMorsels(options: SearchUiOptions): {
 
   // --------------------------------------------------
   // Fullscreen version
+  let hideFullscreen: () => void;
   const {
     root: fsRoot,
     listContainer: fsListContainer,
     input: fsInput,
   } = uiOptions.fsRootRender(
     createElement, options,
-    () => uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options),
+    () => hideFullscreen(),
   );
 
   fsInput.addEventListener('input', createInputListener(fsRoot, fsListContainer, searcher, options));
 
   // Initial state is blank
   fsListContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
+
+  const showFullscreen = () => {
+    uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
+    fullscreenShown = true;
+  };
+  hideFullscreen = () => {
+    uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
+    fullscreenShown = false;
+  };
   // --------------------------------------------------
 
   // --------------------------------------------------
@@ -535,15 +196,24 @@ function initMorsels(options: SearchUiOptions): {
     dropdownListContainer = dropdownListContainerr;
     parent.appendChild(dropdownRoot);
 
+    showDropdown = () => {
+      uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+      dropdownShown = true;
+    };
+    hideDropdown = () => {
+      uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+      dropdownShown = false;
+    };
+
     input.addEventListener(
       'input',
       createInputListener(dropdownRoot, dropdownListContainer, searcher, options),
     );
 
     function refreshDropdown() {
-      uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+      hideDropdown();
       if (document.activeElement === input) {
-        uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+        showDropdown();
       }
     }
 
@@ -558,9 +228,9 @@ function initMorsels(options: SearchUiOptions): {
 
         isMobileSizeGlobal = isMobileDevice();
         if (isMobileSizeGlobal) {
-          uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+          hideDropdown();
         } else {
-          uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
+          hideFullscreen();
           refreshDropdown();
         }
       }, 10);
@@ -577,24 +247,24 @@ function initMorsels(options: SearchUiOptions): {
               return;
             }
           }
-          uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+          hideDropdown();
         }, 100);
       }
     });
 
     input.addEventListener('focus', () => {
       if (useDropdown(uiOptions)) {
-        uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+        showDropdown();
         return;
       }
 
       // When using 'auto' mode, may still be using fullscreen UI
-      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
+      showFullscreen();
     });
   } else if (input && uiOptions.mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
     input.addEventListener('focus', () => {
-      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
+      showFullscreen();
     });
   } else if (input && uiOptions.mode === UiMode.Target) {
     // Target
@@ -705,12 +375,8 @@ function initMorsels(options: SearchUiOptions): {
   // --------------------------------------------------
 
   return {
-    showFullscreen: () => {
-      uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
-    },
-    hideFullscreen: () => {
-      uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
-    },
+    showFullscreen,
+    hideFullscreen,
   };
 }
 
