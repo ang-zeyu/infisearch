@@ -183,19 +183,27 @@ static INPUT_EL: &str = "\n<input
 
 static STYLES: &str = r#"
 <style>
-.morsels-root {
+.light .morsels-root,
+.rust .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
     --morsels-item-border-radius: 10px;
+    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
-    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
     --morsels-title-fg: var(--fg);
     --morsels-title-bg: var(--table-header-bg);
     --morsels-title-hover-fg: var(--fg);
     --morsels-title-hover-bg: var(--table-header-bg);
+    --morsels-heading-fg: var(--fg);
     --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-fg: var(--fg);
     --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-fg: var(--fg);
+    --morsels-body-bg: var(--bg);
+    --morsels-body-hover-fg: var(--fg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
     --morsels-highlight-bg: none;
@@ -216,6 +224,12 @@ static STYLES: &str = r#"
     --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
     --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
     --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+}
+
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
 }
 
 #morsels-search {
