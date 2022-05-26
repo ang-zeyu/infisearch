@@ -387,7 +387,7 @@ function createInputListener(
   const inputState = new InputState();
   async function runNewQuery(queryString: string): Promise<void> {
     const newIndicatorElement = uiOptions.loadingIndicatorRender(
-      createElement, options, false, inputState.wasResultsBlank,
+      createElement, options, false, inputState.isResultsBlank,
     );
     indicatorElement.v.replaceWith(newIndicatorElement);
     indicatorElement.v = newIndicatorElement;
@@ -407,7 +407,7 @@ function createInputListener(
         options,
       );
       if (resultsDisplayed) {
-        inputState.wasResultsBlank = false;
+        inputState.isResultsBlank = false;
       }
   
       root.scrollTo({ top: 0 });
@@ -442,7 +442,7 @@ function createInputListener(
     clearTimeout(inputTimer);
     if (query.length) {
       inputTimer = setTimeout(() => {
-        if (inputState.wasResultsBlank
+        if (inputState.isResultsBlank
           && !listContainer.firstElementChild?.getAttribute(LOADING_INDICATOR_ID)) {
           listContainer.innerHTML = '';
           indicatorElement.v = uiOptions.loadingIndicatorRender(
@@ -475,7 +475,7 @@ function createInputListener(
         }
   
         inputState.isRunningQuery = false;
-        inputState.wasResultsBlank = true;
+        inputState.isResultsBlank = true;
       };
   
       if (inputState.isRunningQuery) {

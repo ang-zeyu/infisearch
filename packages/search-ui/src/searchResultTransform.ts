@@ -11,52 +11,57 @@ const domParser = new DOMParser();
 
 const RELATIVE_LINK_FIELD_NAME = '_relative_fp';
 
+// How far left and right from a match to include in the body
 const BODY_SERP_BOUND = 40;
-const MAX_SERP_HIGHLIGHT_PARTS = 2;
 
 interface MatchResult {
   str: string,
-  lastClosestWindowPositions: { pos: number, idx: number }[],
-  lastClosestTermLengths: number[],
-  numberTermsMatched: number,
+  /**
+   * Position of the match in the string,
+   * and length the match produced by the respective regex
+   */
+  window: { pos: number, len: number }[],
+  numTerms: number,
 }
 
+/**
+ * Generates the closest window (while preferring longer regex matches) in a given string.
+ */
 function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchResult {
   // Get all matches first
   const matches = termRegexes.map(r => Array.from(str.matchAll(r)));
   if (!matches.some(innerMatches => innerMatches.length)) {
     return {
       str,
-      lastClosestTermLengths: [],
-      lastClosestWindowPositions: [],
-      numberTermsMatched: 0,
+      window: [],
+      numTerms: 0,
     };
   }
 
   // Find the closest window
 
-  let lastClosestTermPositions = termRegexes.map(() => -100000000);
-  let lastClosestWindowLen = 100000000;
-  let lastClosestTermLengths = termRegexes.map(() => 0);
+  let lastClosestRegexPositions = termRegexes.map(() => -10000000);
+  let lastClosestWindowLen = 10000000;
+  let lastClosestRegexLengths = termRegexes.map(() => 0);
 
   // At each iteration, increment the lowest index match
   const matchIndices = matches.map(() => 0);
   const hasFinished =  matches.map((innerMatches) => !innerMatches.length);
   const maxMatchLengths = matches.map(() => 0);
 
-  // Local to the loop; To avoid .map and reallocating
+  // Local to the while (true) loop; To avoid .map and reallocating
   const matchPositions = matches.map(() => -1);
 
   while (true) {
-    let lowestMatchPos = 10000000000;
-    let lowestMatchPosExclFinished = 10000000000;
-    let lowestMatchIndex = undefined;
+    let lowestMatchPos = 10000000;
+    let lowestMatchPosExclFinished = 10000000;
+    let lowestMatchIndex = -1;
     let highestMatchPos = 0;
 
     let hasLongerMatch = false;
     let isEqualMatch = true;
-    for (let idx = 0; idx < matchIndices.length; idx++) {
-      const match = matches[idx][matchIndices[idx]];
+    for (let regexIdx = 0; regexIdx < matchIndices.length; regexIdx++) {
+      const match = matches[regexIdx][matchIndices[regexIdx]];
       if (!match) {
         // No matches at all for this regex in this str
         continue;
@@ -64,78 +69,72 @@ function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchResult {
 
       // match[3] is not highlighted but allows lookahead / changing the match length priority
       const matchedTextLen = match[2].length + match[3].length;
-      if (matchedTextLen > maxMatchLengths[idx]) {
+      if (matchedTextLen > maxMatchLengths[regexIdx]) {
         // Prefer longer matches across all regexes
         hasLongerMatch = true;
-        maxMatchLengths[idx] = matchedTextLen;
+        maxMatchLengths[regexIdx] = matchedTextLen;
       }
-      isEqualMatch = isEqualMatch && matchedTextLen === maxMatchLengths[idx];
+      isEqualMatch = isEqualMatch && matchedTextLen === maxMatchLengths[regexIdx];
 
       const pos = match.index + match[1].length;
-      if (!hasFinished[idx] && pos < lowestMatchPosExclFinished) {
+      if (!hasFinished[regexIdx] && pos < lowestMatchPosExclFinished) {
         lowestMatchPosExclFinished = pos;
         // Find the match with the smallest position for forwarding later
-        lowestMatchIndex = idx;
+        lowestMatchIndex = regexIdx;
       }
       lowestMatchPos = Math.min(lowestMatchPos, pos);
       highestMatchPos = Math.max(highestMatchPos, pos);
 
-      matchPositions[idx] = pos;
+      matchPositions[regexIdx] = pos;
+    }
+
+    if (lowestMatchIndex === -1) {
+      // hasFinished is all true
+      break;
     }
 
     const windowLen = highestMatchPos - lowestMatchPos;
-    if (
-      hasLongerMatch
-      // If all matches are equally long as before, prefer the smaller window
-      || (isEqualMatch && windowLen < lastClosestWindowLen)
-    ) {
+    if (hasLongerMatch || (isEqualMatch && windowLen < lastClosestWindowLen)) {
       lastClosestWindowLen = windowLen;
-      lastClosestTermPositions = [...matchPositions];
-      lastClosestTermLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][2].length);
+      lastClosestRegexPositions = [...matchPositions];
+      lastClosestRegexLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][2].length);
     }
 
     // Forward the match with the smallest position
-    if (lowestMatchIndex !== undefined) {
-      matchIndices[lowestMatchIndex] += 1;
-      if (matchIndices[lowestMatchIndex] >= matches[lowestMatchIndex].length) {
-        hasFinished[lowestMatchIndex] = true;
-        matchIndices[lowestMatchIndex] -= 1;
-        if (!hasFinished.some(finished => !finished)) {
-          break;
-        }
+    matchIndices[lowestMatchIndex] += 1;
+    if (matchIndices[lowestMatchIndex] >= matches[lowestMatchIndex].length) {
+      hasFinished[lowestMatchIndex] = true;
+      matchIndices[lowestMatchIndex] -= 1;
+      if (!hasFinished.some(finished => !finished)) {
+        break;
       }
-    } else {
-      break;
     }
   }
 
-  const lastClosestWindowPositions = lastClosestTermPositions
-    .map((pos, idx) => ({ pos, idx }))
+  const window = lastClosestRegexPositions
+    .map((pos, idx) => ({ pos, len: lastClosestRegexLengths[idx] }))
     .filter((pair) => pair.pos >= 0)
     .sort((a, b) => a.pos - b.pos);
-  const numberTermsMatched = lastClosestWindowPositions.length;
-  return { str, lastClosestWindowPositions, lastClosestTermLengths, numberTermsMatched };
-}
-
-interface FinalMatchResult extends MatchResult {
-  itemIdx: number,
-  headingMatch?: MatchResult,
-  headingLink?: string,
+  const numTerms = window.length;
+  return { str, window, numTerms };
 }
 
 function createEllipses() {
   return createElement('span', { class: 'morsels-ellipsis', 'aria-label': 'ellipses' }, ' ... ');
 }
 
+/**
+ * Generates the HTML preview of the match result given.
+ */
 function highlightMatchResult(
   matchResult: MatchResult,
   addEllipses: boolean,
   options: SearchUiOptions,
 ): (string | HTMLElement)[] {
   const { highlightRender } = options.uiOptions.resultsRenderOpts;
-  const { str, lastClosestWindowPositions, lastClosestTermLengths } = matchResult;
+  const { str, window } = matchResult;
 
-  if (!lastClosestWindowPositions.some(({ pos }) => pos >= 0)) {
+  if (!window.some(({ pos }) => pos >= 0)) {
     if (addEllipses) {
       return [str.trimStart().substring(0, BODY_SERP_BOUND * 2), createEllipses()];
     } else {
@@ -145,8 +144,8 @@ function highlightMatchResult(
 
   const result: (string | HTMLElement)[] = [];
   let prevHighlightEndPos = 0;
-  for (const { pos, idx } of lastClosestWindowPositions) {
-    const highlightEndPos = pos + lastClosestTermLengths[idx];
+  for (const { pos, len } of window) {
+    const highlightEndPos = pos + len;
     if (pos > prevHighlightEndPos + BODY_SERP_BOUND * 2) {
       if (addEllipses) {
         result.push(createEllipses());
@@ -180,11 +179,18 @@ function highlightMatchResult(
   return result;
 }
 
-/*
- Finds, cuts, and highlights the best matching excerpt
+interface ProcessedMatchResult extends MatchResult {
+  pairIdx: number,
+  headingMatch?: MatchResult,
+  headingLink?: string,
+}
+
+/**
+ * Finds, cuts, and highlights the best matching excerpt of 'heading' and 'body' fields
+ * @param texts array of ['field name', 'field content'] pairs
  */
 function transformText(
-  texts: [string, string][], // field name - field content pairs
+  texts: [string, string][],
   termRegexes: RegExp[],
   baseUrl: string,
   options: SearchUiOptions,
@@ -194,70 +200,68 @@ function transformText(
     headingBodyRender,
   } = options.uiOptions.resultsRenderOpts;
 
-  let lastHeadingMatch: FinalMatchResult = undefined;
-  let lastHeadingLink = {
-    itemIdx: -100,
-    fieldText: '',
-  };
-  let finalMatchResults: FinalMatchResult[] = [];
+  let lastHeadingMatch: ProcessedMatchResult = undefined;
+  let lastHeadingLinkIdx = -2;
+  let lastHeadingLinkText = '';
+  let matchResults: ProcessedMatchResult[] = [];
 
-  for (let itemIdx = 0; itemIdx < texts.length; itemIdx += 1) {
-    const [fieldName, fieldText] = texts[itemIdx];
-    if (fieldName === 'headingLink') {
-      lastHeadingLink = {
-        itemIdx,
-        fieldText,
-      };
-      continue;
-    }
-
-    const matchResult = getBestMatchResult(fieldText, termRegexes);
-    if (fieldName === 'heading') {
-      lastHeadingMatch = matchResult as FinalMatchResult;
-      lastHeadingMatch.itemIdx = itemIdx;
-      lastHeadingMatch.headingLink = lastHeadingLink.itemIdx === lastHeadingMatch.itemIdx - 1
-        ? lastHeadingLink.fieldText
-        : '';
-      
-      // Push a heading-only match in case there are no other matches (unlikely).
-      finalMatchResults.push({
-        str: '',
-        lastClosestTermLengths: [],
-        lastClosestWindowPositions: [],
-        numberTermsMatched: -2000, // even less preferable than body-only matches
-        headingMatch: lastHeadingMatch,
-        headingLink: lastHeadingMatch.headingLink,
-        itemIdx,
-      });
-    } else if (fieldName === 'body') {
-      const finalMatchResult = matchResult as FinalMatchResult;
-      if (lastHeadingMatch) {
-        // Link up body matches with headings, headingLinks if any
-        finalMatchResult.headingMatch = lastHeadingMatch;
-        finalMatchResult.headingLink = lastHeadingMatch.headingLink;
-        finalMatchResult.numberTermsMatched += lastHeadingMatch.numberTermsMatched;
-      } else {
-        // body-only match, add an offset to prefer heading-body matches
-        finalMatchResult.numberTermsMatched -= 1000;
+  for (let pairIdx = 0; pairIdx < texts.length; pairIdx += 1) {
+    const [fieldName, fieldText] = texts[pairIdx];
+    switch (fieldName) {
+      case 'headingLink': {
+        lastHeadingLinkIdx = pairIdx;
+        lastHeadingLinkText = fieldText;
+        break;
       }
-      finalMatchResults.push(finalMatchResult);
+      case 'heading': {
+        lastHeadingMatch = getBestMatchResult(fieldText, termRegexes) as ProcessedMatchResult;
+        lastHeadingMatch.pairIdx = pairIdx;
+        lastHeadingMatch.headingLink = lastHeadingLinkIdx === lastHeadingMatch.pairIdx - 1
+          ? lastHeadingLinkText
+          : '';
+        
+        // Push a heading-only match in case there are no other matches (unlikely).
+        matchResults.push({
+          str: '',
+          window: [],
+          numTerms: -2000, // even less preferable than body-only matches
+          headingMatch: lastHeadingMatch,
+          headingLink: lastHeadingMatch.headingLink,
+          pairIdx: pairIdx,
+        });
+        break;
+      }
+      case 'body': {
+        const finalMatchResult = getBestMatchResult(fieldText, termRegexes) as ProcessedMatchResult;
+        if (lastHeadingMatch) {
+          // Link up body matches with headings, headingLinks if any
+          finalMatchResult.headingMatch = lastHeadingMatch;
+          finalMatchResult.headingLink = lastHeadingMatch.headingLink;
+          finalMatchResult.numTerms += lastHeadingMatch.numTerms;
+        } else {
+          // body-only match, add an offset to prefer heading-body matches
+          finalMatchResult.numTerms -= 1000;
+        }
+        matchResults.push(finalMatchResult);
+        break;
+      }
     }
   }
 
-  finalMatchResults.sort((a, b) => {
-    return a.numberTermsMatched === b.numberTermsMatched && a.numberTermsMatched === 0
-      // If there are 0 terms matched for both matches, prefer "longer snippets"
+  matchResults.sort((a, b) => {
+    return a.numTerms === 0 && b.numTerms === 0
+      // If there are 0 terms matched for both matches, prefer "longer" snippets
       ? b.str.length - a.str.length
-      : b.numberTermsMatched - a.numberTermsMatched;
+      : b.numTerms - a.numTerms;
   });
 
   const matches = [];
-  const maxMatches = Math.min(finalMatchResults.length, MAX_SERP_HIGHLIGHT_PARTS);
+  const maxMatches = Math.min(matchResults.length, 2); // maximum 2 for now
   for (let i = 0; i < maxMatches; i += 1) {
-    if (finalMatchResults[i].numberTermsMatched != finalMatchResults[0].numberTermsMatched) {
+    if (matchResults[i].numTerms !== matchResults[0].numTerms) {
       break;
     }
-    matches.push(finalMatchResults[i]);
+    matches.push(matchResults[i]);
   }
 
   return matches.map((finalMatchResult) => {
@@ -311,11 +315,10 @@ function transformJson(
   };
 }
 
-/*
- Transforms a html document into field name - field content pairs
- ready for highlighting.
+/**
+ * Transforms a html document into field name - field content pairs
+ * ready for use in transformText.
  */
-
 function transformHtml(
   doc: Document,
   loaderConfig: any,
@@ -337,7 +340,8 @@ function transformHtml(
   loaderConfig.selectors = loaderConfig.selectors || [];
   const allSelectors = loaderConfig.selectors.map((s) => s.selector).join(',');
 
-  function traverseBody(el: HTMLElement, fieldName: string) {
+  // DFS
+  function traverse(el: HTMLElement, fieldName: string) {
     for (const selector of loaderConfig.selectors) {
       if (el.matches(selector.selector)) {
         Object.entries(selector.attr_map).forEach(([attrName, attrFieldName]) => {
@@ -356,7 +360,7 @@ function transformHtml(
       for (let i = 0; i < el.childNodes.length; i += 1) {
         const child = el.childNodes[i];
         if (child.nodeType === Node.ELEMENT_NODE) {
-          traverseBody(child as HTMLElement, fieldName);
+          traverse(child as HTMLElement, fieldName);
         } else if (child.nodeType === Node.TEXT_NODE && fieldName) {
           if (fields.length && fields[fields.length - 1][0] === fieldName) {
             fields[fields.length - 1][1] += (child as Text).data;
@@ -375,13 +379,12 @@ function transformHtml(
     }
   }
 
-  traverseBody(doc.documentElement, undefined);
+  traverse(doc.documentElement, undefined);
 
   const titleField = fields.find((pair) => pair[0] === 'title');
   let title = '';
   if (titleField) {
     [,title] = titleField;
-    titleField[1] = '';
   }
 
   return {
@@ -392,12 +395,11 @@ function transformHtml(
   };
 }
 
-/*
- Main transform function
+
+/**
+ * Determines from where (source files / field stores) to retrieve the document's fields.
+ * Then calls one of the transformXx variants above.
  */
-
-const nonContentFields = new Set([RELATIVE_LINK_FIELD_NAME, 'title', 'link']);
-
 async function singleResultRender(
   result: Result,
   options: SearchUiOptions,
@@ -451,7 +453,7 @@ async function singleResultRender(
   let resultHeadingsAndTexts: (string | HTMLElement)[];
   if (hasStoredContentField) {
     resultHeadingsAndTexts = transformText(
-      fields.filter((v) => !nonContentFields.has(v[0])),
+      fields,
       termRegexes,
       linkToAttach,
       options,

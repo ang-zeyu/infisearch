@@ -28,17 +28,17 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-box-shadow: none;
-    --morsels-fullscreen-header-bg: var(--sidebar-bg);
-    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
-    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
-    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
-    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: var(--sidebar-bg);
+    --morsels-fs-input-border: 2px solid var(--searchbar-border-color);
+    --morsels-fs-input-focus-border: 2px solid var(--searchbar-border-color);
+    --morsels-fs-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
+    --morsels-fs-header-close-fg: var(--sidebar-fg);
+    --morsels-fs-header-close-bg: var(--sidebar-non-existant);
+    --morsels-fs-header-close-hover-bg: var(--theme-popup-border);
+    --morsels-fs-header-close-hover-fg: var(--sidebar-spacer);
+    --morsels-fs-header-close-active-bg: var(--theme-popup-border);
+    --morsels-fs-header-close-active-fg: var(--sidebar-spacer);
 }
 
 .coal .morsels-root,

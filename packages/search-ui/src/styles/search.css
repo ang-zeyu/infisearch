@@ -30,22 +30,22 @@
     --morsels-loading-secondary-bg: rgba(99, 186, 255, 0.7);
     --morsels-scrollbar-bg: rgb(248, 248, 248);
     --morsels-scrollbar-thumb-bg: rgb(240, 240, 240);
-    --morsels-fullscreen-item-spacing: 10px;
-    --morsels-fullscreen-border: 3px solid var(--morsels-fullscreen-header-bg);
-    --morsels-fullscreen-box-shadow: 0 0 10px 3px rgb(218, 214, 208);
-    --morsels-fullscreen-desktop-width: 650px;
-    --morsels-fullscreen-desktop-height: 70vh;
-    --morsels-fullscreen-header-bg: rgb(248, 248, 248);
-    --morsels-fullscreen-header-border-bottom: 1px solid rgb(235, 235, 235);
-    --morsels-fullscreen-input-border: 2px solid rgb(240, 240, 240);
-    --morsels-fullscreen-input-focus-border: 2px solid rgba(99, 186, 255, 0.4);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 4px rgba(99, 186, 255, 0.7);
-    --morsels-fullscreen-header-close-bg: rgb(248, 248, 248);
-    --morsels-fullscreen-header-close-fg: rgb(80, 80, 80);
-    --morsels-fullscreen-header-close-hover-bg: rgba(80, 80, 80, 0.7);
-    --morsels-fullscreen-header-close-hover-fg: rgb(255, 255, 255);
-    --morsels-fullscreen-header-close-active-bg: rgba(80, 80, 80, 0.95);
-    --morsels-fullscreen-header-close-active-fg: rgb(255, 255, 255);
+    --morsels-fs-item-spacing: 10px;
+    --morsels-fs-border: 3px solid var(--morsels-fs-header-bg);
+    --morsels-fs-box-shadow: 0 0 10px 3px rgb(218, 214, 208);
+    --morsels-fs-desktop-width: 650px;
+    --morsels-fs-desktop-height: 70vh;
+    --morsels-fs-header-bg: rgb(248, 248, 248);
+    --morsels-fs-header-border-bottom: 1px solid rgb(235, 235, 235);
+    --morsels-fs-input-border: 2px solid rgb(240, 240, 240);
+    --morsels-fs-input-focus-border: 2px solid rgba(99, 186, 255, 0.4);
+    --morsels-fs-input-focus-box-shadow: 0 0 4px rgba(99, 186, 255, 0.7);
+    --morsels-fs-header-close-bg: rgb(248, 248, 248);
+    --morsels-fs-header-close-fg: rgb(80, 80, 80);
+    --morsels-fs-header-close-hover-bg: rgba(80, 80, 80, 0.7);
+    --morsels-fs-header-close-hover-fg: rgb(255, 255, 255);
+    --morsels-fs-header-close-active-bg: rgba(80, 80, 80, 0.95);
+    --morsels-fs-header-close-active-fg: rgb(255, 255, 255);
     display: inline-block;
     position: relative;
     width: 100%;
@@ -69,13 +69,13 @@
  */
 
 .morsels-fs-backdrop {
-    --morsels-fullscreen-backdrop-bg: rgba(0, 0, 0, 0.15);
+    --morsels-fs-backdrop-bg: rgba(0, 0, 0, 0.15);
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--morsels-fullscreen-backdrop-bg);
+    background: var(--morsels-fs-backdrop-bg);
     z-index: 1000;
 }
 
@@ -94,8 +94,8 @@
     justify-content: space-between;
     padding: 10px;
     font-size: 1.2em;
-    background: var(--morsels-fullscreen-header-bg);
-    border-bottom: var(--morsels-fullscreen-header-border-bottom);
+    background: var(--morsels-fs-header-bg);
+    border-bottom: var(--morsels-fs-header-border-bottom);
     z-index: 1000;
 }
 
@@ -104,14 +104,14 @@
     width: 0;
     padding: 0.25em 0.8em;
     outline: none;
-    border: var(--morsels-fullscreen-input-border);
+    border: var(--morsels-fs-input-border);
     border-radius: 30px;
     font-size: inherit;
 }
 
 .morsels-fs-input:focus {
-    border: var(--morsels-fullscreen-input-focus-border);
-    box-shadow: var(--morsels-fullscreen-input-focus-box-shadow);
+    border: var(--morsels-fs-input-focus-border);
+    box-shadow: var(--morsels-fs-input-focus-box-shadow);
 }
 
 .morsels-input-close-fs {
@@ -123,21 +123,21 @@
     font-size: inherit;
     font-weight: 500;
     cursor: pointer;
-    color: var(--morsels-fullscreen-header-close-fg);
-    background: var(--morsels-fullscreen-header-close-bg);
+    color: var(--morsels-fs-header-close-fg);
+    background: var(--morsels-fs-header-close-bg);
     transition: background 0.2s linear, color 0.2s linear;
 }
 
 @media (hover: hover) {
     .morsels-input-close-fs:hover {
-        color: var(--morsels-fullscreen-header-close-hover-fg);
-        background: var(--morsels-fullscreen-header-close-hover-bg);
+        color: var(--morsels-fs-header-close-hover-fg);
+        background: var(--morsels-fs-header-close-hover-bg);
     }
 }
 
 .morsels-input-close-fs:active {
-    color: var(--morsels-fullscreen-header-close-active-fg);
-    background: var(--morsels-fullscreen-header-close-active-bg);
+    color: var(--morsels-fs-header-close-active-fg);
+    background: var(--morsels-fs-header-close-active-bg);
 }
 
 .morsels-fs-blank {
@@ -150,12 +150,12 @@
 @media screen and (min-width: 1025px) {
     .morsels-fs-root {
         border-radius: 10px;
-        border: var(--morsels-fullscreen-border);
-        box-shadow: var(--morsels-fullscreen-box-shadow);
+        border: var(--morsels-fs-border);
+        box-shadow: var(--morsels-fs-box-shadow);
         top: 15%;
-        left: calc(50% - (var(--morsels-fullscreen-desktop-width) / 2));
-        width: var(--morsels-fullscreen-desktop-width);
-        height: var(--morsels-fullscreen-desktop-height);
+        left: calc(50% - (var(--morsels-fs-desktop-width) / 2));
+        width: var(--morsels-fs-desktop-width);
+        height: var(--morsels-fs-desktop-height);
     }
 }
 
@@ -256,7 +256,7 @@
 }
 
 .morsels-fs-root .morsels-list-item {
-    margin: var(--morsels-fullscreen-item-spacing) 5px 0 5px;
+    margin: var(--morsels-fs-item-spacing) 5px 0 5px;
 }
 
 .morsels-link,
