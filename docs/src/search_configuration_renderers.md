@@ -1,4 +1,4 @@
-# Renderers
+# Altering HTML Outputs
 
 <style>
     .alert-warning {
@@ -15,11 +15,7 @@
     }
 </style>
 
-<div class="alert alert-warning" role="alert">
-  The APIs here (especially those highlighted in <span style="color: red;">red</span>) may be particularly unstable still!
-</div>
-
-This page covers a more advanced API, "renderers", that allows you to customise the html output structure to some degree.
+>  This page covers some APIs that allow you to customise some small parts of the html output structure, if required.
 
 Some use cases for this include:
 - The default html structure is not sufficient for your styling needs
@@ -39,13 +35,11 @@ initMorsels({
 });
 ```
 
-As the interfaces are rather low level, this page will cross reference the `UiOptions` typescript interface [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/SearchUiOptions.ts) directly.
-
 ## The `h` function
 
 `h`
 
-Almost all renderer functions are passed a `h` function. This is an **optional** helper function you may use to create elements.
+Almost all renderer functions are passed a `h` function. This is an *optional* helper function you may use to create elements.
 
 The method signature is as such:
 
@@ -70,9 +64,8 @@ export type CreateElement = (
 
 `opts`
 
-All renderer functions are also passed an `opts` parameter. This is the original input object that you provided to the `initMorsels` call. Default parameters are however populated at this point.
+All renderer functions are also passed an `opts` parameter. This is the original input object that you provided to the `initMorsels` call, with default parameters populated at this point.
 
-i.e.,
 ```ts
 opts = export interface SearchUiOptions {
   searcherOptions?: SearcherOptions,
@@ -82,167 +75,7 @@ opts = export interface SearchUiOptions {
 }
 ```
 
-If you want to include some custom options (e.g. an API base url), you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
-
-## Default Html Output Structure
-
-You can have a look at the documentation further below on each API to understand each renderer, then refer back to the following output placement snippet to understand which renderers are responsible for which parts of the html output.
-
-The output also varies depending on the [UI mode](./search_configuration.md#ui-mode) specified earlier. Again, note that the `dropdown` and `fullscreen` ui modes both apply to the `auto` mode.
-
-<details>
-
-<summary><strong>Renderers and their output placement</strong></summary>
-
-```html
-<!--
-    dropdownRootRender - mode: 'dropdown'
-    fsRootRender       - mode: 'fullscreen'
- -->
-
-<!--
-    **fsRootRender** START
-    root element is a backdrop to facilitate backdrop dismiss
--->
-<div class="morsels-fs-backdrop">
-  
-  <!-- **dropdownRootRender** START -->
-  <!-- fsRootRender has an additional "morsels-fs-root" class on this element -->
-  <div class="morsels-root">
-
-    <!-- these 3 elements are for dropdownRootRender only -->
-    <div class="morsels-inner-root">
-    <input id="morsels-search" placeholder="Search">
-    <div class="morsels-input-dropdown-separator" style="display: none;"></div>
-
-    <!--
-        this element is for fsRootRender only,
-        for wrapping search box & close button in a sticky header
-    -->
-    <div class="morsels-fs-input-button-wrapper">
-        <input class="morsels-fs-input" type="text">
-        <button class="morsels-input-close-fs"></button>
-    </div>
-
-    <ul class="morsels-list" style="display: none;">
-    <!--
-        **dropdownRootRender / fsRootRender** END
-        
-        NOTE: If using mode = 'target', the above ul element is
-              substituted for the target element you specify
-    -->
-
-        <!-- **noResultsRender** START -->
-        <div class="morsels-no-results">No results found</div>
-        <!-- **noResultsRender** END -->
-
-        <!-- **fsBlankRender** START
-          Shown for the fullscreen version, when the search box is empty
-          This is the shown text "Start Searching Above!" when the input is empty,
-          implemented inside a ::before pseudo class for easy overriding.
-        -->
-        <div class="morsels-fs-blank"></div>
-        <!-- **fsBlankRender** END -->
-
-        <!--
-          **loadingIndicatorRender** START (blank by default)
-
-          Shown when making the initial search from a blank search box.
-          Subsequent searches (ie. when there are some results already)
-          will not show this indicator.
-        -->
-        <span class="morsels-loading-indicator"></span>
-        <!-- **loadingIndicatorRender** END -->
-
-        <!-- **termInfoRender** START (intentionally blank by default) -->
-        <div></div>
-        <!-- **termInfoRender** END -->
-
-        <!-- results placeholder (refer to "rendering search results") -->
-    </ul>
-
-    <!-- this closes morsels-inner-root above -->
-    </div>
-  </div>
-</div>
-```
-
-</details>
-
-You can find the latest default implementations of the renderers [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/search.ts).
-
-## Root Elements
-
-### Dropdown
-
-`dropdownRootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }`
-
-This API renders the root element for the **dropdown version** of the user interface.
-
-- `inputEl`: Input element found by the `input` configuration option
-
-It should return 2 elements:
-- `root`: The root element. This is passed to the `hide / show` APIs below.
-- `listContainer`: The element to attach elements rendered by `listItemRender` (matches for a single document) to.
-  - in the above snippet, this is the `<ul class="morsels-list"></ul>` element
-
-#### Supplementary Mandatory Functions
-
-The following two functions should be implemented **in tandem** with `dropdownRootRender`, and are used (internally) to show / hide the dropdown on certain events (for example, on input focus / blur).
-
-`showDropdown?: (root: HTMLElement, opts: SearchUiOptions) => void`
-
-`hideDropdown?: (root: HTMLElement, opts: SearchUiOptions) => void`
-
-For example, the default `showDropdown` implementation is as such:
-
-```ts
-(root, listContainer) => {
-  if (listContainer.childElementCount) {
-    const innerRoot = root.lastElementChild as HTMLElement;
-    const caret = innerRoot.firstElementChild as HTMLElement;
-    innerRoot.style.display = 'block';
-    computePosition(...).then(({ x, y }) => ...); // floating-ui call to position the dropdown
-  }
-}
-```
-
-It first checks if the `listContainer` (the dropdown), which contains result matches, has any child elements. If so, it sets `style=display:block;` on it, and its previous sibling, which is the triangle dropdown separator container.
-
-### Fullscreen
-
-`fsRootRender(h, opts, fsCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }`
-
-This API renders the root element for the **fullscreen version** of the user interface.
-
-- `fsCloseHandler`: A function used for closing the fullscreen UI.
-
-It should return 3 elements:
-- `root`: The root element. This is passed to the `hide / show` APIs below.
-- `listContainer`: The element to attach matches for a single document (rendered by `listItemRender`) to.
-- `input`: Input element. This is required for morsels to attach input event handlers.
-
-#### Supplementary Mandatory Functions
-
-Similarly, there are two `show / hide` variants for the fullscreen version:
-
-```ts
-showFullscreen?: (
-  root: HTMLElement,
-  listContainer: HTMLElement,
-  fsContainer: HTMLElement,
-  opts: SearchUiOptions,
-) => void,
-
-hideFullscreen?: (
-  root: HTMLElement,
-  listContainer: HTMLElement,
-  fsContainer: HTMLElement,
-  opts: SearchUiOptions
-) => void,
-```
-
-The `fsContainer` (by default the `<body>` element) to which to append the root element is also provided. You may also want to for example, refocus the fullscreen version's `<input>` element once UI is shown.
+If you need to include some custom options (e.g. an API base url), you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
 
 ### Target
 
@@ -289,133 +122,11 @@ export interface QueryPart {
 
 ## Rendering Search Results
 
-The below **2 remaining sets of APIs** render the results for all document matches, and are **mutually exclusive** in that the second set of APIs are "building blocks" of the first (which only has one available API). So, reconfiguring the first API would invalidate any changes to the second.
+The below 2 remaining *sets* of APIs render the results for all document matches, and are *mutually exclusive* in that the first, simpler set of APIs are "building blocks" of the second (which only has one available API). Reconfiguring the second API would invalidate any changes to the first.
 
-Together, they are placed in the `<!-- results placeholder (refer to "rendering search results") -->` comment earlier (see [html output structure](#default-html-output-structure)).
+### 1. Rendering a Single Result
 
-In the following snippet, APIs belonging to the first / second are annotated with `1.` & `2.`.
-
-<details open>
-
-<summary><strong>Remaining renderers and their output placement</strong></summary>
-
-```html
-<!--
-  **1. resultsRender** START matches for all documents
-  **2. listItemRender** START A match for a single document
--->
-<li class="morsels-list-item">
-  <a class="morsels-link" href="http://192.168.10.132:3000/...truncated.../index.html">
-
-    <div class="morsels-title">
-      <span>
-        This is the Document Title Extracted from the "title" Field
-      </span>
-    </div>
-
-    <!--
-      **headingBodyRender** START
-      a heading and/or body field pair match for the document
-    -->
-    <a class="morsels-heading-body" href="http://192.168.10.132:3000/...truncated.../index.html#what">
-      <!-- Sourced from the "heading" field -->
-      <div class="morsels-heading"><span>What</span></div>
-      <div class="morsels-bodies">
-        <!--
-          The text under the following element is sourced from
-          the "body" field, that follows the "heading" field above
-          in the original document.
-
-          Refer to the section on indexing configuration for more details.
-        -->
-        <div class="morsels-body">
-          <!-- (the query here is "foo bar") -->
-          <span class="morsels-ellipsis"></span>
-
-          <span> this is text before the first highlighted term </span>
-          <!-- **highlightRender** START  -->
-          <span class="morsels-highlight"><span>foo</span></span>
-          <!-- **highlightRender** END -->
-          <span> this is some text after the first highlighted term</span>
-
-
-          <span class="morsels-ellipsis"></span>
-
-
-          <span> this is text before the second highlighted term</span>
-          <!-- **highlightRender** START -->
-          <span class="morsels-highlight"><span>bar</span></span>
-          <!-- **highlightRender** END -->
-          <span> this is some text after the second highlighted term<< /span>
-
-          <span class="morsels-ellipsis"></span>
-        </div>
-      </div>
-    </a>
-    <!-- **headingBodyRender** END -->
-
-    <!--
-      **bodyOnlyRender** START
-      a body-only field match for the document
-      (no heading before it in the original document)
-    -->
-    <div class="morsels-body">
-      <span class="morsels-ellipsis"></span>
-      <span></span>
-      <!-- **highlightRender** START -->
-      <span class="morsels-highlight"><span>foo</span></span>
-      <!-- **highlightRender** END -->
-      <span class="morsels-ellipsis"></span>
-    </div>
-    <!-- **bodyOnlyRender** END -->
-  </a>
-</li>
-<!-- **listItemRender** END -->
-
-<!--
-    ... Repeat (another search result) ...
-
-    Note: an IntersectionObserver is attached to the
-    last such <li> element for infinite scrolling
--->
-<li class="morsels-list-item"></li>
-<!-- **resultsRender** END -->
-```
-
-</details>
-
-<br>
-
-### 1. Rendering All Results
-
-`async resultsRender(h, opts, config, results, query): Promise<HTMLElement[]>`
-
-<span style="color: red;">(flexible but not too well documented yet, and may be unstable)</span>
-
-This API renders the results for *all* document matches.
-
-Some examples use cases are:
-- Altering the html output structure substantially (e.g. displaying results in a tabular form)
-- Calling external API calls to retrieve additional info for generating result previews.
-  - For this reason, this is also the only `async` API
-
-For example, the default implementation does the following:
-1. Check the `config.fieldInfos` if any of `body / title / heading` fields are stored by the indexer to generate result previews. (Skip to 3 if present)
-2. If the document has the internal `_relative_fp` field and `sourceFilesUrl` is specified, retrieve the original document (`html` or `json`), and transform it into the same format as that generated by the indexer.
-3. Transform and highlight the field stores using the `listItemRender` set of APIs below.
-
-| Parameter   | Description |
-| ----------- | ----------- |
-| `config`    | This is the **indexing** configuration object. |
-| `results`   | an array of `Result` objects |
-| `query`     | a `Query` object |
-
-You may also refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.
-
-### 2. Rendering a Single Result
-
-The renderers under this key **build up the default implementation of `resultsRender`**, and are grouped under `uiOptions.resultsRenderOpts` (instead of `uiOptions.XXX`).
-If overriding `resultsRender` above, the following options will be ignored.
+The renderers under this key are grouped under `uiOptions.resultsRenderOpts` (instead of `uiOptions.XXX`).
 
 These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).
 
@@ -455,11 +166,9 @@ return h(
 );
 ```
 
-#### 2.1 `listItemRender` supporting APIs
+#### 1.1 `listItemRender` supporting APIs
 
-The remaining 3 APIs below are supplementary to `listItemRender`, and are responsible for generating the `resultTitle` and `resultHeadingsAndTexts` parameters for `listItemRender`.
-
-Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.
+The remaining 3 APIs below are building blocks of `listItemRender`, responsible for generating its `resultTitle` and `resultHeadingsAndTexts` parameters.
 
 ```ts
 interface SearchUiRenderOptions {
@@ -496,3 +205,27 @@ interface SearchUiRenderOptions {
   ) => HTMLElement,
 }
 ```
+
+### 2. Rendering All Results
+
+`async resultsRender(h, opts, config, results, query): Promise<HTMLElement[]>`
+
+This API renders the results for *all* document matches.
+
+Some examples use cases are:
+- Altering the html output structure substantially (e.g. displaying results in a tabular form)
+- Calling external API calls to retrieve additional info for generating result previews.
+  - For this reason, this is also the only `async` API
+
+For example, the default implementation does the following:
+1. Check the `config.fieldInfos` if any of `body / title / heading` fields are stored by the indexer to generate result previews. (Skip to 3 if present)
+2. If the document has the internal `_relative_fp` field and `sourceFilesUrl` is specified, retrieve the original document (`html` or `json`), and transform it into the same format as that generated by the indexer.
+3. Transform and highlight the field stores using the `listItemRender` set of APIs below.
+
+| Parameter   | Description |
+| ----------- | ----------- |
+| `config`    | This is the *indexing* configuration. |
+| `query`     | a `Query` object. `query.searchedTerms` contains a nested array of grouped terms that were searched. Groupings contain raw terms and their spelling corrections (if any).  |
+| `results`   | an array of `Result` objects.<br><br>This class exposes the `getSingleField(fieldName: string): string` function which returns the first field matching the `fieldName` specified.<br><br>`getStorageWithFieldNames(): [string, string][]` on the other hand returns an array of `[field name, field content]` pairs. |
+
+You may also refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.

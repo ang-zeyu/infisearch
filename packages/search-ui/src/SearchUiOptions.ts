@@ -32,42 +32,6 @@ export interface UiOptions {
   // -----------------------------------------------------
   // Renderers
 
-  // Dropdown Specific
-  dropdownRootRender?: (
-    h: CreateElement,
-    opts: SearchUiOptions,
-    inputEl: HTMLElement,
-  ) => ({ dropdownRoot: HTMLElement, dropdownListContainer: HTMLElement }),
-  showDropdown?: (
-    root: HTMLElement,
-    listContainer: HTMLElement,
-    opts: SearchUiOptions
-  ) => void,
-  hideDropdown?: (
-    root: HTMLElement,
-    listContainer: HTMLElement,
-    opts: SearchUiOptions
-  ) => void,
-
-  // Fullscreen Specific
-  fsRootRender?: (
-    h: CreateElement,
-    opts: SearchUiOptions,
-    fsCloseHandler: () => void,
-  ) => ({ root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }),
-  showFullscreen?: (
-    root: HTMLElement,
-    listContainer: HTMLElement,
-    fsContainer: HTMLElement,
-    opts: SearchUiOptions,
-  ) => void,
-  hideFullscreen?: (
-    root: HTMLElement,
-    listContainer: HTMLElement,
-    fsContainer: HTMLElement,
-    opts: SearchUiOptions
-  ) => void,
-
   // Miscellaneous
   errorRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
   noResultsRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,

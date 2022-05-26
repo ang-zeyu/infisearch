@@ -22,7 +22,6 @@ async function singleResultRender(
   options: SearchUiOptions,
   configs: MorselsConfig,
   hasStoredContentField: FieldInfo,
-  query: Query,
   searchedTermsJSON: string,
   termRegexes: RegExp[],
 ) {
@@ -154,7 +153,7 @@ export function resultsRender(
 
   return Promise.all(results.map(
     (result) => singleResultRender(
-      result, options, config, hasStoredContentField, query, JSON.stringify(searchedTerms), termRegexes,
+      result, options, config, hasStoredContentField, JSON.stringify(searchedTerms), termRegexes,
     ),
   ));
 }

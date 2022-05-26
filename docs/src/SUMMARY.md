@@ -6,7 +6,7 @@
   - [mdBook](./getting_started_mdbook.md)
   - [Others](./getting_started_others.md)
 - [Search UI](./search_configuration.md)
-  - [Renderers](./search_configuration_renderers.md)
+  - [Altering HTML outputs](./search_configuration_renderers.md)
 - [Indexer](./indexer_configuration.md)
   - [Fields](./indexer/fields.md)
   - [Language](./indexer/language.md)

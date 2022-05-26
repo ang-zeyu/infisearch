@@ -7,6 +7,11 @@ import createElement, { createInvisibleLoadingIndicator, LOADING_INDICATOR_ID } 
 import { InputState } from './utils/input';
 import { prepareOptions } from './search/options';
 import { setCombobox, setInputAria } from './utils/aria';
+import {
+  openDropdown, openFullscreen,
+  closeDropdown, closeFullscreen,
+  dropdownRootRender, fsRootRender,
+} from './search/rootContainers';
 
 let isMobileSizeGlobal = false;
 
@@ -161,10 +166,7 @@ function initMorsels(options: SearchUiOptions): {
     root: fsRoot,
     listContainer: fsListContainer,
     input: fsInput,
-  } = uiOptions.fsRootRender(
-    createElement, options,
-    () => hideFullscreen(),
-  );
+  } = fsRootRender(options, () => hideFullscreen());
 
   fsInput.addEventListener('input', createInputListener(fsRoot, fsListContainer, searcher, options));
 
@@ -172,11 +174,11 @@ function initMorsels(options: SearchUiOptions): {
   fsListContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
 
   const showFullscreen = () => {
-    uiOptions.showFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
+    openFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer);
     fullscreenShown = true;
   };
   hideFullscreen = () => {
-    uiOptions.hideFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer, options);
+    closeFullscreen(fsRoot);
     fullscreenShown = false;
   };
   // --------------------------------------------------
@@ -184,7 +186,7 @@ function initMorsels(options: SearchUiOptions): {
   // --------------------------------------------------
   // Input element option handling
   let dropdownListContainer;
-  const { input } = uiOptions;
+  const { input, dropdownAlignment } = uiOptions;
   if (input && (uiOptions.mode === UiMode.Auto || uiOptions.mode === UiMode.Dropdown)) {
     // Auto / Dropdown
 
@@ -192,16 +194,16 @@ function initMorsels(options: SearchUiOptions): {
     input.remove();
     const {
       dropdownRoot, dropdownListContainer: dropdownListContainerr,
-    } = uiOptions.dropdownRootRender(createElement, options, input);
+    } = dropdownRootRender(options, input);
     dropdownListContainer = dropdownListContainerr;
     parent.appendChild(dropdownRoot);
 
     showDropdown = () => {
-      uiOptions.showDropdown(dropdownRoot, dropdownListContainer, options);
+      openDropdown(dropdownRoot, dropdownListContainer, dropdownAlignment);
       dropdownShown = true;
     };
     hideDropdown = () => {
-      uiOptions.hideDropdown(dropdownRoot, dropdownListContainer, options);
+      closeDropdown(dropdownRoot);
       dropdownShown = false;
     };
 
