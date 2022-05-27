@@ -8,7 +8,9 @@ The snippet below shows the default values for language configuration. The key c
 {
   "lang_config": {
     "lang": "ascii",
-    "options": null
+    "options": {
+      // Language dependent
+    }
   }
 }
 ```
@@ -31,7 +33,7 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
       "such", "that", "the", "their", "then", "there", "these",
       "they", "this", "to", "was", "will", "with"
     ],
-    "ignore_stop_words": false,
+    "ignore_stop_words": true,
 
     "max_term_len": 80
   }
@@ -72,21 +74,21 @@ This tokenizer applies jieba's `cut` method to obtain various tokens, then appli
   "lang": "chinese",
   "options": {
     "stop_words": [],
-    "ignore_stop_words": false
+    "ignore_stop_words": true
   }
 }
 ```
 
 ## Stop Words
 
-A slightly different approach with stop words is taken **by default** in that stop words are only filtered at **query time** for certain types of queries. Currently, this is for **free-text queries with more than two terms**, since the impact of such terms are likely to have become negligible compared to other terms in the query at this point.
+All tokenizers support forcibly removing stop words using the `ignore_stop_words` option, should you wish to keep the index size down.
 
-Moreover, splitting up the index means that such commonly occuring words are likely to be completely and separately placed into one file. This means that information for stop words is never requested unless necessary:
-- For processing phrase queries (e.g. `"for tomorrow"`)
-- Boolean queries (e.g. `if AND forecast AND sunny`)
-- One or two term free text queries containing stop words only. This is an unlikely use case, but it is nice having some results show up than none.
+Keeping stop words enables the following:
+- Processing phrase queries such as `"for tomorrow"`
+- Boolean queries of stop words (e.g. `if AND forecast AND sunny`)
+- More accurate ranking for free text queries, which employ an inverse document frequency heuristic to prune stop words only when their impact is small (far from always the case!). 
 
-Nevertheless, all tokenizers also support forcibly removing stop words using the `ignore_stop_words` option, should you wish to keep the index size down (discussed again under chapter on ["Tradeoffs"](../tradeoffs.md)).
+> If you are using any of the 2 `large` presets covered in [section 5.4](./presets.md), which generates a sharded index, stop words are not removed by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
 
 
 ## Note on Language Modules' Flexibility

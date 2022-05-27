@@ -24,30 +24,16 @@ fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
     set
 }
 
-fn get_default_ignore_stop_words() -> bool {
-    false
-}
-
 pub struct Tokenizer {
     pub stop_words: HashSet<String>,
     ignore_stop_words: bool,
     jieba: Jieba,
 }
 
-impl Default for Tokenizer {
-    fn default() -> Tokenizer {
-        Tokenizer {
-            stop_words: get_stop_words_set(Vec::new()),
-            ignore_stop_words: get_default_ignore_stop_words(),
-            jieba: Jieba::empty(),
-        }
-    }
-}
-
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
     stop_words: Option<Vec<String>>,
-    #[serde(default="get_default_ignore_stop_words")]
+    #[serde(default)]
     ignore_stop_words: bool,
 }
 

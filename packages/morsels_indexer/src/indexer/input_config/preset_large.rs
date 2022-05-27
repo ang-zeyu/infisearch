@@ -11,7 +11,8 @@ pub fn apply_config(config: &mut MorselsConfig, json_config: &Value) {
         // 16383 bytes is able to be encoded using variable integer via 2 bytes
         16383,
         1048576,
-        true
+        true,
+        false
     );
 }
 
@@ -23,6 +24,7 @@ pub fn apply_source_file_config(config: &mut MorselsConfig, json_config: &Value)
         true,
         16383,
         1048576,
+        false,
         false
     );
 }

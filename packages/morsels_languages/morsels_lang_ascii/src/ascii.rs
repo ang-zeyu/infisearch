@@ -30,27 +30,11 @@ fn get_default_max_term_len() -> usize {
     80
 }
 
-#[cfg(feature = "indexer")]
-fn get_default_ignore_stop_words() -> bool {
-    false
-}
-
-impl Default for Tokenizer {
-    fn default() -> Tokenizer {
-        Tokenizer {
-            stop_words: crate::stop_words::get_default_stop_words_set(),
-            #[cfg(feature = "indexer")]
-            ignore_stop_words: get_default_ignore_stop_words(),
-            max_term_len: get_default_max_term_len(),
-        }
-    }
-}
-
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
     #[cfg(feature = "indexer")]
-    #[serde(default="get_default_ignore_stop_words")]
+    #[serde(default)]
     pub ignore_stop_words: bool,
     #[serde(default = "get_default_max_term_len")]
     pub max_term_len: usize,

@@ -7,6 +7,7 @@ pub mod query_retriever;
 use morsels_common::BitmapDocinfoDicttableReader;
 use morsels_common::dictionary;
 use serde::Deserialize;
+use serde_json::Value;
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
@@ -71,29 +72,17 @@ pub struct Searcher {
 
 #[cfg(feature = "lang_ascii")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    if let Some(options) = &mut lang_config.options {
-        Box::new(ascii::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
-    } else {
-        Box::new(ascii::Tokenizer::default())
-    }
+    Box::new(ascii::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap()))
 }
 
 #[cfg(feature = "lang_latin")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    if let Some(options) = &mut lang_config.options {
-        Box::new(latin::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap()))
-    } else {
-        Box::new(latin::Tokenizer::default())
-    }
+    Box::new(latin::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap()))
 }
 
 #[cfg(feature = "lang_chinese")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    if let Some(options) = &mut lang_config.options {
-        Box::new(chinese::new_with_options(serde_json::from_value(std::mem::take(options)).unwrap(), true))
-    } else {
-        Box::new(chinese::Tokenizer::default())
-    }
+    Box::new(chinese::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap(), true))
 }
 
 #[allow(dead_code)]
@@ -236,6 +225,8 @@ pub mod test {
     use crate::dictionary::Dictionary;
     use crate::docinfo::DocInfo;
 
+    use serde_json::json;
+
     pub fn create_searcher(num_docs: usize, num_fields: usize) -> Searcher {
         let mut field_infos = Vec::new();
         for i in 0..num_fields {
@@ -249,7 +240,7 @@ pub mod test {
 
         Searcher {
             dictionary: Dictionary { term_infos: BTreeMap::default() },
-            tokenizer: Box::new(ascii::Tokenizer::default()),
+            tokenizer: Box::new(ascii::new_with_options(serde_json::from_value(json!({})).unwrap())),
             doc_info: DocInfo {
                 doc_length_factors: vec![1.0; num_docs * num_fields],
                 doc_length_factors_len: num_docs as u32,

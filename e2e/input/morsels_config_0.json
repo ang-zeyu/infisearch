@@ -42,7 +42,9 @@
   },
   "lang_config": {
     "lang": "ascii",
-    "options": null
+    "options": {
+      "ignore_stop_words": false
+    }
   },
   "indexing_config": {
     "num_docs_per_block": 2,

@@ -23,9 +23,9 @@ Specify the `preset` key in your configuration file to change this.
 | -----------         | ----------- |
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
 | `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only field stores of documents to generate result previews for a retrieved.
-| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. This is the preset used in the demo [here](https://ang-zeyu.github.io/morsels-demo-1/)!
+| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](./language.md#stop-words). This is the preset used in the demo [here](https://ang-zeyu.github.io/morsels-demo-1/)!
 | `medium_source`     | Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation.
-| `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation.
+| `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps [stop words](./language.md#stop-words).
 
 ## Modified Properties
 
@@ -33,11 +33,13 @@ Presets modify the following properties:
 
 - Search Configuration: 
   - [`cacheAllFieldStores`](search_configuration.md#search-library-options)
+- Language Configuration:
+  - [`ignore_stop_words`](./language.md#stop-words)
 - Indexing Configuration:
-  - What [fields](./indexer/fields.md) are stored (`do_store`). Not set if `fields_config.fields` is present.
-  - [`field_store_block_size`](./indexer/fields.md)
-  - [`pl_limit`](./indexer/indexing.md#search-performance)
-  - [`pl_cache_threshold`](./indexer/indexing.md#search-performance)
+  - What [fields](./fields.md) are stored (`do_store`). Not set if `fields_config.fields` is present.
+  - [`field_store_block_size`](./fields.md)
+  - [`pl_limit`](./indexing.md#search-performance)
+  - [`pl_cache_threshold`](./indexing.md#search-performance)
 
 Any of these values specified in the configuration file will override that of the preset's.
 

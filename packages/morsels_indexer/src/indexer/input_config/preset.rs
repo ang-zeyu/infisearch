@@ -21,6 +21,7 @@ pub fn apply_preset_override(
     pl_limit: u32,
     pl_cache_threshold: u32,
     do_store_fields: bool,
+    ignore_stop_words: bool
 ) {
     if let Some(val) = json_config.get("fields_config") {
         if val.get("field_store_block_size").is_none() {
@@ -39,6 +40,12 @@ pub fn apply_preset_override(
         config.fields_config.cache_all_field_stores = cache_all_field_stores;
         set_all_content_fields_do_store(config, do_store_fields);
     };
+
+    if !config.lang_config.options.contains_key("ignore_stop_words") {
+        config.lang_config.options.insert(
+            "ignore_stop_words".to_owned(), Value::Bool(ignore_stop_words),
+        );
+    }
 
     if let Some(val) = json_config.get("indexing_config") {
         if val.get("pl_limit").is_none() {

@@ -82,7 +82,9 @@
   },
   "lang_config": {
     "lang": "ascii",
-    "options": null
+    "options": {
+      "ignore_stop_words": false
+    }
   },
   "preset": "small"
 }

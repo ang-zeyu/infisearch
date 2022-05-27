@@ -10,6 +10,7 @@ pub fn apply_config(config: &mut MorselsConfig, json_config: &Value) {
         false,
         2097151,
         0,
+        true,
         true
     );
 }
@@ -22,6 +23,7 @@ pub fn apply_source_file_config(config: &mut MorselsConfig, json_config: &Value)
         true,
         u32::MAX,
         0,
-        false
+        false,
+        true
     );
 }

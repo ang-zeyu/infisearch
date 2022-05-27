@@ -1,5 +1,6 @@
 use byteorder::{ByteOrder, LittleEndian};
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
 pub mod bitmap;
 pub mod dictionary;
@@ -60,11 +61,12 @@ pub struct MorselsLanguageConfig {
     #[serde(default = "get_default_language")]
     pub lang: String,
 
-    pub options: Option<serde_json::Value>,
+    #[serde(default)]
+    pub options: Map<String, Value>,
 }
 
 impl Default for MorselsLanguageConfig {
     fn default() -> Self {
-        MorselsLanguageConfig { lang: get_default_language(), options: None }
+        MorselsLanguageConfig { lang: get_default_language(), options: Map::default() }
     }
 }

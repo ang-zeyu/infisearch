@@ -28,6 +28,7 @@ use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
+use serde_json::Value;
 
 pub struct Indexer {
     indexing_config: Arc<MorselsIndexingConfig>,
@@ -246,25 +247,19 @@ impl Indexer {
     fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn IndexerTokenizer + Send + Sync> {
         match lang_config.lang.as_str() {
             "ascii" => {
-                if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(ascii::new_with_options(serde_json::from_value(options.clone()).unwrap()))
-                } else {
-                    Arc::new(ascii::Tokenizer::default())
-                }
+                Arc::new(ascii::new_with_options(
+                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap()
+                ))
             }
             "latin" => {
-                if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(latin::new_with_options(serde_json::from_value(options.clone()).unwrap()))
-                } else {
-                    Arc::new(latin::Tokenizer::default())
-                }
+                Arc::new(latin::new_with_options(
+                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap()
+                ))
             }
             "chinese" => {
-                if let Some(options) = lang_config.options.as_ref() {
-                    Arc::new(chinese::new_with_options(serde_json::from_value(options.clone()).unwrap(), false))
-                } else {
-                    Arc::new(chinese::Tokenizer::default())
-                }
+                Arc::new(chinese::new_with_options(
+                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap(), false,
+                ))
             }
             _ => {
                 panic!("Unsupported language {}", lang_config.lang)
