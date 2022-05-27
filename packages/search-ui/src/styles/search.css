@@ -5,13 +5,13 @@
     --morsels-border: none;
     --morsels-box-shadow: 0 0 5px rgb(220, 220, 220);
     --morsels-bg: white;
-    --morsels-item-spacing: 12px;
+    --morsels-item-spacing: 13px;
     --morsels-item-border: none;
-    --morsels-item-border-radius: 8px;
-    --morsels-item-box-shadow: 0 1px 3px rgb(230, 230, 230), -2px 1px 3px rgb(238, 238, 238), 2px 1px 3px rgb(238, 238, 238);
+    --morsels-item-border-radius: 6px;
+    --morsels-item-box-shadow: 0 1px 3px rgb(230, 230, 230), -2px 1px 3px rgb(239, 239, 239), 2px 1px 3px rgb(239, 239, 239);
     --morsels-item-sub-border: none;
     --morsels-title-fg: rgb(20, 20, 20);
-    --morsels-title-bg: rgb(248, 248, 248);
+    --morsels-title-bg: rgb(248, 247, 247);
     --morsels-title-hover-fg: black;
     --morsels-title-hover-bg: rgb(188, 224, 254);
     --morsels-heading-fg: black;
@@ -28,9 +28,9 @@
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
     --morsels-loading-bg: rgba(99, 186, 255, 0.4);
     --morsels-loading-secondary-bg: rgba(99, 186, 255, 0.7);
-    --morsels-scrollbar-bg: rgb(248, 248, 248);
-    --morsels-scrollbar-thumb-bg: rgb(240, 240, 240);
-    --morsels-fs-item-spacing: 10px;
+    --morsels-scrollbar-bg: rgb(253, 253, 253);
+    --morsels-scrollbar-thumb-bg: rgb(246, 245, 245);
+    --morsels-fs-item-spacing: 11px;
     --morsels-fs-border: 3px solid var(--morsels-fs-header-bg);
     --morsels-fs-box-shadow: 0 0 10px 3px rgb(218, 214, 208);
     --morsels-fs-desktop-width: 650px;
@@ -102,7 +102,7 @@
 .morsels-fs-input {
     flex: 1 0 0;
     width: 0;
-    padding: 0.25em 0.8em;
+    padding: 0.2em 0.8em;
     outline: none;
     border: var(--morsels-fs-input-border);
     border-radius: 30px;
@@ -269,10 +269,10 @@
     color: var(--morsels-title-fg);
     line-height: 1.4em;
     word-break: break-word;
-    padding: 3px 7px 2px 7px;
+    padding: 3px 7px;
     background: var(--morsels-title-bg);
     font-size: 1.02em;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 @media (hover: hover) {
@@ -372,7 +372,7 @@
 }
 
 .morsels-ellipsis {
-    font-weight: 500;
+    letter-spacing: 0.2mm;
     opacity: 0.75;
 }
 
