@@ -175,7 +175,7 @@ export default async function loadQueryResults(
     return false;
   }
 
-  const bottomLoader = options.uiOptions.loadingIndicatorRender(createElement, options, false, false);
+  const bottomLoader = options.uiOptions.loadingIndicatorRender(createElement, options, false, true);
   if (!isFirst) {
     container.appendChild(bottomLoader);
   }
