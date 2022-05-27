@@ -8,6 +8,7 @@ use wasm_bindgen::JsValue;
 
 use crate::postings_list::PlIterator;
 use crate::postings_list::PostingsList;
+use crate::postings_list::TermDoc;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
 
@@ -271,21 +272,40 @@ impl Searcher {
         }
     }
 
-    pub fn calc_doc_bm25_score(&self, td: &crate::postings_list::TermDoc, doc_id: u32, pl: &PostingsList) -> f32 {
+    /*
+     "Soft" disjunctive maximum
+     Fields are split into 2 groups: "major" / "minor", with a hardcoded (for now) weight to each.
+
+     The major group contains the highest scoring field, while the minor ones contain the rest,
+     which share the 0.3 proportion of the score.
+     This avoids penalizing documents that don't have the search term in all fields overly heavily,
+     while encouraging matches in multiple fields to some degree.
+    */
+    pub fn calc_doc_bm25_score(&self, td: &TermDoc, doc_id: u32, pl: &PostingsList) -> f32 {
+        static MAJOR_FIELD_FACTOR: f32 = 0.7;
+        static MINOR_FIELD_FACTOR: f32 = 0.3;
+
         let mut doc_term_score = 0.0;
+        let mut highest_field_score = 0.0;
 
         for (field_id, field) in td.fields.iter().enumerate() {
             if field.field_tf > 0.0 {
                 let field_info = self.searcher_config.field_infos.get(field_id).unwrap();
                 let field_len_factor = self.doc_info.get_doc_length_factor(doc_id as usize, field_id as usize);
 
-                doc_term_score += ((field.field_tf * (field_info.k + 1.0))
+                let field_score = ((field.field_tf * (field_info.k + 1.0))
                     / (field.field_tf
                         + field_info.k * (1.0 - field_info.b + field_info.b * field_len_factor)))
                     * field_info.weight;
+
+                if field_score > highest_field_score {
+                    highest_field_score = field_score;
+                }
+                doc_term_score += field_score;
             }
         }
-        doc_term_score *= pl.idf as f32 * pl.weight;
-        doc_term_score
+
+        let minor_fields_score = (doc_term_score - highest_field_score) / self.num_scored_fields_less_one;
+        ((MINOR_FIELD_FACTOR * minor_fields_score) + (MAJOR_FIELD_FACTOR * highest_field_score)) * pl.idf as f32 * pl.weight
     }
 }

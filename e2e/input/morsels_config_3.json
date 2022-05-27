@@ -6,21 +6,21 @@
       {
         "name": "title",
         "do_store": true,
-        "weight": 0.2,
+        "weight": 0.8,
         "k": 1.2,
         "b": 0.25
       },
       {
         "name": "heading",
         "do_store": true,
-        "weight": 0.3,
+        "weight": 0.8,
         "k": 1.2,
         "b": 0.3
       },
       {
         "name": "body",
         "do_store": true,
-        "weight": 0.5,
+        "weight": 1.0,
         "k": 1.2,
         "b": 0.75
       },

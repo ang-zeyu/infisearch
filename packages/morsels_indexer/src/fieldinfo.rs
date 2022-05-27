@@ -34,9 +34,9 @@ impl Default for FieldsConfig {
             num_stores_per_dir: get_default_num_field_stores_per_dir(),
             cache_all_field_stores: get_default_cache_all_field_stores(),
             fields: vec![
-                FieldConfig { name: "title".to_owned(), do_store: false, weight: 0.2, k: 1.2, b: 0.25 },
-                FieldConfig { name: "heading".to_owned(), do_store: false, weight: 0.3, k: 1.2, b: 0.3 },
-                FieldConfig { name: "body".to_owned(), do_store: false, weight: 0.5, k: 1.2, b: 0.75 },
+                FieldConfig { name: "title".to_owned(), do_store: false, weight: 0.6, k: 1.2, b: 0.25 },
+                FieldConfig { name: "heading".to_owned(), do_store: false, weight: 0.6, k: 1.2, b: 0.3 },
+                FieldConfig { name: "body".to_owned(), do_store: false, weight: 1.0, k: 1.2, b: 0.75 },
                 FieldConfig { name: "headingLink".to_owned(), do_store: false, weight: 0.0, k: 1.2, b: 0.75 },
                 FieldConfig { name: "_relative_fp".to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
             ],

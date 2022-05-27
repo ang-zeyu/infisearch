@@ -18,21 +18,21 @@ You may want to briefly take note of the other parameters under `fields_config` 
       {
         "name": "title",
         "do_store": false,
-        "weight": 0.2,
+        "weight": 0.8,
         "k": 1.2,
         "b": 0.25
       },
       {
         "name": "heading",
         "do_store": false,
-        "weight": 0.3,
+        "weight": 0.8,
         "k": 1.2,
         "b": 0.3
       },
       {
         "name": "body",
         "do_store": false,
-        "weight": 0.5,
+        "weight": 1.0,
         "k": 1.2,
         "b": 0.75
       },
@@ -79,7 +79,7 @@ Its usage alongside other options is discussed in more detail under the chapter 
 
 **`weight`**
 
-This parameter simply specifies the weight the field should have during scoring.
+This parameter is a boost / penalty multiplied to a individual field's score.
 
 Specifying `0.0` will result in the field not being indexed (although, it can still be stored for retrieval using `do_store`).
 

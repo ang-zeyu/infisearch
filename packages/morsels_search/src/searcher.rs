@@ -68,6 +68,8 @@ pub struct Searcher {
     doc_info: DocInfo,
     searcher_config: SearcherConfig,
     invalidation_vector: Vec<u8>,
+    // For soft dismax scoring
+    num_scored_fields_less_one: f32,
 }
 
 #[cfg(feature = "lang_ascii")]
@@ -132,7 +134,20 @@ pub async fn get_new_searcher(
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Setup took {}", performance.now() - start).into());
 
-    Ok(Searcher { dictionary, tokenizer, doc_info, searcher_config, invalidation_vector })
+    let num_scored_fields_less_one = if searcher_config.num_scored_fields <= 1 {
+        1.0
+    } else {
+        (searcher_config.num_scored_fields - 1) as f32
+    };
+
+    Ok(Searcher {
+        dictionary,
+        tokenizer,
+        doc_info,
+        searcher_config,
+        invalidation_vector,
+        num_scored_fields_less_one
+    })
 }
 
 #[wasm_bindgen]
@@ -266,6 +281,7 @@ pub mod test {
                 },
             },
             invalidation_vector: vec![0; num_docs],
+            num_scored_fields_less_one: 1.0
         }
     }
 }
