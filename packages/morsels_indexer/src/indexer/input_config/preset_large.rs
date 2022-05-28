@@ -8,8 +8,7 @@ pub fn apply_config(config: &mut MorselsConfig, json_config: &Value) {
         json_config,
         1,
         false,
-        // 16383 bytes is able to be encoded using variable integer via 2 bytes
-        16383,
+        100000,
         1048576,
         true,
         false
@@ -22,7 +21,7 @@ pub fn apply_source_file_config(config: &mut MorselsConfig, json_config: &Value)
         json_config,
         u32::MAX,
         true,
-        16383,
+        100000,
         1048576,
         false,
         false

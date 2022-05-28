@@ -137,15 +137,15 @@ When opting to fragment the index heavily however, also note gzip would serve li
 
 ### Limits of Scalability
 
-Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the default index fragment size limit (`pl_limit`) of `16383` bytes, especially when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.
+Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the index fragment size limit (`pl_limit`), especially when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.
 
-Since larger index chunks are cached according to the `pl_cache_threshold`, the limit is relevant mostly during startup / initialisation only. That is, *scalability is limited by the total size of index chunks retrieved upfront, each of which exceed the defined `pl_cache_threshold`*.
-
-If configuring for a much higher `pl_cache_threshold` however, such that no files are cached, then the *scalability is limited during **search** (runtime) by the total size of the index chunks that need to be retrieved for the query*.
+This impacts (depending on the configuration):
+- The total size of index chunks retrieved upfront and persistently cached, which exceed the defined `pl_cache_threshold`.
+- The total size of the index chunks that need to be retrieved for the query, which is relevant when `pl_cache_threshold` is fairly high (such that no files are cached).
 
 #### Some Data & Estimations
 
-As a rough estimate from testing, this library should be able to handle text collections < `800MB` with positional indexing.
+As a rough estimate from testing, this library should be able to handle text collections < `800MB` with positional indexing and stop words kept.
 
 The following distribution of index chunk file sizes (before gzip) under the default `pl_limit` was produced with:
 - A `380MB` **csv** corpus (no HTML soup!)
