@@ -384,13 +384,14 @@ impl Searcher {
     // ---------------------------------------
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
-        if let Some(tup) = self
+        let field_id_and_info = self
             .searcher_config
             .field_infos
             .iter()
             .enumerate()
-            .find(|(_id, field_info)| field_info.name == field_name)
-        {
+            .find(|(_id, field_info)| field_info.name == field_name);
+
+        if let Some((field_id, _field_info)) = field_id_and_info {
             let mut new_pl = PostingsList {
                 weight: pl.weight,
                 include_in_proximity_ranking: pl.include_in_proximity_ranking,
@@ -400,7 +401,6 @@ impl Searcher {
                 term_info: pl.term_info.clone(),
             };
 
-            let field_id = tup.0 as usize;
             let fields_before = vec![DocField::default(); field_id];
             for term_doc in &pl.term_docs {
                 if let Some(doc_field) = term_doc.fields.get(field_id) {

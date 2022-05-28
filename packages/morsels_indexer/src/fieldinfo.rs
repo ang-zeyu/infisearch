@@ -45,7 +45,7 @@ impl Default for FieldsConfig {
 }
 
 impl FieldsConfig {
-    pub fn initialise(&self, output_folder_path: &Path) -> Arc<FieldInfos> {
+    pub fn get_field_infos(&self, output_folder_path: &Path) -> Arc<FieldInfos> {
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
         for field_config in self.fields.iter() {
             field_infos_by_name.insert(
@@ -72,8 +72,8 @@ impl FieldsConfig {
             }
         });
 
-        for (field_id, tup) in field_entries.iter_mut().enumerate() {
-            tup.1.id = field_id as u8;
+        for (field_id, (_, field_info)) in field_entries.iter_mut().enumerate() {
+            field_info.id = field_id as u8;
         }
 
         Arc::new(FieldInfos::init(

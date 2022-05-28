@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::iter::FromIterator;
 
 use smartstring::alias::String;
-use smartstring::alias::String as SmartString;
 
 use crate::tokenize::TermInfo;
 use crate::utils::varint;
@@ -49,7 +48,7 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
         let remaining_len = self.string_vec[self.dict_string_pos] as usize;
         self.dict_string_pos += 1;
 
-        let term = SmartString::from(&self.prev_term[..prefix_len])
+        let term = String::from(&self.prev_term[..prefix_len])
             + unsafe {
                 std::str::from_utf8_unchecked(
                     &self.string_vec[self.dict_string_pos..self.dict_string_pos + remaining_len],
@@ -83,7 +82,7 @@ pub fn setup_dictionary(
         postings_file_offset: 0,
         dict_string_pos: 0,
         dict_table_pos: 0,
-        prev_term: SmartString::from(""),
+        prev_term: String::from(""),
     });
 
     Dictionary { term_infos }

@@ -134,7 +134,7 @@ impl Indexer {
 
         let loaders = config.indexing_config.get_loaders_from_config();
 
-        let field_infos = config.fields_config.initialise(output_folder_path);
+        let field_infos = config.fields_config.get_field_infos(output_folder_path);
 
         // ------------------------------
         // Previous index info
