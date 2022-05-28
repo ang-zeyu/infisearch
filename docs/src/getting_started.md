@@ -41,8 +41,8 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 
 <!--  Search UI package script, which bundles the search library together with it -->
 <script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.bundle.js"></script>
-<!-- Search UI css, this provides very basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css" />
+<!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 > ⚠️ Ensure the versions here **tally with the indexer version** used.

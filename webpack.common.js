@@ -2,6 +2,7 @@
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const { DefinePlugin } = require('webpack');
 const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const { version } = require('./packages/search/package.json');
 
@@ -30,6 +31,12 @@ module.exports = (env) => {
       'search-worker-ascii': getWorkerLangConfig('ascii'),
       'search-worker-latin': getWorkerLangConfig('latin'),
       'search-worker-chinese': getWorkerLangConfig('chinese'),
+      'search-ui-light': {
+        import: path.resolve(__dirname, 'packages/search-ui/src/styles/light.css'),
+      },
+      'search-ui-dark': {
+        import: path.resolve(__dirname, 'packages/search-ui/src/styles/dark.css'),
+      },
     },
     experiments: {
       asyncWebAssembly: true,
@@ -43,9 +50,17 @@ module.exports = (env) => {
           test: /\.tsx?$/,
           use: ['ts-loader'],
         },
+        {
+          test: /\.css$/i,
+          use: [
+            MiniCssExtractPlugin.loader,
+            'css-loader',
+          ],
+        },
       ],
     },
     plugins: [
+      new MiniCssExtractPlugin(),
       new WasmPackPlugin({
         crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
         extraArgs: '-- --no-default-features --features lang_ascii' + perfOption,

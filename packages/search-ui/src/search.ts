@@ -1,5 +1,3 @@
-import './styles/search.css';
-
 import { Searcher } from '@morsels/search-lib';
 import loadQueryResults from './searchResultTransform';
 import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';

@@ -194,7 +194,7 @@ fn get_css_el(base_url: &str, ctx: &PreprocessorContext) -> String {
 
     if add_css {
         output.push_str(&format!(
-            "<link rel=\"stylesheet\" href=\"{}morsels_assets/search-ui.css\">\n\n<style>{}</style>\n",
+            "<link rel=\"stylesheet\" href=\"{}morsels_assets/search-ui-light.css\">\n\n<style>{}</style>\n",
             base_url,
             STYLES,
         ));

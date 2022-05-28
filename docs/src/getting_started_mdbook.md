@@ -1,11 +1,6 @@
 # mdbook-morsels
 
-`mdbook-morsels` is a simple search plugin replacement for [mdbook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
-
-> Dosen't mdBook already have a search feature?
->
-> At this point, this plugin serves mostly as a **proof-of-concept for integrating into other static site generators**. ;)<br>
-> You might want to use this plugin nonetheless if your mdBook site is extremely large.
+`mdbook-morsels` is a simple search plugin replacement / proof-of-concept for [mdbook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
 
 ## Styling
 

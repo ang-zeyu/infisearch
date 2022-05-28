@@ -1,0 +1,44 @@
+@import url('./base.css');
+
+.morsels-root {
+    --morsels-box-shadow: 0 0 3px 0 #323232;
+    --morsels-bg: #212121;
+    --morsels-item-border: none;
+    --morsels-item-border-radius: 4px;
+    --morsels-item-box-shadow: 0 1px 4px -1px #323232;
+    --morsels-title-fg: #e4f1f0;
+    --morsels-title-bg: #363839;
+    --morsels-title-hover-fg: #eef6f6;
+    --morsels-title-hover-bg: #525354;
+    --morsels-heading-fg: #e4f1f0;
+    --morsels-heading-bg: #2b2d2e;
+    --morsels-heading-hover-fg: #eef6f6;
+    --morsels-heading-hover-bg: #525354;
+    --morsels-body-fg: #e4f1f0;
+    --morsels-body-bg: #27292a;
+    --morsels-body-hover-fg: #eef6f6;
+    --morsels-body-hover-bg: #363839;
+    --morsels-highlight: #f6b24b;
+    --morsels-highlight-bg: none;
+    --morsels-error-fg: #e4f1f0;
+    --morsels-fine-print-fg: rgba(228, 241, 240, 0.7);
+    --morsels-loading-bg: rgba(99, 186, 255, 0.7);
+    --morsels-loading-secondary-bg: rgb(99, 186, 255);
+    --morsels-scrollbar-bg: #212121;
+    --morsels-scrollbar-thumb-bg: #363839;
+    --morsels-fs-border: 3px solid var(--morsels-fs-header-bg);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: #363839;
+    --morsels-fs-header-border-bottom: none;
+    --morsels-fs-input-fg: #e4f1f0;
+    --morsels-fs-input-bg: #212121;
+    --morsels-fs-input-border: 2px solid #212121;
+    --morsels-fs-input-focus-border: 2px solid rgba(99, 186, 255, 0.7);
+    --morsels-fs-input-focus-box-shadow: 0 0 4px rgb(99, 186, 255);
+    --morsels-fs-header-close-bg: #363839;
+    --morsels-fs-header-close-fg: #e4f1f0;
+    --morsels-fs-header-close-hover-bg: #525354;
+    --morsels-fs-header-close-hover-fg: #f1f8f7;
+    --morsels-fs-header-close-active-bg: #676969;
+    --morsels-fs-header-close-active-fg: white;
+}

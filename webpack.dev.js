@@ -35,17 +35,6 @@ module.exports = (env) => merge(common(env), {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },
-  module: {
-    rules: [
-      {
-        test: /\.css$/i,
-        use: [
-          'style-loader',
-          'css-loader',
-        ],
-      },
-    ],
-  },
   plugins: [
     new HtmlWebpackPlugin({
       title: 'Morsels Dev Site',

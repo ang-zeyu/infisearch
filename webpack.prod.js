@@ -2,9 +2,8 @@
 const path = require('path');
 /* eslint-disable import/no-extraneous-dependencies */
 const { merge } = require('webpack-merge');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+const RemovePlugin = require('remove-files-webpack-plugin');
 const common = require('./webpack.common');
 
 module.exports = (env) => merge(common(env), {
@@ -14,17 +13,6 @@ module.exports = (env) => merge(common(env), {
     path: path.resolve(__dirname, 'packages/search-ui/dist'),
     clean: true,
   },
-  module: {
-    rules: [
-      {
-        test: /\.css$/i,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-        ],
-      },
-    ],
-  },
   optimization: {
     minimizer: [
       '...',
@@ -32,18 +20,15 @@ module.exports = (env) => merge(common(env), {
     ],
   },
   plugins: [
-    new MiniCssExtractPlugin(),
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
-      extraArgs: '-- --no-default-features --features lang_latin',
-      forceMode: 'production',
-      outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_latin'),
-    }),
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
-      extraArgs: '-- --no-default-features --features lang_chinese',
-      forceMode: 'production',
-      outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_chinese'),
+    // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/151
+    new RemovePlugin({
+      after: {
+        root: path.resolve(__dirname, 'packages/search-ui/dist'),
+        include: [
+          'search-ui-light.bundle.js',
+          'search-ui-dark.bundle.js',
+        ],
+      },
     }),
   ],
 });
