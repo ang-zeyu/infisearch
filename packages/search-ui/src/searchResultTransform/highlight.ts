@@ -1,9 +1,6 @@
 import { SearchUiOptions } from '../SearchUiOptions';
 import createElement from '../utils/dom';
 
-// How far left and right from a match to include in the body
-const BODY_SERP_BOUND = 40;
-
 export interface MatchResult {
   str: string,
   /**
@@ -112,7 +109,12 @@ export function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchRes
 function createEllipses() {
   return createElement('span', { class: 'morsels-ellipsis', 'aria-label': 'ellipses' }, ' ... ');
 }
-  
+
+// How far left and right from a match to include in the body
+const BODY_SERP_BOUND = 40;
+// Maximum preview length for items with no highlights found
+const PREVIEW_LENGTH = 80;
+
 /**
  * Generates the HTML preview of the match result given.
  */
@@ -126,7 +128,11 @@ export function highlightMatchResult(
   
   if (!window.some(({ pos }) => pos >= 0)) {
     if (addEllipses) {
-      return [str.trimStart().substring(0, BODY_SERP_BOUND * 2), createEllipses()];
+      const preview = str.trimStart().substring(0, PREVIEW_LENGTH);
+      return [
+        preview.length === PREVIEW_LENGTH ? preview.replace(/\w+$/, '') : preview,
+        createEllipses(),
+      ];
     } else {
       return [str];
     }
@@ -140,7 +146,12 @@ export function highlightMatchResult(
       if (addEllipses) {
         result.push(createEllipses());
       }
-      result.push(str.substring(pos - BODY_SERP_BOUND, pos));
+      const textToRight = str.substring(pos - BODY_SERP_BOUND, pos);
+      result.push(
+        textToRight.length === BODY_SERP_BOUND
+          ? textToRight.replace(/^\w+/, '')
+          : textToRight,
+      );
       result.push(highlightRender(createElement, options, str.substring(pos, highlightEndPos)));
     } else if (pos >= prevHighlightEndPos) {
       result.pop();
@@ -157,7 +168,13 @@ export function highlightMatchResult(
         continue;
       }
     }
-    result.push(str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND));
+    
+    const textToLeft = str.substring(highlightEndPos, highlightEndPos + BODY_SERP_BOUND);
+    result.push(
+      textToLeft.length === BODY_SERP_BOUND
+        ? textToLeft.replace(/\w+$/, '')
+        : textToLeft,
+    );
   
     prevHighlightEndPos = highlightEndPos;
   }
