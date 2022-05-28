@@ -9,14 +9,16 @@ repository = "https://github.com/ang-zeyu/morsels"
 readme = "../README.md"
 license = "MIT"
 
+[features]
+indexer = []
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-lazy_static = "1.4"
 morsels_common = { path = "../../morsels_common", version="0.0.11" }
-regex = "1"
+morsels_lang_ascii = { path = "../morsels_lang_ascii", version="0.0.11" }
 rustc-hash = "1.1"
-jieba-rs = { version = "0.6.5", default-features = false }
+jieba-rs = { version = "0.6.5", default-features = false, features = [] }
 serde = { version = "1.0", features = ["derive"] }
 smartstring = "0.2.7"

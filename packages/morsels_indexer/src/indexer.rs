@@ -258,7 +258,7 @@ impl Indexer {
             }
             "chinese" => {
                 Arc::new(chinese::new_with_options(
-                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap(), false,
+                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap()
                 ))
             }
             _ => {

@@ -84,7 +84,7 @@ fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchToken
 
 #[cfg(feature = "lang_chinese")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(chinese::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap(), true))
+    Box::new(chinese::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap()))
 }
 
 #[allow(dead_code)]

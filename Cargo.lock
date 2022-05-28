@@ -1330,9 +1330,8 @@ name = "morsels_lang_chinese"
 version = "0.0.11"
 dependencies = [
  "jieba-rs",
- "lazy_static",
  "morsels_common",
- "regex",
+ "morsels_lang_ascii",
  "rustc-hash",
  "serde",
  "smartstring",

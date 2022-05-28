@@ -19,28 +19,28 @@ releaseCommon:
 	cd packages/morsels_common &&\
 	cargo publish
 
-preReleaseLanguages:
+preReleaseAsciiLanguage:
 	cd packages/morsels_languages/morsels_lang_ascii &&\
+	cargo package &&\
+	cargo package --list
+
+releaseAsciiLanguage:
+	cd packages/morsels_languages/morsels_lang_ascii &&\
+	cargo publish
+
+# These 2 are separate as the prior needs to be published first
+preReleaseOtherLanguages:
+	cd packages/morsels_languages/morsels_lang_latin &&\
 	cargo package &&\
 	cargo package --list
 	cd packages/morsels_languages/morsels_lang_chinese &&\
 	cargo package &&\
 	cargo package --list
 
-releaseLanguages:
-	cd packages/morsels_languages/morsels_lang_ascii &&\
+releaseOtherLanguages:
+	cd packages/morsels_languages/morsels_lang_latin &&\
 	cargo publish
 	cd packages/morsels_languages/morsels_lang_chinese &&\
-	cargo publish
-
-# Latin (ascii with stemmers) is separate as the prior needs to be published first
-preReleaseLatin:
-	cd packages/morsels_languages/morsels_lang_latin &&\
-	cargo package &&\
-	cargo package --list
-
-releaseLatin:
-	cd packages/morsels_languages/morsels_lang_latin &&\
 	cargo publish
 
 # Indexer relies on all of the above
