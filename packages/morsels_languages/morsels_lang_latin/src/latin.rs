@@ -79,7 +79,7 @@ pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
         #[cfg(feature = "indexer")]
         ignore_stop_words: options.ignore_stop_words,
         stemmer,
-        max_term_len: options.max_term_len
+        max_term_len: options.max_term_len.min(250)
     }
 }
 

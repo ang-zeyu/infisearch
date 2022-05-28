@@ -35,6 +35,7 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
     ],
     "ignore_stop_words": true,
 
+    // Hard limit = 250
     "max_term_len": 80
   }
 }

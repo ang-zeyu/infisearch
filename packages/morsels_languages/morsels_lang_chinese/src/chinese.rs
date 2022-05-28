@@ -46,6 +46,11 @@ pub struct Tokenizer {
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
     jieba: Jieba,
+    max_term_len: usize,
+}
+
+fn get_default_max_term_len() -> usize {
+    80
 }
 
 #[derive(Deserialize)]
@@ -54,6 +59,8 @@ pub struct TokenizerOptions {
     #[cfg(feature = "indexer")]
     #[serde(default)]
     ignore_stop_words: bool,
+    #[serde(default = "get_default_max_term_len")]
+    max_term_len: usize,
 }
 
 pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
@@ -68,6 +75,7 @@ pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
         #[cfg(feature = "indexer")]
         ignore_stop_words: options.ignore_stop_words,
         jieba: Jieba::empty(),
+        max_term_len: options.max_term_len.min(250)
     }
 }
 
@@ -83,7 +91,8 @@ impl IndexerTokenizer for Tokenizer {
             .fold(vec![Vec::new()], |mut acc, next| {
                 if next.trim().is_empty() {
                     acc.push(Vec::new()); // Split on punctuation
-                } else if !(self.ignore_stop_words && self.stop_words.contains(next.as_ref())) {
+                } else if !(self.ignore_stop_words && self.stop_words.contains(next.as_ref()))
+                    && next.len() <= self.max_term_len {
                     acc.last_mut().unwrap().push(next);
                 }
                 acc
@@ -119,7 +128,7 @@ impl SearchTokenizer for Tokenizer {
 
                 filtered
             })
-            .filter(|s| !s.trim().is_empty())
+            .filter(|s| !s.trim().is_empty() && s.len() <= self.max_term_len)
             .collect();
 
         SearchTokenizeResult { terms, should_expand }
