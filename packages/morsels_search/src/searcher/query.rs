@@ -99,15 +99,15 @@ impl Query {
             self.results_retrieved += 1;
         }
 
-        JsValue::from_serde(&doc_ids).unwrap()
+        serde_wasm_bindgen::to_value(&doc_ids).unwrap()
     }
 
     pub fn get_query_parts(&self) -> JsValue {
-        JsValue::from_serde(&self.query_parts).unwrap()
+        serde_wasm_bindgen::to_value(&self.query_parts).unwrap()
     }
 
     pub fn get_searched_terms(&self) -> JsValue {
-        JsValue::from_serde(&self.searched_terms).unwrap()
+        serde_wasm_bindgen::to_value(&self.searched_terms).unwrap()
     }
 }
 

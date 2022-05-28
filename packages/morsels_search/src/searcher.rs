@@ -94,7 +94,7 @@ pub async fn get_new_searcher(
     bitmap_docinfo_dt_buf: JsValue,
     dict_string_buf: JsValue,
 ) -> Result<Searcher, JsValue> {
-    let mut searcher_config: SearcherConfig = config_js.into_serde().expect("Morsels config does not match schema");
+    let mut searcher_config: SearcherConfig = serde_wasm_bindgen::from_value(config_js).expect("Morsels config does not match schema");
 
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
