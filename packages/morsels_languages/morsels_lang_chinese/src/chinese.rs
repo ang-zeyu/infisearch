@@ -19,7 +19,7 @@ fn term_filter(input: &str) -> Cow<str> {
         output.extend_from_slice(input[0..char_start].as_bytes());
         let mut prev_char_end = char_start + c.len_utf8();
 
-        while let Some((char_start, c)) = char_iter.next() {
+        for (char_start, c) in char_iter {
             output.extend_from_slice(input[prev_char_end..char_start].as_bytes());
             prev_char_end = char_start + c.len_utf8();
         }
@@ -87,7 +87,7 @@ impl IndexerTokenizer for Tokenizer {
             .cut(text, false)
             .into_iter()
             .filter(|cut| !cut.trim().is_empty())
-            .map(|s| term_filter(s))
+            .map(term_filter)
             .fold(vec![Vec::new()], |mut acc, next| {
                 if next.trim().is_empty() {
                     acc.push(Vec::new()); // Split on punctuation

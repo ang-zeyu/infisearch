@@ -234,7 +234,7 @@ impl WorkerMiner {
                     let term_docs = if let Some(existing) = self.terms.get_mut(&field_term[..]) {
                         existing
                     } else {
-                        self.terms.entry(field_term.into_owned()).or_insert(vec![TermDoc {
+                        self.terms.entry(field_term.into_owned()).or_insert_with(|| vec![TermDoc {
                             doc_id,
                             doc_fields: vec![DocField::default(); num_scored_fields],
                         }])

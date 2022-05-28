@@ -17,7 +17,7 @@ pub fn store_fields(
     spimi_counter: u32,
     num_docs_per_block: u32,
     block_number: u32,
-    sorted_doc_infos: &mut Vec<WorkerMinerDocInfo>
+    sorted_doc_infos: &mut [WorkerMinerDocInfo]
 ) {
     let mut file_number = if check_for_existing_field_store {
         start_doc_id / field_infos.field_store_block_size

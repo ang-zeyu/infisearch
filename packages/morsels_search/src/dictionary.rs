@@ -82,7 +82,7 @@ impl SearchDictionary for Dictionary {
             }
 
             let edit_distance = edit_distance::levenshtein(
-                &term,
+                term,
                 misspelled_term,
                 base_term_char_count,
                 &mut cache,
@@ -91,11 +91,9 @@ impl SearchDictionary for Dictionary {
                 min_edit_distance = edit_distance;
                 max_doc_freq = term_info.doc_freq;
                 best_term = Some(term);
-            } else if edit_distance == min_edit_distance {
-                if term_info.doc_freq > max_doc_freq {
-                    max_doc_freq = term_info.doc_freq;
-                    best_term = Some(term);
-                }
+            } else if edit_distance == min_edit_distance && term_info.doc_freq > max_doc_freq {
+                max_doc_freq = term_info.doc_freq;
+                best_term = Some(term);
             }
         }
 

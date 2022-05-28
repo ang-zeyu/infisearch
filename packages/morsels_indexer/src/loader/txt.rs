@@ -26,9 +26,10 @@ impl TxtLoader {
     }
 
     fn get_txt_loader_result(&self, text: String, link: String) -> Box<dyn LoaderResult + Send> {
-        let mut field_texts: Vec<(String, String)> = Vec::with_capacity(2);
-        field_texts.push(("_relative_fp".to_owned(), link));
-        field_texts.push((self.options.field.clone(), text));
+        let field_texts = vec![
+            ("_relative_fp".to_owned(), link),
+            (self.options.field.clone(), text)
+        ];
         Box::new(BasicLoaderResult { field_texts }) as Box<dyn LoaderResult + Send>
     }
 }
@@ -43,7 +44,7 @@ impl Loader for TxtLoader {
         if let Some(extension) = relative_path.extension() {
             if extension == "txt" {
                 let text = std::fs::read_to_string(absolute_path)
-                    .expect(&format!("Failed to read .txt file {}", absolute_path.to_string_lossy().into_owned()));
+                    .unwrap_or_else(|_| panic!("Failed to read .txt file {}", absolute_path.to_string_lossy().into_owned()));
                 let link = relative_path.to_slash().unwrap();
                 return Some(Box::new(std::iter::once(
                     self.get_txt_loader_result(text, link),

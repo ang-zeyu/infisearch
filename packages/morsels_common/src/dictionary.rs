@@ -106,14 +106,12 @@ mod test {
     #[test]
     fn test_dictionary_setup() {
         let dictionary = super::setup_dictionary(
-            &vec![
                 // Format: doc freq var-int, then pl offset var-int
-                129, 127, 127, 131,
+            &[129, 127, 127, 131,
                 129, 127, 127, 131,
                 128,                // doc freq 0 is a new pl file delimiter
                 129, 127, 127, 131,
-                129, 127, 127, 131,
-            ],
+                129, 127, 127, 131],
             {
                 let mut string_vec = Vec::new();
 

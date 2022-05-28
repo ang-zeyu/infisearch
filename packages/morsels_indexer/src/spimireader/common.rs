@@ -134,7 +134,7 @@ pub fn initialise_postings_stream_readers(
 #[allow(clippy::too_many_arguments)]
 #[inline(always)]
 pub fn write_new_term_postings(
-    curr_combined_term_docs: &mut Vec<TermDocsForMerge>,
+    curr_combined_term_docs: &mut [TermDocsForMerge],
     varint_buf: &mut [u8],
     dict_table_writer: Option<&mut BufWriter<File>>,
     curr_pl: &mut u32,

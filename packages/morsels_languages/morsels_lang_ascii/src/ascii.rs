@@ -66,7 +66,7 @@ pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slic
 
     if ascii_replaced.contains('\'') {
         // Somewhat hardcoded fix for this common keyboard "issue"
-        base_term_terms.push(ascii_replaced.replace("'", "’"));
+        base_term_terms.push(ascii_replaced.replace('\'', "’"));
     }
 
     let term_filtered = term_filter(ascii_replaced);
