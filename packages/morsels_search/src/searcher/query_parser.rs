@@ -1,7 +1,8 @@
 use morsels_common::tokenize::SearchTokenizer;
 use serde::Serialize;
 
-#[derive(Serialize, Debug, Eq, PartialEq)]
+#[derive(Serialize)]
+#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 #[serde(rename_all = "UPPERCASE")]
 pub enum QueryPartType {
     Term,
@@ -11,7 +12,8 @@ pub enum QueryPartType {
     Not,
 }
 
-#[derive(Serialize, Debug, Eq, PartialEq)]
+#[derive(Serialize)]
+#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 #[serde(rename_all = "camelCase")]
 pub struct QueryPart {
     pub is_corrected: bool,

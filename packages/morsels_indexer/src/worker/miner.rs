@@ -193,7 +193,8 @@ impl WorkerMiner {
             let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or(&NULL_FIELD);
             let field_id = field_info.id;
 
-            // Store raw text
+            // ----------------------------------------------
+            // Json field stores
             if field_info.do_store {
                 if !is_first_stored_field {
                     field_store_buffered_writer.write_all(b",").unwrap();
@@ -208,6 +209,7 @@ impl WorkerMiner {
                     .unwrap();
                 field_store_buffered_writer.write_all(b"\"]").unwrap();
             }
+            // ----------------------------------------------
 
             if field_info.weight == 0.0 {
                 continue;

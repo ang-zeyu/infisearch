@@ -119,8 +119,10 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   uiOptions.resultsRender = uiOptions.resultsRender || resultsRender;
   
   uiOptions.resultsRenderOpts = uiOptions.resultsRenderOpts || {};
+
+  const { resultsRenderOpts } = uiOptions;
   
-  uiOptions.resultsRenderOpts.listItemRender = uiOptions.resultsRenderOpts.listItemRender || ((
+  resultsRenderOpts.listItemRender = resultsRenderOpts.listItemRender || ((
     h, opts, searchedTermsJSON, fullLink, title, resultHeadingsAndTexts,
   ) => {
     const linkEl = h(
@@ -131,12 +133,10 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   
     if (fullLink) {
       let linkToAttach = fullLink;
-      if (opts.uiOptions.resultsRenderOpts.addSearchedTerms) {
+      const { addSearchedTerms } = resultsRenderOpts;
+      if (addSearchedTerms) {
         const fullLinkUrl = parseURL(fullLink);
-        fullLinkUrl.searchParams.append(
-          options.uiOptions.resultsRenderOpts.addSearchedTerms,
-          searchedTermsJSON,
-        );
+        fullLinkUrl.searchParams.append(addSearchedTerms, searchedTermsJSON);
         linkToAttach = fullLinkUrl.toString();
       }
       linkEl.setAttribute('href', linkToAttach);
@@ -148,7 +148,7 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     );
   });
   
-  uiOptions.resultsRenderOpts.headingBodyRender = uiOptions.resultsRenderOpts.headingBodyRender
+  resultsRenderOpts.headingBodyRender = resultsRenderOpts.headingBodyRender
     || ((
       h, opts, headingHighlights, bodyHighlights, href,
     ) => {
@@ -162,13 +162,13 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
       return el;
     });
   
-  uiOptions.resultsRenderOpts.bodyOnlyRender = uiOptions.resultsRenderOpts.bodyOnlyRender || ((
+  resultsRenderOpts.bodyOnlyRender = resultsRenderOpts.bodyOnlyRender || ((
     h, opts, bodyHighlights,
   ) => h(
     'div', { class: 'morsels-body' }, ...bodyHighlights,
   ));
   
-  uiOptions.resultsRenderOpts.highlightRender = uiOptions.resultsRenderOpts.highlightRender || ((
+  resultsRenderOpts.highlightRender = resultsRenderOpts.highlightRender || ((
     h, opts, matchedPart,
   ) => h(
     'span', { class: 'morsels-highlight' }, matchedPart,

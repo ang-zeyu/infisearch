@@ -45,15 +45,13 @@ impl DocInfos {
         let mut average_lengths: Vec<f64> = Vec::new();
         bitmap_docinfo_dicttable.read_docinfo_inital_metadata(&mut 0, &mut doc_id_counter, &mut average_lengths, num_fields);
 
-        let mut doc_lengths = Vec::new();
-        let mut doc_id = 0;
-        while doc_id < doc_id_counter {
+        let mut doc_lengths = Vec::with_capacity(doc_id_counter as usize);
+        for doc_id in 0..doc_id_counter {
             let mut doc_info = WorkerMinerDocInfo {
                 doc_id,
                 field_lengths: Vec::with_capacity(num_fields),
                 field_texts: Vec::new(),
             };
-            doc_id += 1;
 
             for _i in 0..num_fields {
                 doc_info.field_lengths.push(bitmap_docinfo_dicttable.read_field_length());

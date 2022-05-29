@@ -49,18 +49,24 @@ async function singleResultRender(
       break;
     }
   }
-  const hasSourceFilesUrl = typeof options.uiOptions.sourceFilesUrl === 'string';
+
+  const {
+    sourceFilesUrl,
+    resultsRenderOpts: { addSearchedTerms, listItemRender },
+  } = options.uiOptions;
+
+  const hasSourceFilesUrl = typeof sourceFilesUrl === 'string';
   const fullLink = link
-    || (hasSourceFilesUrl && relativeLink && `${options.uiOptions.sourceFilesUrl}${relativeLink}`)
+    || (hasSourceFilesUrl && relativeLink && `${sourceFilesUrl}${relativeLink}`)
     || '';
 
   resultTitle = resultTitle || relativeLink || link;
 
   let linkToAttach = fullLink;
-  if (options.uiOptions.resultsRenderOpts.addSearchedTerms && fullLink) {
+  if (addSearchedTerms && fullLink) {
     const fullLinkUrl = parseURL(fullLink);
     fullLinkUrl.searchParams.append(
-      options.uiOptions.resultsRenderOpts.addSearchedTerms,
+      addSearchedTerms,
       searchedTermsJSON,
     );
     linkToAttach = fullLinkUrl.toString();
@@ -106,7 +112,7 @@ async function singleResultRender(
     }
   }
 
-  return options.uiOptions.resultsRenderOpts.listItemRender(
+  return listItemRender(
     createElement,
     options,
     searchedTermsJSON,
@@ -230,8 +236,8 @@ export default async function loadQueryResults(
   //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
   if (resultsEls.length) {
-    inputState.lastElObserver = new IntersectionObserver(async (entries, observer) => {
-      if (!entries[0].isIntersecting) {
+    inputState.lastElObserver = new IntersectionObserver(async ([entry], observer) => {
+      if (!entry.isIntersecting) {
         return;
       }
   

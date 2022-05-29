@@ -79,7 +79,11 @@ export interface UiOptions {
       opts: SearchUiOptions,
       bodyHighlights: (HTMLElement | string)[],
     ) => HTMLElement,
-    highlightRender?: (h: CreateElement, opts: SearchUiOptions, matchedPart: string) => HTMLElement,
+    highlightRender?: (
+      h: CreateElement,
+      opts: SearchUiOptions,
+      matchedPart: string,
+    ) => HTMLElement,
   },
 }
 
