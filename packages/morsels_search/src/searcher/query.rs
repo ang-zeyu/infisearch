@@ -141,100 +141,11 @@ impl Searcher {
             // ------------------------------------------
             // Query term proximity ranking
             if self.searcher_config.searcher_options.use_query_term_proximity {
-                pl_its_for_proximity_ranking.extend(
-                    pl_its
-                        .iter()
-                        .filter(|pl_it| {
-                            pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == curr_doc_id
-                        })
-                        .map(|pl_it| pl_it as *const PlIterator),
+                proximity_rank(
+                    &pl_its, &mut pl_its_for_proximity_ranking,
+                    curr_doc_id, total_proximity_ranking_terms,
+                    &mut scaling_factor
                 );
-
-                if pl_its_for_proximity_ranking.len() > 1 {
-                    unsafe {
-                        pl_its_for_proximity_ranking
-                            .sort_by(|a, b| (**a).original_idx.cmp(&(**b).original_idx));
-                    }
-
-                    let num_pl_its_curr_doc = pl_its_for_proximity_ranking.len() as f32;
-
-                    let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
-                    for (i, pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
-                        let curr_fields = unsafe {
-                            &(**pl_it).td.as_ref().unwrap().fields
-                        };
-                        for (j, curr_field) in curr_fields.iter().enumerate() {
-                            if curr_field.field_positions.is_empty() {
-                                continue;
-                            }
-                            position_heap.push(Position {
-                                pos: curr_field.field_positions[0],
-                                pl_it_idx: i,
-                                pl_it_field_idx: j,
-                                pl_it_field_fieldposition_next_idx: 1,
-                            });
-                        }
-                    }
-
-                    // Merge disjoint fields' positions into one
-                    // Vec<(pos, pl_it_idx)>
-                    let mut merged_positions: Vec<(u32, usize)> = Vec::new();
-                    while !position_heap.is_empty() {
-                        let top = position_heap.pop().unwrap();
-
-                        let doc_field = unsafe {
-                            &(*pl_its_for_proximity_ranking[top.pl_it_idx]).td.as_ref().unwrap().fields[top.pl_it_field_idx]
-                        };
-                        if top.pl_it_field_fieldposition_next_idx < doc_field.field_positions.len() {
-                            position_heap.push(Position {
-                                pos: doc_field.field_positions[top.pl_it_field_fieldposition_next_idx],
-                                pl_it_idx: top.pl_it_idx,
-                                pl_it_field_idx: top.pl_it_field_idx,
-                                pl_it_field_fieldposition_next_idx: top.pl_it_field_fieldposition_next_idx + 1,
-                            });
-                        }
-
-                        merged_positions.push((top.pos, top.pl_it_idx));
-                    }
-
-                    let mut next_expected = 0;
-                    let mut min_window_len = std::u32::MAX;
-                    let mut min_pos = std::u32::MAX;
-                    for (pos, pl_it_idx) in merged_positions {
-                        if pl_it_idx == 0 {
-                            // (Re)start the match from 1
-                            min_pos = pos;
-                            next_expected = 1;
-                        } else if next_expected == pl_it_idx {
-                            // Continue the match
-                            next_expected += 1;
-
-                            if next_expected >= pl_its_for_proximity_ranking.len() {
-                                next_expected = 0;
-                                let curr_window_len = pos - min_pos;
-                                if curr_window_len < min_window_len {
-                                    min_window_len = curr_window_len;
-                                    // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
-                                }
-                            }
-                        } else {
-                            // Restart the match from 0
-                            next_expected = 0;
-                        }
-                    }
-
-                    if min_window_len < 200 {
-                        static PROXIMITY_SCALING: f32 = 2.5;     // how much should larger windows scale
-                        static PROXIMITY_SATURATION: f32 = 5.0;  // how fast it flattens to 1.0
-                        scaling_factor = 1.0 + (
-                            (PROXIMITY_SCALING * num_pl_its_curr_doc)
-                            / (PROXIMITY_SATURATION + total_proximity_ranking_terms + min_window_len as f32)
-                        );
-                        // web_sys::console::log_1(&format!("min_window_len {} scaling_factor {}", min_window_len, scaling_factor).into());
-                    }
-                }
-
-                pl_its_for_proximity_ranking.clear();
             }
             // ------------------------------------------
 
@@ -310,4 +221,109 @@ impl Searcher {
         let minor_fields_score = (doc_term_score - highest_field_score) / self.num_scored_fields_less_one;
         ((MINOR_FIELD_FACTOR * minor_fields_score) + (MAJOR_FIELD_FACTOR * highest_field_score)) * pl.idf as f32 * pl.weight
     }
+}
+
+
+#[inline]
+fn proximity_rank<'a>(
+    pl_its: &Vec<PlIterator<'a>>,
+    pl_its_for_proximity_ranking: &mut Vec<*const PlIterator<'a>>,
+    curr_doc_id: u32,
+    total_proximity_ranking_terms: f32,
+    scaling_factor: &mut f32,
+) {
+    pl_its_for_proximity_ranking.extend(
+        pl_its
+            .iter()
+            .filter(|pl_it| {
+                pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == curr_doc_id
+            })
+            .map(|pl_it| pl_it as *const PlIterator),
+    );
+
+    if pl_its_for_proximity_ranking.len() > 1 {
+        unsafe {
+            pl_its_for_proximity_ranking
+                .sort_by(|a, b| (**a).original_idx.cmp(&(**b).original_idx));
+        }
+
+        let num_pl_its_curr_doc = pl_its_for_proximity_ranking.len() as f32;
+
+        let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
+        for (i, pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
+            let curr_fields = unsafe {
+                &(**pl_it).td.as_ref().unwrap().fields
+            };
+            for (j, curr_field) in curr_fields.iter().enumerate() {
+                if curr_field.field_positions.is_empty() {
+                    continue;
+                }
+                position_heap.push(Position {
+                    pos: curr_field.field_positions[0],
+                    pl_it_idx: i,
+                    pl_it_field_idx: j,
+                    pl_it_field_fieldposition_next_idx: 1,
+                });
+            }
+        }
+
+        // Merge disjoint fields' positions into one
+        // Vec<(pos, pl_it_idx)>
+        let mut merged_positions: Vec<(u32, usize)> = Vec::new();
+        while !position_heap.is_empty() {
+            let top = position_heap.pop().unwrap();
+
+            let doc_field = unsafe {
+                &(*pl_its_for_proximity_ranking[top.pl_it_idx]).td.as_ref().unwrap().fields[top.pl_it_field_idx]
+            };
+            if top.pl_it_field_fieldposition_next_idx < doc_field.field_positions.len() {
+                position_heap.push(Position {
+                    pos: doc_field.field_positions[top.pl_it_field_fieldposition_next_idx],
+                    pl_it_idx: top.pl_it_idx,
+                    pl_it_field_idx: top.pl_it_field_idx,
+                    pl_it_field_fieldposition_next_idx: top.pl_it_field_fieldposition_next_idx + 1,
+                });
+            }
+
+            merged_positions.push((top.pos, top.pl_it_idx));
+        }
+
+        let mut next_expected = 0;
+        let mut min_window_len = std::u32::MAX;
+        let mut min_pos = std::u32::MAX;
+        for (pos, pl_it_idx) in merged_positions {
+            if pl_it_idx == 0 {
+                // (Re)start the match from 1
+                min_pos = pos;
+                next_expected = 1;
+            } else if next_expected == pl_it_idx {
+                // Continue the match
+                next_expected += 1;
+
+                if next_expected >= pl_its_for_proximity_ranking.len() {
+                    next_expected = 0;
+                    let curr_window_len = pos - min_pos;
+                    if curr_window_len < min_window_len {
+                        min_window_len = curr_window_len;
+                        // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
+                    }
+                }
+            } else {
+                // Restart the match from 0
+                next_expected = 0;
+            }
+        }
+
+        if min_window_len < 200 {
+            static PROXIMITY_SCALING: f32 = 2.5;     // how much should larger windows scale
+            static PROXIMITY_SATURATION: f32 = 5.0;  // how fast it flattens to 1.0
+            *scaling_factor = 1.0 + (
+                (PROXIMITY_SCALING * num_pl_its_curr_doc)
+                / (PROXIMITY_SATURATION + total_proximity_ranking_terms + min_window_len as f32)
+            );
+            // web_sys::console::log_1(&format!("min_window_len {} scaling_factor {}", min_window_len, scaling_factor).into());
+        }
+    }
+
+    pl_its_for_proximity_ranking.clear();
 }
