@@ -132,7 +132,6 @@ impl Searcher {
 
         let total_proximity_ranking_terms =
             postings_lists.iter().filter(|pl| pl.include_in_proximity_ranking).count() as f32;
-        let proximity_ranking_max_scale = total_proximity_ranking_terms * 1.8;
 
         while !pl_its.is_empty() {
             let curr_doc_id = pl_its.first().unwrap().td.unwrap().doc_id;
@@ -157,7 +156,7 @@ impl Searcher {
                             .sort_by(|a, b| (**a).original_idx.cmp(&(**b).original_idx));
                     }
 
-                    let num_pl_its_float = pl_its_for_proximity_ranking.len() as f32;
+                    let num_pl_its_curr_doc = pl_its_for_proximity_ranking.len() as f32;
 
                     let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
                     for (i, pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
@@ -209,26 +208,29 @@ impl Searcher {
                         } else if next_expected == pl_it_idx {
                             // Continue the match
                             next_expected += 1;
+
+                            if next_expected >= pl_its_for_proximity_ranking.len() {
+                                next_expected = 0;
+                                let curr_window_len = pos - min_pos;
+                                if curr_window_len < min_window_len {
+                                    min_window_len = curr_window_len;
+                                    // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
+                                }
+                            }
                         } else {
                             // Restart the match from 0
                             next_expected = 0;
                         }
-
-                        if next_expected >= pl_its_for_proximity_ranking.len() {
-                            next_expected = 0;
-                            let curr_window_len = pos - min_pos;
-                            if curr_window_len < min_window_len {
-                                min_window_len = curr_window_len;
-                                // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
-                            }
-                        }
                     }
 
-                    if min_window_len < 300 {
-                        min_window_len += 1;
-                        scaling_factor = 1.0
-                            + (proximity_ranking_max_scale / (total_proximity_ranking_terms + min_window_len as f32))
-                                * (num_pl_its_float / total_proximity_ranking_terms);
+                    if min_window_len < 200 {
+                        static PROXIMITY_SCALING: f32 = 2.5;     // how much should larger windows scale
+                        static PROXIMITY_SATURATION: f32 = 5.0;  // how fast it flattens to 1.0
+                        scaling_factor = 1.0 + (
+                            (PROXIMITY_SCALING * num_pl_its_curr_doc)
+                            / (PROXIMITY_SATURATION + total_proximity_ranking_terms + min_window_len as f32)
+                        );
+                        // web_sys::console::log_1(&format!("min_window_len {} scaling_factor {}", min_window_len, scaling_factor).into());
                     }
                 }
 
