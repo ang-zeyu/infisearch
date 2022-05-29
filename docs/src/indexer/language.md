@@ -91,13 +91,3 @@ Keeping stop words enables the following:
 
 > If you are using any of the 2 `large` presets covered in [section 5.4](./presets.md), which generates a sharded index, stop words are not removed by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
 
-
-## Note on Language Modules' Flexibility
-
-While using the same tokenizer for both indexing / search unifies the codebase, one downside is that code size has to be taken into account.
-
-The chinese tokenizer for example, which uses *jieba-rs*, accounts for half of the wasm binary size alone.
-
-Therefore, the tokenizers will aim to be reasonably powerful and configurable enough, such that the wasm bundle size dosen't blow up.
-
-Nonetheless, if you feel that a certain configuration option should be supported for a given tokenizer but isn't, feel free to open up a feature request!

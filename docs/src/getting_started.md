@@ -4,17 +4,16 @@ This page assumes the use case of a **static site**, that is:
 - You have some HTML files you want to index.
 - These HTML files are served in a static file server, and are linkable to.
 - You have an `<input>` element to attach a search dropdown to.
-  - For mobile devices, a fullscreen UI will show instead when this input element is focused.
-
-> This documentation uses an alternative interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
-> To preview the defaults, head on over [here](./getting_started_mdbook.md#preview), and click on the <kbd>Auto</kbd> button.
+- For mobile devices, a fullscreen UI will show instead when this input element is focused.<br><br>
+  This documentation uses an alternative interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
+  To preview the defaults, head on over [here](./search_configuration_themes.html).
 
 If you require more (e.g. indexing custom json files), have a look through here first, then head on over to the subsequent configuration pages.
 
 ## Installing the indexer
 
 There are two options here:
-- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer`!
+- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.1.0`.
 - Alternatively, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
 
 ## Running the indexer
@@ -37,25 +36,25 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 ### Installation via CDN
 
 ```html
-<!-- Replace "v0.0.2" as appropriate -->
+<!-- Replace "v0.1.0" as appropriate -->
 
 <!--  Search UI package script, which bundles the search library together with it -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.0/packages/search-ui/dist/search-ui.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.0/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 > ⚠️ Ensure the versions here **tally with the indexer version** used.
 
 ### Hosting the Files
 
-If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). All files inside `search.morsels.zip` are required:
+If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). The following files inside `search.morsels.zip` are required:
 
 - `search-ui.bundle.js`
-- `search-ui.css`
-- `search.worker.bundle.js`
-- Multiple (as many supported languages / tokenizers as there are):
-  - `wasm.lang-latin-index-js.bundle`
+- Either `search-ui-light.css` / `search-ui-dark.css`
+  - unless you are designing your own stylesheet from scratch
+- A pair of language-specific bundles which are requested as necessary at runtime.
+  - `search.worker-*.bundle.js`
   - an accompanying wasm binary
 
 > ⚠️ All files are expected to be **accessible in the same folder** relative to the linked `search-ui.bundle.js`.

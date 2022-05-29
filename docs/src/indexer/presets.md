@@ -1,4 +1,4 @@
-# Presets
+# Scaling Presets
 
 5 configuration presets are designed primarily for use with Morsels' main intended use case of supporting static site search.
 

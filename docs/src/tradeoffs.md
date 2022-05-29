@@ -1,6 +1,6 @@
 # Tradeoffs
 
-> This page goes *into detail* on how the various indexer presets (`small`, `medium`, ...) are configured, what tradeoffs they make, and is a (mostly) optional read.
+> This page goes *into detail* on how the various indexer presets (`small`, `medium`, ...) are configured, what tradeoffs they make, and is a (mostly) optional read, especially if your collection isn't too large.
 
 ## Overview
 

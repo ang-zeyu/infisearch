@@ -14,5 +14,4 @@
   - [Indexing](./indexer/indexing.md)
   - [Scaling Presets](./indexer/presets.md)
     - [Tradeoffs](./tradeoffs.md)
-- [Incremental Indexing](./incremental_indexing.md)
-- [Search API]()
+  - [Incremental Indexing](./incremental_indexing.md)
