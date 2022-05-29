@@ -243,7 +243,7 @@ export default async function loadQueryResults(
   
       observer.unobserve(sentinel);
       await loadQueryResults(inputState, query, config, false, container, topLoader, options);
-    }, { rootMargin: '10px 10px 10px 10px' });
+    }, { root: container, rootMargin: '150px 0px' });
 
     inputState.lastElObserver.observe(sentinel);
   }
