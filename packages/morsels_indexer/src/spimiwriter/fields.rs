@@ -40,7 +40,8 @@ pub fn store_fields(
     );
     write_field_texts(
         &mut writer,
-        sorted_doc_infos.first_mut().unwrap(),
+        sorted_doc_infos.first_mut()
+            .expect("First doc info for write_field_texts should always be defined"),
         &mut curr_block_count,
         field_infos,
         &mut file_number,

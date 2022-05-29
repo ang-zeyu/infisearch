@@ -41,7 +41,12 @@ impl JsonLoader {
 
         for header_name in self.options.field_order.iter() {
             if let Some((field_name, text)) = read_result.remove_entry(header_name) {
-                field_texts.push((self.options.field_map.get(&field_name).unwrap().to_owned(), text));
+                field_texts.push((
+                    self.options.field_map.get(&field_name)
+                        .expect("field_order does not match field_map!")
+                        .to_owned(),
+                    text
+                ));
             }
         }
 
@@ -65,7 +70,12 @@ impl Loader for JsonLoader {
 
                 let link = relative_path.to_slash().unwrap();
                 if as_value.is_array() {
-                    let documents: Vec<FxHashMap<String, String>> = serde_json::from_value(as_value).unwrap();
+                    let documents: Vec<FxHashMap<String, String>> = serde_json::from_value(as_value)
+                        .unwrap_or_else(|_| panic!(
+                            "Json file {} not in the expected format of [{{ \"field_name\": \"... field text ...\", ... }}]!",
+                            relative_path.as_os_str().to_string_lossy()
+                        ));
+
                     return Some(Box::new({
                         let doc_count = documents.len();
                         let links = vec![link; doc_count];
@@ -76,9 +86,13 @@ impl Loader for JsonLoader {
                         )
                     }));
                 } else {
-                    return Some(Box::new(std::iter::once(
-                        self.unwrap_json_deserialize_result(serde_json::from_value(as_value).unwrap(), link),
-                    )));
+                    let document = serde_json::from_value(as_value)
+                        .unwrap_or_else(|_| panic!(
+                            "Json file {} not in the expected format of {{ \"field_name\": \"... field text ...\", ... }}!",
+                            relative_path.as_os_str().to_string_lossy()
+                        ));
+
+                    return Some(Box::new(std::iter::once(self.unwrap_json_deserialize_result(document, link))));
                 }
             }
         }

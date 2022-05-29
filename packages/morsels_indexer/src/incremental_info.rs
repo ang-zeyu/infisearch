@@ -15,7 +15,9 @@ use morsels_common::{bitmap, BitmapDocinfoDicttableReader};
 use crate::MORSELS_VERSION;
 
 lazy_static! {
-    static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+    static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH)
+        .expect("Failed to obtain current system time. Consider using the --incremental-content-hash option.")
+        .as_millis();
 }
 
 // Not used for search
@@ -107,7 +109,8 @@ impl IncrementalIndexInfo {
             return IncrementalIndexInfo::empty(use_content_hash);
         }
 
-        let info_file = File::open(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME)).unwrap();
+        let info_file = File::open(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME))
+            .expect("Failed to obtain incremental index info file handle.");
 
         let mut info: IncrementalIndexInfo = serde_json::from_reader(BufReader::new(info_file))
             .expect("incremental index info deserialization failed!");
@@ -187,7 +190,9 @@ impl IncrementalIndexInfo {
             // Use last modified timestamp otherwise
             if let Ok(metadata) = std::fs::metadata(path) {
                 if let Ok(modified) = metadata.modified() {
-                    modified.duration_since(UNIX_EPOCH).unwrap().as_millis()
+                    modified.duration_since(UNIX_EPOCH)
+                        .expect("Failed to calculate timestamp. Consider using the --incremental-content-hash option")
+                        .as_millis()
                 } else {
                     /*
                       Use program execution time if metadata is unavailable.

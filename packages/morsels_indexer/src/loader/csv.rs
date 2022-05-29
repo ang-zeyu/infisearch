@@ -100,8 +100,12 @@ impl CsvLoader {
         let record = read_result.expect("Failed to unwrap csv record result!");
         for idx in self.options.index_field_order.iter() {
             if let Some(text) = record.get(*idx) {
-                field_texts
-                    .push((self.options.index_field_map.get(idx).unwrap().to_owned(), text.to_owned()));
+                field_texts.push((
+                    self.options.index_field_map.get(idx)
+                        .expect("index_field_map does not match index_field_order!")
+                        .to_owned(),
+                    text.to_owned()
+                ));
             }
         }
 
@@ -118,7 +122,9 @@ impl CsvLoader {
         for header_name in self.options.header_field_order.iter() {
             if let Some(text) = read_result.get(header_name) {
                 field_texts.push((
-                    self.options.header_field_map.get(header_name).unwrap().to_owned(),
+                    self.options.header_field_map.get(header_name)
+                        .expect("header_field_map does not match header_field_order!")
+                        .to_owned(),
                     text.to_owned(),
                 ));
             }
@@ -145,15 +151,20 @@ impl Loader for CsvLoader {
 
                 return Some(if self.options.use_headers {
                     Box::new(
-                        self.reader_builder.from_path(absolute_path).unwrap().into_deserialize().map(
-                            move |result| self.unwrap_csv_deserialize_result(result.unwrap(), num_fields),
-                        ),
+                        self.reader_builder.from_path(absolute_path)
+                            .unwrap_or_else(|_| panic!("Failed to read csv {}", relative_path.as_os_str().to_string_lossy()))
+                            .into_deserialize()
+                            .map(
+                                move |result| self.unwrap_csv_deserialize_result(
+                                    result.expect("Failed to unwrap csv record result"), num_fields
+                                ),
+                            ),
                     )
                 } else {
                     Box::new(
                         self.reader_builder
                             .from_path(absolute_path)
-                            .unwrap()
+                            .unwrap_or_else(|_| panic!("Failed to read csv {}", relative_path.as_os_str().to_string_lossy()))
                             .into_records()
                             .map(move |result| self.unwrap_csv_read_result(result, num_fields)),
                     )

@@ -145,7 +145,8 @@ impl FieldInfos {
 
         let field_output_folder_path = output_folder_path.join("field_store");
 
-        std::fs::create_dir_all(&field_output_folder_path).unwrap();
+        std::fs::create_dir_all(&field_output_folder_path)
+            .expect("Failed to create field store output folder in output directory");
 
         FieldInfos {
             field_infos_map,

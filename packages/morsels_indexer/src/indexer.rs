@@ -123,7 +123,8 @@ impl Indexer {
 
         fs::write(
             output_folder_path.join("old_morsels_config.json"),
-            serde_json::to_string_pretty(&config.json_config).unwrap(),
+            serde_json::to_string_pretty(&config.json_config)
+                .expect("Failed to serialize current configuration file"),
         )
         .expect("Failed to write old_morsels_config.json");
 
@@ -156,7 +157,9 @@ impl Indexer {
         }
         // ------------------------------
 
-        let doc_id_counter = doc_infos.lock().unwrap().doc_lengths.len() as u32;
+        let doc_id_counter = doc_infos.lock()
+            .expect("Unexpected concurrent holding of doc_infos mutex")
+            .doc_lengths.len() as u32;
 
         i_debug!("Previous number of docs {}", doc_id_counter);
 
@@ -248,17 +251,20 @@ impl Indexer {
         match lang_config.lang.as_str() {
             "ascii" => {
                 Arc::new(ascii::new_with_options(
-                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap()
+                    serde_json::from_value(Value::Object(lang_config.options.clone()))
+                        .expect("Failed to parse ascii tokenizer options")
                 ))
             }
             "latin" => {
                 Arc::new(latin::new_with_options(
-                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap()
+                    serde_json::from_value(Value::Object(lang_config.options.clone()))
+                        .expect("Failed to parse latin tokenizer options")
                 ))
             }
             "chinese" => {
                 Arc::new(chinese::new_with_options(
-                    serde_json::from_value(Value::Object(lang_config.options.clone())).unwrap()
+                    serde_json::from_value(Value::Object(lang_config.options.clone()))
+                        .expect("Failed to parse chinese tokenizer options")
                 ))
             }
             _ => {
@@ -341,7 +347,10 @@ impl Indexer {
             .indexing_config
             .get_loaders_from_config()
             .into_iter()
-            .map(|loader| (loader.get_name(), serde_json::to_value(loader).unwrap()))
+            .map(|loader| (
+                loader.get_name(),
+                serde_json::to_value(loader).expect("Failed to convert loader config to serde value")
+            ))
             .collect();
 
         File::create(config_file_path)

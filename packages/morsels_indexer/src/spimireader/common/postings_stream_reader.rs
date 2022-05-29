@@ -57,7 +57,9 @@ impl PostingsStreamReader {
                 // Temporary combined dictionary table / dictionary string
                 let mut term_vec = vec![0; u8_buf[0] as usize];
                 self.buffered_dict_reader.read_exact(&mut term_vec).unwrap();
-                let term = str::from_utf8(&term_vec).unwrap().to_owned();
+                let term = str::from_utf8(&term_vec)
+                    .expect("Unexpected error, unable to parse utf8 string from temporary dictionary")
+                    .to_owned();
 
                 self.buffered_dict_reader.read_exact(&mut u32_buf).unwrap();
                 let doc_freq = LittleEndian::read_u32(&u32_buf);
