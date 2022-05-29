@@ -112,7 +112,7 @@ fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::Pa
         fs::write(
             &morsels_config_path,
             config.replace("\"exclude\": [", "\"exclude\": [\n      \"index.html\",\n      \"print.html\", \n      \"404.html\",")
-                .replace("script,style", "script,style,#sidebar,#menu-bar"),
+                .replace("script,style,pre", "script,style,pre,#sidebar,#menu-bar"),
         )
         .unwrap();
     }

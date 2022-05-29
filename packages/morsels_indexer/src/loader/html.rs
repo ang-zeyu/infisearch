@@ -49,7 +49,7 @@ fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
 }
 
 fn get_default_exclude_selectors() -> Vec<String> {
-    vec!["script,style".to_owned()]
+    vec!["script,style,pre".to_owned()]
 }
 
 #[derive(Serialize, Deserialize)]

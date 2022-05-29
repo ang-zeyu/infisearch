@@ -21,7 +21,7 @@ The snippet below shows the default values:
       "HtmlLoader": {}
     },
     
-    "pl_limit": 5242880,
+    "pl_limit": 4294967295,
 
     "pl_cache_threshold": 0,
 
@@ -50,7 +50,7 @@ You may configure loaders by **including them under the `loader_configs` key**, 
   "HtmlLoader": {
     // list of selectors to exclude from indexing
     "exclude_selectors": [
-      "script,style"
+      "script,style,pre"
     ],
     "selectors": [
       {

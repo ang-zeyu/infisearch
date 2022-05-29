@@ -18,16 +18,16 @@ You may want to briefly take note of the other parameters under `fields_config` 
       {
         "name": "title",
         "do_store": false,
-        "weight": 0.8,
+        "weight": 2.0,
         "k": 1.2,
-        "b": 0.25
+        "b": 0.15
       },
       {
         "name": "heading",
         "do_store": false,
-        "weight": 0.8,
+        "weight": 1.5,
         "k": 1.2,
-        "b": 0.3
+        "b": 0.25
       },
       {
         "name": "body",

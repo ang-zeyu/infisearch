@@ -20,16 +20,16 @@ A typical full configuration file looks something like this:
       {
         "name": "title",
         "do_store": true,
-        "weight": 0.8,
+        "weight": 2.0,
         "k": 1.2,
-        "b": 0.25
+        "b": 0.15
       },
       {
         "name": "heading",
         "do_store": true,
-        "weight": 0.8,
+        "weight": 1.5,
         "k": 1.2,
-        "b": 0.3
+        "b": 0.25
       },
       {
         "name": "body",
@@ -68,7 +68,7 @@ A typical full configuration file looks something like this:
     "loader_configs": {
       "HtmlLoader": {
         "exclude_selectors": [
-          "script,style"
+          "script,style,pre"
         ],
         "selectors": [
           {
