@@ -4,7 +4,7 @@
 # Update the cargo.toml version numbers before running anything!
 
 # And this
-VERSION=v0.0.11
+VERSION=v0.1.0
 
 # Run in order
 # Check preReleaseXX outputs manually before running release
