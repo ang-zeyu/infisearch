@@ -25,16 +25,13 @@ export function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchRes
     };
   }
   
-  // Find the closest window
-  
-  let lastClosestRegexPositions = termRegexes.map(() => -10000000);
+  let lastClosestRegexPositions = termRegexes.map(() => -1);
   let lastClosestWindowLen = 10000000;
   let lastClosestRegexLengths = termRegexes.map(() => 0);
   
-  // At each iteration, increment the lowest index match
+  // Next match index of each RegExp's array inside matches
   const matchIndices = matches.map(() => 0);
   const hasFinished =  matches.map((innerMatches) => !innerMatches.length);
-  const maxMatchLengths = matches.map(() => 0);
   
   // Local to the while (true) loop; To avoid .map and reallocating
   const matchPositions = matches.map(() => -1);
@@ -44,24 +41,13 @@ export function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchRes
     let lowestMatchPosExclFinished = 10000000;
     let lowestMatchIndex = -1;
     let highestMatchPos = 0;
-  
-    let hasLongerMatch = false;
-    let isEqualMatch = true;
+
     for (let regexIdx = 0; regexIdx < matchIndices.length; regexIdx++) {
       const match = matches[regexIdx][matchIndices[regexIdx]];
       if (!match) {
         // No matches at all for this regex in this str
         continue;
       }
-  
-      // match[3] is not highlighted but allows lookahead / changing the match length priority
-      const matchedTextLen = match[2].length + match[3].length;
-      if (matchedTextLen > maxMatchLengths[regexIdx]) {
-        // Prefer longer matches across all regexes
-        hasLongerMatch = true;
-        maxMatchLengths[regexIdx] = matchedTextLen;
-      }
-      isEqualMatch = isEqualMatch && matchedTextLen === maxMatchLengths[regexIdx];
   
       const pos = match.index + match[1].length;
       if (!hasFinished[regexIdx] && pos < lowestMatchPosExclFinished) {
@@ -81,10 +67,12 @@ export function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchRes
     }
   
     const windowLen = highestMatchPos - lowestMatchPos;
-    if (hasLongerMatch || (isEqualMatch && windowLen < lastClosestWindowLen)) {
+    if (windowLen < lastClosestWindowLen) {
       lastClosestWindowLen = windowLen;
       lastClosestRegexPositions = [...matchPositions];
-      lastClosestRegexLengths = matchIndices.map((i, idx) => matches[idx][i] && matches[idx][i][2].length);
+      lastClosestRegexLengths = matchIndices.map((i, idx) => matches[idx][i] && (
+        matches[idx][i][2].length + matches[idx][i][3].length
+      ));
     }
   
     // Forward the match with the smallest position
@@ -92,7 +80,7 @@ export function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchRes
     if (matchIndices[lowestMatchIndex] >= matches[lowestMatchIndex].length) {
       hasFinished[lowestMatchIndex] = true;
       matchIndices[lowestMatchIndex] -= 1;
-      if (!hasFinished.some(finished => !finished)) {
+      if (hasFinished.every(finished => finished)) {
         break;
       }
     }

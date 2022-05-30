@@ -146,7 +146,7 @@ export function resultsRender(
       const boundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})((?=\\W|$))`, 'gi');
       termRegexes.push(boundariedRegex);
     } else if (config.langConfig.lang === 'latin') {
-      const nonEndBoundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})(\\W?)`, 'gi');
+      const nonEndBoundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})(\\w*?)(?=\\W|$)`, 'gi');
       termRegexes.push(nonEndBoundariedRegex);
     } else if (config.langConfig.lang === 'chinese') {
       const nonBoundariedRegex = new RegExp(`()(${innerTermsJoined})()`, 'gi');
