@@ -43,18 +43,19 @@ class Searcher {
   private cache: PersistentCache;
 
   constructor(private options: SearcherOptions) {
-
-    const cacheName = `morsels:${options.url}`;
-
     this.setupPromise = this.retrieveConfig()
-      .then(() => {
-        this.worker = new Worker(new URL(
+      .then(async () => new Promise<void>(async (resolve) => {
+        const workerUrl = new URL(
           scriptUrl + `search-worker-${this.config.langConfig.lang}.bundle.js`,
           document.baseURI || self.location.href,
-        ));
-      })
-      .then(() => this.setupCache(cacheName))
-      .then(() => new Promise<void>((resolve) => {
+        ) + '';
+        const content = `const __morsWrkrUrl="${workerUrl}";importScripts(__morsWrkrUrl);`;
+        const objectUrl = URL.createObjectURL(new Blob([content], { type: 'text/javascript' }));
+
+        this.worker = new Worker(objectUrl);
+
+        await this.setupCache(`morsels:${options.url}`);
+      
         this.worker.onmessage = (ev) => {
           if (ev.data.query) {
             const {
@@ -73,6 +74,7 @@ class Searcher {
             });
           } else if (ev.data === '') {
             this.worker.postMessage(this.config);
+            URL.revokeObjectURL(objectUrl);
           } else if (ev.data.isSetupDone) {
             resolve();
           }

@@ -15,6 +15,10 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
     options.searcherOptions.url += '/';
   }
   
+  if (options.searcherOptions.url.startsWith('/')) {
+    options.searcherOptions.url = window.location.origin + options.searcherOptions.url;
+  }
+
   if (!('numberOfExpandedTerms' in options.searcherOptions)) {
     options.searcherOptions.numberOfExpandedTerms = 3;
   }

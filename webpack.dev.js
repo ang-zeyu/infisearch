@@ -9,6 +9,12 @@ module.exports = (env) => merge(common(env), {
   mode: 'development',
   devtool: 'inline-source-map',
   devServer: {
+    client: {
+      webSocketURL: {
+        // Reload for the worker won't work when accessing devServer externally
+        hostname: 'localhost',
+      },
+    },
     hot: true,
     host: '0.0.0.0',
     open: false,

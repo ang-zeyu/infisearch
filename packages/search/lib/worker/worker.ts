@@ -1,3 +1,4 @@
+import './publicPath';
 import WorkerSearcher from './workerSearcher';
 
 export default function setupWithWasmModule(wasmModule: Promise<any>) {
