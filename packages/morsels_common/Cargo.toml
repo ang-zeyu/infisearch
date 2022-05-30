@@ -9,9 +9,6 @@ repository = "https://github.com/ang-zeyu/morsels"
 readme = "../../README.md"
 license = "MIT"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 byteorder = "1"
 rustc-hash = "1.1"

@@ -12,9 +12,6 @@ license = "MIT"
 [features]
 indexer = []
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 lazy_static = "1.4"
 morsels_common = { path = "../../morsels_common", version="0.0.11" }
