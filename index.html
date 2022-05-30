@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_themes.html"><strong aria-hidden="true">4.1.</strong> Themes</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -133,39 +133,59 @@
 
                 <div id="content" class="content">
                     <main>
-                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
-<style>
-.morsels-root {
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
+<style>.light .morsels-root,
+.rust .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
-    --morsels-item-border-radius: 10px;
+    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
-    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-fg: var(--fg);
     --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--bg);
-    --morsels-title-hover-bg: var(--fg);
+    --morsels-title-hover-fg: var(--fg);
+    --morsels-title-hover-bg: var(--table-header-bg);
+    --morsels-heading-fg: var(--fg);
     --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-fg: var(--fg);
     --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-fg: var(--fg);
+    --morsels-body-bg: var(--bg);
+    --morsels-body-hover-fg: var(--fg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
+    --morsels-highlight-bg: none;
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-box-shadow: none;
-    --morsels-fullscreen-header-bg: var(--sidebar-bg);
-    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
-    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
-    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
-    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: var(--sidebar-bg);
+    --morsels-fs-header-border-bottom: none;
+    --morsels-fs-header-close-fg: var(--sidebar-fg);
+    --morsels-fs-header-close-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-bg: var(--table-header-bg);
+    --morsels-fs-header-close-hover-fg: var(--fg);
+    --morsels-fs-header-close-active-bg: var(--table-header-bg);
+    --morsels-fs-header-close-active-fg: var(--fg);
+}
+
+.ayu .morsels-root,
+.rust .morsels-root {
+    --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-fg: white;
+    --morsels-fs-header-close-active-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-active-fg: white;
+}
+
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
 }
 
 #morsels-search {
@@ -193,51 +213,52 @@
 }
 </style>
 <p><input
-    type="text"
+    type="search"
     id="morsels-search"
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Morsels is a complete <strong>client-side</strong> search solution, including a search <strong>user interface and library</strong> that depends on a <strong>pre-built index</strong> generated by a <strong>command-line build tool</strong>.</p>
-<p>The secondary value proposition versus other pre-built index alternatives is the option of scalability, achieved mainly by splitting the index into many smaller chunks (“morsels”). This allows the client to retrieve and load only what is searched, circumventing network (loading times) &amp; device memory constraints imposed by a monolithic index.</p>
+<p>Morsels is a complete client-side search solution tailored for static sites, including a search <em>user interface and library</em> that depends on a <em>pre-built index</em> generated by a <em>command-line</em> tool.</p>
 <h2 id="features"><a class="header" href="#features">Features</a></h2>
 <ul>
 <li>
-<p>Multi-threaded CLI indexer powered by Rust</p>
+<p><strong>Multi-threaded</strong> 🏇 CLI indexer powered by Rust</p>
 </li>
 <li>
-<p>Various search features, such as boolean queries, field filters, phrase queries, BM25 scoring, query term proximity boosts and WebWorker built-in</p>
+<p><strong>Typo tolerance</strong> ⌨ with spelling correction and automatic prefix search</p>
 </li>
 <li>
-<p>Powered by WebAssembly, enabling efficient index decompression and query processing </p>
+<p><strong>Feature-rich search</strong> 🔍: boolean queries, field filters, phrase queries, BM25 scoring, query term proximity boosts, persistent caching and WebWorker built-in</p>
 </li>
 <li>
-<p>Gap and Variable integer compression, giving you more <em>bang-per-byte</em></p>
+<p>Powered by <strong>WebAssembly</strong>, enabling efficient index (de)compression and query processing </p>
 </li>
 <li>
-<p>Incremental Indexing</p>
+<p><strong>Semi-Scalable</strong> 📈, achieved by (optionally) splitting the index into chunks (“morsels”).</p>
 </li>
 <li>
-<p>Customisable dropdown / fullscreen popup user interface</p>
+<p><strong>Incremental</strong> Indexing</p>
+</li>
+<li>
+<p><strong>Customisable</strong> dropdown / fullscreen popup user interface 🖥️</p>
 </li>
 </ul>
-<h2 id="how-it-works"><a class="header" href="#how-it-works">How it Works</a></h2>
-<p>The following diagram summarises how Morsels works:</p>
-<p><img src="./images/architecture.png" alt="Morsels’ architecture diagram" /></p>
 <h2 id="use-cases"><a class="header" href="#use-cases">Use Cases</a></h2>
 <p>You may want to use this tool if:</p>
 <ul>
-<li>You want a <strong>complete, end-to-end</strong> and customisable search UI and <strong>cli-based file indexing</strong> solution (perfect for static site generators!)</li>
-<li>You have a fairly <strong>large collection</strong> of html, csv, json or txt (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly</li>
+<li>You want a complete solution for static site search</li>
+<li>You have a fairly <strong>large collection</strong> of HTML, csv, json or txt (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly</li>
 <li>Running a search server / SaaS (eg. Algolia Docsearch) is not an option</li>
 </ul>
 <blockquote>
 <p>⚠️ 
-It is <strong>not possible</strong> to use morsels for <strong>client-side indexing</strong> as such since the indexer is a cli tool.</p>
+It is <strong>not possible</strong> to use morsels for <strong>client-side indexing</strong> since the indexer is a cli tool.</p>
 <p>If this is the use case, consider other lighter-weight libraries like lunr.js that already fit well.</p>
 </blockquote>
+<h2 id="how-it-works"><a class="header" href="#how-it-works">How it Works:</a></h2>
+<p><img src="./images/architecture.png" alt="Morsels’ architecture diagram" /></p>
 <h2 id="libraries"><a class="header" href="#libraries">Libraries</a></h2>
 <p>This project is currently made up of 1 exposed crate and npm package, which may be referred to in the subsequent sections of the documentation.</p>
 <h4 id="exposed-crates-and-packages"><a class="header" href="#exposed-crates-and-packages">Exposed Crates and Packages:</a></h4>
@@ -245,18 +266,35 @@ It is <strong>not possible</strong> to use morsels for <strong>client-side index
 <li><strong>morsels_indexer</strong>: the cli tool providing indexing functionalities for several file formats</li>
 <li><strong>@morsels/search-ui</strong>: interfaces with @morsels/search-lib to provide basic search UI functionalities (e.g. result preview generation)</li>
 </ul>
-<h4 id="internal-crates-and-packages"><a class="header" href="#internal-crates-and-packages">Internal Crates and Packages:</a></h4>
+<details>
+<summary>
+<strong>Internal Crates and Packages:</strong>
+</summary>
 <ul>
 <li><strong>morsels_search</strong>: internal rust wasm crate, used by the <strong>@morsels/search-lib</strong> package below.</li>
 <li><strong>morsels_common</strong>: internal rust crate containing some common functionalities</li>
-<li><strong>@morsels/search-lib</strong>: a small companion library to morsels_search for interfacing with the wasm crate. This may be used without the <code>@morsels/search-ui</code> package in the future. For now, it only serves to separate some concerns from the UI package</li>
+<li><strong>@morsels/search-lib</strong>: a small companion library to morsels_search for interfacing with the wasm crate. Serves only to separate some concerns from the UI package</li>
 <li><strong>@morsels/lang-XX</strong>: internal tokenizer packages for different languages generated by wasm pack</li>
 </ul>
+</details>
 <h2 id="other-limitations"><a class="header" href="#other-limitations">Other Limitations</a></h2>
-<ul>
-<li>The project uses WebAssembly. If IE support is needed, you’ll have to look elsewhere =(</li>
-<li>For now, the focus is on providing e2e search functionalities in the <strong>browser</strong>. That means no Node.js support and such.</li>
-</ul>
+<ol>
+<li>
+<p><strong>Latency</strong> &amp; File Bloat (only when fragmenting the index)</p>
+<p>Scaling this tool for larger collections necessitates fragmenting the index and <strong>retrieving only what’s needed</strong> when searched, which means extra network requests, but to a reasonable degree. (see this <a href="https://ang-zeyu.github.io/morsels-demo-1/">demo</a>)</p>
+<p>This tool should be able to handle <code>800MB</code> <strong>pure text</strong> (not counting things like HTML soup) collections with the full set of features enabled and some configuration tweaking.</p>
+<p>The degree of fragmentation can be <a href="https://ang-zeyu.github.io/morsels/presets.html">configured</a> to varying degrees. That is, by default, Morsels can, and does function much like other existing monolithic pre-built index options in terms of the number of network requests, and you only “pay for what you need”.</p>
+</li>
+<li>
+<p><strong>Wasm</strong> – no IE support =(</p>
+</li>
+<li>
+<p><strong>Not production ready!</strong></p>
+</li>
+<li>
+<p><strong>Browser Focused</strong>: For now, the focus is on providing e2e search functionalities in the browser. That means no Node.js support and such.</p>
+</li>
+</ol>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>

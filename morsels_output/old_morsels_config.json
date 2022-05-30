@@ -4,25 +4,25 @@
     "field_store_block_size": 250,
     "fields": [
       {
-        "b": 0.25,
+        "b": 0.15,
         "do_store": true,
         "k": 1.2,
         "name": "title",
-        "weight": 0.2
+        "weight": 2.0
       },
       {
-        "b": 0.3,
+        "b": 0.25,
         "do_store": true,
         "k": 1.2,
         "name": "heading",
-        "weight": 0.3
+        "weight": 1.5
       },
       {
         "b": 0.75,
         "do_store": true,
         "k": 1.2,
         "name": "body",
-        "weight": 0.5
+        "weight": 1.0
       },
       {
         "b": 0.75,
@@ -82,6 +82,9 @@
   },
   "lang_config": {
     "lang": "ascii",
-    "options": null
-  }
+    "options": {
+      "ignore_stop_words": false
+    }
+  },
+  "preset": "small"
 }

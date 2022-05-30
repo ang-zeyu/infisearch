@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_themes.html"><strong aria-hidden="true">4.1.</strong> Themes</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html" class="active"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -133,39 +133,59 @@
 
                 <div id="content" class="content">
                     <main>
-                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
-<style>
-.morsels-root {
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
+<style>.light .morsels-root,
+.rust .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
-    --morsels-item-border-radius: 10px;
+    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
-    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-fg: var(--fg);
     --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--bg);
-    --morsels-title-hover-bg: var(--fg);
+    --morsels-title-hover-fg: var(--fg);
+    --morsels-title-hover-bg: var(--table-header-bg);
+    --morsels-heading-fg: var(--fg);
     --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-fg: var(--fg);
     --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-fg: var(--fg);
+    --morsels-body-bg: var(--bg);
+    --morsels-body-hover-fg: var(--fg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
+    --morsels-highlight-bg: none;
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-box-shadow: none;
-    --morsels-fullscreen-header-bg: var(--sidebar-bg);
-    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
-    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
-    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
-    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: var(--sidebar-bg);
+    --morsels-fs-header-border-bottom: none;
+    --morsels-fs-header-close-fg: var(--sidebar-fg);
+    --morsels-fs-header-close-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-bg: var(--table-header-bg);
+    --morsels-fs-header-close-hover-fg: var(--fg);
+    --morsels-fs-header-close-active-bg: var(--table-header-bg);
+    --morsels-fs-header-close-active-fg: var(--fg);
+}
+
+.ayu .morsels-root,
+.rust .morsels-root {
+    --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-fg: white;
+    --morsels-fs-header-close-active-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-active-fg: white;
+}
+
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
 }
 
 #morsels-search {
@@ -193,7 +213,7 @@
 }
 </style>
 <p><input
-    type="text"
+    type="search"
     id="morsels-search"
     placeholder="Search"
 /></p>
@@ -201,39 +221,40 @@
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
 <p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>morsels_config.json</code> in the source folder (first argument specified in the command).</p>
-<p>You can run the cli command with the <code>--config-init</code> option to initialise the default configuration file in the source folder.</p>
+<p>You can run the cli command with the <code>--config-init</code> option to initialise the full, default configuration file in the source folder. As the file generated from this option is rather verbose, you could also instead override the necessary properties as covered in the subsequent sections.</p>
 <h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
 <p>A typical full configuration file looks something like this:</p>
 <pre><code class="language-json">{
+  &quot;preset&quot;: &quot;small&quot;,
   &quot;fields_config&quot;: {
-    &quot;cache_all_field_stores&quot;: true,
-    &quot;field_store_block_size&quot;: 10000,
+    &quot;field_store_block_size&quot;: 4294967295,
     &quot;num_stores_per_dir&quot;: 1000,
+    &quot;cache_all_field_stores&quot;: true,
     &quot;fields&quot;: [
       {
         &quot;name&quot;: &quot;title&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.2,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 2.0,
+        &quot;k&quot;: 1.2,
+        &quot;b&quot;: 0.15
+      },
+      {
+        &quot;name&quot;: &quot;heading&quot;,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 1.5,
         &quot;k&quot;: 1.2,
         &quot;b&quot;: 0.25
       },
       {
-        &quot;name&quot;: &quot;heading&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.3,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.3
-      },
-      {
         &quot;name&quot;: &quot;body&quot;,
-        &quot;do_store&quot;: false,
-        &quot;weight&quot;: 0.5,
+        &quot;do_store&quot;: true,
+        &quot;weight&quot;: 1.0,
         &quot;k&quot;: 1.2,
         &quot;b&quot;: 0.75
       },
       {
         &quot;name&quot;: &quot;headingLink&quot;,
-        &quot;do_store&quot;: false,
+        &quot;do_store&quot;: true,
         &quot;weight&quot;: 0.0,
         &quot;k&quot;: 1.2,
         &quot;b&quot;: 0.75
@@ -248,12 +269,12 @@
     ]
   },
   &quot;lang_config&quot;: {
-    &quot;lang&quot;: &quot;latin&quot;,
+    &quot;lang&quot;: &quot;ascii&quot;,
     &quot;options&quot;: null
   },
   &quot;indexing_config&quot;: {
     &quot;num_docs_per_block&quot;: 1000,
-    &quot;pl_limit&quot;: 5242880,
+    &quot;pl_limit&quot;: 0,
     &quot;pl_cache_threshold&quot;: 0,
     &quot;exclude&quot;: [
       &quot;morsels_config.json&quot;
@@ -261,27 +282,32 @@
     &quot;loader_configs&quot;: {
       &quot;HtmlLoader&quot;: {
         &quot;exclude_selectors&quot;: [
-          &quot;.no-index&quot;
-        ]
-      },
-      &quot;JsonLoader&quot;: {
-        &quot;field_map&quot;: {
-          &quot;body&quot;: &quot;body&quot;,
-          &quot;heading&quot;: &quot;heading&quot;,
-          &quot;link&quot;: &quot;_relative_fp&quot;,
-          &quot;title&quot;: &quot;title&quot;
-        },
-        &quot;field_order&quot;: [
-          &quot;title&quot;,
-          &quot;heading&quot;,
-          &quot;body&quot;,
-          &quot;link&quot;
-        ]
+          &quot;script,style,pre&quot;
+        ],
+        &quot;selectors&quot;: [
+          {
+            &quot;attr_map&quot;: {},
+            &quot;field_name&quot;: &quot;title&quot;,
+            &quot;selector&quot;: &quot;title&quot;
+          },
+          {
+            &quot;attr_map&quot;: {},
+            &quot;field_name&quot;: &quot;body&quot;,
+            &quot;selector&quot;: &quot;body&quot;
+          },
+          {
+            &quot;attr_map&quot;: {
+              &quot;id&quot;: &quot;headingLink&quot;
+            },
+            &quot;field_name&quot;: &quot;heading&quot;,
+            &quot;selector&quot;: &quot;h1,h2,h3,h4,h5,h6&quot;
+          }
+        ],
+        &quot;type&quot;: &quot;HtmlLoader&quot;
       }
     },
-    &quot;pl_names_to_cache&quot;: [],
     &quot;num_pls_per_dir&quot;: 1000,
-    &quot;with_positions&quot;: true
+    &quot;with_positions&quot;: false
   }
 }
 </code></pre>

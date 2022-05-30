@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Renderers - Morsels Documentation</title>
+        <title>Altering HTML outputs - Morsels Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_themes.html"><strong aria-hidden="true">4.1.</strong> Themes</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html" class="active"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -133,39 +133,59 @@
 
                 <div id="content" class="content">
                     <main>
-                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
-<style>
-.morsels-root {
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
+<style>.light .morsels-root,
+.rust .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
-    --morsels-item-border-radius: 10px;
+    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
-    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-fg: var(--fg);
     --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--bg);
-    --morsels-title-hover-bg: var(--fg);
+    --morsels-title-hover-fg: var(--fg);
+    --morsels-title-hover-bg: var(--table-header-bg);
+    --morsels-heading-fg: var(--fg);
     --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-fg: var(--fg);
     --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-fg: var(--fg);
+    --morsels-body-bg: var(--bg);
+    --morsels-body-hover-fg: var(--fg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
+    --morsels-highlight-bg: none;
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-box-shadow: none;
-    --morsels-fullscreen-header-bg: var(--sidebar-bg);
-    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
-    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
-    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
-    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: var(--sidebar-bg);
+    --morsels-fs-header-border-bottom: none;
+    --morsels-fs-header-close-fg: var(--sidebar-fg);
+    --morsels-fs-header-close-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-bg: var(--table-header-bg);
+    --morsels-fs-header-close-hover-fg: var(--fg);
+    --morsels-fs-header-close-active-bg: var(--table-header-bg);
+    --morsels-fs-header-close-active-fg: var(--fg);
+}
+
+.ayu .morsels-root,
+.rust .morsels-root {
+    --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-fg: white;
+    --morsels-fs-header-close-active-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-active-fg: white;
+}
+
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
 }
 
 #morsels-search {
@@ -193,13 +213,13 @@
 }
 </style>
 <p><input
-    type="text"
+    type="search"
     id="morsels-search"
     placeholder="Search"
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="renderers"><a class="header" href="#renderers">Renderers</a></h1>
+<h1 id="altering-html-outputs"><a class="header" href="#altering-html-outputs">Altering HTML Outputs</a></h1>
 <style>
     .alert-warning {
         color: #856404;
@@ -214,13 +234,12 @@
         border-radius: 0.25rem;
     }
 </style>
-<div class="alert alert-warning" role="alert">
-  The APIs here (especially those highlighted in <span style="color: red;">red</span>) may be particularly unstable still!
-</div>
-<p>This page covers a more advanced API, “renderers”, that allows you to customise the html output structure to some degree.</p>
+<blockquote>
+<p>This page covers some APIs that allow you to customise some small parts of the HTML output structure, if required.</p>
+</blockquote>
 <p>Some use cases for this include:</p>
 <ul>
-<li>The default html structure is not sufficient for your styling needs</li>
+<li>The default HTML structure is not sufficient for your styling needs</li>
 <li>You need to attach additional event listeners to elements</li>
 <li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)</li>
 <li>You want to change the <a href="./search_configuration.html#default-rendering-output--purpose">default use case</a> of following through on a result preview to its source document entirely</li>
@@ -235,10 +254,9 @@
     }
 });
 </code></pre>
-<p>As the interfaces are rather low level, this page will cross reference the <code>UiOptions</code> typescript interface <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/SearchUiOptions.ts">here</a> directly.</p>
 <h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
 <p><code>h</code></p>
-<p>Almost all renderer functions are passed a <code>h</code> function. This is an <strong>optional</strong> helper function you may use to create elements.</p>
+<p>Almost all renderer functions are passed a <code>h</code> function. This is an <em>optional</em> helper function you may use to create elements.</p>
 <p>The method signature is as such:</p>
 <pre><code class="language-ts">export type CreateElement = (
   // Element name
@@ -257,8 +275,7 @@
 </code></pre>
 <h2 id="passing-custom-options"><a class="header" href="#passing-custom-options">Passing Custom Options</a></h2>
 <p><code>opts</code></p>
-<p>All renderer functions are also passed an <code>opts</code> parameter. This is the original input object that you provided to the <code>initMorsels</code> call. Default parameters are however populated at this point.</p>
-<p>i.e.,</p>
+<p>All renderer functions are also passed an <code>opts</code> parameter. This is the original input object that you provided to the <code>initMorsels</code> call, with default parameters populated at this point.</p>
 <pre><code class="language-ts">opts = export interface SearchUiOptions {
   searcherOptions?: SearcherOptions,
   uiOptions?: UiOptions,
@@ -266,145 +283,7 @@
   otherOptions: any
 }
 </code></pre>
-<p>If you want to include some custom options (e.g. an API base url), you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
-<h2 id="default-html-output-structure"><a class="header" href="#default-html-output-structure">Default Html Output Structure</a></h2>
-<p>You can have a look at the documentation further below on each API to understand each renderer, then refer back to the following output placement snippet to understand which renderers are responsible for which parts of the html output.</p>
-<p>The output also varies depending on the <a href="./search_configuration.html#ui-mode">UI mode</a> specified earlier. Again, note that the <code>dropdown</code> and <code>fullscreen</code> ui modes both apply to the <code>auto</code> mode.</p>
-<details>
-<summary><strong>Renderers and their output placement</strong></summary>
-<pre><code class="language-html">&lt;!--
-    dropdownRootRender - mode: 'dropdown'
-    fsRootRender       - mode: 'fullscreen'
- --&gt;
-
-&lt;!--
-    **fsRootRender** START
-    root element is a backdrop to facilitate backdrop dismiss
---&gt;
-&lt;div class=&quot;morsels-fs-backdrop&quot;&gt;
-  
-  &lt;!-- **dropdownRootRender** START --&gt;
-  &lt;!-- fsRootRender has an additional &quot;morsels-fs-root&quot; class on this element --&gt;
-  &lt;div class=&quot;morsels-root&quot;&gt;
-
-    &lt;!-- these 3 elements are for dropdownRootRender only --&gt;
-    &lt;div class=&quot;morsels-inner-root&quot;&gt;
-    &lt;input id=&quot;morsels-search&quot; placeholder=&quot;Search&quot;&gt;
-    &lt;div class=&quot;morsels-input-dropdown-separator&quot; style=&quot;display: none;&quot;&gt;&lt;/div&gt;
-
-    &lt;!--
-        this element is for fsRootRender only,
-        for wrapping search box &amp; close button in a sticky header
-    --&gt;
-    &lt;div class=&quot;morsels-fs-input-button-wrapper&quot;&gt;
-        &lt;input class=&quot;morsels-fs-input&quot; type=&quot;text&quot;&gt;
-        &lt;button class=&quot;morsels-input-close-fs&quot;&gt;&lt;/button&gt;
-    &lt;/div&gt;
-
-    &lt;ul class=&quot;morsels-list&quot; style=&quot;display: none;&quot;&gt;
-    &lt;!--
-        **dropdownRootRender / fsRootRender** END
-        
-        NOTE: If using mode = 'target', the above ul element is
-              substituted for the target element you specify
-    --&gt;
-
-        &lt;!-- **noResultsRender** START --&gt;
-        &lt;div class=&quot;morsels-no-results&quot;&gt;No results found&lt;/div&gt;
-        &lt;!-- **noResultsRender** END --&gt;
-
-        &lt;!-- **fsBlankRender** START
-          Shown for the fullscreen version, when the search box is empty
-          This is the shown text &quot;Start Searching Above!&quot; when the input is empty,
-          implemented inside a ::before pseudo class for easy overriding.
-        --&gt;
-        &lt;div class=&quot;morsels-fs-blank&quot;&gt;&lt;/div&gt;
-        &lt;!-- **fsBlankRender** END --&gt;
-
-        &lt;!--
-          **loadingIndicatorRender** START (blank by default)
-
-          Shown when making the initial search from a blank search box.
-          Subsequent searches (ie. when there are some results already)
-          will not show this indicator.
-        --&gt;
-        &lt;span class=&quot;morsels-loading-indicator&quot;&gt;&lt;/span&gt;
-        &lt;!-- **loadingIndicatorRender** END --&gt;
-
-        &lt;!-- **termInfoRender** START (intentionally blank by default) --&gt;
-        &lt;div&gt;&lt;/div&gt;
-        &lt;!-- **termInfoRender** END --&gt;
-
-        &lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;
-    &lt;/ul&gt;
-
-    &lt;!-- this closes morsels-inner-root above --&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-</code></pre>
-</details>
-<p>You can find the latest default implementations of the renderers <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/search.ts">here</a>.</p>
-<h2 id="root-elements"><a class="header" href="#root-elements">Root Elements</a></h2>
-<h3 id="dropdown"><a class="header" href="#dropdown">Dropdown</a></h3>
-<p><code>dropdownRootRender(h, opts, inputEl): { root: HTMLElement, listContainer: HTMLElement }</code></p>
-<p>This API renders the root element for the <strong>dropdown version</strong> of the user interface.</p>
-<ul>
-<li><code>inputEl</code>: Input element found by the <code>input</code> configuration option</li>
-</ul>
-<p>It should return 2 elements:</p>
-<ul>
-<li><code>root</code>: The root element. This is passed to the <code>hide / show</code> APIs below.</li>
-<li><code>listContainer</code>: The element to attach elements rendered by <code>listItemRender</code> (matches for a single document) to.
-<ul>
-<li>in the above snippet, this is the <code>&lt;ul class=&quot;morsels-list&quot;&gt;&lt;/ul&gt;</code> element</li>
-</ul>
-</li>
-</ul>
-<h4 id="supplementary-mandatory-functions"><a class="header" href="#supplementary-mandatory-functions">Supplementary Mandatory Functions</a></h4>
-<p>The following two functions should be implemented <strong>in tandem</strong> with <code>dropdownRootRender</code>, and are used (internally) to show / hide the dropdown on certain events (for example, on input focus / blur).</p>
-<p><code>showDropdown?: (root: HTMLElement, opts: SearchUiOptions) =&gt; void</code></p>
-<p><code>hideDropdown?: (root: HTMLElement, opts: SearchUiOptions) =&gt; void</code></p>
-<p>For example, the default <code>showDropdown</code> implementation is as such:</p>
-<pre><code class="language-ts">(root, listContainer) =&gt; {
-  if (listContainer.childElementCount) {
-    const innerRoot = root.lastElementChild as HTMLElement;
-    const caret = innerRoot.firstElementChild as HTMLElement;
-    innerRoot.style.display = 'block';
-    computePosition(...).then(({ x, y }) =&gt; ...); // floating-ui call to position the dropdown
-  }
-}
-</code></pre>
-<p>It first checks if the <code>listContainer</code> (the dropdown), which contains result matches, has any child elements. If so, it sets <code>style=display:block;</code> on it, and its previous sibling, which is the triangle dropdown separator container.</p>
-<h3 id="fullscreen"><a class="header" href="#fullscreen">Fullscreen</a></h3>
-<p><code>fsRootRender(h, opts, fsCloseHandler): { root: HTMLElement, listContainer: HTMLElement, input: HTMLInputElement }</code></p>
-<p>This API renders the root element for the <strong>fullscreen version</strong> of the user interface.</p>
-<ul>
-<li><code>fsCloseHandler</code>: A function used for closing the fullscreen UI.</li>
-</ul>
-<p>It should return 3 elements:</p>
-<ul>
-<li><code>root</code>: The root element. This is passed to the <code>hide / show</code> APIs below.</li>
-<li><code>listContainer</code>: The element to attach matches for a single document (rendered by <code>listItemRender</code>) to.</li>
-<li><code>input</code>: Input element. This is required for morsels to attach input event handlers.</li>
-</ul>
-<h4 id="supplementary-mandatory-functions-1"><a class="header" href="#supplementary-mandatory-functions-1">Supplementary Mandatory Functions</a></h4>
-<p>Similarly, there are two <code>show / hide</code> variants for the fullscreen version:</p>
-<pre><code class="language-ts">showFullscreen?: (
-  root: HTMLElement,
-  listContainer: HTMLElement,
-  fsContainer: HTMLElement,
-  opts: SearchUiOptions,
-) =&gt; void,
-
-hideFullscreen?: (
-  root: HTMLElement,
-  listContainer: HTMLElement,
-  fsContainer: HTMLElement,
-  opts: SearchUiOptions
-) =&gt; void,
-</code></pre>
-<p>The <code>fsContainer</code> (by default the <code>&lt;body&gt;</code> element) to which to append the root element is also provided. You may also want to for example, refocus the fullscreen version’s <code>&lt;input&gt;</code> element once UI is shown.</p>
+<p>If you need to include some custom options (e.g. an API base url), you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
 <h3 id="target"><a class="header" href="#target">Target</a></h3>
 <p>There is no root element for the target, as it is specified by the <code>target</code> option. The equivalent of the <code>target</code> element would be the <code>listContainer</code> element for the dropdown / fullscreen versions  above.</p>
 <h2 id="miscellaneous-renderers"><a class="header" href="#miscellaneous-renderers">Miscellaneous Renderers</a></h2>
@@ -439,122 +318,9 @@ hideFullscreen?: (
 }
 </code></pre>
 <h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
-<p>The below <strong>2 remaining sets of APIs</strong> render the results for all document matches, and are <strong>mutually exclusive</strong> in that the second set of APIs are “building blocks” of the first (which only has one available API). So, reconfiguring the first API would invalidate any changes to the second.</p>
-<p>Together, they are placed in the <code>&lt;!-- results placeholder (refer to &quot;rendering search results&quot;) --&gt;</code> comment earlier (see <a href="#default-html-output-structure">html output structure</a>).</p>
-<p>In the following snippet, APIs belonging to the first / second are annotated with <code>1.</code> &amp; <code>2.</code>.</p>
-<details open>
-<summary><strong>Remaining renderers and their output placement</strong></summary>
-<pre><code class="language-html">&lt;!--
-  **1. resultsRender** START matches for all documents
-  **2. listItemRender** START A match for a single document
---&gt;
-&lt;li class=&quot;morsels-list-item&quot;&gt;
-  &lt;a class=&quot;morsels-link&quot; href=&quot;http://192.168.10.132:3000/...truncated.../index.html&quot;&gt;
-
-    &lt;div class=&quot;morsels-title&quot;&gt;
-      &lt;span&gt;
-        This is the Document Title Extracted from the &quot;title&quot; Field
-      &lt;/span&gt;
-    &lt;/div&gt;
-
-    &lt;!--
-      **headingBodyRender** START
-      a heading and/or body field pair match for the document
-    --&gt;
-    &lt;a class=&quot;morsels-heading-body&quot; href=&quot;http://192.168.10.132:3000/...truncated.../index.html#what&quot;&gt;
-      &lt;!-- Sourced from the &quot;heading&quot; field --&gt;
-      &lt;div class=&quot;morsels-heading&quot;&gt;&lt;span&gt;What&lt;/span&gt;&lt;/div&gt;
-      &lt;div class=&quot;morsels-bodies&quot;&gt;
-        &lt;!--
-          The text under the following element is sourced from
-          the &quot;body&quot; field, that follows the &quot;heading&quot; field above
-          in the original document.
-
-          Refer to the section on indexing configuration for more details.
-        --&gt;
-        &lt;div class=&quot;morsels-body&quot;&gt;
-          &lt;!-- (the query here is &quot;foo bar&quot;) --&gt;
-          &lt;span class=&quot;morsels-ellipsis&quot;&gt;&lt;/span&gt;
-
-          &lt;span&gt; this is text before the first highlighted term &lt;/span&gt;
-          &lt;!-- **highlightRender** START  --&gt;
-          &lt;span class=&quot;morsels-highlight&quot;&gt;&lt;span&gt;foo&lt;/span&gt;&lt;/span&gt;
-          &lt;!-- **highlightRender** END --&gt;
-          &lt;span&gt; this is some text after the first highlighted term&lt;/span&gt;
-
-
-          &lt;span class=&quot;morsels-ellipsis&quot;&gt;&lt;/span&gt;
-
-
-          &lt;span&gt; this is text before the second highlighted term&lt;/span&gt;
-          &lt;!-- **highlightRender** START --&gt;
-          &lt;span class=&quot;morsels-highlight&quot;&gt;&lt;span&gt;bar&lt;/span&gt;&lt;/span&gt;
-          &lt;!-- **highlightRender** END --&gt;
-          &lt;span&gt; this is some text after the second highlighted term&lt;&lt; /span&gt;
-
-          &lt;span class=&quot;morsels-ellipsis&quot;&gt;&lt;/span&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/a&gt;
-    &lt;!-- **headingBodyRender** END --&gt;
-
-    &lt;!--
-      **bodyOnlyRender** START
-      a body-only field match for the document
-      (no heading before it in the original document)
-    --&gt;
-    &lt;div class=&quot;morsels-body&quot;&gt;
-      &lt;span class=&quot;morsels-ellipsis&quot;&gt;&lt;/span&gt;
-      &lt;span&gt;&lt;/span&gt;
-      &lt;!-- **highlightRender** START --&gt;
-      &lt;span class=&quot;morsels-highlight&quot;&gt;&lt;span&gt;foo&lt;/span&gt;&lt;/span&gt;
-      &lt;!-- **highlightRender** END --&gt;
-      &lt;span class=&quot;morsels-ellipsis&quot;&gt;&lt;/span&gt;
-    &lt;/div&gt;
-    &lt;!-- **bodyOnlyRender** END --&gt;
-  &lt;/a&gt;
-&lt;/li&gt;
-&lt;!-- **listItemRender** END --&gt;
-
-&lt;!--
-    ... Repeat (another search result) ...
-
-    Note: an IntersectionObserver is attached to the
-    last such &lt;li&gt; element for infinite scrolling
---&gt;
-&lt;li class=&quot;morsels-list-item&quot;&gt;&lt;/li&gt;
-&lt;!-- **resultsRender** END --&gt;
-</code></pre>
-</details>
-<br>
-<h3 id="1-rendering-all-results"><a class="header" href="#1-rendering-all-results">1. Rendering All Results</a></h3>
-<p><code>async resultsRender(h, opts, config, results, query): Promise&lt;HTMLElement[]&gt;</code></p>
-<p><span style="color: red;">(flexible but not too well documented yet, and may be unstable)</span></p>
-<p>This API renders the results for <em>all</em> document matches.</p>
-<p>Some examples use cases are:</p>
-<ul>
-<li>Altering the html output structure substantially (e.g. displaying results in a tabular form)</li>
-<li>Calling external API calls to retrieve additional info for generating result previews.
-<ul>
-<li>For this reason, this is also the only <code>async</code> API</li>
-</ul>
-</li>
-</ul>
-<p>For example, the default implementation does the following:</p>
-<ol>
-<li>Check the <code>config.fieldInfos</code> if any of <code>body / title / heading</code> fields are stored by the indexer to generate result previews. (Skip to 3 if present)</li>
-<li>If the document has the internal <code>_relative_fp</code> field and <code>sourceFilesUrl</code> is specified, retrieve the original document (<code>html</code> or <code>json</code>), and transform it into the same format as that generated by the indexer.</li>
-<li>Transform and highlight the field stores using the <code>listItemRender</code> set of APIs below.</li>
-</ol>
-<table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>config</code></td><td>This is the <strong>indexing</strong> configuration object.</td></tr>
-<tr><td><code>results</code></td><td>an array of <code>Result</code> objects</td></tr>
-<tr><td><code>query</code></td><td>a <code>Query</code> object</td></tr>
-</tbody></table>
-<p>You may also refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
-<h3 id="2-rendering-a-single-result"><a class="header" href="#2-rendering-a-single-result">2. Rendering a Single Result</a></h3>
-<p>The renderers under this key <strong>build up the default implementation of <code>resultsRender</code></strong>, and are grouped under <code>uiOptions.resultsRenderOpts</code> (instead of <code>uiOptions.XXX</code>).
-If overriding <code>resultsRender</code> above, the following options will be ignored.</p>
+<p>The below 2 remaining <em>sets</em> of APIs render the results for all document matches, and are <em>mutually exclusive</em> in that the first, simpler set of APIs are “building blocks” of the second (which only has one available API). Reconfiguring the second API would invalidate any changes to the first.</p>
+<h3 id="1-rendering-a-single-result"><a class="header" href="#1-rendering-a-single-result">1. Rendering a Single Result</a></h3>
+<p>The renderers under this key are grouped under <code>uiOptions.resultsRenderOpts</code> (instead of <code>uiOptions.XXX</code>).</p>
 <p>These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).</p>
 <div style="height:1px"></div>
 <p><code>listItemRender(h, opts, fullLink, resultTitle, resultHeadingsAndTexts, fields): HTMLElement</code></p>
@@ -585,9 +351,8 @@ return h(
   linkEl,
 );
 </code></pre>
-<h4 id="21-listitemrender-supporting-apis"><a class="header" href="#21-listitemrender-supporting-apis">2.1 <code>listItemRender</code> supporting APIs</a></h4>
-<p>The remaining 3 APIs below are supplementary to <code>listItemRender</code>, and are responsible for generating the <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters for <code>listItemRender</code>.</p>
-<p>Refer to the html snippet above and annotations below to understand which APIs are responsible for which parts.</p>
+<h4 id="11-listitemrender-supporting-apis"><a class="header" href="#11-listitemrender-supporting-apis">1.1 <code>listItemRender</code> supporting APIs</a></h4>
+<p>The remaining 3 APIs below are building blocks of <code>listItemRender</code>, responsible for generating its <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters.</p>
 <pre><code class="language-ts">interface SearchUiRenderOptions {
   // Renders a &quot;heading&quot; field,
   // along with the highlighted &quot;body&quot; fields that follow it (in document order)
@@ -622,6 +387,30 @@ return h(
   ) =&gt; HTMLElement,
 }
 </code></pre>
+<h3 id="2-rendering-all-results"><a class="header" href="#2-rendering-all-results">2. Rendering All Results</a></h3>
+<p><code>async resultsRender(h, opts, config, results, query): Promise&lt;HTMLElement[]&gt;</code></p>
+<p>This API renders the results for <em>all</em> document matches.</p>
+<p>Some examples use cases are:</p>
+<ul>
+<li>Altering the html output structure substantially (e.g. displaying results in a tabular form)</li>
+<li>Calling external API calls to retrieve additional info for generating result previews.
+<ul>
+<li>For this reason, this is also the only <code>async</code> API</li>
+</ul>
+</li>
+</ul>
+<p>For example, the default implementation does the following:</p>
+<ol>
+<li>Check the <code>config.fieldInfos</code> if any of <code>body / title / heading</code> fields are stored by the indexer to generate result previews. (Skip to 3 if present)</li>
+<li>If the document has the internal <code>_relative_fp</code> field and <code>sourceFilesUrl</code> is specified, retrieve the original document (<code>.html</code> or <code>.json</code>), and transform it into the same format as that generated by the indexer.</li>
+<li>Transform and highlight the field stores using the <code>listItemRender</code> set of APIs below.</li>
+</ol>
+<table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>config</code></td><td>This is the <em>indexing</em> configuration.</td></tr>
+<tr><td><code>query</code></td><td>a <code>Query</code> object. <code>query.searchedTerms</code> contains a nested array of grouped terms that were searched. Groupings contain raw terms and their spelling corrections (if any).</td></tr>
+<tr><td><code>results</code></td><td>an array of <code>Result</code> objects.<br><br>This class exposes the <code>getSingleField(fieldName: string): string</code> function which returns the first field matching the <code>fieldName</code> specified.<br><br><code>getStorageWithFieldNames(): [string, string][]</code> on the other hand returns an array of <code>[field name, field content]</code> pairs.</td></tr>
+</tbody></table>
+<p>You may also refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -688,7 +477,7 @@ if (window.location.search) {
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="search_configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="search_configuration_themes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -702,7 +491,7 @@ if (window.location.search) {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="search_configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="search_configuration_themes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

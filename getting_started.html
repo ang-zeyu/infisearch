@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html" class="active"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.1.</strong> Renderers</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">6.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.</strong> Incremental Indexing</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Search API</div></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">9.</strong> Contributing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developers_setting_up.html"><strong aria-hidden="true">9.1.</strong> Setting Up</a></li><li class="chapter-item expanded "><a href="developers_developing.html"><strong aria-hidden="true">9.2.</strong> Developing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html" class="active"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_themes.html"><strong aria-hidden="true">4.1.</strong> Themes</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -133,39 +133,59 @@
 
                 <div id="content" class="content">
                     <main>
-                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui.css">
-<style>
-.morsels-root {
+                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
+<style>.light .morsels-root,
+.rust .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
     --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-fg: var(--fg);
     --morsels-bg: var(--bg);
-    --morsels-item-border-radius: 10px;
+    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
-    --morsels-dropdown-input-separator-bg: var(--table-header-bg);
+    --morsels-title-fg: var(--fg);
     --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--bg);
-    --morsels-title-hover-bg: var(--fg);
+    --morsels-title-hover-fg: var(--fg);
+    --morsels-title-hover-bg: var(--table-header-bg);
+    --morsels-heading-fg: var(--fg);
     --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-fg: var(--fg);
     --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-fg: var(--fg);
+    --morsels-body-bg: var(--bg);
+    --morsels-body-hover-fg: var(--fg);
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
+    --morsels-highlight-bg: none;
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-box-shadow: none;
-    --morsels-fullscreen-header-bg: var(--sidebar-bg);
-    --morsels-fullscreen-input-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-border: 2px solid var(--searchbar-border-color);
-    --morsels-fullscreen-input-focus-box-shadow: 0 0 5px var(--searchbar-shadow-color);
-    --morsels-fullscreen-header-close-fg: var(--sidebar-fg);
-    --morsels-fullscreen-header-close-bg: var(--sidebar-non-existant);
-    --morsels-fullscreen-header-close-hover-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-hover-fg: var(--sidebar-spacer);
-    --morsels-fullscreen-header-close-active-bg: var(--theme-popup-border);
-    --morsels-fullscreen-header-close-active-fg: var(--sidebar-spacer);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: var(--sidebar-bg);
+    --morsels-fs-header-border-bottom: none;
+    --morsels-fs-header-close-fg: var(--sidebar-fg);
+    --morsels-fs-header-close-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-bg: var(--table-header-bg);
+    --morsels-fs-header-close-hover-fg: var(--fg);
+    --morsels-fs-header-close-active-bg: var(--table-header-bg);
+    --morsels-fs-header-close-active-fg: var(--fg);
+}
+
+.ayu .morsels-root,
+.rust .morsels-root {
+    --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-fg: white;
+    --morsels-fs-header-close-active-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-active-fg: white;
+}
+
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
 }
 
 #morsels-search {
@@ -193,7 +213,7 @@
 }
 </style>
 <p><input
-    type="text"
+    type="search"
     id="morsels-search"
     placeholder="Search"
 /></p>
@@ -202,21 +222,18 @@
 <h1 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h1>
 <p>This page assumes the use case of a <strong>static site</strong>, that is:</p>
 <ul>
-<li>You have some <code>.html</code> files you want to index.</li>
-<li>These <code>.html</code> files are served in a static file server, and are accessible by <code>@morsels/search-ui</code> to generate result previews.</li>
-<li>You have an <code>&lt;input&gt;</code> element to attach a search dropdown to.
-<ul>
-<li>For mobile devices, a fullscreen UI will show instead when this input element is focused.</li>
-<li>Note that this documentation is using an alternative UI mode (try out the search function!), which is covered later under <a href="./search_configuration.html#ui-mode">search configuration</a>.
-To preview the default mode, head on over to the mdbook page <a href="./getting_started_mdbook.html#preview">here</a>, and click on the <strong>auto</strong> button.</li>
+<li>You have some HTML files you want to index.</li>
+<li>These HTML files are served in a static file server, and are linkable to.</li>
+<li>You have an <code>&lt;input&gt;</code> element to attach a search dropdown to.</li>
+<li>For mobile devices, a fullscreen UI will show instead when this input element is focused.<br><br>
+This documentation uses an alternative interface (try the search function!), which is covered <a href="./search_configuration.html#ui-mode">later</a>.
+To preview the defaults, head on over <a href="./search_configuration_themes.html">here</a>.</li>
 </ul>
-</li>
-</ul>
-<p>If you require more, have a look through here first, then head on over to the subsequent configuration pages.</p>
+<p>If you require more (e.g. indexing custom json files), have a look through here first, then head on over to the subsequent configuration pages.</p>
 <h2 id="installing-the-indexer"><a class="header" href="#installing-the-indexer">Installing the indexer</a></h2>
 <p>There are two options here:</p>
 <ul>
-<li>If you have the rust / cargo toolchains setup, simply run <code>cargo install morsels_indexer</code>!</li>
+<li>If you have the rust / cargo toolchains setup, simply run <code>cargo install morsels_indexer --vers 0.1.0</code>.</li>
 <li>Alternatively, the cli binaries are also available <a href="https://github.com/ang-zeyu/morsels/releases">here</a>.</li>
 </ul>
 <h2 id="running-the-indexer"><a class="header" href="#running-the-indexer">Running the indexer</a></h2>
@@ -226,32 +243,33 @@ To preview the default mode, head on over to the mdbook page <a href="./getting_
 <p>If you are using the binaries, replace <code>morsels</code> with the appropriate executable name.</p>
 <h3 id="other-cli-options"><a class="header" href="#other-cli-options">Other Cli Options</a></h3>
 <ul>
-<li><code>--config-init</code>: While optional, if it is your first time running the tool, you can run the above command with this flag, then <strong>run it again without this flag</strong>.
-This flag outputs the default <code>morsels_config.json</code> that can be used to <a href="./indexer_configuration.html">configure the indexer</a> later on, and does not perform any indexing.</li>
 <li><code>-c &lt;config-file-path&gt;</code>: You may also change the config file location (relative to the <code>source-folder-path</code>) using the <code>-c &lt;config-file-path&gt;</code> option.</li>
-<li><code>--preserve-output-folder</code>: <strong>All existing contents</strong> in the output folder are also <strong>removed</strong> when running a full index. Specify this option to avoid this.</li>
+<li><code>--preserve-output-folder</code>: All existing contents in the output folder are also removed when running a full index. Specify this option to avoid this.</li>
 </ul>
-<h2 id="installing-the-search-library--ui"><a class="header" href="#installing-the-search-library--ui">Installing the search library / UI</a></h2>
+<h2 id="installing-the-search-ui"><a class="header" href="#installing-the-search-ui">Installing the search UI</a></h2>
 <h3 id="installation-via-cdn"><a class="header" href="#installation-via-cdn">Installation via CDN</a></h3>
-<pre><code class="language-html">&lt;!-- Replace &quot;v0.0.2&quot; as appropriate --&gt;
+<pre><code class="language-html">&lt;!-- Replace &quot;v0.1.0&quot; as appropriate --&gt;
 
 &lt;!--  Search UI package script, which bundles the search library together with it --&gt;
-&lt;script src=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.bundle.js&quot;&gt;&lt;/script&gt;
-&lt;!-- Search UI css, this provides very basic styling for the search dropdown, and can be omitted if desired --&gt;
-&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.0.2/packages/search-ui/dist/search-ui.css&quot; /&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.0/packages/search-ui/dist/search-ui.bundle.js&quot;&gt;&lt;/script&gt;
+&lt;!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.0/packages/search-ui/dist/search-ui-light.css&quot; /&gt;
 </code></pre>
 <blockquote>
 <p>⚠️ Ensure the versions here <strong>tally with the indexer version</strong> used.</p>
 </blockquote>
-<h4 id="hosting-the-files-locally"><a class="header" href="#hosting-the-files-locally">Hosting the Files Locally</a></h4>
-<p>If you wish to serve the files locally instead, you can find the necessary files in the release packages <a href="https://github.com/ang-zeyu/morsels/releases">here</a>. All files inside <code>search.morsels.zip</code> are required:</p>
+<h3 id="hosting-the-files"><a class="header" href="#hosting-the-files">Hosting the Files</a></h3>
+<p>If you wish to serve the files locally instead, you can find the necessary files in the release packages <a href="https://github.com/ang-zeyu/morsels/releases">here</a>. The following files inside <code>search.morsels.zip</code> are required:</p>
 <ul>
 <li><code>search-ui.bundle.js</code></li>
-<li><code>search-ui.css</code></li>
-<li><code>search.worker.bundle.js</code></li>
-<li>Multiple (as many supported languages / tokenizers as there are):
+<li>Either <code>search-ui-light.css</code> / <code>search-ui-dark.css</code>
 <ul>
-<li><code>wasm.lang-latin-index-js.bundle</code></li>
+<li>unless you are designing your own stylesheet from scratch</li>
+</ul>
+</li>
+<li>A pair of language-specific bundles which are requested as necessary at runtime.
+<ul>
+<li><code>search.worker-*.bundle.js</code></li>
 <li>an accompanying wasm binary</li>
 </ul>
 </li>
@@ -259,26 +277,8 @@ This flag outputs the default <code>morsels_config.json</code> that can be used 
 <blockquote>
 <p>⚠️ All files are expected to be <strong>accessible in the same folder</strong> relative to the linked <code>search-ui.bundle.js</code>.</p>
 </blockquote>
-<h3 id="installation-via-bundlers"><a class="header" href="#installation-via-bundlers">Installation via Bundlers</a></h3>
-<p>As morsels consists of a javascript (typescript) and rust portion enabled by WebAssembly, including it into your project’s bundling / build process is likely infeasible, as rust / wasm compilation takes a lot of time (and requires <a href="./developers_setting_up.html">extra toolchains</a>).</p>
-<p>Instead, use the file copying functionalities of your bundler to copy morsels’ assets into the appropriate output directories.</p>
-<p>For example, using the <a href="https://webpack.js.org/plugins/copy-webpack-plugin/">CopyWebpackPlugin</a>, the following (untested) setup should be all you need:</p>
-<pre><code class="language-js">// Under plugins configuration
-new CopyPlugin({
-  patterns: [
-    {
-      from: path.join(require.resolve('@morsels/search-ui'), 'dist'),
-      to: &quot;dest&quot; // change as appropriate
-    },
-  ],
-})
-</code></pre>
-<pre><code class="language-html">&lt;!-- Replace links as appropriate --&gt;
-&lt;script src=&quot;.../search-ui.bundle.js&quot;&gt;&lt;/script&gt;
-&lt;script src=&quot;.../search-ui.css&quot;&gt;&lt;/script&gt;
-</code></pre>
-<h3 id="initialisation-call"><a class="header" href="#initialisation-call">Initialisation Call</a></h3>
-<p>Once you have loaded the bundles, to initialise morsels, simply call the <code>initMorsels</code> function.</p>
+<h3 id="ui-initialisation"><a class="header" href="#ui-initialisation">UI Initialisation</a></h3>
+<p>Once you have loaded the bundles, to initialise morsels, simply call the <code>initMorsels</code> function in your page.</p>
 <p>This <strong>requires an input element</strong> with an id of <code>morsels-search</code> to be present in the page by default, which can be configured via <code>uiOptions.input</code>.</p>
 <pre><code class="language-ts">initMorsels({
   searcherOptions: {
