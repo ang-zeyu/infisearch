@@ -76,19 +76,17 @@ class Searcher {
             cacheSetup.then(() => this.worker.postMessage(this.config));
             URL.revokeObjectURL(objectUrl);
           } else if (ev.data.isSetupDone) {
+            this.isSetupDone = true;
             resolve();
+            this.setupFieldStoreCache();
+            this.setupIndexCache();
           }
         };
 
         this.worker.onmessageerror = (ev) => {
           console.log(ev);
         };
-      }))
-      .then(() => {
-        this.setupFieldStoreCache();
-        this.setupIndexCache();
-      })
-      .then(() => this.isSetupDone = true);
+      }));
   }
 
   private async setupCache(cacheName: string) {
