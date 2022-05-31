@@ -38,7 +38,7 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 ```html
 <!-- Replace "v0.1.0" as appropriate -->
 
-<!--  Search UI package script, which bundles the search library together with it -->
+<!--  Search UI script -->
 <script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.0/packages/search-ui/dist/search-ui.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.0/packages/search-ui/dist/search-ui-light.css" />
