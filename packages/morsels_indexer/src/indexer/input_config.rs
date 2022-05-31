@@ -22,7 +22,7 @@ fn get_default_preset() -> String {
 }
 
 fn get_default_num_threads() -> usize {
-    std::cmp::max(num_cpus::get_physical() - 1, 1)
+    std::cmp::max(std::cmp::min(num_cpus::get_physical(), num_cpus::get()) - 1, 1)
 }
 
 fn get_default_pl_limit() -> u32 {
