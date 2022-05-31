@@ -15,6 +15,11 @@ module.exports = (env) => merge(common(env), {
         hostname: 'localhost',
       },
     },
+    headers: (() => {
+      return env.e2e
+        ? { 'Cache-Control': 'no-store' }
+        : {};
+    })(),
     hot: true,
     host: '0.0.0.0',
     open: false,

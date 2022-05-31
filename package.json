@@ -6,6 +6,7 @@
   "scripts": {
     "setup": "npm install && lerna bootstrap",
     "dev": "webpack-cli serve --config ./webpack.dev.js",
+    "deve2e": "webpack-cli serve --no-hot --no-live-reload --config ./webpack.dev.js --env e2e",
     "devPerf": "webpack-cli serve --config ./webpack.dev.js --env perf",
     "devDocs": "cd docs && mdbook serve -p 8000",
     "devDocsFull": "npm run installIndexer && npm run buildSearch && npm run installMdbook && npm run devDocs",
@@ -20,7 +21,7 @@
     "lint": "eslint packages/search-ui --ext .ts && eslint packages/search --ext .ts",
     "lintFix": "eslint packages/search-ui --ext .ts --fix && eslint packages/search --ext .ts --fix",
     "test": "cargo test && npm run e2e",
-    "e2e": "npm-run-all --race --parallel dev e2etest",
+    "e2e": "npm-run-all --race --parallel deve2e e2etest",
     "e2etest": "jest --runInBand",
     "installIndexer": "cargo install --path packages/morsels_indexer",
     "installMdbook": "rimraf ./packages/mdbook-morsels/search-ui-dist/* && cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist && cargo clean --release -p mdbook-morsels && cargo install --path packages/mdbook-morsels"

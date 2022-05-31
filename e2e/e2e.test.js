@@ -18,11 +18,13 @@ async function clearInput() {
 
 async function typePhraseOrAnd(phrase, with_positions) {
   if (with_positions) {
+    console.log(`Typing phrase '${phrase}'`);
     await page.type(INPUT_SELECTOR, `"${phrase}"`);
     const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
     expect(inputVal).toBe(`"${phrase}"`);
   } else {
     const query = phrase.split(/\s+/g).join(' AND ');
+    console.log(`Typing AND '${query}'`);
     await page.type(INPUT_SELECTOR, query);
     const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
     expect(inputVal).toBe(query);
@@ -30,6 +32,7 @@ async function typePhraseOrAnd(phrase, with_positions) {
 }
 
 async function typeText(text) {
+  console.log(`Typing text '${text}'`);
   await page.type(INPUT_SELECTOR, text);
   const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
   expect(inputVal).toBe(text);
@@ -37,7 +40,7 @@ async function typeText(text) {
 
 async function waitNoResults() {
   try {
-    await page.waitForSelector('.morsels-no-results', { timeout: 3000 });
+    await page.waitForSelector('.morsels-no-results', { timeout: 10000 });
   } catch (ex) {
     const output = await page.evaluate(() => document.getElementById('target-mode-el').innerHTML);
     console.error('waitNoResults failed, output in target:', output);
@@ -50,7 +53,7 @@ async function waitNoResults() {
 
 async function assertSingle(text) {
   try {
-    await page.waitForSelector('.morsels-list-item', { timeout: 8000 });
+    await page.waitForSelector('.morsels-list-item', { timeout: 60000 });
 
     const result = await page.evaluate(() => {
       const queryResult = document.getElementsByClassName('morsels-list-item');
@@ -74,7 +77,7 @@ async function assertSingle(text) {
 
 async function assertMultiple(texts, count) {
   try {
-    await page.waitForSelector('.morsels-list-item', { timeout: 8000 });
+    await page.waitForSelector('.morsels-list-item', { timeout: 60000 });
 
     const result = await page.evaluate(() => {
       const queryResult = document.getElementsByClassName('morsels-list-item');
@@ -108,14 +111,39 @@ async function assertMultiple(texts, count) {
 async function reloadPage() {
   await jestPuppeteer.resetPage();
   await jestPuppeteer.resetBrowser();
+
+  page
+    .on('console', message =>
+      console.log(`${message.type()} ${message.text()}`))
+    .on('error', (ex) => console.error('Unexpected (1): ' + ex))
+    .on('pageerror', ({ message }) => console.error('Unexpected (2): ' + message));
+
+  const url = 'http://localhost:8080?mode=target'
+    + '&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Foutput%2F'
+    + '&sourceFilesUrl=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Finput%2F'
+    + '&resultsPerPage=100';
+
   await page.goto(
-    'http://localhost:8080?mode=target'
-      + '&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Foutput%2F'
-      + '&sourceFilesUrl=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Finput%2F'
-      + '&resultsPerPage=100',
+    url,
     { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 },
   );
   await expect(page.title()).resolves.toMatch('Morsels');
+
+  // MacOS runner is a little slow
+  // The page needs to be ready before running the tests
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await typeText('verylongnonexistentwordformacostowait');
+      await waitNoResults();
+      break;
+    } catch {
+      console.log(`Mac likely timed out, attempt ${attempt} of 3... retrying`);
+
+      await page.reload({ waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 });
+      await expect(page.title()).resolves.toMatch('Morsels');
+    }
+  }
+  await clearInput();
 }
 
 function runIndexer(command) {
