@@ -1,4 +1,5 @@
 import { Query } from '@morsels/search-lib';
+import { createInvisibleLoadingIndicator } from './dom';
 
 export class InputState {
   currQuery: Query;
@@ -15,6 +16,8 @@ export class InputState {
    * This facilitates query pre-emption.
    */
   nextAction: () => any;
+
+  loader: HTMLElement = createInvisibleLoadingIndicator();
 
   lastElObserver: IntersectionObserver;
 }

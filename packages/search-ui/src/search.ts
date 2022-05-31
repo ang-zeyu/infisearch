@@ -1,7 +1,7 @@
 import { Searcher } from '@morsels/search-lib';
 import loadQueryResults from './searchResultTransform';
 import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';
-import createElement, { createInvisibleLoadingIndicator, LOADING_INDICATOR_ID } from './utils/dom';
+import createElement, { LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState } from './utils/input';
 import { prepareOptions } from './search/options';
 import { setCombobox, setInputAria } from './utils/aria';
@@ -31,7 +31,6 @@ function createInputListener(
   options: SearchUiOptions,
 ) {
   const { uiOptions } = options;
-  let indicatorElement: { v: HTMLElement } = { v: createInvisibleLoadingIndicator() };
 
   /*
    Behaviour:
@@ -40,11 +39,13 @@ function createInputListener(
    */
   const inputState = new InputState();
   async function runNewQuery(queryString: string): Promise<void> {
+    inputState.isRunningQuery = true;
+
     const newIndicatorElement = uiOptions.loadingIndicatorRender(
       createElement, options, false, inputState.isResultsBlank,
     );
-    indicatorElement.v.replaceWith(newIndicatorElement);
-    indicatorElement.v = newIndicatorElement;
+    inputState.loader.replaceWith(newIndicatorElement);
+    inputState.loader = newIndicatorElement;
 
     try {
       // const now = performance.now();
@@ -57,7 +58,7 @@ function createInputListener(
       const resultsDisplayed = await loadQueryResults(
         inputState, inputState.currQuery, searcher.config,
         true,
-        listContainer, indicatorElement,
+        listContainer,
         options,
       );
       if (resultsDisplayed) {
@@ -99,10 +100,10 @@ function createInputListener(
         if (inputState.isResultsBlank
           && !listContainer.firstElementChild?.getAttribute(LOADING_INDICATOR_ID)) {
           listContainer.innerHTML = '';
-          indicatorElement.v = uiOptions.loadingIndicatorRender(
+          inputState.loader = uiOptions.loadingIndicatorRender(
             createElement, options, !searcher.isSetupDone, true,
           );
-          listContainer.appendChild(indicatorElement.v);
+          listContainer.appendChild(inputState.loader);
   
           if (useDropdown(uiOptions)) {
             showDropdown();
@@ -112,7 +113,6 @@ function createInputListener(
         if (inputState.isRunningQuery || !searcher.isSetupDone) {
           inputState.nextAction = () => runNewQuery(query);
         } else {
-          inputState.isRunningQuery = true;
           runNewQuery(query);
         }
       }, uiOptions.inputDebounce);

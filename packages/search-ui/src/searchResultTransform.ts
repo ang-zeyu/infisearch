@@ -173,7 +173,6 @@ export default async function loadQueryResults(
   config: MorselsConfig,
   isFirst: boolean,
   container: HTMLElement,
-  topLoader: { v: HTMLElement },
   options: SearchUiOptions,
 ): Promise<boolean> {
   if (inputState.nextAction) {
@@ -226,8 +225,8 @@ export default async function loadQueryResults(
 
   if (isFirst) {
     container.innerHTML = '';
-    topLoader.v = createInvisibleLoadingIndicator();
-    container.append(topLoader.v);
+    inputState.loader = createInvisibleLoadingIndicator();
+    container.append(inputState.loader);
     container.append(fragment);
   } else {
     bottomLoader.replaceWith(fragment);
@@ -242,7 +241,7 @@ export default async function loadQueryResults(
       }
   
       observer.unobserve(sentinel);
-      await loadQueryResults(inputState, query, config, false, container, topLoader, options);
+      await loadQueryResults(inputState, query, config, false, container, options);
     }, { root: container, rootMargin: '150px 0px' });
 
     inputState.lastElObserver.observe(sentinel);
