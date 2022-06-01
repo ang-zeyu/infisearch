@@ -128,22 +128,6 @@ async function reloadPage() {
     { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 },
   );
   await expect(page.title()).resolves.toMatch('Morsels');
-
-  // MacOS runner is a little slow
-  // The page needs to be ready before running the tests
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    try {
-      await typeText('verylongnonexistentwordformacostowait');
-      await waitNoResults();
-      break;
-    } catch {
-      console.log(`Mac likely timed out, attempt ${attempt} of 3... retrying`);
-
-      await page.reload({ waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 });
-      await expect(page.title()).resolves.toMatch('Morsels');
-    }
-  }
-  await clearInput();
 }
 
 function runIndexer(command) {

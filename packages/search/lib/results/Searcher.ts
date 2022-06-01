@@ -44,7 +44,7 @@ class Searcher {
 
   constructor(private options: SearcherOptions) {
     this.setupPromise = this.retrieveConfig()
-      .then(async () => new Promise<void>(async (resolve) => {
+      .then(() => new Promise<void>((resolve) => {
         const workerUrl = new URL(
           scriptUrl + `search-worker-${this.config.langConfig.lang}.bundle.js`,
           document.baseURI || self.location.href,
@@ -54,7 +54,7 @@ class Searcher {
 
         this.worker = new Worker(objectUrl);
 
-        await this.setupCache(`morsels:${options.url}`);
+        const cacheSetup = this.setupCache(`morsels:${options.url}`);
       
         this.worker.onmessage = (ev) => {
           if (ev.data.query) {
@@ -73,7 +73,7 @@ class Searcher {
               queryParts,
             });
           } else if (ev.data === '') {
-            this.worker.postMessage(this.config);
+            cacheSetup.then(() => this.worker.postMessage(this.config));
             URL.revokeObjectURL(objectUrl);
           } else if (ev.data.isSetupDone) {
             resolve();
