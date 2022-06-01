@@ -1940,7 +1940,7 @@ return h(
 <table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>config</code></td><td>This is the <em>indexing</em> configuration.</td></tr>
 <tr><td><code>query</code></td><td>a <code>Query</code> object. <code>query.searchedTerms</code> contains a nested array of grouped terms that were searched. Groupings contain raw terms and their spelling corrections (if any).</td></tr>
-<tr><td><code>results</code></td><td>an array of <code>Result</code> objects.<br><br>This class exposes the <code>getSingleField(fieldName: string): string</code> function which returns the first field matching the <code>fieldName</code> specified.<br><br><code>getStorageWithFieldNames(): [string, string][]</code> on the other hand returns an array of <code>[field name, field content]</code> pairs.</td></tr>
+<tr><td><code>results</code></td><td>an array of <code>Result</code> objects.<br><br>This class exposes the <code>getStorageWithFieldNames(): [string, string][]</code> method which returns an array of <code>[field name, field content]</code> pairs.</td></tr>
 </tbody></table>
 <p>You may also refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
