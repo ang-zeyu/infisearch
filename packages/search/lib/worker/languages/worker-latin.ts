@@ -1,7 +1,9 @@
+import '../publicPath';
 import setupWithWasmModule from '../worker';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 setupWithWasmModule(import(
   /* webpackMode: "eager" */
-  './wasm-latin'
+  /* webpackExports: ["get_new_searcher", "get_query"] */
+  '@morsels/lang-latin'
 ));
