@@ -7,17 +7,17 @@ export class InputState {
   /**
    * Are there any results in the list container currently?
    */
-  isResultsBlank = true;
+  _mrlIsResultsBlank = true;
 
-  isRunningQuery = false;
+  _mrlIsRunningQuery = false;
 
   /**
    * An input will only take one action at a time, and queue only one.
    * This facilitates query pre-emption.
    */
-  nextAction: () => any;
+  _mrlNextAction: () => any;
 
-  loader: HTMLElement = createInvisibleLoadingIndicator();
+  _mrlLoader: HTMLElement = createInvisibleLoadingIndicator();
 
-  lastElObserver: IntersectionObserver;
+  _mrlLastElObserver: IntersectionObserver;
 }

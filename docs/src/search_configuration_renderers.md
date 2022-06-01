@@ -226,6 +226,6 @@ For example, the default implementation does the following:
 | ----------- | ----------- |
 | `config`    | This is the *indexing* configuration. |
 | `query`     | a `Query` object. `query.searchedTerms` contains a nested array of grouped terms that were searched. Groupings contain raw terms and their spelling corrections (if any).  |
-| `results`   | an array of `Result` objects.<br><br>This class exposes the `getSingleField(fieldName: string): string` function which returns the first field matching the `fieldName` specified.<br><br>`getStorageWithFieldNames(): [string, string][]` on the other hand returns an array of `[field name, field content]` pairs. |
+| `results`   | an array of `Result` objects.<br><br>This class exposes the `getStorageWithFieldNames(): [string, string][]` method which returns an array of `[field name, field content]` pairs. |
 
 You may also refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.

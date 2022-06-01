@@ -3,9 +3,9 @@ import { SearchUiOptions } from '../SearchUiOptions';
 import { getBestMatchResult, highlightMatchResult, MatchResult } from './highlight';
 
 interface ProcessedMatchResult extends MatchResult {
-  pairIdx: number,
-  headingMatch?: MatchResult,
-  headingLink?: string,
+  _mrlPairIdx: number,
+  _mrlHeadingMatch?: MatchResult,
+  _mrlHeadingLink?: string,
 }
   
 /**
@@ -38,19 +38,19 @@ export function transformText(
       }
       case 'heading': {
         lastHeadingMatch = getBestMatchResult(fieldText, termRegexes) as ProcessedMatchResult;
-        lastHeadingMatch.pairIdx = pairIdx;
-        lastHeadingMatch.headingLink = lastHeadingLinkIdx === lastHeadingMatch.pairIdx - 1
+        lastHeadingMatch._mrlPairIdx = pairIdx;
+        lastHeadingMatch._mrlHeadingLink = lastHeadingLinkIdx === lastHeadingMatch._mrlPairIdx - 1
           ? lastHeadingLinkText
           : '';
           
         // Push a heading-only match in case there are no other matches (unlikely).
         matchResults.push({
-          str: '',
-          window: [],
-          numTerms: -2000, // even less preferable than body-only matches
-          headingMatch: lastHeadingMatch,
-          headingLink: lastHeadingMatch.headingLink,
-          pairIdx: pairIdx,
+          _mrlStr: '',
+          _mrlWindow: [],
+          _mrlNumTerms: -2000, // even less preferable than body-only matches
+          _mrlHeadingMatch: lastHeadingMatch,
+          _mrlHeadingLink: lastHeadingMatch._mrlHeadingLink,
+          _mrlPairIdx: pairIdx,
         });
         break;
       }
@@ -58,12 +58,12 @@ export function transformText(
         const finalMatchResult = getBestMatchResult(fieldText, termRegexes) as ProcessedMatchResult;
         if (lastHeadingMatch) {
           // Link up body matches with headings, headingLinks if any
-          finalMatchResult.headingMatch = lastHeadingMatch;
-          finalMatchResult.headingLink = lastHeadingMatch.headingLink;
-          finalMatchResult.numTerms += lastHeadingMatch.numTerms;
+          finalMatchResult._mrlHeadingMatch = lastHeadingMatch;
+          finalMatchResult._mrlHeadingLink = lastHeadingMatch._mrlHeadingLink;
+          finalMatchResult._mrlNumTerms += lastHeadingMatch._mrlNumTerms;
         } else {
           // body-only match, add an offset to prefer heading-body matches
-          finalMatchResult.numTerms -= 1000;
+          finalMatchResult._mrlNumTerms -= 1000;
         }
         matchResults.push(finalMatchResult);
         break;
@@ -72,16 +72,16 @@ export function transformText(
   }
   
   matchResults.sort((a, b) => {
-    return a.numTerms === 0 && b.numTerms === 0
+    return a._mrlNumTerms === 0 && b._mrlNumTerms === 0
     // If there are 0 terms matched for both matches, prefer "longer" snippets
-      ? b.str.length - a.str.length
-      : b.numTerms - a.numTerms;
+      ? b._mrlStr.length - a._mrlStr.length
+      : b._mrlNumTerms - a._mrlNumTerms;
   });
   
-  const matches = [];
+  const matches: ProcessedMatchResult[] = [];
   const maxMatches = Math.min(matchResults.length, 2); // maximum 2 for now
   for (let i = 0; i < maxMatches; i += 1) {
-    if (matchResults[i].numTerms !== matchResults[0].numTerms) {
+    if (matchResults[i]._mrlNumTerms !== matchResults[0]._mrlNumTerms) {
       break;
     }
     matches.push(matchResults[i]);
@@ -89,12 +89,12 @@ export function transformText(
   
   return matches.map((finalMatchResult) => {
     const bodyHighlights = highlightMatchResult(finalMatchResult, true, options);
-    if (finalMatchResult.headingMatch) {
-      const highlightedHeadings = highlightMatchResult(finalMatchResult.headingMatch, false, options);
+    if (finalMatchResult._mrlHeadingMatch) {
+      const highlightedHeadings = highlightMatchResult(finalMatchResult._mrlHeadingMatch, false, options);
       const headingHighlights = highlightedHeadings.length
         ? highlightedHeadings
-        : [finalMatchResult.headingMatch.str];
-      const href = finalMatchResult.headingLink && `${baseUrl}#${finalMatchResult.headingLink}`;
+        : [finalMatchResult._mrlHeadingMatch._mrlStr];
+      const href = finalMatchResult._mrlHeadingLink && `${baseUrl}#${finalMatchResult._mrlHeadingLink}`;
       return headingBodyRender(
         createElement,
         options,

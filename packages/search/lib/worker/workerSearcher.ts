@@ -2,52 +2,52 @@ import { MorselsConfig } from '../results/Config';
 import WorkerQuery from './workerQuery';
 
 export default class WorkerSearcher {
-  workerQueries: {
+  private _mrlWorkerQueries: {
     [query: string]: {
       [queryId: number]: WorkerQuery
     }
   } = Object.create(null);
 
-  wasmModule: any;
+  private _mrlWasmModule: any;
 
-  wasmSearcher: any;
+  private _mrlWasmSearcher: any;
 
-  constructor(private config: MorselsConfig) {}
+  constructor(private _mrlConfig: MorselsConfig) {}
 
-  async processQuery(query: string, queryId: number): Promise<WorkerQuery> {
-    const wasmQuery: any = await this.wasmModule.get_query(this.wasmSearcher.get_ptr(), query);
+  async _mrlProcessQuery(query: string, queryId: number): Promise<WorkerQuery> {
+    const wasmQuery: any = await this._mrlWasmModule.get_query(this._mrlWasmSearcher.get_ptr(), query);
 
-    this.workerQueries[query] = this.workerQueries[query] || {};
-    this.workerQueries[query][queryId] = new WorkerQuery(
+    this._mrlWorkerQueries[query] = this._mrlWorkerQueries[query] || {};
+    this._mrlWorkerQueries[query][queryId] = new WorkerQuery(
       wasmQuery.get_searched_terms(),
       wasmQuery.get_query_parts(),
       wasmQuery,
     );
 
-    return this.workerQueries[query][queryId];
+    return this._mrlWorkerQueries[query][queryId];
   }
 
-  getQueryNextN(query: string, queryId: number, n: number): number[] {
-    return this.workerQueries[query][queryId].getNextN(n);
+  _mrlGetQueryNextN(query: string, queryId: number, n: number): number[] {
+    return this._mrlWorkerQueries[query][queryId]._mrlGetNextN(n);
   }
 
-  freeQuery(query: string, queryId: number) {
-    if (this.workerQueries[query][queryId]) {
-      this.workerQueries[query][queryId].free();
+  _mrlFreeQuery(query: string, queryId: number) {
+    if (this._mrlWorkerQueries[query][queryId]) {
+      this._mrlWorkerQueries[query][queryId]._mrlFree();
     }
-    delete this.workerQueries[query][queryId];
-    if (Object.keys(this.workerQueries[query]).length === 0) {
-      delete this.workerQueries[query];
+    delete this._mrlWorkerQueries[query][queryId];
+    if (Object.keys(this._mrlWorkerQueries[query]).length === 0) {
+      delete this._mrlWorkerQueries[query];
     }
   }
 
-  private async setupWasm(metadataDictString: [ArrayBuffer, ArrayBuffer], wasmModule: Promise<any>) {
+  private async _mrlSetupWasm(metadataDictString: [ArrayBuffer, ArrayBuffer], wasmModule: Promise<any>) {
     const [metadata, dictString] = metadataDictString;
-    this.wasmModule = await wasmModule;
-    this.wasmSearcher = await this.wasmModule.get_new_searcher(this.config, metadata, dictString);
+    this._mrlWasmModule = await wasmModule;
+    this._mrlWasmSearcher = await this._mrlWasmModule.get_new_searcher(this._mrlConfig, metadata, dictString);
   }
 
-  static async setup(data: MorselsConfig, wasmModule: Promise<any>): Promise<WorkerSearcher> {
+  static async _mrlSetup(data: MorselsConfig, wasmModule: Promise<any>): Promise<WorkerSearcher> {
     const workerSearcher = new WorkerSearcher(data);
 
     const baseUrl = data.searcherOptions.url;
@@ -76,7 +76,7 @@ export default class WorkerSearcher {
       ).then((resp) => resp.arrayBuffer()),
     ]);
 
-    await workerSearcher.setupWasm(metadataDictString, wasmModule);
+    await workerSearcher._mrlSetupWasm(metadataDictString, wasmModule);
 
     return workerSearcher;
   }

@@ -4,6 +4,7 @@ const path = require('path');
 const { merge } = require('webpack-merge');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const RemovePlugin = require('remove-files-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const common = require('./webpack.common');
 
 module.exports = (env) => merge(common(env), {
@@ -15,7 +16,16 @@ module.exports = (env) => merge(common(env), {
   },
   optimization: {
     minimizer: [
-      '...',
+      new TerserPlugin({
+        terserOptions: {
+          compress: {},
+          mangle: {
+            properties: {
+              regex: /^_mrl\w+/,
+            },
+          },
+        },
+      }),
       new CssMinimizerPlugin(),
     ],
   },

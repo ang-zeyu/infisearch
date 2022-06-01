@@ -39,13 +39,13 @@ function createInputListener(
    */
   const inputState = new InputState();
   async function runNewQuery(queryString: string): Promise<void> {
-    inputState.isRunningQuery = true;
+    inputState._mrlIsRunningQuery = true;
 
     const newIndicatorElement = uiOptions.loadingIndicatorRender(
-      createElement, options, false, inputState.isResultsBlank,
+      createElement, options, false, inputState._mrlIsResultsBlank,
     );
-    inputState.loader.replaceWith(newIndicatorElement);
-    inputState.loader = newIndicatorElement;
+    inputState._mrlLoader.replaceWith(newIndicatorElement);
+    inputState._mrlLoader = newIndicatorElement;
 
     try {
       // const now = performance.now();
@@ -56,13 +56,13 @@ function createInputListener(
       // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
   
       const resultsDisplayed = await loadQueryResults(
-        inputState, inputState.currQuery, searcher.config,
+        inputState, inputState.currQuery, searcher.cfg,
         true,
         listContainer,
         options,
       );
       if (resultsDisplayed) {
-        inputState.isResultsBlank = false;
+        inputState._mrlIsResultsBlank = false;
       }
   
       root.scrollTo({ top: 0 });
@@ -73,20 +73,20 @@ function createInputListener(
       listContainer.appendChild(uiOptions.errorRender(createElement, options));
       throw ex;
     } finally {
-      if (inputState.nextAction) {
-        const nextActionTemp = inputState.nextAction;
-        inputState.nextAction = undefined;
+      if (inputState._mrlNextAction) {
+        const nextActionTemp = inputState._mrlNextAction;
+        inputState._mrlNextAction = undefined;
         await nextActionTemp();
       } else {
-        inputState.isRunningQuery = false;
+        inputState._mrlIsRunningQuery = false;
       }
     }
   }
 
   searcher.setupPromise.then(() => {
-    if (inputState.nextAction) {
-      inputState.nextAction();
-      inputState.nextAction = undefined;
+    if (inputState._mrlNextAction) {
+      inputState._mrlNextAction();
+      inputState._mrlNextAction = undefined;
     }
   });
 
@@ -97,21 +97,21 @@ function createInputListener(
     clearTimeout(inputTimer);
     if (query.length) {
       inputTimer = setTimeout(() => {
-        if (inputState.isResultsBlank
+        if (inputState._mrlIsResultsBlank
           && !listContainer.firstElementChild?.getAttribute(LOADING_INDICATOR_ID)) {
           listContainer.innerHTML = '';
-          inputState.loader = uiOptions.loadingIndicatorRender(
+          inputState._mrlLoader = uiOptions.loadingIndicatorRender(
             createElement, options, !searcher.isSetupDone, true,
           );
-          listContainer.appendChild(inputState.loader);
+          listContainer.appendChild(inputState._mrlLoader);
   
           if (useDropdown(uiOptions)) {
             showDropdown();
           }
         }
   
-        if (inputState.isRunningQuery || !searcher.isSetupDone) {
-          inputState.nextAction = () => runNewQuery(query);
+        if (inputState._mrlIsRunningQuery || !searcher.isSetupDone) {
+          inputState._mrlNextAction = () => runNewQuery(query);
         } else {
           runNewQuery(query);
         }
@@ -128,12 +128,12 @@ function createInputListener(
           }
         }
   
-        inputState.isRunningQuery = false;
-        inputState.isResultsBlank = true;
+        inputState._mrlIsRunningQuery = false;
+        inputState._mrlIsResultsBlank = true;
       };
   
-      if (inputState.isRunningQuery) {
-        inputState.nextAction = reset;
+      if (inputState._mrlIsRunningQuery) {
+        inputState._mrlNextAction = reset;
       } else {
         reset();
       }
@@ -160,11 +160,7 @@ function initMorsels(options: SearchUiOptions): {
   // --------------------------------------------------
   // Fullscreen version
   let hideFullscreen: () => void;
-  const {
-    root: fsRoot,
-    listContainer: fsListContainer,
-    input: fsInput,
-  } = fsRootRender(options, () => hideFullscreen());
+  const [fsRoot, fsListContainer, fsInput] = fsRootRender(options, () => hideFullscreen());
 
   fsInput.addEventListener('input', createInputListener(fsRoot, fsListContainer, searcher, options));
 
@@ -190,9 +186,7 @@ function initMorsels(options: SearchUiOptions): {
 
     const parent = input.parentElement;
     input.remove();
-    const {
-      dropdownRoot, dropdownListContainer: dropdownListContainerr,
-    } = dropdownRootRender(options, input);
+    const [dropdownRoot, dropdownListContainerr] = dropdownRootRender(options, input);
     dropdownListContainer = dropdownListContainerr;
     parent.appendChild(dropdownRoot);
 

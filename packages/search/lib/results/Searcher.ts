@@ -21,15 +21,15 @@ if (document.currentScript) {
 scriptUrl = scriptUrl.replace(/#.*$/, '').replace(/\?.*$/, '').replace(/\/[^\/]+$/, '/');
 
 class Searcher {
-  config: MorselsConfig;
+  cfg: MorselsConfig;
 
   isSetupDone: boolean = false;
 
   readonly setupPromise: Promise<any>;
 
-  private worker: Worker;
+  private _mrlWorker: Worker;
 
-  private queries: {
+  private _mrlQueries: {
     [query: string]: {
       [queryId: number]: {
         promise: Promise<any>,
@@ -38,25 +38,25 @@ class Searcher {
     }
   } = Object.create(null);
 
-  private nextId = 0;
+  private _mrlNextId = 0;
 
-  private cache: PersistentCache;
+  private _mrlCache: PersistentCache;
 
-  constructor(private options: SearcherOptions) {
-    this.setupPromise = this.retrieveConfig()
+  constructor(private _mrlOptions: SearcherOptions) {
+    this.setupPromise = this._mrlRetrieveConfig()
       .then(() => new Promise<void>((resolve) => {
         const workerUrl = new URL(
-          scriptUrl + `search-worker-${this.config.langConfig.lang}.bundle.js`,
+          scriptUrl + `search-worker-${this.cfg.langConfig.lang}.bundle.js`,
           document.baseURI || self.location.href,
         ) + '';
         const content = `const __morsWrkrUrl="${workerUrl}";importScripts(__morsWrkrUrl);`;
         const objectUrl = URL.createObjectURL(new Blob([content], { type: 'text/javascript' }));
 
-        this.worker = new Worker(objectUrl);
+        this._mrlWorker = new Worker(objectUrl);
 
-        const cacheSetup = this.setupCache(`morsels:${options.url}`);
+        const cacheSetup = this._mrlSetupCache(`morsels:${_mrlOptions.url}`);
       
-        this.worker.onmessage = (ev) => {
+        this._mrlWorker.onmessage = (ev) => {
           if (ev.data.query) {
             const {
               query,
@@ -66,92 +66,92 @@ class Searcher {
               queryParts,
             } = ev.data;
 
-            this.queries[query][queryId].resolve({
+            this._mrlQueries[query][queryId].resolve({
               query,
               nextResults,
               searchedTerms,
               queryParts,
             });
           } else if (ev.data === '') {
-            cacheSetup.then(() => this.worker.postMessage(this.config));
+            cacheSetup.then(() => this._mrlWorker.postMessage(this.cfg));
             URL.revokeObjectURL(objectUrl);
           } else if (ev.data.isSetupDone) {
             this.isSetupDone = true;
             resolve();
-            this.setupFieldStoreCache();
-            this.setupIndexCache();
+            this._mrlSetupFieldStoreCache();
+            this._mrlSetupIndexCache();
           }
         };
 
-        this.worker.onmessageerror = (ev) => {
+        this._mrlWorker.onmessageerror = (ev) => {
           console.log(ev);
         };
       }));
   }
 
-  private async setupCache(cacheName: string) {
+  private async _mrlSetupCache(cacheName: string) {
     try {
       let cache = await caches.open(cacheName);
       const cacheIndexVerResp = await cache.match('/index_ver');
       if (cacheIndexVerResp) {
         const cacheIndexVer = await cacheIndexVerResp.text();
-        if (this.config.indexVer !== cacheIndexVer) {
+        if (this.cfg.indexVer !== cacheIndexVer) {
           await caches.delete(cacheName);
           cache = await caches.open(cacheName);
         }
       }
 
-      await cache.put('/index_ver', new Response(this.config.indexVer));
-      this.cache = new PersistentCache(cache);
+      await cache.put('/index_ver', new Response(this.cfg.indexVer));
+      this._mrlCache = new PersistentCache(cache);
     } catch {
       // Cache API blocked / unsupported (e.g. firefox private)
-      this.cache = new PersistentCache(undefined);
+      this._mrlCache = new PersistentCache(undefined);
     }
   }
 
-  private setupFieldStoreCache() {
-    if (!this.options.cacheAllFieldStores) {
+  private _mrlSetupFieldStoreCache() {
+    if (!this._mrlOptions.cacheAllFieldStores) {
       return;
     }
 
     // These 2 parameters are "clean" multiples / divisors of each other
-    const { fieldStoreBlockSize, indexingConfig } = this.config;
+    const { fieldStoreBlockSize, indexingConfig } = this.cfg;
     const increment = Math.min(fieldStoreBlockSize, indexingConfig.numDocsPerBlock);
-    for (let docId = 0; docId < this.config.lastDocId; docId += increment) {
-      this.cache.cacheJson(getFieldUrl(this.options.url, docId, this.config));
+    for (let docId = 0; docId < this.cfg.lastDocId; docId += increment) {
+      this._mrlCache._mrlCacheJson(getFieldUrl(this._mrlOptions.url, docId, this.cfg));
     }
   }
 
-  private setupIndexCache() {
-    const pls = this.config.indexingConfig.plNamesToCache;
+  private _mrlSetupIndexCache() {
+    const pls = this.cfg.indexingConfig.plNamesToCache;
     pls.forEach((pl) => {
-      const folder = Math.floor(pl / this.config.indexingConfig.numPlsPerDir);
-      const url = `${this.options.url}pl_${folder}/pl_${pl}.json`;
-      this.cache.cacheUrl(url);
+      const folder = Math.floor(pl / this.cfg.indexingConfig.numPlsPerDir);
+      const url = `${this._mrlOptions.url}pl_${folder}/pl_${pl}.json`;
+      this._mrlCache._mrlCacheUrl(url);
     });
   }
 
-  private async retrieveConfig(): Promise<void> {
-    this.config = await (await fetch(`${this.options.url}morsels_config.json`)).json();
+  private async _mrlRetrieveConfig(): Promise<void> {
+    this.cfg = await (await fetch(`${this._mrlOptions.url}morsels_config.json`)).json();
 
-    if (this.config.ver !== MORSELS_VERSION) {
+    if (this.cfg.ver !== MORSELS_VERSION) {
       throw new Error('Morsels search !== indexer version!');
     }
 
-    if (!('cacheAllFieldStores' in this.options)) {
-      this.options.cacheAllFieldStores = !!this.config.cacheAllFieldStores;
+    if (!('cacheAllFieldStores' in this._mrlOptions)) {
+      this._mrlOptions.cacheAllFieldStores = !!this.cfg.cacheAllFieldStores;
     }
 
-    this.options.useQueryTermProximity = this.options.useQueryTermProximity
-        && this.config.indexingConfig.withPositions;
+    this._mrlOptions.useQueryTermProximity = this._mrlOptions.useQueryTermProximity
+        && this.cfg.indexingConfig.withPositions;
 
-    this.config.searcherOptions = this.options;
+    this.cfg.searcherOptions = this._mrlOptions;
   }
 
-  private deleteQuery(query: string, queryId: number) {
-    delete this.queries[query][queryId];
-    if (Object.keys(this.queries[query]).length === 0) {
-      delete this.queries[query];
+  private _mrlDeleteQuery(query: string, queryId: number) {
+    delete this._mrlQueries[query][queryId];
+    if (Object.keys(this._mrlQueries[query]).length === 0) {
+      delete this._mrlQueries[query];
     }
   }
 
@@ -160,69 +160,69 @@ class Searcher {
 
     // The same query may be launched multiple times,
     // a "sub" id is needed to differentiate them
-    const queryId = this.nextId;
-    this.nextId += 1;
+    const queryId = this._mrlNextId;
+    this._mrlNextId += 1;
 
-    this.queries[query] = this.queries[query] || {};
-    this.queries[query][queryId] = {
+    this._mrlQueries[query] = this._mrlQueries[query] || {};
+    this._mrlQueries[query][queryId] = {
       promise: undefined,
       resolve: undefined,
     };
 
-    this.queries[query][queryId].promise = new Promise((resolve) => {
-      this.queries[query][queryId].resolve = resolve;
+    this._mrlQueries[query][queryId].promise = new Promise((resolve) => {
+      this._mrlQueries[query][queryId].resolve = resolve;
 
-      this.worker.postMessage({ query, queryId });
+      this._mrlWorker.postMessage({ query, queryId });
     });
 
     const result: {
       searchedTerms: string[][],
       queryParts: QueryPart[],
-    } = await this.queries[query][queryId].promise;
+    } = await this._mrlQueries[query][queryId].promise;
 
     const getNextN = async (n: number) => {
-      if (!this.queries[query] || !this.queries[query][queryId]) {
+      if (!this._mrlQueries[query] || !this._mrlQueries[query][queryId]) {
         return []; // free() already called
       }
 
-      await this.queries[query][queryId].promise;
+      await this._mrlQueries[query][queryId].promise;
 
       // Initiate worker request
-      this.queries[query][queryId].promise = new Promise((resolve) => {
-        this.queries[query][queryId].resolve = resolve;
+      this._mrlQueries[query][queryId].promise = new Promise((resolve) => {
+        this._mrlQueries[query][queryId].resolve = resolve;
 
-        this.worker.postMessage({
+        this._mrlWorker.postMessage({
           query, queryId, isGetNextN: true, n,
         });
       });
 
-      if (!this.queries[query] || !this.queries[query][queryId]) {
+      if (!this._mrlQueries[query] || !this._mrlQueries[query][queryId]) {
         return []; // free() already called
       }
 
       // Wait for worker to finish
       const getNextNResult: {
         nextResults: [number, number][]
-      } = await this.queries[query][queryId].promise;
+      } = await this._mrlQueries[query][queryId].promise;
 
       // Simple transform into Result objects
       const retrievedResults: Result[] = getNextNResult.nextResults.map(([docId, score]) => new Result(
-        docId, score, this.config.fieldInfos,
+        docId, score, this.cfg.fieldInfos,
       ));
 
       // Retrieve field stores
-      await Promise.all(retrievedResults.map((res) => res.populate(
-        this.options.url,
-        this.cache,
-        this.config,
+      await Promise.all(retrievedResults.map((res) => res._mrlPopulate(
+        this._mrlOptions.url,
+        this._mrlCache,
+        this.cfg,
       )));
 
       return retrievedResults;
     };
 
     const free = () => {
-      this.deleteQuery(query, queryId);
-      this.worker.postMessage({ query, isFree: true });
+      this._mrlDeleteQuery(query, queryId);
+      this._mrlWorker.postMessage({ query, isFree: true });
     };
 
     // eslint-disable-next-line consistent-return

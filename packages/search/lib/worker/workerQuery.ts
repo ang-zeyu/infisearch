@@ -2,16 +2,16 @@ import { QueryPart } from '../parser/queryParser';
 
 export default class WorkerQuery {
   constructor(
-    public searchedTerms: string[],
-    public queryParts: QueryPart[],
-    private query: any,
+    public _mrlSearchedTerms: string[],
+    public _mrlQueryParts: QueryPart[],
+    private _mrlQuery: any,
   ) {}
 
-  getNextN(n: number): number[] {
-    return this.query.get_next_n(n);
+  _mrlGetNextN(n: number): number[] {
+    return this._mrlQuery.get_next_n(n);
   }
 
-  free() {
-    this.query.free();
+  _mrlFree() {
+    this._mrlQuery.free();
   }
 }

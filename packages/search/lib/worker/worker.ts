@@ -8,7 +8,7 @@ export default function setupWithWasmModule(wasmModule: Promise<any>) {
     if (ev.data.searcherOptions) {
       // const now = performance.now();
   
-      workerSearcher = await WorkerSearcher.setup(ev.data, wasmModule);
+      workerSearcher = await WorkerSearcher._mrlSetup(ev.data, wasmModule);
       postMessage({ isSetupDone: true });
   
       // console.log(`Worker setup took ${performance.now() - now} ms`);
@@ -17,21 +17,21 @@ export default function setupWithWasmModule(wasmModule: Promise<any>) {
         query, queryId, n, isFree, isGetNextN,
       } = ev.data;
       if (isFree) {
-        workerSearcher.freeQuery(query, queryId);
+        workerSearcher._mrlFreeQuery(query, queryId);
       } else if (isGetNextN) {
-        const nextResults = workerSearcher.getQueryNextN(query, queryId, n);
+        const nextResults = workerSearcher._mrlGetQueryNextN(query, queryId, n);
         postMessage({
           query,
           queryId,
           nextResults,
         });
       } else {
-        const workerQuery = await workerSearcher.processQuery(query, queryId);
+        const workerQuery = await workerSearcher._mrlProcessQuery(query, queryId);
         postMessage({
           query,
           queryId,
-          searchedTerms: workerQuery.searchedTerms,
-          queryParts: workerQuery.queryParts,
+          searchedTerms: workerQuery._mrlSearchedTerms,
+          queryParts: workerQuery._mrlQueryParts,
         });
       }
     }

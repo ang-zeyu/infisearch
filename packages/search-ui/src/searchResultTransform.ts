@@ -27,7 +27,7 @@ async function singleResultRender(
 ) {
   const { loaderConfigs } = configs.indexingConfig;
 
-  const fields = result.getStorageWithFieldNames();
+  const fields = result.getFields();
 
   let link: string;
   let relativeLink: string;
@@ -175,7 +175,7 @@ export default async function loadQueryResults(
   container: HTMLElement,
   options: SearchUiOptions,
 ): Promise<boolean> {
-  if (inputState.nextAction) {
+  if (inputState._mrlNextAction) {
     // If a new query interrupts the current one
     return false;
   }
@@ -185,8 +185,8 @@ export default async function loadQueryResults(
     container.appendChild(bottomLoader);
   }
 
-  if (inputState.lastElObserver) {
-    inputState.lastElObserver.disconnect();
+  if (inputState._mrlLastElObserver) {
+    inputState._mrlLastElObserver.disconnect();
   }
 
   const fragment = document.createDocumentFragment();
@@ -202,7 +202,7 @@ export default async function loadQueryResults(
   //console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   //now = performance.now();
 
-  if (inputState.nextAction) {
+  if (inputState._mrlNextAction) {
     // If a new query interrupts the current one
     return false;
   }
@@ -211,7 +211,7 @@ export default async function loadQueryResults(
     createElement, options, config, results, query,
   );
 
-  if (inputState.nextAction) {
+  if (inputState._mrlNextAction) {
     // If a new query interrupts the current one
     return false;
   }
@@ -225,8 +225,8 @@ export default async function loadQueryResults(
 
   if (isFirst) {
     container.innerHTML = '';
-    inputState.loader = createInvisibleLoadingIndicator();
-    container.append(inputState.loader);
+    inputState._mrlLoader = createInvisibleLoadingIndicator();
+    container.append(inputState._mrlLoader);
     container.append(fragment);
   } else {
     bottomLoader.replaceWith(fragment);
@@ -235,7 +235,7 @@ export default async function loadQueryResults(
   //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
   if (resultsEls.length) {
-    inputState.lastElObserver = new IntersectionObserver(async ([entry], observer) => {
+    inputState._mrlLastElObserver = new IntersectionObserver(async ([entry], observer) => {
       if (!entry.isIntersecting) {
         return;
       }
@@ -244,7 +244,7 @@ export default async function loadQueryResults(
       await loadQueryResults(inputState, query, config, false, container, options);
     }, { root: container, rootMargin: '150px 0px' });
 
-    inputState.lastElObserver.observe(sentinel);
+    inputState._mrlLastElObserver.observe(sentinel);
   }
 
   return true;

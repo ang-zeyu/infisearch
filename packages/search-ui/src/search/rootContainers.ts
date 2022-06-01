@@ -7,7 +7,7 @@ import h from '../utils/dom';
 
 export function openDropdown(root: HTMLElement, listContainer: HTMLElement, placement: Placement) {
   if (listContainer.childElementCount) {
-    const innerRoot = root.lastElementChild as HTMLElement;
+    const innerRoot = root.children[1] as HTMLElement;
     const caret = innerRoot.firstElementChild as HTMLElement;
     innerRoot.style.display = 'block';
     computePosition(root, innerRoot, {
@@ -45,10 +45,11 @@ export function openDropdown(root: HTMLElement, listContainer: HTMLElement, plac
 }
 
 export function closeDropdown(root: HTMLElement) {
-  (root.lastElementChild as HTMLElement).style.display = 'none';
+  (root.children[1] as HTMLElement).style.display = 'none';
 }
 
 export function dropdownRootRender(opts: SearchUiOptions, inputEl: HTMLInputElement) {
+  const { uiOptions } = opts;
   const listContainer = h('ul', {
     id: 'morsels-dropdown-list',
     class: 'morsels-list',
@@ -63,12 +64,9 @@ export function dropdownRootRender(opts: SearchUiOptions, inputEl: HTMLInputElem
   );
   
   setInputAria(inputEl, 'morsels-dropdown-list');
-  setCombobox(root, listContainer, opts.uiOptions.label);
+  setCombobox(root, listContainer, uiOptions.label);
   
-  return {
-    dropdownRoot: root,
-    dropdownListContainer: listContainer,
-  };
+  return [root, listContainer];
 }
 
 export function openFullscreen(root: HTMLElement, listContainer: HTMLElement, fsContainer: HTMLElement) {
@@ -92,18 +90,19 @@ export function fsRootRender(
   opts: SearchUiOptions,
   fsCloseHandler: () => void,
 ) {
+  const { uiOptions } = opts;
   const inputEl = h(
     'input', {
       class: 'morsels-fs-input',
       type: 'search',
-      placeholder: opts.uiOptions.fsPlaceholder,
+      placeholder: uiOptions.fsPlaceholder,
       autocomplete: 'false',
       'aria-labelledby': 'morsels-fs-label',
     },
   ) as HTMLInputElement;
   setInputAria(inputEl, 'morsels-fs-list');
-  
-  const buttonEl = h('button', { class: 'morsels-input-close-fs' }, opts.uiOptions.fsCloseText);
+
+  const buttonEl = h('button', { class: 'morsels-input-close-fs' }, uiOptions.fsCloseText);
   buttonEl.onclick = (ev) => {
     ev.preventDefault();
     fsCloseHandler();
@@ -121,7 +120,7 @@ export function fsRootRender(
       { class: 'morsels-fs-input-button-wrapper' },
       h('label',
         { id: 'morsels-fs-label', for: 'morsels-fs-input', style: 'display: none' },
-        opts.uiOptions.label,
+        uiOptions.label,
       ),
       inputEl,
       buttonEl,
@@ -131,7 +130,7 @@ export function fsRootRender(
   innerRoot.onclick = (ev) => ev.stopPropagation();
   innerRoot.onmousedown = (ev) => ev.stopPropagation();
   
-  setCombobox(innerRoot, listContainer, opts.uiOptions.label);
+  setCombobox(innerRoot, listContainer, uiOptions.label);
   
   const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
   rootBackdropEl.onmousedown = fsCloseHandler;
@@ -142,9 +141,9 @@ export function fsRootRender(
     }
   };
   
-  return {
-    root: rootBackdropEl,
+  return [
+    rootBackdropEl,
     listContainer,
-    input: inputEl,
-  };
+    inputEl,
+  ];
 }

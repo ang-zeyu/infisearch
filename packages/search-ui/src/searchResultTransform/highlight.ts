@@ -2,26 +2,26 @@ import { SearchUiOptions } from '../SearchUiOptions';
 import createElement from '../utils/dom';
 
 export interface MatchResult {
-  str: string,
+  _mrlStr: string,
   /**
      * Position of the match in the string,
      * and length the match produced by the respective regex
      */
-  window: { pos: number, len: number }[],
-  numTerms: number,
+  _mrlWindow: { pos: number, len: number }[],
+  _mrlNumTerms: number,
 }
   
 /**
    * Generates the closest window (while preferring longer regex matches) in a given string.
    */
-export function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchResult {
+export function getBestMatchResult(_mrlStr: string, termRegexes: RegExp[]): MatchResult {
   // Get all matches first
-  const matches = termRegexes.map(r => Array.from(str.matchAll(r)));
+  const matches = termRegexes.map(r => Array.from(_mrlStr.matchAll(r)));
   if (!matches.some(innerMatches => innerMatches.length)) {
     return {
-      str,
-      window: [],
-      numTerms: 0,
+      _mrlStr,
+      _mrlWindow: [],
+      _mrlNumTerms: 0,
     };
   }
   
@@ -91,7 +91,7 @@ export function getBestMatchResult(str: string, termRegexes: RegExp[]): MatchRes
     .filter((pair) => pair.pos >= 0)
     .sort((a, b) => a.pos - b.pos);
   const numTerms = window.length;
-  return { str, window, numTerms };
+  return { _mrlStr, _mrlWindow: window, _mrlNumTerms: numTerms };
 }
   
 function createEllipses() {
@@ -112,7 +112,7 @@ export function highlightMatchResult(
   options: SearchUiOptions,
 ): (string | HTMLElement)[] {
   const { highlightRender } = options.uiOptions.resultsRenderOpts;
-  const { str, window } = matchResult;
+  const { _mrlStr: str, _mrlWindow: window } = matchResult;
   
   if (!window.some(({ pos }) => pos >= 0)) {
     if (addEllipses) {

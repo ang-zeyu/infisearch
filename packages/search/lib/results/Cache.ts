@@ -22,12 +22,12 @@ async function throttle(startPromise: () => Promise<any>) {
   }
 }
 
-export default class JsonCache {
+export default class PersistentCache {
   constructor(private cache: Cache) {}
 
-  linkToJsons: { [link: string]: Promise<any> } = Object.create(null);
+  private _mrlLinkToJsons: { [link: string]: Promise<any> } = Object.create(null);
 
-  async cacheJson(url: string) {
+  async _mrlCacheJson(url: string) {
     let response: Response;
     if (this.cache) {
       response = await this.cache.match(url);
@@ -35,18 +35,18 @@ export default class JsonCache {
         throttle(async () => {
           await this.cache.add(url);
           response = await this.cache.match(url);
-          this.linkToJsons[url] = response.json();
+          this._mrlLinkToJsons[url] = response.json();
         });
       }
     } else {
       throttle(async () => {
         response = await fetch(url);
-        this.linkToJsons[url] = response.json();
+        this._mrlLinkToJsons[url] = response.json();
       });
     }
   }
 
-  async cacheUrl(url: string) {
+  async _mrlCacheUrl(url: string) {
     if (this.cache) {
       const response = await this.cache.match(url);
       if (!response) {
@@ -56,10 +56,10 @@ export default class JsonCache {
   }
 
   getJson(url: string): Promise<any> {
-    if (!this.linkToJsons[url]) {
-      this.linkToJsons[url] = fetch(url).then(res => res.json());
+    if (!this._mrlLinkToJsons[url]) {
+      this._mrlLinkToJsons[url] = fetch(url).then(res => res.json());
     }
 
-    return this.linkToJsons[url];
+    return this._mrlLinkToJsons[url];
   }
 }

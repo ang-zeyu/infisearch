@@ -8,27 +8,29 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   // Search Lib Options
   
   options.searcherOptions = options.searcherOptions || ({} as any);
+
+  const { searcherOptions } = options;
   
-  if (!('url' in options.searcherOptions)) {
+  if (!('url' in searcherOptions)) {
     throw new Error('Mandatory url parameter not specified');
-  } else if (!options.searcherOptions.url.endsWith('/')) {
-    options.searcherOptions.url += '/';
+  } else if (!searcherOptions.url.endsWith('/')) {
+    searcherOptions.url += '/';
   }
   
-  if (options.searcherOptions.url.startsWith('/')) {
-    options.searcherOptions.url = window.location.origin + options.searcherOptions.url;
+  if (searcherOptions.url.startsWith('/')) {
+    searcherOptions.url = window.location.origin + searcherOptions.url;
   }
 
-  if (!('numberOfExpandedTerms' in options.searcherOptions)) {
-    options.searcherOptions.numberOfExpandedTerms = 3;
+  if (!('numberOfExpandedTerms' in searcherOptions)) {
+    searcherOptions.numberOfExpandedTerms = 3;
   }
   
-  if (!('useQueryTermProximity' in options.searcherOptions)) {
-    options.searcherOptions.useQueryTermProximity = !isMobile;
+  if (!('useQueryTermProximity' in searcherOptions)) {
+    searcherOptions.useQueryTermProximity = !isMobile;
   }
   
-  if (!('resultLimit' in options.searcherOptions)) {
-    options.searcherOptions.resultLimit = null; // unlimited
+  if (!('resultLimit' in searcherOptions)) {
+    searcherOptions.resultLimit = null; // unlimited
   }
   
   // ------------------------------------------------------------
