@@ -38,6 +38,9 @@ module.exports = (env) => {
         import: path.resolve(__dirname, 'packages/search-ui/src/styles/dark.css'),
       },
     },
+    output: {
+      publicPath: '/',
+    },
     experiments: {
       asyncWebAssembly: true,
     },
