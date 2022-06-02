@@ -65,11 +65,13 @@ There are also several options specific to each UI. Note that `dropdown` and `fu
 
 | Mode        | Option                | Default                 | Description |
 | ----------- | -----------           | -----------             | ----------- |
-| all         | `label`               | `'Search this site'`    | Accessibility label for the inputs and results listbox.
 | `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom'` or `'bottom-start'` or `'bottom-end'`.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment of the dropdown container will also be automatically flipped horizontally to ensure the most optimal placement (see [floating-ui's](https://floating-ui.com/docs/size#using-with-flip) docs for a demonstration).
 | `fullscreen`| `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
 | `fullscreen`| `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
 | `target`    | `target`              | `undefined`                       | `id` of the element, or an element reference to attach results to.<br><br>Required if using `mode='target'`.
+| all         | `label`               | `'Search this site'`    | Accessibility label for the fullscreen UI input.
+| all         | `resultsLabel`        | `'Site results'`        | Accessibility label for result `listbox`es.
+| `auto` \| `fullscreen`         | `fsInputLabel`        | `'Opens a search popup when focused'`| Accessibility label for the original input element, when the fullscreen UI is in use.
 
 #### Manually Showing / Hiding the Fullscreen UI
 

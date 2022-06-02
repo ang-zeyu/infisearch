@@ -8,6 +8,7 @@ export function setCombobox(combobox: HTMLElement, listbox: HTMLElement, label: 
 }
   
 export function setInputAria(input: HTMLElement, listId: string) {
+  input.setAttribute('autocomplete', 'off');
   input.setAttribute('aria-autocomplete', 'list');
   input.setAttribute('aria-controls', listId);
   input.setAttribute('aria-activedescendant', 'morsels-list-selected');

@@ -48,8 +48,7 @@ export function closeDropdown(root: HTMLElement) {
   (root.children[1] as HTMLElement).style.display = 'none';
 }
 
-export function dropdownRootRender(opts: SearchUiOptions, inputEl: HTMLInputElement) {
-  const { uiOptions } = opts;
+export function dropdownRootRender(_opts: SearchUiOptions, inputEl: HTMLInputElement) {
   const listContainer = h('ul', {
     id: 'morsels-dropdown-list',
     class: 'morsels-list',
@@ -63,10 +62,34 @@ export function dropdownRootRender(opts: SearchUiOptions, inputEl: HTMLInputElem
     ),
   );
   
-  setInputAria(inputEl, 'morsels-dropdown-list');
-  setCombobox(root, listContainer, uiOptions.label);
-  
   return [root, listContainer];
+}
+
+export function setDropdownInputAria(
+  inputEl: HTMLElement, root: HTMLElement, listContainer: HTMLElement, label: string,
+) {
+  inputEl.removeAttribute('aria-label');
+  setInputAria(inputEl, 'morsels-dropdown-list');
+  setCombobox(root, listContainer, label);
+}
+
+export function unsetDropdownInputAria(
+  combobox: HTMLElement,
+  listbox: HTMLElement,
+  input: HTMLElement,
+  fsInputLabel: string,
+) {
+  combobox.removeAttribute('role');
+  combobox.removeAttribute('aria-expanded');
+  combobox.removeAttribute('aria-owns');
+  listbox.removeAttribute('role');
+  listbox.removeAttribute('aria-label');
+  listbox.removeAttribute('aria-live');
+  input.setAttribute('autocomplete', 'off');
+  input.removeAttribute('aria-autocomplete');
+  input.removeAttribute('aria-controls');
+  input.removeAttribute('aria-activedescendant');
+  input.setAttribute('aria-label', fsInputLabel);
 }
 
 export function openFullscreen(root: HTMLElement, listContainer: HTMLElement, fsContainer: HTMLElement) {
@@ -96,7 +119,6 @@ export function fsRootRender(
       class: 'morsels-fs-input',
       type: 'search',
       placeholder: uiOptions.fsPlaceholder,
-      autocomplete: 'false',
       'aria-labelledby': 'morsels-fs-label',
     },
   ) as HTMLInputElement;
