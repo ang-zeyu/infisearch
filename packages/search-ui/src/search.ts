@@ -153,7 +153,12 @@ function initMorsels(options: SearchUiOptions): {
   prepareOptions(options, isMobileSizeGlobal);
 
   const { uiOptions } = options;
-  const { input, dropdownAlignment, label, fsInputLabel } = uiOptions;
+  const {
+    input, mode,
+    dropdownAlignment,
+    label, fsInputLabel,
+    target,
+  } = uiOptions;
 
   const searcher = new Searcher(options.searcherOptions);
 
@@ -186,12 +191,12 @@ function initMorsels(options: SearchUiOptions): {
   // --------------------------------------------------
   // Input element option handling
   let dropdownListContainer;
-  if (input && (uiOptions.mode === UiMode.Auto || uiOptions.mode === UiMode.Dropdown)) {
+  if (input && (mode === UiMode.Auto || mode === UiMode.Dropdown)) {
     // Auto / Dropdown
 
     const parent = input.parentElement;
     input.remove();
-    const [dropdownRoot, dropdownListContainerr] = dropdownRootRender(options, input);
+    const [dropdownRoot, dropdownListContainerr] = dropdownRootRender(input);
     dropdownListContainer = dropdownListContainerr;
     parent.appendChild(dropdownRoot);
 
@@ -217,7 +222,7 @@ function initMorsels(options: SearchUiOptions): {
     }
 
     function toggleUiMode() {
-      if ((uiOptions.mode === UiMode.Dropdown)
+      if ((mode === UiMode.Dropdown)
         || !(isMobileSizeGlobal = isMobileDevice())) {
         hideFullscreen();
         refreshDropdown();
@@ -260,25 +265,25 @@ function initMorsels(options: SearchUiOptions): {
       // When using 'auto' mode, may still be using fullscreen UI
       showFullscreen();
     });
-  } else if (input && uiOptions.mode === UiMode.Fullscreen) {
+  } else if (input && mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
     input.setAttribute('aria-label', fsInputLabel);
     input.addEventListener('focus', showFullscreen);
-  } else if (input && uiOptions.mode === UiMode.Target) {
+  } else if (input && mode === UiMode.Target) {
     // Target
     input.addEventListener(
       'input',
-      createInputListener(uiOptions.target, uiOptions.target, searcher, options),
+      createInputListener(target, target, searcher, options),
     );
 
-    let ariaControlsId = uiOptions.target.getAttribute('id');
+    let ariaControlsId = target.getAttribute('id');
     if (!ariaControlsId) {
-      uiOptions.target.setAttribute('id', 'morsels-target-list');
+      target.setAttribute('id', 'morsels-target-list');
       ariaControlsId = 'morsels-target-list';
     }
 
     setInputAria(input, ariaControlsId);
-    setCombobox(input, uiOptions.target, uiOptions.label);
+    setCombobox(input, target, uiOptions.label);
   }
   // --------------------------------------------------
 
@@ -307,8 +312,8 @@ function initMorsels(options: SearchUiOptions): {
       }
 
       listContainer = dropdownListContainer;
-    } else if (uiOptions.mode === UiMode.Target) {
-      listContainer = uiOptions.target;
+    } else if (mode === UiMode.Target) {
+      listContainer = target;
       scrollListContainer = (targetEl: HTMLElement) => {
         targetEl.scrollIntoView({
           block: 'center',

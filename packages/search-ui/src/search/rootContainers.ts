@@ -48,7 +48,7 @@ export function closeDropdown(root: HTMLElement) {
   (root.children[1] as HTMLElement).style.display = 'none';
 }
 
-export function dropdownRootRender(_opts: SearchUiOptions, inputEl: HTMLInputElement) {
+export function dropdownRootRender(inputEl: HTMLInputElement) {
   const listContainer = h('ul', {
     id: 'morsels-dropdown-list',
     class: 'morsels-list',
