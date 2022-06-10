@@ -125,6 +125,8 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
                 b'\t' => output.extend_from_slice(b"\\t"),
                 b'"' => output.extend_from_slice(b"\\\""),
                 b'\\' => output.extend_from_slice(b"\\\\"),
+                // All other control characters should use unicode escape sequences
+                0..=31 => output.extend_from_slice(format!("\\u00{:02X?}", c).as_bytes()),
                 _ => output.push(c),
             }
         }
