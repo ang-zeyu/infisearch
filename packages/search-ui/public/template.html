@@ -5,23 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <title>Morsels</title>
-    <link href="/search-ui-light.css" rel="stylesheet">
     <style>
-      :root {
+      #app {
+        --fg: black;
         --bg: white;
         --bg-secondary: #212529;
         --input-bg: white;
         --input-border: 2px solid rgba(253, 202, 144, 0.37);
-        --fg: black;
+      }
+
+      #app.dark {
+        --fg: #e4f1f0;
+        --bg: #27292a;
+        --bg-secondary: #27292a;
+        --input-bg: #171919;
+        --input-border: 2px solid rgba(200,200,200,0.3);
       }
 
       body {
           margin: 0;
-          background-color: var(--bg);
-          color: var(--fg);
       }
 
       #app {
+          background-color: var(--bg);
+          color: var(--fg);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -156,37 +163,28 @@
             window.location.href = window.location.href.replace(/(\?.+)|$/, `?${params.toString()}`);
           }
 
-          let isUsingDark = false;
           function toggleDarkTheme(ev) {
-            const links = Array.from(document.getElementsByTagName('link'));
-            console.log(links)
-            const styleLink = links.find((link) => /search-ui-[a-z]+\.css/.test(link.href));
-            if (isUsingDark) {
-              document.documentElement.style.setProperty('--fg', 'black');
-              document.documentElement.style.setProperty('--bg', 'white');
-              document.documentElement.style.setProperty('--bg-secondary', '#212529');
-              document.documentElement.style.setProperty('--input-bg', 'white');
-              document.documentElement.style.setProperty('--input-border', '2px solid rgba(253, 202, 144, 0.37)');
-
-              styleLink.href = '/search-ui-light.css';
-              ev.target.classList.add('btn-outline-dark');
-              ev.target.classList.remove('btn-outline-light');
+            if (window.location.pathname.includes('dark')) {
+              window.location.href = window.location.href.replace(/dark\.html/, 'index.html');
             } else {
-              document.documentElement.style.setProperty('--fg', '#e4f1f0');
-              document.documentElement.style.setProperty('--bg', '#27292a');
-              document.documentElement.style.setProperty('--bg-secondary', '#27292a');
-              document.documentElement.style.setProperty('--input-bg', '#171919');
-              document.documentElement.style.setProperty('--input-border', '2px solid rgba(200,200,200,0.3)');
-
-              styleLink.href = '/search-ui-dark.css';
-              ev.target.classList.remove('btn-outline-dark');
-              ev.target.classList.add('btn-outline-light');
+              window.location.href = window.location.href.replace(
+                /\/?(index\.html)?((\?.+)|$)/,
+                '/dark.html$2'
+              );
             }
-            isUsingDark = !isUsingDark;
           }
         </script>
         <button class="btn btn-outline-primary m-1" onclick="toggleCacheFieldStores()">Toggle Cache Field Stores</button>
-        <button class="btn btn-outline-dark m-1" onclick="toggleDarkTheme(event)">Dark Theme Toggle</button>
+        <button id="dark-theme-toggle" class="btn btn-outline-dark m-1" onclick="toggleDarkTheme(event)">Dark Theme Toggle</button>
+        <script>
+          (function setDarkTheme() {
+            if (window.location.pathname.includes('dark')) {
+              document.getElementById('dark-theme-toggle').classList.add('btn-outline-light');
+              document.getElementById('dark-theme-toggle').classList.remove('btn-outline-dark');
+              document.getElementById('app').classList.add('dark');
+            }
+          })();
+        </script>
       </div>
       <div class="morsels-root d-flex justify-content-center w-75">
         <div id="target-mode-el"></div>

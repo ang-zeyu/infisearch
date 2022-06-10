@@ -42,17 +42,34 @@ module.exports = (env) => merge(common(env), {
       },
     ],
   },
+  optimization: {
+    runtimeChunk: {
+      name: (entrypoint) => entrypoint.name.includes('worker') ? false : 'runtime',
+    },
+  },
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },
-  plugins: [
-    new HtmlWebpackPlugin({
+  plugins: (() => {
+    const baseHtmlConfig = {
       title: 'Morsels Dev Site',
       scriptLoading: 'blocking',
       favicon: path.join(__dirname, 'packages/search-ui/public/favicon.ico'),
       template: './packages/search-ui/public/template.html',
-      chunks: ['search-ui'],
-    }),
-  ],
+    };
+
+    return [
+      new HtmlWebpackPlugin({
+        ...baseHtmlConfig,
+        filename: 'index.html',
+        chunks: ['search-ui', 'search-ui-light'],
+      }),
+      new HtmlWebpackPlugin({
+        ...baseHtmlConfig,
+        filename: 'dark.html',
+        chunks: ['search-ui', 'search-ui-dark'],
+      }),
+    ];
+  })(),
 });
