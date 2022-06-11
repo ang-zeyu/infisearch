@@ -6,6 +6,3 @@ members = [
     "packages/morsels_search",
     "packages/mdbook-morsels",
 ]
-
-[profile.release]
-lto = true
