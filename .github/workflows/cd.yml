@@ -56,3 +56,15 @@ jobs:
           file: target/indexer.*.zip
           file_glob: True
           tag: ${{ github.ref }}
+
+      - name: Zip Search Package
+        run: zip -j search.morsels.zip packages/search-ui/dist/*
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Upload search package to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: search.morsels.zip
+          tag: ${{ github.ref }}
+        if: matrix.os == 'ubuntu-latest'
