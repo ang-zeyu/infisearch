@@ -189,6 +189,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     let (mut query_parts, mut terms_searched) = parse_query(
         query,
         &*searcher_val.tokenizer,
+        &searcher_val.searcher_config.field_infos.iter().map(|fi| fi.name.as_str()).collect(),
         searcher_val.searcher_config.indexing_config.with_positions,
     );
 

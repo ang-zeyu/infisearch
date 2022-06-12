@@ -139,7 +139,12 @@ fn handle_terminator(
     }
 }
 
-pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_positions: bool) -> (Vec<QueryPart>, Vec<Vec<String>>) {
+pub fn parse_query(
+    query: String,
+    tokenizer: &dyn SearchTokenizer,
+    valid_fields: &Vec<&str>,
+    with_positions: bool,
+) -> (Vec<QueryPart>, Vec<Vec<String>>) {
     let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
     let mut terms_searched: Vec<Vec<String>> = Vec::new();
 
@@ -242,25 +247,29 @@ pub fn parse_query(query: String, tokenizer: &dyn SearchTokenizer, with_position
                         last_possible_unaryop_idx = i;
                     }
                 } else if c == ':' && !did_encounter_escape && last_possible_unaryop_idx >= i && j > i {
-                    handle_terminator(
-                        tokenizer,
-                        &query_chars,
-                        i,
-                        last_possible_unaryop_idx,
-                        &escape_indices,
-                        &mut query_parts,
-                        &mut op_stack,
-                        &mut terms_searched,
-                    );
-
-                    op_stack.push(Operator::Field(collect_slice(
+                    let field_name = collect_slice(
                         &query_chars,
                         last_possible_unaryop_idx,
                         j,
                         &escape_indices,
-                    )));
-                    i = j + 1;
-                    last_possible_unaryop_idx = i;
+                    );
+
+                    if valid_fields.contains(&field_name.as_str()) {
+                        handle_terminator(
+                            tokenizer,
+                            &query_chars,
+                            i,
+                            last_possible_unaryop_idx,
+                            &escape_indices,
+                            &mut query_parts,
+                            &mut op_stack,
+                            &mut terms_searched,
+                        );
+
+                        op_stack.push(Operator::Field(field_name));
+                        i = j + 1;
+                        last_possible_unaryop_idx = i;
+                    }
                 } else if c.is_ascii_whitespace() {
                     let initial_j = j;
                     while j < query_chars_len && query_chars[j].is_ascii_whitespace() {
@@ -377,7 +386,7 @@ pub mod test {
                 self.should_expand = false;
                 self
             } else {
-                panic!("Tried to call toggle_should_expand test function on non-term query part");
+                panic!("Tried to call no_expand test function on non-term query part");
             }
         }
 
@@ -472,7 +481,7 @@ pub mod test {
             max_term_len: 80,
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, true).0
+        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
@@ -482,7 +491,7 @@ pub mod test {
             max_term_len: 80,
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, false).0
+        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false).0
     }
 
     // The tokenizer should not remove stop words no matter what when searching
@@ -493,7 +502,7 @@ pub mod test {
             max_term_len: 80,
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, true).0
+        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
     }
 
     #[test]
@@ -645,6 +654,45 @@ pub mod test {
             parse_with_sw_removal("title:for)"),
             vec![get_term("for").with_field("title")]
         );
+
+        // Test invalid field names (should be parsed verbose / as-is)
+        assert_eq!(
+            parse("invalidfield: lorem NOT ipsum)"),
+            vec![
+                get_term("invalidfield").no_expand(),
+                get_lorem().no_expand(),
+                wrap_in_not(get_ipsum())
+            ]
+        );
+        assert_eq!(
+            parse("http://localhost:8080 lorem"),
+            vec![
+                get_term("httplocalhost8080"),
+                get_lorem(),
+            ]
+        );
+        assert_eq!(
+            parse("http://localhost:8080 NOT lorem"),
+            vec![
+                get_term("httplocalhost8080").no_expand(),
+                wrap_in_not(get_lorem()),
+            ]
+        );
+        assert_eq!(
+            parse("http://localhost:8080 title:lorem"),
+            vec![
+                get_term("httplocalhost8080").no_expand(),
+                get_lorem().with_field("title"),
+            ]
+        );
+        assert_eq!(
+            parse("body:ipsum http://localhost:8080 title:lorem"),
+            vec![
+                get_ipsum().with_field("body").no_expand(),
+                get_term("httplocalhost8080").no_expand(),
+                get_lorem().with_field("title"),
+            ]
+        );
     }
 
     #[test]
@@ -669,6 +717,17 @@ pub mod test {
                 wrap_in_not(wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]).with_field("title")),
                 wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())])
                     .with_field("body")
+            ]
+        );
+
+        assert_eq!(
+            parse("body:ipsum AND http://localhost:8080 AND NOT (title:lorem)"),
+            vec![
+                wrap_in_and(vec![
+                    get_ipsum().with_field("body"),
+                    get_term("httplocalhost8080"),
+                    wrap_in_not(wrap_in_parentheses(vec![get_lorem().with_field("title")])),
+                ])
             ]
         );
 
