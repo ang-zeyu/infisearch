@@ -40,6 +40,10 @@ module.exports = (env) => merge(common(env), {
         directory: path.join(__dirname, 'e2e'),
         publicPath: '/e2e',
       },
+      {
+        directory: path.join(__dirname, 'packages/search-ui/public/styles'),
+        publicPath: '/',
+      },
     ],
   },
   optimization: {
