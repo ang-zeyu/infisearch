@@ -6,6 +6,7 @@
     --morsels-box-shadow: none;
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-bg: var(--bg);
+    --morsels-triangle-bg: var(--table-header-bg);
     --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
     --morsels-title-fg: var(--fg);

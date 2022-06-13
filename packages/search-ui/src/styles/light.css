@@ -3,6 +3,7 @@
 :root {
     --morsels-box-shadow: 0 0 5px rgb(220, 220, 220);
     --morsels-bg: white;
+    --morsels-triangle-bg: white;
     --morsels-item-border: none;
     --morsels-item-border-radius: 6px;
     --morsels-item-box-shadow: 0 1px 3px rgb(230, 230, 230), -2px 1px 3px rgb(239, 239, 239), 2px 1px 3px rgb(239, 239, 239);

@@ -227,7 +227,7 @@
     height: 0;
     border-left: 9px solid transparent;
     border-right: 9px solid transparent;
-    border-bottom: 9px solid var(--morsels-bg);
+    border-bottom: 9px solid var(--morsels-triangle-bg);
 }
 
 /*
