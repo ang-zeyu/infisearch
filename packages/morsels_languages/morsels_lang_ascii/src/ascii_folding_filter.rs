@@ -1,4 +1,10 @@
-// This file is from tantivy, in turn partially derived from lucene
+/*
+ The match clause is from tantivy, in turn partially derived from lucene.
+
+ Capital letters are however folded into lower case variants.
+ (commented lines of => Some("..."))
+*/
+
 
 use std::borrow::Cow;
 
@@ -13,6 +19,16 @@ use std::borrow::Cow;
 // this function returns `None`.
 #[inline(always)]
 fn fold_non_ascii_char(c: char) -> Option<&'static str> {
+    /*
+    Copyright (c) 2018 by the project authors, as listed in the AUTHORS file. 
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    */
+
     match c {
         '\u{00C0}' | // À  [LATIN CAPITAL LETTER A WITH GRAVE]
         '\u{00C1}' | // Á  [LATIN CAPITAL LETTER A WITH ACUTE]
@@ -48,7 +64,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{1EB6}' | // Ặ  [LATIN CAPITAL LETTER A WITH BREVE AND DOT BELOW]
         '\u{24B6}' | // Ⓐ  [CIRCLED LATIN CAPITAL LETTER A]
         '\u{FF21}'  // Ａ  [FULLWIDTH LATIN CAPITAL LETTER A]
-        => Some("A"),
+        | // => Some("A"),
         '\u{00E0}' | // à  [LATIN SMALL LETTER A WITH GRAVE]
         '\u{00E1}' | // á  [LATIN SMALL LETTER A WITH ACUTE]
         '\u{00E2}' | // â  [LATIN SMALL LETTER A WITH CIRCUMFLEX]
@@ -92,21 +108,21 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{FF41}'  // ａ  [FULLWIDTH LATIN SMALL LETTER A]
         => Some("a"),
         '\u{A732}'  // Ꜳ  [LATIN CAPITAL LETTER AA]
-        => Some("AA"),
+        => Some("aa"), // => Some("AA"),
         '\u{00C6}' | // Æ  [LATIN CAPITAL LETTER AE]
         '\u{01E2}' | // Ǣ  [LATIN CAPITAL LETTER AE WITH MACRON]
         '\u{01FC}' | // Ǽ  [LATIN CAPITAL LETTER AE WITH ACUTE]
         '\u{1D01}' // ᴁ  [LATIN LETTER SMALL CAPITAL AE]
-        => Some("AE"),
+        => Some("ae"), // => Some("AE"),
         '\u{A734}' // Ꜵ  [LATIN CAPITAL LETTER AO]
-        => Some("AO"),
+        => Some("ao"), // => Some("AO"),
         '\u{A736}'  // Ꜷ  [LATIN CAPITAL LETTER AU]
-        => Some("AU"),
+        => Some("au"), // => Some("AU"),
         '\u{A738}' | // Ꜹ  [LATIN CAPITAL LETTER AV]
         '\u{A73A}'  // Ꜻ  [LATIN CAPITAL LETTER AV WITH HORIZONTAL BAR]
-        => Some("AV"),
+        => Some("av"), // => Some("AV"),
         '\u{A73C}'  // Ꜽ  [LATIN CAPITAL LETTER AY]
-        => Some("AY"),
+        => Some("ay"), // => Some("AY"),
         '\u{249C}'  // ⒜  [PARENTHESIZED LATIN SMALL LETTER A]
         => Some("(a)"),
         '\u{A733}' // ꜳ  [LATIN SMALL LETTER AA]
@@ -135,7 +151,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{1E06}' | // Ḇ  [LATIN CAPITAL LETTER B WITH LINE BELOW]
         '\u{24B7}' | // Ⓑ  [CIRCLED LATIN CAPITAL LETTER B]
         '\u{FF22}' // Ｂ  [FULLWIDTH LATIN CAPITAL LETTER B]
-        => Some("B"),
+        | // => Some("B"),
         '\u{0180}' | // ƀ  [LATIN SMALL LETTER B WITH STROKE]
         '\u{0183}' | // ƃ  [LATIN SMALL LETTER B WITH TOPBAR]
         '\u{0253}' | // ɓ  [LATIN SMALL LETTER B WITH HOOK]
@@ -161,7 +177,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{1E08}' | // Ḉ  [LATIN CAPITAL LETTER C WITH CEDILLA AND ACUTE]
         '\u{24B8}' | // Ⓒ  [CIRCLED LATIN CAPITAL LETTER C]
         '\u{FF23}' // Ｃ  [FULLWIDTH LATIN CAPITAL LETTER C]
-        => Some("C"),
+        | // => Some("C"),
         '\u{00E7}' | // ç  [LATIN SMALL LETTER C WITH CEDILLA]
         '\u{0107}' | // ć  [LATIN SMALL LETTER C WITH ACUTE]
         '\u{0109}' | // ĉ  [LATIN SMALL LETTER C WITH CIRCUMFLEX]
@@ -195,7 +211,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{24B9}' | // Ⓓ  [CIRCLED LATIN CAPITAL LETTER D]
         '\u{A779}' | // Ꝺ  [LATIN CAPITAL LETTER INSULAR D]
         '\u{FF24}' // Ｄ  [FULLWIDTH LATIN CAPITAL LETTER D]
-        => Some("D"),
+        | // => Some("D"),
         '\u{00F0}' | // ð  [LATIN SMALL LETTER ETH]
         '\u{010F}' | // ď  [LATIN SMALL LETTER D WITH CARON]
         '\u{0111}' | // đ  [LATIN SMALL LETTER D WITH STROKE]
@@ -217,19 +233,19 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         => Some("d"),
         '\u{01C4}' | // Ǆ  [LATIN CAPITAL LETTER DZ WITH CARON]
         '\u{01F1}' // Ǳ  [LATIN CAPITAL LETTER DZ]
-        => Some("DZ"),
+        | // => Some("DZ"),
         '\u{01C5}' | // ǅ  [LATIN CAPITAL LETTER D WITH SMALL LETTER Z WITH CARON]
         '\u{01F2}' // ǲ  [LATIN CAPITAL LETTER D WITH SMALL LETTER Z]
-        => Some("Dz"),
-        '\u{249F}' // ⒟  [PARENTHESIZED LATIN SMALL LETTER D]
-        => Some("(d)"),
-        '\u{0238}' // ȸ  [LATIN SMALL LETTER DB DIGRAPH]
-        => Some("db"),
+        | // => Some("Dz"),
         '\u{01C6}' | // ǆ  [LATIN SMALL LETTER DZ WITH CARON]
         '\u{01F3}' | // ǳ  [LATIN SMALL LETTER DZ]
         '\u{02A3}' | // ʣ  [LATIN SMALL LETTER DZ DIGRAPH]
         '\u{02A5}' // ʥ  [LATIN SMALL LETTER DZ DIGRAPH WITH CURL]
         => Some("dz"),
+        '\u{249F}' // ⒟  [PARENTHESIZED LATIN SMALL LETTER D]
+        => Some("(d)"),
+        '\u{0238}' // ȸ  [LATIN SMALL LETTER DB DIGRAPH]
+        => Some("db"),
         '\u{00C8}' | // È  [LATIN CAPITAL LETTER E WITH GRAVE]
         '\u{00C9}' | // É  [LATIN CAPITAL LETTER E WITH ACUTE]
         '\u{00CA}' | // Ê  [LATIN CAPITAL LETTER E WITH CIRCUMFLEX]
@@ -262,7 +278,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{24BA}' | // Ⓔ  [CIRCLED LATIN CAPITAL LETTER E]
         '\u{2C7B}' | // ⱻ  [LATIN LETTER SMALL CAPITAL TURNED E]
         '\u{FF25}' // Ｅ  [FULLWIDTH LATIN CAPITAL LETTER E]
-        => Some("E"),
+        | // => Some("E"),
         '\u{00E8}' | // è  [LATIN SMALL LETTER E WITH GRAVE]
         '\u{00E9}' | // é  [LATIN SMALL LETTER E WITH ACUTE]
         '\u{00EA}' | // ê  [LATIN SMALL LETTER E WITH CIRCUMFLEX]
@@ -314,7 +330,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A77B}' | // Ꝼ  [LATIN CAPITAL LETTER INSULAR F]
         '\u{A7FB}' | // ꟻ  [LATIN EPIGRAPHIC LETTER REVERSED F]
         '\u{FF26}' // Ｆ  [FULLWIDTH LATIN CAPITAL LETTER F]
-        => Some("F"),
+        | // => Some("F"),
         '\u{0192}' | // ƒ  [LATIN SMALL LETTER F WITH HOOK]
         '\u{1D6E}' | // ᵮ  [LATIN SMALL LETTER F WITH MIDDLE TILDE]
         '\u{1D82}' | // ᶂ  [LATIN SMALL LETTER F WITH PALATAL HOOK]
@@ -353,7 +369,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A77D}' | // Ᵹ  [LATIN CAPITAL LETTER INSULAR G]
         '\u{A77E}' | // Ꝿ  [LATIN CAPITAL LETTER TURNED INSULAR G]
         '\u{FF27}' // Ｇ  [FULLWIDTH LATIN CAPITAL LETTER G]
-        => Some("G"),
+        | // => Some("G"),
         '\u{011D}' | // ĝ  [LATIN SMALL LETTER G WITH CIRCUMFLEX]
         '\u{011F}' | // ğ  [LATIN SMALL LETTER G WITH BREVE]
         '\u{0121}' | // ġ  [LATIN SMALL LETTER G WITH DOT ABOVE]
@@ -384,7 +400,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{2C67}' | // Ⱨ  [LATIN CAPITAL LETTER H WITH DESCENDER]
         '\u{2C75}' | // Ⱶ  [LATIN CAPITAL LETTER HALF H]
         '\u{FF28}' // Ｈ  [FULLWIDTH LATIN CAPITAL LETTER H]
-        => Some("H"),
+        | // => Some("H"),
         '\u{0125}' | // ĥ  [LATIN SMALL LETTER H WITH CIRCUMFLEX]
         '\u{0127}' | // ħ  [LATIN SMALL LETTER H WITH STROKE]
         '\u{021F}' | // ȟ  [LATIN SMALL LETTER H WITH CARON]
@@ -404,11 +420,11 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{FF48}' // ｈ  [FULLWIDTH LATIN SMALL LETTER H]
         => Some("h"),
         '\u{01F6}' // Ƕ  http://en.wikipedia.org/wiki/Hwair  [LATIN CAPITAL LETTER HWAIR]
-        => Some("HV"),
-        '\u{24A3}' // ⒣  [PARENTHESIZED LATIN SMALL LETTER H]
-        => Some("(h)"),
+        | // => Some("HV"),
         '\u{0195}' // ƕ  [LATIN SMALL LETTER HV]
         => Some("hv"),
+        '\u{24A3}' // ⒣  [PARENTHESIZED LATIN SMALL LETTER H]
+        => Some("(h)"),
         '\u{00CC}' | // Ì  [LATIN CAPITAL LETTER I WITH GRAVE]
         '\u{00CD}' | // Í  [LATIN CAPITAL LETTER I WITH ACUTE]
         '\u{00CE}' | // Î  [LATIN CAPITAL LETTER I WITH CIRCUMFLEX]
@@ -432,7 +448,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{24BE}' | // Ⓘ  [CIRCLED LATIN CAPITAL LETTER I]
         '\u{A7FE}' | // ꟾ  [LATIN EPIGRAPHIC LETTER I LONGA]
         '\u{FF29}' // Ｉ  [FULLWIDTH LATIN CAPITAL LETTER I]
-        => Some("I"),
+        | // => Some("I"),
         '\u{00EC}' | // ì  [LATIN SMALL LETTER I WITH GRAVE]
         '\u{00ED}' | // í  [LATIN SMALL LETTER I WITH ACUTE]
         '\u{00EE}' | // î  [LATIN SMALL LETTER I WITH CIRCUMFLEX]
@@ -459,17 +475,17 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{FF49}' // ｉ  [FULLWIDTH LATIN SMALL LETTER I]
         => Some("i"),
         '\u{0132}' // Ĳ  [LATIN CAPITAL LIGATURE IJ]
-        => Some("IJ"),
-        '\u{24A4}' // ⒤  [PARENTHESIZED LATIN SMALL LETTER I]
-        => Some("(i)"),
+        | // => Some("IJ"),
         '\u{0133}' // ĳ  [LATIN SMALL LIGATURE IJ]
         => Some("ij"),
+        '\u{24A4}' // ⒤  [PARENTHESIZED LATIN SMALL LETTER I]
+        => Some("(i)"),
         '\u{0134}' | // Ĵ  [LATIN CAPITAL LETTER J WITH CIRCUMFLEX]
         '\u{0248}' | // Ɉ  [LATIN CAPITAL LETTER J WITH STROKE]
         '\u{1D0A}' | // ᴊ  [LATIN LETTER SMALL CAPITAL J]
         '\u{24BF}' | // Ⓙ  [CIRCLED LATIN CAPITAL LETTER J]
         '\u{FF2A}' // Ｊ  [FULLWIDTH LATIN CAPITAL LETTER J]
-        => Some("J"),
+        | // => Some("J"),
         '\u{0135}' | // ĵ  [LATIN SMALL LETTER J WITH CIRCUMFLEX]
         '\u{01F0}' | // ǰ  [LATIN SMALL LETTER J WITH CARON]
         '\u{0237}' | // ȷ  [LATIN SMALL LETTER DOTLESS J]
@@ -496,7 +512,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A742}' | // Ꝃ  [LATIN CAPITAL LETTER K WITH DIAGONAL STROKE]
         '\u{A744}' | // Ꝅ  [LATIN CAPITAL LETTER K WITH STROKE AND DIAGONAL STROKE]
         '\u{FF2B}' // Ｋ  [FULLWIDTH LATIN CAPITAL LETTER K]
-        => Some("K"),
+        | // => Some("K"),
         '\u{0137}' | // ķ  [LATIN SMALL LETTER K WITH CEDILLA]
         '\u{0199}' | // ƙ  [LATIN SMALL LETTER K WITH HOOK]
         '\u{01E9}' | // ǩ  [LATIN SMALL LETTER K WITH CARON]
@@ -533,7 +549,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A748}' | // Ꝉ  [LATIN CAPITAL LETTER L WITH HIGH STROKE]
         '\u{A780}' | // Ꞁ  [LATIN CAPITAL LETTER TURNED L]
         '\u{FF2C}' // Ｌ  [FULLWIDTH LATIN CAPITAL LETTER L]
-        => Some("L"),
+        | // => Some("L"),
         '\u{013A}' | // ĺ  [LATIN SMALL LETTER L WITH ACUTE]
         '\u{013C}' | // ļ  [LATIN SMALL LETTER L WITH CEDILLA]
         '\u{013E}' | // ľ  [LATIN SMALL LETTER L WITH CARON]
@@ -557,17 +573,17 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{FF4C}' // ｌ  [FULLWIDTH LATIN SMALL LETTER L]
         => Some("l"),
         '\u{01C7}' // Ǉ  [LATIN CAPITAL LETTER LJ]
-        => Some("LJ"),
-        '\u{1EFA}' // Ỻ  [LATIN CAPITAL LETTER MIDDLE-WELSH LL]
-        => Some("LL"),
+        | // => Some("LJ"),
         '\u{01C8}' // ǈ  [LATIN CAPITAL LETTER L WITH SMALL LETTER J]
-        => Some("Lj"),
-        '\u{24A7}' // ⒧  [PARENTHESIZED LATIN SMALL LETTER L]
-        => Some("(l)"),
+        | // => Some("Lj"),
         '\u{01C9}' // ǉ  [LATIN SMALL LETTER LJ]
         => Some("lj"),
+        '\u{1EFA}' // Ỻ  [LATIN CAPITAL LETTER MIDDLE-WELSH LL]
+        | // => Some("LL"),
         '\u{1EFB}' // ỻ  [LATIN SMALL LETTER MIDDLE-WELSH LL]
         => Some("ll"),
+        '\u{24A7}' // ⒧  [PARENTHESIZED LATIN SMALL LETTER L]
+        => Some("(l)"),
         '\u{02AA}' // ʪ  [LATIN SMALL LETTER LS DIGRAPH]
         => Some("ls"),
         '\u{02AB}' // ʫ  [LATIN SMALL LETTER LZ DIGRAPH]
@@ -582,7 +598,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A7FD}' | // ꟽ  [LATIN EPIGRAPHIC LETTER INVERTED M]
         '\u{A7FF}' | // ꟿ  [LATIN EPIGRAPHIC LETTER ARCHAIC M]
         '\u{FF2D}' // Ｍ  [FULLWIDTH LATIN CAPITAL LETTER M]
-        => Some("M"),
+        | // => Some("M"),
         '\u{026F}' | // ɯ  [LATIN SMALL LETTER TURNED M]
         '\u{0270}' | // ɰ  [LATIN SMALL LETTER TURNED M WITH LONG LEG]
         '\u{0271}' | // ɱ  [LATIN SMALL LETTER M WITH HOOK]
@@ -612,7 +628,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{1E4A}' | // Ṋ  [LATIN CAPITAL LETTER N WITH CIRCUMFLEX BELOW]
         '\u{24C3}' | // Ⓝ  [CIRCLED LATIN CAPITAL LETTER N]
         '\u{FF2E}' // Ｎ  [FULLWIDTH LATIN CAPITAL LETTER N]
-        => Some("N"),
+        | // => Some("N"),
         '\u{00F1}' | // ñ  [LATIN SMALL LETTER N WITH TILDE]
         '\u{0144}' | // ń  [LATIN SMALL LETTER N WITH ACUTE]
         '\u{0146}' | // ņ  [LATIN SMALL LETTER N WITH CEDILLA]
@@ -635,13 +651,13 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{FF4E}' // ｎ  [FULLWIDTH LATIN SMALL LETTER N]
         => Some("n"),
         '\u{01CA}' // Ǌ  [LATIN CAPITAL LETTER NJ]
-        => Some("NJ"),
+        | // => Some("NJ"),
         '\u{01CB}' // ǋ  [LATIN CAPITAL LETTER N WITH SMALL LETTER J]
-        => Some("Nj"),
-        '\u{24A9}' // ⒩  [PARENTHESIZED LATIN SMALL LETTER N]
-        => Some("(n)"),
+        | // => Some("Nj"),
         '\u{01CC}' // ǌ  [LATIN SMALL LETTER NJ]
         => Some("nj"),
+        '\u{24A9}' // ⒩  [PARENTHESIZED LATIN SMALL LETTER N]
+        => Some("(n)"),
         '\u{00D2}' | // Ò  [LATIN CAPITAL LETTER O WITH GRAVE]
         '\u{00D3}' | // Ó  [LATIN CAPITAL LETTER O WITH ACUTE]
         '\u{00D4}' | // Ô  [LATIN CAPITAL LETTER O WITH CIRCUMFLEX]
@@ -686,7 +702,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A74A}' | // Ꝋ  [LATIN CAPITAL LETTER O WITH LONG STROKE OVERLAY]
         '\u{A74C}' | // Ꝍ  [LATIN CAPITAL LETTER O WITH LOOP]
         '\u{FF2F}' // Ｏ  [FULLWIDTH LATIN CAPITAL LETTER O]
-        => Some("O"),
+        | // => Some("O"),
         '\u{00F2}' | // ò  [LATIN SMALL LETTER O WITH GRAVE]
         '\u{00F3}' | // ó  [LATIN SMALL LETTER O WITH ACUTE]
         '\u{00F4}' | // ô  [LATIN SMALL LETTER O WITH CIRCUMFLEX]
@@ -737,21 +753,21 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         => Some("o"),
         '\u{0152}' | // Œ  [LATIN CAPITAL LIGATURE OE]
         '\u{0276}' // ɶ  [LATIN LETTER SMALL CAPITAL OE]
-        => Some("OE"),
-        '\u{A74E}' // Ꝏ  [LATIN CAPITAL LETTER OO]
-        => Some("OO"),
-        '\u{0222}' | // Ȣ  http://en.wikipedia.org/wiki/OU  [LATIN CAPITAL LETTER OU]
-        '\u{1D15}' // ᴕ  [LATIN LETTER SMALL CAPITAL OU]
-        => Some("OU"),
-        '\u{24AA}' // ⒪  [PARENTHESIZED LATIN SMALL LETTER O]
-        => Some("(o)"),
+        | // => Some("OE"),
         '\u{0153}' | // œ  [LATIN SMALL LIGATURE OE]
         '\u{1D14}' // ᴔ  [LATIN SMALL LETTER TURNED OE]
         => Some("oe"),
+        '\u{A74E}' // Ꝏ  [LATIN CAPITAL LETTER OO]
+        | // => Some("OO"),
         '\u{A74F}' // ꝏ  [LATIN SMALL LETTER OO]
         => Some("oo"),
+        '\u{0222}' | // Ȣ  http://en.wikipedia.org/wiki/OU  [LATIN CAPITAL LETTER OU]
+        '\u{1D15}' // ᴕ  [LATIN LETTER SMALL CAPITAL OU]
+        | // => Some("OU"),
         '\u{0223}' // ȣ  http://en.wikipedia.org/wiki/OU  [LATIN SMALL LETTER OU]
         => Some("ou"),
+        '\u{24AA}' // ⒪  [PARENTHESIZED LATIN SMALL LETTER O]
+        => Some("(o)"),
         '\u{01A4}' | // Ƥ  [LATIN CAPITAL LETTER P WITH HOOK]
         '\u{1D18}' | // ᴘ  [LATIN LETTER SMALL CAPITAL P]
         '\u{1E54}' | // Ṕ  [LATIN CAPITAL LETTER P WITH ACUTE]
@@ -783,7 +799,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A756}' | // Ꝗ  [LATIN CAPITAL LETTER Q WITH STROKE THROUGH DESCENDER]
         '\u{A758}' | // Ꝙ  [LATIN CAPITAL LETTER Q WITH DIAGONAL STROKE]
         '\u{FF31}' // Ｑ  [FULLWIDTH LATIN CAPITAL LETTER Q]
-        => Some("Q"),
+        | // => Some("Q"),
         '\u{0138}' | // ĸ  http://en.wikipedia.org/wiki/Kra_(letter)  [LATIN SMALL LETTER KRA]
         '\u{024B}' | // ɋ  [LATIN SMALL LETTER Q WITH HOOK TAIL]
         '\u{02A0}' | // ʠ  [LATIN SMALL LETTER Q WITH HOOK]
@@ -815,7 +831,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A75A}' | // Ꝛ  [LATIN CAPITAL LETTER R ROTUNDA]
         '\u{A782}' | // Ꞃ  [LATIN CAPITAL LETTER INSULAR R]
         '\u{FF32}' // Ｒ  [FULLWIDTH LATIN CAPITAL LETTER R]
-        => Some("R"),
+        | // => Some("R"),
         '\u{0155}' | // ŕ  [LATIN SMALL LETTER R WITH ACUTE]
         '\u{0157}' | // ŗ  [LATIN SMALL LETTER R WITH CEDILLA]
         '\u{0159}' | // ř  [LATIN SMALL LETTER R WITH CARON]
@@ -855,7 +871,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A731}' | // ꜱ  [LATIN LETTER SMALL CAPITAL S]
         '\u{A785}' | // ꞅ  [LATIN SMALL LETTER INSULAR S]
         '\u{FF33}' // Ｓ  [FULLWIDTH LATIN CAPITAL LETTER S]
-        => Some("S"),
+        | // => Some("S"),
         '\u{015B}' | // ś  [LATIN SMALL LETTER S WITH ACUTE]
         '\u{015D}' | // ŝ  [LATIN SMALL LETTER S WITH CIRCUMFLEX]
         '\u{015F}' | // ş  [LATIN SMALL LETTER S WITH CEDILLA]
@@ -878,11 +894,11 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{FF53}' // ｓ  [FULLWIDTH LATIN SMALL LETTER S]
         => Some("s"),
         '\u{1E9E}' // ẞ  [LATIN CAPITAL LETTER SHARP S]
-        => Some("SS"),
-        '\u{24AE}' // ⒮  [PARENTHESIZED LATIN SMALL LETTER S]
-        => Some("(s)"),
+        | // => Some("SS"),
         '\u{00DF}' // ß  [LATIN SMALL LETTER SHARP S]
         => Some("ss"),
+        '\u{24AE}' // ⒮  [PARENTHESIZED LATIN SMALL LETTER S]
+        => Some("(s)"),
         '\u{FB06}' // ﬆ  [LATIN SMALL LIGATURE ST]
         => Some("st"),
         '\u{0162}' | // Ţ  [LATIN CAPITAL LETTER T WITH CEDILLA]
@@ -900,7 +916,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{24C9}' | // Ⓣ  [CIRCLED LATIN CAPITAL LETTER T]
         '\u{A786}' | // Ꞇ  [LATIN CAPITAL LETTER INSULAR T]
         '\u{FF34}' // Ｔ  [FULLWIDTH LATIN CAPITAL LETTER T]
-        => Some("T"),
+        | // => Some("T"),
         '\u{0163}' | // ţ  [LATIN SMALL LETTER T WITH CEDILLA]
         '\u{0165}' | // ť  [LATIN SMALL LETTER T WITH CARON]
         '\u{0167}' | // ŧ  [LATIN SMALL LETTER T WITH STROKE]
@@ -922,21 +938,21 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         => Some("t"),
         '\u{00DE}' | // Þ  [LATIN CAPITAL LETTER THORN]
         '\u{A766}' // Ꝧ  [LATIN CAPITAL LETTER THORN WITH STROKE THROUGH DESCENDER]
-        => Some("TH"),
-        '\u{A728}' // Ꜩ  [LATIN CAPITAL LETTER TZ]
-        => Some("TZ"),
-        '\u{24AF}' // ⒯  [PARENTHESIZED LATIN SMALL LETTER T]
-        => Some("(t)"),
-        '\u{02A8}' // ʨ  [LATIN SMALL LETTER TC DIGRAPH WITH CURL]
-        => Some("tc"),
+        | // => Some("TH"),
         '\u{00FE}' | // þ  [LATIN SMALL LETTER THORN]
         '\u{1D7A}' | // ᵺ  [LATIN SMALL LETTER TH WITH STRIKETHROUGH]
         '\u{A767}' // ꝧ  [LATIN SMALL LETTER THORN WITH STROKE THROUGH DESCENDER]
         => Some("th"),
-        '\u{02A6}' // ʦ  [LATIN SMALL LETTER TS DIGRAPH]
-        => Some("ts"),
+        '\u{A728}' // Ꜩ  [LATIN CAPITAL LETTER TZ]
+        | // => Some("TZ"),
         '\u{A729}' // ꜩ  [LATIN SMALL LETTER TZ]
         => Some("tz"),
+        '\u{24AF}' // ⒯  [PARENTHESIZED LATIN SMALL LETTER T]
+        => Some("(t)"),
+        '\u{02A8}' // ʨ  [LATIN SMALL LETTER TC DIGRAPH WITH CURL]
+        => Some("tc"),
+        '\u{02A6}' // ʦ  [LATIN SMALL LETTER TS DIGRAPH]
+        => Some("ts"),
         '\u{00D9}' | // Ù  [LATIN CAPITAL LETTER U WITH GRAVE]
         '\u{00DA}' | // Ú  [LATIN CAPITAL LETTER U WITH ACUTE]
         '\u{00DB}' | // Û  [LATIN CAPITAL LETTER U WITH CIRCUMFLEX]
@@ -972,7 +988,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{1EF0}' | // Ự  [LATIN CAPITAL LETTER U WITH HORN AND DOT BELOW]
         '\u{24CA}' | // Ⓤ  [CIRCLED LATIN CAPITAL LETTER U]
         '\u{FF35}' // Ｕ  [FULLWIDTH LATIN CAPITAL LETTER U]
-        => Some("U"),
+        | // => Some("U"),
         '\u{00F9}' | // ù  [LATIN SMALL LETTER U WITH GRAVE]
         '\u{00FA}' | // ú  [LATIN SMALL LETTER U WITH ACUTE]
         '\u{00FB}' | // û  [LATIN SMALL LETTER U WITH CIRCUMFLEX]
@@ -1023,7 +1039,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{A75E}' | // Ꝟ  [LATIN CAPITAL LETTER V WITH DIAGONAL STROKE]
         '\u{A768}' | // Ꝩ  [LATIN CAPITAL LETTER VEND]
         '\u{FF36}' // Ｖ  [FULLWIDTH LATIN CAPITAL LETTER V]
-        => Some("V"),
+        | // => Some("V"),
         '\u{028B}' | // ʋ  [LATIN SMALL LETTER V WITH HOOK]
         '\u{028C}' | // ʌ  [LATIN SMALL LETTER TURNED V]
         '\u{1D65}' | // ᵥ  [LATIN SUBSCRIPT SMALL LETTER V]
@@ -1037,11 +1053,11 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{FF56}' // ｖ  [FULLWIDTH LATIN SMALL LETTER V]
         => Some("v"),
         '\u{A760}' // Ꝡ  [LATIN CAPITAL LETTER VY]
-        => Some("VY"),
-        '\u{24B1}' // ⒱  [PARENTHESIZED LATIN SMALL LETTER V]
-        => Some("(v)"),
+        | // => Some("VY"),
         '\u{A761}' // ꝡ  [LATIN SMALL LETTER VY]
         => Some("vy"),
+        '\u{24B1}' // ⒱  [PARENTHESIZED LATIN SMALL LETTER V]
+        => Some("(v)"),
         '\u{0174}' | // Ŵ  [LATIN CAPITAL LETTER W WITH CIRCUMFLEX]
         '\u{01F7}' | // Ƿ  http://en.wikipedia.org/wiki/Wynn  [LATIN CAPITAL LETTER WYNN]
         '\u{1D21}' | // ᴡ  [LATIN LETTER SMALL CAPITAL W]
@@ -1053,7 +1069,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{24CC}' | // Ⓦ  [CIRCLED LATIN CAPITAL LETTER W]
         '\u{2C72}' | // Ⱳ  [LATIN CAPITAL LETTER W WITH HOOK]
         '\u{FF37}' // Ｗ  [FULLWIDTH LATIN CAPITAL LETTER W]
-        => Some("W"),
+        | // => Some("W"),
         '\u{0175}' | // ŵ  [LATIN SMALL LETTER W WITH CIRCUMFLEX]
         '\u{01BF}' | // ƿ  http://en.wikipedia.org/wiki/Wynn  [LATIN LETTER WYNN]
         '\u{028D}' | // ʍ  [LATIN SMALL LETTER TURNED W]
@@ -1073,7 +1089,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{1E8C}' | // Ẍ  [LATIN CAPITAL LETTER X WITH DIAERESIS]
         '\u{24CD}' | // Ⓧ  [CIRCLED LATIN CAPITAL LETTER X]
         '\u{FF38}' // Ｘ  [FULLWIDTH LATIN CAPITAL LETTER X]
-        => Some("X"),
+        | // => Some("X"),
         '\u{1D8D}' | // ᶍ  [LATIN SMALL LETTER X WITH PALATAL HOOK]
         '\u{1E8B}' | // ẋ  [LATIN SMALL LETTER X WITH DOT ABOVE]
         '\u{1E8D}' | // ẍ  [LATIN SMALL LETTER X WITH DIAERESIS]
@@ -1098,7 +1114,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{1EFE}' | // Ỿ  [LATIN CAPITAL LETTER Y WITH LOOP]
         '\u{24CE}' | // Ⓨ  [CIRCLED LATIN CAPITAL LETTER Y]
         '\u{FF39}' // Ｙ  [FULLWIDTH LATIN CAPITAL LETTER Y]
-        => Some("Y"),
+        | // => Some("Y"),
         '\u{00FD}' | // ý  [LATIN SMALL LETTER Y WITH ACUTE]
         '\u{00FF}' | // ÿ  [LATIN SMALL LETTER Y WITH DIAERESIS]
         '\u{0177}' | // ŷ  [LATIN SMALL LETTER Y WITH CIRCUMFLEX]
@@ -1132,7 +1148,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{2C6B}' | // Ⱬ  [LATIN CAPITAL LETTER Z WITH DESCENDER]
         '\u{A762}' | // Ꝣ  [LATIN CAPITAL LETTER VISIGOTHIC Z]
         '\u{FF3A}' // Ｚ  [FULLWIDTH LATIN CAPITAL LETTER Z]
-        => Some("Z"),
+        | // => Some("Z"),
         '\u{017A}' | // ź  [LATIN SMALL LETTER Z WITH ACUTE]
         '\u{017C}' | // ż  [LATIN SMALL LETTER Z WITH DOT ABOVE]
         '\u{017E}' | // ž  [LATIN SMALL LETTER Z WITH CARON]

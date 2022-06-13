@@ -1,3 +1,4 @@
+#[cfg(feature = "indexer")]
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashSet};
 
@@ -9,9 +10,14 @@ use smartstring::alias::String as SmartString;
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::IndexerTokenizer;
 use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
+#[cfg(feature = "indexer")]
+use morsels_lang_ascii::ascii_folding_filter;
+use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
+#[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::intra_filter;
 
-fn term_filter(input: &str) -> Cow<str> {
+#[cfg(feature = "indexer")]
+fn term_filter(input: Cow<str>) -> Cow<str> {
     let mut char_iter = input.char_indices().filter(|(_idx, c)| intra_filter(*c));
 
     if let Some((char_start, c)) = char_iter.next() {
@@ -27,7 +33,7 @@ fn term_filter(input: &str) -> Cow<str> {
 
         Cow::Owned(unsafe { String::from_utf8_unchecked(output) })
     } else {
-        Cow::Borrowed(input)
+        input
     }
 }
 
@@ -87,7 +93,7 @@ impl IndexerTokenizer for Tokenizer {
             .cut(text, false)
             .into_iter()
             .filter(|cut| !cut.trim().is_empty())
-            .map(term_filter)
+            .map(|term| term_filter(ascii_folding_filter::to_ascii(term)))
             .fold(vec![Vec::new()], |mut acc, next| {
                 if next.trim().is_empty() {
                     acc.push(Vec::new()); // Split on punctuation
@@ -114,15 +120,7 @@ impl SearchTokenizer for Tokenizer {
             .map(|s| {
                 let mut terms = vec![s.to_owned()];
 
-                let replaced = term_filter(s);
-                let filtered = if let Cow::Owned(replaced) = replaced {
-                    if !replaced.trim().is_empty() {
-                        terms.push(replaced.clone());
-                    }
-                    replaced
-                } else {
-                    replaced.into_owned()
-                };
+                let filtered = ascii_and_nonword_filter(&mut terms, s).into_owned();
 
                 terms_searched.push(terms);
 

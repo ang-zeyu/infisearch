@@ -55,6 +55,7 @@ pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
     }
 }
 
+#[inline(always)]
 pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slice: &'a str) -> Cow<'a, str> {
     base_term_terms.push(term_slice.to_owned());
 
@@ -71,7 +72,7 @@ pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slic
 
     let term_filtered = term_filter(ascii_replaced);
     if let Cow::Owned(inner) = term_filtered {
-        if !inner.is_empty() {
+        if !inner.trim().is_empty() {
             base_term_terms.push(inner.clone());
         }
         Cow::Owned(inner)
