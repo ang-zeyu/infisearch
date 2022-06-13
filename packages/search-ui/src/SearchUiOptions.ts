@@ -26,6 +26,7 @@ export interface UiOptions {
   fsPlaceholder?: string,
   fsCloseText?: string,
   target?: HTMLElement,
+  tip: boolean,
   resultsPerPage?: number,
   // This is specific to the default resultsRender implementation,
   // pulling it up as its a common option

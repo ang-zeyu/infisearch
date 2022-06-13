@@ -8,6 +8,7 @@
     --morsels-fs-item-spacing: 11px;
     --morsels-fs-desktop-width: 650px;
     --morsels-fs-desktop-height: 70vh;
+    --morsels-tip-icon-size: 21px;
     display: inline-block;
     position: relative;
     width: 100%;
@@ -19,6 +20,7 @@
     .morsels-root {
         --morsels-dropdown-max-width: 100vw;
         --morsels-dropdown-max-height: 75vh;
+        --morsels-tip-icon-size: 24px;
     }
 }
 
@@ -104,6 +106,76 @@
     background: var(--morsels-fs-header-close-active-bg);
 }
 
+.morsels-tip-root {
+    position: fixed;
+    bottom: 19px;
+    right: 19px;
+    width: var(--morsels-tip-icon-size);
+    height: var(--morsels-tip-icon-size);
+}
+
+.morsels-tip-icon {
+    cursor: default;
+    display: inline-block;
+    line-height: var(--morsels-tip-icon-size);
+    width: 100%;
+    height: 100%;
+    border-width: 0;
+    border-radius: 50%;
+    color: var(--morsels-tip-icon-fg);
+    background: var(--morsels-tip-icon-bg);
+    text-align: center;
+    opacity: 0.5;
+    transition: opacity 0.2s linear;
+}
+
+.morsels-tip-icon:hover {
+    opacity: 1;
+}
+
+.morsels-tip-popup-root {
+    position: absolute;
+    transform: scale(0);
+    transition: transform 0.25s ease-in-out, top 0.25s ease-in-out, left 0.25s ease-in-out;
+}
+
+.morsels-tip-popup-root.shown {
+    transform: scale(1);
+    display: block;
+}
+
+.morsels-tip-popup {
+    padding: 14px;
+    font-size: 14px;
+    box-shadow: var(--morsels-box-shadow);
+    width: 300px;
+    color: var(--morsels-tip-fg);
+    background: var(--morsels-tip-bg);
+}
+
+.morsels-tip-popup-title {
+    font-weight: bold;
+}
+
+.morsels-tip-list {
+    padding: 10px 0 0 20px;
+    margin-bottom: 0;
+}
+
+.morsels-tip-item {
+    line-height: 1.15;
+    margin-bottom: 3px;
+}
+
+.morsels-tip-item code {
+    color: var(--morsels-tip-code-fg);
+    background: var(--morsels-tip-code-bg);
+}
+
+.morsels-tip-popup-separator {
+    height: 10px;
+}
+
 .morsels-fs-blank {
     text-align: center;
     font-size: 0.9em;
@@ -120,6 +192,12 @@
         left: calc(50% - (var(--morsels-fs-desktop-width) / 2));
         width: var(--morsels-fs-desktop-width);
         height: var(--morsels-fs-desktop-height);
+    }
+
+    .morsels-tip-root {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
     }
 }
 

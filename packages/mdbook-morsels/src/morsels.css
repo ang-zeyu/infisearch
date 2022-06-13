@@ -3,6 +3,7 @@
 .coal .morsels-root,
 .navy .morsels-root,
 .ayu .morsels-root {
+    --morsels-box-shadow: none;
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-bg: var(--bg);
     --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
@@ -36,6 +37,12 @@
     --morsels-fs-header-close-hover-fg: var(--fg);
     --morsels-fs-header-close-active-bg: var(--table-header-bg);
     --morsels-fs-header-close-active-fg: var(--fg);
+    --morsels-tip-bg: var(--sidebar-bg);
+    --morsels-tip-fg: var(--sidebar-fg);
+    --morsels-tip-code-fg: var(--inline-code-color);
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: rgb(230, 230, 230);
+    --morsels-tip-icon-fg: rgb(80, 80, 80);
 }
 
 .ayu .morsels-root,
@@ -44,6 +51,14 @@
     --morsels-fs-header-close-hover-fg: white;
     --morsels-fs-header-close-active-bg: var(--sidebar-bg);
     --morsels-fs-header-close-active-fg: white;
+    --morsels-tip-code-fg: var(--search-mark-bg) !important;
+    --morsels-tip-icon-bg: rgb(200, 200, 200);
+    --morsels-tip-icon-fg: rgb(50, 50, 50);
+}
+
+.morsels-theme .morsels-root .morsels-tip-item code,
+.rust .morsels-root .morsels-tip-item code {
+    color: var(--morsels-tip-code-fg) !important;;
 }
 
 .coal .morsels-root,

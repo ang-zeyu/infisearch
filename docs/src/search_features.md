@@ -49,11 +49,6 @@ lorem\ AND ipsum            - interpreted literally as "lorem AND ipsum"
 title\:lorem
 ```
 
-
-> 🚧 Usage instructions for most of these features currently aren't included in the search user interface.
-> 
-> A "tip" floating action button is in the works.
-
 ## Non User-Facing Features
 
 ### WebWorker Built-in

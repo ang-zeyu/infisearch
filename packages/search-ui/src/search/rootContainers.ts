@@ -1,8 +1,10 @@
 import { computePosition, size, flip, arrow, Placement } from '@floating-ui/dom';
+import { Searcher } from '@morsels/search-lib';
 
-import { SearchUiOptions } from '../SearchUiOptions';
+import { SearchUiOptions, UiOptions } from '../SearchUiOptions';
 import { setCombobox, setInputAria } from '../utils/aria';
 import h from '../utils/dom';
+import createTipButton from './tips';
 
 
 export function openDropdown(root: HTMLElement, listContainer: HTMLElement, placement: Placement) {
@@ -48,20 +50,25 @@ export function closeDropdown(root: HTMLElement) {
   (root.children[1] as HTMLElement).style.display = 'none';
 }
 
-export function dropdownRootRender(inputEl: HTMLInputElement) {
+export function dropdownRootRender(
+  uiOptions: UiOptions,
+  searcher: Searcher,
+  inputEl: HTMLInputElement,
+) {
   const listContainer = h('ul', {
     id: 'morsels-dropdown-list',
     class: 'morsels-list',
   });
-  const root = h('div', { class: 'morsels-root' },
-    inputEl,
-    h('div',
-      { class: 'morsels-inner-root', style: 'display: none;' },
-      h('div', { class: 'morsels-input-dropdown-separator' }),
-      listContainer,
-    ),
+  const innerRoot = h('div',
+    { class: 'morsels-inner-root', style: 'display: none;' },
+    h('div', { class: 'morsels-input-dropdown-separator' }),
+    listContainer,
   );
-  
+  createTipButton(innerRoot, uiOptions, searcher);
+  const root = h('div', { class: 'morsels-root' },
+    inputEl, innerRoot,
+  );
+
   return [root, listContainer];
 }
 
@@ -111,6 +118,7 @@ export function closeFullscreen(root: HTMLElement) {
 
 export function fsRootRender(
   opts: SearchUiOptions,
+  searcher: Searcher,
   fsCloseHandler: () => void,
 ) {
   const { uiOptions } = opts;
@@ -153,6 +161,7 @@ export function fsRootRender(
   innerRoot.onmousedown = (ev) => ev.stopPropagation();
   
   setCombobox(innerRoot, listContainer, uiOptions.label);
+  createTipButton(innerRoot, uiOptions, searcher);
   
   const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
   rootBackdropEl.onmousedown = fsCloseHandler;

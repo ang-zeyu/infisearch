@@ -65,13 +65,19 @@ There are also several options specific to each UI. Note that `dropdown` and `fu
 
 | Mode        | Option                | Default                 | Description |
 | ----------- | -----------           | -----------             | ----------- |
+| `auto` \| `fullscreen`         | `fsInputLabel`        | `'Opens a search popup when focused'`| Accessibility label for the original input element, when the fullscreen UI is in use.
 | `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom'` or `'bottom-start'` or `'bottom-end'`.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment of the dropdown container will also be automatically flipped horizontally to ensure the most optimal placement (see [floating-ui's](https://floating-ui.com/docs/size#using-with-flip) docs for a demonstration).
 | `fullscreen`| `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
 | `fullscreen`| `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
+| all except `target`         | `tip`                 | `true`        | Whether to show the tip icon. When hovered over, this shows advanced usage information (e.g. how to perform phrase queries).
 | `target`    | `target`              | `undefined`                       | `id` of the element, or an element reference to attach results to.<br><br>Required if using `mode='target'`.
+
+#### General Options
+
+| Mode        | Option                | Default                 | Description |
+| ----------- | -----------           | -----------             | ----------- |
 | all         | `label`               | `'Search this site'`    | Accessibility label for the fullscreen UI input.
 | all         | `resultsLabel`        | `'Site results'`        | Accessibility label for result `listbox`es.
-| `auto` \| `fullscreen`         | `fsInputLabel`        | `'Opens a search popup when focused'`| Accessibility label for the original input element, when the fullscreen UI is in use.
 
 #### Manually Showing / Hiding the Fullscreen UI
 
@@ -88,7 +94,7 @@ These methods can also be used under `mode="auto"`.
 
 ### Options for Generating Result Previews
 
-There are 3 ways to generate result previews of matched documents, the first of the below being the default.
+There are 3 ways to generate result previews of matched documents, the second being the default.
 
 Unless you have modified the default result renderer (covered in the next page on renderers), morsels also requires **at least one** of the `body` / `heading` / `title` fields. This is configured by default, and covered in the next section on indexing configuration in more detail.
 
@@ -108,8 +114,6 @@ The use of the default indexed fields in the UI is as shown in the following dia
 ![](./images/fields_annotated.png)
 
 Some indexer configuration [presets](./indexer/presets.md) are available to help with switching between options 1 and 2 easily.
-
-To generate alternative outputs for other use cases (e.g. buttons, perform some action), you will need to use option 3 below.
 
 #### 1. From Source Documents
 

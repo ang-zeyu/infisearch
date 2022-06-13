@@ -41,4 +41,10 @@
     --morsels-fs-header-close-hover-fg: rgb(255, 255, 255);
     --morsels-fs-header-close-active-bg: rgba(80, 80, 80, 0.95);
     --morsels-fs-header-close-active-fg: rgb(255, 255, 255);
+    --morsels-tip-bg: rgb(248, 248, 248);
+    --morsels-tip-fg: rgb(20, 20, 20);
+    --morsels-tip-code-fg: rgb(30, 148, 244);
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: rgb(230, 230, 230);
+    --morsels-tip-icon-fg: rgb(80, 80, 80);
 }

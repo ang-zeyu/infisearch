@@ -41,4 +41,10 @@
     --morsels-fs-header-close-hover-fg: #f1f8f7;
     --morsels-fs-header-close-active-bg: #676969;
     --morsels-fs-header-close-active-fg: white;
+    --morsels-tip-bg: #363839;
+    --morsels-tip-fg: #e4f1f0;
+    --morsels-tip-code-fg: #f6b24b;
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: #363839;
+    --morsels-tip-icon-fg: #e4f1f0;
 }

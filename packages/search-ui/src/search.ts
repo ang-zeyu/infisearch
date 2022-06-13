@@ -166,7 +166,7 @@ function initMorsels(options: SearchUiOptions): {
   // --------------------------------------------------
   // Fullscreen version
   let hideFullscreen: () => void;
-  const [fsRoot, fsListContainer, fsInput] = fsRootRender(options, () => {
+  const [fsRoot, fsListContainer, fsInput] = fsRootRender(options, searcher, () => {
     if (input) input.focus();
     hideFullscreen();
   });
@@ -196,7 +196,7 @@ function initMorsels(options: SearchUiOptions): {
 
     const parent = input.parentElement;
     input.remove();
-    const [dropdownRoot, dropdownListContainerr] = dropdownRootRender(input);
+    const [dropdownRoot, dropdownListContainerr] = dropdownRootRender(uiOptions, searcher, input);
     dropdownListContainer = dropdownListContainerr;
     parent.appendChild(dropdownRoot);
 
