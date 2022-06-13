@@ -18,7 +18,7 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 - Powered by **WebAssembly**, enabling efficient index (de)compression and query processing 
 - **Semi-Scalable** 📈, achieved by (optionally) splitting the index into chunks ("morsels").
 - **Incremental** Indexing
-- **Customisable** dropdown / fullscreen popup user [interface](http://ang-zeyu.github.io/morsels/search_configuration_themes.html) 🖥️
+- **Customisable** dropdown / fullscreen popup user [interface](http://ang-zeyu.github.io/morsels/search_configuration_styling.html) 🖥️
 
 ## Use Cases
 

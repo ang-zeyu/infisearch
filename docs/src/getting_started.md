@@ -6,7 +6,7 @@ This page assumes the use case of a **static site**, that is:
 - You have an `<input>` element to attach a search dropdown to.
 - For mobile devices, a fullscreen UI will show instead when this input element is focused.<br><br>
   This documentation uses an alternative interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
-  To preview the defaults, head on over [here](./search_configuration_themes.html).
+  To preview the defaults, head on over [here](./search_configuration_styling.html).
 
 If you require more (e.g. indexing custom json files), have a look through here first, then head on over to the subsequent configuration pages.
 
