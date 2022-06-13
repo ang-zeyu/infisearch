@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Themes - Morsels Documentation</title>
+        <title>Styling - Morsels Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_themes.html" class="active"><strong aria-hidden="true">4.1.</strong> Themes</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html" class="active"><strong aria-hidden="true">4.1.</strong> Styling</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -139,8 +139,10 @@
 .coal .morsels-root,
 .navy .morsels-root,
 .ayu .morsels-root {
+    --morsels-box-shadow: none;
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-bg: var(--bg);
+    --morsels-triangle-bg: var(--table-header-bg);
     --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
     --morsels-title-fg: var(--fg);
@@ -163,6 +165,8 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
     --morsels-fs-header-border-bottom: none;
@@ -172,6 +176,12 @@
     --morsels-fs-header-close-hover-fg: var(--fg);
     --morsels-fs-header-close-active-bg: var(--table-header-bg);
     --morsels-fs-header-close-active-fg: var(--fg);
+    --morsels-tip-bg: var(--sidebar-bg);
+    --morsels-tip-fg: var(--sidebar-fg);
+    --morsels-tip-code-fg: var(--inline-code-color);
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: rgb(230, 230, 230);
+    --morsels-tip-icon-fg: rgb(80, 80, 80);
 }
 
 .ayu .morsels-root,
@@ -180,6 +190,14 @@
     --morsels-fs-header-close-hover-fg: white;
     --morsels-fs-header-close-active-bg: var(--sidebar-bg);
     --morsels-fs-header-close-active-fg: white;
+    --morsels-tip-code-fg: var(--search-mark-bg) !important;
+    --morsels-tip-icon-bg: rgb(200, 200, 200);
+    --morsels-tip-icon-fg: rgb(50, 50, 50);
+}
+
+.morsels-theme .morsels-root .morsels-tip-item code,
+.rust .morsels-root .morsels-tip-item code {
+    color: var(--morsels-tip-code-fg) !important;;
 }
 
 .coal .morsels-root,
@@ -192,12 +210,11 @@
     width: 100%;
     border-radius: 6px;
     box-sizing: border-box;
-    font-size: 16px;
+    font-size: 15px;
     padding: 0.5em 0.75em;
     border: 1px solid var(--searchbar-border-color);
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
-    outline: none;
 }
 
 @media print {
@@ -219,16 +236,17 @@
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="themes"><a class="header" href="#themes">Themes</a></h1>
+<h1 id="styling"><a class="header" href="#styling">Styling</a></h1>
+<h2 id="themes"><a class="header" href="#themes">Themes</a></h2>
 <p>Morsels provides 2 built-in themes by default, which correspond to the 2 stylesheets in the <a href="https://github.com/ang-zeyu/morsels/releases">releases</a>.</p>
 <p>These 2 stylesheets also expose a wide range of css variables which you can alter as needed.</p>
 <p>Head on over to the demo site <a href="https://ang-zeyu.github.io/morsels-demo-1/">here</a> to try them out!</p>
-<h2 id="light"><a class="header" href="#light">Light</a></h2>
-<h3 id="cdn-link"><a class="header" href="#cdn-link">CDN link</a></h3>
+<h3 id="light"><a class="header" href="#light">Light</a></h3>
+<h4 id="cdn-link"><a class="header" href="#cdn-link">CDN link</a></h4>
 <pre><code class="language-html">&lt;!-- Replace &quot;v0.1.1&quot; as appropriate --&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.1/packages/search-ui/dist/search-ui-light.css&quot; /&gt;
 </code></pre>
-<h3 id="preview"><a class="header" href="#preview">Preview</a></h3>
+<h4 id="preview"><a class="header" href="#preview">Preview</a></h4>
 <style>
 .image-container {
     display: flex;
@@ -264,16 +282,26 @@
 <img src="./images/light-theme.png" alt="Preview of light theme">
 <img src="./images/light-theme-fullscreen.png" alt="Preview of light theme (fullscreen)">
 </div>
-<h2 id="dark"><a class="header" href="#dark">Dark</a></h2>
-<h3 id="cdn-link-1"><a class="header" href="#cdn-link-1">CDN link</a></h3>
+<h3 id="dark"><a class="header" href="#dark">Dark</a></h3>
+<h4 id="cdn-link-1"><a class="header" href="#cdn-link-1">CDN link</a></h4>
 <pre><code class="language-html">&lt;!-- Replace &quot;v0.1.1&quot; as appropriate --&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.1.1/packages/search-ui/dist/search-ui-dark.css&quot; /&gt;
 </code></pre>
-<h3 id="preview-1"><a class="header" href="#preview-1">Preview</a></h3>
+<h4 id="preview-1"><a class="header" href="#preview-1">Preview</a></h4>
 <div class="image-container">
 <img src="./images/dark-theme.png" alt="Preview of dark theme">
 <img src="./images/dark-theme-fullscreen.png" alt="Preview of dark theme (fullscreen)">
 </div>
+<h2 id="input-element-as-a-button"><a class="header" href="#input-element-as-a-button">Input Element As a Button</a></h2>
+<p>Where the <code>input</code> option passed to <code>initMorsels</code> is concerned, Morsels adopts a minimally invasive approach to styling, preferring to leave this to the individual site’s preferences.</p>
+<p>For accessbility reasons however, some minimal styling is applied when the using the fullscreen UI version to convey the intention of a button. This is limited to only an <code>outline</code>, <code>cursor: pointer</code>, and <code>text-align: center</code> (for the placeholder) application.</p>
+<p>Accessibility labels and roles are automatically set however, so you needn’t worry about those.</p>
+<p>You may override and addon to these styles as needed, using the <code>.morsels-button-input</code> selector. For example,</p>
+<pre><code class="language-css">.morsels-button-input:focus,
+.morsels-button-input:hover {
+    background: orange;
+}
+</code></pre>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>

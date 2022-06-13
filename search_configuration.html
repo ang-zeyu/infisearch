@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_themes.html"><strong aria-hidden="true">4.1.</strong> Themes</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html" class="active"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -139,8 +139,10 @@
 .coal .morsels-root,
 .navy .morsels-root,
 .ayu .morsels-root {
+    --morsels-box-shadow: none;
     --morsels-border: 3px solid var(--table-header-bg);
     --morsels-bg: var(--bg);
+    --morsels-triangle-bg: var(--table-header-bg);
     --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-item-sub-border: 0;
     --morsels-title-fg: var(--fg);
@@ -163,6 +165,8 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
     --morsels-fs-header-border-bottom: none;
@@ -172,6 +176,12 @@
     --morsels-fs-header-close-hover-fg: var(--fg);
     --morsels-fs-header-close-active-bg: var(--table-header-bg);
     --morsels-fs-header-close-active-fg: var(--fg);
+    --morsels-tip-bg: var(--sidebar-bg);
+    --morsels-tip-fg: var(--sidebar-fg);
+    --morsels-tip-code-fg: var(--inline-code-color);
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: rgb(230, 230, 230);
+    --morsels-tip-icon-fg: rgb(80, 80, 80);
 }
 
 .ayu .morsels-root,
@@ -180,6 +190,14 @@
     --morsels-fs-header-close-hover-fg: white;
     --morsels-fs-header-close-active-bg: var(--sidebar-bg);
     --morsels-fs-header-close-active-fg: white;
+    --morsels-tip-code-fg: var(--search-mark-bg) !important;
+    --morsels-tip-icon-bg: rgb(200, 200, 200);
+    --morsels-tip-icon-fg: rgb(50, 50, 50);
+}
+
+.morsels-theme .morsels-root .morsels-tip-item code,
+.rust .morsels-root .morsels-tip-item code {
+    color: var(--morsels-tip-code-fg) !important;;
 }
 
 .coal .morsels-root,
@@ -192,12 +210,11 @@
     width: 100%;
     border-radius: 6px;
     box-sizing: border-box;
-    font-size: 16px;
+    font-size: 15px;
     padding: 0.5em 0.75em;
     border: 1px solid var(--searchbar-border-color);
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
-    outline: none;
 }
 
 @media print {
@@ -255,17 +272,23 @@
 <table><thead><tr><th>Mode</th><th>Details</th></tr></thead><tbody>
 <tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.</td></tr>
 <tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are placed in a <code>&lt;ul&gt;</code> container next to the input element.</td></tr>
-<tr><td><code>&quot;fullscreen&quot;</code></td><td>This option creates a completely distinct root container (complete with its own input element, backdrop, close button, …), and attaches it to the <code>&lt;body&gt;</code> element.<br><br>Under the default stylesheet, the user interface is fullscreen under <code>max-width: 1025px</code>, and takes up roughly 50% of the screen estate otherwise.<br><br>If the <code>input</code> element is specified, the interface is also shown whenever the <code>input</code> is focused.<br><br>Alternatively, the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> call can be used to toggle the UI programatically. This is also <em>the only use case you would not need to specify the <code>input</code> element</em>.</td></tr>
+<tr><td><code>&quot;fullscreen&quot;</code></td><td>This option creates a completely distinct root container (complete with its own input element, backdrop, close button, …), and attaches it to the <code>&lt;body&gt;</code> element.<br><br>Under the default stylesheet, the user interface is fullscreen under <code>max-width: 1025px</code>, and takes up roughly 50% of the screen estate otherwise.<br><br>If the <code>input</code> element is specified, the interface is also shown whenever the <code>input</code> is focused. For keyboard accessibility, some minimal, but overidable <a href="./search_configuration_styling.html#input-element">styling</a> is applied to the input element in this case.<br><br>Alternatively, the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> call can be used to toggle the UI programatically. This is also <em>the only use case you would not need to specify the <code>input</code> element</em>.</td></tr>
 <tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin (by default) and this documentation. The <code>input</code> element must be specified, where keystroke event listeners are attached. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom <code>target</code> element of choice.</td></tr>
 </tbody></table>
 <h4 id="ui-mode-specific-options"><a class="header" href="#ui-mode-specific-options">UI Mode Specific Options</a></h4>
 <p>There are also several options specific to each UI. Note that <code>dropdown</code> and <code>fullscreen</code> options are both applicable to the <code>auto</code> mode.</p>
 <table><thead><tr><th>Mode</th><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody>
-<tr><td>all</td><td><code>label</code></td><td><code>'Search this site'</code></td><td>Accessibility label for the inputs and results listbox.</td></tr>
+<tr><td><code>auto</code> | <code>fullscreen</code></td><td><code>fsInputLabel</code></td><td><code>'Search'</code></td><td>Accessibility label for the original input element, when the fullscreen UI is in use.</td></tr>
 <tr><td><code>dropdown</code></td><td><code>dropdownAlignment</code></td><td><code>'bottom-end'</code></td><td><code>'bottom'</code> or <code>'bottom-start'</code> or <code>'bottom-end'</code>.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment of the dropdown container will also be automatically flipped horizontally to ensure the most optimal placement (see <a href="https://floating-ui.com/docs/size#using-with-flip">floating-ui’s</a> docs for a demonstration).</td></tr>
 <tr><td><code>fullscreen</code></td><td><code>fsContainer</code></td><td><code>&lt;body&gt;</code> element</td><td><code>id</code> of the element, or an element reference to attach the separate root container to.</td></tr>
 <tr><td><code>fullscreen</code></td><td><code>fsPlaceholder</code></td><td><code>'Search this site...'</code></td><td>Placeholder of the input element in the fullscreen UI.</td></tr>
+<tr><td>all except <code>target</code></td><td><code>tip</code></td><td><code>true</code></td><td>Whether to show the tip icon. When hovered over, this shows advanced usage information (e.g. how to perform phrase queries).</td></tr>
 <tr><td><code>target</code></td><td><code>target</code></td><td><code>undefined</code></td><td><code>id</code> of the element, or an element reference to attach results to.<br><br>Required if using <code>mode='target'</code>.</td></tr>
+</tbody></table>
+<h4 id="general-options"><a class="header" href="#general-options">General Options</a></h4>
+<table><thead><tr><th>Mode</th><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td>all</td><td><code>label</code></td><td><code>'Search this site'</code></td><td>Accessibility label for the fullscreen UI input.</td></tr>
+<tr><td>all</td><td><code>resultsLabel</code></td><td><code>'Site results'</code></td><td>Accessibility label for result <code>listbox</code>es.</td></tr>
 </tbody></table>
 <h4 id="manually-showing--hiding-the-fullscreen-ui"><a class="header" href="#manually-showing--hiding-the-fullscreen-ui">Manually Showing / Hiding the Fullscreen UI</a></h4>
 <pre><code class="language-ts">const { showFullscreen, hideFullscreen } = initMorsels({ ... });
@@ -274,7 +297,7 @@
 <p>Correspondingly, the <code>hideFullscreen()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button is available by default (the <kbd>Esc</kbd> key works too).</p>
 <p>These methods can also be used under <code>mode=&quot;auto&quot;</code>.</p>
 <h3 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h3>
-<p>There are 3 ways to generate result previews of matched documents, the first of the below being the default.</p>
+<p>There are 3 ways to generate result previews of matched documents, the second being the default.</p>
 <p>Unless you have modified the default result renderer (covered in the next page on renderers), morsels also requires <strong>at least one</strong> of the <code>body</code> / <code>heading</code> / <code>title</code> fields. This is configured by default, and covered in the next section on indexing configuration in more detail.</p>
 <h4 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h4>
 <p>The default use case / result generation assumes the simple but common use case of linking to a source document (via an <code>&lt;a&gt;</code> tag). </p>
@@ -293,7 +316,6 @@
 <p>The use of the default indexed fields in the UI is as shown in the following diagram, and will be covered in more detail in the chapter on <a href="./indexer/fields.html">fields</a>:</p>
 <p><img src="./images/fields_annotated.png" alt="" /></p>
 <p>Some indexer configuration <a href="./indexer/presets.html">presets</a> are available to help with switching between options 1 and 2 easily.</p>
-<p>To generate alternative outputs for other use cases (e.g. buttons, perform some action), you will need to use option 3 below.</p>
 <h4 id="1-from-source-documents"><a class="header" href="#1-from-source-documents">1. From Source Documents</a></h4>
 <p>When option 2 below (field stores) is not configured or unavailable, morsels will attempt to <em>retrieve and reparse the source document and its fields</em> in order to generate result previews.</p>
 <p>Note that this option is only applicable for indexed HTML, json, and txt files at this time.</p>
@@ -425,7 +447,7 @@ if (window.location.search) {
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="search_configuration_themes.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="search_configuration_styling.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -439,7 +461,7 @@ if (window.location.search) {
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="search_configuration_themes.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="search_configuration_styling.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
