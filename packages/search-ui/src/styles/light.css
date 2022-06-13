@@ -1,6 +1,6 @@
 @import url('./base.css');
 
-.morsels-root {
+:root {
     --morsels-box-shadow: 0 0 5px rgb(220, 220, 220);
     --morsels-bg: white;
     --morsels-item-border: none;
@@ -27,7 +27,7 @@
     --morsels-scrollbar-bg: rgb(253, 253, 253);
     --morsels-scrollbar-thumb-bg: rgb(246, 245, 245);
     --morsels-fs-input-focus-outline: 4px solid rgb(99, 186, 255);
-    --morsels-fs-border: 3px solid var(--morsels-fs-header-bg);
+    --morsels-fs-border: 3px solid rgb(248, 248, 248);
     --morsels-fs-box-shadow: 0 1px 5px rgba(128, 128, 128, 0.3);
     --morsels-fs-header-bg: rgb(248, 248, 248);
     --morsels-fs-header-border-bottom: 1px solid rgb(235, 235, 235);

@@ -1,4 +1,4 @@
-.morsels-root {
+:root {
     --morsels-dropdown-max-width: 512px;
     --morsels-dropdown-max-height: 32em;
     --morsels-font-size: 14px;
@@ -9,19 +9,22 @@
     --morsels-fs-desktop-width: 650px;
     --morsels-fs-desktop-height: 70vh;
     --morsels-tip-icon-size: 21px;
+}
+
+@media screen and (max-width: 1025px) {
+    :root {
+        --morsels-dropdown-max-width: 100vw;
+        --morsels-dropdown-max-height: 75vh;
+        --morsels-tip-icon-size: 24px;
+    }
+}
+
+.morsels-root {
     display: inline-block;
     position: relative;
     width: 100%;
     box-sizing: border-box;
     font-size: var(--morsels-font-size);
-}
-
-@media screen and (max-width: 1025px) {
-    .morsels-root {
-        --morsels-dropdown-max-width: 100vw;
-        --morsels-dropdown-max-height: 75vh;
-        --morsels-tip-icon-size: 24px;
-    }
 }
 
 .morsels-root * {

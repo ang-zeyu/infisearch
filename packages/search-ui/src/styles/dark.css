@@ -1,6 +1,6 @@
 @import url('./base.css');
 
-.morsels-root {
+:root {
     --morsels-box-shadow: 0 0 3px 0 #323232;
     --morsels-bg: #212121;
     --morsels-item-border: none;
@@ -27,7 +27,7 @@
     --morsels-scrollbar-bg: #212121;
     --morsels-scrollbar-thumb-bg: #363839;
     --morsels-fs-input-focus-outline: 4px solid rgb(99, 186, 255);
-    --morsels-fs-border: 3px solid var(--morsels-fs-header-bg);
+    --morsels-fs-border: 3px solid #363839;
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: #363839;
     --morsels-fs-header-border-bottom: none;
