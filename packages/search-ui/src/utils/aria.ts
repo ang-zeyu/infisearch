@@ -6,7 +6,7 @@ export function setCombobox(combobox: HTMLElement, listbox: HTMLElement, label: 
   listbox.setAttribute('aria-label', label);
   listbox.setAttribute('aria-live', 'polite');
 }
-  
+
 export function setInputAria(input: HTMLElement, listId: string) {
   input.setAttribute('autocomplete', 'off');
   input.setAttribute('aria-autocomplete', 'list');

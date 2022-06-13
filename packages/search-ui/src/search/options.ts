@@ -80,8 +80,7 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   
   uiOptions.label = uiOptions.label || 'Search this site';
   uiOptions.resultsLabel = uiOptions.resultsLabel || 'Site results';
-  uiOptions.fsInputLabel = uiOptions.fsInputLabel
-    || 'Opens a search popup';
+  uiOptions.fsInputLabel = uiOptions.fsInputLabel || 'Search';
   uiOptions.fsPlaceholder = uiOptions.fsPlaceholder || 'Search this site...';
   uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
   

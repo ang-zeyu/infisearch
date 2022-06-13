@@ -6,9 +6,8 @@ import { InputState } from './utils/input';
 import { prepareOptions } from './search/options';
 import { setCombobox, setInputAria } from './utils/aria';
 import {
-  openDropdown, openFullscreen,
-  closeDropdown, closeFullscreen,
-  dropdownRootRender, fsRootRender, setDropdownInputAria, unsetDropdownInputAria,
+  openDropdown, closeDropdown,
+  dropdownRootRender, fsRootRender, setDropdownInputAria, unsetDropdownInputAria, setFsTriggerInput,
 } from './search/rootContainers';
 
 let isMobileSizeGlobal = false;
@@ -165,32 +164,49 @@ function initMorsels(options: SearchUiOptions): {
 
   // --------------------------------------------------
   // Fullscreen version
-  let hideFullscreen: () => void;
-  const [fsRoot, fsListContainer, fsInput] = fsRootRender(options, searcher, () => {
-    if (input) input.focus();
-    hideFullscreen();
-  });
+  const [fsRoot, fsListContainer, fsInput, openFullscreen, closeFullscreen] = fsRootRender(
+    options, searcher,
+    (isKeyboardClose) => {
+      if (isKeyboardClose && input) input.focus();
+      fullscreenShown = false;
+    },
+  );
 
   fsInput.addEventListener('input', createInputListener(fsRoot, fsListContainer, searcher, options));
 
   // Initial state is blank
   fsListContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
 
-  const showFullscreen = () => {
+  function showFullscreen() {
     if (!fullscreenShown) {
-      openFullscreen(fsRoot, fsListContainer, uiOptions.fsContainer);
+      openFullscreen();
       fullscreenShown = true;
     }
-  };
-  hideFullscreen = () => {
-    closeFullscreen(fsRoot);
-    fullscreenShown = false;
-  };
+  }
+
+  function hideFullscreen() {
+    closeFullscreen(false);
+  }
+
+  function addFsTriggerInputListeners() {
+    function showFsIfNotDropdown() {
+      if (!useDropdown(uiOptions)) {
+        showFullscreen();
+      }
+    }
+
+    input.addEventListener('click', showFsIfNotDropdown);
+    input.addEventListener('keydown', (ev: KeyboardEvent) => {
+      if (ev.key === 'Enter') {
+        showFsIfNotDropdown();
+      }
+    });
+  }
   // --------------------------------------------------
 
   // --------------------------------------------------
   // Input element option handling
-  let dropdownListContainer;
+  let dropdownListContainer: HTMLElement;
   if (input && (mode === UiMode.Auto || mode === UiMode.Dropdown)) {
     // Auto / Dropdown
 
@@ -256,19 +272,12 @@ function initMorsels(options: SearchUiOptions): {
       }
     });
 
-    input.addEventListener('focus', () => {
-      if (useDropdown(uiOptions)) {
-        showDropdown();
-        return;
-      }
-
-      // When using 'auto' mode, may still be using fullscreen UI
-      showFullscreen();
-    });
+    input.addEventListener('focus', () => useDropdown(uiOptions) && showDropdown());
+    addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
-    input.setAttribute('aria-label', fsInputLabel);
-    input.addEventListener('focus', showFullscreen);
+    setFsTriggerInput(input, fsInputLabel);
+    addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Target) {
     // Target
     input.addEventListener(

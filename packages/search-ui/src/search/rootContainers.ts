@@ -72,10 +72,25 @@ export function dropdownRootRender(
   return [root, listContainer];
 }
 
+export function setFsTriggerInput(input: HTMLElement, fsInputLabel: string) {
+  input.setAttribute('autocomplete', 'off');
+  input.setAttribute('readonly', '');
+  input.setAttribute('role', 'button');
+  input.setAttribute('aria-label', fsInputLabel);
+  input.classList.add('morsels-button-input');
+}
+
+function unsetFsTriggerInput(input: HTMLElement) {
+  input.removeAttribute('readonly');
+  input.removeAttribute('role');
+  input.removeAttribute('aria-label');
+  input.classList.remove('morsels-button-input');
+}
+
 export function setDropdownInputAria(
   inputEl: HTMLElement, root: HTMLElement, listContainer: HTMLElement, label: string,
 ) {
-  inputEl.removeAttribute('aria-label');
+  unsetFsTriggerInput(inputEl);
   setInputAria(inputEl, 'morsels-dropdown-list');
   setCombobox(root, listContainer, label);
 }
@@ -92,35 +107,17 @@ export function unsetDropdownInputAria(
   listbox.removeAttribute('role');
   listbox.removeAttribute('aria-label');
   listbox.removeAttribute('aria-live');
-  input.setAttribute('autocomplete', 'off');
   input.removeAttribute('aria-autocomplete');
   input.removeAttribute('aria-controls');
   input.removeAttribute('aria-activedescendant');
-  input.setAttribute('aria-label', fsInputLabel);
-}
-
-export function openFullscreen(root: HTMLElement, listContainer: HTMLElement, fsContainer: HTMLElement) {
-  fsContainer.appendChild(root);
-  const input: HTMLInputElement = root.querySelector('input.morsels-fs-input');
-  if (input) {
-    input.focus();
-  }
-
-  const currentFocusedResult = listContainer.querySelector('.focus') as HTMLElement;
-  if (currentFocusedResult) {
-    listContainer.scrollTo({ top: currentFocusedResult.offsetTop - listContainer.offsetTop - 30 });
-  }
-}
-
-export function closeFullscreen(root: HTMLElement) {
-  root.remove();
+  setFsTriggerInput(input, fsInputLabel);
 }
 
 export function fsRootRender(
   opts: SearchUiOptions,
   searcher: Searcher,
-  fsCloseHandler: () => void,
-) {
+  onClose: (isKeyboardClose: boolean) => void,
+): [HTMLElement, HTMLElement, HTMLElement, () => void, (isKeyboardClose: boolean) => void] {
   const { uiOptions } = opts;
   const inputEl = h(
     'input', {
@@ -128,15 +125,12 @@ export function fsRootRender(
       type: 'search',
       placeholder: uiOptions.fsPlaceholder,
       'aria-labelledby': 'morsels-fs-label',
+      'enterkeyhint': 'search',
     },
   ) as HTMLInputElement;
   setInputAria(inputEl, 'morsels-fs-list');
 
   const buttonEl = h('button', { class: 'morsels-input-close-fs' }, uiOptions.fsCloseText);
-  buttonEl.onclick = (ev) => {
-    ev.preventDefault();
-    fsCloseHandler();
-  };
   
   const listContainer = h('ul', {
     id: 'morsels-fs-list',
@@ -164,17 +158,43 @@ export function fsRootRender(
   createTipButton(innerRoot, uiOptions, searcher);
   
   const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
-  rootBackdropEl.onmousedown = fsCloseHandler;
+
+  function hideFullscreen(isKeyboardClose: boolean) {
+    onClose(isKeyboardClose);
+    rootBackdropEl.remove();
+  }
+
+  rootBackdropEl.onmousedown = () => hideFullscreen(false);
   rootBackdropEl.onkeyup = (ev) => {
     if (ev.code === 'Escape') {
       ev.stopPropagation();
-      fsCloseHandler();
+      hideFullscreen(true);
     }
   };
+
+  buttonEl.onclick = (ev: PointerEvent) => {
+    ev.preventDefault();
+    hideFullscreen(ev.pointerType === '');
+  };
+
+  function openFullscreen() {
+    uiOptions.fsContainer.appendChild(rootBackdropEl);
+    const input: HTMLInputElement = rootBackdropEl.querySelector('input.morsels-fs-input');
+    if (input) {
+      input.focus();
+    }
+  
+    const currentFocusedResult = listContainer.querySelector('.focus') as HTMLElement;
+    if (currentFocusedResult) {
+      listContainer.scrollTo({ top: currentFocusedResult.offsetTop - listContainer.offsetTop - 30 });
+    }
+  }
   
   return [
     rootBackdropEl,
     listContainer,
     inputEl,
+    openFullscreen,
+    hideFullscreen,
   ];
 }

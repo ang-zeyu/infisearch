@@ -32,6 +32,19 @@
  Fullscreen version
  */
 
+.morsels-button-input {
+    cursor: pointer;
+}
+
+.morsels-button-input:focus,
+.morsels-button-input:hover {
+    outline: var(--morsels-fs-input-focus-outline);
+}
+
+.morsels-button-input::placeholder {
+    text-align: center;
+}
+
 .morsels-fs-backdrop {
     --morsels-fs-backdrop-bg: rgba(0, 0, 0, 0.15);
     position: fixed;
