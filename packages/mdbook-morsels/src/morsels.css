@@ -76,9 +76,29 @@
     box-sizing: border-box;
     font-size: 15px;
     padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 @media print {
