@@ -165,7 +165,7 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
     --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
@@ -212,9 +212,29 @@
     box-sizing: border-box;
     font-size: 15px;
     padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 @media print {
@@ -236,10 +256,10 @@
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="lang_config"><a class="header" href="#lang_config"><code>lang_config</code></a></h1>
-<p>The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is <code>lang</code>, while the <code>options</code> key supplies tokenization options unique to each module.</p>
+<h1 id="language-configuration"><a class="header" href="#language-configuration">Language Configuration</a></h1>
+<p>The snippet below shows the default values for language configuration. The main tokenizer module is specified by <code>lang</code>, while the <code>options</code> key supplies tokenization options unique to each language module.</p>
 <blockquote>
-<p>These options are also applied to the search user interface and library where appropriate, and is stored in a metadata file in the index output directory.</p>
+<p>These options are also applied at search time, which is retrieved from a metadata file in the index output directory.</p>
 </blockquote>
 <pre><code class="language-json">{
   &quot;lang_config&quot;: {
@@ -282,14 +302,14 @@
 
     // Any of the languages here
     // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
-    // For example, &quot;english&quot;
+    // Languages other than &quot;english&quot; have not been extensively tested. Use with caution!
     &quot;stemmer&quot;: &quot;english&quot;
   }
 }
 </code></pre>
-<p>It is separated from the ascii tokenizer to reduce binary size (about ~<code>220KB</code> savings before gzip).</p>
+<p>If you do not need stemming, use the <code>ascii</code> tokenizer, which has a smaller wasm binary.</p>
 <h2 id="chinese-tokenizer"><a class="header" href="#chinese-tokenizer">Chinese Tokenizer</a></h2>
-<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it hasn’t been as extensively tested. Use at your own discretion!</p>
+<p>A basic <code>chinese</code> tokenizer based on <a href="https://github.com/messense/jieba-rs">jieba-rs</a> is also available, although, it hasn’t been extensively tested. Use with caution!</p>
 <p>This tokenizer applies jieba’s <code>cut</code> method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.</p>
 <pre><code class="language-json">{
   &quot;lang&quot;: &quot;chinese&quot;,
@@ -300,8 +320,8 @@
 }
 </code></pre>
 <h2 id="stop-words"><a class="header" href="#stop-words">Stop Words</a></h2>
-<p>All tokenizers support forcibly removing stop words using the <code>ignore_stop_words</code> option, should you wish to keep the index size down.</p>
-<p>Keeping stop words enables the following:</p>
+<p>All tokenizers support keeping or removing (default) stop words using the <code>ignore_stop_words</code> option.</p>
+<p>Keeping them enables the following:</p>
 <ul>
 <li>Processing phrase queries such as <code>&quot;for tomorrow&quot;</code></li>
 <li>Boolean queries of stop words (e.g. <code>if AND forecast AND sunny</code>)</li>

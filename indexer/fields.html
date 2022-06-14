@@ -165,7 +165,7 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
     --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
@@ -212,9 +212,29 @@
     box-sizing: border-box;
     font-size: 15px;
     padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 @media print {
@@ -236,11 +256,9 @@
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="fields_config"><a class="header" href="#fields_config"><code>fields_config</code></a></h1>
-<p>The first step to indexing any documents is defining the fields to store.</p>
-<p>The default configurations are as follows, already setup for interfacing with the <code>@morsels/search-ui</code> package.</p>
-<p>If you are using morsels’ search UI <strong>as-is</strong> (e.g. not adding additional fields to display), you can likely skip configuring <code>fields_config.fields</code>.</p>
-<p>You may want to briefly take note of the other parameters under <code>fields_config</code> however, which can be used to adjust response times / file bloat. The possible adjustments are discussed later in <a href="../tradeoffs.html">Tradeoffs</a>.</p>
+<h1 id="field-configuration"><a class="header" href="#field-configuration">Field Configuration</a></h1>
+<p>If you are using morsels’ search UI <strong>as-is</strong> for static site search, you can likely skip configuring <code>fields_config.fields</code>.</p>
+<p>There are a few other parameters under <code>fields_config</code> however, which can be used to adjust response times, caching, and file bloat individually. However, you should be well-served by the preconfigured <a href="./presets.html">scaling presets</a> for such purposes.</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
     &quot;cache_all_field_stores&quot;: true,
@@ -287,46 +305,57 @@
   }
 }
 </code></pre>
-<p><strong><code>field_store_block_size</code>, <code>num_stores_per_dir</code>, and <code>do_store</code></strong></p>
-<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file in the output folder.</p>
-<p>At search time, the fields saved in this manner from the json files are retrieved for result preview generation.</p>
-<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one such json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The <code>num_stores_per_dir</code> parameter controls how many json files should be stored together in one directory.</p>
+<h4 id="storing-fields-do_store"><a class="header" href="#storing-fields-do_store">Storing Fields: <strong><code>do_store</code></strong></a></h4>
+<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file.
+At search time, these fields are retrieved for result preview generation.</p>
+<h4 id="field-store-granularity-field_store_block_size-num_stores_per_dir"><a class="header" href="#field-store-granularity-field_store_block_size-num_stores_per_dir">Field Store Granularity: <strong><code>field_store_block_size</code>, <code>num_stores_per_dir</code></strong></a></h4>
+<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The <code>num_stores_per_dir</code> parameter controls how many json files should be stored together in one directory.</p>
 <blockquote>
-<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter elaborated under <a href="./indexing.html">indexing</a> later.<br>
+<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter under <a href="./indexing.html">indexing</a> later.<br>
 This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
 but should work well enough for most use cases.</p>
 </blockquote>
-<p><strong><code>cache_all_field_stores</code></strong></p>
+<h4 id="field-store-caching-cache_all_field_stores"><a class="header" href="#field-store-caching-cache_all_field_stores">Field Store Caching: <strong><code>cache_all_field_stores</code></strong></a></h4>
 <p>This is the same as the configuration option under <a href="../search_configuration.html#search-library-options">search configuration</a>.
 If both are specified, the value specified in the <code>initMorsels</code> call will take priority.</p>
 <p>All fields specified with <code>do_store=true</code> would be cached up front on initialisation of the search library.</p>
 <p>Its usage alongside other options is discussed in more detail under the chapter <a href="../tradeoffs.html">Tradeoffs</a>.</p>
+<h4 id="field-scoring-parameters"><a class="header" href="#field-scoring-parameters">Field Scoring Parameters</a></h4>
 <p><strong><code>weight</code></strong></p>
 <p>This parameter is a boost / penalty multiplied to a individual field’s score.</p>
 <p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
 <p><strong><code>k</code> &amp; <code>b</code></strong></p>
 <p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these if the defaults are unsuitable for your use case.</p>
-<h2 id="default-fields-in-morselssearch-ui"><a class="header" href="#default-fields-in-morselssearch-ui">Default Fields in <code>@morsels/search-ui</code></a></h2>
+<h2 id="default-field-configuration"><a class="header" href="#default-field-configuration">Default Field Configuration</a></h2>
 <p>The functions of the default fields for the user interface are as follows:</p>
 <img alt="annotation for fields" src="../images/fields_annotated.png" />
 <ul>
-<li><code>title</code>: This is the header for a single document match. </li>
-<li><code>heading</code>: These are section headers which appear on the left of corresponding <code>body</code> fields. THey are sourced from <code>&lt;h1-6&gt;</code> tags by default.</li>
-<li><code>headingLink</code>: These are the <code>id</code> attributes of corresponding <code>&lt;h1-6&gt;</code> tags. If available, an <code>#anchor</code> is attached to the linked document for the particular heading</li>
-<li><code>body</code>: This field is the text that appears to the right of headings (or on its own if there is no corresponding heading).</li>
-<li><code>_relative_fp</code> <strong>or</strong> <code>link</code>: If the <code>title</code> field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the <code>&lt;a /&gt;</code> tag) or for generating result previews (more <a href="../search_configuration.html#default-rendering-output--purpose">here</a>).
+<li>
+<p><code>title</code>: This is the header for a single document match. </p>
+</li>
+<li>
+<p><code>heading</code>: These are section headers which appear on the left of corresponding <code>body</code> field, sourced from <code>&lt;h1-6&gt;</code> tags.</p>
+</li>
+<li>
+<p><code>headingLink</code>: These are the <code>id</code> attributes of corresponding <code>&lt;h1-6&gt;</code> tags. When found, an <code>#anchor</code> is appended to the link.</p>
+</li>
+<li>
+<p><code>body</code>: This field is the text that appears to the right of headings (or on its own if there is no corresponding heading).</p>
+</li>
+<li>
+<p><code>_relative_fp</code> <strong>or</strong> <code>link</code>: If the <code>title</code> field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the <code>&lt;a /&gt;</code> tag) and (optionally) for generating result <a href="../search_configuration.html#default-rendering-output--purpose">previews</a>.</p>
 <ul>
-<li>Note: The <code>link</code> field is not setup by default; The combination of <code>sourceFilesUrl</code> + <code>_relative_fp</code> serves the same purpose. The <code>link</code> field serves to accomodate more custom use cases (e.g. linking to another site, or linking to a HTML page by indexing a json document).</li>
+<li>Note: The <code>link</code> field is not setup by default; The combination of <code>sourceFilesUrl</code> + <code>_relative_fp</code> serves the same purpose. The <code>link</code> field serves to accomodate more custom data requirements (e.g. linking to another domain, or indexing a json document).</li>
 </ul>
 </li>
 </ul>
 <h2 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h2>
 <p>Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings are insufficient. This is discussed later under <a href="./indexing.html#mapping-file-data-to-fields-loader_configs">indexing</a>.</p>
-<p>The exception are “special” fields below, which sources data from elsewhere.</p>
+<p>The exception are “special” fields below, which have “hardcoded” values.</p>
 <h3 id="special-fields"><a class="header" href="#special-fields">Special Fields</a></h3>
 <p><strong><code>_relative_fp</code></strong></p>
 <p>This is a “hardcoded” field generated by the indexer, in that its value is fixed as the relative file path from your source folder path to the file.</p>
-<p>It is included in the default configuration to allow <code>@morsels/search-ui</code> to retrieve the source file for result preview generation, and to link to the document itself (via an <code>&lt;a&gt;&lt;/a&gt;</code> tag). You may refer back to <a href="../search_configuration.html#options-for-generating-result-previews">this section</a> for more details.</p>
+<p>It is included in the default configuration to facilitate constructing a source file link, used to link to the document itself (via the <code>&lt;a&gt;&lt;/a&gt;</code> tag), and optionally for result preview <a href="../search_configuration.html#options-for-generating-result-previews">generation</a>.</p>
 <p>If this is removed, this field simply won’t be indexed nor stored.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>

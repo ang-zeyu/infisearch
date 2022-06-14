@@ -165,7 +165,7 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
     --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
@@ -212,9 +212,29 @@
     box-sizing: border-box;
     font-size: 15px;
     padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 @media print {
@@ -273,7 +293,7 @@
 </code></pre>
 <h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
 <p><code>h</code></p>
-<p>Almost all renderer functions are passed a <code>h</code> function. This is an <em>optional</em> helper function you may use to create elements.</p>
+<p>Almost all APIs here are passed a <code>h</code> function. This is an <em>optional</em> helper function you may use to create elements.</p>
 <p>The method signature is as such:</p>
 <pre><code class="language-ts">export type CreateElement = (
   // Element name
@@ -301,9 +321,8 @@
 }
 </code></pre>
 <p>If you need to include some custom options (e.g. an API base url), you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
-<h3 id="target"><a class="header" href="#target">Target</a></h3>
-<p>There is no root element for the target, as it is specified by the <code>target</code> option. The equivalent of the <code>target</code> element would be the <code>listContainer</code> element for the dropdown / fullscreen versions  above.</p>
-<h2 id="miscellaneous-renderers"><a class="header" href="#miscellaneous-renderers">Miscellaneous Renderers</a></h2>
+<h2 id="changing-supporting-parts-of-the-ui"><a class="header" href="#changing-supporting-parts-of-the-ui">Changing Supporting Parts of the UI</a></h2>
+<p>The options here are intended for changing small, supporting parts of the output (e.g. error messages), which can be especially useful for localizing the UI.</p>
 <table><thead><tr><th>Function</th><th>Return</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>errorRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>Renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when an unexpected error occurs.</td></tr>
 <tr><td><code>noResultsRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when there are no results found for a given query.                                                                                     </td></tr>
@@ -312,9 +331,9 @@
 <tr><td><code>fsBlankRender(h, opts)</code><br><br>( <code>mode='fullscreen'</code> only )</td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.</td></tr>
 </tbody></table>
 <h3 id="queryparts-parameter"><a class="header" href="#queryparts-parameter"><code>queryParts</code> Parameter</a></h3>
-<p>This parameter to the <code>termInfoRender</code> function is the parsed structure of the input query string.</p>
+<p>This parameter passed to the <code>termInfoRender</code> function is the parsed structure of the input query string.</p>
 <p>Its interface is as follows:</p>
-<pre><code class="language-ts">export interface QueryPart {
+<pre><code class="language-ts">{
   partType: 'TERM' | 'PHRASE' | 'BRACKET' | 'AND' | 'NOT';
 
   // Raw, original term(s) contained, if any of the below 3 operations were applied
@@ -335,9 +354,9 @@
 }
 </code></pre>
 <h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
-<p>The below 2 remaining <em>sets</em> of APIs render the results for all document matches, and are <em>mutually exclusive</em> in that the first, simpler set of APIs are “building blocks” of the second (which only has one available API). Reconfiguring the second API would invalidate any changes to the first.</p>
+<p>The below 2 <em>mutually exclusive</em> sets of APIs render the results for all document matches. The first, simpler set of APIs are “building blocks” of the second (which only has one available API). Reconfiguring the second API would also invalidate any changes to the first.</p>
 <h3 id="1-rendering-a-single-result"><a class="header" href="#1-rendering-a-single-result">1. Rendering a Single Result</a></h3>
-<p>The renderers under this key are grouped under <code>uiOptions.resultsRenderOpts</code> (instead of <code>uiOptions.XXX</code>).</p>
+<p>The APIs under this key are grouped under <code>uiOptions.resultsRenderOpts</code> (instead of <code>uiOptions.XXX</code>).</p>
 <p>These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).</p>
 <div style="height:1px"></div>
 <p><code>listItemRender(h, opts, fullLink, resultTitle, resultHeadingsAndTexts, fields): HTMLElement</code></p>

@@ -165,7 +165,7 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
     --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
@@ -212,9 +212,29 @@
     box-sizing: border-box;
     font-size: 15px;
     padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 @media print {
@@ -236,9 +256,9 @@
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="indexing_config"><a class="header" href="#indexing_config"><code>indexing_config</code></a></h1>
+<h1 id="indexing-configuration"><a class="header" href="#indexing-configuration">Indexing Configuration</a></h1>
 <p>The configurations in this section mainly specify <strong>how (mapping file contents to fields)</strong> and <strong>which</strong> files to index.</p>
-<p>All configurations are optional, save for the <code>loader_configs</code> key. The cli tool will simply do nothing if no loaders are specified.</p>
+<p>All configurations are optional, save for the <code>loader_configs</code> key. The cli tool will <em>do nothing</em> if the <code>loader_configs</code> dictionary is empty.</p>
 <p>The snippet below shows the default values:</p>
 <pre><code class="language-json">{
   &quot;indexing_config&quot;: {
@@ -265,11 +285,9 @@
 }
 </code></pre>
 <h2 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h2>
-<p><strong><code>loader_configs</code></strong></p>
-<p>The indexer is able to handle data from HTML, json, csv or txt files. Support for each file type is provided by a <code>Loader</code> abstraction.</p>
+<p>The indexer is able to handle data from HTML, JSON, csv or txt files. Support for each file type is provided by a “Loader” abstraction.</p>
 <p>You may configure loaders by <strong>including them under the <code>loader_configs</code> key</strong>, with any applicable options.</p>
-<br>
-<p><strong><code>loader_configs.HtmlLoader</code></strong></p>
+<h4 id="html-files-loader_configshtmlloader"><a class="header" href="#html-files-loader_configshtmlloader">HTML Files: <strong><code>loader_configs.HtmlLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;HtmlLoader&quot;: {
     // list of selectors to exclude from indexing
@@ -298,11 +316,11 @@
   }
 }
 </code></pre>
-<p>The html loader traverses the document depth-first, in the order text nodes and attributes appear.</p>
-<p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by the corresponding <code>field_name</code>. If another of the element’s descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).</p>
+<p>The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.</p>
+<p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified <code>field_name</code>.</p>
+<p>This process repeats as the document is traversed — if another of the element’s descendants matched a different selector, the field mapping is overwritten for that descendant’s descendants.</p>
 <p>The <code>attr_map</code> option allows indexing attributes of each element under fields as well.</p>
-<br>
-<p><strong><code>loader_configs.JsonLoader</code></strong></p>
+<h4 id="json-files-loader_configsjsonloader"><a class="header" href="#json-files-loader_configsjsonloader">JSON Files: <strong><code>loader_configs.JsonLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;JsonLoader&quot;: {
     &quot;field_map&quot;: {
@@ -320,14 +338,13 @@
 }
 </code></pre>
 <p>Json files can also be indexed. The <code>field_map</code> key must be specified, which contains a mapping of <strong>json key -&gt; field name</strong>.
-The <code>field_order</code> array controls the order in which these fields are indexed, which can have a minor influence on <a href="../search_features.html#ranking-specifics">query term proximity ranking</a>.</p>
+The <code>field_order</code> array controls the order in which these fields are indexed, which can have a minor influence on <a href="../search_features.html#ranking-specifics">query term proximity ranking</a>, if positions are indexed.</p>
 <p>The json file can be either:</p>
 <ol>
 <li>An object, following the schema set out in <code>field_map</code></li>
 <li>An array of objects following the schema set out in <code>field_map</code></li>
 </ol>
-<br>
-<p><strong><code>loader_configs.CsvLoader</code></strong></p>
+<h4 id="csv-files-loader_configscsvloader"><a class="header" href="#csv-files-loader_configscsvloader">CSV Files: <strong><code>loader_configs.CsvLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;CsvLoader&quot;: {
     // ---------------------
@@ -362,10 +379,9 @@ The <code>field_order</code> array controls the order in which these fields are 
   }
 }
 </code></pre>
-<p>Field mappings for csv files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
+<p>Field mappings for CSV files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
 <p>The <code>parse_options</code> key specifies options for parsing the csv file. In particular, note that the <code>has_headers</code> key is distinct from and does not influence the <code>use_headers</code> parameter.</p>
-<br>
-<p><strong><code>loader_configs.TxtLoader</code></strong></p>
+<h4 id="text-files-loader_configstxtloader"><a class="header" href="#text-files-loader_configstxtloader">Text Files: <strong><code>loader_configs.TxtLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;TxtLoader&quot;: {
     &quot;field&quot;: &quot;field_name&quot;,
@@ -373,37 +389,35 @@ The <code>field_order</code> array controls the order in which these fields are 
 }
 </code></pre>
 <p>This loader simply reads <code>.txt</code> files and indexes all its contents into a single field.</p>
-<h2 id="file-exclusions"><a class="header" href="#file-exclusions">File Exclusions</a></h2>
-<p><strong><code>exclude</code></strong></p>
+<h2 id="miscellaneous-options"><a class="header" href="#miscellaneous-options">Miscellaneous Options</a></h2>
+<h4 id="file-exclusions-exclude--morsels_configjson"><a class="header" href="#file-exclusions-exclude--morsels_configjson">File Exclusions: <strong><code>exclude = [&quot;morsels_config.json&quot;]</code></strong></a></h4>
 <p>Global file exclusions can be specified in this parameter, which is simply an array of file globs.</p>
-<h2 id="indexing-performance"><a class="header" href="#indexing-performance">Indexing Performance</a></h2>
-<p><strong><code>num_threads</code></strong></p>
-<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(num physical cores - 1, 1)</code>.</p>
+<h4 id="adding-positions-with_positions--false"><a class="header" href="#adding-positions-with_positions--false">Adding Positions: <strong><code>with_positions = false</code></strong></a></h4>
+<p>This option controls whether positions will be stored.</p>
+<p>Features such as phrase queries that require positional information will not work if this is disabled.</p>
+<p>Turning this off for very large collections (~&gt; 1GB) can increase the tool’s scalability, at the cost of such features.</p>
+<h2 id="indexing-and-search-scaling"><a class="header" href="#indexing-and-search-scaling">Indexing and Search Scaling</a></h2>
+<p>Prefer the in-built <a href="./presets.html">scaling presets</a> option for configuring the tool’s scalability. Where needed, the following options are available for finer control.</p>
+<h4 id="index-shard-size-pl_limit"><a class="header" href="#index-shard-size-pl_limit">Index Shard Size: <strong><code>pl_limit</code></strong></a></h4>
+<p>This is the main threshold parameter (in bytes) at which to “cut” index (<strong>pl</strong> meaning <a href="https://en.wikipedia.org/wiki/Inverted_index">postings list</a>) files.</p>
+<p>Increasing this value produces less but bigger files (which may take longer to retrieve), and vice versa.</p>
+<p>Increasing the value may also be useful for caching when used in conjunction with <code>pl_cache_threshold</code> below, since fewer index files will be produced.</p>
 <br>
-<p><strong><code>num_docs_per_block</code></strong></p>
+<h4 id="index-caching-pl_cache_threshold"><a class="header" href="#index-caching-pl_cache_threshold">Index Caching: <strong><code>pl_cache_threshold</code></strong></a></h4>
+<p>Index files that exceed this number will be cached by the search library at initilisation.</p>
+<p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="../tradeoffs.html">Tradeoffs</a>.</p>
+<h4 id="index-shards-per-directory-num_pls_per_dir"><a class="header" href="#index-shards-per-directory-num_pls_per_dir">Index Shards per Directory: <strong><code>num_pls_per_dir</code></strong></a></h4>
+<p>This parameter simply controls how many index files you want to store in a single directory.</p>
+<p>While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.</p>
+<h2 id="indexing-performance"><a class="header" href="#indexing-performance">Indexing Performance</a></h2>
+<h4 id="number-of-threads-num_threads"><a class="header" href="#number-of-threads-num_threads">Number of Threads: <strong><code>num_threads</code></strong></a></h4>
+<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(min(num physical cores, num logical cores) - 1, 1)</code>.</p>
+<h4 id="memory-usage-num_docs_per_block"><a class="header" href="#memory-usage-num_docs_per_block">Memory Usage: <strong><code>num_docs_per_block</code></strong></a></h4>
 <p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
 <p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
 <blockquote>
 <p>⚠️ Ensure <a href="./fields.html"><code>field_store_block_size</code></a> is a clean multiple or divisor of this parameter.</p>
 </blockquote>
-<h2 id="search-performance"><a class="header" href="#search-performance">Search Performance</a></h2>
-<p><strong><code>pl_limit</code></strong></p>
-<p>This is the main threshold parameter (in bytes) at which to “cut” index (<strong>pl</strong> meaning <a href="https://en.wikipedia.org/wiki/Inverted_index">postings list</a>) files.</p>
-<p>Increasing this value produces less but bigger files (which may take longer to retrieve), and vice versa.</p>
-<p>Increasing the value may also be useful for caching when used in conjunction with <code>pl_cache_threshold</code> below, since fewer index files will be produced.</p>
-<br>
-<p><strong><code>pl_cache_threshold</code></strong></p>
-<p>Index files that exceed this number will be cached by the search library at initilisation.</p>
-<p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="../tradeoffs.html">Tradeoffs</a>.</p>
-<h2 id="miscellaneous-options"><a class="header" href="#miscellaneous-options">Miscellaneous Options</a></h2>
-<p><strong><code>num_pls_per_dir</code></strong></p>
-<p>This parameter simply controls how many index files you want to store in a single directory.</p>
-<p>While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.</p>
-<br>
-<p><strong><code>with_positions</code></strong></p>
-<p>This option controls whether positions will be stored.</p>
-<p>Features such as phrase queries that require positional information will not work if this is disabled.</p>
-<p>Turning this off for very large collections (~&gt; 1GB) can increase the tool’s scalability, at the cost of such features.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>

@@ -165,7 +165,7 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
     --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
@@ -212,9 +212,29 @@
     box-sizing: border-box;
     font-size: 15px;
     padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 @media print {
@@ -239,95 +259,6 @@
 <h1 id="indexer-configuration"><a class="header" href="#indexer-configuration">Indexer Configuration</a></h1>
 <p>All indexer configurations are sourced from a json file. By default, the cli tool looks for <code>morsels_config.json</code> in the source folder (first argument specified in the command).</p>
 <p>You can run the cli command with the <code>--config-init</code> option to initialise the full, default configuration file in the source folder. As the file generated from this option is rather verbose, you could also instead override the necessary properties as covered in the subsequent sections.</p>
-<h2 id="full-example"><a class="header" href="#full-example">Full Example</a></h2>
-<p>A typical full configuration file looks something like this:</p>
-<pre><code class="language-json">{
-  &quot;preset&quot;: &quot;small&quot;,
-  &quot;fields_config&quot;: {
-    &quot;field_store_block_size&quot;: 4294967295,
-    &quot;num_stores_per_dir&quot;: 1000,
-    &quot;cache_all_field_stores&quot;: true,
-    &quot;fields&quot;: [
-      {
-        &quot;name&quot;: &quot;title&quot;,
-        &quot;do_store&quot;: true,
-        &quot;weight&quot;: 2.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.15
-      },
-      {
-        &quot;name&quot;: &quot;heading&quot;,
-        &quot;do_store&quot;: true,
-        &quot;weight&quot;: 1.5,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.25
-      },
-      {
-        &quot;name&quot;: &quot;body&quot;,
-        &quot;do_store&quot;: true,
-        &quot;weight&quot;: 1.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      },
-      {
-        &quot;name&quot;: &quot;headingLink&quot;,
-        &quot;do_store&quot;: true,
-        &quot;weight&quot;: 0.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      },
-      {
-        &quot;name&quot;: &quot;_relative_fp&quot;,
-        &quot;do_store&quot;: true,
-        &quot;weight&quot;: 0.0,
-        &quot;k&quot;: 1.2,
-        &quot;b&quot;: 0.75
-      }
-    ]
-  },
-  &quot;lang_config&quot;: {
-    &quot;lang&quot;: &quot;ascii&quot;,
-    &quot;options&quot;: null
-  },
-  &quot;indexing_config&quot;: {
-    &quot;num_docs_per_block&quot;: 1000,
-    &quot;pl_limit&quot;: 0,
-    &quot;pl_cache_threshold&quot;: 0,
-    &quot;exclude&quot;: [
-      &quot;morsels_config.json&quot;
-    ],
-    &quot;loader_configs&quot;: {
-      &quot;HtmlLoader&quot;: {
-        &quot;exclude_selectors&quot;: [
-          &quot;script,style,pre&quot;
-        ],
-        &quot;selectors&quot;: [
-          {
-            &quot;attr_map&quot;: {},
-            &quot;field_name&quot;: &quot;title&quot;,
-            &quot;selector&quot;: &quot;title&quot;
-          },
-          {
-            &quot;attr_map&quot;: {},
-            &quot;field_name&quot;: &quot;body&quot;,
-            &quot;selector&quot;: &quot;body&quot;
-          },
-          {
-            &quot;attr_map&quot;: {
-              &quot;id&quot;: &quot;headingLink&quot;
-            },
-            &quot;field_name&quot;: &quot;heading&quot;,
-            &quot;selector&quot;: &quot;h1,h2,h3,h4,h5,h6&quot;
-          }
-        ],
-        &quot;type&quot;: &quot;HtmlLoader&quot;
-      }
-    },
-    &quot;num_pls_per_dir&quot;: 1000,
-    &quot;with_positions&quot;: false
-  }
-}
-</code></pre>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>

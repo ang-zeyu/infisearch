@@ -165,7 +165,7 @@
     --morsels-loading-secondary-bg: var(--fg);
     --morsels-scrollbar-bg: var(--sidebar-bg);
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fs-input-focus-outline: 3px solid var(--searchbar-shadow-color);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
     --morsels-fs-border: 3px solid var(--sidebar-bg);
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: var(--sidebar-bg);
@@ -212,9 +212,29 @@
     box-sizing: border-box;
     font-size: 15px;
     padding: 0.5em 0.75em;
-    border: 1px solid var(--searchbar-border-color);
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 @media print {
@@ -237,12 +257,12 @@
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="search-features"><a class="header" href="#search-features">Search Features</a></h1>
-<p>This page outlines the available search features common to both <code>@morsels/search-ui</code> and <code>@morsels/search-lib</code>.</p>
+<p>This page outlines the available search features.</p>
 <h2 id="boolean-operators-parentheses"><a class="header" href="#boolean-operators-parentheses">Boolean Operators, Parentheses</a></h2>
 <p><code>AND</code> and <code>NOT</code> operators are supported.
 <code>OR</code> operators are not supported, but its function is implicitly left to the tokenizer (see below for an example).
 Parentheses <code>(...)</code> can be used to group expressions together.</p>
-<pre><code>lorem ipsum                 - documents containing either lorem or ipsum.
+<pre><code>lorem ipsum                 - documents containing either lorem OR ipsum
 lorem AND ipsum             - documents with both &quot;lorem&quot; and &quot;ipsum&quot;
 lorem AND NOT ipsum         - documents with &quot;lorem&quot; but not &quot;ipsum&quot;
 lorem AND NOT (ipsum dolor) - documents with &quot;lorem&quot; but not (&quot;ipsum&quot; OR &quot;dolor&quot;)
@@ -251,7 +271,7 @@ lorem AND NOT (ipsum dolor) - documents with &quot;lorem&quot; but not (&quot;ip
 <p>Phrase queries are also supported by enclosing the relevant terms in <code>&quot;...&quot;</code>.</p>
 <pre><code>&quot;lorem ipsum&quot; - documents containing &quot;lorem&quot; and &quot;ipsum&quot; appearing one after the other
 </code></pre>
-<p>However, note these will not work if the <a href="./indexer/indexing.html#miscellaneous-options"><code>withPositions</code></a> index feature is disabled (enabled by default).</p>
+<p>You will need to enable the <a href="./indexer/indexing.html#miscellaneous-options"><code>withPositions</code></a> index feature for this to work.</p>
 <h2 id="field-search"><a class="header" href="#field-search">Field Search</a></h2>
 <p>Field queries are supported via the following syntax <code>field_name:</code>, following the same syntax rules as the <code>NOT</code> operator.</p>
 <pre><code>title:lorem             - documents containing &quot;lorem&quot; in the field &quot;title&quot;
@@ -272,7 +292,7 @@ title\:lorem
 <h3 id="webworker-built-in"><a class="header" href="#webworker-built-in">WebWorker Built-in</a></h3>
 <p>Most of the search library operates on a WebWorker where it matters (e.g. setup, query ranking), so you don’t have to worry about blocking the UI thread.</p>
 <p>Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.</p>
-<p>Search UI (@morsels/search-ui) related functionalities, for example result preview generation, is also done on the main thread.
+<p>Search UI related functionalities, for example result preview generation, is also done on the main thread.
 The main rationale is that there is simply no way of parsing HTML faster than implementations provided by the browser. (the original HTML document can be used as an alternative to storing document fields for result preview generation)</p>
 <h3 id="low-level-inverted-index-format"><a class="header" href="#low-level-inverted-index-format">Low-Level Inverted Index Format</a></h3>
 <p>Some basic, but high-return compression schemes are also employed:</p>
