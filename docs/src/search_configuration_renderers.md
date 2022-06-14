@@ -39,7 +39,7 @@ initMorsels({
 
 `h`
 
-Almost all renderer functions are passed a `h` function. This is an *optional* helper function you may use to create elements.
+Almost all APIs here are passed a `h` function. This is an *optional* helper function you may use to create elements.
 
 The method signature is as such:
 
@@ -77,12 +77,10 @@ opts = export interface SearchUiOptions {
 
 If you need to include some custom options (e.g. an API base url), you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
 
-### Target
 
-There is no root element for the target, as it is specified by the `target` option. The equivalent of the `target` element would be the `listContainer` element for the dropdown / fullscreen versions  above.
+## Changing Supporting Parts of the UI
 
-
-## Miscellaneous Renderers
+The options here are intended for changing small, supporting parts of the output (e.g. error messages), which can be especially useful for localizing the UI.
 
 | Function        | Return | Description |
 | ----- | ----- | ----------- |
@@ -94,12 +92,12 @@ There is no root element for the target, as it is specified by the `target` opti
 
 ### `queryParts` Parameter
 
-This parameter to the `termInfoRender` function is the parsed structure of the input query string.
+This parameter passed to the `termInfoRender` function is the parsed structure of the input query string.
 
 Its interface is as follows:
 
 ```ts
-export interface QueryPart {
+{
   partType: 'TERM' | 'PHRASE' | 'BRACKET' | 'AND' | 'NOT';
 
   // Raw, original term(s) contained, if any of the below 3 operations were applied
@@ -122,11 +120,11 @@ export interface QueryPart {
 
 ## Rendering Search Results
 
-The below 2 remaining *sets* of APIs render the results for all document matches, and are *mutually exclusive* in that the first, simpler set of APIs are "building blocks" of the second (which only has one available API). Reconfiguring the second API would invalidate any changes to the first.
+The below 2 *mutually exclusive* sets of APIs render the results for all document matches. The first, simpler set of APIs are "building blocks" of the second (which only has one available API). Reconfiguring the second API would also invalidate any changes to the first.
 
 ### 1. Rendering a Single Result
 
-The renderers under this key are grouped under `uiOptions.resultsRenderOpts` (instead of `uiOptions.XXX`).
+The APIs under this key are grouped under `uiOptions.resultsRenderOpts` (instead of `uiOptions.XXX`).
 
 These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).
 

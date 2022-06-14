@@ -22,7 +22,7 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 
 ## Use Cases
 
-The main target use case for this tool right now is providing a complete search solution for static sites (and possibly really, really large ones) or static site generators.
+The main target use case for this tool right now is providing a complete and feature-rich, but efficient search solution for static sites or static site generators.
 
 The indexing tool supports a few other file formats (`.json`, `.csv`, `.html`) as well, which can help support more custom data requirements (e.g. linking to another domain).
 

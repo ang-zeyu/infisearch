@@ -1,8 +1,8 @@
-# `indexing_config`
+# Indexing Configuration
 
 The configurations in this section mainly specify **how (mapping file contents to fields)** and **which** files to index.
 
-All configurations are optional, save for the `loader_configs` key. The cli tool will simply do nothing if no loaders are specified.
+All configurations are optional, save for the `loader_configs` key. The cli tool will *do nothing* if the `loader_configs` dictionary is empty.
 
 The snippet below shows the default values:
 
@@ -35,15 +35,12 @@ The snippet below shows the default values:
 
 ## Mapping File Data to Fields
 
-**`loader_configs`**
-
-The indexer is able to handle data from HTML, json, csv or txt files. Support for each file type is provided by a `Loader` abstraction.
+The indexer is able to handle data from HTML, JSON, csv or txt files. Support for each file type is provided by a "Loader" abstraction.
 
 You may configure loaders by **including them under the `loader_configs` key**, with any applicable options.
 
-<br>
 
-**`loader_configs.HtmlLoader`**
+#### HTML Files: **`loader_configs.HtmlLoader`**
 
 ```json
 "loader_configs": {
@@ -75,15 +72,15 @@ You may configure loaders by **including them under the `loader_configs` key**, 
 }
 ```
 
-The html loader traverses the document depth-first, in the order text nodes and attributes appear.
+The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.
 
-At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) under this element will then be indexed under the field specified by the corresponding `field_name`. If another of the element's descendants matched a different selector however, the configuration is then overwritten for that descendant (and its descendants).
+At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified `field_name`.
+
+This process repeats as the document is traversed — if another of the element's descendants matched a different selector, the field mapping is overwritten for that descendant's descendants.
 
 The `attr_map` option allows indexing attributes of each element under fields as well.
 
-<br>
-
-**`loader_configs.JsonLoader`**
+#### JSON Files: **`loader_configs.JsonLoader`**
 
 ```json
 "loader_configs": {
@@ -104,15 +101,14 @@ The `attr_map` option allows indexing attributes of each element under fields as
 ```
 
 Json files can also be indexed. The `field_map` key must be specified, which contains a mapping of **json key -> field name**.
-The `field_order` array controls the order in which these fields are indexed, which can have a minor influence on [query term proximity ranking](../search_features.md#ranking-specifics).
+The `field_order` array controls the order in which these fields are indexed, which can have a minor influence on [query term proximity ranking](../search_features.md#ranking-specifics), if positions are indexed.
 
 The json file can be either:
 1. An object, following the schema set out in `field_map`
 2. An array of objects following the schema set out in `field_map`
 
-<br>
 
-**`loader_configs.CsvLoader`**
+#### CSV Files: **`loader_configs.CsvLoader`**
 
 ```json
 "loader_configs": {
@@ -150,13 +146,12 @@ The json file can be either:
 }
 ```
 
-Field mappings for csv files can be configured using one of the `field_map / field_order` key pairs. The `use_headers` parameter specifies which of the two pairs of settings to use.
+Field mappings for CSV files can be configured using one of the `field_map / field_order` key pairs. The `use_headers` parameter specifies which of the two pairs of settings to use.
 
 The `parse_options` key specifies options for parsing the csv file. In particular, note that the `has_headers` key is distinct from and does not influence the `use_headers` parameter.
 
-<br>
 
-**`loader_configs.TxtLoader`**
+#### Text Files: **`loader_configs.TxtLoader`**
 
 ```json
 "loader_configs": {
@@ -168,32 +163,26 @@ The `parse_options` key specifies options for parsing the csv file. In particula
 
 This loader simply reads `.txt` files and indexes all its contents into a single field.
 
-## File Exclusions
 
-**`exclude`**
+## Miscellaneous Options
+
+#### File Exclusions: **`exclude = ["morsels_config.json"]`**
 
 Global file exclusions can be specified in this parameter, which is simply an array of file globs.
 
-## Indexing Performance
+#### Adding Positions: **`with_positions = false`**
 
-**`num_threads`**
+This option controls whether positions will be stored.
 
-This is the number of threads to use, excluding the main thread. When unspecified, this is `max(num physical cores - 1, 1)`.
+Features such as phrase queries that require positional information will not work if this is disabled.
 
-<br>
+Turning this off for very large collections (~> 1GB) can increase the tool's scalability, at the cost of such features.
 
-**`num_docs_per_block`**
+## Indexing and Search Scaling
 
-This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
+Prefer the in-built [scaling presets](./presets.md) option for configuring the tool's scalability. Where needed, the following options are available for finer control.
 
-If your documents are very small, increasing this *may* help improve indexing performance.
-
-> ⚠️ Ensure [`field_store_block_size`](./fields.md) is a clean multiple or divisor of this parameter.
-
-
-## Search Performance
-
-**`pl_limit`**
+#### Index Shard Size: **`pl_limit`**
 
 This is the main threshold parameter (in bytes) at which to "cut" index (**pl** meaning [postings list](https://en.wikipedia.org/wiki/Inverted_index)) files.
 
@@ -203,26 +192,28 @@ Increasing the value may also be useful for caching when used in conjunction wit
 
 <br>
 
-**`pl_cache_threshold`**
+#### Index Caching: **`pl_cache_threshold`**
 
 Index files that exceed this number will be cached by the search library at initilisation.
 
 It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Tradeoffs](../tradeoffs.md).
 
-## Miscellaneous Options
-
-**`num_pls_per_dir`**
+#### Index Shards per Directory: **`num_pls_per_dir`**
 
 This parameter simply controls how many index files you want to store in a single directory.
 
 While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.
 
-<br>
+## Indexing Performance
 
-**`with_positions`**
+#### Number of Threads: **`num_threads`**
 
-This option controls whether positions will be stored.
+This is the number of threads to use, excluding the main thread. When unspecified, this is `max(min(num physical cores, num logical cores) - 1, 1)`.
 
-Features such as phrase queries that require positional information will not work if this is disabled.
+#### Memory Usage: **`num_docs_per_block`**
 
-Turning this off for very large collections (~> 1GB) can increase the tool's scalability, at the cost of such features.
+This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
+
+If your documents are very small, increasing this *may* help improve indexing performance.
+
+> ⚠️ Ensure [`field_store_block_size`](./fields.md) is a clean multiple or divisor of this parameter.

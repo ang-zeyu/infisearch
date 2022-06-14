@@ -32,14 +32,14 @@ Specify the `preset` key in your configuration file to change this.
 Presets modify the following properties:
 
 - Search Configuration: 
-  - [`cacheAllFieldStores`](search_configuration.md#search-library-options)
+  - [`cacheAllFieldStores`](../search_configuration.md#search-library-options)
 - Language Configuration:
   - [`ignore_stop_words`](./language.md#stop-words)
 - Indexing Configuration:
   - What [fields](./fields.md) are stored (`do_store`). Not set if `fields_config.fields` is present.
   - [`field_store_block_size`](./fields.md)
-  - [`pl_limit`](./indexing.md#search-performance)
-  - [`pl_cache_threshold`](./indexing.md#search-performance)
+  - [`pl_limit`](./indexing.md#indexing-and-search-scaling)
+  - [`pl_cache_threshold`](./indexing.md#indexing-and-search-scaling)
 
 Any of these values specified in the configuration file will override that of the preset's.
 
@@ -48,8 +48,8 @@ Any of these values specified in the configuration file will override that of th
 
 There are 2 other options especially worth highlighting that can help reduce the index size (and hence support larger collections) in general.
 
-- [`ignore_stop_words=false`](./indexer/language.md#note-on-stop-words)
-- [`with_positions=false`](./indexer/indexing.md#miscellaneous-options)<br>
+- [`ignore_stop_words=false`](language.md#note-on-stop-words)
+- [`with_positions=false`](indexing.md#miscellaneous-options)<br>
   Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size!
 
 If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.

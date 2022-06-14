@@ -1,8 +1,8 @@
-# `lang_config`
+# Language Configuration
 
-The snippet below shows the default values for language configuration. The key controlling the main tokenizer module to use is `lang`, while the `options` key supplies tokenization options unique to each module.
+The snippet below shows the default values for language configuration. The main tokenizer module is specified by `lang`, while the `options` key supplies tokenization options unique to each language module.
 
-> These options are also applied to the search user interface and library where appropriate, and is stored in a metadata file in the index output directory.
+> These options are also applied at search time, which is retrieved from a metadata file in the index output directory.
 
 ```json
 {
@@ -56,17 +56,17 @@ This is essentially the same as the ascii tokenizer, but adds a `stemmer` option
 
     // Any of the languages here
     // https://docs.rs/rust-stemmers/1.2.0/rust_stemmers/enum.Algorithm.html
-    // For example, "english"
+    // Languages other than "english" have not been extensively tested. Use with caution!
     "stemmer": "english"
   }
 }
 ```
 
-It is separated from the ascii tokenizer to reduce binary size (about ~`220KB` savings before gzip).
+If you do not need stemming, use the `ascii` tokenizer, which has a smaller wasm binary.
 
 ## Chinese Tokenizer
 
-A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieba-rs) is also available, although, it hasn't been as extensively tested. Use at your own discretion!
+A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieba-rs) is also available, although, it hasn't been extensively tested. Use with caution!
 
 This tokenizer applies jieba's `cut` method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.
 
@@ -82,9 +82,9 @@ This tokenizer applies jieba's `cut` method to obtain various tokens, then appli
 
 ## Stop Words
 
-All tokenizers support forcibly removing stop words using the `ignore_stop_words` option, should you wish to keep the index size down.
+All tokenizers support keeping or removing (default) stop words using the `ignore_stop_words` option.
 
-Keeping stop words enables the following:
+Keeping them enables the following:
 - Processing phrase queries such as `"for tomorrow"`
 - Boolean queries of stop words (e.g. `if AND forecast AND sunny`)
 - More accurate ranking for free text queries, which employ an inverse document frequency heuristic to prune stop words only when their impact is small (far from always the case!). 

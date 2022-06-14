@@ -1,6 +1,6 @@
 # Search Configuration
 
-All search related options can be provided through the `initMorsels` function, exposed by `@morsels/search-ui`.
+All search related options can be provided through the `initMorsels` function, exposed by the search bundle.
 
 There are 2 categories of options, the first being related to internal search library functionalities, and the second the user interface.
 
@@ -61,14 +61,15 @@ To **try the different modes out**, head on over to the [mdbook plugin](./gettin
 
 #### UI Mode Specific Options
 
-There are also several options specific to each UI. Note that `dropdown` and `fullscreen` options are both applicable to the `auto` mode.
+There are also several options specific to each mode. Note that `dropdown` and `fullscreen` options are both applicable to the `auto` mode.
 
 | Mode        | Option                | Default                 | Description |
 | ----------- | -----------           | -----------             | ----------- |
-| `auto` \| `fullscreen`         | `fsInputLabel`        | `'Search'`| Accessibility label for the original input element, when the fullscreen UI is in use.
+| `auto`         | `fsInputButtonText`        | `undefined`| Placeholder override when the fullscreen UI is in use (i.e. when the input functions like a button). By default, Morsels uses the original placeholder you've configured, but makes some minimal [styling](./search_configuration_styling.md#input-element-as-a-button) changes to ensure keyboard accessibility.
 | `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom'` or `'bottom-start'` or `'bottom-end'`.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment of the dropdown container will also be automatically flipped horizontally to ensure the most optimal placement (see [floating-ui's](https://floating-ui.com/docs/size#using-with-flip) docs for a demonstration).
-| `fullscreen`| `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
-| `fullscreen`| `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
+| `fullscreen` | `fsInputLabel`        | `'Search'` | Accessibility label for the original input element, when the fullscreen UI is in use.
+| `fullscreen` | `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
+| `fullscreen` | `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
 | all except `target`         | `tip`                 | `true`        | Whether to show the tip icon. When hovered over, this shows advanced usage information (e.g. how to perform phrase queries).
 | `target`    | `target`              | `undefined`                       | `id` of the element, or an element reference to attach results to.<br><br>Required if using `mode='target'`.
 
@@ -107,7 +108,7 @@ Therefore, source documents are assumed to be **available** and **linkable** to.
 1. The `sourceFilesUrl` option concatenated with the relative file path of the document at the time of indexing **(default)**.
 
    > The relative file path is stored in the `_relative_fp` field, which is an internally generated field. Combining this with the base url (`sourceFilesUrl`) forms the full source document link.
-1. The [`link` field](./indexer/fields.md#default-fields-in-morselssearch-ui), a custom field that has to manually mapped from file data.
+1. The [`link` field](./indexer/fields.md#default-field-configuration), a custom field that has to manually mapped from file data.
 
 The use of the default indexed fields in the UI is as shown in the following diagram, and will be covered in more detail in the chapter on [fields](./indexer/fields.md):
 

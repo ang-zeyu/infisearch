@@ -42,8 +42,8 @@ You may still want to use morsels since it packages a search UI, or, if you pref
 - Indexing Configuration:
   - what [fields](./indexer/fields.md) are stored (`do_store`)
   - [`field_store_block_size`](./indexer/fields.md)
-  - [`pl_limit`](./indexer/indexing.md#search-performance)
-  - [`pl_cache_threshold`](./indexer/indexing.md#search-performance)
+  - [`pl_limit`](./indexer/indexing.md#indexing-and-search-scaling)
+  - [`pl_cache_threshold`](./indexer/indexing.md#indexing-and-search-scaling)
 
 The following sections discusses some combinations of options that generate the tradeoff results in the table above.
 

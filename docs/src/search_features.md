@@ -1,6 +1,6 @@
 # Search Features
 
-This page outlines the available search features common to both `@morsels/search-ui` and `@morsels/search-lib`.
+This page outlines the available search features.
 
 ## Boolean Operators, Parentheses
 
@@ -9,7 +9,7 @@ This page outlines the available search features common to both `@morsels/search
 Parentheses `(...)` can be used to group expressions together.
 
 ```
-lorem ipsum                 - documents containing either lorem or ipsum.
+lorem ipsum                 - documents containing either lorem OR ipsum
 lorem AND ipsum             - documents with both "lorem" and "ipsum"
 lorem AND NOT ipsum         - documents with "lorem" but not "ipsum"
 lorem AND NOT (ipsum dolor) - documents with "lorem" but not ("ipsum" OR "dolor")
@@ -23,7 +23,7 @@ Phrase queries are also supported by enclosing the relevant terms in `"..."`.
 "lorem ipsum" - documents containing "lorem" and "ipsum" appearing one after the other
 ```
 
-However, note these will not work if the [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature is disabled (enabled by default).
+You will need to enable the [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature for this to work.
 
 ## Field Search
 
@@ -57,7 +57,7 @@ Most of the search library operates on a WebWorker where it matters (e.g. setup,
 
 Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.
 
-Search UI (@morsels/search-ui) related functionalities, for example result preview generation, is also done on the main thread.
+Search UI related functionalities, for example result preview generation, is also done on the main thread.
 The main rationale is that there is simply no way of parsing HTML faster than implementations provided by the browser. (the original HTML document can be used as an alternative to storing document fields for result preview generation)
 
 
