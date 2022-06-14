@@ -35,17 +35,21 @@
  Fullscreen version
  */
 
-.morsels-button-input {
-    cursor: pointer;
-}
-
-.morsels-button-input:focus,
 .morsels-button-input:hover {
-    outline: var(--morsels-fs-input-focus-outline);
+    cursor: pointer;
 }
 
 .morsels-button-input::placeholder {
     text-align: center;
+}
+
+.morsels-button-input:focus:not(:hover) {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+}
+
+.morsels-button-input:focus:not(:hover)::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
 }
 
 .morsels-fs-backdrop {
