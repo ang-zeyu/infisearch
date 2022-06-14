@@ -78,12 +78,14 @@ Where the `input` option passed to `initMorsels` is concerned, Morsels adopts a 
 
 For reasons of accessbility however, some minimal styling is applied when using the [fullscreen](./search_configuration.md#ui-mode) UI to convey the intention of a button. This is limited to a background + color application on *focus*, `cursor: pointer` application on *hover*, and `text-align: center` (for the placeholder) application. The background and color application in particular are applied with a `!important` modifier as they are key to keyboard accessibility, but are also overridable easily with Morsels' css variables.
 
-Accessibility labels and roles are automatically set however, so you needn't worry about those.
+You may override and addon to these styles as needed, to convey the intention of a button further.
 
-You may override and addon to these styles as needed, to convey the intention of a button further. If you are using the default UI [mode](./search_configuration.md#ui-mode) of auto, you can use the `.morsels-button-input` selector to apply your styles only when the fullscreen UI is in use. For example,
+If using the default UI [mode](./search_configuration.md#ui-mode) of auto, you can also set a different [placeholder](./search_configuration.md#ui-mode-specific-options), or use the `.morsels-button-input` selector to apply your styles only when the fullscreen UI is in use. For example,
 
 ```css
-.morsels-button-input:focus {
-    background: orange;
+.morsels-button-input:focus:not(:hover) {
+    background: #6c757d !important;
 }
 ```
+
+Accessibility labels and roles are automatically set however, so you needn't worry about those.

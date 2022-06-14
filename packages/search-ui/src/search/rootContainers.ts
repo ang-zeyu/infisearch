@@ -72,25 +72,31 @@ export function dropdownRootRender(
   return [root, listContainer];
 }
 
-export function setFsTriggerInput(input: HTMLElement, fsInputLabel: string) {
+export function setFsTriggerInput(input: HTMLElement, fsInputButtonText: string, fsInputLabel: string) {
   input.setAttribute('autocomplete', 'off');
   input.setAttribute('readonly', '');
   input.setAttribute('role', 'button');
   input.setAttribute('aria-label', fsInputLabel);
+  if (fsInputButtonText) input.setAttribute('placeholder', fsInputButtonText);
   input.classList.add('morsels-button-input');
 }
 
-function unsetFsTriggerInput(input: HTMLElement) {
+function unsetFsTriggerInput(input: HTMLElement, originalPlaceholder: string) {
   input.removeAttribute('readonly');
   input.removeAttribute('role');
   input.removeAttribute('aria-label');
+  input.setAttribute('placeholder', originalPlaceholder);
   input.classList.remove('morsels-button-input');
 }
 
 export function setDropdownInputAria(
-  inputEl: HTMLElement, root: HTMLElement, listContainer: HTMLElement, label: string,
+  inputEl: HTMLElement,
+  root: HTMLElement,
+  listContainer: HTMLElement,
+  label: string,
+  originalPlaceholder: string,
 ) {
-  unsetFsTriggerInput(inputEl);
+  unsetFsTriggerInput(inputEl, originalPlaceholder);
   setInputAria(inputEl, 'morsels-dropdown-list');
   setCombobox(root, listContainer, label);
 }
@@ -100,6 +106,7 @@ export function unsetDropdownInputAria(
   listbox: HTMLElement,
   input: HTMLElement,
   fsInputLabel: string,
+  fsInputButtonText: string,
 ) {
   combobox.removeAttribute('role');
   combobox.removeAttribute('aria-expanded');
@@ -110,7 +117,7 @@ export function unsetDropdownInputAria(
   input.removeAttribute('aria-autocomplete');
   input.removeAttribute('aria-controls');
   input.removeAttribute('aria-activedescendant');
-  setFsTriggerInput(input, fsInputLabel);
+  setFsTriggerInput(input, fsInputButtonText, fsInputLabel);
 }
 
 export function fsRootRender(

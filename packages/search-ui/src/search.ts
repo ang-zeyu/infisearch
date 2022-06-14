@@ -155,7 +155,7 @@ function initMorsels(options: SearchUiOptions): {
   const {
     input, mode,
     dropdownAlignment,
-    label, fsInputLabel,
+    label, fsInputButtonText, fsInputLabel,
     target,
   } = uiOptions;
 
@@ -210,6 +210,8 @@ function initMorsels(options: SearchUiOptions): {
   if (input && (mode === UiMode.Auto || mode === UiMode.Dropdown)) {
     // Auto / Dropdown
 
+    const originalPlaceholder = input.getAttribute('placeholder') || '';
+
     const parent = input.parentElement;
     input.remove();
     const [dropdownRoot, dropdownListContainerr] = dropdownRootRender(uiOptions, searcher, input);
@@ -242,10 +244,10 @@ function initMorsels(options: SearchUiOptions): {
         || !(isMobileSizeGlobal = isMobileDevice())) {
         hideFullscreen();
         refreshDropdown();
-        setDropdownInputAria(input, dropdownRoot, dropdownListContainer, label);
+        setDropdownInputAria(input, dropdownRoot, dropdownListContainer, label, originalPlaceholder);
       } else {
         hideDropdown();
-        unsetDropdownInputAria(dropdownRoot, dropdownListContainer, input, fsInputLabel);
+        unsetDropdownInputAria(dropdownRoot, dropdownListContainer, input, fsInputLabel, fsInputButtonText);
       }
     }
     toggleUiMode();
@@ -276,7 +278,7 @@ function initMorsels(options: SearchUiOptions): {
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
-    setFsTriggerInput(input, fsInputLabel);
+    setFsTriggerInput(input, fsInputButtonText, fsInputLabel);
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Target) {
     // Target

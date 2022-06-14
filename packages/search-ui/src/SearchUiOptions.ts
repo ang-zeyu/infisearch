@@ -21,6 +21,7 @@ export interface UiOptions {
   dropdownAlignment?: 'bottom-start' | 'bottom-end',
   label: string,
   resultsLabel: string,
+  fsInputButtonText: string,
   fsInputLabel: string,
   fsContainer?: HTMLElement,
   fsPlaceholder?: string,
