@@ -157,7 +157,9 @@ impl PostingsList {
                 if let Some(term_doc_2_field) = term_doc_2_field_opt {
                     let mut doc_field = DocField {
                         field_tf: term_doc_1_field.field_tf + term_doc_2_field.field_tf,
-                        field_positions: Vec::new(),
+                        field_positions: Vec::with_capacity(
+                            term_doc_1_field.field_positions.len() + term_doc_2_field.field_positions.len()
+                        ),
                     };
 
                     let mut pos2_idx = 0;
@@ -223,6 +225,8 @@ impl PostingsList {
         let pl_vec = js_sys::Uint8Array::new(&pl_array_buffer).to_vec();
 
         let mut pos = term_info.postings_file_offset as usize;
+
+        self.term_docs.reserve_exact(term_info.doc_freq as usize);
 
         let mut prev_doc_id = 0;
         for _i in 0..term_info.doc_freq {

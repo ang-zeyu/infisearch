@@ -232,7 +232,7 @@ pub fn modify_blocks(
                 existing_pl_writers.insert(old_term_info.postings_file_name, ExistingPlWriter {
                     curr_pl: old_term_info.postings_file_name,
                     pl_vec,
-                    pl_writer: Vec::new(),
+                    pl_writer: Vec::with_capacity(indexing_config.pl_limit as usize),
                     pl_vec_last_offset: 0,
                     with_positions: indexing_config.with_positions,
                     output_path,
