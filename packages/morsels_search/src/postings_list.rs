@@ -161,28 +161,25 @@ impl PostingsList {
                     };
 
                     let mut pos2_idx = 0;
-                    for pos1_idx in 0..term_doc_1_field.field_positions.len() {
+                    for &pos1 in term_doc_1_field.field_positions.iter() {
                         while pos2_idx < term_doc_2_field.field_positions.len()
-                            && term_doc_2_field.field_positions[pos2_idx]
-                                < term_doc_1_field.field_positions[pos1_idx]
+                            && term_doc_2_field.field_positions[pos2_idx] < pos1
                         {
                             doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
                             pos2_idx += 1;
                         }
 
                         if pos2_idx < term_doc_2_field.field_positions.len()
-                            && term_doc_2_field.field_positions[pos2_idx]
-                                == term_doc_1_field.field_positions[pos1_idx]
+                            && term_doc_2_field.field_positions[pos2_idx] == pos1
                         {
                             pos2_idx += 1;
                         }
 
-                        doc_field.field_positions.push(term_doc_1_field.field_positions[pos1_idx]);
+                        doc_field.field_positions.push(pos1);
                     }
 
-                    while pos2_idx < term_doc_2_field.field_positions.len() {
-                        doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
-                        pos2_idx += 1;
+                    for i in pos2_idx..term_doc_2_field.field_positions.len() {
+                        doc_field.field_positions.push(term_doc_2_field.field_positions[i]);
                     }
 
                     td.fields.push(doc_field);

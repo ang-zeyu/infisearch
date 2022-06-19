@@ -40,20 +40,36 @@ pub struct DocInfos {
 }
 
 impl DocInfos {
-    pub fn from_search_docinfo(bitmap_docinfo_dicttable: &mut BitmapDocinfoDicttableReader, num_fields: usize) -> DocInfos {
+    pub fn init_doc_infos(
+        is_incremental: bool,
+        num_scored_fields: usize,
+        bitmap_docinfo_dicttable: Option<&mut BitmapDocinfoDicttableReader>,
+    ) -> DocInfos {
+        if !is_incremental {
+            return DocInfos {
+                doc_lengths: Vec::new(),
+                all_block_doc_lengths: Vec::new(),
+                average_lengths: vec![0.0; num_scored_fields],
+            };
+        }
+
         let mut doc_id_counter = 0;
         let mut average_lengths: Vec<f64> = Vec::new();
-        bitmap_docinfo_dicttable.read_docinfo_inital_metadata(&mut 0, &mut doc_id_counter, &mut average_lengths, num_fields);
+        let bitmap_docinfo_dicttable = bitmap_docinfo_dicttable
+            .expect("dynamic_index_info.json exists but bitmap_docinfo_dicttable does not");
+        bitmap_docinfo_dicttable.read_docinfo_inital_metadata(
+            &mut 0, &mut doc_id_counter, &mut average_lengths, num_scored_fields,
+        );
 
         let mut doc_lengths = Vec::with_capacity(doc_id_counter as usize);
         for doc_id in 0..doc_id_counter {
             let mut doc_info = WorkerMinerDocInfo {
                 doc_id,
-                field_lengths: Vec::with_capacity(num_fields),
+                field_lengths: Vec::with_capacity(num_scored_fields),
                 field_texts: Vec::new(),
             };
 
-            for _i in 0..num_fields {
+            for _i in 0..num_scored_fields {
                 doc_info.field_lengths.push(bitmap_docinfo_dicttable.read_field_length());
             }
 
@@ -61,14 +77,6 @@ impl DocInfos {
         }
 
         DocInfos { doc_lengths, all_block_doc_lengths: Vec::new(), average_lengths }
-    }
-
-    pub fn init_doc_infos(num_scored_fields: usize) -> DocInfos {
-        DocInfos {
-            doc_lengths: Vec::new(),
-            all_block_doc_lengths: Vec::new(),
-            average_lengths: vec![0.0; num_scored_fields],
-        }
     }
 
     fn sort_and_merge_block_doclengths(&mut self) {

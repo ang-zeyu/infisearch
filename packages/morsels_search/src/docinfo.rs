@@ -39,4 +39,10 @@ impl DocInfo {
     pub fn get_doc_length_factor(&self, doc_id: usize, field_id: usize) -> f32 {
         self.doc_length_factors[(doc_id * self.num_fields) + field_id] as f32
     }
+
+    #[inline(always)]
+    pub fn get_non_existent_id(&self) -> u32 {
+        // a dummy doc id that will never be matched
+        self.doc_length_factors_len + 1
+    }
 }

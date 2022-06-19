@@ -139,15 +139,11 @@ impl Indexer {
 
         // ------------------------------
         // Previous index info
-        let doc_infos = Arc::from(Mutex::from(if is_incremental {
-            DocInfos::from_search_docinfo(
-                bitmap_docinfo_dicttable_rdr.as_mut().expect("missing docinfo metadata file!"),
-                field_infos.num_scored_fields,
-            )
-        } else {
-            // No previous index info
-            DocInfos::init_doc_infos(field_infos.num_scored_fields)
-        }));
+        let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(
+            is_incremental,
+            field_infos.num_scored_fields,
+            bitmap_docinfo_dicttable_rdr.as_mut(),
+        )));
 
         if is_incremental {
             incremental_info.setup_dictionary(

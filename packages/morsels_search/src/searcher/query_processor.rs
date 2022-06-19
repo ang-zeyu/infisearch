@@ -72,7 +72,7 @@ impl Searcher {
             .collect();
         let num_pls = iterator_heap.len();
 
-        let mut curr_doc_id = self.doc_info.doc_length_factors_len + 1; // a dummy value that will never be matched
+        let mut curr_doc_id = self.doc_info.get_non_existent_id();
         let mut curr_num_docs = 0;
         while !iterator_heap.is_empty() {
             let min_pl_iterator_rc = iterator_heap.pop().unwrap();
@@ -98,7 +98,7 @@ impl Searcher {
                 let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
                 let mut has_match = false;
 
-                let terms_termdocs: Vec<_> = pl_iterators
+                let termdocs: Vec<&TermDoc> = pl_iterators
                     .iter()
                     .map(|pl_it| pl_it.borrow().peek_prev().unwrap())
                     .collect();
@@ -109,41 +109,37 @@ impl Searcher {
                     let mut term_field_position_idxes = vec![0; num_pls];
                     let mut curr_pos: u32 = 0;
                     let mut term_idx = 0;
-                    loop { // go through each term
-                        let curr_term_termdoc = terms_termdocs[term_idx];
-                        if field_id >= curr_term_termdoc.fields.len() {
-                            break;
-                        }
 
-                        let curr_pl_field = &curr_term_termdoc.fields[field_id];
-                        if let Some(pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
+                    // Go through the terms in this field, controlled by term_idx modifications below
+                    while let Some(curr_pl_field) = termdocs[term_idx].fields.get(field_id) {
+                        if let Some(&pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
                             if term_idx == 0 {
                                 // First term in the query
                                 term_field_position_idxes[0] += 1;
 
-                                curr_pos = *pos;
+                                curr_pos = pos;
                                 term_idx += 1;
-                            } else if *pos == (curr_pos + 1) {
+                            } else if pos == (curr_pos + 1) {
                                 // Matched the next term
                                 term_field_position_idxes[term_idx] += 1;
 
                                 if term_idx == num_pls - 1 {
                                     // Complete the match
                                     has_match = true;
-                                    result_doc_field.field_positions.push((*pos) + 1 - (num_pls as u32));
+                                    result_doc_field.field_positions.push(pos + 1 - (num_pls as u32));
 
                                     // Reset to look for first term
                                     term_idx = 0;
                                 } else {
                                     // Match next term
-                                    curr_pos = *pos;
+                                    curr_pos = pos;
                                     term_idx += 1;
                                 }
                             } else {
                                 // Not matched
 
                                 // Forward this postings list up to currPos, try again
-                                if *pos < curr_pos {
+                                if pos < curr_pos {
                                     while term_field_position_idxes[term_idx] < curr_pl_field.field_positions.len()
                                         && curr_pl_field.field_positions[term_field_position_idxes[term_idx]] < curr_pos
                                     {
@@ -166,7 +162,7 @@ impl Searcher {
                     td.fields.push(result_doc_field);
                 }
 
-                curr_doc_id = self.doc_info.doc_length_factors_len + 1;
+                curr_doc_id = self.doc_info.get_non_existent_id();
                 curr_num_docs = 0;
 
                 if has_match {
@@ -212,7 +208,7 @@ impl Searcher {
             return Rc::new(result_pl);
         }
 
-        let mut curr_doc_id: u32 = self.doc_info.doc_length_factors_len + 1;
+        let mut curr_doc_id: u32 = self.doc_info.get_non_existent_id();
         let mut curr_num_docs = 0;
         while !doc_heap.is_empty() {
             let mut min_pl_iterator = doc_heap.pop().unwrap();
@@ -234,7 +230,7 @@ impl Searcher {
 
                     result_pl.term_docs.push(acc);
 
-                    curr_doc_id = self.doc_info.doc_length_factors_len + 1;
+                    curr_doc_id = self.doc_info.get_non_existent_id();
                     curr_num_docs = 0;
                 }
             } else {
@@ -265,6 +261,8 @@ impl Searcher {
 
         let mut prev = 0;
         if !not_child_postings_lists.is_empty() {
+            debug_assert!(not_child_postings_lists.len() == 1);
+
             let not_child_postings_list = not_child_postings_lists.remove(0);
 
             for td in not_child_postings_list.term_docs.iter() {

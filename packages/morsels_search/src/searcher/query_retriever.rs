@@ -97,24 +97,26 @@ num_desired_expanded_terms,
         for query_part in query_parts {
             if let Some(terms) = &query_part.terms {
                 for term in terms {
-                    if !postings_lists.contains_key(term) {
-                        let mut idf = 0.0;
-                        let term_info = if let Some(term_info) = self.dictionary.get_term_info(term) {
-                            idf = get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
-                            Some(term_info.to_owned())
-                        } else {
-                            None
-                        };
-                        let postings_list = PostingsList {
-                            weight: 1.0,
-                            include_in_proximity_ranking: true,
-                            term_docs: Vec::new(),
-                            idf,
-                            term: Some(term.clone()),
-                            term_info,
-                        };
-                        postings_lists.insert(term.to_owned(), postings_list);
+                    if postings_lists.contains_key(term) {
+                        continue;
                     }
+
+                    let mut idf = 0.0;
+                    let term_info = if let Some(term_info) = self.dictionary.get_term_info(term) {
+                        idf = get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
+                        Some(term_info.to_owned())
+                    } else {
+                        None
+                    };
+                    let postings_list = PostingsList {
+                        weight: 1.0,
+                        include_in_proximity_ranking: true,
+                        term_docs: Vec::new(),
+                        idf,
+                        term: Some(term.clone()),
+                        term_info,
+                    };
+                    postings_lists.insert(term.to_owned(), postings_list);
                 }
             } else if let Some(children) = &mut query_part.children {
                 self.populate_term_postings_lists(children, postings_lists);
