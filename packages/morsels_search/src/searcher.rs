@@ -7,7 +7,6 @@ pub mod query_retriever;
 use morsels_common::BitmapDocinfoDicttableReader;
 use morsels_common::dictionary;
 use serde::Deserialize;
-use serde_json::Value;
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
@@ -72,19 +71,51 @@ pub struct Searcher {
     num_scored_fields_less_one: f32,
 }
 
+static INVALID_SW_MSG: &str = "Invalid stop words";
+static INVALID_MAXTERMLEN_MSG: &str = "Invalid max term len";
+
+fn get_stop_words(lang_config: &mut MorselsLanguageConfig) -> Option<Vec<String>> {
+    lang_config.options.get("stop_words")
+        .map_or(
+            None,
+            |v| Some(
+                v.as_array()
+                    .expect(INVALID_SW_MSG)
+                    .into_iter()
+                    .map(|s| s.as_str().expect(INVALID_SW_MSG).to_owned())
+                    .collect()
+            )
+        )
+}
+
+fn get_max_term_len(lang_config: &mut MorselsLanguageConfig) -> usize {
+    lang_config.options.get("max_term_len")
+        .map_or(80, |v| v.as_u64().expect(INVALID_MAXTERMLEN_MSG) as usize)
+}
+
 #[cfg(feature = "lang_ascii")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(ascii::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap()))
+    Box::new(ascii::new_with_options(ascii::TokenizerOptions {
+        stop_words: get_stop_words(lang_config),
+        max_term_len: get_max_term_len(lang_config),
+    }))
 }
 
 #[cfg(feature = "lang_latin")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(latin::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap()))
+    Box::new(latin::new_with_options(latin::TokenizerOptions {
+        stop_words: get_stop_words(lang_config),
+        stemmer: lang_config.options.get("stemmer").map_or(None, |v| Some(v.as_str().expect("Invalid stemmer opt").to_owned())),
+        max_term_len: get_max_term_len(lang_config),
+    }))
 }
 
 #[cfg(feature = "lang_chinese")]
 fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(chinese::new_with_options(serde_json::from_value(Value::Object(std::mem::take(&mut lang_config.options))).unwrap()))
+    Box::new(chinese::new_with_options(chinese::TokenizerOptions {
+        stop_words: get_stop_words(lang_config),
+        max_term_len: get_max_term_len(lang_config),
+    }))
 }
 
 #[allow(dead_code)]

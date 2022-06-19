@@ -61,12 +61,12 @@ fn get_default_max_term_len() -> usize {
 
 #[derive(Deserialize)]
 pub struct TokenizerOptions {
-    stop_words: Option<Vec<String>>,
+    pub stop_words: Option<Vec<String>>,
     #[cfg(feature = "indexer")]
     #[serde(default)]
     ignore_stop_words: bool,
     #[serde(default = "get_default_max_term_len")]
-    max_term_len: usize,
+    pub max_term_len: usize,
 }
 
 pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {

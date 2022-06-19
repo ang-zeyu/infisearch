@@ -19,12 +19,11 @@ byteorder = "1"
 futures = "0.3.15"
 js-sys = "0.3.51"
 morsels_common = { path = "../morsels_common" }
-morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", optional = true }
-morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", optional = true }
-morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", optional = true }
+morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", optional = true, features = [] }
+morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", optional = true, features = [] }
+morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", optional = true, features = [] }
 rustc-hash = "1.1"
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1"
 serde-wasm-bindgen = "0.4"
 smartstring = "0.2.7"
 wasm-bindgen = { version = "0.2" }
@@ -44,3 +43,4 @@ features = [
 
 [dev-dependencies]
 pretty_assertions = "0.7.2"
+serde_json = "1"

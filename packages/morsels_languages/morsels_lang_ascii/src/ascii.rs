@@ -35,7 +35,7 @@ pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
     #[cfg(feature = "indexer")]
     #[serde(default)]
-    pub ignore_stop_words: bool,
+    ignore_stop_words: bool,
     #[serde(default = "get_default_max_term_len")]
     pub max_term_len: usize,
 }
