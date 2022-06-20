@@ -1,7 +1,6 @@
-use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
 use std::borrow::Cow;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 #[derive(Clone)]
 #[cfg_attr(test, derive(Debug))]
@@ -46,7 +45,7 @@ pub trait SearchTokenizer {
         number_of_expanded_terms: usize,
         term: &str,
         dictionary: &BTreeMap<SmartString, TermInfo>,
-    ) -> FxHashMap<String, f32>;
+    ) -> HashMap<String, f32>;
 }
 
 pub struct SearchTokenizeResult {

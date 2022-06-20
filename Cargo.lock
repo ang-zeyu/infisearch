@@ -1382,7 +1382,6 @@ version = "0.1.1"
 dependencies = [
  "byteorder",
  "pretty_assertions",
- "rustc-hash",
  "serde",
  "smartstring",
 ]
@@ -1425,7 +1424,6 @@ dependencies = [
  "lazy_static",
  "morsels_common",
  "regex",
- "rustc-hash",
  "serde",
  "smartstring",
 ]
@@ -1437,7 +1435,6 @@ dependencies = [
  "jieba-rs",
  "morsels_common",
  "morsels_lang_ascii",
- "rustc-hash",
  "serde",
  "smartstring",
 ]
@@ -1449,7 +1446,6 @@ dependencies = [
  "morsels_common",
  "morsels_lang_ascii",
  "rust-stemmers",
- "rustc-hash",
  "serde",
  "smartstring",
 ]
@@ -1467,7 +1463,6 @@ dependencies = [
  "morsels_lang_chinese",
  "morsels_lang_latin",
  "pretty_assertions",
- "rustc-hash",
  "smartstring",
  "wasm-bindgen",
  "wasm-bindgen-futures",

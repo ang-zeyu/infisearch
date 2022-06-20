@@ -1,9 +1,7 @@
 use std::cell::RefCell;
 use std::cmp::Reverse;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 use std::rc::Rc;
-
-use rustc_hash::FxHashMap;
 
 use morsels_common::bitmap;
 
@@ -42,7 +40,7 @@ impl Searcher {
     fn populate_phrasal_postings_lists(
         &self,
         query_part: &QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut encountered_empty_pl = false;
         let pl_iterators: Vec<Rc<RefCell<PlIterator>>> = query_part
@@ -187,7 +185,7 @@ impl Searcher {
     fn populate_and_postings_lists(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut pl_vecs = self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
         if pl_vecs.len() == 1 {
@@ -251,7 +249,7 @@ impl Searcher {
     fn populate_not_postings_list(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut result_pl = empty_pl();
         result_pl.include_in_proximity_ranking = false;
@@ -295,7 +293,7 @@ impl Searcher {
     fn populate_bracket_postings_list(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut new_pl = empty_pl();
         if query_part.children.is_none() {
@@ -425,7 +423,7 @@ impl Searcher {
     fn populate_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: &FxHashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
     ) -> Vec<Rc<PostingsList>> {
         let mut result: Vec<Rc<PostingsList>> = Vec::new();
 
@@ -478,9 +476,9 @@ impl Searcher {
     pub fn process(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: FxHashMap<String, PostingsList>,
+        term_postings_lists: HashMap<String, PostingsList>,
     ) -> Vec<Rc<PostingsList>> {
-        let term_rc_postings_lists: FxHashMap<String, Rc<PostingsList>> =
+        let term_rc_postings_lists: HashMap<String, Rc<PostingsList>> =
             term_postings_lists.into_iter().map(|(term, pl)| (term, Rc::new(pl))).collect();
 
         self.populate_postings_lists(query_parts, &term_rc_postings_lists)
@@ -489,21 +487,21 @@ impl Searcher {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
     use std::rc::Rc;
 
     use pretty_assertions::assert_eq;
-    use rustc_hash::FxHashMap;
 
     use crate::postings_list::test::{to_pl, to_pl_rc};
     use crate::postings_list::PostingsList;
     use crate::searcher::query_parser::test as query_parser_test;
     use crate::searcher::test as searcher_test;
 
-    struct TermPostingsListsBuilder(FxHashMap<String, PostingsList>);
+    struct TermPostingsListsBuilder(HashMap<String, PostingsList>);
 
     impl TermPostingsListsBuilder {
         fn new() -> Self {
-            TermPostingsListsBuilder(FxHashMap::default())
+            TermPostingsListsBuilder(HashMap::default())
         }
 
         fn with(mut self, term: &str, pl_str: &str) -> Self {
@@ -512,7 +510,7 @@ mod test {
         }
     }
 
-    fn search(query: &str, term_postings_lists: FxHashMap<String, PostingsList>) -> Vec<Rc<PostingsList>> {
+    fn search(query: &str, term_postings_lists: HashMap<String, PostingsList>) -> Vec<Rc<PostingsList>> {
         let mut parsed = query_parser_test::parse(query);
         searcher_test::create_searcher(10, 3).process(&mut parsed, term_postings_lists)
     }

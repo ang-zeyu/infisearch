@@ -1,9 +1,8 @@
 #[cfg(feature = "indexer")]
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashSet, HashMap};
 
 use jieba_rs::Jieba;
-use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
 
 #[cfg(feature = "indexer")]
@@ -140,7 +139,7 @@ impl SearchTokenizer for Tokenizer {
         _number_of_expanded_terms: usize,
         _term: &str,
         _dictionary: &BTreeMap<SmartString, TermInfo>,
-    ) -> FxHashMap<String, f32> {
-        FxHashMap::default()
+    ) -> HashMap<String, f32> {
+        HashMap::default()
     }
 }

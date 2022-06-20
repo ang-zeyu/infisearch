@@ -1,9 +1,8 @@
 use std::borrow::Cow;
-use std::collections::{HashSet, BTreeMap};
+use std::collections::{HashSet, BTreeMap, HashMap};
 
 #[cfg(feature = "indexer")]
 use regex::Regex;
-use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
 
 use crate::ascii_folding_filter;
@@ -141,7 +140,7 @@ impl SearchTokenizer for Tokenizer {
         _number_of_expanded_terms: usize,
         _term: &str,
         _dictionary: &BTreeMap<SmartString, TermInfo>,
-    ) -> FxHashMap<String, f32> {
-        FxHashMap::default()
+    ) -> HashMap<String, f32> {
+        HashMap::default()
     }
 }

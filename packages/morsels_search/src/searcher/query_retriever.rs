@@ -1,5 +1,6 @@
+use std::collections::HashMap;
+
 use futures::future::join_all;
-use rustc_hash::FxHashMap;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
@@ -15,7 +16,7 @@ impl Searcher {
     fn expand_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        postings_lists_map: &mut FxHashMap<String, PostingsList>,
+        postings_lists_map: &mut HashMap<String, PostingsList>,
     ) {
         let num_desired_expanded_terms = self.searcher_config.searcher_options.number_of_expanded_terms;
         if query_parts.is_empty() || num_desired_expanded_terms == 0 {
@@ -92,7 +93,7 @@ num_desired_expanded_terms,
     fn populate_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        postings_lists: &mut FxHashMap<String, PostingsList>,
+        postings_lists: &mut HashMap<String, PostingsList>,
     ) {
         for query_part in query_parts {
             if let Some(terms) = &query_part.terms {
@@ -127,8 +128,8 @@ num_desired_expanded_terms,
     pub async fn populate_term_pls(
         &self,
         query_parts: &mut Vec<QueryPart>,
-    ) -> Result<FxHashMap<String, PostingsList>, JsValue> {
-        let mut postings_lists_map: FxHashMap<String, PostingsList> = FxHashMap::default();
+    ) -> Result<HashMap<String, PostingsList>, JsValue> {
+        let mut postings_lists_map: HashMap<String, PostingsList> = HashMap::default();
         self.populate_term_postings_lists(query_parts, &mut postings_lists_map);
 
         self.expand_term_postings_lists(query_parts, &mut postings_lists_map);

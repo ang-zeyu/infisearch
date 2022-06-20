@@ -2,9 +2,8 @@ mod edit_distance;
 
 use std::ops::Bound::{Excluded, Unbounded};
 use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 
-use rustc_hash::FxHashMap;
 use smartstring::alias::String;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
@@ -48,7 +47,7 @@ pub trait SearchDictionary {
         &self,
         number_of_expanded_terms: usize,
         base_term: &str,
-    ) -> FxHashMap<std::string::String, f32>;
+    ) -> HashMap<std::string::String, f32>;
 }
 
 impl SearchDictionary for Dictionary {
@@ -119,7 +118,7 @@ impl SearchDictionary for Dictionary {
         &self,
         number_of_expanded_terms: usize,
         prefix: &str,
-    ) -> FxHashMap<std::string::String, f32> {
+    ) -> HashMap<std::string::String, f32> {
         let prefix_char_count = prefix.chars().count();
 
         let prefix_doc_freq = if let Some(term_info) = self.term_infos.get(&String::from(prefix)) {
@@ -153,7 +152,7 @@ impl SearchDictionary for Dictionary {
 
         let number_of_expanded_terms_found = top_n_heap.len() as f32;
         let max_score_per_expanded_term = MAXIMUM_TERM_EXPANSION_WEIGHT / number_of_expanded_terms_found;
-        let mut expanded_terms: FxHashMap<std::string::String, f32> = FxHashMap::default();
+        let mut expanded_terms: HashMap<std::string::String, f32> = HashMap::default();
         for TermWeightPair { term, doc_freq_diff: _ } in top_n_heap {
             let length_proportion = prefix_char_count as f32 / term.chars().count() as f32;
             let weight = length_proportion * max_score_per_expanded_term;
