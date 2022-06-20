@@ -316,7 +316,7 @@ pub mod test {
     // Takes a vector of "TermDoc", containing a vector of "fields", containing a tuple of (field_tf, vector of field positions)
     // E.g. a TermDoc containing 2 fields of term frequency 2 and 1: [ [2,[1,2]], [1,[120]] ]
     pub fn to_pl(text: &str) -> PostingsList {
-        let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = serde_json::from_str(&format!("[{}]", text)).unwrap();
+        let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = miniserde::json::from_str(&format!("[{}]", text)).unwrap();
 
         let term_docs: Vec<TermDoc> = vec
             .into_iter()
@@ -350,7 +350,7 @@ pub mod test {
     }
 
     fn to_term_doc(text: &str) -> TermDoc {
-        let doc_fields: Vec<(f32, Vec<u32>)> = serde_json::from_str(text).unwrap();
+        let doc_fields: Vec<(f32, Vec<u32>)> = miniserde::json::from_str(text).unwrap();
         vec_to_term_doc(0, doc_fields)
     }
 

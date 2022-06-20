@@ -44,7 +44,24 @@ export default class WorkerSearcher {
   private async _mrlSetupWasm(metadataDictString: [ArrayBuffer, ArrayBuffer], wasmModule: Promise<any>) {
     const [metadata, dictString] = metadataDictString;
     this._mrlWasmModule = await wasmModule;
-    this._mrlWasmSearcher = await this._mrlWasmModule.get_new_searcher(this._mrlConfig, metadata, dictString);
+
+    function renameConfig(obj: any) {
+      Object.entries(obj).forEach(([k, v]) => {
+        if (k !== 'options') {
+          const camelCased = k.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+          if (camelCased !== k) obj[camelCased] = v;
+          if (v && typeof v === 'object' && !Array.isArray(v)) renameConfig(v);
+        }
+      });
+    }
+
+    renameConfig(this._mrlConfig);
+
+    this._mrlWasmSearcher = await this._mrlWasmModule.get_new_searcher(
+      JSON.stringify(this._mrlConfig),
+      metadata,
+      dictString,
+    );
   }
 
   static async _mrlSetup(data: MorselsConfig, wasmModule: Promise<any>): Promise<WorkerSearcher> {

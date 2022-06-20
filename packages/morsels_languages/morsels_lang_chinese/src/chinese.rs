@@ -3,16 +3,16 @@ use std::borrow::Cow;
 use std::collections::{BTreeMap, HashSet};
 
 use jieba_rs::Jieba;
+use miniserde::json::Value;
 use rustc_hash::FxHashMap;
-use serde::Deserialize;
 use smartstring::alias::String as SmartString;
 
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::IndexerTokenizer;
-use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
+use morsels_common::{tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer}, MorselsLanguageConfig};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
-use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
+use morsels_lang_ascii::{ascii::ascii_and_nonword_filter, options};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::intra_filter;
 
@@ -55,33 +55,34 @@ pub struct Tokenizer {
     max_term_len: usize,
 }
 
-fn get_default_max_term_len() -> usize {
-    80
-}
-
-#[derive(Deserialize)]
 pub struct TokenizerOptions {
     pub stop_words: Option<Vec<String>>,
     #[cfg(feature = "indexer")]
-    #[serde(default)]
     ignore_stop_words: bool,
-    #[serde(default = "get_default_max_term_len")]
     pub max_term_len: usize,
 }
 
-pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
-    let stop_words = if let Some(stop_words) = options.stop_words {
+pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
+    let options = if let Value::Object(obj) = &lang_config.options {
+        obj
+    } else {
+        panic!("language config options should be object");
+    };
+
+    let stop_words = if let Some(stop_words) = options::get_stop_words(&options) {
         get_stop_words_set(stop_words)
     } else {
         get_stop_words_set(Vec::new())
     };
 
+    let max_term_len = options::get_max_term_len(&options).min(250);
+
     Tokenizer {
         stop_words,
         #[cfg(feature = "indexer")]
-        ignore_stop_words: options.ignore_stop_words,
+        ignore_stop_words: options::get_ignore_stop_words(&options),
         jieba: Jieba::empty(),
-        max_term_len: options.max_term_len.min(250)
+        max_term_len,
     }
 }
 

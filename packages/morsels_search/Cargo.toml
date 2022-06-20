@@ -18,7 +18,8 @@ perf = []
 byteorder = "1"
 futures = "0.3.15"
 js-sys = "0.3.51"
-morsels_common = { path = "../morsels_common" }
+miniserde = "0.1"
+morsels_common = { path = "../morsels_common", features = [] }
 morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", optional = true, features = [] }
 morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", optional = true, features = [] }
 morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", optional = true, features = [] }
@@ -43,4 +44,3 @@ features = [
 
 [dev-dependencies]
 pretty_assertions = "0.7.2"
-serde_json = "1"

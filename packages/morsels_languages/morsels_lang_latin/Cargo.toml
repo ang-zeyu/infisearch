@@ -13,6 +13,7 @@ license = "MIT"
 indexer = []
 
 [dependencies]
+miniserde = "0.1"
 morsels_common = { path = "../../morsels_common", version="0.1.1" }
 morsels_lang_ascii = { path = "../morsels_lang_ascii", version="0.1.1" }
 rustc-hash = "1.1"

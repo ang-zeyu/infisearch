@@ -28,7 +28,6 @@ use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
-use serde_json::Value;
 
 pub struct Indexer {
     indexing_config: Arc<MorselsIndexingConfig>,
@@ -245,27 +244,10 @@ impl Indexer {
 
     fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn IndexerTokenizer + Send + Sync> {
         match lang_config.lang.as_str() {
-            "ascii" => {
-                Arc::new(ascii::new_with_options(
-                    serde_json::from_value(Value::Object(lang_config.options.clone()))
-                        .expect("Failed to parse ascii tokenizer options")
-                ))
-            }
-            "latin" => {
-                Arc::new(latin::new_with_options(
-                    serde_json::from_value(Value::Object(lang_config.options.clone()))
-                        .expect("Failed to parse latin tokenizer options")
-                ))
-            }
-            "chinese" => {
-                Arc::new(chinese::new_with_options(
-                    serde_json::from_value(Value::Object(lang_config.options.clone()))
-                        .expect("Failed to parse chinese tokenizer options")
-                ))
-            }
-            _ => {
-                panic!("Unsupported language {}", lang_config.lang)
-            }
+            "ascii" => Arc::new(ascii::new_with_options(lang_config)),
+            "latin" => Arc::new(latin::new_with_options(lang_config)),
+            "chinese" => Arc::new(chinese::new_with_options(lang_config)),
+            _ => panic!("Unsupported language {}", lang_config.lang),
         }
     }
 

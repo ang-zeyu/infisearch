@@ -374,9 +374,11 @@ pub fn parse_query(
 
 #[cfg(test)]
 pub mod test {
+    use miniserde::json;
+    use morsels_common::MorselsLanguageConfig;
     use pretty_assertions::assert_eq;
 
-    use morsels_lang_ascii::ascii::{self, TokenizerOptions};
+    use morsels_lang_ascii::ascii;
 
     use super::{QueryPart, QueryPartType};
 
@@ -475,20 +477,18 @@ pub mod test {
     }
 
     pub fn parse(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(TokenizerOptions {
-            stop_words: None,
-            ignore_stop_words: false,
-            max_term_len: 80,
+        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+            lang: "ascii".to_owned(),
+            options: json::from_str(r#"{ "ignore_stop_words": false }"#).unwrap(),
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(TokenizerOptions {
-            stop_words: None,
-            ignore_stop_words: false,
-            max_term_len: 80,
+        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+            lang: "latin".to_owned(),
+            options: json::from_str(r#"{ "ignore_stop_words": false }"#).unwrap(),
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false).0
@@ -496,10 +496,9 @@ pub mod test {
 
     // The tokenizer should not remove stop words no matter what when searching
     pub fn parse_with_sw_removal(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(TokenizerOptions {
-            stop_words: None,
-            ignore_stop_words: true,
-            max_term_len: 80,
+        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+            lang: "ascii".to_owned(),
+            options: json::from_str(r#"{ "ignore_stop_words": true }"#).unwrap(),
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0

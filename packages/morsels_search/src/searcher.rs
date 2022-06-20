@@ -6,7 +6,8 @@ pub mod query_retriever;
 
 use morsels_common::BitmapDocinfoDicttableReader;
 use morsels_common::dictionary;
-use serde::Deserialize;
+
+use miniserde::{json, Deserialize};
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
@@ -27,7 +28,6 @@ use morsels_common::MorselsLanguageConfig;
 use query_parser::{parse_query, QueryPart, QueryPartType};
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
 struct SearcherConfig {
     indexing_config: IndexingConfig,
     lang_config: MorselsLanguageConfig,
@@ -37,7 +37,6 @@ struct SearcherConfig {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
 struct IndexingConfig {
     num_pls_per_dir: u32,
     with_positions: bool,
@@ -52,7 +51,6 @@ struct FieldInfo {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
 struct SearcherOptions {
     url: String,
     number_of_expanded_terms: usize,
@@ -71,68 +69,36 @@ pub struct Searcher {
     num_scored_fields_less_one: f32,
 }
 
-static INVALID_SW_MSG: &str = "Invalid stop words";
-static INVALID_MAXTERMLEN_MSG: &str = "Invalid max term len";
-
-fn get_stop_words(lang_config: &mut MorselsLanguageConfig) -> Option<Vec<String>> {
-    lang_config.options.get("stop_words")
-        .map_or(
-            None,
-            |v| Some(
-                v.as_array()
-                    .expect(INVALID_SW_MSG)
-                    .into_iter()
-                    .map(|s| s.as_str().expect(INVALID_SW_MSG).to_owned())
-                    .collect()
-            )
-        )
-}
-
-fn get_max_term_len(lang_config: &mut MorselsLanguageConfig) -> usize {
-    lang_config.options.get("max_term_len")
-        .map_or(80, |v| v.as_u64().expect(INVALID_MAXTERMLEN_MSG) as usize)
-}
-
 #[cfg(feature = "lang_ascii")]
-fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(ascii::new_with_options(ascii::TokenizerOptions {
-        stop_words: get_stop_words(lang_config),
-        max_term_len: get_max_term_len(lang_config),
-    }))
+fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
+    Box::new(ascii::new_with_options(lang_config))
 }
 
 #[cfg(feature = "lang_latin")]
-fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(latin::new_with_options(latin::TokenizerOptions {
-        stop_words: get_stop_words(lang_config),
-        stemmer: lang_config.options.get("stemmer").map_or(None, |v| Some(v.as_str().expect("Invalid stemmer opt").to_owned())),
-        max_term_len: get_max_term_len(lang_config),
-    }))
+fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
+    Box::new(latin::new_with_options(lang_config))
 }
 
 #[cfg(feature = "lang_chinese")]
-fn get_tokenizer(lang_config: &mut MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(chinese::new_with_options(chinese::TokenizerOptions {
-        stop_words: get_stop_words(lang_config),
-        max_term_len: get_max_term_len(lang_config),
-    }))
+fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
+    Box::new(chinese::new_with_options(lang_config))
 }
 
 #[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_new_searcher(
-    config_js: JsValue,
+    config_js: String,
     bitmap_docinfo_dt_buf: JsValue,
     dict_string_buf: JsValue,
 ) -> Result<Searcher, JsValue> {
-    let mut searcher_config: SearcherConfig = serde_wasm_bindgen::from_value(config_js).expect("Morsels config does not match schema");
-
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
     #[cfg(feature = "perf")]
     let performance = window.performance().unwrap();
     #[cfg(feature = "perf")]
     let start = performance.now();
+
+    let mut searcher_config: SearcherConfig = json::from_str(&config_js).expect("Morsels config does not match schema");
 
     let bitmap_docinfo_dt = js_sys::Uint8Array::new(&bitmap_docinfo_dt_buf).to_vec();
     let mut bitmap_docinfo_dt_rdr = BitmapDocinfoDicttableReader { buf: bitmap_docinfo_dt, pos: 0 };
@@ -265,14 +231,14 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
 pub mod test {
     use std::collections::BTreeMap;
 
+    use miniserde::json;
+
     use morsels_common::MorselsLanguageConfig;
     use morsels_lang_ascii::ascii;
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
     use crate::dictionary::Dictionary;
     use crate::docinfo::DocInfo;
-
-    use serde_json::json;
 
     pub fn create_searcher(num_docs: usize, num_fields: usize) -> Searcher {
         let mut field_infos = Vec::new();
@@ -287,7 +253,10 @@ pub mod test {
 
         Searcher {
             dictionary: Dictionary { term_infos: BTreeMap::default() },
-            tokenizer: Box::new(ascii::new_with_options(serde_json::from_value(json!({})).unwrap())),
+            tokenizer: Box::new(ascii::new_with_options(&MorselsLanguageConfig {
+                lang: "ascii".to_owned(),
+                options: json::from_str("{}").unwrap(),
+            })),
             doc_info: DocInfo {
                 doc_length_factors: vec![1.0; num_docs * num_fields],
                 doc_length_factors_len: num_docs as u32,
@@ -301,7 +270,7 @@ pub mod test {
                 },
                 lang_config: MorselsLanguageConfig {
                     lang: "latin".to_owned(),
-                    options: serde_json::from_str("{}").unwrap(),
+                    options: json::from_str("{}").unwrap(),
                 },
                 field_infos,
                 num_scored_fields: num_fields,

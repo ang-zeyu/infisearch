@@ -1,5 +1,6 @@
 use super::MorselsConfig;
 
+use miniserde::json as mini_json;
 use serde_json::Value;
 
 fn set_all_content_fields_do_store(config: &mut MorselsConfig, do_store: bool) {
@@ -41,10 +42,12 @@ pub fn apply_preset_override(
         set_all_content_fields_do_store(config, do_store_fields);
     };
 
-    if !config.lang_config.options.contains_key("ignore_stop_words") {
-        config.lang_config.options.insert(
-            "ignore_stop_words".to_owned(), Value::Bool(ignore_stop_words),
-        );
+    if let mini_json::Value::Object(obj) = &mut config.lang_config.options {
+        if obj.get("ignore_stop_words").is_none() {
+            obj.insert("ignore_stop_words".to_owned(), mini_json::Value::Bool(ignore_stop_words));
+        }
+    } else {
+        panic!("Language config options is not an object");
     }
 
     if let Some(val) = json_config.get("indexing_config") {

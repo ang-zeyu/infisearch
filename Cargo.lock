@@ -1300,6 +1300,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "mini-internal"
+version = "0.1.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60bbf2d78a45808eba478a0660f050bbce70dafc011e275cf00f6f8500a8be88"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "miniserde"
+version = "0.1.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a89fcaf0064d3361240ae91a1f773d874302a62b4e6fdbd37b2888cb7d5aba3e"
+dependencies = [
+ "itoa 1.0.2",
+ "mini-internal",
+ "ryu",
+]
+
+[[package]]
 name = "mio"
 version = "0.6.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1359,6 +1381,7 @@ name = "morsels_common"
 version = "0.1.1"
 dependencies = [
  "byteorder",
+ "miniserde",
  "pretty_assertions",
  "rustc-hash",
  "serde",
@@ -1379,6 +1402,7 @@ dependencies = [
  "lazy_static",
  "log",
  "log4rs",
+ "miniserde",
  "morsels_common",
  "morsels_lang_ascii",
  "morsels_lang_chinese",
@@ -1402,6 +1426,7 @@ name = "morsels_lang_ascii"
 version = "0.1.1"
 dependencies = [
  "lazy_static",
+ "miniserde",
  "morsels_common",
  "regex",
  "rustc-hash",
@@ -1414,6 +1439,7 @@ name = "morsels_lang_chinese"
 version = "0.1.1"
 dependencies = [
  "jieba-rs",
+ "miniserde",
  "morsels_common",
  "morsels_lang_ascii",
  "rustc-hash",
@@ -1425,6 +1451,7 @@ dependencies = [
 name = "morsels_lang_latin"
 version = "0.1.1"
 dependencies = [
+ "miniserde",
  "morsels_common",
  "morsels_lang_ascii",
  "rust-stemmers",
@@ -1440,6 +1467,7 @@ dependencies = [
  "byteorder",
  "futures",
  "js-sys",
+ "miniserde",
  "morsels_common",
  "morsels_lang_ascii",
  "morsels_lang_chinese",
@@ -1448,7 +1476,6 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde-wasm-bindgen",
- "serde_json",
  "smartstring",
  "wasm-bindgen",
  "wasm-bindgen-futures",
