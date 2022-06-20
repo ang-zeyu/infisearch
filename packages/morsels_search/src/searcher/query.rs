@@ -2,7 +2,6 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
-use serde::{Serialize, Serializer};
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 
@@ -44,13 +43,6 @@ impl PartialOrd for DocResult {
     }
 }
 
-impl Serialize for DocResult {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    {
-        (self.doc_id, self.score).serialize(serializer)
-    }
-}
-
 struct Position {
     pos: u32,
     pl_it_idx: usize,
@@ -89,17 +81,17 @@ pub struct Query {
 
 #[wasm_bindgen]
 impl Query {
-    pub fn get_next_n(&mut self, n: usize) -> JsValue {
-        let mut doc_ids: Vec<DocResult> = Vec::with_capacity(n);
+    pub fn get_next_n(&mut self, n: usize) -> Vec<u32> {
+        let mut doc_ids: Vec<u32> = Vec::with_capacity(n);
         while !self.result_heap.is_empty()
             && doc_ids.len() < n
             && (self.result_limit.is_none() || self.results_retrieved < self.result_limit.unwrap())
         {
-            doc_ids.push(self.result_heap.pop().unwrap());
+            doc_ids.push(self.result_heap.pop().unwrap().doc_id);
             self.results_retrieved += 1;
         }
 
-        serde_wasm_bindgen::to_value(&doc_ids).unwrap()
+        doc_ids
     }
 
     pub fn get_query_parts(&self) -> JsValue {

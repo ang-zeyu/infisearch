@@ -202,12 +202,12 @@ class Searcher {
 
       // Wait for worker to finish
       const getNextNResult: {
-        nextResults: [number, number][]
+        nextResults: number[]
       } = await this._mrlQueries[query][queryId].promise;
 
       // Simple transform into Result objects
-      const retrievedResults: Result[] = getNextNResult.nextResults.map(([docId, score]) => new Result(
-        docId, score, this.cfg.fieldInfos,
+      const retrievedResults: Result[] = getNextNResult.nextResults.map((docId) => new Result(
+        docId, this.cfg.fieldInfos,
       ));
 
       // Retrieve field stores
