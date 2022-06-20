@@ -4,10 +4,12 @@ pub mod query_preprocessor;
 pub mod query_processor;
 pub mod query_retriever;
 
+use byteorder::ByteOrder;
+use byteorder::LittleEndian;
 use morsels_common::BitmapDocinfoDicttableReader;
 use morsels_common::dictionary;
 
-use miniserde::{json, Deserialize};
+use miniserde::json;
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
@@ -27,7 +29,6 @@ use morsels_common::tokenize::SearchTokenizer;
 use morsels_common::MorselsLanguageConfig;
 use query_parser::{parse_query, QueryPart, QueryPartType};
 
-#[derive(Deserialize)]
 struct SearcherConfig {
     indexing_config: IndexingConfig,
     lang_config: MorselsLanguageConfig,
@@ -36,13 +37,11 @@ struct SearcherConfig {
     searcher_options: SearcherOptions,
 }
 
-#[derive(Deserialize)]
 struct IndexingConfig {
     num_pls_per_dir: u32,
     with_positions: bool,
 }
 
-#[derive(Deserialize)]
 struct FieldInfo {
     name: String,
     weight: f32,
@@ -50,7 +49,6 @@ struct FieldInfo {
     b: f32,
 }
 
-#[derive(Deserialize)]
 struct SearcherOptions {
     url: String,
     number_of_expanded_terms: usize,
@@ -87,9 +85,21 @@ fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer
 #[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_new_searcher(
-    config_js: String,
     bitmap_docinfo_dt_buf: JsValue,
     dict_string_buf: JsValue,
+    num_pls_per_dir: u32,
+    with_positions: bool,
+    lang: String,
+    stop_word_sep: String,
+    stop_words: Option<String>,  // serialized in workerSearcher.ts
+    stemmer: Option<String>,
+    max_term_len: Option<usize>,
+    field_infos_raw: JsValue, // custom uint8array, serialized in workerSearcher.ts
+    num_scored_fields: usize,
+    url: String,
+    number_of_expanded_terms: usize,
+    use_query_term_proximity: bool,
+    result_limit: Option<u32>,
 ) -> Result<Searcher, JsValue> {
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
@@ -98,7 +108,66 @@ pub async fn get_new_searcher(
     #[cfg(feature = "perf")]
     let start = performance.now();
 
-    let mut searcher_config: SearcherConfig = json::from_str(&config_js).expect("Morsels config does not match schema");
+    let mut lang_config_options = json::Object::default();
+    if let Some(stop_words) = stop_words {
+        let mut stop_words_values = json::Array::new();
+        for stop_word in stop_words.split(&stop_word_sep) {
+            stop_words_values.push(json::Value::String(stop_word.to_owned()));
+        }
+        lang_config_options.insert("stemmer".to_owned(), json::Value::Array(stop_words_values));
+    }
+    if let Some(stemmer) = stemmer {
+        lang_config_options.insert("stemmer".to_owned(), json::Value::String(stemmer));
+    }
+    if let Some(max_term_len) = max_term_len {
+        lang_config_options.insert(
+            "max_term_len".to_owned(),
+            json::Value::Number(json::Number::U64(max_term_len as u64)),
+        );
+    }
+
+    let field_infos_raw = js_sys::Uint8Array::new(&field_infos_raw).to_vec();
+    let mut field_infos = Vec::new();
+    let mut field_infos_raw_pos = 0;
+    while field_infos_raw_pos < field_infos_raw.len() {
+        let name_len = field_infos_raw[field_infos_raw_pos] as usize;
+        field_infos_raw_pos += 1;
+
+        let name = unsafe {
+            std::str::from_utf8_unchecked(&field_infos_raw[field_infos_raw_pos..field_infos_raw_pos + name_len])
+        }.to_owned();
+        field_infos_raw_pos += name_len;
+
+        let weight = LittleEndian::read_f32(&field_infos_raw[field_infos_raw_pos..]);
+        field_infos_raw_pos += 4;
+
+        let k = LittleEndian::read_f32(&field_infos_raw[field_infos_raw_pos..]);
+        field_infos_raw_pos += 4;
+
+        let b = LittleEndian::read_f32(&field_infos_raw[field_infos_raw_pos..]);
+        field_infos_raw_pos += 4;
+
+        field_infos.push(FieldInfo { name, weight, k, b })
+    }
+
+    let mut searcher_config = SearcherConfig {
+        indexing_config: IndexingConfig {
+            num_pls_per_dir,
+            with_positions,
+        },
+        lang_config: MorselsLanguageConfig {
+            lang,
+            options: json::Value::Object(lang_config_options),
+        },
+        field_infos,
+        num_scored_fields,
+        searcher_options: SearcherOptions {
+            url,
+            number_of_expanded_terms,
+            use_query_term_proximity,
+            result_limit,
+        }
+    };
 
     let bitmap_docinfo_dt = js_sys::Uint8Array::new(&bitmap_docinfo_dt_buf).to_vec();
     let mut bitmap_docinfo_dt_rdr = BitmapDocinfoDicttableReader { buf: bitmap_docinfo_dt, pos: 0 };

@@ -45,22 +45,70 @@ export default class WorkerSearcher {
     const [metadata, dictString] = metadataDictString;
     this._mrlWasmModule = await wasmModule;
 
-    function renameConfig(obj: any) {
-      Object.entries(obj).forEach(([k, v]) => {
-        if (k !== 'options') {
-          const camelCased = k.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-          if (camelCased !== k) obj[camelCased] = v;
-          if (v && typeof v === 'object' && !Array.isArray(v)) renameConfig(v);
-        }
-      });
+    const {
+      indexingConfig,
+      langConfig: { lang, options },
+      fieldInfos,
+      numScoredFields,
+      searcherOptions,
+    } = this._mrlConfig;
+
+    const stopWords = options.stop_words && options.stop_words.join('');
+    let stopWordsSep = '';
+    while (stopWords && stopWords.includes(stopWordsSep)) {
+      stopWordsSep = Math.random().toPrecision(2);
     }
 
-    renameConfig(this._mrlConfig);
+    const encoder = new TextEncoder();
+    const encodedFieldNames = fieldInfos.map((fieldInfo) => encoder.encode(fieldInfo.name));
+    const fieldNameTotalLength = encodedFieldNames.reduce((acc, next) => acc + next.length, 0);
+
+    const fieldInfosSerialized = new Uint8Array(
+      /*
+       "13" from:
+       - 1 u8 to store each field name length
+       - 4 bytes for f32 for each
+         - weight
+         - k
+         - b
+      */
+      13 * encodedFieldNames.length + fieldNameTotalLength,
+    );
+    // Separate view to write floats then copy into fieldInfosSerialized
+    const fieldInfosFloatsTemp = new Float32Array(3);
+
+    let fieldInfosSerializedPos = 0;
+    fieldInfos.forEach((fieldInfo, idx) => {
+      const fieldNameByteLength = encodedFieldNames[idx].length;
+      fieldInfosSerialized[fieldInfosSerializedPos++] = fieldNameByteLength;
+      fieldInfosSerialized.set(encodedFieldNames[idx], fieldInfosSerializedPos);
+      fieldInfosSerializedPos += fieldNameByteLength;
+
+      fieldInfosFloatsTemp[0] = fieldInfo.weight;
+      fieldInfosFloatsTemp[1] = fieldInfo.k;
+      fieldInfosFloatsTemp[2] = fieldInfo.b;
+
+      fieldInfosSerialized.set(new Uint8Array(fieldInfosFloatsTemp.buffer), fieldInfosSerializedPos);
+
+      fieldInfosSerializedPos += 12;
+    });
 
     this._mrlWasmSearcher = await this._mrlWasmModule.get_new_searcher(
-      JSON.stringify(this._mrlConfig),
       metadata,
       dictString,
+      indexingConfig.numPlsPerDir,
+      indexingConfig.withPositions,
+      lang,
+      stopWordsSep,
+      options.stop_words,
+      options.stemmer,
+      options.max_term_len,
+      fieldInfosSerialized,
+      numScoredFields,
+      searcherOptions.url,
+      searcherOptions.numberOfExpandedTerms,
+      searcherOptions.useQueryTermProximity,
+      searcherOptions.resultLimit,
     );
   }
 

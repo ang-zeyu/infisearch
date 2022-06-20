@@ -1,7 +1,5 @@
 use byteorder::{ByteOrder, LittleEndian};
 use miniserde::json as mini_json;
-#[cfg(not(feature = "indexer"))]
-use miniserde::Deserialize as MiniDeserialize;
 #[cfg(feature = "indexer")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
@@ -84,7 +82,6 @@ fn miniserde_to_serdejson<S: Serializer>(v :&mini_json::Value, serializer: S) ->
     v.serialize(serializer)
 }
 
-#[cfg_attr(not(feature = "indexer"), derive(MiniDeserialize))]
 #[cfg_attr(feature = "indexer", derive(Serialize, Deserialize))]
 pub struct MorselsLanguageConfig {
     pub lang: String,
