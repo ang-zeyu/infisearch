@@ -12,7 +12,7 @@ fn get_default_stop_words() -> Vec<String> {
     .collect()
 }
 
-pub fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
+pub fn get_stop_words_set(stop_words_vec: &Vec<String>) -> HashSet<String> {
     let mut set: HashSet<String> = HashSet::default();
 
     for word in stop_words_vec {
@@ -23,5 +23,5 @@ pub fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
 }
 
 pub fn get_default_stop_words_set() -> HashSet<String> {
-    get_stop_words_set(get_default_stop_words())
+    get_stop_words_set(&get_default_stop_words())
 }

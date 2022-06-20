@@ -1381,11 +1381,9 @@ name = "morsels_common"
 version = "0.1.1"
 dependencies = [
  "byteorder",
- "miniserde",
  "pretty_assertions",
  "rustc-hash",
  "serde",
- "serde_json",
  "smartstring",
 ]
 
@@ -1402,7 +1400,6 @@ dependencies = [
  "lazy_static",
  "log",
  "log4rs",
- "miniserde",
  "morsels_common",
  "morsels_lang_ascii",
  "morsels_lang_chinese",
@@ -1426,7 +1423,6 @@ name = "morsels_lang_ascii"
 version = "0.1.1"
 dependencies = [
  "lazy_static",
- "miniserde",
  "morsels_common",
  "regex",
  "rustc-hash",
@@ -1439,7 +1435,6 @@ name = "morsels_lang_chinese"
 version = "0.1.1"
 dependencies = [
  "jieba-rs",
- "miniserde",
  "morsels_common",
  "morsels_lang_ascii",
  "rustc-hash",
@@ -1451,7 +1446,6 @@ dependencies = [
 name = "morsels_lang_latin"
 version = "0.1.1"
 dependencies = [
- "miniserde",
  "morsels_common",
  "morsels_lang_ascii",
  "rust-stemmers",

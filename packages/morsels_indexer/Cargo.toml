@@ -28,7 +28,6 @@ glob = "0.3"
 lazy_static = "1.4"
 log = { version = "0.4", features = ["max_level_info", "release_max_level_info"] }
 log4rs = "1.0"
-miniserde = "0.1"
 morsels_common = { path = "../morsels_common", version="0.1.1", features = ["indexer"] }
 morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", version="0.1.1", features = ["indexer"] }
 morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", version="0.1.1", features = ["indexer"] }

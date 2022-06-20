@@ -1,7 +1,6 @@
 use byteorder::{ByteOrder, LittleEndian};
-use miniserde::json as mini_json;
 #[cfg(feature = "indexer")]
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
+use serde::{Serialize, Deserialize};
 
 pub mod bitmap;
 pub mod dictionary;
@@ -53,51 +52,46 @@ impl BitmapDocinfoDicttableReader {
     }
 }
 
+#[cfg(feature = "indexer")]
 fn get_default_language() -> String {
     "ascii".to_owned()
 }
 
-#[cfg(feature = "indexer")]
-fn serdejson_to_miniserde<'de, D>(deserializer: D) -> Result<mini_json::Value, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let v: serde_json::Value = Deserialize::deserialize(deserializer)?;
-
-    // Reserialize with serde_json then deserialize with miniserde
-    let serialized = serde_json::to_string(&v)
-        .expect("Temporary serde_json serialization should not fail");
-
-    if let Ok(config) = mini_json::from_str(&serialized) {
-        Ok(config)
-    } else {
-        Err(D::Error::custom("Language Configuration is invalid"))
-    }
+#[cfg_attr(feature = "indexer", derive(Serialize, Deserialize))]
+pub struct MorselsLanguageConfigOpts {
+    pub stop_words: Option<Vec<String>>,
+    pub ignore_stop_words: Option<bool>,
+    pub stemmer: Option<String>,
+    pub max_term_len: Option<usize>,
 }
 
 #[cfg(feature = "indexer")]
-fn miniserde_to_serdejson<S: Serializer>(v :&mini_json::Value, serializer: S) -> Result<S::Ok, S::Error>
-{
-    let v: serde_json::Value = serde_json::from_str(&mini_json::to_string(v)).unwrap();
-    v.serialize(serializer)
+impl Default for MorselsLanguageConfigOpts {
+    fn default() -> Self {
+        MorselsLanguageConfigOpts {
+            stop_words: None,
+            ignore_stop_words: None,
+            stemmer: None,
+            max_term_len: None,
+        }
+    }
 }
 
 #[cfg_attr(feature = "indexer", derive(Serialize, Deserialize))]
 pub struct MorselsLanguageConfig {
+    #[cfg_attr(feature = "indexer", serde(default = "get_default_language"))]
     pub lang: String,
 
-    #[cfg_attr(
-        feature = "indexer",
-        serde(serialize_with = "miniserde_to_serdejson", deserialize_with = "serdejson_to_miniserde"),
-    )]
-    pub options: mini_json::Value,
+    #[cfg_attr(feature = "indexer", serde(default))]
+    pub options: MorselsLanguageConfigOpts,
 }
 
+#[cfg(feature = "indexer")]
 impl Default for MorselsLanguageConfig {
     fn default() -> Self {
         MorselsLanguageConfig {
             lang: get_default_language(),
-            options: mini_json::Value::Object(mini_json::Object::default()),
+            options: MorselsLanguageConfigOpts::default(),
         }
     }
 }

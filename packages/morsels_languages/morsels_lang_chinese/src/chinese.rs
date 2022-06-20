@@ -3,7 +3,6 @@ use std::borrow::Cow;
 use std::collections::{BTreeMap, HashSet};
 
 use jieba_rs::Jieba;
-use miniserde::json::Value;
 use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
 
@@ -12,7 +11,7 @@ use morsels_common::tokenize::IndexerTokenizer;
 use morsels_common::{tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer}, MorselsLanguageConfig};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
-use morsels_lang_ascii::{ascii::ascii_and_nonword_filter, options};
+use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::intra_filter;
 
@@ -37,7 +36,7 @@ fn term_filter(input: Cow<str>) -> Cow<str> {
     }
 }
 
-fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
+fn get_stop_words_set(stop_words_vec: &Vec<String>) -> HashSet<String> {
     let mut set: HashSet<String> = HashSet::default();
 
     for word in stop_words_vec {
@@ -55,32 +54,19 @@ pub struct Tokenizer {
     max_term_len: usize,
 }
 
-pub struct TokenizerOptions {
-    pub stop_words: Option<Vec<String>>,
-    #[cfg(feature = "indexer")]
-    ignore_stop_words: bool,
-    pub max_term_len: usize,
-}
-
 pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
-    let options = if let Value::Object(obj) = &lang_config.options {
-        obj
-    } else {
-        panic!("language config options should be object");
-    };
-
-    let stop_words = if let Some(stop_words) = options::get_stop_words(&options) {
+    let stop_words = if let Some(stop_words) = &lang_config.options.stop_words {
         get_stop_words_set(stop_words)
     } else {
-        get_stop_words_set(Vec::new())
+        get_stop_words_set(&Vec::new())
     };
 
-    let max_term_len = options::get_max_term_len(&options).min(250);
+    let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
     Tokenizer {
         stop_words,
         #[cfg(feature = "indexer")]
-        ignore_stop_words: options::get_ignore_stop_words(&options),
+        ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         jieba: Jieba::empty(),
         max_term_len,
     }

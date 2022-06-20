@@ -7,9 +7,9 @@ pub mod query_retriever;
 use byteorder::ByteOrder;
 use byteorder::LittleEndian;
 use morsels_common::BitmapDocinfoDicttableReader;
+use morsels_common::MorselsLanguageConfigOpts;
 use morsels_common::dictionary;
 
-use miniserde::json;
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
@@ -108,24 +108,6 @@ pub async fn get_new_searcher(
     #[cfg(feature = "perf")]
     let start = performance.now();
 
-    let mut lang_config_options = json::Object::default();
-    if let Some(stop_words) = stop_words {
-        let mut stop_words_values = json::Array::new();
-        for stop_word in stop_words.split(&stop_word_sep) {
-            stop_words_values.push(json::Value::String(stop_word.to_owned()));
-        }
-        lang_config_options.insert("stemmer".to_owned(), json::Value::Array(stop_words_values));
-    }
-    if let Some(stemmer) = stemmer {
-        lang_config_options.insert("stemmer".to_owned(), json::Value::String(stemmer));
-    }
-    if let Some(max_term_len) = max_term_len {
-        lang_config_options.insert(
-            "max_term_len".to_owned(),
-            json::Value::Number(json::Number::U64(max_term_len as u64)),
-        );
-    }
-
     let field_infos_raw = js_sys::Uint8Array::new(&field_infos_raw).to_vec();
     let mut field_infos = Vec::new();
     let mut field_infos_raw_pos = 0;
@@ -157,7 +139,17 @@ pub async fn get_new_searcher(
         },
         lang_config: MorselsLanguageConfig {
             lang,
-            options: json::Value::Object(lang_config_options),
+            options: MorselsLanguageConfigOpts {
+                stop_words: stop_words.map(|stop_words| {
+                    stop_words.split(&stop_word_sep)
+                        .into_iter()
+                        .map(|sw| sw.to_owned())
+                        .collect()
+                }),
+                ignore_stop_words: None, // unused in search
+                stemmer,
+                max_term_len,
+            },
         },
         field_infos,
         num_scored_fields,
@@ -300,9 +292,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
 pub mod test {
     use std::collections::BTreeMap;
 
-    use miniserde::json;
-
-    use morsels_common::MorselsLanguageConfig;
+    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
     use morsels_lang_ascii::ascii;
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
@@ -324,7 +314,7 @@ pub mod test {
             dictionary: Dictionary { term_infos: BTreeMap::default() },
             tokenizer: Box::new(ascii::new_with_options(&MorselsLanguageConfig {
                 lang: "ascii".to_owned(),
-                options: json::from_str("{}").unwrap(),
+                options: MorselsLanguageConfigOpts::default(),
             })),
             doc_info: DocInfo {
                 doc_length_factors: vec![1.0; num_docs * num_fields],
@@ -339,7 +329,7 @@ pub mod test {
                 },
                 lang_config: MorselsLanguageConfig {
                     lang: "latin".to_owned(),
-                    options: json::from_str("{}").unwrap(),
+                    options: MorselsLanguageConfigOpts::default(),
                 },
                 field_infos,
                 num_scored_fields: num_fields,

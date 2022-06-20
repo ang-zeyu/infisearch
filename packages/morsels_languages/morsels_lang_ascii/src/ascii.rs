@@ -1,13 +1,12 @@
 use std::borrow::Cow;
 use std::collections::{HashSet, BTreeMap};
 
-use miniserde::json::Value;
 #[cfg(feature = "indexer")]
 use regex::Regex;
 use rustc_hash::FxHashMap;
 use smartstring::alias::String as SmartString;
 
-use crate::{ascii_folding_filter, options};
+use crate::ascii_folding_filter;
 use crate::stop_words::{get_stop_words_set, get_default_stop_words_set};
 use crate::utils::term_filter;
 use morsels_common::MorselsLanguageConfig;
@@ -27,32 +26,19 @@ pub struct Tokenizer {
     max_term_len: usize,
 }
 
-pub struct TokenizerOptions {
-    pub stop_words: Option<Vec<String>>,
-    #[cfg(feature = "indexer")]
-    ignore_stop_words: bool,
-    pub max_term_len: usize,
-}
-
 pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
-    let options = if let Value::Object(obj) = &lang_config.options {
-        obj
-    } else {
-        panic!("language config options should be object");
-    };
-
-    let stop_words = if let Some(stop_words) = options::get_stop_words(&options) {
+    let stop_words = if let Some(stop_words) = &lang_config.options.stop_words {
         get_stop_words_set(stop_words)
     } else {
         get_default_stop_words_set()
     };
 
-    let max_term_len = options::get_max_term_len(&options).min(250);
+    let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
     Tokenizer {
         stop_words,
         #[cfg(feature = "indexer")]
-        ignore_stop_words: options::get_ignore_stop_words(&options),
+        ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         max_term_len,
     }
 }

@@ -1,6 +1,5 @@
 pub mod ascii_folding_filter;
 pub mod ascii;
-pub mod options;
 pub mod stop_words;
 pub mod utils;
 

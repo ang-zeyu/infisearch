@@ -14,7 +14,6 @@ indexer = []
 
 [dependencies]
 lazy_static = "1.4"
-miniserde = "0.1"
 morsels_common = { path = "../../morsels_common", version="0.1.1" }
 regex = "1"
 rustc-hash = "1.1"

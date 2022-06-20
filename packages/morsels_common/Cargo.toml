@@ -11,14 +11,12 @@ license = "MIT"
 
 [features]
 default = []
-indexer = ["serde", "serde_json"]
+indexer = ["serde"]
 
 [dependencies]
 byteorder = "1"
-miniserde = "0.1"
 rustc-hash = "1.1"
 serde = { version = "1.0", features = ["derive"], optional = true }
-serde_json = { version = "1", optional = true  }
 smartstring = "0.2.7"
 
 [dev-dependencies]

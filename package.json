@@ -20,7 +20,7 @@
     "index3R": "cargo run -p morsels_indexer --release ./test_files/3/source ./test_files/3/output --perf",
     "lint": "eslint packages/search-ui --ext .ts && eslint packages/search --ext .ts",
     "lintFix": "eslint packages/search-ui --ext .ts --fix && eslint packages/search --ext .ts --fix",
-    "test": "cargo test --workspace --exclude morsels_search && cargo test -p morsels_search && npm run e2e",
+    "test": "cargo test && npm run e2e",
     "e2e": "npm-run-all --race --parallel deve2e e2etest",
     "e2etest": "jest --runInBand",
     "installIndexer": "cargo install --path packages/morsels_indexer",

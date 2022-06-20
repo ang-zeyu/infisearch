@@ -468,8 +468,7 @@ pub fn parse_query(
 
 #[cfg(test)]
 pub mod test {
-    use miniserde::json;
-    use morsels_common::MorselsLanguageConfig;
+    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
     use pretty_assertions::assert_eq;
 
     use morsels_lang_ascii::ascii;
@@ -573,7 +572,7 @@ pub mod test {
     pub fn parse(query: &str) -> Vec<QueryPart> {
         let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
             lang: "ascii".to_owned(),
-            options: json::from_str(r#"{ "ignore_stop_words": false }"#).unwrap(),
+            options: MorselsLanguageConfigOpts::default(),
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
@@ -582,17 +581,23 @@ pub mod test {
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
         let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
             lang: "latin".to_owned(),
-            options: json::from_str(r#"{ "ignore_stop_words": false }"#).unwrap(),
+            options: MorselsLanguageConfigOpts::default(),
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false).0
     }
 
-    // The tokenizer should not remove stop words no matter what when searching
+    // The tokenizer should not remove stop words no matter what when searching,
+    // this is left to query_preprocessor
     pub fn parse_with_sw_removal(query: &str) -> Vec<QueryPart> {
         let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
             lang: "ascii".to_owned(),
-            options: json::from_str(r#"{ "ignore_stop_words": true }"#).unwrap(),
+            options: MorselsLanguageConfigOpts {
+                stop_words: None,
+                ignore_stop_words: Some(true),
+                stemmer: None,
+                max_term_len: None,
+            },
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
