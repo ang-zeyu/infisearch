@@ -119,7 +119,12 @@ impl Searcher {
         postings_lists: Vec<Rc<PostingsList>>,
         result_limit: Option<u32>,
     ) -> Query {
-        let mut result_heap: BinaryHeap<DocResult> = BinaryHeap::new();
+        let max_results = postings_lists
+            .iter()
+            .max_by_key(|pl| pl.term_docs.len())
+            .map(|pl| pl.term_docs.len())
+            .unwrap_or(10);
+        let mut result_heap: Vec<DocResult> = Vec::with_capacity(max_results);
 
         let mut pl_its: Vec<PlIterator> = postings_lists
             .iter()
@@ -179,7 +184,7 @@ impl Searcher {
         Query {
             searched_terms,
             query_parts,
-            result_heap,
+            result_heap: BinaryHeap::from(result_heap),
             results_retrieved: 0,
             result_limit,
         }
