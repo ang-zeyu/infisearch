@@ -19,8 +19,8 @@ export default class WorkerSearcher {
 
     this._mrlWorkerQueries[query] = this._mrlWorkerQueries[query] || {};
     this._mrlWorkerQueries[query][queryId] = new WorkerQuery(
-      wasmQuery.get_searched_terms(),
-      wasmQuery.get_query_parts(),
+      JSON.parse(wasmQuery.get_searched_terms()),
+      JSON.parse(wasmQuery.get_query_parts()),
       wasmQuery,
     );
 

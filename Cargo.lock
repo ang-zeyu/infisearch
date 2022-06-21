@@ -1474,8 +1474,6 @@ dependencies = [
  "morsels_lang_latin",
  "pretty_assertions",
  "rustc-hash",
- "serde",
- "serde-wasm-bindgen",
  "smartstring",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -2128,17 +2126,6 @@ checksum = "f3a1a3341211875ef120e117ea7fd5228530ae7e7036a779fdc9117be6b3282c"
 dependencies = [
  "ordered-float",
  "serde",
-]
-
-[[package]]
-name = "serde-wasm-bindgen"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cfc62771e7b829b517cb213419236475f434fb480eddd76112ae182d274434a"
-dependencies = [
- "js-sys",
- "serde",
- "wasm-bindgen",
 ]
 
 [[package]]

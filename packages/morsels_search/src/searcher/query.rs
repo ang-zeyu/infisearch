@@ -3,12 +3,11 @@ use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::JsValue;
 
 use crate::postings_list::PlIterator;
 use crate::postings_list::PostingsList;
 use crate::postings_list::TermDoc;
-use crate::searcher::query_parser::QueryPart;
+use crate::searcher::query_parser::{self, QueryPart};
 use crate::searcher::Searcher;
 
 #[derive(Clone)]
@@ -94,12 +93,18 @@ impl Query {
         doc_ids
     }
 
-    pub fn get_query_parts(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.query_parts).unwrap()
+    pub fn get_query_parts(&self) -> String {
+        QueryPart::serialize_parts(&self.query_parts)
     }
 
-    pub fn get_searched_terms(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.searched_terms).unwrap()
+    pub fn get_searched_terms(&self) -> String {
+        let mut output = "[".to_owned();
+        let wrapped: Vec<String> = self.searched_terms.iter().map(|term_group| {
+            query_parser::serialize_string_vec(term_group)
+        }).collect();
+        output.push_str(wrapped.join(",").as_str());
+        output.push_str("]");
+        output
     }
 }
 

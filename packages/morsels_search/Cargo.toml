@@ -24,8 +24,6 @@ morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", optiona
 morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", optional = true, features = [] }
 morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", optional = true, features = [] }
 rustc-hash = "1.1"
-serde = { version = "1.0", features = ["derive"] }
-serde-wasm-bindgen = "0.4"
 smartstring = "0.2.7"
 wasm-bindgen = { version = "0.2" }
 wasm-bindgen-futures = "0.4.24"
