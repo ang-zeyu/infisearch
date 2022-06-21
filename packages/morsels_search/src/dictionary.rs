@@ -156,7 +156,7 @@ impl SearchDictionary for Dictionary {
         for TermWeightPair { term, doc_freq_diff: _ } in top_n_heap {
             let length_proportion = prefix_char_count as f32 / term.chars().count() as f32;
             let weight = length_proportion * max_score_per_expanded_term;
-            expanded_terms.insert(term.to_string(), weight); 
+            expanded_terms.insert(std::string::String::from(term.as_str()), weight); 
         }
 
         expanded_terms
