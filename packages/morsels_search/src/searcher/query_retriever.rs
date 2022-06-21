@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use futures::future::join_all;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
@@ -8,6 +7,7 @@ use morsels_common::utils::idf::get_idf;
 
 use crate::dictionary::SearchDictionary;
 use crate::postings_list::PostingsList;
+use crate::searcher::futures::join_all::join_all;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;

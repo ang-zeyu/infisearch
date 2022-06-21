@@ -3,6 +3,7 @@ pub mod query_parser;
 pub mod query_preprocessor;
 pub mod query_processor;
 pub mod query_retriever;
+mod futures;
 
 use byteorder::ByteOrder;
 use byteorder::LittleEndian;
