@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
 use morsels_common::utils::idf::get_idf;
@@ -134,12 +133,10 @@ num_desired_expanded_terms,
 
         self.expand_term_postings_lists(query_parts, &mut postings_lists_map);
 
-        let window: web_sys::Window = js_sys::global().unchecked_into();
         join_all(postings_lists_map.values_mut().map(|pl| {
             (*pl).fetch_term(
                 &self.searcher_config.searcher_options.url,
                 &self.invalidation_vector,
-                &window,
                 self.searcher_config.num_scored_fields,
                 self.searcher_config.indexing_config.num_pls_per_dir,
                 self.searcher_config.indexing_config.with_positions,

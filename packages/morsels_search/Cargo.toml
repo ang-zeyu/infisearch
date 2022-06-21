@@ -12,7 +12,7 @@ default = ["lang_ascii"]
 lang_ascii = ["morsels_lang_ascii"]
 lang_latin = ["morsels_lang_latin"]
 lang_chinese = ["morsels_lang_chinese"]
-perf = []
+perf = ["web-sys"]
 
 [dependencies]
 byteorder = "1"
@@ -23,19 +23,16 @@ morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", optiona
 morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", optional = true, features = [] }
 smartstring = "0.2.7"
 wasm-bindgen = { version = "0.2" }
-wasm-bindgen-futures = "0.4.24"
+wasm-bindgen-futures = "0.4"
 
 [dependencies.web-sys]
 version = "0.3"
 features = [
-    "Cache",
-    "CacheStorage",
     "console",
     "Performance",
-    "Request",
-    "Response",
     "Window"
 ]
+optional = true
 
 [dev-dependencies]
 miniserde = "0.1"
