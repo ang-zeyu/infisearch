@@ -268,7 +268,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Preprocess took {}, is_free_text_query {}", performance.now() - start, is_free_text_query).into());
 
-    let term_pls = searcher_val.populate_term_pls(&mut query_parts).await?;
+    let term_pls = searcher_val.retrieve_term_pls(&mut query_parts).await;
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());

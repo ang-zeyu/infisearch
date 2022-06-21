@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use wasm_bindgen::JsValue;
-
 use morsels_common::utils::idf::get_idf;
 
 use crate::dictionary::SearchDictionary;
@@ -124,10 +122,10 @@ num_desired_expanded_terms,
         }
     }
 
-    pub async fn populate_term_pls(
+    pub async fn retrieve_term_pls(
         &self,
         query_parts: &mut Vec<QueryPart>,
-    ) -> Result<HashMap<String, PostingsList>, JsValue> {
+    ) -> HashMap<String, PostingsList> {
         let mut postings_lists_map: HashMap<String, PostingsList> = HashMap::default();
         self.populate_term_postings_lists(query_parts, &mut postings_lists_map);
 
@@ -144,6 +142,6 @@ num_desired_expanded_terms,
         }))
         .await;
 
-        Ok(postings_lists_map)
+        postings_lists_map
     }
 }
