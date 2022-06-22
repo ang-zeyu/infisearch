@@ -1,6 +1,8 @@
 #[cfg(feature = "indexer")]
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashSet};
+#[cfg(feature = "indexer")]
+use std::collections::HashSet;
+use std::collections::BTreeMap;
 
 use jieba_rs::Jieba;
 use smartstring::alias::String as SmartString;
@@ -11,6 +13,7 @@ use morsels_common::{tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer}
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
 use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
+use morsels_lang_ascii::stop_words::get_stop_words;
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::intra_filter;
 
@@ -35,30 +38,25 @@ fn term_filter(input: Cow<str>) -> Cow<str> {
     }
 }
 
-fn get_stop_words_set(stop_words_vec: &Vec<String>) -> HashSet<String> {
-    let mut set: HashSet<String> = HashSet::default();
-
-    for word in stop_words_vec {
-        set.insert(word.to_owned());
-    }
-
-    set
-}
-
 pub struct Tokenizer {
+    // Remove HashSet from the search binary, where speed benefits are minimal
+    #[cfg(feature = "indexer")]
     pub stop_words: HashSet<String>,
+    #[cfg(not(feature = "indexer"))]
+    pub stop_words: Vec<String>,
+
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
+
     jieba: Jieba,
+
     max_term_len: usize,
 }
 
 pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
-    let stop_words = if let Some(stop_words) = &lang_config.options.stop_words {
-        get_stop_words_set(stop_words)
-    } else {
-        get_stop_words_set(&Vec::new())
-    };
+    let stop_words = get_stop_words(lang_config, &[
+        // TODO
+    ]);
 
     let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
@@ -119,7 +117,7 @@ impl SearchTokenizer for Tokenizer {
     }
 
     fn is_stop_word(&self, term: &str) -> bool {
-        self.stop_words.contains(term)
+        self.stop_words.iter().any(|t| t == term)
     }
 
     fn use_default_fault_tolerance(&self) -> bool {

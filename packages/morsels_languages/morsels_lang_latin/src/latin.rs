@@ -1,5 +1,7 @@
 use std::borrow::Cow;
-use std::collections::{HashSet, BTreeMap};
+#[cfg(feature = "indexer")]
+use std::collections::HashSet;
+use std::collections::BTreeMap;
 
 use rust_stemmers::{Algorithm, Stemmer};
 use smartstring::alias::String as SmartString;
@@ -13,12 +15,17 @@ use morsels_lang_ascii::ascii_folding_filter;
 use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
-use morsels_lang_ascii::stop_words::{get_stop_words_set, get_default_stop_words_set};
+use morsels_lang_ascii::stop_words::get_stop_words;
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::term_filter;
 
 pub struct Tokenizer {
+    // Remove HashSet from the search binary, where speed benefits are minimal
+    #[cfg(feature = "indexer")]
     pub stop_words: HashSet<String>,
+    #[cfg(not(feature = "indexer"))]
+    pub stop_words: Vec<String>,
+
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
     stemmer: Stemmer,
@@ -26,11 +33,12 @@ pub struct Tokenizer {
 }
 
 pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
-    let stop_words = if let Some(stop_words) = &lang_config.options.stop_words {
-        get_stop_words_set(stop_words)
-    } else {
-        get_default_stop_words_set()
-    };
+    let stop_words = get_stop_words(lang_config, &[
+        // Same list from tantivy
+        "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no",
+        "not", "of", "on", "or", "such", "that", "the", "their", "then", "there", "these", "they", "this",
+        "to", "was", "will", "with"
+    ]);
 
     let stemmer = if let Some(stemmer) = &lang_config.options.stemmer {
         match stemmer.to_lowercase().as_str() {
@@ -133,7 +141,7 @@ impl SearchTokenizer for Tokenizer {
     }
 
     fn is_stop_word(&self, term: &str) -> bool {
-        self.stop_words.contains(term)
+        self.stop_words.iter().any(|t| t == term)
     }
 
     fn use_default_fault_tolerance(&self) -> bool {

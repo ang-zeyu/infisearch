@@ -1,12 +1,14 @@
 use std::borrow::Cow;
-use std::collections::{HashSet, BTreeMap};
+#[cfg(feature = "indexer")]
+use std::collections::HashSet;
+use std::collections::BTreeMap;
 
 #[cfg(feature = "indexer")]
 use regex::Regex;
 use smartstring::alias::String as SmartString;
 
 use crate::ascii_folding_filter;
-use crate::stop_words::{get_stop_words_set, get_default_stop_words_set};
+use crate::stop_words::get_stop_words;
 use crate::utils::term_filter;
 use morsels_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
@@ -19,18 +21,25 @@ lazy_static! {
 }
 
 pub struct Tokenizer {
+    // Remove HashSet from the search binary, where speed benefits are minimal
+    #[cfg(feature = "indexer")]
     pub stop_words: HashSet<String>,
+    #[cfg(not(feature = "indexer"))]
+    pub stop_words: Vec<String>,
+
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
+
     max_term_len: usize,
 }
 
 pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
-    let stop_words = if let Some(stop_words) = &lang_config.options.stop_words {
-        get_stop_words_set(stop_words)
-    } else {
-        get_default_stop_words_set()
-    };
+    let stop_words = get_stop_words(lang_config, &[
+        // Same list from tantivy
+        "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no",
+        "not", "of", "on", "or", "such", "that", "the", "their", "then", "there", "these", "they", "this",
+        "to", "was", "will", "with"
+    ]);
 
     let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
@@ -120,7 +129,7 @@ impl SearchTokenizer for Tokenizer {
     }
 
     fn is_stop_word(&self, term: &str) -> bool {
-        self.stop_words.contains(term)
+        self.stop_words.iter().any(|t| t == term)
     }
 
     fn use_default_fault_tolerance(&self) -> bool {
