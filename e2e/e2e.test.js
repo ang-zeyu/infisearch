@@ -17,6 +17,8 @@ async function clearInput() {
 }
 
 async function typePhraseOrAnd(phrase, with_positions) {
+  await clearInput();
+
   if (with_positions) {
     console.log(`Typing phrase '${phrase}'`);
     await page.type(INPUT_SELECTOR, `"${phrase}"`);
@@ -32,6 +34,8 @@ async function typePhraseOrAnd(phrase, with_positions) {
 }
 
 async function typeText(text) {
+  await clearInput();
+
   console.log(`Typing text '${text}'`);
   await page.type(INPUT_SELECTOR, text);
   const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
@@ -155,37 +159,29 @@ const testSuite = async (configFile, with_positions = true) => {
   await assertSingle('use the npm run dev script');
 
   if (with_positions) {
-    await clearInput();
     await typeText('"npm run dev" AND (installmdbook 8080)');
     await assertSingle('use the npm run dev script');
   }
 
-  await clearInput();
   await typeText('npm AND run AND dev AND nonexistentterm');
   await waitNoResults();
 
-  await clearInput();
   await typeText('npm AND NOT run AND NOT packages');
   await waitNoResults();
 
-  await clearInput();
   await typeText('npm AND run AND setup');
   await assertSingle('npm run setup');
 
   if (with_positions) {
-    await clearInput();
     await typeText('body:"Once you have you test files"');
     await assertSingle('once you have you test files');
   
-    await clearInput();
     await typeText('title:"Once you have you test files"');
     await waitNoResults();
   
-    await clearInput();
     await typeText('title:"Developing - Morsels Documentation"');
     await assertSingle('developing - morsels documentation');
   
-    await clearInput();
     await typeText('heading:"Developing - Morsels Documentation"');
     await waitNoResults();
   }
@@ -193,14 +189,12 @@ const testSuite = async (configFile, with_positions = true) => {
 
   // ------------------------------------------------------
   // Simple phrase query test on another docid
-  await clearInput();
   await typePhraseOrAnd('forenote on mobile device detection', with_positions);
   await assertSingle('forenote on mobile device detection');
   // ------------------------------------------------------
 
   // ------------------------------------------------------
   // Spelling correction tests
-  await clearInput();
   await typeText('fornote');
   await assertMultiple([
     'forenote on stop words',
@@ -210,14 +204,12 @@ const testSuite = async (configFile, with_positions = true) => {
 
   // ------------------------------------------------------
   // Automatic term expansion / prefix search tests
-  await clearInput();
   await typeText('foreno');
   await assertMultiple([
     'forenote on stop words',
     'forenote on mobile device detection',
   ], 2);
 
-  await clearInput();
   await typeText('detec');
   await assertMultiple([
     'detecting deleted, changed, or added',
@@ -228,11 +220,9 @@ const testSuite = async (configFile, with_positions = true) => {
 
   // ------------------------------------------------------
   // JsonLoader tests
-  await clearInput();
   await typePhraseOrAnd('Lorem Ipsum is simply dummy text', with_positions);
   await assertSingle('lorem ipsum is simply dummy text');
 
-  await clearInput();
   await typePhraseOrAnd('test many json 2', with_positions);
   await assertSingle('test many json 2');
   // ------------------------------------------------------
@@ -242,7 +232,6 @@ const testSuite = async (configFile, with_positions = true) => {
   // For now, the only with_positions = false test also uses source files to generate result previews,
   // and csvs aren't supported with this.
   if (with_positions) {
-    await clearInput();
     await typePhraseOrAnd('this is the second csv document', with_positions);
     await assertSingle('this is the second csv document');
   }
@@ -252,7 +241,6 @@ const testSuite = async (configFile, with_positions = true) => {
   // Test incremental indexing addition
 
   // 1, to be deleted later
-  await clearInput();
   await typePhraseOrAnd('This URL is invaldi', with_positions);
   await waitNoResults();
 
@@ -267,7 +255,6 @@ const testSuite = async (configFile, with_positions = true) => {
   await assertSingle('this url is invalid');
 
   // 2, to be updated later
-  await clearInput();
   await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
@@ -305,7 +292,6 @@ const testSuite = async (configFile, with_positions = true) => {
   // ------------------------------------------------------
   // Test incremental indexing update
 
-  await clearInput();
   await typePhraseOrAnd('Contributions of all forms', with_positions);
   await waitNoResults();
 
@@ -320,11 +306,9 @@ const testSuite = async (configFile, with_positions = true) => {
   await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
-  await clearInput();
   await typePhraseOrAnd('Contributions of all forms', with_positions);
   await assertSingle('contributions of all forms');
 
-  await clearInput();
   await typeText('atquejxusd ');
   await assertSingle('contributions of all forms atquejxusd');
 
@@ -342,11 +326,9 @@ const testSuite = async (configFile, with_positions = true) => {
   await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
-  await clearInput();
   await typePhraseOrAnd('Contributions of all forms', with_positions);
   await waitNoResults();
 
-  await clearInput();
   await typeText('atquejxusd');
   await waitNoResults();
 
@@ -376,7 +358,6 @@ async function testTokenizerOptions(configFile) {
   // Stop words are only completely ignored if this is true
   const stopWordsRemoved = sourceConfigFile.lang_config.options.ignore_stop_words;
 
-  await clearInput();
   await typeText('typesetting ');
   if (stopWordsRemoved) {
     await waitNoResults();
@@ -385,7 +366,6 @@ async function testTokenizerOptions(configFile) {
   }
 
   // Not a stop word
-  await clearInput();
   await typeText('npm AND run AND dev AND installmdbook');
   await assertSingle('use the npm run dev script');
   // ------------------------------------------------------
@@ -393,7 +373,6 @@ async function testTokenizerOptions(configFile) {
   // ------------------------------------------------------
   // max_term_len test
 
-  await clearInput();
   const length71Word = 'thisisaverylongnonexistentwordoflength71madetotestthemaxtermlenoptionnn';
   await typeText(length71Word);
   const maxTermLen = sourceConfigFile.lang_config.options.ignore_stop_words;
@@ -403,7 +382,6 @@ async function testTokenizerOptions(configFile) {
     await assertSingle(length71Word);
   }
 
-  await clearInput();
   const length91Word =
     'thisisaverylongnonexistentwordoflength91madetotestthemaxtermlenoptionnnmadetotestmadetotest';
   await typeText(length91Word);
