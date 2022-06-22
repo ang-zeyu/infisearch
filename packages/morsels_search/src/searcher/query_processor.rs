@@ -181,68 +181,107 @@ impl Searcher {
         Rc::new(result_pl)
     }
 
-    fn populate_and_postings_lists(
+    fn populate_conjunctive_postings_lists(
         &self,
+        maybe_partial: bool,
         query_part: &mut QueryPart,
         term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
     ) -> Rc<PostingsList> {
-        let mut pl_vecs = self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
-        if pl_vecs.len() == 1 {
-            return pl_vecs.remove(0);
+        let mut new_pl = empty_pl();
+        new_pl.calc_pseudo_idf(self.doc_info.num_docs);
+        if query_part.children.is_none() {
+            // Empty parentheses
+            return Rc::new(new_pl);
         }
 
-        let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = pl_vecs
+        let mut child_postings_lists = self.populate_postings_lists(
+            query_part.children.as_mut().unwrap(),
+            term_postings_lists,
+        );
+        if child_postings_lists.is_empty() {
+            return Rc::new(new_pl);
+        } else if child_postings_lists.len() == 1 {
+            return child_postings_lists.pop().unwrap();
+        }
+
+        let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = child_postings_lists
             .iter()
             .enumerate()
             .map(|(idx, pl_vec)| Reverse(pl_vec.get_it(idx as u8)))
-            .filter(|pl_it| pl_it.0.td.is_some())
+            .filter(|Reverse(pl_it)| pl_it.td.is_some())
             .collect();
         let num_pls = doc_heap.len();
 
-        let mut result_pl = empty_pl();
-
-        if num_pls != pl_vecs.len() {
-            return Rc::new(result_pl);
+        if num_pls == 0 {
+            return Rc::new(new_pl);
+        } else if !maybe_partial && num_pls != child_postings_lists.len() {
+            // Early termination for AND
+            return Rc::new(new_pl);
         }
 
         let mut curr_doc_id: u32 = self.doc_info.get_non_existent_id();
         let mut curr_num_docs = 0;
-        while !doc_heap.is_empty() {
-            let mut min_pl_iterator = doc_heap.pop().unwrap();
+        while let Some(mut min_pl_iterator) = doc_heap.pop() {
+            let term_doc_opt = min_pl_iterator.0.td;
 
-            if min_pl_iterator.0.td.unwrap().doc_id == curr_doc_id {
-                if min_pl_iterator.0.next().is_some() {
-                    doc_heap.push(min_pl_iterator);
+            if (!maybe_partial && curr_num_docs == num_pls)  // AND: all previous pls matched
+                || (
+                    maybe_partial  // parentheses
+                    && (
+                        term_doc_opt.is_none()                          // will break; at the end of this iteration, save the results
+                        || term_doc_opt.unwrap().doc_id > curr_doc_id   // new document in this iteration, save the results
+                    )
+                )
+            {
+                // Merge the documents with the same doc id
+
+                let matching_pl_its = doc_heap.iter()
+                    .chain(std::iter::once(&min_pl_iterator))
+                    .filter(|Reverse(pl_it)| if let Some(td) = pl_it.peek_prev() {
+                        td.doc_id == curr_doc_id
+                    } else {
+                        false
+                    });
+                
+                // Calculate the new score of the conjunctive expression now (before query.rs)
+                // for preserving the **original** ranking of documents once propagated to the top.
+                let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
+                let mut new_score = 0.0;
+                for Reverse(pl_it) in matching_pl_its {
+                    let term_doc = pl_it.peek_prev().unwrap();
+                    new_score += if term_doc.score != 0.0 {
+                        term_doc.score
+                    } else {
+                        self.calc_doc_bm25_score(term_doc, curr_doc_id, pl_it.pl)
+                    };
+                    acc = PostingsList::merge_term_docs(term_doc, &acc);
                 }
 
-                curr_num_docs += 1;
+                acc.score = new_score;
 
-                if curr_num_docs == num_pls {
-                    let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
-                    for td in doc_heap.iter().map(|pl_it| pl_it.0.peek_prev().unwrap()) {
-                        acc = PostingsList::merge_term_docs(td, &acc);
-                    }
+                new_pl.term_docs.push(acc);
 
-                    acc.score = self.sum_scores(doc_heap.iter(), curr_doc_id);
+                // curr_doc_id = self.doc_info.get_non_existent_id();
+            }
 
-                    result_pl.term_docs.push(acc);
-
-                    curr_doc_id = self.doc_info.get_non_existent_id();
-                    curr_num_docs = 0;
+            if let Some(td) = term_doc_opt {
+                if td.doc_id == curr_doc_id {
+                    curr_num_docs += 1;
+                } else {
+                    curr_doc_id = td.doc_id;
+                    curr_num_docs = 1;
                 }
+
+                min_pl_iterator.0.next();
+                doc_heap.push(min_pl_iterator);
             } else {
-                curr_doc_id = min_pl_iterator.0.td.unwrap().doc_id;
-                curr_num_docs = 1;
-
-                if min_pl_iterator.0.next().is_some() {
-                    doc_heap.push(min_pl_iterator);
-                }
+                break;
             }
         }
 
-        result_pl.calc_pseudo_idf(self.doc_info.num_docs);
+        new_pl.calc_pseudo_idf(self.doc_info.num_docs);
 
-        Rc::new(result_pl)
+        Rc::new(new_pl)
     }
 
     fn populate_not_postings_list(
@@ -288,95 +327,6 @@ impl Searcher {
 
         Rc::new(result_pl)
     }
-
-    fn populate_bracket_postings_list(
-        &self,
-        query_part: &mut QueryPart,
-        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
-    ) -> Rc<PostingsList> {
-        let mut new_pl = empty_pl();
-        if query_part.children.is_none() {
-            return Rc::new(new_pl);
-        }
-
-        let mut child_postings_lists = self.populate_postings_lists(
-            query_part.children.as_mut().unwrap(),
-            term_postings_lists,
-        );
-
-        if child_postings_lists.is_empty() {
-            return Rc::new(new_pl);
-        } else if child_postings_lists.len() == 1 {
-            return child_postings_lists.pop().unwrap();
-        }
-
-        let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = child_postings_lists
-            .iter()
-            .enumerate()
-            .map(|(idx, pl_vec)| Reverse(pl_vec.get_it(idx as u8)))
-            .filter(|pl_it| pl_it.0.td.is_some())
-            .collect();
-        let num_pls = doc_heap.len();
-
-
-        if num_pls == 0 {
-            new_pl.calc_pseudo_idf(self.doc_info.num_docs);
-            return Rc::new(new_pl);
-        }
-
-        let mut curr_pl_iterators: Vec<Reverse<PlIterator>> = Vec::with_capacity(num_pls);
-        while !doc_heap.is_empty() {
-            let curr_pl_it = doc_heap.pop().unwrap();
-            let doc_id = curr_pl_it.0.td.unwrap().doc_id;
-
-            curr_pl_iterators.push(curr_pl_it);
-
-            while !doc_heap.is_empty() && doc_heap.peek().unwrap().0.td.unwrap().doc_id == doc_id {
-                curr_pl_iterators.push(doc_heap.pop().unwrap());
-            }
-
-            let mut merged_term_docs = if curr_pl_iterators.len() == 1 {
-                curr_pl_iterators[0].0.td.unwrap().to_owned()
-            } else {
-                curr_pl_iterators.iter().fold(TermDoc { doc_id, fields: Vec::new(), score: 0.0 }, |acc, next| {
-                    PostingsList::merge_term_docs(&acc, next.0.td.unwrap())
-                })
-            };
-
-            merged_term_docs.score = self.sum_scores(curr_pl_iterators.iter(), doc_id);
-
-            new_pl.term_docs.push(merged_term_docs);
-
-            for mut pl_it in curr_pl_iterators.drain(..) {
-                if pl_it.0.next().is_some() {
-                    doc_heap.push(pl_it);
-                }
-            }
-        }
-
-        new_pl.calc_pseudo_idf(self.doc_info.num_docs);
-
-        Rc::new(new_pl)
-    }
-
-    // ---------------------------------------
-    // Calculate the new score of the disjunctive expression now (before query.rs)
-    // for preserving the **original** ranking of documents once propagated to the top.
-    fn sum_scores<'a, T>(&self, curr_pl_iterators: T, doc_id: u32) -> f32
-    where T: Iterator<Item = &'a Reverse<PlIterator<'a>>>
-    {
-        let mut new_score = 0.0;
-        for pl_it in curr_pl_iterators {
-            let score = pl_it.0.td.unwrap().score;
-            new_score += if score != 0.0 {
-                score
-            } else {
-                self.calc_doc_bm25_score(pl_it.0.td.unwrap(), doc_id, pl_it.0.pl)
-            };
-        }
-        new_score
-    }
-    // ---------------------------------------
 
     fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
         let field_id_and_info = self
@@ -451,13 +401,13 @@ impl Searcher {
                     }
                 }
                 QueryPartType::And => {
-                    pl_opt = Some(self.populate_and_postings_lists(query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_conjunctive_postings_lists(false, query_part, term_postings_lists));
                 }
                 QueryPartType::Not => {
                     pl_opt = Some(self.populate_not_postings_list(query_part, term_postings_lists));
                 }
                 QueryPartType::Bracket => {
-                    pl_opt = Some(self.populate_bracket_postings_list(query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_conjunctive_postings_lists(true, query_part, term_postings_lists));
                 }
             }
 
@@ -515,6 +465,8 @@ mod test {
         let mut parsed = query_parser_test::parse(query);
         searcher_test::create_searcher(10, 3).process(&mut parsed, term_postings_lists)
     }
+
+    // See postings_list.rs to_pl for construction format
 
     #[test]
     fn test_phrasal_queries() {
@@ -615,13 +567,26 @@ mod test {
 
     #[test]
     fn test_and_queries() {
-        // Different fields still match
         assert_eq!(
             search(
                 "lorem AND ipsum",
-                TermPostingsListsBuilder::new().with("lorem", "[[1,[1]]]").with("ipsum", "[[1,[1]]]").0
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "")
+                    .with("ipsum", "")
+                    .0
             ),
-            vec![to_pl_rc("[]")]
+            vec![to_pl_rc("")]
+        );
+
+        assert_eq!(
+            search(
+                "lorem AND ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[1,[1]]]")
+                    .with("ipsum", "")
+                    .0
+            ),
+            vec![to_pl_rc("")]
         );
 
         // Different fields still match
@@ -629,11 +594,35 @@ mod test {
             search(
                 "lorem AND ipsum",
                 TermPostingsListsBuilder::new()
-                    .with("lorem", "[[0,[]],[1,[1]]]")
+                    .with("lorem", "[[1,[1]]]")
                     .with("ipsum", "[[1,[1]]]")
                     .0
             ),
-            vec![to_pl_rc("[]")]
+            vec![to_pl_rc("[[2,[1]]]")]
+        );
+
+        // Test position, field merging behaviour
+        assert_eq!(
+            search(
+                "lorem AND ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[1,[2]]]")
+                    .with("ipsum", "[[1,[10]],[1,[1]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[[1,[10]],[2,[1,2]]]")]
+        );
+
+        // Multiple docs
+        assert_eq!(
+            search(
+                "lorem AND ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[3,[1,2,8]]], [[0,[]],[1,[1]]], [[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]]           , null            , [[3,[1,5,9]]]")
+                    .0
+            ),
+            vec![to_pl_rc("[[1,[1]],[3,[1,2,8]]], null, [[4,[1,5,9]]]")]
         );
     }
 
@@ -688,7 +677,7 @@ mod test {
                 "(lorem AND ipsum)",
                 TermPostingsListsBuilder::new().with("lorem", "[[1,[1]]]").with("ipsum", "[[1,[1]]]").0
             ),
-            vec![to_pl_rc("[]")]
+            vec![to_pl_rc("[[2,[1]]]")]
         );
 
         assert_eq!(

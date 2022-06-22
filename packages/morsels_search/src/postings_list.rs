@@ -81,7 +81,11 @@ impl<'a> PlIterator<'a> {
     }
 
     pub fn peek_prev(&self) -> Option<&'a TermDoc> {
-        self.pl.term_docs.get(self.idx - 1)
+        if self.idx == 0 {
+            None
+        } else {
+            self.pl.term_docs.get(self.idx - 1)
+        }
     }
 }
 
@@ -94,19 +98,26 @@ impl<'a> PartialEq for PlIterator<'a> {
     }
 }
 
-/*
- Assumes term docs to be is_some()!
- (iterator still has some docs left)
- */
 impl<'a> Ord for PlIterator<'a> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.td.unwrap().doc_id.cmp(&other.td.unwrap().doc_id)
+        if let Some(td) = self.td {
+            if let Some(other_td) = other.td {
+                td.doc_id.cmp(&other_td.doc_id)
+            } else {
+                // Orders None values at the back when popped from BinaryHeap<Reverse<PlIterator>> (min heap)
+                Ordering::Less
+            }
+        } else if other.td.is_some() {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
     }
 }
 
 impl<'a> PartialOrd for PlIterator<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.td.unwrap().doc_id.cmp(&other.td.unwrap().doc_id))
+        Some(self.cmp(other))
     }
 }
 
