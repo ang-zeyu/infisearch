@@ -239,7 +239,7 @@ const testSuite = async (configFile, with_positions = true) => {
 
   // ------------------------------------------------------
   // CsvLoader tests
-  // For now, the only with_positions test also uses source files to generate result previews,
+  // For now, the only with_positions = false test also uses source files to generate result previews,
   // and csvs aren't supported with this.
   if (with_positions) {
     await clearInput();
@@ -359,6 +359,59 @@ const testSuite = async (configFile, with_positions = true) => {
   // ------------------------------------------------------
 };
 
+async function testTokenizerOptions(configFile) {
+  console.log('Starting stop words tests');
+
+  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output -c ${configFile}`);
+
+  console.log('Ran full indexer run');
+
+  await reloadPage();
+
+  const sourceConfigFile = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '..', configFile), 'utf8'),
+  );
+
+  // ------------------------------------------------------
+  // Stop words are only completely ignored if this is true
+  const stopWordsRemoved = sourceConfigFile.lang_config.options.ignore_stop_words;
+
+  await clearInput();
+  await typeText('typesetting ');
+  if (stopWordsRemoved) {
+    await waitNoResults();
+  } else {
+    await assertSingle('typesetting');
+  }
+
+  // Not a stop word
+  await clearInput();
+  await typeText('npm AND run AND dev AND installmdbook');
+  await assertSingle('use the npm run dev script');
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
+  // max_term_len test
+
+  await clearInput();
+  const length71Word = 'thisisaverylongnonexistentwordoflength71madetotestthemaxtermlenoptionnn';
+  await typeText(length71Word);
+  const maxTermLen = sourceConfigFile.lang_config.options.ignore_stop_words;
+  if (maxTermLen) {
+    await waitNoResults();
+  } else {
+    await assertSingle(length71Word);
+  }
+
+  await clearInput();
+  const length91Word =
+    'thisisaverylongnonexistentwordoflength91madetotestthemaxtermlenoptionnnmadetotestmadetotest';
+  await typeText(length91Word);
+  await waitNoResults();
+
+  // ------------------------------------------------------
+}
+
 const cleanup = () => {
   const notFoundFile = path.join(__dirname, 'input/404.html');
   if (fs.existsSync(notFoundFile)) {
@@ -371,56 +424,70 @@ const cleanup = () => {
   }
 };
 
+function readOutputConfig() {
+  return JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
+  );
+}
+
 test('Test with different field and block size configs', async () => {
   cleanup();
   console.log('Starting morsels_config_0 tests');
-  await testSuite('e2e/input/morsels_config_0.json');
+  const config0 = 'e2e/input/morsels_config_0.json';
+  await testSuite(config0);
 
   // Assert what's cached
   // Slightly different pl_cache_thresholds for the 4 tests
-  let outputConfig = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
-  );
+  let outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(5);
   expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1, 2, 3, 4]);
 
+  // ignore_stop_words=false + "stop_words": ["typesetting"] = results still show
+  await testTokenizerOptions(config0);
+
   cleanup();
   console.log('Starting morsels_config_1 tests');
-  await testSuite('e2e/input/morsels_config_1.json');
+  const config1 = 'e2e/input/morsels_config_1.json';
+  await testSuite(config1);
 
-  outputConfig = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
-  );
+  outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
   expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1]);
 
+  // ignore_stop_words=false + default stop words = results still show
+  await testTokenizerOptions(config1);
+
   cleanup();
   console.log('Starting morsels_config_2 tests');
-  await testSuite('e2e/input/morsels_config_2.json');
+  const config2 = 'e2e/input/morsels_config_2.json';
+  await testSuite(config2);
 
-  outputConfig = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
-  );
+  outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
   expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1]);
 
   cleanup();
   console.log('Starting morsels_config_3 tests');
-  await testSuite('e2e/input/morsels_config_3.json');
+  const config3 = 'e2e/input/morsels_config_3.json';
+  await testSuite(config3);
 
-  outputConfig = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
-  );
+  outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
   // No positions, uses source files to generate result previews
+  cleanup();
   console.log('Starting morsels_config_4 tests');
-  await testSuite('e2e/input/morsels_config_4.json', false);
+  const config4 = 'e2e/input/morsels_config_4.json';
+  await testSuite(config4, false);
 
-  outputConfig = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/morsels_config.json'), 'utf8'),
-  );
+  outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
+
+  // ignore_stop_words = true, max_term_len=70
+  cleanup();
+  console.log('Starting morsels_config_tokenizer tests');
+  const configTokenizer = 'e2e/input/morsels_config_tokenizer.json';
+  await testTokenizerOptions(configTokenizer);
 
   process.exit(0);
 });
