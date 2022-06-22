@@ -119,6 +119,20 @@ impl QueryPart {
         output.push_str("}");
         output
     }
+
+    fn get_base(part_type: QueryPartType) -> Self {
+        QueryPart {
+            is_corrected: false,
+            is_stop_word_removed: false,
+            should_expand: false,
+            is_expanded: false,
+            original_terms: None,
+            terms: None,
+            part_type,
+            field_name: None,
+            children: None,
+        }
+    }
 }
 
 enum Operator {
@@ -133,22 +147,16 @@ enum QueryParseState {
     Quote,
 }
 
+/// Called whenever a new QueryPart is added into query_parts
+#[inline(never)]
 fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator>) {
-    while !operator_stack.is_empty() {
-        let op = operator_stack.pop().unwrap();
+    while let Some(op) = operator_stack.pop() {
         match op {
             Operator::Not => {
                 let last_part = query_parts.pop().unwrap();
                 query_parts.push(QueryPart {
-                    is_corrected: false,
-                    is_stop_word_removed: false,
-                    should_expand: false,
-                    is_expanded: false,
-                    original_terms: None,
-                    terms: None,
-                    part_type: QueryPartType::Not,
-                    field_name: None,
                     children: Some(vec![last_part]),
+                    ..QueryPart::get_base(QueryPartType::Not)
                 });
             }
             Operator::And => {
@@ -168,6 +176,7 @@ fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator
     }
 }
 
+#[inline(never)]
 fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usize]) -> String {
     query_chars[i..j]
         .iter()
@@ -177,6 +186,7 @@ fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usi
         .collect()
 }
 
+#[inline(never)]
 fn is_double_quote(c: char) -> bool {
     match c {
         '"' |
@@ -192,7 +202,15 @@ fn is_double_quote(c: char) -> bool {
     }
 }
 
+// TODO cleanup query parsing, hopefully reduce its size while at it. Currently ~7.5KB.
+
+/// Called when 1 of the operators: NOT, AND, (, ), ", :, is encountered
+/// or at the end of input
+/// 
+/// Tokenizes the current slice into term query parts,
+/// and calls handle_op for the first term, if required. 
 #[allow(clippy::too_many_arguments)]
+#[inline(never)]
 fn handle_terminator(
     tokenizer: &dyn SearchTokenizer,
     query_chars: &[char],
@@ -215,15 +233,9 @@ fn handle_terminator(
     let mut is_first = true;
     for term in tokenize_result.terms {
         query_parts.push(QueryPart {
-            is_corrected: false,
-            is_stop_word_removed: false,
             should_expand: tokenize_result.should_expand,
-            is_expanded: false,
-            original_terms: None,
             terms: Some(vec![term]),
-            part_type: QueryPartType::Term,
-            field_name: None,
-            children: None,
+            ..QueryPart::get_base(QueryPartType::Term)
         });
 
         if is_first {
@@ -264,15 +276,8 @@ pub fn parse_query(
                     query_parse_state = QueryParseState::None;
 
                     query_parts.push(QueryPart {
-                        is_corrected: false,
-                        is_stop_word_removed: false,
-                        should_expand: false,
-                        is_expanded: false,
-                        original_terms: None,
                         terms: Some(tokenizer.search_tokenize(content, &mut terms_searched).terms),
-                        part_type: QueryPartType::Phrase,
-                        field_name: None,
-                        children: None,
+                        ..QueryPart::get_base(QueryPartType::Phrase)
                     });
                     handle_op(&mut query_parts, &mut op_stack);
 
@@ -302,38 +307,37 @@ pub fn parse_query(
                     if is_double_quote(c) {
                         query_parse_state = QueryParseState::Quote;
                     } else if c == '(' {
-                        query_parts.push(QueryPart {
-                            is_corrected: false,
-                            is_stop_word_removed: false,
-                            should_expand: false,
-                            is_expanded: false,
-                            original_terms: None,
-                            terms: None,
-                            part_type: QueryPartType::Bracket,
-                            field_name: None,
-                            children: None,
-                        });
+                        query_parts.push(QueryPart::get_base(QueryPartType::Bracket));
                         op_stack.push(Operator::OpenGroup);
                         last_possible_unaryop_idx = i;
                     } else if c == ')' {
+                        // Guard against ')' without a matching '(' (just treat it literally, almost)
                         if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup)
                         {
                             let mut children: Vec<QueryPart> = Vec::new();
+
+                            // Keep going until we find the QueryPartType::Bracket added by '('
                             while let Some(mut last_part) = query_parts.pop() {
                                 if let QueryPartType::Bracket = last_part.part_type {
                                     if last_part.children.is_none() {
+                                        // Found it
+
+                                        debug_assert!(matches!(op_stack.last().unwrap(), Operator::OpenGroup));
+
+                                        op_stack.pop(); // throw the OpenGroup
+
                                         children.reverse();
                                         last_part.children = Some(children);
                                         query_parts.push(last_part);
-
-                                        op_stack.pop();
                                         handle_op(&mut query_parts, &mut op_stack);
                                         break;
                                     } else {
-                                        // Nested parentheses
+                                        // A nested parentheses that was already populated
+                                        // also add it to this parentheses group
                                         children.push(last_part);
                                     }
                                 } else {
+                                    // Add it to this parentheses group
                                     children.push(last_part);
                                 }
                             }
@@ -348,6 +352,7 @@ pub fn parse_query(
                         &escape_indices,
                     );
 
+                    // Treat it literally otherwise
                     if valid_fields.contains(&field_name.as_str()) {
                         handle_terminator(
                             tokenizer,
@@ -397,15 +402,8 @@ pub fn parse_query(
                             });
 
                             query_parts.push(QueryPart {
-                                is_corrected: false,
-                                is_stop_word_removed: false,
-                                should_expand: false,
-                                is_expanded: false,
-                                original_terms: None,
-                                terms: None,
-                                part_type: QueryPartType::And,
-                                field_name: None,
                                 children,
+                                ..QueryPart::get_base(QueryPartType::And)
                             });
                         }
 
@@ -422,7 +420,7 @@ pub fn parse_query(
                     j -= 1;
                 } else if j == last_possible_unaryop_idx
                     && !did_encounter_escape
-                    && query_chars_len > 5 // overflow
+                    && query_chars_len > 5 // overflow guard
                     && j < query_chars_len - 4
                     && query_chars[j] == 'N' && query_chars[j + 1] == 'O' && query_chars[j + 2] == 'T'
                     && query_chars[j + 3].is_ascii_whitespace()
