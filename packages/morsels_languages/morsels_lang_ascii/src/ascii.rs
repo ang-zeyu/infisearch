@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::collections::{HashSet, BTreeMap, HashMap};
+use std::collections::{HashSet, BTreeMap};
 
 #[cfg(feature = "indexer")]
 use regex::Regex;
@@ -140,7 +140,7 @@ impl SearchTokenizer for Tokenizer {
         _number_of_expanded_terms: usize,
         _term: &str,
         _dictionary: &BTreeMap<SmartString, TermInfo>,
-    ) -> HashMap<String, f32> {
-        HashMap::default()
+    ) -> Vec<(String, f32)> {
+        Vec::new()
     }
 }

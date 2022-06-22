@@ -1,6 +1,6 @@
 use smartstring::alias::String as SmartString;
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 #[derive(Clone)]
 #[cfg_attr(test, derive(Debug))]
@@ -31,7 +31,7 @@ pub trait SearchTokenizer {
 
     fn is_stop_word(&self, term: &str) -> bool;
 
-    // If true, simply return None / An empty hashmap for the below two methods
+    // If true, simply return None / An empty vec for the below two methods
     fn use_default_fault_tolerance(&self) -> bool;
 
     fn get_best_corrected_term(
@@ -45,7 +45,7 @@ pub trait SearchTokenizer {
         number_of_expanded_terms: usize,
         term: &str,
         dictionary: &BTreeMap<SmartString, TermInfo>,
-    ) -> HashMap<String, f32>;
+    ) -> Vec<(String, f32)>;
 }
 
 pub struct SearchTokenizeResult {
