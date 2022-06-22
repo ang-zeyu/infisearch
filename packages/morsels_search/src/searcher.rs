@@ -91,8 +91,7 @@ pub async fn get_new_searcher(
     num_pls_per_dir: u32,
     with_positions: bool,
     lang: String,
-    stop_word_sep: String,
-    stop_words: Option<String>,  // serialized in workerSearcher.ts
+    stop_words: JsValue,  // serialized in workerSearcher.ts
     stemmer: Option<String>,
     max_term_len: Option<usize>,
     field_infos_raw: JsValue, // custom uint8array, serialized in workerSearcher.ts
@@ -133,7 +132,26 @@ pub async fn get_new_searcher(
         field_infos.push(FieldInfo { name, weight, k, b })
     }
 
-    let mut searcher_config = SearcherConfig {
+    let stop_words = if stop_words.is_undefined() {
+        None
+    } else {
+        let stop_words_raw = js_sys::Uint8Array::new(&stop_words).to_vec();
+        let mut stop_words_vec = Vec::new();
+
+        let mut i = 0;
+        while i < stop_words_raw.len() {
+            let len = stop_words_raw[i] as usize;
+            i += 1;
+            stop_words_vec.push(unsafe {
+                std::str::from_utf8_unchecked(&stop_words_raw[i..i + len])
+            }.to_owned());
+            i += len;
+        }
+
+        Some(stop_words_vec)
+    };
+
+    let searcher_config = SearcherConfig {
         indexing_config: IndexingConfig {
             num_pls_per_dir,
             with_positions,
@@ -141,12 +159,7 @@ pub async fn get_new_searcher(
         lang_config: MorselsLanguageConfig {
             lang,
             options: MorselsLanguageConfigOpts {
-                stop_words: stop_words.map(|stop_words| {
-                    stop_words.split(&stop_word_sep)
-                        .into_iter()
-                        .map(|sw| sw.to_owned())
-                        .collect()
-                }),
+                stop_words,
                 ignore_stop_words: None, // unused in search
                 stemmer,
                 max_term_len,
@@ -170,7 +183,7 @@ pub async fn get_new_searcher(
 
     let doc_info = DocInfo::create(&mut bitmap_docinfo_dt_rdr, searcher_config.num_scored_fields);
 
-    let tokenizer = get_tokenizer(&mut searcher_config.lang_config);
+    let tokenizer = get_tokenizer(&searcher_config.lang_config);
 
     let string_vec = js_sys::Uint8Array::new(&dict_string_buf).to_vec();
 
@@ -179,19 +192,19 @@ pub async fn get_new_searcher(
     );
 
     #[cfg(feature = "perf")]
-    web_sys::console::log_1(
-        &format!("Finished reading bitmap_docinfo_dt_rdr. Pos {} Len {}",
-        bitmap_docinfo_dt_rdr.pos, bitmap_docinfo_dt_rdr.buf.len(),
-    ).into());
-
-    #[cfg(feature = "perf")]
-    web_sys::console::log_1(
-        &format!("Dictionary initial setup took {}, num terms {}",
-        performance.now() - start, dictionary.term_infos.len(),
-    ).into());
-
-    #[cfg(feature = "perf")]
-    web_sys::console::log_1(&format!("Setup took {}", performance.now() - start).into());
+    {
+        web_sys::console::log_1(
+            &format!("Finished reading bitmap_docinfo_dt_rdr. Pos {} Len {}",
+            bitmap_docinfo_dt_rdr.pos, bitmap_docinfo_dt_rdr.buf.len(),
+        ).into());
+        web_sys::console::log_1(
+            &format!("Dictionary initial setup took {}, num terms {}",
+            performance.now() - start, dictionary.term_infos.len(),
+        ).into());
+        web_sys::console::log_1(
+            &format!("Setup took {}", performance.now() - start).into(),
+        );
+    }
 
     let num_scored_fields_less_one = if searcher_config.num_scored_fields <= 1 {
         1.0

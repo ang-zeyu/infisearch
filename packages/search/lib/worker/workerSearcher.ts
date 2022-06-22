@@ -53,13 +53,29 @@ export default class WorkerSearcher {
       searcherOptions,
     } = this._mrlConfig;
 
-    const stopWords = options.stop_words && options.stop_words.join('');
-    let stopWordsSep = '';
-    while (stopWords && stopWords.includes(stopWordsSep)) {
-      stopWordsSep = Math.random().toPrecision(2);
+    const encoder = new TextEncoder();
+
+    let stopWords: Uint8Array | undefined = undefined;
+
+    const stopWordsOption: string[] | undefined = options.stop_words;
+    if (stopWordsOption) {
+      const encodedStopWords = stopWordsOption
+        .map((sw) => encoder.encode(sw))
+        .filter((swEncoded) => swEncoded.length < 255);
+      const totalLength = encodedStopWords.length
+        + encodedStopWords.reduce((acc, next) => acc + next.length, 0);
+
+      // Stored in ... byteLength stopWordEncoded ... format
+      stopWords = new Uint8Array(totalLength);
+
+      let writePos = 0;
+      encodedStopWords.forEach((encodedSw) => {
+        stopWords[writePos++] = encodedSw.length;
+        stopWords.set(encodedSw, writePos);
+        writePos += encodedSw.length;
+      });
     }
 
-    const encoder = new TextEncoder();
     const encodedFieldNames = fieldInfos.map((fieldInfo) => encoder.encode(fieldInfo.name));
     const fieldNameTotalLength = encodedFieldNames.reduce((acc, next) => acc + next.length, 0);
 
@@ -99,8 +115,7 @@ export default class WorkerSearcher {
       indexingConfig.numPlsPerDir,
       indexingConfig.withPositions,
       lang,
-      stopWordsSep,
-      options.stop_words,
+      stopWords,
       options.stemmer,
       options.max_term_len,
       fieldInfosSerialized,
