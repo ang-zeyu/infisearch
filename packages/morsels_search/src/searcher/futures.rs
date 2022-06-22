@@ -31,5 +31,4 @@ DEALINGS IN THE SOFTWARE.
 */
 
 pub mod join_all;
-mod futures;
 mod maybe_done;
