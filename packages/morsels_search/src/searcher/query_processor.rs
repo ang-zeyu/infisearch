@@ -1,14 +1,11 @@
 use std::cell::RefCell;
 use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 use morsels_common::bitmap;
 
-use crate::postings_list::DocField;
-use crate::postings_list::PlIterator;
-use crate::postings_list::PostingsList;
-use crate::postings_list::TermDoc;
+use crate::postings_list::{self, DocField, PlIterator, PostingsList, TermDoc};
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
@@ -40,7 +37,7 @@ impl Searcher {
     fn populate_phrasal_postings_lists(
         &self,
         query_part: &QueryPart,
-        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
     ) -> Rc<PostingsList> {
         let mut encountered_empty_pl = false;
         let pl_iterators: Vec<Rc<RefCell<PlIterator>>> = query_part
@@ -50,7 +47,9 @@ impl Searcher {
             .iter()
             .enumerate()
             .map(|(idx, term)| {
-                let pl_iterator = term_postings_lists.get(term).unwrap().get_it(idx as u8);
+                let pl_iterator = postings_list::get_postings_list(term, term_postings_lists)
+                    .unwrap()
+                    .get_it(idx as u8);
                 if pl_iterator.td.is_none() {
                     encountered_empty_pl = true;
                 }
@@ -185,7 +184,7 @@ impl Searcher {
     fn populate_and_postings_lists(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
     ) -> Rc<PostingsList> {
         let mut pl_vecs = self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
         if pl_vecs.len() == 1 {
@@ -249,7 +248,7 @@ impl Searcher {
     fn populate_not_postings_list(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
     ) -> Rc<PostingsList> {
         let mut result_pl = empty_pl();
         result_pl.include_in_proximity_ranking = false;
@@ -293,7 +292,7 @@ impl Searcher {
     fn populate_bracket_postings_list(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
     ) -> Rc<PostingsList> {
         let mut new_pl = empty_pl();
         if query_part.children.is_none() {
@@ -423,7 +422,7 @@ impl Searcher {
     fn populate_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: &HashMap<String, Rc<PostingsList>>,
+        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
     ) -> Vec<Rc<PostingsList>> {
         let mut result: Vec<Rc<PostingsList>> = Vec::new();
 
@@ -432,7 +431,7 @@ impl Searcher {
             match query_part.part_type {
                 QueryPartType::Term => {
                     if let Some(term) = query_part.terms.as_ref().unwrap().first() {
-                        if let Some(term_pl) = term_postings_lists.get(term) {
+                        if let Some(term_pl) = postings_list::get_postings_list(term, term_postings_lists) {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     } /* else {
@@ -441,7 +440,10 @@ impl Searcher {
                 }
                 QueryPartType::Phrase => {
                     if query_part.terms.as_ref().unwrap().len() == 1 {
-                        if let Some(term_pl) = term_postings_lists.get(query_part.terms.as_ref().unwrap().first().unwrap()) {
+                        if let Some(term_pl) = postings_list::get_postings_list(
+                            query_part.terms.as_ref().unwrap().first().unwrap(),
+                            term_postings_lists,
+                        ) {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     } else {
@@ -476,9 +478,9 @@ impl Searcher {
     pub fn process(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: HashMap<String, PostingsList>,
+        term_postings_lists: Vec<(String, PostingsList)>,
     ) -> Vec<Rc<PostingsList>> {
-        let term_rc_postings_lists: HashMap<String, Rc<PostingsList>> =
+        let term_rc_postings_lists: Vec<(String, Rc<PostingsList>)> =
             term_postings_lists.into_iter().map(|(term, pl)| (term, Rc::new(pl))).collect();
 
         self.populate_postings_lists(query_parts, &term_rc_postings_lists)
@@ -487,7 +489,6 @@ impl Searcher {
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
     use std::rc::Rc;
 
     use pretty_assertions::assert_eq;
@@ -497,20 +498,20 @@ mod test {
     use crate::searcher::query_parser::test as query_parser_test;
     use crate::searcher::test as searcher_test;
 
-    struct TermPostingsListsBuilder(HashMap<String, PostingsList>);
+    struct TermPostingsListsBuilder(Vec<(String, PostingsList)>);
 
     impl TermPostingsListsBuilder {
         fn new() -> Self {
-            TermPostingsListsBuilder(HashMap::default())
+            TermPostingsListsBuilder(Vec::new())
         }
 
         fn with(mut self, term: &str, pl_str: &str) -> Self {
-            self.0.insert(term.to_owned(), to_pl(pl_str));
+            self.0.push((term.to_owned(), to_pl(pl_str)));
             self
         }
     }
 
-    fn search(query: &str, term_postings_lists: HashMap<String, PostingsList>) -> Vec<Rc<PostingsList>> {
+    fn search(query: &str, term_postings_lists: Vec<(String, PostingsList)>) -> Vec<Rc<PostingsList>> {
         let mut parsed = query_parser_test::parse(query);
         searcher_test::create_searcher(10, 3).process(&mut parsed, term_postings_lists)
     }

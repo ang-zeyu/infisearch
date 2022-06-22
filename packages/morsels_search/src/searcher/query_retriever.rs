@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
 use morsels_common::utils::idf::get_idf;
 
 use crate::dictionary::SearchDictionary;
-use crate::postings_list::PostingsList;
+use crate::postings_list::{self, PostingsList};
 use crate::searcher::futures::join_all::join_all;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
@@ -13,7 +11,7 @@ impl Searcher {
     fn expand_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        postings_lists_map: &mut HashMap<String, PostingsList>,
+        postings_lists: &mut Vec<(String, PostingsList)>,
     ) {
         let num_desired_expanded_terms = self.searcher_config.searcher_options.number_of_expanded_terms;
         if query_parts.is_empty() || num_desired_expanded_terms == 0 {
@@ -54,7 +52,7 @@ num_desired_expanded_terms,
         let mut new_query_parts: Vec<QueryPart> = Vec::with_capacity(expanded_terms.len());
         for (term, weight) in expanded_terms {
             if let Some(term_info) = self.dictionary.get_term_info(&term) {
-                if postings_lists_map.get(&term).is_some() {
+                if postings_list::get_postings_list(&term, &postings_lists).is_some() {
                     continue;
                 }
 
@@ -70,7 +68,7 @@ num_desired_expanded_terms,
                     children: None,
                 });
 
-                postings_lists_map.insert(
+                postings_lists.push((
                     term.clone(),
                     PostingsList {
                         weight,
@@ -80,7 +78,7 @@ num_desired_expanded_terms,
                         term: Some(term),
                         term_info: Some(term_info.to_owned()),
                     },
-                );
+                ));
             }
         }
 
@@ -90,12 +88,12 @@ num_desired_expanded_terms,
     fn populate_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        postings_lists: &mut HashMap<String, PostingsList>,
+        postings_lists: &mut Vec<(String, PostingsList)>,
     ) {
         for query_part in query_parts {
             if let Some(terms) = &query_part.terms {
                 for term in terms {
-                    if postings_lists.contains_key(term) {
+                    if postings_list::get_postings_list(term, &postings_lists).is_some() {
                         continue;
                     }
 
@@ -114,7 +112,7 @@ num_desired_expanded_terms,
                         term: Some(term.clone()),
                         term_info,
                     };
-                    postings_lists.insert(term.to_owned(), postings_list);
+                    postings_lists.push((term.to_owned(), postings_list));
                 }
             } else if let Some(children) = &mut query_part.children {
                 self.populate_term_postings_lists(children, postings_lists);
@@ -125,14 +123,14 @@ num_desired_expanded_terms,
     pub async fn retrieve_term_pls(
         &self,
         query_parts: &mut Vec<QueryPart>,
-    ) -> HashMap<String, PostingsList> {
-        let mut postings_lists_map: HashMap<String, PostingsList> = HashMap::default();
-        self.populate_term_postings_lists(query_parts, &mut postings_lists_map);
+    ) -> Vec<(String, PostingsList)> {
+        let mut postings_lists: Vec<(String, PostingsList)> = Vec::new();
+        self.populate_term_postings_lists(query_parts, &mut postings_lists);
 
-        self.expand_term_postings_lists(query_parts, &mut postings_lists_map);
+        self.expand_term_postings_lists(query_parts, &mut postings_lists);
 
-        join_all(postings_lists_map.values_mut().map(|pl| {
-            (*pl).fetch_term(
+        join_all(postings_lists.iter_mut().map(|(_, pl)| {
+            pl.fetch_term(
                 &self.searcher_config.searcher_options.url,
                 &self.invalidation_vector,
                 self.searcher_config.num_scored_fields,
@@ -142,6 +140,6 @@ num_desired_expanded_terms,
         }))
         .await;
 
-        postings_lists_map
+        postings_lists
     }
 }

@@ -7,6 +7,13 @@ use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
 
+#[inline(never)]
+pub fn get_postings_list<'a, 'b, T>(term: &'b str, postings_lists: &'a Vec<(String, T)>) -> Option<&'a T> {
+    postings_lists.iter()
+        .find(|(t, _)| t.as_str() == term)
+        .map(|(_, v)| v)
+}
+
 #[cfg_attr(test, derive(Debug))]
 pub struct DocField {
     pub field_tf: f32,
