@@ -30,6 +30,8 @@ pub struct Tokenizer {
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
 
+    // Just needs to be filtered during indexing
+    #[cfg(feature = "indexer")]
     max_term_len: usize,
 }
 
@@ -41,12 +43,14 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
         "to", "was", "will", "with"
     ]);
 
+    #[cfg(feature = "indexer")]
     let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
     Tokenizer {
         stop_words,
         #[cfg(feature = "indexer")]
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
+        #[cfg(feature = "indexer")]
         max_term_len,
     }
 }
@@ -115,10 +119,7 @@ impl SearchTokenizer for Tokenizer {
                 terms_searched.push(terms);
                 filtered
             })
-            .filter(|term| {
-                let term_byte_len = term.len();
-                term_byte_len > 0 && term_byte_len <= self.max_term_len
-            })
+            .filter(|term| term.len() > 0)
             .map(|cow| cow.into_owned())
             .collect();
 

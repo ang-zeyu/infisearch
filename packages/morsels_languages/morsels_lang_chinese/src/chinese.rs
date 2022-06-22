@@ -50,6 +50,8 @@ pub struct Tokenizer {
 
     jieba: Jieba,
 
+    // Just needs to be filtered during indexing
+    #[cfg(feature = "indexer")]
     max_term_len: usize,
 }
 
@@ -58,6 +60,7 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
         // TODO
     ]);
 
+    #[cfg(feature = "indexer")]
     let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
     Tokenizer {
@@ -65,6 +68,7 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
         #[cfg(feature = "indexer")]
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         jieba: Jieba::empty(),
+        #[cfg(feature = "indexer")]
         max_term_len,
     }
 }
@@ -110,7 +114,7 @@ impl SearchTokenizer for Tokenizer {
 
                 filtered
             })
-            .filter(|s| !s.trim().is_empty() && s.len() <= self.max_term_len)
+            .filter(|s| !s.trim().is_empty())
             .collect();
 
         SearchTokenizeResult { terms, should_expand }

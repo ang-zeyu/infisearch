@@ -28,7 +28,11 @@ pub struct Tokenizer {
 
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
+
     stemmer: Stemmer,
+
+    // Just needs to be filtered during indexing
+    #[cfg(feature = "indexer")]
     max_term_len: usize,
 }
 
@@ -66,6 +70,7 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
         Stemmer::create(Algorithm::English)
     };
 
+    #[cfg(feature = "indexer")]
     let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
     Tokenizer {
@@ -73,6 +78,7 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
         #[cfg(feature = "indexer")]
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         stemmer,
+        #[cfg(feature = "indexer")]
         max_term_len,
     }
 }
@@ -127,10 +133,7 @@ impl SearchTokenizer for Tokenizer {
 
                 stemmed
             })
-            .filter(|term| {
-                let term_byte_len = term.len();
-                term_byte_len > 0 && term_byte_len <= self.max_term_len
-            })
+            .filter(|term| term.len() > 0)
             .map(|cow| cow.into_owned())
             .collect();
 
