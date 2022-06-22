@@ -1389,7 +1389,6 @@ dependencies = [
  "lazy_static",
  "morsels_common",
  "regex",
- "serde",
  "smartstring",
 ]
 
@@ -1400,7 +1399,6 @@ dependencies = [
  "jieba-rs",
  "morsels_common",
  "morsels_lang_ascii",
- "serde",
  "smartstring",
 ]
 
@@ -1411,7 +1409,6 @@ dependencies = [
  "morsels_common",
  "morsels_lang_ascii",
  "rust-stemmers",
- "serde",
  "smartstring",
 ]
 
