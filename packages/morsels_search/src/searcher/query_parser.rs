@@ -1,9 +1,6 @@
 use morsels_common::tokenize::SearchTokenizer;
-use serde::Serialize;
 
-#[derive(Serialize)]
 #[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[serde(rename_all = "UPPERCASE")]
 pub enum QueryPartType {
     Term,
     Phrase,
@@ -12,9 +9,7 @@ pub enum QueryPartType {
     Not,
 }
 
-#[derive(Serialize)]
 #[cfg_attr(test, derive(Debug, Eq, PartialEq))]
-#[serde(rename_all = "camelCase")]
 pub struct QueryPart {
     pub is_corrected: bool,
     pub is_stop_word_removed: bool,
@@ -25,6 +20,105 @@ pub struct QueryPart {
     pub part_type: QueryPartType,
     pub field_name: Option<String>,
     pub children: Option<Vec<QueryPart>>,
+}
+
+#[inline(never)]
+fn wrap_string(s: &String) -> String {
+    let mut output = String::with_capacity(s.len() + 2);
+    output.push('"');
+
+    for c in s.chars() {
+        match c {
+            '"' => output.push_str("\\\""),
+            '\\' => output.push_str("\\\\"),
+            _ => output.push(c),
+        }
+    }
+
+    output.push('"');
+    output
+}
+
+#[inline(never)]
+fn serialize_bool(name: &str, b: bool, output: &mut String) {
+    output.push('"');
+    output.push_str(name);
+    output.push_str("\":");
+    output.push_str(if b { "true," } else { "false," });
+}
+
+#[inline(never)]
+fn get_null() -> String {
+    "null".to_owned()
+}
+
+#[inline(never)]
+pub fn serialize_string_vec(v: &Vec<String>) -> String {
+    let mut output = "[".to_owned();
+    let wrapped: Vec<String> = v.iter().map(wrap_string).collect();
+    output.push_str(wrapped.join(",").as_str());
+    output.push_str("]");
+    output
+}
+
+impl QueryPart {
+    #[inline(never)]
+    pub fn serialize_parts(parts: &Vec<QueryPart>) -> String {
+        let mut output = "[".to_owned();
+        let wrapped: Vec<String> = parts.iter().map(QueryPart::serialize).collect();
+        output.push_str(wrapped.join(",").as_str());
+        output.push_str("]");
+        output
+    }
+
+    fn serialize(&self) -> String {
+        let mut output = "{".to_owned();
+
+        serialize_bool("isCorrected", self.is_corrected, &mut output);
+        serialize_bool("isStopWordRemoved", self.is_stop_word_removed, &mut output);
+        serialize_bool("shouldExpand", self.should_expand, &mut output);
+        serialize_bool("isExpanded", self.is_expanded, &mut output);
+
+        output.push_str(r#""originalTerms":"#);
+        output.push_str(&if let Some(v) = &self.original_terms {
+            serialize_string_vec(v)
+        } else {
+            get_null()
+        });
+
+        output.push_str(r#","terms":"#);
+        output.push_str(&if let Some(v) = &self.terms {
+            serialize_string_vec(v)
+        } else {
+            get_null()
+        });
+
+        output.push_str(r#","partType":"#);
+        output.push_str(match self.part_type {
+            QueryPartType::Term => "\"TERM\"",
+            QueryPartType::Phrase => "\"PHRASE\"",
+            QueryPartType::Bracket => "\"BRACKET\"",
+            QueryPartType::And => "\"AND\"",
+            QueryPartType::Not => "\"NOT\"",
+        });
+
+        output.push_str(r#","fieldName":"#);
+        output.push_str(&if let Some(v) = &self.field_name {
+            wrap_string(v)
+        } else {
+            get_null()
+        });
+
+        output.push_str(r#","children":"#);
+        output.push_str(&if let Some(children) = &self.children {
+            Self::serialize_parts(children)
+        } else {
+            get_null()
+        });
+
+        output.push_str("}");
+        output
+    }
 }
 
 enum Operator {
@@ -374,9 +468,10 @@ pub fn parse_query(
 
 #[cfg(test)]
 pub mod test {
+    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
     use pretty_assertions::assert_eq;
 
-    use morsels_lang_ascii::ascii::{self, TokenizerOptions};
+    use morsels_lang_ascii::ascii;
 
     use super::{QueryPart, QueryPartType};
 
@@ -475,31 +570,34 @@ pub mod test {
     }
 
     pub fn parse(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(TokenizerOptions {
-            stop_words: None,
-            ignore_stop_words: false,
-            max_term_len: 80,
+        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+            lang: "ascii".to_owned(),
+            options: MorselsLanguageConfigOpts::default(),
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(TokenizerOptions {
-            stop_words: None,
-            ignore_stop_words: false,
-            max_term_len: 80,
+        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+            lang: "latin".to_owned(),
+            options: MorselsLanguageConfigOpts::default(),
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false).0
     }
 
-    // The tokenizer should not remove stop words no matter what when searching
+    // The tokenizer should not remove stop words no matter what when searching,
+    // this is left to query_preprocessor
     pub fn parse_with_sw_removal(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(TokenizerOptions {
-            stop_words: None,
-            ignore_stop_words: true,
-            max_term_len: 80,
+        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+            lang: "ascii".to_owned(),
+            options: MorselsLanguageConfigOpts {
+                stop_words: None,
+                ignore_stop_words: Some(true),
+                stemmer: None,
+                max_term_len: None,
+            },
         });
 
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0

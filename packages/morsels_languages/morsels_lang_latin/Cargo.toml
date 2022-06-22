@@ -15,7 +15,5 @@ indexer = []
 [dependencies]
 morsels_common = { path = "../../morsels_common", version="0.1.1" }
 morsels_lang_ascii = { path = "../morsels_lang_ascii", version="0.1.1" }
-rustc-hash = "1.1"
 rust-stemmers = "^1.0"
-serde = { version = "1.0", features = ["derive"] }
 smartstring = "0.2.7"

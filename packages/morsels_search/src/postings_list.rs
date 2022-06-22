@@ -1,15 +1,18 @@
 use std::cmp::Ordering;
 
-use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::Cache;
-use web_sys::Response;
+use wasm_bindgen::prelude::wasm_bindgen;
 
-use morsels_common::FILE_EXT;
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
+
+#[inline(never)]
+pub fn get_postings_list<'a, 'b, T>(term: &'b str, postings_lists: &'a Vec<(String, T)>) -> Option<&'a T> {
+    postings_lists.iter()
+        .find(|(t, _)| t.as_str() == term)
+        .map(|(_, v)| v)
+}
 
 #[cfg_attr(test, derive(Debug))]
 pub struct DocField {
@@ -107,6 +110,15 @@ impl<'a> PartialOrd for PlIterator<'a> {
     }
 }
 
+#[wasm_bindgen(module = "/src/searcher/fetchPl.js")]
+extern "C" {
+    async fn fetchPl(
+        pl_name: u32,
+        num_pls_per_dir: u32,
+        base_url: &str,
+    ) -> JsValue;
+}
+
 pub struct PostingsList {
     pub term_docs: Vec<TermDoc>,
     pub weight: f32,
@@ -201,7 +213,6 @@ impl PostingsList {
         &mut self,
         base_url: &str,
         invalidation_vector: &[u8],
-        window: &web_sys::Window,
         num_scored_fields: usize,
         num_pls_per_dir: u32,
         with_positions: bool,
@@ -212,16 +223,11 @@ impl PostingsList {
 
         let term_info = self.term_info.as_ref().unwrap();
 
-        let url = base_url.to_owned()
-            + "pl_"
-            + &(term_info.postings_file_name / num_pls_per_dir).to_string()[..]
-            + "/pl_"
-            + &term_info.postings_file_name.to_string()[..]
-            + "."
-            + FILE_EXT;
-
-        let pl_resp = fetch_pl(window, url, base_url).await?;
-        let pl_array_buffer = JsFuture::from(pl_resp.array_buffer()?).await?;
+        let pl_array_buffer = fetchPl(
+            term_info.postings_file_name,
+            num_pls_per_dir,
+            base_url,
+        ).await;
         let pl_vec = js_sys::Uint8Array::new(&pl_array_buffer).to_vec();
 
         let mut pos = term_info.postings_file_offset as usize;
@@ -279,32 +285,6 @@ impl PostingsList {
     }
 }
 
-async fn fetch_pl(window: &web_sys::Window, url: String, base_url: &str) -> Result<Response, JsValue> {
-    if let Ok(caches) = window.caches() {
-        if !caches.is_undefined() {
-            let cache = JsFuture::from(
-                caches.open(&("morsels:".to_owned() + base_url))
-            ).await;
-    
-            if let Ok(cache) = cache {
-                let cache: Cache = cache.dyn_into().unwrap();
-                let cache_entry = JsFuture::from(cache.match_with_str(&url)).await?;
-                let cache_response: Result<Response, _> = cache_entry.dyn_into();
-                if let Ok(pl_resp) = cache_response {
-                    return Ok(pl_resp);
-                }
-            }
-        }
-    }
-
-    // Not in cache
-    // or Cache API blocked / unsupported (e.g. firefox private) / no https
-    let fetch_promise = window.fetch_with_str(&url);
-    let pl_resp_value = JsFuture::from(fetch_promise).await?;
-    let pl_resp: Response = pl_resp_value.dyn_into().unwrap();
-    Ok(pl_resp)
-}
-
 #[cfg(test)]
 pub mod test {
     use std::rc::Rc;
@@ -316,7 +296,7 @@ pub mod test {
     // Takes a vector of "TermDoc", containing a vector of "fields", containing a tuple of (field_tf, vector of field positions)
     // E.g. a TermDoc containing 2 fields of term frequency 2 and 1: [ [2,[1,2]], [1,[120]] ]
     pub fn to_pl(text: &str) -> PostingsList {
-        let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = serde_json::from_str(&format!("[{}]", text)).unwrap();
+        let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = miniserde::json::from_str(&format!("[{}]", text)).unwrap();
 
         let term_docs: Vec<TermDoc> = vec
             .into_iter()
@@ -350,7 +330,7 @@ pub mod test {
     }
 
     fn to_term_doc(text: &str) -> TermDoc {
-        let doc_fields: Vec<(f32, Vec<u32>)> = serde_json::from_str(text).unwrap();
+        let doc_fields: Vec<(f32, Vec<u32>)> = miniserde::json::from_str(text).unwrap();
         vec_to_term_doc(0, doc_fields)
     }
 

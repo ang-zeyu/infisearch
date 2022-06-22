@@ -7,7 +7,6 @@ class Result {
 
   constructor(
     private _mrlDocId: number,
-    public _mrlScore: number,
     private _mrlFieldInfos: FieldInfo[],
   ) {}
 

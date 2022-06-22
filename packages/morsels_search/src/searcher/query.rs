@@ -2,14 +2,12 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
-use serde::{Serialize, Serializer};
 use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::JsValue;
 
 use crate::postings_list::PlIterator;
 use crate::postings_list::PostingsList;
 use crate::postings_list::TermDoc;
-use crate::searcher::query_parser::QueryPart;
+use crate::searcher::query_parser::{self, QueryPart};
 use crate::searcher::Searcher;
 
 #[derive(Clone)]
@@ -41,13 +39,6 @@ impl Ord for DocResult {
 impl PartialOrd for DocResult {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-impl Serialize for DocResult {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    {
-        (self.doc_id, self.score).serialize(serializer)
     }
 }
 
@@ -89,25 +80,31 @@ pub struct Query {
 
 #[wasm_bindgen]
 impl Query {
-    pub fn get_next_n(&mut self, n: usize) -> JsValue {
-        let mut doc_ids: Vec<DocResult> = Vec::with_capacity(n);
+    pub fn get_next_n(&mut self, n: usize) -> Vec<u32> {
+        let mut doc_ids: Vec<u32> = Vec::with_capacity(n);
         while !self.result_heap.is_empty()
             && doc_ids.len() < n
             && (self.result_limit.is_none() || self.results_retrieved < self.result_limit.unwrap())
         {
-            doc_ids.push(self.result_heap.pop().unwrap());
+            doc_ids.push(self.result_heap.pop().unwrap().doc_id);
             self.results_retrieved += 1;
         }
 
-        serde_wasm_bindgen::to_value(&doc_ids).unwrap()
+        doc_ids
     }
 
-    pub fn get_query_parts(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.query_parts).unwrap()
+    pub fn get_query_parts(&self) -> String {
+        QueryPart::serialize_parts(&self.query_parts)
     }
 
-    pub fn get_searched_terms(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.searched_terms).unwrap()
+    pub fn get_searched_terms(&self) -> String {
+        let mut output = "[".to_owned();
+        let wrapped: Vec<String> = self.searched_terms.iter().map(|term_group| {
+            query_parser::serialize_string_vec(term_group)
+        }).collect();
+        output.push_str(wrapped.join(",").as_str());
+        output.push_str("]");
+        output
     }
 }
 

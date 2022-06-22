@@ -1,15 +1,16 @@
 use std::borrow::Cow;
-use std::collections::{HashSet, BTreeMap};
+#[cfg(feature = "indexer")]
+use std::collections::HashSet;
+use std::collections::BTreeMap;
 
 #[cfg(feature = "indexer")]
 use regex::Regex;
-use rustc_hash::FxHashMap;
-use serde::Deserialize;
 use smartstring::alias::String as SmartString;
 
 use crate::ascii_folding_filter;
-use crate::stop_words::{get_stop_words_set, get_default_stop_words_set};
+use crate::stop_words::get_stop_words;
 use crate::utils::term_filter;
+use morsels_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::IndexerTokenizer;
 use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
@@ -20,38 +21,33 @@ lazy_static! {
 }
 
 pub struct Tokenizer {
+    // Remove HashSet from the search binary, where speed benefits are minimal
+    #[cfg(feature = "indexer")]
     pub stop_words: HashSet<String>,
+    #[cfg(not(feature = "indexer"))]
+    pub stop_words: Vec<String>,
+
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
+
     max_term_len: usize,
 }
 
-fn get_default_max_term_len() -> usize {
-    80
-}
+pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
+    let stop_words = get_stop_words(lang_config, &[
+        // Same list from tantivy
+        "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no",
+        "not", "of", "on", "or", "such", "that", "the", "their", "then", "there", "these", "they", "this",
+        "to", "was", "will", "with"
+    ]);
 
-#[derive(Deserialize)]
-pub struct TokenizerOptions {
-    pub stop_words: Option<Vec<String>>,
-    #[cfg(feature = "indexer")]
-    #[serde(default)]
-    pub ignore_stop_words: bool,
-    #[serde(default = "get_default_max_term_len")]
-    pub max_term_len: usize,
-}
-
-pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
-    let stop_words = if let Some(stop_words) = options.stop_words {
-        get_stop_words_set(stop_words)
-    } else {
-        get_default_stop_words_set()
-    };
+    let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
     Tokenizer {
         stop_words,
         #[cfg(feature = "indexer")]
-        ignore_stop_words: options.ignore_stop_words,
-        max_term_len: options.max_term_len.min(250)
+        ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
+        max_term_len,
     }
 }
 
@@ -133,7 +129,7 @@ impl SearchTokenizer for Tokenizer {
     }
 
     fn is_stop_word(&self, term: &str) -> bool {
-        self.stop_words.contains(term)
+        self.stop_words.iter().any(|t| t == term)
     }
 
     fn use_default_fault_tolerance(&self) -> bool {
@@ -153,7 +149,7 @@ impl SearchTokenizer for Tokenizer {
         _number_of_expanded_terms: usize,
         _term: &str,
         _dictionary: &BTreeMap<SmartString, TermInfo>,
-    ) -> FxHashMap<String, f32> {
-        FxHashMap::default()
+    ) -> Vec<(String, f32)> {
+        Vec::new()
     }
 }

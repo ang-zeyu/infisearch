@@ -8,7 +8,7 @@ export default class WorkerQuery {
   ) {}
 
   _mrlGetNextN(n: number): number[] {
-    return this._mrlQuery.get_next_n(n);
+    return Array.from(this._mrlQuery.get_next_n(n));
   }
 
   _mrlFree() {

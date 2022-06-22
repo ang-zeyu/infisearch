@@ -1,6 +1,6 @@
 use byteorder::{ByteOrder, LittleEndian};
-use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+#[cfg(feature = "indexer")]
+use serde::{Serialize, Deserialize};
 
 pub mod bitmap;
 pub mod dictionary;
@@ -52,21 +52,46 @@ impl BitmapDocinfoDicttableReader {
     }
 }
 
+#[cfg(feature = "indexer")]
 fn get_default_language() -> String {
     "ascii".to_owned()
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct MorselsLanguageConfig {
-    #[serde(default = "get_default_language")]
-    pub lang: String,
-
-    #[serde(default)]
-    pub options: Map<String, Value>,
+#[cfg_attr(feature = "indexer", derive(Serialize, Deserialize))]
+pub struct MorselsLanguageConfigOpts {
+    pub stop_words: Option<Vec<String>>,
+    pub ignore_stop_words: Option<bool>,
+    pub stemmer: Option<String>,
+    pub max_term_len: Option<usize>,
 }
 
+#[cfg(feature = "indexer")]
+impl Default for MorselsLanguageConfigOpts {
+    fn default() -> Self {
+        MorselsLanguageConfigOpts {
+            stop_words: None,
+            ignore_stop_words: None,
+            stemmer: None,
+            max_term_len: None,
+        }
+    }
+}
+
+#[cfg_attr(feature = "indexer", derive(Serialize, Deserialize))]
+pub struct MorselsLanguageConfig {
+    #[cfg_attr(feature = "indexer", serde(default = "get_default_language"))]
+    pub lang: String,
+
+    #[cfg_attr(feature = "indexer", serde(default))]
+    pub options: MorselsLanguageConfigOpts,
+}
+
+#[cfg(feature = "indexer")]
 impl Default for MorselsLanguageConfig {
     fn default() -> Self {
-        MorselsLanguageConfig { lang: get_default_language(), options: Map::default() }
+        MorselsLanguageConfig {
+            lang: get_default_language(),
+            options: MorselsLanguageConfigOpts::default(),
+        }
     }
 }

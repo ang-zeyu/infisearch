@@ -1,18 +1,19 @@
 #[cfg(feature = "indexer")]
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashSet};
+#[cfg(feature = "indexer")]
+use std::collections::HashSet;
+use std::collections::BTreeMap;
 
 use jieba_rs::Jieba;
-use rustc_hash::FxHashMap;
-use serde::Deserialize;
 use smartstring::alias::String as SmartString;
 
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::IndexerTokenizer;
-use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
+use morsels_common::{tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer}, MorselsLanguageConfig};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
 use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
+use morsels_lang_ascii::stop_words::get_stop_words;
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::intra_filter;
 
@@ -37,51 +38,34 @@ fn term_filter(input: Cow<str>) -> Cow<str> {
     }
 }
 
-fn get_stop_words_set(stop_words_vec: Vec<String>) -> HashSet<String> {
-    let mut set: HashSet<String> = HashSet::default();
-
-    for word in stop_words_vec {
-        set.insert(word.to_owned());
-    }
-
-    set
-}
-
 pub struct Tokenizer {
+    // Remove HashSet from the search binary, where speed benefits are minimal
+    #[cfg(feature = "indexer")]
     pub stop_words: HashSet<String>,
+    #[cfg(not(feature = "indexer"))]
+    pub stop_words: Vec<String>,
+
     #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
+
     jieba: Jieba,
+
     max_term_len: usize,
 }
 
-fn get_default_max_term_len() -> usize {
-    80
-}
+pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
+    let stop_words = get_stop_words(lang_config, &[
+        // TODO
+    ]);
 
-#[derive(Deserialize)]
-pub struct TokenizerOptions {
-    stop_words: Option<Vec<String>>,
-    #[cfg(feature = "indexer")]
-    #[serde(default)]
-    ignore_stop_words: bool,
-    #[serde(default = "get_default_max_term_len")]
-    max_term_len: usize,
-}
-
-pub fn new_with_options(options: TokenizerOptions) -> Tokenizer {
-    let stop_words = if let Some(stop_words) = options.stop_words {
-        get_stop_words_set(stop_words)
-    } else {
-        get_stop_words_set(Vec::new())
-    };
+    let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
 
     Tokenizer {
         stop_words,
         #[cfg(feature = "indexer")]
-        ignore_stop_words: options.ignore_stop_words,
+        ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         jieba: Jieba::empty(),
-        max_term_len: options.max_term_len.min(250)
+        max_term_len,
     }
 }
 
@@ -133,7 +117,7 @@ impl SearchTokenizer for Tokenizer {
     }
 
     fn is_stop_word(&self, term: &str) -> bool {
-        self.stop_words.contains(term)
+        self.stop_words.iter().any(|t| t == term)
     }
 
     fn use_default_fault_tolerance(&self) -> bool {
@@ -153,7 +137,7 @@ impl SearchTokenizer for Tokenizer {
         _number_of_expanded_terms: usize,
         _term: &str,
         _dictionary: &BTreeMap<SmartString, TermInfo>,
-    ) -> FxHashMap<String, f32> {
-        FxHashMap::default()
+    ) -> Vec<(String, f32)> {
+        Vec::new()
     }
 }

@@ -9,11 +9,13 @@ repository = "https://github.com/ang-zeyu/morsels"
 readme = "../../README.md"
 license = "MIT"
 
+[features]
+default = []
+indexer = ["serde"]
+
 [dependencies]
 byteorder = "1"
-rustc-hash = "1.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1"
+serde = { version = "1.0", features = ["derive"], optional = true }
 smartstring = "0.2.7"
 
 [dev-dependencies]

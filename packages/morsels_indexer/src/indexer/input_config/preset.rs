@@ -41,10 +41,8 @@ pub fn apply_preset_override(
         set_all_content_fields_do_store(config, do_store_fields);
     };
 
-    if !config.lang_config.options.contains_key("ignore_stop_words") {
-        config.lang_config.options.insert(
-            "ignore_stop_words".to_owned(), Value::Bool(ignore_stop_words),
-        );
+    if config.lang_config.options.ignore_stop_words.is_none() {
+        config.lang_config.options.ignore_stop_words = Some(ignore_stop_words);
     }
 
     if let Some(val) = json_config.get("indexing_config") {
