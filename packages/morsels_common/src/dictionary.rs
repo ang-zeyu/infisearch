@@ -90,7 +90,7 @@ pub fn setup_dictionary(
 
 impl Dictionary {
     pub fn get_term_info(&self, term: &str) -> Option<&TermInfo> {
-        self.term_infos.get(&String::from(term))
+        self.term_infos.get(term)
     }
 }
 

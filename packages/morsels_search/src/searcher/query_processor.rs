@@ -1,6 +1,3 @@
-use std::cell::RefCell;
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 use morsels_common::bitmap;
@@ -9,6 +6,7 @@ use crate::postings_list::{self, DocField, PlIterator, PostingsList, TermDoc};
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
+use crate::utils;
 
 /*
  Processes query operators before the final round in query.rs which ranks the results.
@@ -40,7 +38,11 @@ impl Searcher {
         term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
     ) -> Rc<PostingsList> {
         let mut encountered_empty_pl = false;
-        let pl_iterators: Vec<Rc<RefCell<PlIterator>>> = query_part
+
+        // Keep the original ordering for performing the phrase query.
+        // The contents can be mutated, but the Vec itself must never be resized / reordered / etc.
+        // Otherwise, sorted_pl_its below might point to invalid things...
+        let mut pl_iterators: Vec<PlIterator> = query_part
             .terms
             .as_ref()
             .unwrap()
@@ -53,132 +55,130 @@ impl Searcher {
                 if pl_iterator.td.is_none() {
                     encountered_empty_pl = true;
                 }
-                Rc::new(RefCell::new(pl_iterator))
+
+                pl_iterator
             })
             .collect();
 
         let mut result_pl = empty_pl();
 
-        if encountered_empty_pl {
+        if encountered_empty_pl || pl_iterators.is_empty() {
             return Rc::new(result_pl);
         }
-        
-        let mut iterator_heap: BinaryHeap<Reverse<Rc<RefCell<PlIterator>>>> = pl_iterators
-            .iter()
-            .map(|pl_it| Reverse(Rc::clone(pl_it)))
+
+        // Avoid Rc<RefCell<...>>
+        let mut sorted_pl_its: Vec<*mut PlIterator> = pl_iterators
+            .iter_mut()
+            .map(|pl_it| pl_it as *mut PlIterator)
             .collect();
-        let num_pls = iterator_heap.len();
+        let num_pls = sorted_pl_its.len();
 
-        let mut curr_doc_id = self.doc_info.get_non_existent_id();
-        let mut curr_num_docs = 0;
-        while !iterator_heap.is_empty() {
-            let min_pl_iterator_rc = iterator_heap.pop().unwrap();
-            let mut min_pl_iterator = min_pl_iterator_rc.0.borrow_mut();
+        loop {
+            utils::insertion_sort(&mut sorted_pl_its, |&a, &b| unsafe {
+                (*a).lt(&*b)
+            });
 
-            // Do an "AND" query first
-            if min_pl_iterator.td.unwrap().doc_id == curr_doc_id {
-                curr_num_docs += 1;
+            let min_pl_iterator = unsafe { &**sorted_pl_its.first().unwrap() };
+            if let Some(first_td) = min_pl_iterator.td {
+                // Do an "AND" query first
 
-                if min_pl_iterator.next().is_some() {
-                    drop(min_pl_iterator);
-                    iterator_heap.push(min_pl_iterator_rc);
-                } else {
-                    drop(min_pl_iterator);
-                }
+                let curr_doc_id = first_td.doc_id;
+                let mut num_matched_docs = 0;
+                for &pl_it in sorted_pl_its.iter() {
+                    let pl_it = unsafe { &mut *pl_it };
+                    if let Some(td) = pl_it.td {
+                        if td.doc_id == curr_doc_id {
+                            pl_it.next();
 
-                if curr_num_docs != num_pls {
-                    continue;
-                }
+                            debug_assert!(pl_it.peek_prev().is_some());
 
-                // Now do the phrase query on curr_doc_id
-
-                let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
-                let mut has_match = false;
-
-                let termdocs: Vec<&TermDoc> = pl_iterators
-                    .iter()
-                    .map(|pl_it| pl_it.borrow().peek_prev().unwrap())
-                    .collect();
-
-                for field_id in 0..self.searcher_config.num_scored_fields as usize {
-                    let mut result_doc_field = DocField { field_tf: 0.0, field_positions: Vec::new() };
-
-                    let mut term_field_position_idxes = vec![0; num_pls];
-                    let mut curr_pos: u32 = 0;
-                    let mut term_idx = 0;
-
-                    // Go through the terms in this field, controlled by term_idx modifications below
-                    while let Some(curr_pl_field) = termdocs[term_idx].fields.get(field_id) {
-                        if let Some(&pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
-                            if term_idx == 0 {
-                                // First term in the query
-                                term_field_position_idxes[0] += 1;
-
-                                curr_pos = pos;
-                                term_idx += 1;
-                            } else if pos == (curr_pos + 1) {
-                                // Matched the next term
-                                term_field_position_idxes[term_idx] += 1;
-
-                                if term_idx == num_pls - 1 {
-                                    // Complete the match
-                                    has_match = true;
-                                    result_doc_field.field_positions.push(pos + 1 - (num_pls as u32));
-
-                                    // Reset to look for first term
-                                    term_idx = 0;
-                                } else {
-                                    // Match next term
-                                    curr_pos = pos;
-                                    term_idx += 1;
-                                }
-                            } else {
-                                // Not matched
-
-                                // Forward this postings list up to currPos, try again
-                                if pos < curr_pos {
-                                    while term_field_position_idxes[term_idx] < curr_pl_field.field_positions.len()
-                                        && curr_pl_field.field_positions[term_field_position_idxes[term_idx]] < curr_pos
-                                    {
-                                        term_field_position_idxes[term_idx] += 1;
-                                    }
-                                    continue;
-                                }
-
-                                // Reset
-                                term_idx = 0;
-                            }
-                        } else {
-                            // exceeded number of positions
-                            break;
+                            num_matched_docs += 1;
                         }
                     }
-
-                    result_doc_field.field_tf = result_doc_field.field_positions.len() as f32;
-
-                    td.fields.push(result_doc_field);
                 }
 
-                curr_doc_id = self.doc_info.get_non_existent_id();
-                curr_num_docs = 0;
+                debug_assert!(num_matched_docs > 0);
 
-                if has_match {
-                    result_pl.term_docs.push(td);
+                if num_matched_docs == num_pls {
+                    // Now do the phrase query on curr_doc_id
+                    let (td, has_match) = self.has_position_match(curr_doc_id, num_pls, &pl_iterators);
+
+                    if has_match {
+                        result_pl.term_docs.push(td);
+                    }
                 }
             } else {
-                curr_doc_id = min_pl_iterator.td.unwrap().doc_id;
-                curr_num_docs = 1;
-
-                if min_pl_iterator.next().is_some() {
-                    drop(min_pl_iterator);
-                    iterator_heap.push(min_pl_iterator_rc);
-                }
+                break;
             }
         }
 
         result_pl.calc_pseudo_idf(self.doc_info.num_docs);
 
         Rc::new(result_pl)
+    }
+
+    fn has_position_match(&self, curr_doc_id: u32, num_pls: usize, pl_iterators: &Vec<PlIterator>) -> (TermDoc, bool) {
+        let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
+        let mut has_match = false;
+        for field_id in 0..self.searcher_config.num_scored_fields as usize {
+            let mut result_doc_field = DocField { field_tf: 0.0, field_positions: Vec::new() };
+
+            let mut term_field_position_idxes = vec![0; num_pls];
+            let mut curr_pos: u32 = 0;
+            let mut term_idx = 0;
+
+            // Go through the terms in this field, controlled by term_idx modifications below
+            while let Some(curr_pl_field) = pl_iterators[term_idx].peek_prev().unwrap().fields.get(field_id) {
+                if let Some(&pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
+                    if term_idx == 0 {
+                        // First term in the query
+                        term_field_position_idxes[0] += 1;
+
+                        curr_pos = pos;
+                        term_idx += 1;
+                    } else if pos == (curr_pos + 1) {
+                        // Matched the next term
+                        term_field_position_idxes[term_idx] += 1;
+
+                        if term_idx == num_pls - 1 {
+                            // Complete the match
+                            has_match = true;
+                            result_doc_field.field_positions.push(pos + 1 - (num_pls as u32));
+
+                            // Reset to look for first term
+                            term_idx = 0;
+                        } else {
+                            // Match next term
+                            curr_pos = pos;
+                            term_idx += 1;
+                        }
+                    } else {
+                        // Not matched
+
+                        // Forward this postings list up to currPos, try again
+                        if pos < curr_pos {
+                            while term_field_position_idxes[term_idx] < curr_pl_field.field_positions.len()
+                                && curr_pl_field.field_positions[term_field_position_idxes[term_idx]] < curr_pos
+                            {
+                                term_field_position_idxes[term_idx] += 1;
+                            }
+                            continue;
+                        }
+
+                        // Reset
+                        term_idx = 0;
+                    }
+                } else {
+                    // exceeded number of positions
+                    break;
+                }
+            }
+
+            result_doc_field.field_tf = result_doc_field.field_positions.len() as f32;
+
+            td.fields.push(result_doc_field);
+        }
+        (td, has_match)
     }
 
     fn populate_conjunctive_postings_lists(
@@ -204,13 +204,13 @@ impl Searcher {
             return child_postings_lists.pop().unwrap();
         }
 
-        let mut doc_heap: BinaryHeap<Reverse<PlIterator>> = child_postings_lists
+        let mut sorted_pl_its: Vec<PlIterator> = child_postings_lists
             .iter()
             .enumerate()
-            .map(|(idx, pl_vec)| Reverse(pl_vec.get_it(idx as u8)))
-            .filter(|Reverse(pl_it)| pl_it.td.is_some())
+            .map(|(idx, pl_vec)| pl_vec.get_it(idx as u8))
+            .filter(|pl_it| pl_it.td.is_some())
             .collect();
-        let num_pls = doc_heap.len();
+        let num_pls = sorted_pl_its.len();
 
         if num_pls == 0 {
             return Rc::new(new_pl);
@@ -219,61 +219,50 @@ impl Searcher {
             return Rc::new(new_pl);
         }
 
-        let mut curr_doc_id: u32 = self.doc_info.get_non_existent_id();
-        let mut curr_num_docs = 0;
-        while let Some(mut min_pl_iterator) = doc_heap.pop() {
-            let term_doc_opt = min_pl_iterator.0.td;
+        loop {
+            utils::insertion_sort(&mut sorted_pl_its, |a, b| a.lt(b));
 
-            if (!maybe_partial && curr_num_docs == num_pls)  // AND: all previous pls matched
-                || (
-                    maybe_partial  // parentheses
-                    && (
-                        term_doc_opt.is_none()                          // will break; at the end of this iteration, save the results
-                        || term_doc_opt.unwrap().doc_id > curr_doc_id   // new document in this iteration, save the results
-                    )
-                )
-            {
-                // Merge the documents with the same doc id
+            let min_pl_iterator = sorted_pl_its.first().unwrap();
+            if let Some(first_td) = min_pl_iterator.td {
+                let curr_doc_id = first_td.doc_id;
+                let mut num_matched_docs = 0;
+                for pl_it in sorted_pl_its.iter_mut() {
+                    if let Some(td) = pl_it.td {
+                        if td.doc_id == curr_doc_id {
+                            pl_it.next();
 
-                let matching_pl_its = doc_heap.iter()
-                    .chain(std::iter::once(&min_pl_iterator))
-                    .filter(|Reverse(pl_it)| if let Some(td) = pl_it.peek_prev() {
-                        td.doc_id == curr_doc_id
-                    } else {
-                        false
-                    });
-                
-                // Calculate the new score of the conjunctive expression now (before query.rs)
-                // for preserving the **original** ranking of documents once propagated to the top.
-                let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
-                let mut new_score = 0.0;
-                for Reverse(pl_it) in matching_pl_its {
-                    let term_doc = pl_it.peek_prev().unwrap();
-                    new_score += if term_doc.score != 0.0 {
-                        term_doc.score
-                    } else {
-                        self.calc_doc_bm25_score(term_doc, curr_doc_id, pl_it.pl)
-                    };
-                    acc = PostingsList::merge_term_docs(term_doc, &acc);
+                            debug_assert!(pl_it.peek_prev().is_some());
+
+                            num_matched_docs += 1;
+                        }
+                    }
                 }
 
-                acc.score = new_score;
+                debug_assert!(num_matched_docs > 0);
 
-                new_pl.term_docs.push(acc);
+                if (!maybe_partial && num_matched_docs == num_pls)  // AND: all previous pls matched
+                    || maybe_partial  // parentheses
+                {
+                    // Merge the documents with the same doc id
 
-                // curr_doc_id = self.doc_info.get_non_existent_id();
-            }
+                    // Calculate the new score of the conjunctive expression now (before query.rs)
+                    // for preserving the **original** ranking of documents once propagated to the top.
+                    let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
+                    let mut new_score = 0.0;
+                    for pl_it in sorted_pl_its.iter().take(num_matched_docs) {
+                        let term_doc = pl_it.peek_prev().unwrap();
+                        new_score += if term_doc.score != 0.0 {
+                            term_doc.score
+                        } else {
+                            self.calc_doc_bm25_score(term_doc, curr_doc_id, pl_it.pl)
+                        };
+                        acc = PostingsList::merge_term_docs(term_doc, &acc);
+                    }
 
-            if let Some(td) = term_doc_opt {
-                if td.doc_id == curr_doc_id {
-                    curr_num_docs += 1;
-                } else {
-                    curr_doc_id = td.doc_id;
-                    curr_num_docs = 1;
+                    acc.score = new_score;
+
+                    new_pl.term_docs.push(acc);
                 }
-
-                min_pl_iterator.0.next();
-                doc_heap.push(min_pl_iterator);
             } else {
                 break;
             }

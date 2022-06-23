@@ -1,14 +1,14 @@
 mod edit_distance;
 
 use std::ops::Bound::{Excluded, Unbounded};
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
 
 use smartstring::alias::String;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
 
 use morsels_common::dictionary;
+
+use crate::utils;
 
 pub type Dictionary = dictionary::Dictionary;
 
@@ -18,26 +18,6 @@ static MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;  // **total** weight of expande
 struct TermWeightPair {
     term: String,
     doc_freq_diff: u32,
-}
-
-impl Eq for TermWeightPair {}
-
-impl PartialEq for TermWeightPair {
-    fn eq(&self, other: &Self) -> bool {
-        self.term == other.term
-    }
-}
-
-impl Ord for TermWeightPair {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.doc_freq_diff.cmp(&other.doc_freq_diff)
-    }
-}
-
-impl PartialOrd for TermWeightPair {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.doc_freq_diff.partial_cmp(&other.doc_freq_diff)
-    }
 }
 
 pub trait SearchDictionary {
@@ -128,7 +108,7 @@ impl SearchDictionary for Dictionary {
         };
 
         // number_of_expanded_terms terms with the closest document frequencies
-        let mut top_n_heap: BinaryHeap<TermWeightPair> = BinaryHeap::with_capacity(number_of_expanded_terms);
+        let mut top_n: Vec<TermWeightPair> = Vec::with_capacity(100);
 
         // string to do the prefix check with
         let min_baseterm_substring: String = prefix.chars().take(
@@ -139,21 +119,19 @@ impl SearchDictionary for Dictionary {
             if term.starts_with(min_baseterm_substring.as_str()) {
                 let doc_freq_diff = term_info.doc_freq.abs_diff(prefix_doc_freq);
 
-                if top_n_heap.len() < number_of_expanded_terms {
-                    top_n_heap.push(TermWeightPair { term: term.clone(), doc_freq_diff });
-                } else if doc_freq_diff < top_n_heap.peek().unwrap().doc_freq_diff {
-                    top_n_heap.pop();
-                    top_n_heap.push(TermWeightPair { term: term.clone(), doc_freq_diff });
-                }
+                top_n.push(TermWeightPair { term: term.clone(), doc_freq_diff });
             } else {
                 break;
             }
         }
 
-        let number_of_expanded_terms_found = top_n_heap.len() as f32;
-        let max_score_per_expanded_term = MAXIMUM_TERM_EXPANSION_WEIGHT / number_of_expanded_terms_found;
+        utils::insertion_sort(&mut top_n, |a, b| a.doc_freq_diff.lt(&b.doc_freq_diff));
 
-        top_n_heap.into_iter()
+        let number_of_expanded_terms_found = top_n.len().min(number_of_expanded_terms);
+        let max_score_per_expanded_term = MAXIMUM_TERM_EXPANSION_WEIGHT / (number_of_expanded_terms_found as f32);
+
+        top_n.into_iter()
+            .take(number_of_expanded_terms_found)
             .map(|TermWeightPair { term, doc_freq_diff: _ }| {
                 let length_proportion = prefix_char_count as f32 / term.chars().count() as f32;
                 let weight = length_proportion * max_score_per_expanded_term;

@@ -104,7 +104,7 @@ impl<'a> Ord for PlIterator<'a> {
             if let Some(other_td) = other.td {
                 td.doc_id.cmp(&other_td.doc_id)
             } else {
-                // Orders None values at the back when popped from BinaryHeap<Reverse<PlIterator>> (min heap)
+                // Orders None values at the back when sorted in a Vec
                 Ordering::Less
             }
         } else if other.td.is_some() {

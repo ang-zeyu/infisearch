@@ -9,6 +9,7 @@ use crate::postings_list::PostingsList;
 use crate::postings_list::TermDoc;
 use crate::searcher::query_parser::{self, QueryPart};
 use crate::searcher::Searcher;
+use crate::utils;
 
 #[derive(Clone)]
 struct DocResult {
@@ -129,53 +130,61 @@ impl Searcher {
             .map(|(idx, pl)| pl.get_it(idx as u8))
             .filter(|pl_it| pl_it.td.is_some())
             .collect();
+
         let mut pl_its_for_proximity_ranking: Vec<*const PlIterator> = Vec::with_capacity(pl_its.len());
-        pl_its.sort();
 
         let total_proximity_ranking_terms =
             postings_lists.iter().filter(|pl| pl.include_in_proximity_ranking).count() as f32;
 
-        while !pl_its.is_empty() {
-            let curr_doc_id = pl_its.first().unwrap().td.unwrap().doc_id;
-            let mut result = DocResult { doc_id: curr_doc_id, score: 0.0 };
-            let mut scaling_factor = 1.0;
+        loop {
+            utils::insertion_sort(&mut pl_its, |a, b| a.lt(b));
 
-            // ------------------------------------------
-            // Query term proximity ranking
-            if self.searcher_config.searcher_options.use_query_term_proximity {
-                proximity_rank(
-                    &pl_its, &mut pl_its_for_proximity_ranking,
-                    curr_doc_id, total_proximity_ranking_terms,
-                    &mut scaling_factor
-                );
-            }
-            // ------------------------------------------
-
-            // ------------------------------------------
-            // BM25 calculation
-
-            for pl_it in pl_its.iter_mut() {
-                let td = pl_it.td.unwrap();
-                if td.doc_id == curr_doc_id {
-                    result.score += if td.score != 0.0 {
-                        td.score
-                    } else {
-                        self.calc_doc_bm25_score(td, curr_doc_id, pl_it.pl)
-                    };
-
-                    pl_it.next();
+            if let Some(&PlIterator { td: Some(lowest_id_term_doc), .. }) = pl_its.first() {
+                let curr_doc_id = lowest_id_term_doc.doc_id;
+                let mut result = DocResult { doc_id: curr_doc_id, score: 0.0 };
+                let mut positional_scaling_factor = 1.0;
+    
+                // ------------------------------------------
+                // Query term proximity ranking
+                if self.searcher_config.searcher_options.use_query_term_proximity {
+                    proximity_rank(
+                        &pl_its, &mut pl_its_for_proximity_ranking,
+                        curr_doc_id, total_proximity_ranking_terms,
+                        &mut positional_scaling_factor
+                    );
                 }
+                // ------------------------------------------
+    
+                // ------------------------------------------
+                // BM25 calculation
+    
+                for pl_it in pl_its.iter_mut() {
+                    if let Some(td) = pl_it.td {
+                        if td.doc_id == curr_doc_id {
+                            result.score += if td.score != 0.0 {
+                                td.score
+                            } else {
+                                self.calc_doc_bm25_score(td, curr_doc_id, pl_it.pl)
+                            };
+        
+                            pl_it.next();
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+    
+                result.score *= positional_scaling_factor;
+                result_heap.push(result);
+    
+                // ------------------------------------------
+                
+            } else {
+                // None values are ordered last, finished iterating
+                break;
             }
-
-            result.score *= scaling_factor;
-            result_heap.push(result);
-
-            if pl_its.iter().any(|pl_it| pl_it.td.is_none()) {
-                pl_its = pl_its.into_iter().filter(|pl_it| pl_it.td.is_some()).collect();
-            }
-            pl_its.sort();
-
-            // ------------------------------------------
         }
 
         Query {
@@ -237,24 +246,28 @@ fn proximity_rank<'a>(
     pl_its_for_proximity_ranking.extend(
         pl_its
             .iter()
-            .filter(|pl_it| {
-                pl_it.pl.include_in_proximity_ranking && pl_it.td.unwrap().doc_id == curr_doc_id
-            })
-            .map(|pl_it| pl_it as *const PlIterator),
+            .filter_map(|pl_it| {
+                if let Some(td) = pl_it.td {
+                    if pl_it.pl.include_in_proximity_ranking
+                        && td.doc_id == curr_doc_id {
+                        return Some(pl_it as *const PlIterator);
+                    }
+                }
+                None
+            }),
     );
 
     if pl_its_for_proximity_ranking.len() > 1 {
-        unsafe {
-            pl_its_for_proximity_ranking
-                .sort_by(|a, b| (**a).original_idx.cmp(&(**b).original_idx));
-        }
+        utils::insertion_sort(pl_its_for_proximity_ranking, |&a, &b| unsafe {
+            (*a).original_idx.lt(&(*b).original_idx)
+        });
 
         let num_pl_its_curr_doc = pl_its_for_proximity_ranking.len() as f32;
 
         let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
-        for (i, pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
+        for (i, &pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
             let curr_fields = unsafe {
-                &(**pl_it).td.as_ref().unwrap().fields
+                &(*pl_it).td.as_ref().unwrap().fields
             };
             for (j, curr_field) in curr_fields.iter().enumerate() {
                 if curr_field.field_positions.is_empty() {
@@ -272,12 +285,11 @@ fn proximity_rank<'a>(
         // Merge disjoint fields' positions into one
         // Vec<(pos, pl_it_idx)>
         let mut merged_positions: Vec<(u32, usize)> = Vec::new();
-        while !position_heap.is_empty() {
-            let top = position_heap.pop().unwrap();
-
+        while let Some(top) = position_heap.pop() {
             let doc_field = unsafe {
                 &(*pl_its_for_proximity_ranking[top.pl_it_idx]).td.as_ref().unwrap().fields[top.pl_it_field_idx]
             };
+
             if top.pl_it_field_fieldposition_next_idx < doc_field.field_positions.len() {
                 position_heap.push(Position {
                     pos: doc_field.field_positions[top.pl_it_field_fieldposition_next_idx],
