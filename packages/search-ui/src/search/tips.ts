@@ -12,26 +12,37 @@ export default function createTipButton(
     return;
   }
 
-  function createListItem(content: string, example: string) {
-    return h('li', { class: 'morsels-tip-item' },
-      content,
-      h('code', {}, example),
-    );
+  function wrapInCode(example: string) {
+    return h('code', {}, example);
+  }
+
+  function createListItem(...contents: (string | HTMLElement)[]) {
+    return h('li', { class: 'morsels-tip-item' }, ...contents);
   }
 
   const tipList = h(
     'ul',
     { class: 'morsels-tip-list' },
     createListItem(
-      'Match multiple terms with "AND": ',
-      'weather AND forecast AND sunny',
+      'Match multiple terms or expressions:',
+      wrapInCode('weather AND forecast AND sunny'),
     ),
-    createListItem('Flip results with "NOT": ', 'NOT rainy'),
     createListItem(
-      'Match 1 of 3 specific parts of pages: ',
-      'title:forecast or heading:sunny or body:rainy',
+      'Flip results for any expression:',
+      wrapInCode('NOT rainy'),
     ),
-    createListItem('Group terms or expressions into a expression with brackets: ', '(...expressions...)'),
+    createListItem(
+      'Match 1 of 3 specific areas of pages:',
+      h('ul', {}, 
+        h('li', {}, wrapInCode('title:forecast')),
+        h('li', {}, wrapInCode( 'heading:sunny')),
+        h('li', {}, wrapInCode('body:rainy')),
+      ),
+    ),
+    createListItem(
+      'Group/nest expressions together:',
+      wrapInCode('forecast AND (sunny warm)'),
+    ),
   );
   const tipPopup = h(
     'div', { class: 'morsels-tip-popup-root' },
@@ -85,7 +96,10 @@ export default function createTipButton(
 
   searcher.setupPromise.then(() => {
     if (searcher.cfg.indexingConfig.withPositions) {
-      tipList.append(createListItem('Search for phrases using quotes: ', '"for tomorrow"'));
+      tipList.append(createListItem(
+        'Search for phrases using quotes: ',
+        wrapInCode('"for tomorrow"'),
+      ));
     }
   });
 }

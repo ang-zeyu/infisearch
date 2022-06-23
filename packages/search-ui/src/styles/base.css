@@ -184,12 +184,25 @@
 
 .morsels-tip-item {
     line-height: 1.15;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
 }
 
 .morsels-tip-item code {
+    font-size: 0.9em;
     color: var(--morsels-tip-code-fg);
     background: var(--morsels-tip-code-bg);
+}
+
+.morsels-tip-item > ul,
+.morsels-tip-item > code {
+    display: block;
+    margin: 5px 0 0 3px;
+    padding: 0;
+}
+
+.morsels-tip-item li {
+    list-style: none;
+    padding: 0;
 }
 
 .morsels-tip-popup-separator {
