@@ -34,6 +34,7 @@ morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", version
 morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", version="0.1.1", features = ["indexer"] }
 num_cpus = "1"
 path-slash = "0.1.4"
+pdf-extract = "0.6"
 regex = "1"
 rustc-hash = "1.1"
 scraper = "0.13"

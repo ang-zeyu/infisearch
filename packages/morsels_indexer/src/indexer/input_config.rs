@@ -11,6 +11,7 @@ use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
 use crate::loader::txt::TxtLoader;
+use crate::loader::pdf::PdfLoader;
 
 use glob::Pattern;
 use rustc_hash::FxHashMap;
@@ -116,6 +117,7 @@ impl MorselsIndexingConfig {
                 "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
                 "JsonLoader" => loaders.push(JsonLoader::get_new_json_loader(value)),
                 "TxtLoader" => loaders.push(TxtLoader::get_new_txt_loader(value)),
+                "PdfLoader" => loaders.push(PdfLoader::get_new_pdf_loader(value)),
                 _ => panic!("Unknown loader type encountered in config"),
             }
         }

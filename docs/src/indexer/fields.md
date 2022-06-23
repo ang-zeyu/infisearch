@@ -39,7 +39,7 @@ There are a few other parameters under `fields_config` however, which can be use
         "k": 1.2,
         "b": 0.75
       },
-      // Internal, hardcoded field (see "Special Fields")
+      // Internal, hardcoded field (see "Reserved Fields")
       {
         "name": "_relative_fp",
         "do_store": true,
@@ -110,9 +110,9 @@ The functions of the default fields for the user interface are as follows:
 
 Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings are insufficient. This is discussed later under [indexing](./indexing.md#mapping-file-data-to-fields-loader_configs).
 
-The exception are "special" fields below, which have "hardcoded" values.
+The exception are the reserved fields below, which have "hardcoded" values.
 
-### Special Fields
+### Reserved Fields
 
 **`_relative_fp`**
 

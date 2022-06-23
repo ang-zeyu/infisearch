@@ -67,7 +67,7 @@ The impacts of the two options here are discussed under the 2 main methods of re
 
 Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (`RTT`) of network requests has to be made to retrieve said source files.
 
-However, it is also more feasible with this option to reduce a round of network requests by **caching all field stores** up front, as field stores here only store the [relative file path / link](indexer/fields.md#special-fields) from which to retrieve the source files, and are therefore fairly small.
+However, it is also more feasible with this option to reduce a round of network requests by **caching all field stores** up front, as field stores here only store the [relative file path / link](indexer/fields.md#reserved-fields) from which to retrieve the source files, and are therefore fairly small.
 
 > For example, assuming each link takes an average of `25` bytes to encode (including json fluff), and `3MB` (ungzipped) is your comfort zone, you can store up to `120000` document links in a single, cached field store!
 

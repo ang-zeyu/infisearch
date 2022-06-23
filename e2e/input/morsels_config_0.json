@@ -116,7 +116,8 @@
         },
         "type": "CsvLoader",
         "use_headers": false
-      }
+      },
+      "PdfLoader": {}
     },
     "num_pls_per_dir": 1000,
     "with_positions": true

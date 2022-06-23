@@ -35,7 +35,7 @@ The snippet below shows the default values:
 
 ## Mapping File Data to Fields
 
-The indexer is able to handle data from HTML, JSON, csv or txt files. Support for each file type is provided by a "Loader" abstraction.
+The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a "Loader" abstraction.
 
 You may configure loaders by **including them under the `loader_configs` key**, with any applicable options.
 
@@ -150,6 +150,19 @@ Field mappings for CSV files can be configured using one of the `field_map / fie
 
 The `parse_options` key specifies options for parsing the csv file. In particular, note that the `has_headers` key is distinct from and does not influence the `use_headers` parameter.
 
+#### PDF Files: **`loader_configs.PdfLoader`**
+
+```json
+"loader_configs": {
+  "PdfLoader": {
+    "field": "body",
+  }
+}
+```
+
+This loader indexes all content into a single field "body" by default.
+
+The search result title would appear as `<Pdf file name> (pdf)`, and when clicked upon will open the pdf in the browser.
 
 #### Text Files: **`loader_configs.TxtLoader`**
 

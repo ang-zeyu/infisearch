@@ -238,6 +238,14 @@ const testSuite = async (configFile, with_positions = true) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
+  // PdfLoader tests
+  if (with_positions) {
+    await typePhraseOrAnd('this is a pdf document', with_positions);
+    await assertSingle('this is a pdf document');
+  }
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
   // Test incremental indexing addition
 
   // 1, to be deleted later
