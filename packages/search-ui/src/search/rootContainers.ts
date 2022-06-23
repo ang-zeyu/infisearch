@@ -58,6 +58,7 @@ export function dropdownRootRender(
   const listContainer = h('ul', {
     id: 'morsels-dropdown-list',
     class: 'morsels-list',
+    tabindex: '-1',
   });
   const innerRoot = h('div',
     { class: 'morsels-inner-root', style: 'display: none;' },

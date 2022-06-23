@@ -214,8 +214,8 @@ function initMorsels(options: SearchUiOptions): {
 
     const parent = input.parentElement;
     input.remove();
-    const [dropdownRoot, dropdownListContainerr] = dropdownRootRender(uiOptions, searcher, input);
-    dropdownListContainer = dropdownListContainerr;
+    const [dropdownRoot, d] = dropdownRootRender(uiOptions, searcher, input);
+    dropdownListContainer = d;
     parent.appendChild(dropdownRoot);
 
     showDropdown = () => {
@@ -265,7 +265,6 @@ function initMorsels(options: SearchUiOptions): {
           while (activeEl) {
             activeEl = activeEl.parentElement;
             if (activeEl === dropdownRoot) {
-              input.focus();
               return;
             }
           }
