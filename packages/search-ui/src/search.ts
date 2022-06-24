@@ -258,7 +258,7 @@ function initMorsels(options: SearchUiOptions): {
       debounce = setTimeout(toggleUiMode, 10);
     });
 
-    input.addEventListener('blur', () => {
+    dropdownRoot.addEventListener('focusout', () => {
       if (useDropdown(uiOptions)) {
         setTimeout(() => {
           let activeEl = document.activeElement;
