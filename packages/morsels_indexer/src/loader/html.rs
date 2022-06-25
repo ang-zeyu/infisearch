@@ -14,21 +14,21 @@ use crate::loader::LoaderResultIterator;
 
 pub struct HtmlLoaderSelector {
     selector: Selector,
-    field_name: String,
+    field_name: Option<String>,
     attr_map: FxHashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct HtmlLoaderSelectorRaw {
     selector: String,
-    field_name: String,
+    field_name: Option<String>,
     attr_map: FxHashMap<String, String>,
 }
 
 fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
     let mut heading_selector = HtmlLoaderSelectorRaw {
         selector: "h1,h2,h3,h4,h5,h6".to_owned(),
-        field_name: "heading".to_owned(),
+        field_name: Some("heading".to_owned()),
         attr_map: FxHashMap::default(),
     };
     heading_selector.attr_map.insert("id".to_owned(), "headingLink".to_owned());
@@ -36,12 +36,12 @@ fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
     vec![
         HtmlLoaderSelectorRaw {
             selector: "title".to_owned(),
-            field_name: "title".to_owned(),
+            field_name: Some("title".to_owned()),
             attr_map: FxHashMap::default(),
         },
         HtmlLoaderSelectorRaw {
             selector: "body".to_owned(),
-            field_name: "body".to_owned(),
+            field_name: Some("body".to_owned()),
             attr_map: FxHashMap::default(),
         },
         heading_selector,
@@ -154,34 +154,25 @@ impl HtmlLoaderResult {
     ) {
         for html_loader_selector in self.options.selectors.iter() {
             if html_loader_selector.selector.matches(&node) {
-                let field_name = Some(&html_loader_selector.field_name);
-
                 for (attr_name, attr_field_name) in html_loader_selector.attr_map.iter() {
                     if let Some(attr) = node.value().attr(attr_name) {
                         field_texts.push((attr_field_name.to_owned(), attr.to_owned()));
                     }
                 }
 
-                for child in node.children() {
-                    if let Some(el_child) = ElementRef::wrap(child) {
-                        // Traverse children elements with new field name
-                        self.traverse_node(el_child, field_texts, field_name);
-                    } else if let Some(text) = child.value().as_text() {
-                        // Index children text nodes with new field name
-                        if let Some(last) = field_texts.last_mut() {
-                            if last.0 == html_loader_selector.field_name {
-                                last.1 += text;
-                            } else {
-                                field_texts
-                                    .push((html_loader_selector.field_name.to_owned(), text.to_string()));
-                            }
-                        } else {
-                            field_texts.push((html_loader_selector.field_name.to_owned(), text.to_string()));
+                if let Some(field_name) = &html_loader_selector.field_name {
+                    for child in node.children() {
+                        if let Some(el_child) = ElementRef::wrap(child) {
+                            // Traverse children elements with new field name
+                            self.traverse_node(el_child, field_texts, Some(field_name));
+                        } else if let Some(text) = child.value().as_text() {
+                            // Index children text nodes with new field name
+                            add_text_to_field(field_texts, field_name, text);
                         }
                     }
+    
+                    return;
                 }
-
-                return;
             }
         }
 
@@ -193,18 +184,23 @@ impl HtmlLoaderResult {
             } else if let Some(text) = child.value().as_text() {
                 if let Some(field_name) = field_name {
                     // Index children text nodes with parent field name
-                    if let Some(last) = field_texts.last_mut() {
-                        if last.0 == *field_name {
-                            last.1 += text;
-                        } else {
-                            field_texts.push((field_name.to_owned(), text.to_string()));
-                        }
-                    } else {
-                        field_texts.push((field_name.to_owned(), text.to_string()));
-                    }
+                    add_text_to_field(field_texts, field_name, text);
                 }
             }
         }
+    }
+}
+
+#[inline(always)]
+fn add_text_to_field(field_texts: &mut Vec<(String, String)>, field_name: &String, text: &scraper::node::Text) {
+    if let Some(last) = field_texts.last_mut() {
+        if last.0 == *field_name {
+            last.1 += text;
+        } else {
+            field_texts.push((field_name.to_owned(), text.to_string()));
+        }
+    } else {
+        field_texts.push((field_name.to_owned(), text.to_string()));
     }
 }
 
@@ -222,7 +218,11 @@ impl LoaderResult for HtmlLoaderResult {
             }
         }
 
-        self.traverse_node(document.root_element(), &mut field_texts, None);
+        for child in document.tree.root().children() {
+            if let Some(el_child) = ElementRef::wrap(child) {
+                self.traverse_node(el_child, &mut field_texts, None);
+            }
+        }
 
         field_texts
     }

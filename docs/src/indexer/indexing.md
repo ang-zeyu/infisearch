@@ -74,11 +74,13 @@ You may configure loaders by **including them under the `loader_configs` key**, 
 
 The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.
 
-At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified `field_name`.
+At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified `field_name`, if any.
 
 This process repeats as the document is traversed — if another of the element's descendants matched a different selector, the field mapping is overwritten for that descendant's descendants.
 
-The `attr_map` option allows indexing attributes of each element under fields as well.
+The `attr_map` option allows indexing attributes of specific elements under fields as well.
+
+> If needed, you can also index HTML fragments. To match the entire fragment, use the `body` selector.
 
 #### JSON Files: **`loader_configs.JsonLoader`**
 
