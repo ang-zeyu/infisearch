@@ -22,8 +22,11 @@ impl PartialEq for TermInfo {
     }
 }
 
+// When None is yielded, it indicates a positional gap
+pub type TermIter<'a> = Box<dyn Iterator<Item = Option<Cow<'a, str>>> + 'a>;
+
 pub trait IndexerTokenizer {
-    fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>>;
+    fn tokenize<'a>(&'a self, text: &'a mut str) -> TermIter<'a>;
 }
 
 pub trait SearchTokenizer {

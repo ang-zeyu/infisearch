@@ -12,7 +12,7 @@ use crate::stop_words::get_stop_words;
 use crate::utils::term_filter;
 use morsels_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
-use morsels_common::tokenize::IndexerTokenizer;
+use morsels_common::tokenize::{IndexerTokenizer, TermIter};
 use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
 
 #[cfg(feature = "indexer")]
@@ -83,25 +83,23 @@ pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slic
 
 #[cfg(feature = "indexer")]
 impl IndexerTokenizer for Tokenizer {
-    fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
+    fn tokenize<'a>(&'a self, text: &'a mut str) -> TermIter<'a> {
         text.make_ascii_lowercase();
-        SENTENCE_SPLITTER.split(text)
-            .map(|sent_slice| {
-                let iter = sent_slice
+        let it = SENTENCE_SPLITTER.split(text)
+            .flat_map(move |sent_slice| {
+                sent_slice
                     .split_whitespace()
                     .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
-                    .filter(|term| {
+                    .filter(move |term| {
                         let term_byte_len = term.len();
-                        term_byte_len > 0 && term_byte_len <= self.max_term_len
-                    });
-        
-                if self.ignore_stop_words {
-                    iter.filter(|term| !self.stop_words.contains(term.as_ref())).collect()
-                } else {
-                    iter.collect()
-                }
-            })
-            .collect()
+                        term_byte_len > 0
+                            && term_byte_len <= self.max_term_len
+                            && !(self.ignore_stop_words && self.stop_words.contains(term.as_ref()))
+                    })
+                    .map(Some).chain(std::iter::once(None))
+            });
+
+        Box::new(it)
     }
 }
 

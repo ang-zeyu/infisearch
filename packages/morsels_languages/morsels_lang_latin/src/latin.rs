@@ -8,7 +8,7 @@ use smartstring::alias::String as SmartString;
 
 use morsels_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
-use morsels_common::tokenize::IndexerTokenizer;
+use morsels_common::tokenize::{IndexerTokenizer, TermIter};
 use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
@@ -85,28 +85,29 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
 
 #[cfg(feature = "indexer")]
 impl IndexerTokenizer for Tokenizer {
-    fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
+    fn tokenize<'a>(&'a self, text: &'a mut str) -> TermIter<'a> {
         text.make_ascii_lowercase();
-        SENTENCE_SPLITTER.split(text)
-            .map(|sent_slice| {
+        let it = SENTENCE_SPLITTER.split(text)
+            .flat_map(move |sent_slice| {
                 sent_slice
                     .split_whitespace()
                     .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
-                    .filter(|term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
-                    .map(|term_slice| {
+                    .filter(move |term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
+                    .map(move |term_slice| {
                         if let Cow::Owned(v) = self.stemmer.stem(&term_slice) {
                             Cow::Owned(v)
                         } else {
                             term_slice
                         }
                     })
-                    .filter(|term| {
+                    .filter(move |term| {
                         let term_byte_len = term.len();
                         term_byte_len > 0 && term_byte_len <= self.max_term_len
                     })
-                    .collect()
-            })
-            .collect()
+                    .map(Some).chain(std::iter::once(None))
+            });
+
+        Box::new(it)
     }
 }
 

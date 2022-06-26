@@ -331,23 +331,22 @@ impl WorkerMiner {
                 self.total_len += field_text.len() as u64;
             }
 
-            let sentences = self.tokenizer.tokenize(&mut field_text);
+            let terms = self.tokenizer.tokenize(&mut field_text);
             let field_lengths = field_lengths.get_mut(field_id as usize).unwrap();
 
-            for sent_terms in sentences {
-                let l = sent_terms.len() as u32;
-                *field_lengths += l;
+            for term in terms {
+                if let Some(term) = term {
+                    *field_lengths += 1;
 
-                #[cfg(debug_assertions)]
-                {
-                    self.total_terms += l;
-                }
+                    #[cfg(debug_assertions)]
+                    {
+                        self.total_terms += 1;
+                    }
 
-                for field_term in sent_terms {
-                    let term_docs = if let Some(existing) = self.terms.get_mut(&field_term[..]) {
+                    let term_docs = if let Some(existing) = self.terms.get_mut(&term[..]) {
                         existing
                     } else {
-                        self.terms.entry(field_term.into_owned()).or_insert_with(|| vec![TermDoc {
+                        self.terms.entry(term.into_owned()).or_insert_with(|| vec![TermDoc {
                             doc_id,
                             doc_fields: vec![DocField::default(); num_scored_fields],
                         }])
@@ -367,8 +366,6 @@ impl WorkerMiner {
                     if self.with_positions {
                         doc_field.positions.push(*pos);
                     }
-
-                    *pos += 1;
                 }
 
                 *pos += 1;

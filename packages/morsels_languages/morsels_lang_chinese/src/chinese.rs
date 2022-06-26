@@ -8,7 +8,7 @@ use jieba_rs::Jieba;
 use smartstring::alias::String as SmartString;
 
 #[cfg(feature = "indexer")]
-use morsels_common::tokenize::IndexerTokenizer;
+use morsels_common::tokenize::{IndexerTokenizer, TermIter};
 use morsels_common::{tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer}, MorselsLanguageConfig};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
@@ -75,22 +75,27 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
 
 #[cfg(feature = "indexer")]
 impl IndexerTokenizer for Tokenizer {
-    fn tokenize<'a>(&self, text: &'a mut str) -> Vec<Vec<Cow<'a, str>>> {
+    fn tokenize<'a>(&'a self, text: &'a mut str) -> TermIter<'a> {
         text.make_ascii_lowercase();
-        self.jieba
+        let it = self.jieba
             .cut(text, false)
             .into_iter()
             .filter(|cut| !cut.trim().is_empty())
             .map(|term| term_filter(ascii_folding_filter::to_ascii(term)))
-            .fold(vec![Vec::new()], |mut acc, next| {
+            .filter_map(move |next| {
                 if next.trim().is_empty() {
-                    acc.push(Vec::new()); // Split on punctuation
-                } else if !(self.ignore_stop_words && self.stop_words.contains(next.as_ref()))
-                    && next.len() <= self.max_term_len {
-                    acc.last_mut().unwrap().push(next);
+                    // Punctuation, split on it (None as a sentence separator)
+                    Some(None)
+                } else if (self.ignore_stop_words && self.stop_words.contains(next.as_ref()))
+                    || next.len() > self.max_term_len {
+                    // Remove completely
+                    None
+                } else {
+                    Some(Some(next))
                 }
-                acc
-            })
+            });
+
+        Box::new(it)
     }
 }
 
