@@ -27,8 +27,12 @@
     --morsels-loading-secondary-bg: rgb(99, 186, 255);
     --morsels-scrollbar-bg: #212121;
     --morsels-scrollbar-thumb-bg: #363839;
-    --morsels-fs-button-input-fg: rgb(235, 235, 235);
-    --morsels-fs-button-input-bg: #6c757d;
+    /* 
+     Below 3 values from https://bootswatch.com/darkly/'s primary-themed button.
+    */
+    --morsels-fs-button-input-fg: #fff;
+    --morsels-fs-button-input-bg: #375a7f;
+    --morsels-fs-button-input-shadow: 0 0 0 3px rgb(85 115 146 / 50%);
     --morsels-fs-border: 3px solid #363839;
     --morsels-fs-box-shadow: none;
     --morsels-fs-header-bg: #363839;

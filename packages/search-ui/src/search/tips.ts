@@ -24,15 +24,15 @@ export default function createTipButton(
     'ul',
     { class: 'morsels-tip-list' },
     createListItem(
-      'Match multiple terms or expressions:',
+      'Match multiple terms or expressions',
       wrapInCode('weather AND forecast AND sunny'),
     ),
     createListItem(
-      'Flip results for any expression:',
+      'Flip results for any expression',
       wrapInCode('NOT rainy'),
     ),
     createListItem(
-      'Match 1 of 3 specific areas of pages:',
+      'Match 1 of 3 specific areas of pages',
       h('ul', {}, 
         h('li', {}, wrapInCode('title:forecast')),
         h('li', {}, wrapInCode( 'heading:sunny')),
@@ -40,7 +40,7 @@ export default function createTipButton(
       ),
     ),
     createListItem(
-      'Group/nest expressions together:',
+      'Group/nest expressions together',
       wrapInCode('forecast AND (sunny warm)'),
     ),
   );
@@ -97,7 +97,7 @@ export default function createTipButton(
   searcher.setupPromise.then(() => {
     if (searcher.cfg.indexingConfig.withPositions) {
       tipList.append(createListItem(
-        'Search for phrases using quotes: ',
+        'Search for phrases using quotes',
         wrapInCode('"for tomorrow"'),
       ));
     }

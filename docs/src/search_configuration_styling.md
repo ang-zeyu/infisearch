@@ -74,9 +74,9 @@ Head on over to the demo site [here](https://ang-zeyu.github.io/morsels-demo-1/)
 
 ## Input Element As a Button
 
-Where the `input` option passed to `initMorsels` is concerned, Morsels adopts a minimally invasive approach to styling, preferring to leave this to the individual site's preferences.
+Where the `input` option passed to `initMorsels` is concerned, Morsels adopts a minimally invasive approach to styling, preferring to leave this to your individual site's preferences.
 
-For reasons of accessbility however, some minimal styling is applied when using the [fullscreen](./search_configuration.md#ui-mode) UI to convey the intention of a button. This is limited to a background + color application on *focus*, `cursor: pointer` application on *hover*, and `text-align: center` (for the placeholder) application. The background and color application in particular are applied with a `!important` modifier as they are key to keyboard accessibility, but are also overridable easily with Morsels' css variables.
+For reasons of accessbility however, some minimal styling is applied when using the [fullscreen](./search_configuration.md#ui-mode) UI to convey the intention of a button. This is limited to a `background` + `box-shadow` + `color` application on *focus*, `cursor: pointer` application on *hover*, and `text-align: center` (for the placeholder) application. The background, box-shadow and color application in particular are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels' css variables.
 
 You may override and addon to these styles as needed, to convey the intention of a button further.
 

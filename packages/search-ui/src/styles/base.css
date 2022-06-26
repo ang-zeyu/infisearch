@@ -46,6 +46,7 @@
 .morsels-button-input:focus:not(:hover) {
     transition: 0.3s ease-out;
     background: var(--morsels-fs-button-input-bg) !important;
+    box-shadow: var(--morsels-fs-button-input-shadow) !important;
 }
 
 .morsels-button-input:focus:not(:hover)::placeholder {
@@ -121,6 +122,11 @@
     }
 }
 
+.morsels-input-close-fs:focus {
+    color: var(--morsels-fs-header-close-hover-fg);
+    background: var(--morsels-fs-header-close-hover-bg);
+}
+
 .morsels-input-close-fs:active {
     color: var(--morsels-fs-header-close-active-fg);
     background: var(--morsels-fs-header-close-active-bg);
@@ -183,7 +189,7 @@
 }
 
 .morsels-tip-item {
-    line-height: 1.15;
+    line-height: 1.2;
     margin-bottom: 4px;
 }
 
@@ -198,6 +204,10 @@
     display: block;
     margin: 5px 0 0 3px;
     padding: 0;
+}
+
+.morsels-tip-item > ul {
+    margin: 2px 0 0 3px;
 }
 
 .morsels-tip-item li {
