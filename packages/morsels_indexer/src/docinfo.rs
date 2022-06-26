@@ -99,8 +99,8 @@ impl DocInfos {
         let mut total_field_lengths: Vec<u64> = vec![0; num_scored_fields];
         for (doc_id, worker_miner_doc_info) in self.doc_lengths.iter().enumerate() {
             if !bitmap::check(&incremental_info.invalidation_vector, doc_id) {
-                for (field_id, field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {
-                    *total_field_lengths.get_mut(field_id).unwrap() += (*field_length) as u64;
+                for (field_id, &field_length) in worker_miner_doc_info.field_lengths.iter().enumerate() {
+                    total_field_lengths[field_id] += field_length as u64;
                 }
             }
         }
@@ -130,7 +130,7 @@ impl DocInfos {
         self.calculate_field_average_lengths(doc_info_writer, num_docs, num_scored_fields, incremental_info);
 
         for worker_miner_doc_info in self.doc_lengths.iter() {
-            for field_length in worker_miner_doc_info.field_lengths.iter() {
+            for &field_length in worker_miner_doc_info.field_lengths.iter() {
                 doc_info_writer.write_all(&field_length.to_le_bytes()).unwrap();
             }
         }

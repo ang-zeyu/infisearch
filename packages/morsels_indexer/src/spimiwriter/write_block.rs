@@ -12,7 +12,7 @@ use crate::worker::miner::TermDocComparator;
 
 pub fn write_block(combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>>, output_folder_path: PathBuf, block_number: u32) {
     let mut combined_terms_vec: Vec<_> = combined_terms.into_iter().collect();
-    combined_terms_vec.sort_by(|a, b| a.0.cmp(&b.0));
+    combined_terms_vec.sort_unstable_by(|a, b| a.0.cmp(&b.0));
     let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
     let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
 

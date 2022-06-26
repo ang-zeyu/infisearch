@@ -57,7 +57,7 @@ pub fn serialize_string_vec(v: &Vec<String>) -> String {
     let mut output = "[".to_owned();
     let wrapped: Vec<String> = v.iter().map(wrap_string).collect();
     output.push_str(wrapped.join(",").as_str());
-    output.push_str("]");
+    output.push(']');
     output
 }
 
@@ -67,7 +67,7 @@ impl QueryPart {
         let mut output = "[".to_owned();
         let wrapped: Vec<String> = parts.iter().map(QueryPart::serialize).collect();
         output.push_str(wrapped.join(",").as_str());
-        output.push_str("]");
+        output.push(']');
         output
     }
 
@@ -116,7 +116,7 @@ impl QueryPart {
             get_null()
         });
 
-        output.push_str("}");
+        output.push('}');
         output
     }
 
@@ -186,6 +186,7 @@ fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usi
         .collect()
 }
 
+#[allow(clippy::match_like_matches_macro)]
 #[inline(never)]
 fn is_double_quote(c: char) -> bool {
     match c {

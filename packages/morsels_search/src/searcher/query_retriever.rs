@@ -52,7 +52,7 @@ num_desired_expanded_terms,
         let mut new_query_parts: Vec<QueryPart> = Vec::with_capacity(expanded_terms.len());
         for (term, weight) in expanded_terms {
             if let Some(term_info) = self.dictionary.get_term_info(&term) {
-                if postings_list::get_postings_list(&term, &postings_lists).is_some() {
+                if postings_list::get_postings_list(&term, postings_lists).is_some() {
                     continue;
                 }
 
@@ -93,7 +93,7 @@ num_desired_expanded_terms,
         for query_part in query_parts {
             if let Some(terms) = &query_part.terms {
                 for term in terms {
-                    if postings_list::get_postings_list(term, &postings_lists).is_some() {
+                    if postings_list::get_postings_list(term, postings_lists).is_some() {
                         continue;
                     }
 

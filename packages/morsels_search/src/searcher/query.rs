@@ -104,7 +104,7 @@ impl Query {
             query_parser::serialize_string_vec(term_group)
         }).collect();
         output.push_str(wrapped.join(",").as_str());
-        output.push_str("]");
+        output.push(']');
         output
     }
 }
@@ -237,7 +237,7 @@ impl Searcher {
 
 #[inline]
 fn proximity_rank<'a>(
-    pl_its: &Vec<PlIterator<'a>>,
+    pl_its: &[PlIterator<'a>],
     pl_its_for_proximity_ranking: &mut Vec<*const PlIterator<'a>>,
     curr_doc_id: u32,
     total_proximity_ranking_terms: f32,

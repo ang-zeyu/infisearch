@@ -83,6 +83,7 @@ fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer
     Box::new(chinese::new_with_options(lang_config))
 }
 
+#[allow(clippy::too_many_arguments)]
 #[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_new_searcher(

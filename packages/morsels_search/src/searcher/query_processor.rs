@@ -212,10 +212,8 @@ impl Searcher {
             .collect();
         let num_pls = sorted_pl_its.len();
 
-        if num_pls == 0 {
-            return Rc::new(new_pl);
-        } else if !maybe_partial && num_pls != child_postings_lists.len() {
-            // Early termination for AND
+        if num_pls == 0
+            || (!maybe_partial && num_pls != child_postings_lists.len()) {
             return Rc::new(new_pl);
         }
 
@@ -240,8 +238,10 @@ impl Searcher {
 
                 debug_assert!(num_matched_docs > 0);
 
-                if (!maybe_partial && num_matched_docs == num_pls)  // AND: all previous pls matched
-                    || maybe_partial  // parentheses
+                // Either:
+                // - AND: all previous pls matched
+                // - (): always
+                if maybe_partial || num_matched_docs == num_pls
                 {
                     // Merge the documents with the same doc id
 

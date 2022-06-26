@@ -17,9 +17,9 @@ fn get_stop_words_set<'a, T: IntoIterator<Item = &'a str>>(stop_words: T) -> Has
 #[cfg(feature = "indexer")]
 pub fn get_stop_words(lang_config: &MorselsLanguageConfig, defaults: &[&'static str]) -> HashSet<String> {
     if let Some(stop_words) = &lang_config.options.stop_words {
-        get_stop_words_set(stop_words.into_iter().map(|s| s.as_str()))
+        get_stop_words_set(stop_words.iter().map(|s| s.as_str()))
     } else {
-        get_stop_words_set(defaults.into_iter().map(|s| *s))
+        get_stop_words_set(defaults.iter().copied())
     }
 }
 

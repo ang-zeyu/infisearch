@@ -104,7 +104,7 @@ impl Loader for JsonLoader {
                         ));
 
                     return Some(Box::new(std::iter::once(self.unwrap_json_deserialize_result(
-                        document, link, absolute_path_as_buf.clone(),
+                        document, link, absolute_path_as_buf,
                     ))));
                 }
             }

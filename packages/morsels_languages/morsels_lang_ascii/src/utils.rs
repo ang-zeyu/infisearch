@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+#[allow(clippy::match_like_matches_macro)]
 fn boundary_filter(c: char) -> bool {
     match c {
         'a' |
@@ -43,6 +44,7 @@ fn boundary_filter(c: char) -> bool {
     }
 }
 
+#[allow(clippy::match_like_matches_macro)]
 pub fn intra_filter(c: char) -> bool {
     match c {
         '[' |

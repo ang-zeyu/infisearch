@@ -64,6 +64,7 @@ impl FieldsConfig {
         }
 
         // Larger-weight fields are assigned lower ids
+        // Stable sort to preserve incremental indexing field order
         let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
         field_entries.sort_by(|a, b| {
             if a.1.weight < b.1.weight {
@@ -75,7 +76,7 @@ impl FieldsConfig {
             }
         });
 
-        for (field_id, (_, field_info)) in field_entries.iter_mut().enumerate() {
+        for (field_id, (_, field_info)) in field_entries.into_iter().enumerate() {
             field_info.id = field_id as u8;
         }
 
@@ -140,11 +141,11 @@ impl FieldInfos {
     ) -> FieldInfos {
         let num_scored_fields = field_infos_map
             .values()
-            .filter(|field_info| field_info.weight != 0.0)
+            .filter(|&field_info| field_info.weight != 0.0)
             .count();
 
         let mut field_infos_by_id: Vec<FieldInfo> = field_infos_map.values().cloned().collect();
-        field_infos_by_id.sort_by(|fi1, fi2| fi1.id.cmp(&fi2.id));
+        field_infos_by_id.sort_by_key(|fi| fi.id);
 
         let field_output_folder_path = output_folder_path.join("field_store");
 
@@ -174,7 +175,7 @@ impl FieldInfos {
             })
         }
 
-        field_infos.sort_by(|field_info_1, field_info_2| field_info_1.id.cmp(&field_info_2.id));
+        field_infos.sort_by_key(|fi| fi.id);
 
         field_infos
     }

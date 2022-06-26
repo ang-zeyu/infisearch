@@ -193,10 +193,11 @@ impl WorkerMiner {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn add_other_file(
         &mut self,
         add_files_field_text: String,
-        original_absolute_path: &PathBuf,
+        original_absolute_path: &Path,
         is_first_stored_field: &mut bool,
         field_store_buffered_writer: &mut Vec<u8>,
         field_lengths: &mut Vec<u32>,
@@ -273,6 +274,7 @@ impl WorkerMiner {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn process_field_texts(
         &mut self,
         field_texts: Vec<(String, String)>,

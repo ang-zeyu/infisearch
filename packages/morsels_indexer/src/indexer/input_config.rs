@@ -112,7 +112,7 @@ impl MorselsIndexingConfig {
         let mut loaders: Vec<LoaderBoxed> = Vec::new();
 
         for (key, value) in self.loader_configs.clone() {
-            match &key[..] {
+            match key.as_str() {
                 "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
                 "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),
                 "JsonLoader" => loaders.push(JsonLoader::get_new_json_loader(value)),

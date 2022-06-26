@@ -13,6 +13,7 @@ fn set_all_content_fields_do_store(config: &mut MorselsConfig, do_store: bool) {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn apply_preset_override(
     config: &mut MorselsConfig,
     json_config: &Value,

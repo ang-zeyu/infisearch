@@ -127,7 +127,7 @@ impl IncrementalIndexInfo {
         let mut info: IncrementalIndexInfo = serde_json::from_reader(BufReader::new(info_file))
             .expect("incremental index info deserialization failed!");
 
-        if &info.ver[..] != MORSELS_VERSION {
+        if info.ver.as_str() != MORSELS_VERSION {
             info!("Indexer version changed. Running a full reindex.");
             *is_incremental = false;
             return IncrementalIndexInfo::empty(use_content_hash);
@@ -270,8 +270,8 @@ impl IncrementalIndexInfo {
                 if !docids_and_filehash.2 {
                     i_debug!("{} was deleted", _path);
 
-                    for doc_id in docids_and_filehash.0.iter() {
-                        bitmap::set(&mut self.invalidation_vector, *doc_id as usize);
+                    for &doc_id in docids_and_filehash.0.iter() {
+                        bitmap::set(&mut self.invalidation_vector, doc_id as usize);
                         self.num_deleted_docs += 1;
                     }
                 }
