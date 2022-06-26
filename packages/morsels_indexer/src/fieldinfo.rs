@@ -7,6 +7,9 @@ use rustc_hash::FxHashMap;
 
 use serde::{Deserialize, Serialize};
 
+pub static RELATIVE_FP_FIELD: &str = "_relative_fp";
+pub static ADD_FILES_FIELD: &str = "_add_files";
+
 fn get_default_num_field_stores_per_dir() -> u32 {
     1000
 }
@@ -38,7 +41,7 @@ impl Default for FieldsConfig {
                 FieldConfig { name: "heading".to_owned(), do_store: false, weight: 1.5, k: 1.2, b: 0.25 },
                 FieldConfig { name: "body".to_owned(), do_store: false, weight: 1.0, k: 1.2, b: 0.75 },
                 FieldConfig { name: "headingLink".to_owned(), do_store: false, weight: 0.0, k: 1.2, b: 0.75 },
-                FieldConfig { name: "_relative_fp".to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
+                FieldConfig { name: RELATIVE_FP_FIELD.to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
             ],
         }
     }

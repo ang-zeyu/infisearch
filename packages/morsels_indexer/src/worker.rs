@@ -15,7 +15,7 @@ use crate::i_debug;
 use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldInfos;
 use crate::indexer::input_config::MorselsIndexingConfig;
-use crate::loader::LoaderResult;
+use crate::loader::{LoaderBoxed, LoaderResult};
 use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
 use crate::spimiwriter;
 use crate::worker::miner::WorkerBlockIndexResults;
@@ -31,7 +31,6 @@ pub enum MainToWorkerMessage {
     Reset(Arc<Barrier>),
     Combine {
         worker_index_results: Vec<WorkerBlockIndexResults>,
-        output_folder_path: PathBuf,
         block_number: u32,
         start_doc_id: u32,
         check_for_existing_field_store: bool,
@@ -65,24 +64,29 @@ pub fn create_worker(
     indexing_config: Arc<MorselsIndexingConfig>,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
+    input_folder_path: PathBuf,
+    output_folder_path: PathBuf,
+    loaders: Arc<Vec<LoaderBoxed>>,
 ) {
     let mut doc_miner = WorkerMiner::new(
         &field_infos,
         indexing_config.with_positions,
         expected_num_docs_per_reset,
         &tokenizer,
+        input_folder_path,
+        &loaders,
         #[cfg(debug_assertions)]
         id,
     );
 
     for msg in rcvr.into_iter() {
         match msg {
-            MainToWorkerMessage::Index { doc_id, mut loader_result } => {
-                doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+            MainToWorkerMessage::Index { doc_id, loader_result } => {
+                let (field_texts, path) = loader_result.get_field_texts_and_path();
+                doc_miner.index_doc(doc_id, field_texts, path);
             }
             MainToWorkerMessage::Combine {
                 worker_index_results,
-                output_folder_path,
                 block_number,
                 start_doc_id,
                 check_for_existing_field_store,
@@ -97,7 +101,7 @@ pub fn create_worker(
                 spimiwriter::combine_worker_results_and_write_block(
                     worker_index_results,
                     doc_infos,
-                    output_folder_path,
+                    output_folder_path.to_path_buf(),
                     &field_infos,
                     block_number,
                     start_doc_id,

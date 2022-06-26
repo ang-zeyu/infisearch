@@ -1,16 +1,19 @@
 use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::io::Write;
+use std::path::{PathBuf, Path};
 use std::str;
 use std::sync::Arc;
 
+use log::warn;
+use path_absolutize::Absolutize;
 use regex::Regex;
 use rustc_hash::FxHashMap;
 
 use morsels_common::tokenize::IndexerTokenizer;
 
-use crate::fieldinfo::{FieldInfo, FieldInfos};
-#[cfg(debug_assertions)]
+use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos};
+use crate::loader::LoaderBoxed;
 use crate::i_debug;
 
 #[derive(Default)]
@@ -46,6 +49,10 @@ pub struct WorkerMiner {
     pub doc_infos: Vec<WorkerMinerDocInfo>,
     pub tokenizer: Arc<dyn IndexerTokenizer + Send + Sync>,
 
+    input_folder: PathBuf,
+    loaders: Arc<Vec<LoaderBoxed>>,
+    secondary_inv_mappings: FxHashMap<u32, Vec<String>>,
+
     #[cfg(debug_assertions)]
     pub id: usize,
     #[cfg(debug_assertions)]
@@ -57,6 +64,7 @@ pub struct WorkerMiner {
 pub struct WorkerBlockIndexResults {
     pub terms: FxHashMap<String, Vec<TermDoc>>,
     pub doc_infos: Vec<WorkerMinerDocInfo>,
+    pub secondary_inv_mappings: FxHashMap<u32, Vec<String>>,
 }
 
 pub struct TermDocComparator(pub TermDoc, pub std::vec::IntoIter<TermDoc>);
@@ -144,6 +152,8 @@ impl WorkerMiner {
         with_positions: bool,
         expected_num_docs_per_reset: usize,
         tokenizer: &Arc<dyn IndexerTokenizer + Send + Sync>,
+        input_folder: PathBuf,
+        loaders: &Arc<Vec<LoaderBoxed>>,
         #[cfg(debug_assertions)]
         id: usize,
     ) -> Self {
@@ -153,6 +163,9 @@ impl WorkerMiner {
             terms: FxHashMap::default(),
             doc_infos: Vec::with_capacity(expected_num_docs_per_reset),
             tokenizer: Arc::clone(tokenizer),
+            input_folder,
+            loaders: Arc::clone(loaders),
+            secondary_inv_mappings: FxHashMap::default(),
 
             #[cfg(debug_assertions)]
             id,
@@ -176,32 +189,126 @@ impl WorkerMiner {
         WorkerBlockIndexResults {
             terms: std::mem::take(&mut self.terms),
             doc_infos: std::mem::replace(&mut self.doc_infos, Vec::with_capacity(old_doc_infos_capacity)),
+            secondary_inv_mappings: std::mem::take(&mut self.secondary_inv_mappings),
         }
     }
 
-    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>) {
-        let mut is_first_stored_field = true;
+    fn add_other_file(
+        &mut self,
+        add_files_field_text: String,
+        original_absolute_path: &PathBuf,
+        is_first_stored_field: &mut bool,
+        field_store_buffered_writer: &mut Vec<u8>,
+        field_lengths: &mut Vec<u32>,
+        doc_id: u32,
+        num_scored_fields: usize,
+        pos: &mut u32,
+    ) {
+        let path = PathBuf::from(add_files_field_text);
+        let (absolute_path, relative_path) = if path.is_absolute() {
+            let absolute_path =  if let Ok(path) = path.absolutize() {
+                path.to_path_buf()
+            } else {
+                warn_missing_other_file(&path, original_absolute_path);
+                return;
+            };
 
-        let mut pos = 0;
+            let relative_path = pathdiff::diff_paths(&absolute_path, &self.input_folder)
+                .expect("Relative path construction failed");
 
-        let num_scored_fields = self.field_infos.num_scored_fields;
-        let mut field_lengths = vec![0; num_scored_fields];
-        let mut field_store_buffered_writer = Vec::with_capacity(
-            ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize,
+            (absolute_path, relative_path)
+        } else {
+            let absolute_path = if let Ok(path) = original_absolute_path.with_file_name(&path).absolutize() {
+                path.to_path_buf()
+            } else {
+                warn_missing_other_file(&path, original_absolute_path);
+                return;
+            };
+
+            let relative_path = pathdiff::diff_paths(&absolute_path, &self.input_folder)
+                .expect("Relative path construction failed");
+
+            (absolute_path, relative_path)
+        };
+
+        i_debug!(
+            "Linking in\n  (absolute) {}\n  (relative) {}\n  (from)     {}\n",
+            absolute_path.to_string_lossy(),
+            relative_path.to_string_lossy(),
+            original_absolute_path.to_string_lossy(),
         );
-        field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 
+        self.secondary_inv_mappings.entry(doc_id)
+            .or_insert_with(Vec::new)
+            .push(if let Some(relative_path) = relative_path.to_str() {
+                relative_path.to_owned()
+            } else {
+                relative_path.to_string_lossy().into_owned()
+            });
+
+        if !absolute_path.exists() {
+            warn_missing_other_file(&absolute_path, original_absolute_path);
+            return;
+        }
+
+        for loader in Arc::clone(&self.loaders).iter() {
+            if let Some(loader_results) = loader.try_index_file(&absolute_path, &relative_path)
+            {
+                for loader_result in loader_results {
+                    let (field_texts, path) = loader_result.get_field_texts_and_path();
+                    self.process_field_texts(
+                        field_texts,
+                        path,
+                        is_first_stored_field,
+                        field_store_buffered_writer,
+                        field_lengths,
+                        doc_id,
+                        num_scored_fields,
+                        pos,
+                    );
+                }
+        
+                break;
+            }
+        }
+    }
+
+    fn process_field_texts(
+        &mut self,
+        field_texts: Vec<(String, String)>,
+        original_absolute_path: PathBuf,
+        is_first_stored_field: &mut bool,
+        field_store_buffered_writer: &mut Vec<u8>,
+        field_lengths: &mut Vec<u32>,
+        doc_id: u32,
+        num_scored_fields: usize,
+        pos: &mut u32,
+    ) {
         for (field_name, mut field_text) in field_texts {
+            if field_name == ADD_FILES_FIELD {
+                self.add_other_file(
+                    field_text,
+                    &original_absolute_path,
+                    is_first_stored_field,
+                    field_store_buffered_writer,
+                    field_lengths,
+                    doc_id,
+                    num_scored_fields,
+                    pos,
+                );
+                continue;
+            }
+
             let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or(&NULL_FIELD);
             let field_id = field_info.id;
 
             // ----------------------------------------------
             // Json field stores
             if field_info.do_store {
-                if !is_first_stored_field {
+                if !(*is_first_stored_field) {
                     field_store_buffered_writer.write_all(b",").unwrap();
                 } else {
-                    is_first_stored_field = false;
+                    *is_first_stored_field = false;
                 }
                 field_store_buffered_writer.write_all(b"[").unwrap();
                 field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
@@ -256,17 +363,41 @@ impl WorkerMiner {
                     let doc_field = term_doc.doc_fields.get_mut(field_id as usize).unwrap();
                     doc_field.field_tf += 1;
                     if self.with_positions {
-                        doc_field.positions.push(pos);
+                        doc_field.positions.push(*pos);
                     }
 
-                    pos += 1;
+                    *pos += 1;
                 }
 
-                pos += 1;
+                *pos += 1;
             }
 
-            pos += 120; // to "split up zones"
+            *pos += 120; // to "split up zones"
         }
+    }
+
+    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>, original_absolute_path: PathBuf) {
+        let mut is_first_stored_field = true;
+
+        let mut pos = 0;
+
+        let num_scored_fields = self.field_infos.num_scored_fields;
+        let mut field_lengths = vec![0; num_scored_fields];
+        let mut field_store_buffered_writer = Vec::with_capacity(
+            ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize,
+        );
+        field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
+
+        self.process_field_texts(
+            field_texts,
+            original_absolute_path,
+            &mut is_first_stored_field,
+            &mut field_store_buffered_writer,
+            &mut field_lengths,
+            doc_id,
+            num_scored_fields,
+            &mut pos,
+        );
 
         field_store_buffered_writer.write_all(b"]").unwrap();
         field_store_buffered_writer.flush().unwrap();
@@ -276,4 +407,12 @@ impl WorkerMiner {
             field_texts: field_store_buffered_writer,
         });
     }
+}
+
+fn warn_missing_other_file(absolute_path: &Path, original_absolute_path: &Path) {
+    warn!(
+        "Other file {} linked from {} does not exist! Skipping",
+        absolute_path.to_string_lossy(),
+        original_absolute_path.to_string_lossy(),
+    );
 }

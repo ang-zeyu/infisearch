@@ -54,7 +54,8 @@
     "exclude": [
       "index.html",
       "print.html",
-      "morsels_config_*"
+      "morsels_config_*",
+      "**/secondary_*"
     ],
     "loader_configs": {
       "HtmlLoader": {
@@ -78,6 +79,12 @@
             },
             "field_name": "heading",
             "selector": "h1,h2,h3,h4,h5,h6"
+          },
+          {
+            "attr_map": {
+              "also-index": "_add_files"
+            },
+            "selector": "div[also-index]"
           }
         ],
         "type": "HtmlLoader"
@@ -100,11 +107,13 @@
         "header_field_order": [],
         "index_field_map": {
           "0": "title",
-          "1": "body"
+          "1": "body",
+          "2": "_add_files"
         },
         "index_field_order": [
           0,
-          1
+          1,
+          2
         ],
         "parse_options": {
           "comment": null,

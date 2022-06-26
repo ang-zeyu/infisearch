@@ -1,10 +1,12 @@
 use std::path::Path;
+use std::path::PathBuf;
 
 use path_slash::PathExt;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::value::Value;
 
+use crate::fieldinfo::{ADD_FILES_FIELD, RELATIVE_FP_FIELD};
 use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
@@ -24,8 +26,11 @@ pub struct JsonLoader {
 
 impl JsonLoader {
     pub fn get_new_json_loader(config: serde_json::Value) -> Box<Self> {
-        let json_loader_options: JsonLoaderOptions =
+        let mut json_loader_options: JsonLoaderOptions =
             serde_json::from_value(config).expect("JsonLoader options did not match schema!");
+
+        json_loader_options.field_order.push(ADD_FILES_FIELD.to_owned());
+        json_loader_options.field_map.insert(ADD_FILES_FIELD.to_owned(), ADD_FILES_FIELD.to_owned());
 
         Box::new(JsonLoader { options: json_loader_options })
     }
@@ -34,10 +39,11 @@ impl JsonLoader {
         &self,
         mut read_result: FxHashMap<String, String>,
         link: String,
+        absolute_path: PathBuf,
     ) -> Box<dyn LoaderResult + Send> {
         let mut field_texts: Vec<(String, String)> = Vec::with_capacity(self.options.field_order.len() + 1);
 
-        field_texts.push(("_relative_fp".to_owned(), link));
+        field_texts.push((RELATIVE_FP_FIELD.to_owned(), link));
 
         for header_name in self.options.field_order.iter() {
             if let Some((field_name, text)) = read_result.remove_entry(header_name) {
@@ -50,7 +56,7 @@ impl JsonLoader {
             }
         }
 
-        Box::new(BasicLoaderResult { field_texts }) as Box<dyn LoaderResult + Send>
+        Box::new(BasicLoaderResult { field_texts, absolute_path }) as Box<dyn LoaderResult + Send>
     }
 }
 
@@ -69,6 +75,9 @@ impl Loader for JsonLoader {
                 .expect("Invalid json!");
 
                 let link = relative_path.to_slash().unwrap();
+                
+                let absolute_path_as_buf = PathBuf::from(absolute_path);
+
                 if as_value.is_array() {
                     let documents: Vec<FxHashMap<String, String>> = serde_json::from_value(as_value)
                         .unwrap_or_else(|_| panic!(
@@ -81,7 +90,9 @@ impl Loader for JsonLoader {
                         let links = vec![link; doc_count];
                         documents.into_iter().zip(links).zip(0..doc_count).map(
                             move |((document, link), idx)| {
-                                self.unwrap_json_deserialize_result(document, format!("{}#{}", link, idx))
+                                self.unwrap_json_deserialize_result(
+                                    document, format!("{}#{}", link, idx), absolute_path_as_buf.clone(),
+                                )
                             },
                         )
                     }));
@@ -92,7 +103,9 @@ impl Loader for JsonLoader {
                             relative_path.as_os_str().to_string_lossy()
                         ));
 
-                    return Some(Box::new(std::iter::once(self.unwrap_json_deserialize_result(document, link))));
+                    return Some(Box::new(std::iter::once(self.unwrap_json_deserialize_result(
+                        document, link, absolute_path_as_buf.clone(),
+                    ))));
                 }
             }
         }

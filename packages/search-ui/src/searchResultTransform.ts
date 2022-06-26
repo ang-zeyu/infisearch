@@ -36,13 +36,13 @@ async function singleResultRender(
     const [fieldName, fieldText] = fieldNameAndField;
     switch (fieldName) {
       case 'link':
-        link = fieldText;
+        link = link || fieldText;
         break;
       case RELATIVE_LINK_FIELD_NAME:
-        relativeLink = fieldText;
+        relativeLink = relativeLink || fieldText;
         break;
       case 'title':
-        resultTitle = fieldText;
+        resultTitle = resultTitle || fieldText;
         break;
     }
     if (link && relativeLink && resultTitle) {

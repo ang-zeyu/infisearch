@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use path_slash::PathExt;
@@ -8,6 +9,7 @@ use scraper::Html;
 use scraper::Selector;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::fieldinfo::RELATIVE_FP_FIELD;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
@@ -74,6 +76,7 @@ struct HtmlLoaderResult {
     link: String,
     text: String,
     options: Arc<HtmlLoaderOptions>,
+    absolute_path: PathBuf,
 }
 
 impl HtmlLoader {
@@ -111,10 +114,13 @@ impl Loader for HtmlLoader {
     ) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
             if extension == "html" {
+                let absolute_path_as_buf = PathBuf::from(absolute_path);
+
                 return Some(Box::new(std::iter::once(Box::new(HtmlLoaderResult {
                     link: relative_path.to_slash().unwrap(),
                     text: std::fs::read_to_string(absolute_path).expect("Failed to read file!"),
                     options: self.options.clone(),
+                    absolute_path: absolute_path_as_buf,
                 }) as Box<dyn LoaderResult + Send>)));
             }
         }
@@ -205,11 +211,11 @@ fn add_text_to_field(field_texts: &mut Vec<(String, String)>, field_name: &Strin
 }
 
 impl LoaderResult for HtmlLoaderResult {
-    fn get_field_texts(&mut self) -> Vec<(String, String)> {
+    fn get_field_texts_and_path(mut self: Box<Self>) -> (Vec<(String, String)>, PathBuf) {
         let mut field_texts: Vec<(String, String)> = Vec::with_capacity(20);
         let mut document = Html::parse_document(&self.text);
 
-        field_texts.push(("_relative_fp".to_owned(), std::mem::take(&mut self.link)));
+        field_texts.push((RELATIVE_FP_FIELD.to_owned(), std::mem::take(&mut self.link)));
 
         for selector in self.options.exclude_selectors.iter() {
             let ids: Vec<_> = document.select(selector).map(|selected| selected.id()).collect();
@@ -224,6 +230,6 @@ impl LoaderResult for HtmlLoaderResult {
             }
         }
 
-        field_texts
+        (field_texts, self.absolute_path)
     }
 }

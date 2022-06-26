@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::path::PathBuf;
 
 use csv::ReaderBuilder;
 use rustc_hash::FxHashMap;
@@ -94,6 +95,7 @@ impl CsvLoader {
         &self,
         read_result: Result<csv::StringRecord, csv::Error>,
         num_fields: usize,
+        absolute_path: PathBuf,
     ) -> Box<dyn LoaderResult + Send> {
         let mut field_texts: Vec<(String, String)> = Vec::with_capacity(num_fields);
 
@@ -109,13 +111,14 @@ impl CsvLoader {
             }
         }
 
-        Box::new(BasicLoaderResult { field_texts }) as Box<dyn LoaderResult + Send>
+        Box::new(BasicLoaderResult { field_texts, absolute_path }) as Box<dyn LoaderResult + Send>
     }
 
     fn unwrap_csv_deserialize_result(
         &self,
         read_result: FxHashMap<String, String>,
         num_fields: usize,
+        absolute_path: PathBuf,
     ) -> Box<dyn LoaderResult + Send> {
         let mut field_texts: Vec<(String, String)> = Vec::with_capacity(num_fields);
 
@@ -130,7 +133,7 @@ impl CsvLoader {
             }
         }
 
-        Box::new(BasicLoaderResult { field_texts }) as Box<dyn LoaderResult + Send>
+        Box::new(BasicLoaderResult { field_texts, absolute_path }) as Box<dyn LoaderResult + Send>
     }
 }
 
@@ -149,6 +152,8 @@ impl Loader for CsvLoader {
                     self.options.index_field_map.len()
                 };
 
+                let absolute_path_as_buf = PathBuf::from(absolute_path);
+
                 return Some(if self.options.use_headers {
                     Box::new(
                         self.reader_builder.from_path(absolute_path)
@@ -156,7 +161,9 @@ impl Loader for CsvLoader {
                             .into_deserialize()
                             .map(
                                 move |result| self.unwrap_csv_deserialize_result(
-                                    result.expect("Failed to unwrap csv record result"), num_fields
+                                    result.expect("Failed to unwrap csv record result"),
+                                    num_fields,
+                                    absolute_path_as_buf.clone(),
                                 ),
                             ),
                     )
@@ -166,7 +173,9 @@ impl Loader for CsvLoader {
                             .from_path(absolute_path)
                             .unwrap_or_else(|_| panic!("Failed to read csv {}", relative_path.as_os_str().to_string_lossy()))
                             .into_records()
-                            .map(move |result| self.unwrap_csv_read_result(result, num_fields)),
+                            .map(move |result| self.unwrap_csv_read_result(
+                                result, num_fields, absolute_path_as_buf.clone(),
+                            )),
                     )
                 });
             }

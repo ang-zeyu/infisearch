@@ -6,7 +6,7 @@ mod preset_large;
 use morsels_common::MorselsLanguageConfig;
 
 use crate::fieldinfo::FieldsConfig;
-use crate::loader::Loader;
+use crate::loader::LoaderBoxed;
 use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
 use crate::loader::json::JsonLoader;
@@ -108,8 +108,8 @@ impl Default for MorselsIndexingConfig {
 }
 
 impl MorselsIndexingConfig {
-    pub fn get_loaders_from_config(&self) -> Vec<Box<dyn Loader>> {
-        let mut loaders: Vec<Box<dyn Loader>> = Vec::new();
+    pub fn get_loaders_from_config(&self) -> Vec<LoaderBoxed> {
+        let mut loaders: Vec<LoaderBoxed> = Vec::new();
 
         for (key, value) in self.loader_configs.clone() {
             match &key[..] {

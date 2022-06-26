@@ -23,7 +23,7 @@ use crate::{i_debug, spimireader};
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::fieldinfo::FieldInfos;
 use crate::indexer::input_config::{MorselsConfig, MorselsIndexingConfig};
-use crate::loader::Loader;
+use crate::loader::LoaderBoxed;
 use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
@@ -35,10 +35,11 @@ pub struct Indexer {
     spimi_counter: u32,
     cache_all_field_stores: bool,
     field_infos: Arc<FieldInfos>,
+    input_folder_path: PathBuf,
     output_folder_path: PathBuf,
     doc_miner: WorkerMiner,
     workers: Vec<Worker>,
-    loaders: Vec<Box<dyn Loader>>,
+    loaders: Arc<Vec<LoaderBoxed>>,
     doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: Sender<MainToWorkerMessage>,
     rx_main: Receiver<WorkerToMainMessage>,
@@ -54,6 +55,7 @@ pub struct Indexer {
 impl Indexer {
     #[allow(clippy::mutex_atomic)]
     pub fn new(
+        input_folder_path: &Path,
         output_folder_path: &Path,
         config: MorselsConfig,
         mut is_incremental: bool,
@@ -132,7 +134,7 @@ impl Indexer {
         // -----------------------------------------------------------
         // Misc
 
-        let loaders = config.indexing_config.get_loaders_from_config();
+        let loaders: Arc<Vec<LoaderBoxed>> = Arc::new(config.indexing_config.get_loaders_from_config());
 
         let field_infos = config.fields_config.get_field_infos(output_folder_path);
 
@@ -188,6 +190,9 @@ impl Indexer {
             let field_info_clone = Arc::clone(&field_infos);
             let indexing_config_clone = Arc::clone(&indexing_config);
             let num_workers_writing_blocks_clone = Arc::clone(&num_workers_writing_blocks);
+            let input_folder_path_clone = input_folder_path.to_path_buf();
+            let output_folder_path_clone = output_folder_path.to_path_buf();
+            let loaders_clone = Arc::clone(&loaders);
 
             workers.push(Worker {
                 id,
@@ -201,6 +206,9 @@ impl Indexer {
                         indexing_config_clone,
                         expected_num_docs_per_thread,
                         num_workers_writing_blocks_clone,
+                        input_folder_path_clone,
+                        output_folder_path_clone,
+                        loaders_clone,
                     )
                 }),
             });
@@ -212,6 +220,8 @@ impl Indexer {
             indexing_config.with_positions,
             expected_num_docs_per_thread,
             &tokenizer,
+            input_folder_path.to_path_buf(),
+            &loaders,
             #[cfg(debug_assertions)]
             0,
         );
@@ -222,6 +232,7 @@ impl Indexer {
             spimi_counter,
             cache_all_field_stores: config.fields_config.cache_all_field_stores,
             field_infos,
+            input_folder_path: input_folder_path.to_path_buf(),
             output_folder_path: output_folder_path.to_path_buf(),
             doc_miner,
             workers,
@@ -255,7 +266,7 @@ impl Indexer {
         ((self.doc_id_counter as f64) / (self.indexing_config.num_docs_per_block as f64)).floor() as u32
     }
 
-    pub fn index_file(&mut self, path: &Path, relative_path: &Path) {
+    pub fn index_file(&mut self, absolute_path: &Path, relative_path: &Path) {
         if let Some(_match) = self.indexing_config.exclude_patterns.iter().find(|pat| pat.matches_path(relative_path)) {
             return;
         }
@@ -269,9 +280,9 @@ impl Indexer {
         };
 
         for loader in self.loaders.iter() {
-            if let Some(loader_results) = loader.try_index_file(path, relative_path)
+            if let Some(loader_results) = loader.try_index_file(absolute_path, relative_path)
             {
-                let is_not_modified = self.incremental_info.set_file(external_id, path);
+                let is_not_modified = self.incremental_info.set_file(external_id, absolute_path, &self.input_folder_path);
                 if is_not_modified && self.is_incremental {
                     return;
                 }
@@ -296,9 +307,11 @@ impl Indexer {
                         let main_thread_block_index_results = self.doc_miner.get_results();
                         let block_number = self.block_number() - 1;
 
-                        self.merge_block(
+                        let secondary_inv_mappings = self.merge_block(
                             main_thread_block_index_results, block_number, false,
                         );
+                        self.incremental_info.extend_secondary_inv_mappings(secondary_inv_mappings);
+
                         self.spimi_counter = 0;
                     }
                 }
@@ -311,8 +324,9 @@ impl Indexer {
     fn try_index_doc(doc_miner: &mut WorkerMiner, rx_worker: &Receiver<MainToWorkerMessage>, until: usize) {
         while rx_worker.len() > until {
             if let Ok(msg) = rx_worker.try_recv() {
-                if let MainToWorkerMessage::Index { doc_id, mut loader_result } = msg {
-                    doc_miner.index_doc(doc_id, loader_result.get_field_texts());
+                if let MainToWorkerMessage::Index { doc_id, loader_result } = msg {
+                    let (field_texts, path) = loader_result.get_field_texts_and_path();
+                    doc_miner.index_doc(doc_id, field_texts, path);
                 } else {
                     panic!("Unexpected message received @main thread");
                 }
@@ -353,7 +367,11 @@ impl Indexer {
             i_debug!("Writing extra last spimi block");
 
             let main_thread_block_index_results = self.doc_miner.get_results();
-            self.merge_block(main_thread_block_index_results, last_block, true);
+            let secondary_inv_mappings = self.merge_block(
+                main_thread_block_index_results, last_block, true,
+            );
+            self.incremental_info.extend_secondary_inv_mappings(secondary_inv_mappings);
+
             self.spimi_counter = 0;
         } else if !self.is_deletion_only_run() {
             last_block -= 1;
@@ -370,15 +388,27 @@ impl Indexer {
         // N-way merge of spimi blocks
         self.merge_blocks(first_block, last_block);
 
-        output_config::write_output_config(&mut self);
-
-        self.incremental_info.write_info(&self.output_folder_path);
+        self.incremental_info.write_info(&self.input_folder_path, &self.output_folder_path);
 
         spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
 
         print_time_elapsed(&instant, "Blocks merged!");
 
-        self.terminate_all_workers();
+        /*
+         Circumvent partial move
+         TODO find a cleaner solution.
+
+         Config needs to be written after workers are joined, as it calls Arc::try_unwrap.
+         */
+        let (dummy_tx_main, _): (
+            Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
+        ) = channel::bounded(0);
+        let actual_tx_main = std::mem::replace(&mut self.tx_main, dummy_tx_main);
+        let workers = std::mem::take(&mut self.workers);
+
+        Self::terminate_all_workers(actual_tx_main, workers);
+
+        output_config::write_output_config(self);
     }
 
     fn is_deletion_only_run(&self) -> bool {

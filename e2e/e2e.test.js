@@ -1,155 +1,28 @@
-
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+const { addFilesTest, cleanupAddFilesTests } = require('./addfiles');
+const {
+  typePhraseOrAnd,
+  typeText,
+  waitNoResults,
+  assertSingle,
+  assertMultiple,
+  expectNumDeletedDocs,
+  reloadPage,
+  runFullIndex,
+  runIncrementalIndex,
+} = require('./utils');
+
 jest.setTimeout(3000000);
-
-const INPUT_SELECTOR = '#morsels-search';
-
-async function clearInput() {
-  await page.click(INPUT_SELECTOR, { clickCount: 3 });
-  await page.keyboard.press('Backspace');
-  const numChildren = await page.evaluate(() => {
-    return document.getElementById('target-mode-el').childNodes.length;
-  });
-  expect(numChildren).toBe(0);
-}
-
-async function typePhraseOrAnd(phrase, with_positions) {
-  await clearInput();
-
-  if (with_positions) {
-    console.log(`Typing phrase '${phrase}'`);
-    await page.type(INPUT_SELECTOR, `"${phrase}"`);
-    const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
-    expect(inputVal).toBe(`"${phrase}"`);
-  } else {
-    const query = phrase.split(/\s+/g).join(' AND ');
-    console.log(`Typing AND '${query}'`);
-    await page.type(INPUT_SELECTOR, query);
-    const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
-    expect(inputVal).toBe(query);
-  }
-}
-
-async function typeText(text) {
-  await clearInput();
-
-  console.log(`Typing text '${text}'`);
-  await page.type(INPUT_SELECTOR, text);
-  const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
-  expect(inputVal).toBe(text);
-}
-
-async function waitNoResults() {
-  try {
-    await page.waitForSelector('.morsels-no-results', { timeout: 10000 });
-  } catch (ex) {
-    const output = await page.evaluate(() => document.getElementById('target-mode-el').innerHTML);
-    console.error('waitNoResults failed, output in target:', output);
-    console.error('input element text:');
-    const inputElText = await page.evaluate(() => document.getElementById('morsels-search').value);
-    console.error(inputElText);
-    throw ex;
-  }
-}
-
-async function assertSingle(text) {
-  try {
-    await page.waitForSelector('.morsels-list-item', { timeout: 60000 });
-
-    const result = await page.evaluate(() => {
-      const queryResult = document.getElementsByClassName('morsels-list-item');
-      return { text: queryResult.length && queryResult[0].textContent, resultCount: queryResult.length };
-    });
-
-    expect(result.resultCount).toBe(1);
-    expect(result.text.toLowerCase().includes(text.toLowerCase())).toBe(true);
-  } catch (ex) {
-    const output = await page.evaluate(() => {
-      return {
-        html: document.getElementById('target-mode-el').innerHTML,
-        text: document.getElementById('target-mode-el').textContent,
-      };
-    });
-    console.error('assertSingle failed, html in target:', output.html);
-    console.error('assertSingle failed, text in target:', output.text);
-    throw ex;
-  }
-}
-
-async function assertMultiple(texts, count) {
-  try {
-    await page.waitForSelector('.morsels-list-item', { timeout: 60000 });
-
-    const result = await page.evaluate(() => {
-      const queryResult = document.getElementsByClassName('morsels-list-item');
-      return {
-        texts: Array.from(queryResult).map((el) => el.textContent),
-        resultCount: queryResult.length,
-      };
-    });
-
-    expect(result.resultCount).toBe(count);
-    texts.forEach((text) => {
-      expect(
-        result.texts.some(
-          (resultText) => resultText.toLowerCase().includes(text.toLowerCase()),
-        ),
-      ).toBe(true);
-    });
-  } catch (ex) {
-    const output = await page.evaluate(() => {
-      return {
-        html: document.getElementById('target-mode-el').innerHTML,
-        text: document.getElementById('target-mode-el').textContent,
-      };
-    });
-    console.error('assertMultiple failed, html in target:', output.html);
-    console.error('assertMultiple failed, text in target:', output.text);
-    throw ex;
-  }
-}
-
-async function reloadPage() {
-  await jestPuppeteer.resetPage();
-  await jestPuppeteer.resetBrowser();
-
-  page
-    .on('console', message =>
-      console.log(`${message.type()} ${message.text()}`))
-    .on('error', (ex) => console.error('Unexpected (1): ' + ex))
-    .on('pageerror', ({ message }) => console.error('Unexpected (2): ' + message));
-
-  const url = 'http://localhost:8080?mode=target'
-    + '&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Foutput%2F'
-    + '&sourceFilesUrl=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Finput%2F'
-    + '&resultsPerPage=100';
-
-  await page.goto(
-    url,
-    { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 },
-  );
-  await expect(page.title()).resolves.toMatch('Morsels');
-}
-
-function runIndexer(command) {
-  execSync(command, {
-    env: { RUST_BACKTRACE: 1, ...process.env },
-    stdio: 'inherit',
-  });
-}
 
 beforeAll(async () => {
   // Wait for webpack-dev-server to complete before running indexer
   await reloadPage();
 });
 
-const testSuite = async (configFile, with_positions = true) => {
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output -c ${configFile}`);
-
-  console.log('Ran full indexer run');
+const testSuite = async (configFile, usesSourceFiles, with_positions) => {
+  runFullIndex(configFile);
 
   await reloadPage();
 
@@ -231,7 +104,7 @@ const testSuite = async (configFile, with_positions = true) => {
   // CsvLoader tests
   // For now, the only with_positions = false test also uses source files to generate result previews,
   // and csvs aren't supported with this.
-  if (with_positions) {
+  if (!usesSourceFiles) {
     await typePhraseOrAnd('this is the second csv document', with_positions);
     await assertSingle('this is the second csv document');
   }
@@ -239,16 +112,32 @@ const testSuite = async (configFile, with_positions = true) => {
 
   // ------------------------------------------------------
   // PdfLoader tests
-  if (with_positions) {
+  // Likewise
+  if (!usesSourceFiles) {
     await typePhraseOrAnd('this is a pdf document', with_positions);
     await assertSingle('this is a pdf document');
   }
   // ------------------------------------------------------
 
   // ------------------------------------------------------
+  // _add_files tests
+  // Likewise
+  if (!usesSourceFiles) {
+    // Basic tests
+    await addFilesTest(with_positions, configFile);
+    // ------------------------------------------------------
+  }
+
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
   // Test incremental indexing addition
 
+  // Start with a fresh slate
+  runFullIndex(configFile);
+
   // 1, to be deleted later
+  await reloadPage();
   await typePhraseOrAnd('This URL is invaldi', with_positions);
   await waitNoResults();
 
@@ -256,7 +145,7 @@ const testSuite = async (configFile, with_positions = true) => {
     path.join(__dirname, 'incremental_indexing/deletions/404.html'),
     path.join(__dirname, 'input/404.html'),
   );
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
+  runIncrementalIndex(configFile);
 
   await reloadPage();
   await typePhraseOrAnd('This URL is invaldi', with_positions);
@@ -271,7 +160,7 @@ const testSuite = async (configFile, with_positions = true) => {
     path.join(__dirname, 'incremental_indexing/updates/contributing.html'),
     contributingHtmlOutputPath,
   );
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
+  runIncrementalIndex(configFile);
   
   await reloadPage();
   await typePhraseOrAnd('Contributions of any form', with_positions);
@@ -282,18 +171,16 @@ const testSuite = async (configFile, with_positions = true) => {
   // ------------------------------------------------------
   // Test incremental indexing deletion
 
+  expectNumDeletedDocs(0);
+
   fs.rmSync(path.join(__dirname, 'input/404.html'));
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
+  runIncrementalIndex(configFile);
   
   await reloadPage();
   await typePhraseOrAnd('This URL is invaldi', with_positions);
   await waitNoResults();
 
-  // also assert incremental indexing is actually run
-  let incrementalIndexInfo = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/_incremental_info.json'), 'utf-8'),
-  );
-  expect(incrementalIndexInfo.num_deleted_docs).toBe(1);
+  expectNumDeletedDocs(1);
 
   // ------------------------------------------------------
 
@@ -308,7 +195,7 @@ const testSuite = async (configFile, with_positions = true) => {
     'Contributions of any form', 'Contributions of all forms atquejxusd',
   );
   fs.writeFileSync(contributingHtmlOutputPath, contributingHtml);
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
+  runIncrementalIndex(configFile);
 
   await reloadPage();
   await typePhraseOrAnd('Contributions of any form', with_positions);
@@ -321,14 +208,11 @@ const testSuite = async (configFile, with_positions = true) => {
   await assertSingle('contributions of all forms atquejxusd');
 
   // also assert incremental indexing is actually run
-  incrementalIndexInfo = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/_incremental_info.json'), 'utf-8'),
-  );
-  expect(incrementalIndexInfo.num_deleted_docs).toBe(2);
+  expectNumDeletedDocs(2);
 
   // then delete it again
   fs.rmSync(contributingHtmlOutputPath);
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output --incremental -c ${configFile}`);
+  runIncrementalIndex(configFile);
   
   await reloadPage();
   await typePhraseOrAnd('Contributions of any form', with_positions);
@@ -341,10 +225,7 @@ const testSuite = async (configFile, with_positions = true) => {
   await waitNoResults();
 
   // also assert incremental indexing is actually run
-  incrementalIndexInfo = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/_incremental_info.json'), 'utf-8'),
-  );
-  expect(incrementalIndexInfo.num_deleted_docs).toBe(3);
+  expectNumDeletedDocs(3);
 
   // ------------------------------------------------------
 };
@@ -352,9 +233,7 @@ const testSuite = async (configFile, with_positions = true) => {
 async function testTokenizerOptions(configFile) {
   console.log('Starting stop words tests');
 
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output -c ${configFile}`);
-
-  console.log('Ran full indexer run');
+  runFullIndex(configFile);
 
   await reloadPage();
 
@@ -398,7 +277,7 @@ async function testTokenizerOptions(configFile) {
   // ------------------------------------------------------
 }
 
-const cleanup = () => {
+const cleanup = (usesSourceFiles) => {
   const notFoundFile = path.join(__dirname, 'input/404.html');
   if (fs.existsSync(notFoundFile)) {
     fs.rmSync(notFoundFile);
@@ -407,6 +286,10 @@ const cleanup = () => {
   const contributingFile = path.join(__dirname, 'input/contributing.html');
   if (fs.existsSync(contributingFile)) {
     fs.rmSync(contributingFile);
+  }
+
+  if (!usesSourceFiles) {
+    cleanupAddFilesTests();
   }
 };
 
@@ -417,10 +300,10 @@ function readOutputConfig() {
 }
 
 test('Test with different field and block size configs', async () => {
-  cleanup();
+  cleanup(false);
   console.log('Starting morsels_config_0 tests');
   const config0 = 'e2e/input/morsels_config_0.json';
-  await testSuite(config0);
+  await testSuite(config0, false, true);
 
   // Assert what's cached
   // Slightly different pl_cache_thresholds for the 4 tests
@@ -431,10 +314,10 @@ test('Test with different field and block size configs', async () => {
   // ignore_stop_words=false + "stop_words": ["typesetting"] = results still show
   await testTokenizerOptions(config0);
 
-  cleanup();
+  cleanup(false);
   console.log('Starting morsels_config_1 tests');
   const config1 = 'e2e/input/morsels_config_1.json';
-  await testSuite(config1);
+  await testSuite(config1, false, true);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
@@ -443,34 +326,34 @@ test('Test with different field and block size configs', async () => {
   // ignore_stop_words=false + default stop words = results still show
   await testTokenizerOptions(config1);
 
-  cleanup();
+  cleanup(false);
   console.log('Starting morsels_config_2 tests');
   const config2 = 'e2e/input/morsels_config_2.json';
-  await testSuite(config2);
+  await testSuite(config2, false, true);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
   expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1]);
 
-  cleanup();
+  cleanup(false);
   console.log('Starting morsels_config_3 tests');
   const config3 = 'e2e/input/morsels_config_3.json';
-  await testSuite(config3);
+  await testSuite(config3, false, true);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
   // No positions, uses source files to generate result previews
-  cleanup();
+  cleanup(true);
   console.log('Starting morsels_config_4 tests');
   const config4 = 'e2e/input/morsels_config_4.json';
-  await testSuite(config4, false);
+  await testSuite(config4, true, false);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
   // ignore_stop_words = true, max_term_len=70
-  cleanup();
+  cleanup(false);
   console.log('Starting morsels_config_tokenizer tests');
   const configTokenizer = 'e2e/input/morsels_config_tokenizer.json';
   await testTokenizerOptions(configTokenizer);

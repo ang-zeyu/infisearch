@@ -1,12 +1,13 @@
 use std::fs::File;
 use std::io::Write;
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use morsels_common::MorselsLanguageConfig;
 
 use crate::MORSELS_VERSION;
 use crate::fieldinfo::FieldInfoOutput;
-use crate::loader::Loader;
+use crate::loader::LoaderBoxed;
 use super::Indexer;
 
 use rustc_hash::FxHashMap;
@@ -16,7 +17,7 @@ use serde::Serialize;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct MorselsIndexingOutputConfig {
-    loader_configs: FxHashMap<String, Box<dyn Loader>>,
+    loader_configs: FxHashMap<String, LoaderBoxed>,
     pl_names_to_cache: Vec<u32>,
     num_docs_per_block: u32,
     num_pls_per_dir: u32,
@@ -38,16 +39,23 @@ pub struct MorselsOutputConfig<'a> {
     num_stores_per_dir: u32,
 }
 
-pub fn write_output_config(indexer: &mut Indexer) {
+pub fn write_output_config(mut indexer: Indexer) {
+    drop(indexer.doc_miner);
+
+    let loader_configs = if let Ok(loaders) = Arc::try_unwrap(std::mem::take(&mut indexer.loaders)) {
+        loaders.into_iter()
+            .map(|loader| (loader.get_name(), loader))
+            .collect()
+    } else {
+        panic!("No other thread should be holding onto loaders when writing output config");
+    };
+
     let serialized = serde_json::to_string(&MorselsOutputConfig {
         ver: MORSELS_VERSION,
         index_ver: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis().to_string(),
         last_doc_id: indexer.doc_id_counter,
         indexing_config: MorselsIndexingOutputConfig {
-            loader_configs: std::mem::take(&mut indexer.loaders)
-                .into_iter()
-                .map(|loader| (loader.get_name(), loader))
-                .collect(),
+            loader_configs,
             pl_names_to_cache: indexer.incremental_info.pl_names_to_cache.clone(),
             num_docs_per_block: indexer.indexing_config.num_docs_per_block,
             num_pls_per_dir: indexer.indexing_config.num_pls_per_dir,

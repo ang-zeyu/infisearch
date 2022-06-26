@@ -12,7 +12,7 @@ use serde_json::Value;
 use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME};
 use morsels_common::{bitmap, BitmapDocinfoDicttableReader};
 
-use crate::MORSELS_VERSION;
+use crate::{MORSELS_VERSION, i_debug};
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH)
@@ -27,11 +27,13 @@ fn get_default_dictionary() -> Dictionary {
     Dictionary { term_infos: BTreeMap::default() }
 }
 
+// TODO write a custom serialize-deserialize with a named struct for readability
 #[derive(Serialize, Deserialize)]
 struct DocIdsAndFileHash(
     Vec<u32>,            // doc ids
-    u128,                // millis timestamp
+    u32,                 // hash
     #[serde(skip)] bool, // false by default, detect if files were encountered in the current run (delete if not)
+    Vec<String>,         // secondary files that were _add_files linked to
 );
 
 #[derive(Serialize, Deserialize)]
@@ -40,8 +42,16 @@ pub struct IncrementalIndexInfo {
 
     pub use_content_hash: bool,
 
-    // Mapping of external doc identifier -> internal doc id(s) / hashes, used for incremental indexing
+    // Mapping of external doc identifier -> internal doc id(s) / hashes / secondary files
     mappings: FxHashMap<String, DocIdsAndFileHash>,
+
+    // Mapping of internal doc id(s) -> external doc identifier
+    #[serde(skip)]
+    inv_mappings: FxHashMap<u32, String>,
+
+    // Mapping of internal doc id(s) -> secondary files' identifiers
+    #[serde(skip)]
+    inv_mappings_secondary: Vec<FxHashMap<u32, Vec<String>>>,
 
     pub last_pl_number: u32,
 
@@ -62,6 +72,8 @@ impl IncrementalIndexInfo {
             ver: MORSELS_VERSION.to_owned(),
             use_content_hash,
             mappings: FxHashMap::default(),
+            inv_mappings: FxHashMap::default(),
+            inv_mappings_secondary: Vec::new(),
             last_pl_number: 0,
             num_deleted_docs: 0,
             pl_names_to_cache: Vec::new(),
@@ -150,25 +162,33 @@ impl IncrementalIndexInfo {
             .expect("Get path for index file should always have an entry when adding doc id")
             .0
             .push(doc_id);
+
+        self.inv_mappings.insert(doc_id, external_id.to_owned());
     }
 
-    pub fn set_file(&mut self, external_id: &str, path: &Path) -> bool {
-        let new_hash = self.get_file_hash(path);
-
+    /// Returns whether file was not modified or not for incremental indexing.
+    /// A new file is counted as "modified"
+    pub fn set_file(&mut self, external_id: &str, path: &Path, input_folder_path: &Path) -> bool {
         if let Some(old_hash) = self.mappings.get_mut(external_id) {
             // Old file
+            let new_hash = Self::get_file_hash(
+                self.use_content_hash,
+                path,
+                input_folder_path,
+                &old_hash.3,
+            );
 
             // Set encountered flag to know which files were deleted later on
             old_hash.2 = true;
 
             if old_hash.1 != new_hash {
-                old_hash.1 = new_hash;
+                i_debug!("{} was updated", external_id);
 
                 self.num_deleted_docs += old_hash.0.len() as u32;
                 for doc_id in old_hash.0.drain(..) {
-                    let byte_num = (doc_id / 8) as usize;
-                    self.invalidation_vector[byte_num] |= 1_u8 << (doc_id % 8) as u8;
+                    bitmap::set(&mut self.invalidation_vector, doc_id as usize);
                 }
+                old_hash.3.clear();
 
                 return false;
             }
@@ -176,33 +196,69 @@ impl IncrementalIndexInfo {
             true
         } else {
             // New file
-            self.mappings.insert(external_id.to_owned(), DocIdsAndFileHash(Vec::new(), new_hash, true));
+            self.mappings.insert(external_id.to_owned(), DocIdsAndFileHash(Vec::new(), 0, true, Vec::new()));
 
             false
         }
     }
 
-    fn get_file_hash(&self, path: &Path) -> u128 {
-        if self.use_content_hash {
-            let buf = std::fs::read(path).expect("Failed to read file for calculating content hash!");
-            crc32fast::hash(&buf) as u128
-        } else {
-            // Use last modified timestamp otherwise
-            if let Ok(metadata) = std::fs::metadata(path) {
-                if let Ok(modified) = metadata.modified() {
-                    modified.duration_since(UNIX_EPOCH)
-                        .expect("Failed to calculate timestamp. Consider using the --incremental-content-hash option")
-                        .as_millis()
-                } else {
-                    /*
-                      Use program execution time if metadata is unavailable.
-                      This results in the path always being updated.
-                    */
-                    *CURRENT_MILLIS
-                }
+    pub fn extend_secondary_inv_mappings(&mut self, mappings: Vec<FxHashMap<u32, Vec<String>>>) {
+        self.inv_mappings_secondary.extend(mappings);
+    }
+
+    fn get_timestamp(path: &Path) -> u128 {
+        if let Ok(metadata) = std::fs::metadata(path) {
+            if let Ok(modified) = metadata.modified() {
+                modified.duration_since(UNIX_EPOCH)
+                    .expect("Failed to calculate timestamp. Consider using the --incremental-content-hash option")
+                    .as_millis()
             } else {
+                i_debug!("Obtaining modified timestamp failed for {}", path.to_string_lossy());
+
+                /*
+                  Use program execution time if metadata is unavailable.
+                  This results in the path always being updated.
+                */
                 *CURRENT_MILLIS
             }
+        } else {
+            i_debug!("Obtaining metadata failed for {}", path.to_string_lossy());
+
+            *CURRENT_MILLIS
+        }
+    }
+
+    fn get_file_hash(
+        use_content_hash: bool,
+        path: &Path,
+        input_folder_path: &Path,
+        secondary_paths: &Vec<String>,
+    ) -> u32 {
+        if use_content_hash {
+            static ERR: &str = "Failed to read file for calculating content hash!";
+
+            let mut buf = std::fs::read(path).expect(ERR);
+
+            for secondary_path in secondary_paths {
+                File::open(input_folder_path.join(secondary_path))
+                    .expect(ERR)
+                    .read_to_end(&mut buf)
+                    .expect(ERR);
+            }
+
+            crc32fast::hash(&buf)
+        } else {
+            // Use last modified timestamp otherwise
+            let mut timestamps = Vec::with_capacity(1 + secondary_paths.len());
+            timestamps.push(Self::get_timestamp(path));
+
+            for secondary_path in secondary_paths {
+                timestamps.push(Self::get_timestamp(&input_folder_path.join(secondary_path)));
+            }
+
+            crc32fast::hash(unsafe {
+                std::slice::from_raw_parts(timestamps.as_ptr() as *const u8, timestamps.len() * 16)
+            })
         }
     }
 
@@ -212,6 +268,8 @@ impl IncrementalIndexInfo {
             .into_iter()
             .filter(|(_path, docids_and_filehash)| {
                 if !docids_and_filehash.2 {
+                    i_debug!("{} was deleted", _path);
+
                     for doc_id in docids_and_filehash.0.iter() {
                         bitmap::set(&mut self.invalidation_vector, *doc_id as usize);
                         self.num_deleted_docs += 1;
@@ -233,7 +291,31 @@ impl IncrementalIndexInfo {
         bitmap_writer.write_all(&*self.invalidation_vector).unwrap();
     }
 
-    pub fn write_info(&mut self, output_folder_path: &Path) {
+    fn update_file_hashes(&mut self, input_folder_path: &Path) {
+        for map in std::mem::take(&mut self.inv_mappings_secondary) {
+            for (doc_id, secondary_ids) in map {
+                let main_id = self.inv_mappings.get(&doc_id)
+                    .expect("Inverse mapping should contain doc_id");
+                let doc_id_and_filehash = self.mappings.get_mut(main_id)
+                    .expect("Mappings should contain main_id");
+
+                doc_id_and_filehash.3.extend(secondary_ids);
+            }
+        }
+
+        for (main_id, doc_id_and_filehash) in self.mappings.iter_mut() {
+            doc_id_and_filehash.1 = Self::get_file_hash(
+                self.use_content_hash,
+                &input_folder_path.join(main_id),
+                input_folder_path,
+                &doc_id_and_filehash.3,
+            );
+        }
+    }
+
+    pub fn write_info(&mut self, input_folder_path: &Path, output_folder_path: &Path) {
+        self.update_file_hashes(input_folder_path);
+
         let serialized = serde_json::to_string(self).unwrap();
 
         File::create(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME))

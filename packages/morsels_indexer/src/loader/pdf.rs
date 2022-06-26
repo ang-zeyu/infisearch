@@ -6,6 +6,7 @@ use log::error;
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::fieldinfo::RELATIVE_FP_FIELD;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
@@ -103,19 +104,22 @@ impl PdfLoaderResult {
 }
 
 impl LoaderResult for PdfLoaderResult {
-    fn get_field_texts(&mut self) -> Vec<(String, String)> {
+    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<(String, String)>, PathBuf) {
         let title = Self::format_title(&self.absolute_path, &self.link);
-        let text = if let Ok(text) = pdf_extract::extract_text(std::mem::take(&mut self.absolute_path)) {
+        let text = if let Ok(text) = pdf_extract::extract_text(&self.absolute_path) {
             text
         } else {
             error!("Failed to parse pdf {}", &self.link);
             String::new()
         };
 
-        vec![
-            ("_relative_fp".to_owned(), std::mem::take(&mut self.link)),
-            ("title".to_owned(), title),
-            (self.options.field.clone(), text),
-        ]
+        (
+            vec![
+                (RELATIVE_FP_FIELD.to_owned(), self.link),
+                ("title".to_owned(), title),
+                (self.options.field.clone(), text),
+            ],
+            self.absolute_path,
+        )
     }
 }

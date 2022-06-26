@@ -1497,7 +1497,9 @@ dependencies = [
  "morsels_lang_chinese",
  "morsels_lang_latin",
  "num_cpus",
+ "path-absolutize",
  "path-slash",
+ "pathdiff",
  "pdf-extract",
  "pretty_assertions",
  "regex",
@@ -1705,10 +1707,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "path-absolutize"
+version = "3.0.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3de4b40bd9736640f14c438304c09538159802388febb02c8abaae0846c1f13"
+dependencies = [
+ "path-dedot",
+]
+
+[[package]]
+name = "path-dedot"
+version = "3.0.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d611d5291372b3738a34ebf0d1f849e58b1dcc1101032f76a346eaa1f8ddbb5b"
+dependencies = [
+ "lazy_static",
+ "once_cell",
+]
+
+[[package]]
 name = "path-slash"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3cacbb3c4ff353b534a67fb8d7524d00229da4cb1dc8c79f4db96e375ab5b619"
+
+[[package]]
+name = "pathdiff"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8835116a5c179084a830efb3adc117ab007512b535bc1a21c991d3b32a6b44dd"
 
 [[package]]
 name = "pdf-extract"

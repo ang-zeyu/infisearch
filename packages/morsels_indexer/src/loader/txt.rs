@@ -1,8 +1,10 @@
 use std::path::Path;
+use std::path::PathBuf;
 
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::fieldinfo::RELATIVE_FP_FIELD;
 use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
@@ -25,12 +27,12 @@ impl TxtLoader {
         Box::new(TxtLoader { options: json_loader_options })
     }
 
-    fn get_txt_loader_result(&self, text: String, link: String) -> Box<dyn LoaderResult + Send> {
+    fn get_txt_loader_result(&self, text: String, link: String, absolute_path: PathBuf) -> Box<dyn LoaderResult + Send> {
         let field_texts = vec![
-            ("_relative_fp".to_owned(), link),
+            (RELATIVE_FP_FIELD.to_owned(), link),
             (self.options.field.clone(), text)
         ];
-        Box::new(BasicLoaderResult { field_texts }) as Box<dyn LoaderResult + Send>
+        Box::new(BasicLoaderResult { field_texts, absolute_path }) as Box<dyn LoaderResult + Send>
     }
 }
 
@@ -43,11 +45,12 @@ impl Loader for TxtLoader {
     ) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
             if extension == "txt" {
+                let absolute_path_as_buf = PathBuf::from(absolute_path);
                 let text = std::fs::read_to_string(absolute_path)
                     .unwrap_or_else(|_| panic!("Failed to read .txt file {}", absolute_path.to_string_lossy().into_owned()));
                 let link = relative_path.to_slash().unwrap();
                 return Some(Box::new(std::iter::once(
-                    self.get_txt_loader_result(text, link),
+                    self.get_txt_loader_result(text, link, absolute_path_as_buf),
                 )));
             }
         }

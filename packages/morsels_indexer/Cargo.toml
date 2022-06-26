@@ -33,6 +33,8 @@ morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", version
 morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", version="0.1.1", features = ["indexer"] }
 morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", version="0.1.1", features = ["indexer"] }
 num_cpus = "1"
+path-absolutize = { version = "3.0", features = ["lazy_static_cache"] }
+pathdiff = "0.2"
 path-slash = "0.1.4"
 pdf-extract = "0.6"
 regex = "1"

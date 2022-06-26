@@ -14,6 +14,7 @@ use log4rs::append::console::ConsoleAppender;
 use log4rs::config::Appender;
 use log4rs::config::Logger;
 use log4rs::config::Root;
+use path_absolutize::Absolutize;
 use structopt::StructOpt;
 use walkdir::WalkDir;
 
@@ -51,9 +52,9 @@ struct CliArgs {
 
 fn get_relative_or_absolute_path(from_path: &Path, path: &Path) -> PathBuf {
     if path.is_relative() {
-        from_path.join(path)
+        from_path.join(path).absolutize().unwrap().to_path_buf()
     } else {
-        PathBuf::from(path)
+        path.absolutize().unwrap().to_path_buf()
     }
 }
 
@@ -76,6 +77,7 @@ fn resolve_folder_paths(
             } else {
                 source_return.join("morsels_config.json")
             };
+            let config_return = config_return.absolutize().unwrap().to_path_buf();
 
             (source_return, output_return, config_return)
         }
@@ -135,6 +137,7 @@ fn main() {
     };
 
     let mut indexer = Indexer::new(
+        &input_folder_path,
         &output_folder_path,
         config,
         args.incremental,

@@ -1,13 +1,15 @@
 use std::sync::{Arc, Barrier};
 
-use crate::worker::MainToWorkerMessage;
+use crossbeam::channel::Sender;
+
+use crate::worker::{MainToWorkerMessage, Worker};
 use super::Indexer;
 
 impl Indexer {
-    pub fn terminate_all_workers(self) {
-        drop(self.tx_main);
+    pub fn terminate_all_workers(tx_main: Sender<MainToWorkerMessage>, workers: Vec<Worker>) {
+        drop(tx_main);
 
-        for worker in self.workers {
+        for worker in workers {
             worker.join_handle.join().expect("Failed to join worker.");
         }
     }

@@ -4,9 +4,11 @@ pub mod json;
 pub mod pdf;
 pub mod txt;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub type LoaderResultIterator<'a> = Box<dyn Iterator<Item = Box<dyn LoaderResult + Send>> + 'a>;
+
+pub type LoaderBoxed = Box<dyn Loader + Send + Sync>;
 
 #[typetag::serde(tag = "type")]
 pub trait Loader {
@@ -20,15 +22,16 @@ pub trait Loader {
 }
 
 pub trait LoaderResult {
-    fn get_field_texts(&mut self) -> Vec<(String, String)>;
+    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<(String, String)>, PathBuf);
 }
 
 pub struct BasicLoaderResult {
     field_texts: Vec<(String, String)>,
+    absolute_path: PathBuf,
 }
 
 impl LoaderResult for BasicLoaderResult {
-    fn get_field_texts(&mut self) -> Vec<(String, String)> {
-        std::mem::take(&mut self.field_texts)
+    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<(String, String)>, PathBuf) {
+        (self.field_texts, self.absolute_path)
     }
 }

@@ -1,0 +1,2 @@
+"title","body","_add_files","comment"
+"recursive main","main document in the recursive linkage","./subfolder/secondary_1.json","this file is copied to input/add_files_test/recursive"
