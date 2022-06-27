@@ -1,6 +1,6 @@
 [package]
 name = "morsels_search"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 
@@ -33,6 +33,9 @@ features = [
     "Window"
 ]
 optional = true
+
+# [package.metadata.wasm-pack.profile.release]
+# wasm-opt = false
 
 [dev-dependencies]
 miniserde = "0.1"
