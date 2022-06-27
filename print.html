@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Advanced</li><li class="chapter-item expanded "><a href="search_configuration_advanced.html"><strong aria-hidden="true">6.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">6.1.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">7.</strong> Larger Collections</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">7.1.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.2.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -134,7 +134,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
+                        <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
 <style>.light .morsels-root,
 .rust .morsels-root,
 .coal .morsels-root,
@@ -280,14 +280,14 @@
 <p><strong>Incremental</strong> Indexing</p>
 </li>
 <li>
-<p><strong>Customisable</strong> dropdown / fullscreen popup user interface 🖥️</p>
+<p><strong>Customisable</strong> and <strong>Accessible</strong> dropdown / fullscreen popup user interface 🖥️</p>
 </li>
 </ul>
 <h2 id="use-cases"><a class="header" href="#use-cases">Use Cases</a></h2>
 <p>You may want to use this tool if:</p>
 <ul>
 <li>You want a complete solution for static site search</li>
-<li>You have a fairly <strong>large collection</strong> of HTML, csv, json or txt (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly</li>
+<li>You have a fairly <strong>large collection</strong> of HTML, CSV, JSON, PDF or text (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly</li>
 <li>Running a search server / SaaS (eg. Algolia Docsearch) is not an option</li>
 </ul>
 <blockquote>
@@ -1253,9 +1253,9 @@ if (window.location.search) {
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="other-use-cases"><a class="header" href="#other-use-cases">Other Use Cases</a></h1>
-<p>Since its indexer is essentially just a CLI tool, morsels could in-theory be used almost anywhere (e.g. other static site generators) easily without a custom wrapper implementation (such as the Mdbook plugin).</p>
-<p>For example, to deploy another static site generator to gh-pages using github actions, simply chain the morsels tool on top of the static site generator output:</p>
+<h1 id="others"><a class="header" href="#others">Others</a></h1>
+<p>Since its indexer is essentially just a CLI tool, Morsels could be used almost anywhere (e.g. other static site generators) even without a custom wrapper implementation (e.g. the Mdbook plugin).</p>
+<p>For example, to deploy another static site generator’s output to gh-pages using github actions, simply chain the morsels tool on top of the static site generator output, after you’ve linked the necessary scripts:</p>
 <pre><code class="language-yml">name: docs
 on:
   push:
@@ -1278,10 +1278,6 @@ jobs:
           branch: gh-pages
           folder: &lt;docs_build_folder&gt;
 </code></pre>
-<h2 id="custom-data-formats-non-html"><a class="header" href="#custom-data-formats-non-html">Custom Data Formats (non-HTML)</a></h2>
-<p>Some use cases may not always have HTML files readily available (e.g. pure client-side rendered projects).</p>
-<p>In such cases, morsels also supports <code>.json</code> and <code>.csv</code> files, which is covered in greater detail later under <a href="./indexer_configuration.html">indexer configuration</a>.</p>
-<p>Another simpler (but likely slow) alternative you could consider specifically for client-side rendered projects is to display the page in a headless browser, then index said HTML file.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -1468,16 +1464,7 @@ if (window.location.search) {
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="search-configuration"><a class="header" href="#search-configuration">Search Configuration</a></h1>
 <p>All search related options can be provided through the <code>initMorsels</code> function, exposed by the search bundle.</p>
-<p>There are 2 categories of options, the first being related to internal search library functionalities, and the second the user interface.</p>
-<hr />
-<h2 id="forenote-on-mobile-device-detection"><a class="header" href="#forenote-on-mobile-device-detection">Forenote on Mobile Device Detection</a></h2>
-<p>Note that some options in both the search library and UI are (by default) tuned based on whether the client is a “mobile device”:</p>
-<ul>
-<li>Query term proximity ranking is disabled</li>
-<li>The fullscreen version of the user interface is used for <code>mode='auto'</code> (see <a href="search_configuration.html#ui-mode">UI Mode</a>)</li>
-</ul>
-<p>Overrides and the process of this detection is configurable, and will be covered later.</p>
-<hr />
+<p>There are 2 categories of options, the first related to the user interface, and the latter search functionalities.</p>
 <h2 id="search-ui-options"><a class="header" href="#search-ui-options">Search UI Options</a></h2>
 <p>Search UI options are organised under the <code>uiOptions</code> key:</p>
 <pre><code class="language-ts">initMorsels({
@@ -1488,19 +1475,18 @@ if (window.location.search) {
 </code></pre>
 <p>For brevity, this page covers only a subset of the most important options.</p>
 <p>The subsequent <a href="./search_configuration_renderers.html">sub-chapter</a> provides a few more APIs to customise the HTML output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!</p>
-<h3 id="input-element"><a class="header" href="#input-element">Input Element</a></h3>
+<h4 id="input-element"><a class="header" href="#input-element">Input Element</a></h4>
 <table><thead><tr><th>Option</th><th>Default Value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>input</code></td><td><code>'morsels-search'</code></td><td><code>id</code> of the input element or a HTML element reference</td></tr>
 <tr><td><code>inputDebounce</code></td><td><code>100</code></td><td>debounce time of keystrokes to the input element</td></tr>
 <tr><td><code>preprocessQuery</code></td><td><code>(q) =&gt; q</code></td><td>any function for preprocessing the query. Can be used to add a <a href="./search_features.html#field-search">field filter</a> for example.</td></tr>
 </tbody></table>
 <p>The <code>input</code> element is the most important option, and is required in most cases. Its purpose varies depending on the <code>mode</code> specified below.</p>
-<h3 id="ui-mode"><a class="header" href="#ui-mode">UI Mode</a></h3>
-<p><code>mode = 'auto'</code></p>
+<h4 id="ui-mode"><a class="header" href="#ui-mode">UI Mode</a></h4>
 <p>The search UI provides 4 main different behaviours.</p>
-<p>To <strong>try the different modes out</strong>, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation!</p>
+<p>To try the different modes out, head on over to the <a href="./getting_started_mdbook.html#preview">mdbook plugin</a> page, which provides various buttons for switching the modes in this documentation.</p>
 <table><thead><tr><th>Mode</th><th>Details</th></tr></thead><tbody>
-<tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is detected as per the <a href="search_configuration.html#forenote-on-mobile-device-detection">earlier section</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.</td></tr>
+<tr><td><code>&quot;auto&quot;</code></td><td>This option is the <strong>default</strong>, and combines the <code>dropdown</code> and <code>fullscreen</code> options below. If a mobile device is <a href="search_configuration.html#changing-the-mobile-device-detection-method">detected</a>, the <code>fullscreen</code> mode is used. Otherwise, the <code>dropdown</code> mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.</td></tr>
 <tr><td><code>&quot;dropdown&quot;</code></td><td>This wraps the specified <code>input</code> element with a root container. Search results are placed in a <code>&lt;ul&gt;</code> container next to the input element.</td></tr>
 <tr><td><code>&quot;fullscreen&quot;</code></td><td>This option creates a completely distinct root container (complete with its own input element, backdrop, close button, …), and attaches it to the <code>&lt;body&gt;</code> element.<br><br>Under the default stylesheet, the user interface is fullscreen under <code>max-width: 1025px</code>, and takes up roughly 50% of the screen estate otherwise.<br><br>If the <code>input</code> element is specified, the interface is also shown whenever the <code>input</code> is focused. For keyboard accessibility, some minimal, but overidable <a href="./search_configuration_styling.html#input-element">styling</a> is applied to the input element in this case.<br><br>Alternatively, the <code>showFullscreen</code> and <code>hideFullscreen</code> functions returned by the <code>initMorsels</code> call can be used to toggle the UI programatically. This is also <em>the only use case you would not need to specify the <code>input</code> element</em>.</td></tr>
 <tr><td><code>&quot;target&quot;</code></td><td>This option is the most flexible, and is used by the mdbook plugin (by default) and this documentation. The <code>input</code> element must be specified, where keystroke event listeners are attached. No dom manipulation is performed unlike the <code>dropdown</code> or <code>auto</code> modes.<br><br>The search results are output to a custom <code>target</code> element of choice.</td></tr>
@@ -1527,55 +1513,25 @@ if (window.location.search) {
 <p>You may call the <code>showFullscreen()</code> function returned by the initMorsels call to programatically show the fullscreen search UI.</p>
 <p>Correspondingly, the <code>hideFullscreen()</code> method hides the fullscreen interface, although, this shouldn’t be needed since a close button is available by default (the <kbd>Esc</kbd> key works too).</p>
 <p>These methods can also be used under <code>mode=&quot;auto&quot;</code>.</p>
-<h3 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h3>
-<p>There are 3 ways to generate result previews of matched documents, the second being the default.</p>
-<p>Unless you have modified the default result renderer (covered in the next page on renderers), morsels also requires <strong>at least one</strong> of the <code>body</code> / <code>heading</code> / <code>title</code> fields. This is configured by default, and covered in the next section on indexing configuration in more detail.</p>
-<h4 id="default-rendering-output--purpose"><a class="header" href="#default-rendering-output--purpose">Default Rendering Output / Purpose</a></h4>
-<p>The default use case / result generation assumes the simple but common use case of linking to a source document (via an <code>&lt;a&gt;</code> tag). </p>
-<p>Therefore, source documents are assumed to be <strong>available</strong> and <strong>linkable</strong> to. The url of this source document is <strong>either</strong>:</p>
-<ol>
-<li>
-<p>The <code>sourceFilesUrl</code> option concatenated with the relative file path of the document at the time of indexing <strong>(default)</strong>.</p>
-<blockquote>
-<p>The relative file path is stored in the <code>_relative_fp</code> field, which is an internally generated field. Combining this with the base url (<code>sourceFilesUrl</code>) forms the full source document link.</p>
-</blockquote>
-</li>
-<li>
-<p>The <a href="./indexer/fields.html#default-field-configuration"><code>link</code> field</a>, a custom field that has to manually mapped from file data.</p>
-</li>
-</ol>
-<p>The use of the default indexed fields in the UI is as shown in the following diagram, and will be covered in more detail in the chapter on <a href="./indexer/fields.html">fields</a>:</p>
-<p><img src="./images/fields_annotated.png" alt="" /></p>
-<p>Some indexer configuration <a href="./indexer/presets.html">presets</a> are available to help with switching between options 1 and 2 easily.</p>
-<h4 id="1-from-source-documents"><a class="header" href="#1-from-source-documents">1. From Source Documents</a></h4>
-<p>When option 2 below (field stores) is not configured or unavailable, morsels will attempt to <em>retrieve and reparse the source document and its fields</em> in order to generate result previews.</p>
-<p>Note that this option is only applicable for indexed HTML, json, and txt files at this time.</p>
-<p>As csv files are often used to hold multiple documents (and can therefore get very large), it is unsuitable to be used as a source for search result previews. In this case, options 2 or 3 can be used.</p>
-<h4 id="2-from-field-stores-default"><a class="header" href="#2-from-field-stores-default">2. From Field Stores (default)</a></h4>
-<p>Morsels is also able to generate result previews from its own json field stores generated at indexing time.</p>
-<p>In order to specify what fields to store, and how to map file data to these fields, refer to the chapter on <a href="./indexer/fields.html">fields</a> under indexer configuration.</p>
-<p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant to perform result preview generation on.</p>
-<h4 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h4>
-<p>It is also possible to create your own result <a href="./search_configuration_renderers.html">renderer</a> to, for example:</p>
-<ul>
-<li>attach an event handler to call a function when a user clicks the result preview</li>
-<li>retrieve and generate result previews from some other API.</li>
-</ul>
-<p>Nevertheless, the section <a href="search_configuration.html#from-field-stores">“From Field Stores”</a> above would still be relevant as it provides the basis for retrieving a document’s fields (e.g. a document id with which to call an API).</p>
-<p>This is covered in more detail in the next page.</p>
-<h3 id="results-per-page"><a class="header" href="#results-per-page">Results Per Page</a></h3>
+<h4 id="results-per-page"><a class="header" href="#results-per-page">Results Per Page</a></h4>
 <p><code>resultsPerPage = 8</code></p>
-<p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result. When triggered, search result previews are fetched and generated for a number of results only.</p>
-<p>Lowering this value can have a noticeable performance improvement on result generation, as more <code>.html / .json</code> files have to be retrieved on-the-fly, parsed, and processed. This is especially true if using option 1 above.</p>
-<h3 id="changing-the-mobile-device-detection-method"><a class="header" href="#changing-the-mobile-device-detection-method">Changing The Mobile Device Detection Method</a></h3>
-<p>The mobile device check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may not be robust enough for your use case.</p>
-<p>An override may be provided through the <code>isMobileDevice</code> option shown below, which is simply a function returning a boolean.</p>
-<pre><code class="language-ts">initMorsels({
-    isMobileDevice: () =&gt; true,
+<p>In all UI modes, an infinite scrolling intersection observer is attached to the last search result. When triggered, search result previews are fetched and generated for the next <code>resultsPerPage</code> number of results.</p>
+<h4 id="changing-the-mobile-device-detection-method"><a class="header" href="#changing-the-mobile-device-detection-method">Changing The Mobile Device Detection Method</a></h4>
+<p>Some options are (by default) tuned based on whether the client is a “mobile device”:</p>
+<ul>
+<li>Query term proximity ranking is disabled</li>
+<li>The fullscreen version of the user interface is used for <code>mode='auto'</code></li>
+</ul>
+<p>The mobile device check is done through a simple <code>window.matchMedia('only screen and (max-width: 1024px)').matches</code> query at initialisation time, which may be inadequate for your use case.</p>
+<p>An override may be provided through the <code>isMobileDevice</code> option shown below.</p>
+<pre><code class="language-js">initMorsels({
+    uiOptions: {
+        // Any function returning a boolean
+        isMobileDevice: () =&gt; true,
+    }
 })
 </code></pre>
-<hr />
-<h2 id="search-library-options"><a class="header" href="#search-library-options">Search Library Options</a></h2>
+<h2 id="search-functionality-options"><a class="header" href="#search-functionality-options">Search Functionality Options</a></h2>
 <p>The options for the search library are rather brief, and can be summarised in this snippet:</p>
 <pre><code class="language-js">initMorsels({
     // Options belonging to @morsels/search-lib, the search library package
@@ -1591,7 +1547,7 @@ if (window.location.search) {
         useQueryTermProximity: true,
 
         // Whether to retrieve all field stores on initialisation
-        // (see chapter &quot;Tradeoffs&quot; for more details)
+        // (see chapter &quot;Fields&quot; for more details)
         cacheAllFieldStores: true,
 
         // The maximum number of results to retrieve (unlimited if null).
@@ -1599,13 +1555,13 @@ if (window.location.search) {
     },
 });
 </code></pre>
-<h3 id="automatic-term-expansion"><a class="header" href="#automatic-term-expansion">Automatic Term Expansion</a></h3>
-<p><code>numberOfExpandedTerms</code></p>
+<h4 id="automatic-term-expansion"><a class="header" href="#automatic-term-expansion">Automatic Term Expansion</a></h4>
+<p><code>numberOfExpandedTerms = 3</code></p>
 <p>Stemming is turned off in the default <a href="./indexer/language.html#ascii-tokenizer">language module</a>. This does mean a bigger dictionary (but not too much usually), and lower recall, but much more precise searches.</p>
 <p>To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.</p>
 <p>For all <a href="./indexer/language.html">language modules</a> available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (similar to Algolia Docsearch’s behaviour)</p>
-<h3 id="term-proximity-ranking"><a class="header" href="#term-proximity-ranking">Term Proximity Ranking</a></h3>
-<p><code>useQueryTermProximity</code></p>
+<h4 id="term-proximity-ranking"><a class="header" href="#term-proximity-ranking">Term Proximity Ranking</a></h4>
+<p><code>useQueryTermProximity = !isMobileDevice()</code></p>
 <p>If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other.
 This may be costly for mobile devices however, and is disabled by default in such cases.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
@@ -1849,390 +1805,21 @@ if (window.location.search) {
 <img src="./images/dark-theme-fullscreen.png" alt="Preview of dark theme (fullscreen)">
 </div>
 <h2 id="input-element-as-a-button"><a class="header" href="#input-element-as-a-button">Input Element As a Button</a></h2>
-<p>Where the <code>input</code> option passed to <code>initMorsels</code> is concerned, Morsels adopts a minimally invasive approach to styling, preferring to leave this to the individual site’s preferences.</p>
-<p>For reasons of accessbility however, some minimal styling is applied when using the <a href="./search_configuration.html#ui-mode">fullscreen</a> UI to convey the intention of a button. This is limited to a background + color application on <em>focus</em>, <code>cursor: pointer</code> application on <em>hover</em>, and <code>text-align: center</code> (for the placeholder) application. The background and color application in particular are applied with a <code>!important</code> modifier as they are key to keyboard accessibility, but are also overridable easily with Morsels’ css variables.</p>
+<p>Where the <code>input</code> option passed to <code>initMorsels</code> is concerned, Morsels adopts a minimally invasive approach to styling, preferring to leave this to your individual site’s preferences.</p>
+<p>For reasons of accessbility however, some minimal styling is applied when using the <a href="./search_configuration.html#ui-mode">fullscreen UI</a> to convey the intention of a button. This is limited to:</p>
+<ul>
+<li>A <code>background</code> + <code>box-shadow</code> + <code>color</code> application on <em>focus</em> only</li>
+<li><code>cursor: pointer</code> application on <em>hover</em> only</li>
+<li><code>text-align: center</code> (for the placeholder) application</li>
+</ul>
+<p>Note that the background, box-shadow and color application in particular are applied with a <code>!important</code> modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels’ css variables.</p>
 <p>You may override and addon to these styles as needed, to convey the intention of a button further.</p>
-<p>If using the default UI <a href="./search_configuration.html#ui-mode">mode</a> of auto, you can also set a different <a href="./search_configuration.html#ui-mode-specific-options">placeholder</a>, or use the <code>.morsels-button-input</code> selector to apply your styles only when the fullscreen UI is in use. For example,</p>
+<p>If using the default <a href="./search_configuration.html#ui-mode">UI mode</a> of auto, you can also set a different <a href="./search_configuration.html#ui-mode-specific-options">placeholder</a>, and use the <code>.morsels-button-input</code> selector to apply your styles only when the fullscreen UI is in use. For example,</p>
 <pre><code class="language-css">.morsels-button-input:focus:not(:hover) {
     background: #6c757d !important;
 }
 </code></pre>
 <p>Accessibility labels and roles are automatically set however, so you needn’t worry about those.</p>
-<script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
-<script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
-<script>
-const base_url = '/morsels/';
-const mode = (function () {
-                // This IIFE is documentation specific, for demoing the different modes.
-                // It would be the string mode (e.g. 'target') normally
-                const params = new URLSearchParams(window.location.search);
-                return params.get('mode') || 'target';
-            })();
-initMorsels({
-  searcherOptions: {
-    url: base_url + 'morsels_output/',
-  },
-  uiOptions: {
-    mode,
-    dropdownAlignment: 'bottom-start',
-    target: document.getElementById('morsels-mdbook-target'),
-    sourceFilesUrl: base_url,
-    resultsRenderOpts: {
-      addSearchedTerms: 'search',
-    },
-  },
-});
-
-document.getElementById('morsels-search').addEventListener('keydown', (ev) => {
-  if (['ArrowLeft', 'ArrowRight'].includes(ev.key)) {
-    ev.stopPropagation(); // used in global listener to change pages
-    return;
-  }
-});
-
-if (window.location.search) {
-  // Adapted from the original searcher.js for mdbook
-  // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
-  const target = document.getElementById('content');
-  const marker = new Mark(target);
-
-  function doSearchOrMarkFromUrl() {
-    // Check current URL for search request
-    var url = new URL(window.location.href);
-    var urlParams = new URLSearchParams(url.search);
-
-    if (urlParams.has('search')) {
-      var words = JSON.parse(decodeURIComponent(urlParams.get('search')));
-      marker.mark(words);
-
-      var markers = document.querySelectorAll('mark');
-      function hide() {
-        for (var i = 0; i < markers.length; i++) {
-          markers[i].classList.add('fade-out');
-          window.setTimeout(function () { marker.unmark(); }, 300);
-        }
-      }
-      for (var i = 0; i < markers.length; i++) {
-        markers[i].addEventListener('click', hide);
-      }
-    }
-  }
-  doSearchOrMarkFromUrl();
-}
-</script><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
-<style>.light .morsels-root,
-.rust .morsels-root,
-.coal .morsels-root,
-.navy .morsels-root,
-.ayu .morsels-root {
-    --morsels-box-shadow: none;
-    --morsels-border: 3px solid var(--table-header-bg);
-    --morsels-bg: var(--bg);
-    --morsels-triangle-bg: var(--table-header-bg);
-    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
-    --morsels-item-sub-border: 0;
-    --morsels-title-fg: var(--fg);
-    --morsels-title-bg: var(--table-header-bg);
-    --morsels-title-hover-fg: var(--fg);
-    --morsels-title-hover-bg: var(--table-header-bg);
-    --morsels-heading-fg: var(--fg);
-    --morsels-heading-bg: var(--table-alternate-bg);
-    --morsels-heading-hover-fg: var(--fg);
-    --morsels-heading-hover-bg: var(--table-header-bg);
-    --morsels-body-fg: var(--fg);
-    --morsels-body-bg: var(--bg);
-    --morsels-body-hover-fg: var(--fg);
-    --morsels-body-hover-bg: var(--table-alternate-bg);
-    --morsels-highlight: var(--search-mark-bg);
-    --morsels-highlight-bg: none;
-    --morsels-error-fg: var(--fg);
-    --morsels-fine-print-fg: var(--fg);
-    --morsels-loading-bg: var(--fg);
-    --morsels-loading-secondary-bg: var(--fg);
-    --morsels-scrollbar-bg: var(--sidebar-bg);
-    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
-    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
-    --morsels-fs-border: 3px solid var(--sidebar-bg);
-    --morsels-fs-box-shadow: none;
-    --morsels-fs-header-bg: var(--sidebar-bg);
-    --morsels-fs-header-border-bottom: none;
-    --morsels-fs-header-close-fg: var(--sidebar-fg);
-    --morsels-fs-header-close-bg: var(--sidebar-bg);
-    --morsels-fs-header-close-hover-bg: var(--table-header-bg);
-    --morsels-fs-header-close-hover-fg: var(--fg);
-    --morsels-fs-header-close-active-bg: var(--table-header-bg);
-    --morsels-fs-header-close-active-fg: var(--fg);
-    --morsels-tip-bg: var(--sidebar-bg);
-    --morsels-tip-fg: var(--sidebar-fg);
-    --morsels-tip-code-fg: var(--inline-code-color);
-    --morsels-tip-code-bg: transparent;
-    --morsels-tip-icon-bg: rgb(230, 230, 230);
-    --morsels-tip-icon-fg: rgb(80, 80, 80);
-}
-
-.ayu .morsels-root,
-.rust .morsels-root {
-    --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
-    --morsels-fs-header-close-hover-fg: white;
-    --morsels-fs-header-close-active-bg: var(--sidebar-bg);
-    --morsels-fs-header-close-active-fg: white;
-    --morsels-tip-code-fg: var(--search-mark-bg) !important;
-    --morsels-tip-icon-bg: rgb(200, 200, 200);
-    --morsels-tip-icon-fg: rgb(50, 50, 50);
-}
-
-.morsels-theme .morsels-root .morsels-tip-item code,
-.rust .morsels-root .morsels-tip-item code {
-    color: var(--morsels-tip-code-fg) !important;;
-}
-
-.coal .morsels-root,
-.navy .morsels-root,
-.ayu .morsels-root {
-    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
-}
-
-#morsels-search {
-    width: 100%;
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 15px;
-    padding: 0.5em 0.75em;
-    outline: 2px solid var(--searchbar-border-color);
-    border: none;
-    background: var(--searchbar-bg);
-    color: var(--searchbar-fg);
-}
-
-#morsels-search.morsels-button-input {
-    width: 100px;
-}
-
-#morsels-search.morsels-button-input::placeholder {
-    position: relative;
-    left: 7px;
-}
-
-#morsels-search.morsels-button-input:hover {
-    transition: 0.3s ease-out;
-    background: var(--morsels-fs-button-input-bg) !important;
-    outline: 2px solid var(--morsels-fs-button-input-bg);
-}
-
-#morsels-search.morsels-button-input:hover::placeholder {
-    color: var(--morsels-fs-button-input-fg) !important;
-}
-
-@media print {
-    #morsels-search {
-        display: none;
-    }
-}
-
-#morsels-mdbook-target {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-</style>
-<p><input
-    type="search"
-    id="morsels-search"
-    placeholder="Search"
-/></p>
-<p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
-<ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="altering-html-outputs"><a class="header" href="#altering-html-outputs">Altering HTML Outputs</a></h1>
-<style>
-    .alert-warning {
-        color: #856404;
-        background-color: #fff3cd;
-        border-color: #ffeeba;
-    }
-    .alert {
-        position: relative;
-        padding: 0.75rem 1.25rem;
-        margin-bottom: 1rem;
-        border: 1px solid transparent;
-        border-radius: 0.25rem;
-    }
-</style>
-<blockquote>
-<p>This page covers some APIs that allow you to customise some small parts of the HTML output structure, if required.</p>
-</blockquote>
-<p>Some use cases for this include:</p>
-<ul>
-<li>The default HTML structure is not sufficient for your styling needs</li>
-<li>You need to attach additional event listeners to elements</li>
-<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)</li>
-<li>You want to change the <a href="./search_configuration.html#default-rendering-output--purpose">default use case</a> of following through on a result preview to its source document entirely</li>
-</ul>
-<blockquote>
-<p>💡 If you only need to style the dropdown or search popup, you can include your own css file to do so <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css">and / or override the variables</a> exposed by the default css bundle.</p>
-</blockquote>
-<p>These API options are similarly specified under the <code>uiOptions</code> key of the root configuration object.</p>
-<pre><code class="language-ts">initMorsels({
-    uiOptions: {
-        // ...
-    }
-});
-</code></pre>
-<h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
-<p><code>h</code></p>
-<p>Almost all APIs here are passed a <code>h</code> function. This is an <em>optional</em> helper function you may use to create elements.</p>
-<p>The method signature is as such:</p>
-<pre><code class="language-ts">export type CreateElement = (
-  // Element name
-  name: string,
-
-  // Element attribute map
-  attrs: { [attrName: string]: string },
-
-  /*
-   Child elements (HTMLElement) OR text nodes (just put the string)
-   string parameters utilise .textContent,
-   so you don't have to worry about escaping potentially malicious content
-  */
-  ...children: (string | HTMLElement)[]
-) =&gt; HTMLElement;
-</code></pre>
-<h2 id="passing-custom-options"><a class="header" href="#passing-custom-options">Passing Custom Options</a></h2>
-<p><code>opts</code></p>
-<p>All renderer functions are also passed an <code>opts</code> parameter. This is the original input object that you provided to the <code>initMorsels</code> call, with default parameters populated at this point.</p>
-<pre><code class="language-ts">opts = export interface SearchUiOptions {
-  searcherOptions?: SearcherOptions,
-  uiOptions?: UiOptions,
-  isMobileDevice: () =&gt; boolean,
-  otherOptions: any
-}
-</code></pre>
-<p>If you need to include some custom options (e.g. an API base url), you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
-<h2 id="changing-supporting-parts-of-the-ui"><a class="header" href="#changing-supporting-parts-of-the-ui">Changing Supporting Parts of the UI</a></h2>
-<p>The options here are intended for changing small, supporting parts of the output (e.g. error messages), which can be especially useful for localizing the UI.</p>
-<table><thead><tr><th>Function</th><th>Return</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>errorRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>Renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when an unexpected error occurs.</td></tr>
-<tr><td><code>noResultsRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when there are no results found for a given query.                                                                                     </td></tr>
-<tr><td><code>loadingIndicatorRender(h, opts, isInitialising: boolean, wasResultsBlank: boolean)</code></td><td><code>HTMLElement</code></td><td>This API renders the loading indicator attached under the <code>listContainer</code> when running a query.<br><br>While the search library is doing initialising work, the <code>isInitialising</code> parameter will be <code>true</code>. <br><br>The <code>wasResultsBlank</code> boolean is <code>true</code> when there are no results yet. You may use this parameter to change the look of the indicator in subsequent queries. In the default design, this corresponds to the spinning indicator on the top right of the search box.</td></tr>
-<tr><td><code>termInfoRender(h, opts, queryParts: QueryPart[])</code></td><td><code>HTMLElement[]</code></td><td>This API renders element(s) attached under the <code>listContainer</code> related to the searched terms, and is blank by default.<br><br>This can be used to render messages like “<em>Did you mean <u>spelling</u>?</em> “.</td></tr>
-<tr><td><code>fsBlankRender(h, opts)</code><br><br>( <code>mode='fullscreen'</code> only )</td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.</td></tr>
-</tbody></table>
-<h3 id="queryparts-parameter"><a class="header" href="#queryparts-parameter"><code>queryParts</code> Parameter</a></h3>
-<p>This parameter passed to the <code>termInfoRender</code> function is the parsed structure of the input query string.</p>
-<p>Its interface is as follows:</p>
-<pre><code class="language-ts">{
-  partType: 'TERM' | 'PHRASE' | 'BRACKET' | 'AND' | 'NOT';
-
-  // Raw, original term(s) contained, if any of the below 3 operations were applied
-  originalTerms?: string[];
-
-  isCorrected?: boolean;        // did this query part undergo spelling correction?
-  isStopWordRemoved?: boolean;  // did this query part undergo stop word removal?
-  isExpanded?: boolean;         // is this an added / expanded term?
-
-  shouldExpand?: boolean;       // was this term a source for query term expansion?
-
-  fieldName?: string;           // was a field filter applied?
-
-  // Spelling corrected / Expanded / Stop word removed result
-  terms?: string[];
-
-  children?: QueryPart[];
-}
-</code></pre>
-<h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
-<p>The below 2 <em>mutually exclusive</em> sets of APIs render the results for all document matches. The first, simpler set of APIs are “building blocks” of the second (which only has one available API). Reconfiguring the second API would also invalidate any changes to the first.</p>
-<h3 id="1-rendering-a-single-result"><a class="header" href="#1-rendering-a-single-result">1. Rendering a Single Result</a></h3>
-<p>The APIs under this key are grouped under <code>uiOptions.resultsRenderOpts</code> (instead of <code>uiOptions.XXX</code>).</p>
-<p>These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).</p>
-<div style="height:1px"></div>
-<p><code>listItemRender(h, opts, fullLink, resultTitle, resultHeadingsAndTexts, fields): HTMLElement</code></p>
-<p>This API renders the result for a single document match.</p>
-<table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>fullLink</code></td><td>full resource link of the document</td></tr>
-<tr><td><code>resultTitle</code></td><td>the first extracted <code>title</code> field of the document, if any</td></tr>
-<tr><td><code>resultHeadingsAndTexts</code></td><td>An array of <code>string</code> or <code>HTMLElement</code> intended to be used as the last parameter of <code>h</code>.<br><br>This contains the highlighted heading-body pair matches, or body-only matches rendered from <code>headingBodyRender</code> and <code>bodyOnlyRender</code> further below.</td></tr>
-<tr><td><code>fields</code></td><td>All stored fields for the document, as positioned <code>[fieldName, fieldValue]</code> pairs. Useful if adding additional fields.</td></tr>
-</tbody></table>
-<p>The following example shows the default implementation, and how to add an additional field, <code>subtitle</code>, to each result.</p>
-<pre><code class="language-ts">const subTitleField = fields.find(field =&gt; field[0] === 'subtitle');
-
-const linkEl = h(
-  'a', { class: 'morsels-link' },
-  h('div', { class: 'morsels-title' }, title,
-    h('div', { class: 'morsels-subtitle' }, (subTitleField &amp;&amp; subTitleField[1]) || '')
-  ),
-  ...bodies
-);
-
-if (fullLink) {
-  linkEl.setAttribute('href', fullLink);
-}
-
-return h(
-  'li', { class: 'morsels-list-item' },
-  linkEl,
-);
-</code></pre>
-<h4 id="11-listitemrender-supporting-apis"><a class="header" href="#11-listitemrender-supporting-apis">1.1 <code>listItemRender</code> supporting APIs</a></h4>
-<p>The remaining 3 APIs below are building blocks of <code>listItemRender</code>, responsible for generating its <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters.</p>
-<pre><code class="language-ts">interface SearchUiRenderOptions {
-  // Renders a &quot;heading&quot; field,
-  // along with the highlighted &quot;body&quot; fields that follow it (in document order)
-  headingBodyRender?: (
-    h: CreateElement,
-
-    // The highlighted elements under .morsels-heading. Intended to be used with the 'h' function.
-    headingHighlights: (HTMLElement | string)[],    
-
-    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
-    bodyHighlights: (HTMLElement | string)[], 
-
-    // Url of the document + The matching heading's id, if any
-    href?: string                             
-  ) =&gt; HTMLElement,
-
-
-  // Renders highlighted &quot;body&quot; fields without a heading preceding it
-  bodyOnlyRender?: (
-    h: CreateElement,
-
-    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
-    bodyHighlights: (HTMLElement | string)[], 
-  ) =&gt; HTMLElement,
-
-
-  highlightRender?: (
-    h: CreateElement,
-
-    // matched term
-    matchedPart: string,                      
-  ) =&gt; HTMLElement,
-}
-</code></pre>
-<h3 id="2-rendering-all-results"><a class="header" href="#2-rendering-all-results">2. Rendering All Results</a></h3>
-<p><code>async resultsRender(h, opts, config, results, query): Promise&lt;HTMLElement[]&gt;</code></p>
-<p>This API renders the results for <em>all</em> document matches.</p>
-<p>Some examples use cases are:</p>
-<ul>
-<li>Altering the html output structure substantially (e.g. displaying results in a tabular form)</li>
-<li>Calling external API calls to retrieve additional info for generating result previews.
-<ul>
-<li>For this reason, this is also the only <code>async</code> API</li>
-</ul>
-</li>
-</ul>
-<p>For example, the default implementation does the following:</p>
-<ol>
-<li>Check the <code>config.fieldInfos</code> if any of <code>body / title / heading</code> fields are stored by the indexer to generate result previews. (Skip to 3 if present)</li>
-<li>If the document has the internal <code>_relative_fp</code> field and <code>sourceFilesUrl</code> is specified, retrieve the original document (<code>.html</code> or <code>.json</code>), and transform it into the same format as that generated by the indexer.</li>
-<li>Transform and highlight the field stores using the <code>listItemRender</code> set of APIs below.</li>
-</ol>
-<table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>config</code></td><td>This is the <em>indexing</em> configuration.</td></tr>
-<tr><td><code>query</code></td><td>a <code>Query</code> object. <code>query.searchedTerms</code> contains a nested array of grouped terms that were searched. Groupings contain raw terms and their spelling corrections (if any).</td></tr>
-<tr><td><code>results</code></td><td>an array of <code>Result</code> objects.<br><br>This class exposes the <code>getStorageWithFieldNames(): [string, string][]</code> method which returns an array of <code>[field name, field content]</code> pairs.</td></tr>
-</tbody></table>
-<p>You may also refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -2605,8 +2192,9 @@ if (window.location.search) {
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="field-configuration"><a class="header" href="#field-configuration">Field Configuration</a></h1>
-<p>If you are using morsels’ search UI <strong>as-is</strong> for static site search, you can likely skip configuring <code>fields_config.fields</code>.</p>
-<p>There are a few other parameters under <code>fields_config</code> however, which can be used to adjust response times, caching, and file bloat individually. However, you should be well-served by the preconfigured <a href="indexer/./presets.html">scaling presets</a> for such purposes.</p>
+<p>Every document you index contains multiple fields. By default, Morsels comes baked in with the configurations needed for supporting static site search, so you don’t have to configure what fields are present.</p>
+<p>There are a few other parameters mentioned below however, which can be used to adjust response times, caching, and file bloat individually. </p>
+<p>This snippet shows the default values:</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
     &quot;cache_all_field_stores&quot;: true,
@@ -2641,7 +2229,7 @@ if (window.location.search) {
         &quot;k&quot;: 1.2,
         &quot;b&quot;: 0.75
       },
-      // Internal, hardcoded field (see &quot;Special Fields&quot;)
+      // Internal, hardcoded field (see &quot;Reserved Fields&quot;)
       {
         &quot;name&quot;: &quot;_relative_fp&quot;,
         &quot;do_store&quot;: true,
@@ -2653,33 +2241,12 @@ if (window.location.search) {
   }
 }
 </code></pre>
-<h4 id="storing-fields-do_store"><a class="header" href="#storing-fields-do_store">Storing Fields: <strong><code>do_store</code></strong></a></h4>
-<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file.
-At search time, these fields are retrieved for result preview generation.</p>
-<h4 id="field-store-granularity-field_store_block_size-num_stores_per_dir"><a class="header" href="#field-store-granularity-field_store_block_size-num_stores_per_dir">Field Store Granularity: <strong><code>field_store_block_size</code>, <code>num_stores_per_dir</code></strong></a></h4>
-<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The <code>num_stores_per_dir</code> parameter controls how many json files should be stored together in one directory.</p>
-<blockquote>
-<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter under <a href="indexer/./indexing.html">indexing</a> later.<br>
-This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
-but should work well enough for most use cases.</p>
-</blockquote>
-<h4 id="field-store-caching-cache_all_field_stores"><a class="header" href="#field-store-caching-cache_all_field_stores">Field Store Caching: <strong><code>cache_all_field_stores</code></strong></a></h4>
-<p>This is the same as the configuration option under <a href="indexer/../search_configuration.html#search-library-options">search configuration</a>.
-If both are specified, the value specified in the <code>initMorsels</code> call will take priority.</p>
-<p>All fields specified with <code>do_store=true</code> would be cached up front on initialisation of the search library.</p>
-<p>Its usage alongside other options is discussed in more detail under the chapter <a href="indexer/../tradeoffs.html">Tradeoffs</a>.</p>
-<h4 id="field-scoring-parameters"><a class="header" href="#field-scoring-parameters">Field Scoring Parameters</a></h4>
-<p><strong><code>weight</code></strong></p>
-<p>This parameter is a boost / penalty multiplied to a individual field’s score.</p>
-<p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
-<p><strong><code>k</code> &amp; <code>b</code></strong></p>
-<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these if the defaults are unsuitable for your use case.</p>
 <h2 id="default-field-configuration"><a class="header" href="#default-field-configuration">Default Field Configuration</a></h2>
 <p>The functions of the default fields for the user interface are as follows:</p>
 <img alt="annotation for fields" src="indexer/../images/fields_annotated.png" />
 <ul>
 <li>
-<p><code>title</code>: This is the header for a single document match. </p>
+<p><code>title</code>: This is the header for a single document match, usually sourced from the HTML <code>&lt;title&gt;</code> tag. When unavailable, <code>_relative_fp</code> field is formatted into a breadcrumb format (e.g. <code>user guide » introduction</code>) instead.</p>
 </li>
 <li>
 <p><code>heading</code>: These are section headers which appear on the left of corresponding <code>body</code> field, sourced from <code>&lt;h1-6&gt;</code> tags.</p>
@@ -2697,14 +2264,41 @@ If both are specified, the value specified in the <code>initMorsels</code> call 
 </ul>
 </li>
 </ul>
-<h2 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h2>
-<p>Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings are insufficient. This is discussed later under <a href="indexer/./indexing.html#mapping-file-data-to-fields-loader_configs">indexing</a>.</p>
-<p>The exception are “special” fields below, which have “hardcoded” values.</p>
-<h3 id="special-fields"><a class="header" href="#special-fields">Special Fields</a></h3>
+<h3 id="reserved-fields"><a class="header" href="#reserved-fields">Reserved Fields</a></h3>
 <p><strong><code>_relative_fp</code></strong></p>
-<p>This is a “hardcoded” field generated by the indexer, in that its value is fixed as the relative file path from your source folder path to the file.</p>
-<p>It is included in the default configuration to facilitate constructing a source file link, used to link to the document itself (via the <code>&lt;a&gt;&lt;/a&gt;</code> tag), and optionally for result preview <a href="indexer/../search_configuration.html#options-for-generating-result-previews">generation</a>.</p>
-<p>If this is removed, this field simply won’t be indexed nor stored.</p>
+<p>This is a “hardcoded” field generated by the indexer, its value is fixed as the relative path from your source folder to the file.</p>
+<p>It is included in the default configuration to facilitate constructing a source file link, as illustrated in the above annotations.</p>
+<p><strong><code>_add_files</code></strong></p>
+<p>This is a field that allows you to <strong>index multiple files</strong> under <strong>a single document</strong> / result, which can be particularly useful for overriding data on a document-by-document basis.</p>
+<p>See <a href="indexer/./indexing.html">this section</a> under indexing for more details on using this.</p>
+<h3 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h3>
+<p>Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings, which are setup for only HTML files, are insufficient. This is discussed later under <a href="indexer/./indexing.html#mapping-file-data-to-fields-loader_configs">indexing</a>.</p>
+<h3 id="adding-fields-advanced"><a class="header" href="#adding-fields-advanced">Adding Fields (advanced)</a></h3>
+<p>You can add your own fields to index as well, which will be factored into Morsels’ search algorithms. Note however, that the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, e.g. a link to an icon, you will need to <a href="indexer/../search_configuration_renderers.html#1-rendering-a-single-result">alter</a> the result renderer.</p>
+<h2 id="field-specific-parameters"><a class="header" href="#field-specific-parameters">Field Specific Parameters</a></h2>
+<h4 id="storing-fields-do_store"><a class="header" href="#storing-fields-do_store">Storing Fields: <strong><code>do_store</code></strong></a></h4>
+<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file.
+At search time, these fields are retrieved for result preview generation.</p>
+<h4 id="field-scoring-parameters"><a class="header" href="#field-scoring-parameters">Field Scoring Parameters</a></h4>
+<p><strong><code>weight</code></strong></p>
+<p>This parameter is a boost / penalty multiplied to a individual field’s score.</p>
+<p>Specifying <code>0.0</code> will result in the field not being indexed. Meaning, searching for it will not show up any results. The use case for this is to create a field that is only stored using the <code>do_store</code> option (e.g. the <code>_relative_fp</code> field).</p>
+<p><strong><code>k</code> &amp; <code>b</code></strong></p>
+<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these if the defaults are unsuitable for your use case.</p>
+<h2 id="miscellaneous-parameters-advanced"><a class="header" href="#miscellaneous-parameters-advanced">Miscellaneous Parameters (advanced)</a></h2>
+<p>The 3 parameters below allow you to adjust response times, caching, and file bloat individually. However, you should mostly be well-served by the preconfigured <a href="indexer/./presets.html">scaling presets</a> for such purposes.</p>
+<h4 id="field-store-granularity-field_store_block_size-num_stores_per_dir"><a class="header" href="#field-store-granularity-field_store_block_size-num_stores_per_dir">Field Store Granularity: <strong><code>field_store_block_size</code>, <code>num_stores_per_dir</code></strong></a></h4>
+<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The <code>num_stores_per_dir</code> parameter controls how many json files should be stored together in one directory.</p>
+<blockquote>
+<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter under <a href="indexer/./indexing.html">indexing</a> later.<br>
+This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
+but should work well enough for most use cases.</p>
+</blockquote>
+<h4 id="field-store-caching-cache_all_field_stores"><a class="header" href="#field-store-caching-cache_all_field_stores">Field Store Caching: <strong><code>cache_all_field_stores</code></strong></a></h4>
+<p>This is the same option as the one under <a href="indexer/../search_configuration.html#search-functionality-options">search functionality options</a>.
+If both are specified, the value specified in the <code>initMorsels</code> call will take priority.</p>
+<p>All fields specified with <code>do_store=true</code> would be cached up front on initialisation of the search library.</p>
+<p>Its usage alongside other options is discussed in more detail under the chapter <a href="indexer/presets.html">Larger Collections</a>.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -2960,9 +2554,6 @@ if (window.location.search) {
 <li>Boolean queries of stop words (e.g. <code>if AND forecast AND sunny</code>)</li>
 <li>More accurate ranking for free text queries, which employ an inverse document frequency heuristic to prune stop words only when their impact is small (far from always the case!). </li>
 </ul>
-<blockquote>
-<p>If you are using any of the 2 <code>large</code> presets covered in <a href="indexer/./presets.html">section 5.4</a>, which generates a sharded index, stop words are not removed by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)</p>
-</blockquote>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -3176,7 +2767,7 @@ if (window.location.search) {
 }
 </code></pre>
 <h2 id="mapping-file-data-to-fields-1"><a class="header" href="#mapping-file-data-to-fields-1">Mapping File Data to Fields</a></h2>
-<p>The indexer is able to handle data from HTML, JSON, csv or txt files. Support for each file type is provided by a “Loader” abstraction.</p>
+<p>The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a “Loader” abstraction.</p>
 <p>You may configure loaders by <strong>including them under the <code>loader_configs</code> key</strong>, with any applicable options.</p>
 <h4 id="html-files-loader_configshtmlloader"><a class="header" href="#html-files-loader_configshtmlloader">HTML Files: <strong><code>loader_configs.HtmlLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
@@ -3208,9 +2799,12 @@ if (window.location.search) {
 }
 </code></pre>
 <p>The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.</p>
-<p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified <code>field_name</code>.</p>
+<p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified <code>field_name</code>, if any.</p>
 <p>This process repeats as the document is traversed — if another of the element’s descendants matched a different selector, the field mapping is overwritten for that descendant’s descendants.</p>
-<p>The <code>attr_map</code> option allows indexing attributes of each element under fields as well.</p>
+<p>The <code>attr_map</code> option allows indexing attributes of specific elements under fields as well.</p>
+<blockquote>
+<p>If needed, you can also index HTML fragments. To match the entire fragment, use the <code>body</code> selector.</p>
+</blockquote>
 <h4 id="json-files-loader_configsjsonloader"><a class="header" href="#json-files-loader_configsjsonloader">JSON Files: <strong><code>loader_configs.JsonLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;JsonLoader&quot;: {
@@ -3272,6 +2866,15 @@ The <code>field_order</code> array controls the order in which these fields are 
 </code></pre>
 <p>Field mappings for CSV files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
 <p>The <code>parse_options</code> key specifies options for parsing the csv file. In particular, note that the <code>has_headers</code> key is distinct from and does not influence the <code>use_headers</code> parameter.</p>
+<h4 id="pdf-files-loader_configspdfloader"><a class="header" href="#pdf-files-loader_configspdfloader">PDF Files: <strong><code>loader_configs.PdfLoader</code></strong></a></h4>
+<pre><code class="language-json">&quot;loader_configs&quot;: {
+  &quot;PdfLoader&quot;: {
+    &quot;field&quot;: &quot;body&quot;,
+  }
+}
+</code></pre>
+<p>This loader indexes all content into a single field “body” by default.</p>
+<p>The search result title would appear as <code>&lt;...pdf file path breadcrumb...&gt; (PDF)</code>, and when clicked upon will open the pdf in the browser.</p>
 <h4 id="text-files-loader_configstxtloader"><a class="header" href="#text-files-loader_configstxtloader">Text Files: <strong><code>loader_configs.TxtLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;TxtLoader&quot;: {
@@ -3279,7 +2882,7 @@ The <code>field_order</code> array controls the order in which these fields are 
   }
 }
 </code></pre>
-<p>This loader simply reads <code>.txt</code> files and indexes all its contents into a single field.</p>
+<p>This loader simply reads <code>.txt</code> files and indexes all its contents into a single field. This is not particularly useful without the <code>_add_files</code> feature <a href="indexer/indexing.html#indexing-multiple-files-under-one-document">below</a>.</p>
 <h2 id="miscellaneous-options"><a class="header" href="#miscellaneous-options">Miscellaneous Options</a></h2>
 <h4 id="file-exclusions-exclude--morsels_configjson"><a class="header" href="#file-exclusions-exclude--morsels_configjson">File Exclusions: <strong><code>exclude = [&quot;morsels_config.json&quot;]</code></strong></a></h4>
 <p>Global file exclusions can be specified in this parameter, which is simply an array of file globs.</p>
@@ -3287,7 +2890,45 @@ The <code>field_order</code> array controls the order in which these fields are 
 <p>This option controls whether positions will be stored.</p>
 <p>Features such as phrase queries that require positional information will not work if this is disabled.</p>
 <p>Turning this off for very large collections (~&gt; 1GB) can increase the tool’s scalability, at the cost of such features.</p>
-<h2 id="indexing-and-search-scaling"><a class="header" href="#indexing-and-search-scaling">Indexing and Search Scaling</a></h2>
+<h2 id="indexing-multiple-files-under-one-document"><a class="header" href="#indexing-multiple-files-under-one-document">Indexing Multiple Files Under One Document</a></h2>
+<p>You can <strong>index multiple files</strong> together <strong>into a single document</strong> / result using the reserved field <a href="indexer/./fields.html#reserved-fields"><code>_add_files</code></a>. This can be particularly useful for overriding data on a case-by-case basis.</p>
+<p>For example, suppose you have the following files:</p>
+<pre><code>folder
+|-- main.html
+|-- overrides.json
+</code></pre>
+<p>To index <code>main.html</code>, but to override its title, you might have a configuration like so:</p>
+<p>Inside <code>overrides.json</code>,</p>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;Title Override&quot;,
+  &quot;_add_files&quot;: &quot;./main.html&quot;
+}
+</code></pre>
+<p>And inside your configuration file:</p>
+<pre><code class="language-json">{
+  &quot;exclude&quot;: [&quot;main.html&quot;]
+}
+</code></pre>
+<p>This avoids indexing <code>main.html</code> directly, but through a reference in <code>overrides.json</code>. As the user interface uses the first title it sees, the title is overwritten.</p>
+<p>Another example use case might be to redirect to another domain using the <a href="indexer/./fields.html#default-field-configuration"><code>link</code> field</a>:</p>
+<pre><code class="language-json">{
+  &quot;link&quot;: &quot;https://ang-zeyu.github.io/morsels-demo-1/&quot;,
+  &quot;_add_files&quot;: &quot;./main.html&quot;
+}
+</code></pre>
+<blockquote>
+<p>Overrides can only be provided via JSON, CSV, or HTML files, since text and PDF files provide no reliable way of indicating the <code>_add_files</code> field. In addition, you will need to manually map the CSV and HTML file data to the <code>_add_files</code> field. This is automatically done for JSON files.</p>
+</blockquote>
+<h2 id="indexer-performance"><a class="header" href="#indexer-performance">Indexer Performance</a></h2>
+<h4 id="number-of-threads-num_threads"><a class="header" href="#number-of-threads-num_threads">Number of Threads: <strong><code>num_threads</code></strong></a></h4>
+<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(min(num physical cores, num logical cores) - 1, 1)</code>.</p>
+<h4 id="memory-usage-num_docs_per_block"><a class="header" href="#memory-usage-num_docs_per_block">Memory Usage: <strong><code>num_docs_per_block</code></strong></a></h4>
+<p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
+<p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
+<blockquote>
+<p>⚠️ Ensure <a href="indexer/./fields.html#field-store-granularity-field_store_block_size-num_stores_per_dir"><code>field_store_block_size</code></a> is a clean multiple or divisor of this parameter.</p>
+</blockquote>
+<h2 id="indexing-and-search-scaling-advanced"><a class="header" href="#indexing-and-search-scaling-advanced">Indexing and Search Scaling (advanced)</a></h2>
 <p>Prefer the in-built <a href="indexer/./presets.html">scaling presets</a> option for configuring the tool’s scalability. Where needed, the following options are available for finer control.</p>
 <h4 id="index-shard-size-pl_limit"><a class="header" href="#index-shard-size-pl_limit">Index Shard Size: <strong><code>pl_limit</code></strong></a></h4>
 <p>This is the main threshold parameter (in bytes) at which to “cut” index (<strong>pl</strong> meaning <a href="https://en.wikipedia.org/wiki/Inverted_index">postings list</a>) files.</p>
@@ -3296,19 +2937,10 @@ The <code>field_order</code> array controls the order in which these fields are 
 <br>
 <h4 id="index-caching-pl_cache_threshold"><a class="header" href="#index-caching-pl_cache_threshold">Index Caching: <strong><code>pl_cache_threshold</code></strong></a></h4>
 <p>Index files that exceed this number will be cached by the search library at initilisation.</p>
-<p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="indexer/../tradeoffs.html">Tradeoffs</a>.</p>
+<p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="indexer/./presets.html">Larger Collections</a>.</p>
 <h4 id="index-shards-per-directory-num_pls_per_dir"><a class="header" href="#index-shards-per-directory-num_pls_per_dir">Index Shards per Directory: <strong><code>num_pls_per_dir</code></strong></a></h4>
 <p>This parameter simply controls how many index files you want to store in a single directory.</p>
 <p>While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.</p>
-<h2 id="indexing-performance"><a class="header" href="#indexing-performance">Indexing Performance</a></h2>
-<h4 id="number-of-threads-num_threads"><a class="header" href="#number-of-threads-num_threads">Number of Threads: <strong><code>num_threads</code></strong></a></h4>
-<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(min(num physical cores, num logical cores) - 1, 1)</code>.</p>
-<h4 id="memory-usage-num_docs_per_block"><a class="header" href="#memory-usage-num_docs_per_block">Memory Usage: <strong><code>num_docs_per_block</code></strong></a></h4>
-<p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
-<p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
-<blockquote>
-<p>⚠️ Ensure <a href="indexer/./fields.html"><code>field_store_block_size</code></a> is a clean multiple or divisor of this parameter.</p>
-</blockquote>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -3493,9 +3125,593 @@ if (window.location.search) {
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="scaling-presets"><a class="header" href="#scaling-presets">Scaling Presets</a></h1>
+<h1 id="search-ui"><a class="header" href="#search-ui">Search UI</a></h1>
+<p>This section covers some advanced options for changing <strong>how</strong> (this page) result previews are generated or <strong>what</strong> (next page) they display.</p>
+<p>You should not need to alter this unless:</p>
+<ul>
+<li><strong>How:</strong> Your collection is fairly large (e.g. <code>&gt; 200MB</code>), you want to use source files to generate previews instead to reduce file bloat from fragmenting field stores.</li>
+<li><strong>What:</strong> You want to change what data is displayed in the result previews, or even what happens (e.g. attaching an event handler).</li>
+</ul>
+<p>You should have at least read the chapter on fields, on the <a href="./indexer/fields.html#default-field-configuration">default field configurations</a> in particular.</p>
+<h2 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h2>
+<p>There are 3 available ways of generating result previews, and some <a href="./indexer/presets.html">presets</a> are available to help with switching between options 1 and 2 easily. How these presets are configured individually are also covered under <a href="./indexer/presets.html">larger collections</a>, as the rationale for using alternative methods links closely to your collection size. (except option 3)</p>
+<h4 id="1-from-source-documents"><a class="header" href="#1-from-source-documents">1. From Source Documents</a></h4>
+<p>When the required fields (<code>heading</code> / <code>body</code> / <code>title</code>) are not found in Morsels’ field stores, an attempt will be made to retrieve and reparse the source document and its fields in order to generate result previews.</p>
+<p>Note that this option is only applicable for indexed HTML and JSON files at this time.</p>
+<p>In addition, this option will not work with the <a href="./indexer/indexing.html#indexing-multiple-files-under-one-document"><code>_add_files</code> field</a> which allows indexing multiple files under a single document.</p>
+<h4 id="2-from-field-stores-default"><a class="header" href="#2-from-field-stores-default">2. From Field Stores (default)</a></h4>
+<p>Morsels is also able to generate result previews from its JSON field stores <a href="./indexer/fields.html#storing-fields-do_store">saved</a> during indexing.</p>
+<p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant to perform result preview generation on.</p>
+<h4 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h4>
+<p>It is also possible to create your own result <a href="./search_configuration_renderers.html">renderer</a> to, for example:</p>
+<ul>
+<li>attach an event handler to call a function when a user clicks the result preview</li>
+<li>retrieve and generate result previews from some other API.</li>
+</ul>
+<p>Nevertheless, the section <a href="search_configuration_advanced.html#from-field-stores">“From Field Stores”</a> above would still be relevant as it provides the basis for retrieving a document’s fields (e.g. a document id with which to call an API).</p>
+<p>This is covered in more detail under <a href="./search_configuration_renderers.html">Altering HTML Outputs</a> in the next page.</p>
+<script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
+<script>
+const base_url = '/morsels/';
+const mode = (function () {
+                // This IIFE is documentation specific, for demoing the different modes.
+                // It would be the string mode (e.g. 'target') normally
+                const params = new URLSearchParams(window.location.search);
+                return params.get('mode') || 'target';
+            })();
+initMorsels({
+  searcherOptions: {
+    url: base_url + 'morsels_output/',
+  },
+  uiOptions: {
+    mode,
+    dropdownAlignment: 'bottom-start',
+    target: document.getElementById('morsels-mdbook-target'),
+    sourceFilesUrl: base_url,
+    resultsRenderOpts: {
+      addSearchedTerms: 'search',
+    },
+  },
+});
+
+document.getElementById('morsels-search').addEventListener('keydown', (ev) => {
+  if (['ArrowLeft', 'ArrowRight'].includes(ev.key)) {
+    ev.stopPropagation(); // used in global listener to change pages
+    return;
+  }
+});
+
+if (window.location.search) {
+  // Adapted from the original searcher.js for mdbook
+  // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
+  const target = document.getElementById('content');
+  const marker = new Mark(target);
+
+  function doSearchOrMarkFromUrl() {
+    // Check current URL for search request
+    var url = new URL(window.location.href);
+    var urlParams = new URLSearchParams(url.search);
+
+    if (urlParams.has('search')) {
+      var words = JSON.parse(decodeURIComponent(urlParams.get('search')));
+      marker.mark(words);
+
+      var markers = document.querySelectorAll('mark');
+      function hide() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].classList.add('fade-out');
+          window.setTimeout(function () { marker.unmark(); }, 300);
+        }
+      }
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].addEventListener('click', hide);
+      }
+    }
+  }
+  doSearchOrMarkFromUrl();
+}
+</script><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
+<style>.light .morsels-root,
+.rust .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-box-shadow: none;
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-bg: var(--bg);
+    --morsels-triangle-bg: var(--table-header-bg);
+    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
+    --morsels-item-sub-border: 0;
+    --morsels-title-fg: var(--fg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--fg);
+    --morsels-title-hover-bg: var(--table-header-bg);
+    --morsels-heading-fg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-fg: var(--fg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-fg: var(--fg);
+    --morsels-body-bg: var(--bg);
+    --morsels-body-hover-fg: var(--fg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-highlight-bg: none;
+    --morsels-error-fg: var(--fg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-loading-secondary-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
+    --morsels-fs-border: 3px solid var(--sidebar-bg);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: var(--sidebar-bg);
+    --morsels-fs-header-border-bottom: none;
+    --morsels-fs-header-close-fg: var(--sidebar-fg);
+    --morsels-fs-header-close-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-bg: var(--table-header-bg);
+    --morsels-fs-header-close-hover-fg: var(--fg);
+    --morsels-fs-header-close-active-bg: var(--table-header-bg);
+    --morsels-fs-header-close-active-fg: var(--fg);
+    --morsels-tip-bg: var(--sidebar-bg);
+    --morsels-tip-fg: var(--sidebar-fg);
+    --morsels-tip-code-fg: var(--inline-code-color);
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: rgb(230, 230, 230);
+    --morsels-tip-icon-fg: rgb(80, 80, 80);
+}
+
+.ayu .morsels-root,
+.rust .morsels-root {
+    --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-fg: white;
+    --morsels-fs-header-close-active-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-active-fg: white;
+    --morsels-tip-code-fg: var(--search-mark-bg) !important;
+    --morsels-tip-icon-bg: rgb(200, 200, 200);
+    --morsels-tip-icon-fg: rgb(50, 50, 50);
+}
+
+.morsels-theme .morsels-root .morsels-tip-item code,
+.rust .morsels-root .morsels-tip-item code {
+    color: var(--morsels-tip-code-fg) !important;;
+}
+
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
+}
+
+#morsels-search {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 15px;
+    padding: 0.5em 0.75em;
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
+    background: var(--searchbar-bg);
+    color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
+}
+
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
+#morsels-mdbook-target {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+</style>
+<p><input
+    type="search"
+    id="morsels-search"
+    placeholder="Search"
+/></p>
+<p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
+<h1 id="altering-html-outputs"><a class="header" href="#altering-html-outputs">Altering HTML Outputs</a></h1>
+<style>
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
+    .alert {
+        position: relative;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+    }
+</style>
+<blockquote>
+<p>This page covers some APIs that allow you to customise some small parts of the HTML output structure, if required.</p>
+</blockquote>
+<p>Some use cases for this include:</p>
+<ul>
+<li>The default HTML structure is not sufficient for your styling needs</li>
+<li>You need to attach additional event listeners to elements</li>
+<li>You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)</li>
+<li>You want to change the <a href="./search_configuration_advanced.html#default-rendering-output--purpose">default use case</a> of following through on a result preview to its source document entirely</li>
+</ul>
+<blockquote>
+<p>💡 If you only need to style the dropdown or search popup, you can include your own css file to do so <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css">and / or override the variables</a> exposed by the default css bundle.</p>
+</blockquote>
+<p>These API options are similarly specified under the <code>uiOptions</code> key of the root configuration object.</p>
+<pre><code class="language-ts">initMorsels({
+    uiOptions: {
+        // ...
+    }
+});
+</code></pre>
+<h2 id="the-h-function"><a class="header" href="#the-h-function">The <code>h</code> function</a></h2>
+<p><code>h</code></p>
+<p>Almost all APIs here are passed a <code>h</code> function. This is an <em>optional</em> helper function you may use to create elements.</p>
+<p>The method signature is as such:</p>
+<pre><code class="language-ts">export type CreateElement = (
+  // Element name
+  name: string,
+
+  // Element attribute map
+  attrs: { [attrName: string]: string },
+
+  /*
+   Child elements (HTMLElement) OR text nodes (just put the string)
+   string parameters utilise .textContent,
+   so you don't have to worry about escaping potentially malicious content
+  */
+  ...children: (string | HTMLElement)[]
+) =&gt; HTMLElement;
+</code></pre>
+<h2 id="passing-custom-options"><a class="header" href="#passing-custom-options">Passing Custom Options</a></h2>
+<p><code>opts</code></p>
+<p>All renderer functions are also passed an <code>opts</code> parameter. This is the original input object that you provided to the <code>initMorsels</code> call, with default parameters populated at this point.</p>
+<pre><code class="language-ts">opts = export interface SearchUiOptions {
+  searcherOptions?: SearcherOptions,
+  uiOptions?: UiOptions,
+  isMobileDevice: () =&gt; boolean,
+  otherOptions: any
+}
+</code></pre>
+<p>If you need to include some custom options (e.g. an API base url), you can use the <code>otherOptions</code> key, which is guaranteed to be untouched by morsels.</p>
+<h2 id="changing-supporting-parts-of-the-ui"><a class="header" href="#changing-supporting-parts-of-the-ui">Changing Supporting Parts of the UI</a></h2>
+<p>The options here are intended for changing small, supporting parts of the output (e.g. error messages), which can be especially useful for localizing the UI.</p>
+<table><thead><tr><th>Function</th><th>Return</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>errorRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>Renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when an unexpected error occurs.</td></tr>
+<tr><td><code>noResultsRender(h, opts)</code></td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> (or the target element when using <code>mode = 'target'</code>) when there are no results found for a given query.                                                                                     </td></tr>
+<tr><td><code>loadingIndicatorRender(h, opts, isInitialising: boolean, wasResultsBlank: boolean)</code></td><td><code>HTMLElement</code></td><td>This API renders the loading indicator attached under the <code>listContainer</code> when running a query.<br><br>While the search library is doing initialising work, the <code>isInitialising</code> parameter will be <code>true</code>. <br><br>The <code>wasResultsBlank</code> boolean is <code>true</code> when there are no results yet. You may use this parameter to change the look of the indicator in subsequent queries. In the default design, this corresponds to the spinning indicator on the top right of the search box.</td></tr>
+<tr><td><code>termInfoRender(h, opts, queryParts: QueryPart[])</code></td><td><code>HTMLElement[]</code></td><td>This API renders element(s) attached under the <code>listContainer</code> related to the searched terms, and is blank by default.<br><br>This can be used to render messages like “<em>Did you mean <u>spelling</u>?</em> “.</td></tr>
+<tr><td><code>fsBlankRender(h, opts)</code><br><br>( <code>mode='fullscreen'</code> only )</td><td><code>HTMLElement</code></td><td>This API renders the element attached under the <code>listContainer</code> when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.</td></tr>
+</tbody></table>
+<h3 id="queryparts-parameter"><a class="header" href="#queryparts-parameter"><code>queryParts</code> Parameter</a></h3>
+<p>This parameter passed to the <code>termInfoRender</code> function is the parsed structure of the input query string.</p>
+<p>Its interface is as follows:</p>
+<pre><code class="language-ts">{
+  partType: 'TERM' | 'PHRASE' | 'BRACKET' | 'AND' | 'NOT';
+
+  // Raw, original term(s) contained, if any of the below 3 operations were applied
+  originalTerms?: string[];
+
+  isCorrected?: boolean;        // did this query part undergo spelling correction?
+  isStopWordRemoved?: boolean;  // did this query part undergo stop word removal?
+  isExpanded?: boolean;         // is this an added / expanded term?
+
+  shouldExpand?: boolean;       // was this term a source for query term expansion?
+
+  fieldName?: string;           // was a field filter applied?
+
+  // Spelling corrected / Expanded / Stop word removed result
+  terms?: string[];
+
+  children?: QueryPart[];
+}
+</code></pre>
+<h2 id="rendering-search-results"><a class="header" href="#rendering-search-results">Rendering Search Results</a></h2>
+<p>The below 2 <em>mutually exclusive</em> sets of APIs render the results for all document matches. The first, simpler set of APIs are “building blocks” of the second (which only has one available API). Reconfiguring the second API would also invalidate any changes to the first.</p>
+<h3 id="1-rendering-a-single-result"><a class="header" href="#1-rendering-a-single-result">1. Rendering a Single Result</a></h3>
+<p>The APIs under this key are grouped under <code>uiOptions.resultsRenderOpts</code> (instead of <code>uiOptions.XXX</code>).</p>
+<p>These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).</p>
+<div style="height:1px"></div>
+<p><code>listItemRender(h, opts, fullLink, resultTitle, resultHeadingsAndTexts, fields): HTMLElement</code></p>
+<p>This API renders the result for a single document match.</p>
+<table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>fullLink</code></td><td>full resource link of the document</td></tr>
+<tr><td><code>resultTitle</code></td><td>the first extracted <code>title</code> field of the document, if any</td></tr>
+<tr><td><code>resultHeadingsAndTexts</code></td><td>An array of <code>string</code> or <code>HTMLElement</code> intended to be used as the last parameter of <code>h</code>.<br><br>This contains the highlighted heading-body pair matches, or body-only matches rendered from <code>headingBodyRender</code> and <code>bodyOnlyRender</code> further below.</td></tr>
+<tr><td><code>fields</code></td><td>All stored fields for the document, as positioned <code>[fieldName, fieldValue]</code> pairs. Useful if adding additional fields.</td></tr>
+</tbody></table>
+<p>The following example shows the default implementation, and how to add an additional field, <code>subtitle</code>, to each result.</p>
+<pre><code class="language-ts">const subTitleField = fields.find(field =&gt; field[0] === 'subtitle');
+
+const linkEl = h(
+  'a', { class: 'morsels-link' },
+  h('div', { class: 'morsels-title' }, title,
+    h('div', { class: 'morsels-subtitle' }, (subTitleField &amp;&amp; subTitleField[1]) || '')
+  ),
+  ...bodies
+);
+
+if (fullLink) {
+  linkEl.setAttribute('href', fullLink);
+}
+
+return h(
+  'li', { class: 'morsels-list-item' },
+  linkEl,
+);
+</code></pre>
+<h4 id="11-listitemrender-supporting-apis"><a class="header" href="#11-listitemrender-supporting-apis">1.1 <code>listItemRender</code> supporting APIs</a></h4>
+<p>The remaining 3 APIs below are building blocks of <code>listItemRender</code>, responsible for generating its <code>resultTitle</code> and <code>resultHeadingsAndTexts</code> parameters.</p>
+<pre><code class="language-ts">interface SearchUiRenderOptions {
+  // Renders a &quot;heading&quot; field,
+  // along with the highlighted &quot;body&quot; fields that follow it (in document order)
+  headingBodyRender?: (
+    h: CreateElement,
+
+    // The highlighted elements under .morsels-heading. Intended to be used with the 'h' function.
+    headingHighlights: (HTMLElement | string)[],    
+
+    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
+    bodyHighlights: (HTMLElement | string)[], 
+
+    // Url of the document + The matching heading's id, if any
+    href?: string                             
+  ) =&gt; HTMLElement,
+
+
+  // Renders highlighted &quot;body&quot; fields without a heading preceding it
+  bodyOnlyRender?: (
+    h: CreateElement,
+
+    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
+    bodyHighlights: (HTMLElement | string)[], 
+  ) =&gt; HTMLElement,
+
+
+  highlightRender?: (
+    h: CreateElement,
+
+    // matched term
+    matchedPart: string,                      
+  ) =&gt; HTMLElement,
+}
+</code></pre>
+<h3 id="2-rendering-all-results"><a class="header" href="#2-rendering-all-results">2. Rendering All Results</a></h3>
+<p><code>async resultsRender(h, opts, config, results, query): Promise&lt;HTMLElement[]&gt;</code></p>
+<p>This API renders the results for <em>all</em> document matches.</p>
+<p>Some examples use cases are:</p>
+<ul>
+<li>Altering the html output structure substantially (e.g. displaying results in a tabular form)</li>
+<li>Calling external API calls to retrieve additional info for generating result previews.
+<ul>
+<li>For this reason, this is also the only <code>async</code> API</li>
+</ul>
+</li>
+</ul>
+<p>For example, the default implementation does the following:</p>
+<ol>
+<li>Check the <code>config.fieldInfos</code> if any of <code>body / title / heading</code> fields are stored by the indexer to generate result previews. (Skip to 3 if present)</li>
+<li>If the document has the internal <code>_relative_fp</code> field and <code>sourceFilesUrl</code> is specified, retrieve the original document (<code>.html</code> or <code>.json</code>), and transform it into the same format as that generated by the indexer.</li>
+<li>Transform and highlight the field stores using the <code>listItemRender</code> set of APIs below.</li>
+</ol>
+<table><thead><tr><th>Parameter</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>config</code></td><td>This is the <em>indexing</em> configuration.</td></tr>
+<tr><td><code>query</code></td><td>a <code>Query</code> object. <code>query.searchedTerms</code> contains a nested array of grouped terms that were searched. Groupings contain raw terms and their spelling corrections (if any).</td></tr>
+<tr><td><code>results</code></td><td>an array of <code>Result</code> objects.<br><br>This class exposes the <code>getStorageWithFieldNames(): [string, string][]</code> method which returns an array of <code>[field name, field content]</code> pairs.</td></tr>
+</tbody></table>
+<p>You may also refer to the default implementation <a href="https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369">here</a> to get an idea of how to use the API.</p>
+<script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
+<script>
+const base_url = '/morsels/';
+const mode = (function () {
+                // This IIFE is documentation specific, for demoing the different modes.
+                // It would be the string mode (e.g. 'target') normally
+                const params = new URLSearchParams(window.location.search);
+                return params.get('mode') || 'target';
+            })();
+initMorsels({
+  searcherOptions: {
+    url: base_url + 'morsels_output/',
+  },
+  uiOptions: {
+    mode,
+    dropdownAlignment: 'bottom-start',
+    target: document.getElementById('morsels-mdbook-target'),
+    sourceFilesUrl: base_url,
+    resultsRenderOpts: {
+      addSearchedTerms: 'search',
+    },
+  },
+});
+
+document.getElementById('morsels-search').addEventListener('keydown', (ev) => {
+  if (['ArrowLeft', 'ArrowRight'].includes(ev.key)) {
+    ev.stopPropagation(); // used in global listener to change pages
+    return;
+  }
+});
+
+if (window.location.search) {
+  // Adapted from the original searcher.js for mdbook
+  // https://github.com/rust-lang/mdBook/blob/master/src/theme/searcher/searcher.js
+  const target = document.getElementById('content');
+  const marker = new Mark(target);
+
+  function doSearchOrMarkFromUrl() {
+    // Check current URL for search request
+    var url = new URL(window.location.href);
+    var urlParams = new URLSearchParams(url.search);
+
+    if (urlParams.has('search')) {
+      var words = JSON.parse(decodeURIComponent(urlParams.get('search')));
+      marker.mark(words);
+
+      var markers = document.querySelectorAll('mark');
+      function hide() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].classList.add('fade-out');
+          window.setTimeout(function () { marker.unmark(); }, 300);
+        }
+      }
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].addEventListener('click', hide);
+      }
+    }
+  }
+  doSearchOrMarkFromUrl();
+}
+</script><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="/morsels/morsels_assets/search-ui-light.css">
+<style>.light .morsels-root,
+.rust .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-box-shadow: none;
+    --morsels-border: 3px solid var(--table-header-bg);
+    --morsels-bg: var(--bg);
+    --morsels-triangle-bg: var(--table-header-bg);
+    --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
+    --morsels-item-sub-border: 0;
+    --morsels-title-fg: var(--fg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-hover-fg: var(--fg);
+    --morsels-title-hover-bg: var(--table-header-bg);
+    --morsels-heading-fg: var(--fg);
+    --morsels-heading-bg: var(--table-alternate-bg);
+    --morsels-heading-hover-fg: var(--fg);
+    --morsels-heading-hover-bg: var(--table-header-bg);
+    --morsels-body-fg: var(--fg);
+    --morsels-body-bg: var(--bg);
+    --morsels-body-hover-fg: var(--fg);
+    --morsels-body-hover-bg: var(--table-alternate-bg);
+    --morsels-highlight: var(--search-mark-bg);
+    --morsels-highlight-bg: none;
+    --morsels-error-fg: var(--fg);
+    --morsels-fine-print-fg: var(--fg);
+    --morsels-loading-bg: var(--fg);
+    --morsels-loading-secondary-bg: var(--fg);
+    --morsels-scrollbar-bg: var(--sidebar-bg);
+    --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
+    --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
+    --morsels-fs-border: 3px solid var(--sidebar-bg);
+    --morsels-fs-box-shadow: none;
+    --morsels-fs-header-bg: var(--sidebar-bg);
+    --morsels-fs-header-border-bottom: none;
+    --morsels-fs-header-close-fg: var(--sidebar-fg);
+    --morsels-fs-header-close-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-bg: var(--table-header-bg);
+    --morsels-fs-header-close-hover-fg: var(--fg);
+    --morsels-fs-header-close-active-bg: var(--table-header-bg);
+    --morsels-fs-header-close-active-fg: var(--fg);
+    --morsels-tip-bg: var(--sidebar-bg);
+    --morsels-tip-fg: var(--sidebar-fg);
+    --morsels-tip-code-fg: var(--inline-code-color);
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: rgb(230, 230, 230);
+    --morsels-tip-icon-fg: rgb(80, 80, 80);
+}
+
+.ayu .morsels-root,
+.rust .morsels-root {
+    --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-hover-fg: white;
+    --morsels-fs-header-close-active-bg: var(--sidebar-bg);
+    --morsels-fs-header-close-active-fg: white;
+    --morsels-tip-code-fg: var(--search-mark-bg) !important;
+    --morsels-tip-icon-bg: rgb(200, 200, 200);
+    --morsels-tip-icon-fg: rgb(50, 50, 50);
+}
+
+.morsels-theme .morsels-root .morsels-tip-item code,
+.rust .morsels-root .morsels-tip-item code {
+    color: var(--morsels-tip-code-fg) !important;;
+}
+
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
+}
+
+#morsels-search {
+    width: 100%;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 15px;
+    padding: 0.5em 0.75em;
+    outline: 2px solid var(--searchbar-border-color);
+    border: none;
+    background: var(--searchbar-bg);
+    color: var(--searchbar-fg);
+}
+
+#morsels-search.morsels-button-input {
+    width: 100px;
+}
+
+#morsels-search.morsels-button-input::placeholder {
+    position: relative;
+    left: 7px;
+}
+
+#morsels-search.morsels-button-input:hover {
+    transition: 0.3s ease-out;
+    background: var(--morsels-fs-button-input-bg) !important;
+    outline: 2px solid var(--morsels-fs-button-input-bg);
+}
+
+#morsels-search.morsels-button-input:hover::placeholder {
+    color: var(--morsels-fs-button-input-fg) !important;
+}
+
+@media print {
+    #morsels-search {
+        display: none;
+    }
+}
+
+#morsels-mdbook-target {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+</style>
+<p><input
+    type="search"
+    id="morsels-search"
+    placeholder="Search"
+/></p>
+<p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
+<ul class="morsels-root" id="morsels-mdbook-target"></ul>
+<h1 id="larger-collections"><a class="header" href="#larger-collections">Larger Collections</a></h1>
 <p>5 configuration presets are designed primarily for use with Morsels’ main intended use case of supporting static site search.</p>
-<p>Each preset primarily makes a tradeoff between the document collection size it can support, and the number of rounds of network requests (<code>RTT</code>). Morsels also supports generating result previews from <a href="indexer/../search_configuration.html#1-from-source-documents">source files</a>, if it is preferable (e.g. to reduce file bloat from additional field stores).</p>
+<p>Each preset primarily makes a tradeoff between the <strong>document collection size</strong> it can support, and the number of rounds of <strong>network requests</strong> (<code>RTT</code>). Morsels also supports generating result previews from <a href="indexer/../search_configuration.html#1-from-source-documents">source files</a>, if it is preferable (e.g. to reduce file bloat from additional field stores).</p>
 <p>The default preset is <code>small</code>, which generates a monolithic index and field store, much like other client side indexing tools.</p>
 <p>Specify the <code>preset</code> key in your configuration file to change this.</p>
 <pre><code class="language-json">{
@@ -3513,12 +3729,15 @@ if (window.location.search) {
 <tr><td><code>medium_source</code></td><td>Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation.</td></tr>
 <tr><td><code>large_source</code></td><td>Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps <a href="indexer/./language.html#stop-words">stop words</a>.</td></tr>
 </tbody></table>
+<blockquote>
+<p>The 2 <code>large</code> presets do not remove stop words by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)</p>
+</blockquote>
 <h2 id="modified-properties"><a class="header" href="#modified-properties">Modified Properties</a></h2>
 <p>Presets modify the following properties:</p>
 <ul>
 <li>Search Configuration: 
 <ul>
-<li><a href="indexer/../search_configuration.html#search-library-options"><code>cacheAllFieldStores</code></a></li>
+<li><a href="indexer/../search_configuration.html#search-functionality-options"><code>cacheAllFieldStores</code></a></li>
 </ul>
 </li>
 <li>Language Configuration:
@@ -3530,8 +3749,8 @@ if (window.location.search) {
 <ul>
 <li>What <a href="indexer/./fields.html">fields</a> are stored (<code>do_store</code>). Not set if <code>fields_config.fields</code> is present.</li>
 <li><a href="indexer/./fields.html"><code>field_store_block_size</code></a></li>
-<li><a href="indexer/./indexing.html#indexing-and-search-scaling"><code>pl_limit</code></a></li>
-<li><a href="indexer/./indexing.html#indexing-and-search-scaling"><code>pl_cache_threshold</code></a></li>
+<li><a href="indexer/./indexing.html#indexing-and-search-scaling-advanced"><code>pl_limit</code></a></li>
+<li><a href="indexer/./indexing.html#indexing-and-search-scaling-advanced"><code>pl_cache_threshold</code></a></li>
 </ul>
 </li>
 </ul>
@@ -3761,16 +3980,16 @@ if (window.location.search) {
 <ul>
 <li>Search Configuration: 
 <ul>
-<li>⭐⭐ The method of <a href="search_configuration.html#default-rendering-output--purpose">result preview generation</a></li>
-<li><a href="search_configuration.html#search-library-options"><code>cacheAllFieldStores</code></a></li>
+<li>⭐⭐ The method of <a href="search_configuration_advanced.html#default-rendering-output--purpose">result preview generation</a></li>
+<li><a href="search_configuration.html#search-functionality-options"><code>cacheAllFieldStores</code></a></li>
 </ul>
 </li>
 <li>Indexing Configuration:
 <ul>
 <li>what <a href="./indexer/fields.html">fields</a> are stored (<code>do_store</code>)</li>
 <li><a href="./indexer/fields.html"><code>field_store_block_size</code></a></li>
-<li><a href="./indexer/indexing.html#indexing-and-search-scaling"><code>pl_limit</code></a></li>
-<li><a href="./indexer/indexing.html#indexing-and-search-scaling"><code>pl_cache_threshold</code></a></li>
+<li><a href="./indexer/indexing.html#indexing-and-search-scaling-advanced"><code>pl_limit</code></a></li>
+<li><a href="./indexer/indexing.html#indexing-and-search-scaling-advanced"><code>pl_cache_threshold</code></a></li>
 </ul>
 </li>
 </ul>
@@ -3786,11 +4005,11 @@ if (window.location.search) {
 <p>⭐ This is what’s being used by this documentation, since it is fairly small.<br><br>Nevertheless, <code>RTT=1/2</code> are still very acceptable settings under good network conditions. <code>RTT=3</code> may be slightly slow (<code>~600ms</code> assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br></p>
 </blockquote>
 <h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
-<p>The impacts of the two options here are discussed under the 2 main methods of result preview generation in the <a href="search_configuration.html#options-for-generating-result-previews">earlier chapter</a>.</p>
+<p>The impacts of the two options here are discussed under the 2 main methods of result preview generation in the <a href="search_configuration_advanced.html">earlier chapter</a>.</p>
 <h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
 <p>(<code>RTT=2</code>, Little-Moderate file bloat, Good scalability)</p>
 <p>Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files.</p>
-<p>However, it is also more feasible with this option to reduce a round of network requests by <strong>caching all field stores</strong> up front, as field stores here only store the <a href="indexer/fields.html#special-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
+<p>However, it is also more feasible with this option to reduce a round of network requests by <strong>caching all field stores</strong> up front, as field stores here only store the <a href="indexer/fields.html#reserved-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
 <blockquote>
 <p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your comfort zone, you can store up to <code>120000</code> document links in a single, cached field store!</p>
 </blockquote>
@@ -4055,6 +4274,9 @@ if (window.location.search) {
 <p><em>Incremental</em> indexing is also supported by the indexer cli tool.</p>
 <p>Detecting <strong>deleted, changed, or added files</strong> is done by storing an <strong>internal file path –&gt; last modified timestamp</strong> map.</p>
 <p>To use it, simply pass the <code>--incremental</code> or <code>-i</code> option when running the indexer.</p>
+<blockquote>
+<p>Again, you will most likely not need to dabble with incremental indexing, unless your collection is extremely large (e.g. &gt; 200MB).</p>
+</blockquote>
 <h2 id="how-it-works-1"><a class="header" href="#how-it-works-1">How it Works</a></h2>
 <p>As the core idea of Morsels is to split up the index into many tiny parts, the incremental indexing feature works by “patching” only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.</p>
 <p>This is in contrast to a more traditional “segment” based approach you might find in search servers, whereby each incremental indexing run generates an entirely separate “segment”, and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.</p>

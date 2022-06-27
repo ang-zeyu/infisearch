@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Introduction - Morsels Documentation</title>
+        <title>Search UI - Morsels Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Advanced</li><li class="chapter-item expanded "><a href="search_configuration_advanced.html" class="active"><strong aria-hidden="true">6.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">6.1.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">7.</strong> Larger Collections</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html"><strong aria-hidden="true">7.1.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.2.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -256,64 +256,31 @@
 /></p>
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
-<h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Morsels is a complete client-side search solution tailored for static sites, including a search <em>user interface and library</em> that depends on a <em>pre-built index</em> generated by a <em>command-line</em> tool.</p>
-<h2 id="features"><a class="header" href="#features">Features</a></h2>
+<h1 id="search-ui"><a class="header" href="#search-ui">Search UI</a></h1>
+<p>This section covers some advanced options for changing <strong>how</strong> (this page) result previews are generated or <strong>what</strong> (next page) they display.</p>
+<p>You should not need to alter this unless:</p>
 <ul>
-<li>
-<p><strong>Multi-threaded</strong> 🏇 CLI indexer powered by Rust</p>
-</li>
-<li>
-<p><strong>Typo tolerance</strong> ⌨ with spelling correction and automatic prefix search</p>
-</li>
-<li>
-<p><strong>Feature-rich search</strong> 🔍: boolean queries, field filters, phrase queries, BM25 scoring, query term proximity boosts, persistent caching and WebWorker built-in</p>
-</li>
-<li>
-<p>Powered by <strong>WebAssembly</strong>, enabling efficient index (de)compression and query processing </p>
-</li>
-<li>
-<p><strong>Semi-Scalable</strong> 📈, achieved by (optionally) splitting the index into chunks (“morsels”).</p>
-</li>
-<li>
-<p><strong>Incremental</strong> Indexing</p>
-</li>
-<li>
-<p><strong>Customisable</strong> dropdown / fullscreen popup user interface 🖥️</p>
-</li>
+<li><strong>How:</strong> Your collection is fairly large (e.g. <code>&gt; 200MB</code>), you want to use source files to generate previews instead to reduce file bloat from fragmenting field stores.</li>
+<li><strong>What:</strong> You want to change what data is displayed in the result previews, or even what happens (e.g. attaching an event handler).</li>
 </ul>
-<h2 id="use-cases"><a class="header" href="#use-cases">Use Cases</a></h2>
-<p>You may want to use this tool if:</p>
+<p>You should have at least read the chapter on fields, on the <a href="./indexer/fields.html#default-field-configuration">default field configurations</a> in particular.</p>
+<h2 id="options-for-generating-result-previews"><a class="header" href="#options-for-generating-result-previews">Options for Generating Result Previews</a></h2>
+<p>There are 3 available ways of generating result previews, and some <a href="./indexer/presets.html">presets</a> are available to help with switching between options 1 and 2 easily. How these presets are configured individually are also covered under <a href="./indexer/presets.html">larger collections</a>, as the rationale for using alternative methods links closely to your collection size. (except option 3)</p>
+<h4 id="1-from-source-documents"><a class="header" href="#1-from-source-documents">1. From Source Documents</a></h4>
+<p>When the required fields (<code>heading</code> / <code>body</code> / <code>title</code>) are not found in Morsels’ field stores, an attempt will be made to retrieve and reparse the source document and its fields in order to generate result previews.</p>
+<p>Note that this option is only applicable for indexed HTML and JSON files at this time.</p>
+<p>In addition, this option will not work with the <a href="./indexer/indexing.html#indexing-multiple-files-under-one-document"><code>_add_files</code> field</a> which allows indexing multiple files under a single document.</p>
+<h4 id="2-from-field-stores-default"><a class="header" href="#2-from-field-stores-default">2. From Field Stores (default)</a></h4>
+<p>Morsels is also able to generate result previews from its JSON field stores <a href="./indexer/fields.html#storing-fields-do_store">saved</a> during indexing.</p>
+<p>You may also wish to use this method even if source documents are available, if filesystem bloat isn’t too much of a concern. Apart from avoiding the additional http requests, the internal json field store comes packed in a format that is more performant to perform result preview generation on.</p>
+<h4 id="3-alternative-rendering-outputs-advanced"><a class="header" href="#3-alternative-rendering-outputs-advanced">3. Alternative Rendering Outputs (advanced)</a></h4>
+<p>It is also possible to create your own result <a href="./search_configuration_renderers.html">renderer</a> to, for example:</p>
 <ul>
-<li>You want a complete solution for static site search</li>
-<li>You have a fairly <strong>large collection</strong> of HTML, csv, json or txt (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly</li>
-<li>Running a search server / SaaS (eg. Algolia Docsearch) is not an option</li>
+<li>attach an event handler to call a function when a user clicks the result preview</li>
+<li>retrieve and generate result previews from some other API.</li>
 </ul>
-<blockquote>
-<p>⚠️ 
-It is <strong>not possible</strong> to use morsels for <strong>client-side indexing</strong> since the indexer is a cli tool.</p>
-<p>If this is the use case, consider other lighter-weight libraries like lunr.js that already fit well.</p>
-</blockquote>
-<h2 id="how-it-works"><a class="header" href="#how-it-works">How it Works:</a></h2>
-<p><img src="./images/architecture.png" alt="Morsels’ architecture diagram" /></p>
-<h2 id="other-limitations"><a class="header" href="#other-limitations">Other Limitations</a></h2>
-<ol>
-<li>
-<p><strong>Latency</strong> &amp; File Bloat (<em>only if</em> fragmenting the index)</p>
-<p>Scaling this tool for larger collections necessitates fragmenting the index and <strong>retrieving only what’s needed</strong> when searched, which means extra network requests, but to a reasonable degree. (see this <a href="https://ang-zeyu.github.io/morsels-demo-1/">demo</a>)</p>
-<p>This tool should be able to handle <code>800MB</code> <strong>pure text</strong> (not counting things like HTML soup) collections with the full set of features enabled and some configuration tweaking.</p>
-<p>The degree of fragmentation can be <a href="https://ang-zeyu.github.io/morsels/presets.html">configured</a> to varying degrees. That is, by default, Morsels can, and does function much like other existing monolithic pre-built index options in terms of the number of network requests, and you only “pay for what you need”.</p>
-</li>
-<li>
-<p><strong>Wasm</strong> – no IE support =(</p>
-</li>
-<li>
-<p><strong>Not production ready!</strong></p>
-</li>
-<li>
-<p><strong>Browser Focused</strong>: For now, the focus is on providing e2e search functionalities in the browser. That means no Node.js support and such.</p>
-</li>
-</ol>
+<p>Nevertheless, the section <a href="#from-field-stores">“From Field Stores”</a> above would still be relevant as it provides the basis for retrieving a document’s fields (e.g. a document id with which to call an API).</p>
+<p>This is covered in more detail under <a href="./search_configuration_renderers.html">Altering HTML Outputs</a> in the next page.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -380,8 +347,11 @@ if (window.location.search) {
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="indexer/indexing.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
-                            <a rel="next" href="search_features.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="search_configuration_renderers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -391,8 +361,11 @@ if (window.location.search) {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="indexer/indexing.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
-                    <a rel="next" href="search_features.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="search_configuration_renderers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

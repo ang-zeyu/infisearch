@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html" class="active"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li></ol></li><li class="chapter-item expanded "><a href="indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Advanced</li><li class="chapter-item expanded "><a href="search_configuration_advanced.html"><strong aria-hidden="true">6.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="search_configuration_renderers.html"><strong aria-hidden="true">6.1.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="indexer/presets.html"><strong aria-hidden="true">7.</strong> Larger Collections</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tradeoffs.html" class="active"><strong aria-hidden="true">7.1.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="incremental_indexing.html"><strong aria-hidden="true">7.2.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -289,16 +289,16 @@
 <ul>
 <li>Search Configuration: 
 <ul>
-<li>⭐⭐ The method of <a href="search_configuration.html#default-rendering-output--purpose">result preview generation</a></li>
-<li><a href="search_configuration.html#search-library-options"><code>cacheAllFieldStores</code></a></li>
+<li>⭐⭐ The method of <a href="search_configuration_advanced.html#default-rendering-output--purpose">result preview generation</a></li>
+<li><a href="search_configuration.html#search-functionality-options"><code>cacheAllFieldStores</code></a></li>
 </ul>
 </li>
 <li>Indexing Configuration:
 <ul>
 <li>what <a href="./indexer/fields.html">fields</a> are stored (<code>do_store</code>)</li>
 <li><a href="./indexer/fields.html"><code>field_store_block_size</code></a></li>
-<li><a href="./indexer/indexing.html#indexing-and-search-scaling"><code>pl_limit</code></a></li>
-<li><a href="./indexer/indexing.html#indexing-and-search-scaling"><code>pl_cache_threshold</code></a></li>
+<li><a href="./indexer/indexing.html#indexing-and-search-scaling-advanced"><code>pl_limit</code></a></li>
+<li><a href="./indexer/indexing.html#indexing-and-search-scaling-advanced"><code>pl_cache_threshold</code></a></li>
 </ul>
 </li>
 </ul>
@@ -314,11 +314,11 @@
 <p>⭐ This is what’s being used by this documentation, since it is fairly small.<br><br>Nevertheless, <code>RTT=1/2</code> are still very acceptable settings under good network conditions. <code>RTT=3</code> may be slightly slow (<code>~600ms</code> assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br></p>
 </blockquote>
 <h3 id="2-rtt12-good-scalability-moderate--heavy-file-bloat"><a class="header" href="#2-rtt12-good-scalability-moderate--heavy-file-bloat">2. <code>RTT=1/2</code>, Good Scalability, Moderate / Heavy File Bloat</a></h3>
-<p>The impacts of the two options here are discussed under the 2 main methods of result preview generation in the <a href="search_configuration.html#options-for-generating-result-previews">earlier chapter</a>.</p>
+<p>The impacts of the two options here are discussed under the 2 main methods of result preview generation in the <a href="search_configuration_advanced.html">earlier chapter</a>.</p>
 <h4 id="21-generating-result-previews-from-source-files"><a class="header" href="#21-generating-result-previews-from-source-files">2.1. Generating Result Previews from Source Files</a></h4>
 <p>(<code>RTT=2</code>, Little-Moderate file bloat, Good scalability)</p>
 <p>Generating result previews from source files greatly reduces file bloat, but it does mean that an extra round (<code>RTT</code>) of network requests has to be made to retrieve said source files.</p>
-<p>However, it is also more feasible with this option to reduce a round of network requests by <strong>caching all field stores</strong> up front, as field stores here only store the <a href="indexer/fields.html#special-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
+<p>However, it is also more feasible with this option to reduce a round of network requests by <strong>caching all field stores</strong> up front, as field stores here only store the <a href="indexer/fields.html#reserved-fields">relative file path / link</a> from which to retrieve the source files, and are therefore fairly small.</p>
 <blockquote>
 <p>For example, assuming each link takes an average of <code>25</code> bytes to encode (including json fluff), and <code>3MB</code> (ungzipped) is your comfort zone, you can store up to <code>120000</code> document links in a single, cached field store!</p>
 </blockquote>

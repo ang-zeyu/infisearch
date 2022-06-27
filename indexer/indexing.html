@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html" class="active"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="../indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="../incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html" class="active"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Advanced</li><li class="chapter-item expanded "><a href="../search_configuration_advanced.html"><strong aria-hidden="true">6.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">6.1.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer/presets.html"><strong aria-hidden="true">7.</strong> Larger Collections</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">7.1.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="../incremental_indexing.html"><strong aria-hidden="true">7.2.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -285,7 +285,7 @@
 }
 </code></pre>
 <h2 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h2>
-<p>The indexer is able to handle data from HTML, JSON, csv or txt files. Support for each file type is provided by a “Loader” abstraction.</p>
+<p>The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a “Loader” abstraction.</p>
 <p>You may configure loaders by <strong>including them under the <code>loader_configs</code> key</strong>, with any applicable options.</p>
 <h4 id="html-files-loader_configshtmlloader"><a class="header" href="#html-files-loader_configshtmlloader">HTML Files: <strong><code>loader_configs.HtmlLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
@@ -317,9 +317,12 @@
 }
 </code></pre>
 <p>The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.</p>
-<p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified <code>field_name</code>.</p>
+<p>At each element, it checks if any of the selectors under the <code>selectors.selector</code> key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified <code>field_name</code>, if any.</p>
 <p>This process repeats as the document is traversed — if another of the element’s descendants matched a different selector, the field mapping is overwritten for that descendant’s descendants.</p>
-<p>The <code>attr_map</code> option allows indexing attributes of each element under fields as well.</p>
+<p>The <code>attr_map</code> option allows indexing attributes of specific elements under fields as well.</p>
+<blockquote>
+<p>If needed, you can also index HTML fragments. To match the entire fragment, use the <code>body</code> selector.</p>
+</blockquote>
 <h4 id="json-files-loader_configsjsonloader"><a class="header" href="#json-files-loader_configsjsonloader">JSON Files: <strong><code>loader_configs.JsonLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;JsonLoader&quot;: {
@@ -381,6 +384,15 @@ The <code>field_order</code> array controls the order in which these fields are 
 </code></pre>
 <p>Field mappings for CSV files can be configured using one of the <code>field_map / field_order</code> key pairs. The <code>use_headers</code> parameter specifies which of the two pairs of settings to use.</p>
 <p>The <code>parse_options</code> key specifies options for parsing the csv file. In particular, note that the <code>has_headers</code> key is distinct from and does not influence the <code>use_headers</code> parameter.</p>
+<h4 id="pdf-files-loader_configspdfloader"><a class="header" href="#pdf-files-loader_configspdfloader">PDF Files: <strong><code>loader_configs.PdfLoader</code></strong></a></h4>
+<pre><code class="language-json">&quot;loader_configs&quot;: {
+  &quot;PdfLoader&quot;: {
+    &quot;field&quot;: &quot;body&quot;,
+  }
+}
+</code></pre>
+<p>This loader indexes all content into a single field “body” by default.</p>
+<p>The search result title would appear as <code>&lt;...pdf file path breadcrumb...&gt; (PDF)</code>, and when clicked upon will open the pdf in the browser.</p>
 <h4 id="text-files-loader_configstxtloader"><a class="header" href="#text-files-loader_configstxtloader">Text Files: <strong><code>loader_configs.TxtLoader</code></strong></a></h4>
 <pre><code class="language-json">&quot;loader_configs&quot;: {
   &quot;TxtLoader&quot;: {
@@ -388,7 +400,7 @@ The <code>field_order</code> array controls the order in which these fields are 
   }
 }
 </code></pre>
-<p>This loader simply reads <code>.txt</code> files and indexes all its contents into a single field.</p>
+<p>This loader simply reads <code>.txt</code> files and indexes all its contents into a single field. This is not particularly useful without the <code>_add_files</code> feature <a href="#indexing-multiple-files-under-one-document">below</a>.</p>
 <h2 id="miscellaneous-options"><a class="header" href="#miscellaneous-options">Miscellaneous Options</a></h2>
 <h4 id="file-exclusions-exclude--morsels_configjson"><a class="header" href="#file-exclusions-exclude--morsels_configjson">File Exclusions: <strong><code>exclude = [&quot;morsels_config.json&quot;]</code></strong></a></h4>
 <p>Global file exclusions can be specified in this parameter, which is simply an array of file globs.</p>
@@ -396,7 +408,45 @@ The <code>field_order</code> array controls the order in which these fields are 
 <p>This option controls whether positions will be stored.</p>
 <p>Features such as phrase queries that require positional information will not work if this is disabled.</p>
 <p>Turning this off for very large collections (~&gt; 1GB) can increase the tool’s scalability, at the cost of such features.</p>
-<h2 id="indexing-and-search-scaling"><a class="header" href="#indexing-and-search-scaling">Indexing and Search Scaling</a></h2>
+<h2 id="indexing-multiple-files-under-one-document"><a class="header" href="#indexing-multiple-files-under-one-document">Indexing Multiple Files Under One Document</a></h2>
+<p>You can <strong>index multiple files</strong> together <strong>into a single document</strong> / result using the reserved field <a href="./fields.html#reserved-fields"><code>_add_files</code></a>. This can be particularly useful for overriding data on a case-by-case basis.</p>
+<p>For example, suppose you have the following files:</p>
+<pre><code>folder
+|-- main.html
+|-- overrides.json
+</code></pre>
+<p>To index <code>main.html</code>, but to override its title, you might have a configuration like so:</p>
+<p>Inside <code>overrides.json</code>,</p>
+<pre><code class="language-json">{
+  &quot;title&quot;: &quot;Title Override&quot;,
+  &quot;_add_files&quot;: &quot;./main.html&quot;
+}
+</code></pre>
+<p>And inside your configuration file:</p>
+<pre><code class="language-json">{
+  &quot;exclude&quot;: [&quot;main.html&quot;]
+}
+</code></pre>
+<p>This avoids indexing <code>main.html</code> directly, but through a reference in <code>overrides.json</code>. As the user interface uses the first title it sees, the title is overwritten.</p>
+<p>Another example use case might be to redirect to another domain using the <a href="./fields.html#default-field-configuration"><code>link</code> field</a>:</p>
+<pre><code class="language-json">{
+  &quot;link&quot;: &quot;https://ang-zeyu.github.io/morsels-demo-1/&quot;,
+  &quot;_add_files&quot;: &quot;./main.html&quot;
+}
+</code></pre>
+<blockquote>
+<p>Overrides can only be provided via JSON, CSV, or HTML files, since text and PDF files provide no reliable way of indicating the <code>_add_files</code> field. In addition, you will need to manually map the CSV and HTML file data to the <code>_add_files</code> field. This is automatically done for JSON files.</p>
+</blockquote>
+<h2 id="indexer-performance"><a class="header" href="#indexer-performance">Indexer Performance</a></h2>
+<h4 id="number-of-threads-num_threads"><a class="header" href="#number-of-threads-num_threads">Number of Threads: <strong><code>num_threads</code></strong></a></h4>
+<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(min(num physical cores, num logical cores) - 1, 1)</code>.</p>
+<h4 id="memory-usage-num_docs_per_block"><a class="header" href="#memory-usage-num_docs_per_block">Memory Usage: <strong><code>num_docs_per_block</code></strong></a></h4>
+<p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
+<p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
+<blockquote>
+<p>⚠️ Ensure <a href="./fields.html#field-store-granularity-field_store_block_size-num_stores_per_dir"><code>field_store_block_size</code></a> is a clean multiple or divisor of this parameter.</p>
+</blockquote>
+<h2 id="indexing-and-search-scaling-advanced"><a class="header" href="#indexing-and-search-scaling-advanced">Indexing and Search Scaling (advanced)</a></h2>
 <p>Prefer the in-built <a href="./presets.html">scaling presets</a> option for configuring the tool’s scalability. Where needed, the following options are available for finer control.</p>
 <h4 id="index-shard-size-pl_limit"><a class="header" href="#index-shard-size-pl_limit">Index Shard Size: <strong><code>pl_limit</code></strong></a></h4>
 <p>This is the main threshold parameter (in bytes) at which to “cut” index (<strong>pl</strong> meaning <a href="https://en.wikipedia.org/wiki/Inverted_index">postings list</a>) files.</p>
@@ -405,19 +455,10 @@ The <code>field_order</code> array controls the order in which these fields are 
 <br>
 <h4 id="index-caching-pl_cache_threshold"><a class="header" href="#index-caching-pl_cache_threshold">Index Caching: <strong><code>pl_cache_threshold</code></strong></a></h4>
 <p>Index files that exceed this number will be cached by the search library at initilisation.</p>
-<p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="../tradeoffs.html">Tradeoffs</a>.</p>
+<p>It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in <a href="./presets.html">Larger Collections</a>.</p>
 <h4 id="index-shards-per-directory-num_pls_per_dir"><a class="header" href="#index-shards-per-directory-num_pls_per_dir">Index Shards per Directory: <strong><code>num_pls_per_dir</code></strong></a></h4>
 <p>This parameter simply controls how many index files you want to store in a single directory.</p>
 <p>While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.</p>
-<h2 id="indexing-performance"><a class="header" href="#indexing-performance">Indexing Performance</a></h2>
-<h4 id="number-of-threads-num_threads"><a class="header" href="#number-of-threads-num_threads">Number of Threads: <strong><code>num_threads</code></strong></a></h4>
-<p>This is the number of threads to use, excluding the main thread. When unspecified, this is <code>max(min(num physical cores, num logical cores) - 1, 1)</code>.</p>
-<h4 id="memory-usage-num_docs_per_block"><a class="header" href="#memory-usage-num_docs_per_block">Memory Usage: <strong><code>num_docs_per_block</code></strong></a></h4>
-<p>This parameter roughly controls the memory usage of the indexer; You may think of it as “how many documents to keep in memory before flushing results”.</p>
-<p>If your documents are very small, increasing this <em>may</em> help improve indexing performance.</p>
-<blockquote>
-<p>⚠️ Ensure <a href="./fields.html"><code>field_store_block_size</code></a> is a clean multiple or divisor of this parameter.</p>
-</blockquote>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
@@ -488,7 +529,7 @@ if (window.location.search) {
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../indexer/presets.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../search_configuration_advanced.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -502,7 +543,7 @@ if (window.location.search) {
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../indexer/presets.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../search_configuration_advanced.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

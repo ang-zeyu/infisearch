@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">4.2.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html" class="active"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li><li class="chapter-item expanded "><a href="../indexer/presets.html"><strong aria-hidden="true">5.4.</strong> Scaling Presets</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">5.4.1.</strong> Tradeoffs</a></li></ol></li><li class="chapter-item expanded "><a href="../incremental_indexing.html"><strong aria-hidden="true">5.5.</strong> Incremental Indexing</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../search_features.html"><strong aria-hidden="true">2.</strong> Search Features</a></li><li class="chapter-item expanded "><a href="../getting_started.html"><strong aria-hidden="true">3.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../getting_started_mdbook.html"><strong aria-hidden="true">3.1.</strong> mdBook</a></li><li class="chapter-item expanded "><a href="../getting_started_others.html"><strong aria-hidden="true">3.2.</strong> Others</a></li></ol></li><li class="chapter-item expanded "><a href="../search_configuration.html"><strong aria-hidden="true">4.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_styling.html"><strong aria-hidden="true">4.1.</strong> Styling</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer_configuration.html"><strong aria-hidden="true">5.</strong> Indexer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../indexer/fields.html" class="active"><strong aria-hidden="true">5.1.</strong> Fields</a></li><li class="chapter-item expanded "><a href="../indexer/language.html"><strong aria-hidden="true">5.2.</strong> Language</a></li><li class="chapter-item expanded "><a href="../indexer/indexing.html"><strong aria-hidden="true">5.3.</strong> Indexing</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Advanced</li><li class="chapter-item expanded "><a href="../search_configuration_advanced.html"><strong aria-hidden="true">6.</strong> Search UI</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../search_configuration_renderers.html"><strong aria-hidden="true">6.1.</strong> Altering HTML outputs</a></li></ol></li><li class="chapter-item expanded "><a href="../indexer/presets.html"><strong aria-hidden="true">7.</strong> Larger Collections</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../tradeoffs.html"><strong aria-hidden="true">7.1.</strong> Tradeoffs</a></li><li class="chapter-item expanded "><a href="../incremental_indexing.html"><strong aria-hidden="true">7.2.</strong> Incremental Indexing</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -257,8 +257,9 @@
 <p><span style="font-weight: 600;"><!--preload weight 600--></span></p>
 <ul class="morsels-root" id="morsels-mdbook-target"></ul>
 <h1 id="field-configuration"><a class="header" href="#field-configuration">Field Configuration</a></h1>
-<p>If you are using morsels’ search UI <strong>as-is</strong> for static site search, you can likely skip configuring <code>fields_config.fields</code>.</p>
-<p>There are a few other parameters under <code>fields_config</code> however, which can be used to adjust response times, caching, and file bloat individually. However, you should be well-served by the preconfigured <a href="./presets.html">scaling presets</a> for such purposes.</p>
+<p>Every document you index contains multiple fields. By default, Morsels comes baked in with the configurations needed for supporting static site search, so you don’t have to configure what fields are present.</p>
+<p>There are a few other parameters mentioned below however, which can be used to adjust response times, caching, and file bloat individually. </p>
+<p>This snippet shows the default values:</p>
 <pre><code class="language-json">{
   &quot;fields_config&quot;: {
     &quot;cache_all_field_stores&quot;: true,
@@ -293,7 +294,7 @@
         &quot;k&quot;: 1.2,
         &quot;b&quot;: 0.75
       },
-      // Internal, hardcoded field (see &quot;Special Fields&quot;)
+      // Internal, hardcoded field (see &quot;Reserved Fields&quot;)
       {
         &quot;name&quot;: &quot;_relative_fp&quot;,
         &quot;do_store&quot;: true,
@@ -305,33 +306,12 @@
   }
 }
 </code></pre>
-<h4 id="storing-fields-do_store"><a class="header" href="#storing-fields-do_store">Storing Fields: <strong><code>do_store</code></strong></a></h4>
-<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file.
-At search time, these fields are retrieved for result preview generation.</p>
-<h4 id="field-store-granularity-field_store_block_size-num_stores_per_dir"><a class="header" href="#field-store-granularity-field_store_block_size-num_stores_per_dir">Field Store Granularity: <strong><code>field_store_block_size</code>, <code>num_stores_per_dir</code></strong></a></h4>
-<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The <code>num_stores_per_dir</code> parameter controls how many json files should be stored together in one directory.</p>
-<blockquote>
-<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter under <a href="./indexing.html">indexing</a> later.<br>
-This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
-but should work well enough for most use cases.</p>
-</blockquote>
-<h4 id="field-store-caching-cache_all_field_stores"><a class="header" href="#field-store-caching-cache_all_field_stores">Field Store Caching: <strong><code>cache_all_field_stores</code></strong></a></h4>
-<p>This is the same as the configuration option under <a href="../search_configuration.html#search-library-options">search configuration</a>.
-If both are specified, the value specified in the <code>initMorsels</code> call will take priority.</p>
-<p>All fields specified with <code>do_store=true</code> would be cached up front on initialisation of the search library.</p>
-<p>Its usage alongside other options is discussed in more detail under the chapter <a href="../tradeoffs.html">Tradeoffs</a>.</p>
-<h4 id="field-scoring-parameters"><a class="header" href="#field-scoring-parameters">Field Scoring Parameters</a></h4>
-<p><strong><code>weight</code></strong></p>
-<p>This parameter is a boost / penalty multiplied to a individual field’s score.</p>
-<p>Specifying <code>0.0</code> will result in the field not being indexed (although, it can still be stored for retrieval using <code>do_store</code>).</p>
-<p><strong><code>k</code> &amp; <code>b</code></strong></p>
-<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these if the defaults are unsuitable for your use case.</p>
 <h2 id="default-field-configuration"><a class="header" href="#default-field-configuration">Default Field Configuration</a></h2>
 <p>The functions of the default fields for the user interface are as follows:</p>
 <img alt="annotation for fields" src="../images/fields_annotated.png" />
 <ul>
 <li>
-<p><code>title</code>: This is the header for a single document match. </p>
+<p><code>title</code>: This is the header for a single document match, usually sourced from the HTML <code>&lt;title&gt;</code> tag. When unavailable, <code>_relative_fp</code> field is formatted into a breadcrumb format (e.g. <code>user guide » introduction</code>) instead.</p>
 </li>
 <li>
 <p><code>heading</code>: These are section headers which appear on the left of corresponding <code>body</code> field, sourced from <code>&lt;h1-6&gt;</code> tags.</p>
@@ -349,14 +329,41 @@ If both are specified, the value specified in the <code>initMorsels</code> call 
 </ul>
 </li>
 </ul>
-<h2 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h2>
-<p>Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings are insufficient. This is discussed later under <a href="./indexing.html#mapping-file-data-to-fields-loader_configs">indexing</a>.</p>
-<p>The exception are “special” fields below, which have “hardcoded” values.</p>
-<h3 id="special-fields"><a class="header" href="#special-fields">Special Fields</a></h3>
+<h3 id="reserved-fields"><a class="header" href="#reserved-fields">Reserved Fields</a></h3>
 <p><strong><code>_relative_fp</code></strong></p>
-<p>This is a “hardcoded” field generated by the indexer, in that its value is fixed as the relative file path from your source folder path to the file.</p>
-<p>It is included in the default configuration to facilitate constructing a source file link, used to link to the document itself (via the <code>&lt;a&gt;&lt;/a&gt;</code> tag), and optionally for result preview <a href="../search_configuration.html#options-for-generating-result-previews">generation</a>.</p>
-<p>If this is removed, this field simply won’t be indexed nor stored.</p>
+<p>This is a “hardcoded” field generated by the indexer, its value is fixed as the relative path from your source folder to the file.</p>
+<p>It is included in the default configuration to facilitate constructing a source file link, as illustrated in the above annotations.</p>
+<p><strong><code>_add_files</code></strong></p>
+<p>This is a field that allows you to <strong>index multiple files</strong> under <strong>a single document</strong> / result, which can be particularly useful for overriding data on a document-by-document basis.</p>
+<p>See <a href="./indexing.html">this section</a> under indexing for more details on using this.</p>
+<h3 id="mapping-file-data-to-fields"><a class="header" href="#mapping-file-data-to-fields">Mapping File Data to Fields</a></h3>
+<p>Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings, which are setup for only HTML files, are insufficient. This is discussed later under <a href="./indexing.html#mapping-file-data-to-fields-loader_configs">indexing</a>.</p>
+<h3 id="adding-fields-advanced"><a class="header" href="#adding-fields-advanced">Adding Fields (advanced)</a></h3>
+<p>You can add your own fields to index as well, which will be factored into Morsels’ search algorithms. Note however, that the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, e.g. a link to an icon, you will need to <a href="../search_configuration_renderers.html#1-rendering-a-single-result">alter</a> the result renderer.</p>
+<h2 id="field-specific-parameters"><a class="header" href="#field-specific-parameters">Field Specific Parameters</a></h2>
+<h4 id="storing-fields-do_store"><a class="header" href="#storing-fields-do_store">Storing Fields: <strong><code>do_store</code></strong></a></h4>
+<p>Morsels stores fields that have <code>do_store: true</code> specified in the field configuration into a json file.
+At search time, these fields are retrieved for result preview generation.</p>
+<h4 id="field-scoring-parameters"><a class="header" href="#field-scoring-parameters">Field Scoring Parameters</a></h4>
+<p><strong><code>weight</code></strong></p>
+<p>This parameter is a boost / penalty multiplied to a individual field’s score.</p>
+<p>Specifying <code>0.0</code> will result in the field not being indexed. Meaning, searching for it will not show up any results. The use case for this is to create a field that is only stored using the <code>do_store</code> option (e.g. the <code>_relative_fp</code> field).</p>
+<p><strong><code>k</code> &amp; <code>b</code></strong></p>
+<p>These are Okapi BM25 model parameters. The following <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability">article</a> provides a good overview on how to configure these if the defaults are unsuitable for your use case.</p>
+<h2 id="miscellaneous-parameters-advanced"><a class="header" href="#miscellaneous-parameters-advanced">Miscellaneous Parameters (advanced)</a></h2>
+<p>The 3 parameters below allow you to adjust response times, caching, and file bloat individually. However, you should mostly be well-served by the preconfigured <a href="./presets.html">scaling presets</a> for such purposes.</p>
+<h4 id="field-store-granularity-field_store_block_size-num_stores_per_dir"><a class="header" href="#field-store-granularity-field_store_block_size-num_stores_per_dir">Field Store Granularity: <strong><code>field_store_block_size</code>, <code>num_stores_per_dir</code></strong></a></h4>
+<p>The <code>field_store_block_size</code> parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The <code>num_stores_per_dir</code> parameter controls how many json files should be stored together in one directory.</p>
+<blockquote>
+<p>⚠️ Ensure <code>field_store_block_size</code> is a clean multiple or divisor of the <code>num_docs_per_block</code> parameter under <a href="./indexing.html">indexing</a> later.<br>
+This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
+but should work well enough for most use cases.</p>
+</blockquote>
+<h4 id="field-store-caching-cache_all_field_stores"><a class="header" href="#field-store-caching-cache_all_field_stores">Field Store Caching: <strong><code>cache_all_field_stores</code></strong></a></h4>
+<p>This is the same option as the one under <a href="../search_configuration.html#search-functionality-options">search functionality options</a>.
+If both are specified, the value specified in the <code>initMorsels</code> call will take priority.</p>
+<p>All fields specified with <code>do_store=true</code> would be cached up front on initialisation of the search library.</p>
+<p>Its usage alongside other options is discussed in more detail under the chapter <a href="presets.html">Larger Collections</a>.</p>
 <script src="/morsels/morsels_assets/search-ui.bundle.js" type="text/javascript" charset="utf-8"></script>
 <script src="/morsels/morsels_assets/mark.min.js" type="text/javascript" charset="utf-8"></script>
 <script>
