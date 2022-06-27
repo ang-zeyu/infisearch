@@ -1,5 +1,7 @@
 # Summary
 
+# User Guide
+
 - [Introduction](./introduction.md)
 - [Search Features](./search_features.md)
 - [Getting Started](./getting_started.md)
@@ -7,11 +9,15 @@
   - [Others](./getting_started_others.md)
 - [Search UI](./search_configuration.md)
   - [Styling](./search_configuration_styling.md)
-  - [Altering HTML outputs](./search_configuration_renderers.md)
 - [Indexer](./indexer_configuration.md)
   - [Fields](./indexer/fields.md)
   - [Language](./indexer/language.md)
   - [Indexing](./indexer/indexing.md)
-  - [Scaling Presets](./indexer/presets.md)
-    - [Tradeoffs](./tradeoffs.md)
+
+# Advanced
+
+- [Search UI](./search_configuration_advanced.md)
+  - [Altering HTML outputs](./search_configuration_renderers.md)
+- [Larger Collections](./indexer/presets.md)
+  - [Tradeoffs](./tradeoffs.md)
   - [Incremental Indexing](./incremental_indexing.md)

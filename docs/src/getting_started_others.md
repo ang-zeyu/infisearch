@@ -1,8 +1,8 @@
-# Other Use Cases
+# Others
 
-Since its indexer is essentially just a CLI tool, morsels could in-theory be used almost anywhere (e.g. other static site generators) easily without a custom wrapper implementation (such as the Mdbook plugin).
+Since its indexer is essentially just a CLI tool, Morsels could be used almost anywhere (e.g. other static site generators) even without a custom wrapper implementation (e.g. the Mdbook plugin).
 
-For example, to deploy another static site generator to gh-pages using github actions, simply chain the morsels tool on top of the static site generator output:
+For example, to deploy another static site generator's output to gh-pages using github actions, simply chain the morsels tool on top of the static site generator output, after you've linked the necessary scripts:
 
 ```yml
 name: docs
@@ -27,11 +27,3 @@ jobs:
           branch: gh-pages
           folder: <docs_build_folder>
 ```
-
-## Custom Data Formats (non-HTML)
-
-Some use cases may not always have HTML files readily available (e.g. pure client-side rendered projects).
-
-In such cases, morsels also supports `.json` and `.csv` files, which is covered in greater detail later under [indexer configuration](./indexer_configuration.md).
-
-Another simpler (but likely slow) alternative you could consider specifically for client-side rendered projects is to display the page in a headless browser, then index said HTML file.

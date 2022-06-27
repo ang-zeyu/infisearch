@@ -37,13 +37,13 @@ You may still want to use morsels since it packages a search UI, or, if you pref
 > This section assumes some knowledge on the options listed below in chapters 4 (barring 4.1) and 5, which will be discussed in briefer detail here:
 
 - Search Configuration: 
-  - ⭐⭐ The method of [result preview generation](search_configuration.md#default-rendering-output--purpose)
-  - [`cacheAllFieldStores`](search_configuration.md#search-library-options)
+  - ⭐⭐ The method of [result preview generation](search_configuration_advanced.md#default-rendering-output--purpose)
+  - [`cacheAllFieldStores`](search_configuration.md#search-functionality-options)
 - Indexing Configuration:
   - what [fields](./indexer/fields.md) are stored (`do_store`)
   - [`field_store_block_size`](./indexer/fields.md)
-  - [`pl_limit`](./indexer/indexing.md#indexing-and-search-scaling)
-  - [`pl_cache_threshold`](./indexer/indexing.md#indexing-and-search-scaling)
+  - [`pl_limit`](./indexer/indexing.md#indexing-and-search-scaling-advanced)
+  - [`pl_cache_threshold`](./indexer/indexing.md#indexing-and-search-scaling-advanced)
 
 The following sections discusses some combinations of options that generate the tradeoff results in the table above.
 
@@ -59,7 +59,7 @@ To achieve this result, you will need to ensure **everything** that is potential
 
 ### 2. `RTT=1/2`, Good Scalability, Moderate / Heavy File Bloat
 
-The impacts of the two options here are discussed under the 2 main methods of result preview generation in the [earlier chapter](search_configuration.md#options-for-generating-result-previews).
+The impacts of the two options here are discussed under the 2 main methods of result preview generation in the [earlier chapter](search_configuration_advanced.md).
 
 #### 2.1. Generating Result Previews from Source Files
 

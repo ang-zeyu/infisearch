@@ -21,7 +21,7 @@ Some use cases for this include:
 - The default HTML structure is not sufficient for your styling needs
 - You need to attach additional event listeners to elements
 - You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)
-- You want to change the [default use case](./search_configuration.md#default-rendering-output--purpose) of following through on a result preview to its source document entirely
+- You want to change the [default use case](./search_configuration_advanced.md#default-rendering-output--purpose) of following through on a result preview to its source document entirely
 
 > 💡 If you only need to style the dropdown or search popup, you can include your own css file to do so [and / or override the variables](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css) exposed by the default css bundle.
 

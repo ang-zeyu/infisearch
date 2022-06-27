@@ -76,11 +76,16 @@ Head on over to the demo site [here](https://ang-zeyu.github.io/morsels-demo-1/)
 
 Where the `input` option passed to `initMorsels` is concerned, Morsels adopts a minimally invasive approach to styling, preferring to leave this to your individual site's preferences.
 
-For reasons of accessbility however, some minimal styling is applied when using the [fullscreen](./search_configuration.md#ui-mode) UI to convey the intention of a button. This is limited to a `background` + `box-shadow` + `color` application on *focus*, `cursor: pointer` application on *hover*, and `text-align: center` (for the placeholder) application. The background, box-shadow and color application in particular are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels' css variables.
+For reasons of accessbility however, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button. This is limited to:
+- A `background` + `box-shadow` + `color` application on *focus* only
+- `cursor: pointer` application on *hover* only
+- `text-align: center` (for the placeholder) application
+
+Note that the background, box-shadow and color application in particular are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels' css variables.
 
 You may override and addon to these styles as needed, to convey the intention of a button further.
 
-If using the default UI [mode](./search_configuration.md#ui-mode) of auto, you can also set a different [placeholder](./search_configuration.md#ui-mode-specific-options), or use the `.morsels-button-input` selector to apply your styles only when the fullscreen UI is in use. For example,
+If using the default [UI mode](./search_configuration.md#ui-mode) of auto, you can also set a different [placeholder](./search_configuration.md#ui-mode-specific-options), and use the `.morsels-button-input` selector to apply your styles only when the fullscreen UI is in use. For example,
 
 ```css
 .morsels-button-input:focus:not(:hover) {

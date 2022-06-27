@@ -6,6 +6,8 @@ Detecting **deleted, changed, or added files** is done by storing an **internal 
 
 To use it, simply pass the `--incremental` or `-i` option when running the indexer.
 
+> Again, you will most likely not need to dabble with incremental indexing, unless your collection is extremely large (e.g. > 200MB).
+
 ## How it Works
 
 As the core idea of Morsels is to split up the index into many tiny parts, the incremental indexing feature works by "patching" only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.

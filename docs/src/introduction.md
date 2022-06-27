@@ -16,13 +16,13 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 
 - **Incremental** Indexing
 
-- **Customisable** dropdown / fullscreen popup user interface 🖥️
+- **Customisable** and **Accessible** dropdown / fullscreen popup user interface 🖥️
 
 ## Use Cases
 
 You may want to use this tool if:
 - You want a complete solution for static site search
-- You have a fairly **large collection** of HTML, csv, json or txt (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly
+- You have a fairly **large collection** of HTML, CSV, JSON, PDF or text (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly
 - Running a search server / SaaS (eg. Algolia Docsearch) is not an option
 
 > ⚠️ 

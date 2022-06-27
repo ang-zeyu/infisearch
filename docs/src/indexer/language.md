@@ -88,6 +88,3 @@ Keeping them enables the following:
 - Processing phrase queries such as `"for tomorrow"`
 - Boolean queries of stop words (e.g. `if AND forecast AND sunny`)
 - More accurate ranking for free text queries, which employ an inverse document frequency heuristic to prune stop words only when their impact is small (far from always the case!). 
-
-> If you are using any of the 2 `large` presets covered in [section 5.4](./presets.md), which generates a sharded index, stop words are not removed by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
-

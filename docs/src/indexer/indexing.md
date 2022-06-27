@@ -176,8 +176,7 @@ The search result title would appear as `<...pdf file path breadcrumb...> (PDF)`
 }
 ```
 
-This loader simply reads `.txt` files and indexes all its contents into a single field.
-
+This loader simply reads `.txt` files and indexes all its contents into a single field. This is not particularly useful without the `_add_files` feature [below](#indexing-multiple-files-under-one-document).
 
 ## Miscellaneous Options
 
@@ -193,7 +192,66 @@ Features such as phrase queries that require positional information will not wor
 
 Turning this off for very large collections (~> 1GB) can increase the tool's scalability, at the cost of such features.
 
-## Indexing and Search Scaling
+## Indexing Multiple Files Under One Document
+
+You can **index multiple files** together **into a single document** / result using the reserved field [`_add_files`](./fields.md#reserved-fields). This can be particularly useful for overriding data on a case-by-case basis.
+
+For example, suppose you have the following files:
+
+```
+folder
+|-- main.html
+|-- overrides.json
+```
+
+To index `main.html`, but to override its title, you might have a configuration like so:
+
+Inside `overrides.json`,
+
+```json
+{
+  "title": "Title Override",
+  "_add_files": "./main.html"
+}
+```
+
+And inside your configuration file:
+
+```json
+{
+  "exclude": ["main.html"]
+}
+```
+
+This avoids indexing `main.html` directly, but through a reference in `overrides.json`. As the user interface uses the first title it sees, the title is overwritten.
+
+Another example use case might be to redirect to another domain using the [`link` field](./fields.md#default-field-configuration):
+
+
+```json
+{
+  "link": "https://ang-zeyu.github.io/morsels-demo-1/",
+  "_add_files": "./main.html"
+}
+```
+
+> Overrides can only be provided via JSON, CSV, or HTML files, since text and PDF files provide no reliable way of indicating the `_add_files` field. In addition, you will need to manually map the CSV and HTML file data to the `_add_files` field. This is automatically done for JSON files.
+
+## Indexer Performance
+
+#### Number of Threads: **`num_threads`**
+
+This is the number of threads to use, excluding the main thread. When unspecified, this is `max(min(num physical cores, num logical cores) - 1, 1)`.
+
+#### Memory Usage: **`num_docs_per_block`**
+
+This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
+
+If your documents are very small, increasing this *may* help improve indexing performance.
+
+> ⚠️ Ensure [`field_store_block_size`](./fields.md#field-store-granularity-field_store_block_size-num_stores_per_dir) is a clean multiple or divisor of this parameter.
+
+## Indexing and Search Scaling (advanced)
 
 Prefer the in-built [scaling presets](./presets.md) option for configuring the tool's scalability. Where needed, the following options are available for finer control.
 
@@ -211,24 +269,10 @@ Increasing the value may also be useful for caching when used in conjunction wit
 
 Index files that exceed this number will be cached by the search library at initilisation.
 
-It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Tradeoffs](../tradeoffs.md).
+It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./presets.md).
 
 #### Index Shards per Directory: **`num_pls_per_dir`**
 
 This parameter simply controls how many index files you want to store in a single directory.
 
 While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.
-
-## Indexing Performance
-
-#### Number of Threads: **`num_threads`**
-
-This is the number of threads to use, excluding the main thread. When unspecified, this is `max(min(num physical cores, num logical cores) - 1, 1)`.
-
-#### Memory Usage: **`num_docs_per_block`**
-
-This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
-
-If your documents are very small, increasing this *may* help improve indexing performance.
-
-> ⚠️ Ensure [`field_store_block_size`](./fields.md) is a clean multiple or divisor of this parameter.

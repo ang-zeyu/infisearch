@@ -18,13 +18,13 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 - Powered by **WebAssembly**, enabling efficient index (de)compression and query processing 
 - **Semi-Scalable** 📈, achieved by (optionally) splitting the index into chunks ("morsels").
 - **Incremental** Indexing
-- **Customisable** dropdown / fullscreen popup user [interface](http://ang-zeyu.github.io/morsels/search_configuration_styling.html) 🖥️
+- **Customisable** and **Accessible** dropdown / fullscreen popup user [interface](http://ang-zeyu.github.io/morsels/search_configuration_styling.html) 🖥️
 
 ## Use Cases
 
 The main target use case for this tool right now is providing a complete and feature-rich, but efficient search solution for static sites or static site generators.
 
-The indexing tool supports a few other file formats (`.json`, `.csv`, `.html`) as well, which can help support more custom data requirements (e.g. linking to another domain).
+The indexing tool supports a few other file formats (`.json`, `.csv`, `.pdf`, `.html`) as well, which can help support more custom data requirements (e.g. linking to another domain).
 
 ## Getting Started
 
