@@ -55,7 +55,6 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
     }
 }
 
-#[inline(always)]
 pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slice: &'a str) -> Cow<'a, str> {
     base_term_terms.push(term_slice.to_owned());
 
