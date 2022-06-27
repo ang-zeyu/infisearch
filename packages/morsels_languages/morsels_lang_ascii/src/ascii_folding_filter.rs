@@ -1373,7 +1373,7 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         => Some("20."),
         '\u{2487}' // ⒇  [PARENTHESIZED NUMBER TWENTY]
         => Some("(20)"),
-        '\u{00AB}' | // «  [LEFT-POINTING DOUBLE ANGLE QUOTATION MARK]
+        /* '\u{00AB}' | // «  [LEFT-POINTING DOUBLE ANGLE QUOTATION MARK]
         '\u{00BB}' | // »  [RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK]
         '\u{201C}' | // “  [LEFT DOUBLE QUOTATION MARK]
         '\u{201D}' | // ”  [RIGHT DOUBLE QUOTATION MARK]
@@ -1385,8 +1385,8 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{276E}' | // ❮  [HEAVY LEFT-POINTING ANGLE QUOTATION MARK ORNAMENT]
         '\u{276F}' | // ❯  [HEAVY RIGHT-POINTING ANGLE QUOTATION MARK ORNAMENT]
         '\u{FF02}' // ＂  [FULLWIDTH QUOTATION MARK]
-        => Some("\""),
-        '\u{2018}' | // ‘  [LEFT SINGLE QUOTATION MARK]
+        => Some("\""), */
+        /* '\u{2018}' | // ‘  [LEFT SINGLE QUOTATION MARK]
         '\u{2019}' | // ’  [RIGHT SINGLE QUOTATION MARK]
         '\u{201A}' | // ‚  [SINGLE LOW-9 QUOTATION MARK]
         '\u{201B}' | // ‛  [SINGLE HIGH-REVERSED-9 QUOTATION MARK]
@@ -1397,8 +1397,8 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{275B}' | // ❛  [HEAVY SINGLE TURNED COMMA QUOTATION MARK ORNAMENT]
         '\u{275C}' | // ❜  [HEAVY SINGLE COMMA QUOTATION MARK ORNAMENT]
         '\u{FF07}' // ＇  [FULLWIDTH APOSTROPHE]
-        => Some("\'"),
-        '\u{2010}' | // ‐  [HYPHEN]
+        => Some("\'"), */
+        /* '\u{2010}' | // ‐  [HYPHEN]
         '\u{2011}' | // ‑  [NON-BREAKING HYPHEN]
         '\u{2012}' | // ‒  [FIGURE DASH]
         '\u{2013}' | // –  [EN DASH]
@@ -1406,101 +1406,101 @@ fn fold_non_ascii_char(c: char) -> Option<&'static str> {
         '\u{207B}' | // ⁻  [SUPERSCRIPT MINUS]
         '\u{208B}' | // ₋  [SUBSCRIPT MINUS]
         '\u{FF0D}' // －  [FULLWIDTH HYPHEN-MINUS]
-        => Some("-"),
-        '\u{2045}' | // ⁅  [LEFT SQUARE BRACKET WITH QUILL]
+        => Some("-"), */
+        /* '\u{2045}' | // ⁅  [LEFT SQUARE BRACKET WITH QUILL]
         '\u{2772}' | // ❲  [LIGHT LEFT TORTOISE SHELL BRACKET ORNAMENT]
         '\u{FF3B}' // ［  [FULLWIDTH LEFT SQUARE BRACKET]
-        => Some("["),
-        '\u{2046}' | // ⁆  [RIGHT SQUARE BRACKET WITH QUILL]
+        => Some("["), */
+        /* '\u{2046}' | // ⁆  [RIGHT SQUARE BRACKET WITH QUILL]
         '\u{2773}' | // ❳  [LIGHT RIGHT TORTOISE SHELL BRACKET ORNAMENT]
         '\u{FF3D}' // ］  [FULLWIDTH RIGHT SQUARE BRACKET]
-        => Some("]"),
-        '\u{207D}' | // ⁽  [SUPERSCRIPT LEFT PARENTHESIS]
+        => Some("]"), */
+        /* '\u{207D}' | // ⁽  [SUPERSCRIPT LEFT PARENTHESIS]
         '\u{208D}' | // ₍  [SUBSCRIPT LEFT PARENTHESIS]
         '\u{2768}' | // ❨  [MEDIUM LEFT PARENTHESIS ORNAMENT]
         '\u{276A}' | // ❪  [MEDIUM FLATTENED LEFT PARENTHESIS ORNAMENT]
         '\u{FF08}' // （  [FULLWIDTH LEFT PARENTHESIS]
-        => Some("("),
-        '\u{2E28}' // ⸨  [LEFT DOUBLE PARENTHESIS]
-        => Some("(("),
-        '\u{207E}' | // ⁾  [SUPERSCRIPT RIGHT PARENTHESIS]
+        => Some("("), */
+        /* '\u{2E28}' // ⸨  [LEFT DOUBLE PARENTHESIS]
+        => Some("(("), */
+        /* '\u{207E}' | // ⁾  [SUPERSCRIPT RIGHT PARENTHESIS]
         '\u{208E}' | // ₎  [SUBSCRIPT RIGHT PARENTHESIS]
         '\u{2769}' | // ❩  [MEDIUM RIGHT PARENTHESIS ORNAMENT]
         '\u{276B}' | // ❫  [MEDIUM FLATTENED RIGHT PARENTHESIS ORNAMENT]
         '\u{FF09}' // ）  [FULLWIDTH RIGHT PARENTHESIS]
-        => Some(")"),
-        '\u{2E29}' // ⸩  [RIGHT DOUBLE PARENTHESIS]
-        => Some("))"),
-        '\u{276C}' | // ❬  [MEDIUM LEFT-POINTING ANGLE BRACKET ORNAMENT]
+        => Some(")"), */
+        /* '\u{2E29}' // ⸩  [RIGHT DOUBLE PARENTHESIS]
+        => Some("))"), */
+        /* '\u{276C}' | // ❬  [MEDIUM LEFT-POINTING ANGLE BRACKET ORNAMENT]
         '\u{2770}' | // ❰  [HEAVY LEFT-POINTING ANGLE BRACKET ORNAMENT]
         '\u{FF1C}' // ＜  [FULLWIDTH LESS-THAN SIGN]
-        => Some("<"),
-        '\u{276D}' | // ❭  [MEDIUM RIGHT-POINTING ANGLE BRACKET ORNAMENT]
+        => Some("<"), */
+        /* '\u{276D}' | // ❭  [MEDIUM RIGHT-POINTING ANGLE BRACKET ORNAMENT]
         '\u{2771}' | // ❱  [HEAVY RIGHT-POINTING ANGLE BRACKET ORNAMENT]
         '\u{FF1E}' // ＞  [FULLWIDTH GREATER-THAN SIGN]
-        => Some(">"),
-        '\u{2774}' | // ❴  [MEDIUM LEFT CURLY BRACKET ORNAMENT]
+        => Some(">"), */
+        /* '\u{2774}' | // ❴  [MEDIUM LEFT CURLY BRACKET ORNAMENT]
         '\u{FF5B}' // ｛  [FULLWIDTH LEFT CURLY BRACKET]
-        => Some("{"),
-        '\u{2775}' | // ❵  [MEDIUM RIGHT CURLY BRACKET ORNAMENT]
+        => Some("{"), */
+        /* '\u{2775}' | // ❵  [MEDIUM RIGHT CURLY BRACKET ORNAMENT]
         '\u{FF5D}' // ｝  [FULLWIDTH RIGHT CURLY BRACKET]
-        => Some("}"),
-        '\u{207A}' | // ⁺  [SUPERSCRIPT PLUS SIGN]
+        => Some("}"), */
+        /* '\u{207A}' | // ⁺  [SUPERSCRIPT PLUS SIGN]
         '\u{208A}' | // ₊  [SUBSCRIPT PLUS SIGN]
         '\u{FF0B}' // ＋  [FULLWIDTH PLUS SIGN]
-        => Some("+"),
-        '\u{207C}' | // ⁼  [SUPERSCRIPT EQUALS SIGN]
+        => Some("+"), */
+        /* '\u{207C}' | // ⁼  [SUPERSCRIPT EQUALS SIGN]
         '\u{208C}' | // ₌  [SUBSCRIPT EQUALS SIGN]
         '\u{FF1D}' // ＝  [FULLWIDTH EQUALS SIGN]
-        => Some("="),
-        '\u{FF01}' // ！  [FULLWIDTH EXCLAMATION MARK]
+        => Some("="), */
+        /* '\u{FF01}' // ！  [FULLWIDTH EXCLAMATION MARK]
         => Some("!"),
         '\u{203C}' // ‼  [DOUBLE EXCLAMATION MARK]
-        => Some("!!"),
-        '\u{2049}' // ⁉  [EXCLAMATION QUESTION MARK]
-        => Some("!?"),
-        '\u{FF03}' // ＃  [FULLWIDTH NUMBER SIGN]
-        => Some("#"),
+        => Some("!!"), */
+        /* '\u{2049}' // ⁉  [EXCLAMATION QUESTION MARK]
+        => Some("!?"), */
+        /* '\u{FF03}' // ＃  [FULLWIDTH NUMBER SIGN]
+        => Some("#"), */
         '\u{FF04}' // ＄  [FULLWIDTH DOLLAR SIGN]
         => Some("$"),
         '\u{2052}' | // ⁒  [COMMERCIAL MINUS SIGN]
         '\u{FF05}' // ％  [FULLWIDTH PERCENT SIGN]
         => Some("%"),
-        '\u{FF06}' // ＆  [FULLWIDTH AMPERSAND]
-        => Some("&"),
-        '\u{204E}' | // ⁎  [LOW ASTERISK]
+        /* '\u{FF06}' // ＆  [FULLWIDTH AMPERSAND]
+        => Some("&"), */
+        /* '\u{204E}' | // ⁎  [LOW ASTERISK]
         '\u{FF0A}' // ＊  [FULLWIDTH ASTERISK]
-        => Some("*"),
-        '\u{FF0C}' // ，  [FULLWIDTH COMMA]
-        => Some(","),
-        '\u{FF0E}' // ．  [FULLWIDTH FULL STOP]
-        => Some("."),
-        '\u{2044}' | // ⁄  [FRACTION SLASH]
+        => Some("*"), */
+        /* '\u{FF0C}' // ，  [FULLWIDTH COMMA]
+        => Some(","), */
+        /* '\u{FF0E}' // ．  [FULLWIDTH FULL STOP]
+        => Some("."), */
+        /* '\u{2044}' | // ⁄  [FRACTION SLASH]
         '\u{FF0F}' // ／  [FULLWIDTH SOLIDUS]
-        => Some("/"),
-        '\u{FF1A}' // ：  [FULLWIDTH COLON]
-        => Some(":"),
-        '\u{204F}' | // ⁏  [REVERSED SEMICOLON]
+        => Some("/"), */
+        /* '\u{FF1A}' // ：  [FULLWIDTH COLON]
+        => Some(":"), */
+        /* '\u{204F}' | // ⁏  [REVERSED SEMICOLON]
         '\u{FF1B}' // ；  [FULLWIDTH SEMICOLON]
-        => Some(";"),
-        '\u{FF1F}' // ？  [FULLWIDTH QUESTION MARK]
+        => Some(";"), */
+        /* '\u{FF1F}' // ？  [FULLWIDTH QUESTION MARK]
         => Some("?"),
         '\u{2047}' // ⁇  [DOUBLE QUESTION MARK]
-        => Some("??"),
-        '\u{2048}' // ⁈  [QUESTION EXCLAMATION MARK]
-        => Some("?!"),
-        '\u{FF20}' // ＠  [FULLWIDTH COMMERCIAL AT]
-        => Some("@"),
-        '\u{FF3C}' // ＼  [FULLWIDTH REVERSE SOLIDUS]
-        => Some("\\"),
-        '\u{2038}' | // ‸  [CARET]
+        => Some("??"), */
+        /* '\u{2048}' // ⁈  [QUESTION EXCLAMATION MARK]
+        => Some("?!"), */
+        /* '\u{FF20}' // ＠  [FULLWIDTH COMMERCIAL AT]
+        => Some("@"), */
+        /* '\u{FF3C}' // ＼  [FULLWIDTH REVERSE SOLIDUS]
+        => Some("\\"), */
+        /* '\u{2038}' | // ‸  [CARET]
         '\u{FF3E}' // ＾  [FULLWIDTH CIRCUMFLEX ACCENT]
-        => Some("^"),
-        '\u{FF3F}' // ＿  [FULLWIDTH LOW LINE]
-        => Some("_"),
-        '\u{2053}' | // ⁓  [SWUNG DASH]
+        => Some("^"), */
+        /* '\u{FF3F}' // ＿  [FULLWIDTH LOW LINE]
+        => Some("_"), */
+        /* '\u{2053}' | // ⁓  [SWUNG DASH]
         '\u{FF5E}' // ～  [FULLWIDTH TILDE]
-        => Some("~"),
+        => Some("~"), */
         _ => None
     }
 }

@@ -15,11 +15,12 @@ use morsels_lang_ascii::ascii_folding_filter;
 use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
 use morsels_lang_ascii::stop_words::get_stop_words;
 #[cfg(feature = "indexer")]
-use morsels_lang_ascii::utils::intra_filter;
+use morsels_lang_ascii::utils::{intra_filter, separating_filter};
 
 #[cfg(feature = "indexer")]
 fn term_filter(input: Cow<str>) -> Cow<str> {
-    let mut char_iter = input.char_indices().filter(|(_idx, c)| intra_filter(*c, true));
+    let mut char_iter = input.char_indices()
+        .filter(|(_idx, c)| intra_filter(*c) || separating_filter(*c));
 
     if let Some((char_start, c)) = char_iter.next() {
         let mut output: Vec<u8> = Vec::with_capacity(input.len());
