@@ -1,51 +1,21 @@
 use std::borrow::Cow;
 
+#[inline(always)]
+pub fn split_terms(c: char) -> bool {
+    c.is_whitespace() || intra_filter(c, false)
+}
+
 #[allow(clippy::match_like_matches_macro)]
 fn boundary_filter(c: char) -> bool {
     match c {
-        'a' |
-        'b' |
-        'c' |
-        'd' |
-        'e' |
-        'f' |
-        'g' |
-        'h' |
-        'i' |
-        'j' |
-        'k' |
-        'l' |
-        'm' |
-        'n' |
-        'o' |
-        'p' |
-        'q' |
-        'r' |
-        's' |
-        't' |
-        'u' |
-        'v' |
-        'w' |
-        'x' |
-        'y' |
-        'z' |
-        '0' |
-        '1' |
-        '2' |
-        '3' |
-        '4' |
-        '5' |
-        '6' |
-        '7' |
-        '8' |
-        '9'
+        'a'..='z' |
+        '0'..='9'
         => false,
         _ => true
     }
 }
 
-#[allow(clippy::match_like_matches_macro)]
-pub fn intra_filter(c: char) -> bool {
+pub fn intra_filter(c: char, remove_dashes: bool) -> bool {
     match c {
         '[' |
         ']' |
@@ -56,7 +26,6 @@ pub fn intra_filter(c: char) -> bool {
         '}' |
         '&' |
         '|' |
-        '\'' |
         '"' |
         '`' |
         '<' |
@@ -65,16 +34,12 @@ pub fn intra_filter(c: char) -> bool {
         ':' |
         ';' |
         '~' |
-        '_' |
         '^' |
         '=' |
-        '-' |
-        '‑' |
         '+' |
         '*' |
         '/' |
         '‘' |
-        '’' |
         '“' |
         '”' |
         '，' |
@@ -82,14 +47,21 @@ pub fn intra_filter(c: char) -> bool {
         '《' |
         '》' |
         '…' |
-        '—' |
-        '‐' |
+        '—' | // emdash
         '•' |
         '?' |
         '!' |
         ',' |
         '.'
         => true,
+        // May appear inside a word
+        '\'' |
+        '-' |
+        '_' |
+        '’' |
+        '‑' |
+        '‐'
+        => remove_dashes,
         _ => false
     }
 }
@@ -106,7 +78,7 @@ pub fn term_filter(input: Cow<str>) -> Cow<str> {
             let mut do_delete = true;
             if !(at_start && prev_char_end == char_start) {
                 at_start = false;
-                do_delete = intra_filter(c);
+                do_delete = intra_filter(c, true);
             }
 
             if do_delete {

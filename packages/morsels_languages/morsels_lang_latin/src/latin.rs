@@ -12,7 +12,7 @@ use morsels_common::tokenize::{IndexerTokenizer, TermIter};
 use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
-use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
+use morsels_lang_ascii::{ascii::ascii_and_nonword_filter, utils::split_terms};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
 use morsels_lang_ascii::stop_words::get_stop_words;
@@ -89,8 +89,8 @@ impl IndexerTokenizer for Tokenizer {
         text.make_ascii_lowercase();
         let it = SENTENCE_SPLITTER.split(text)
             .flat_map(move |sent_slice| {
-                sent_slice
-                    .split_whitespace()
+                sent_slice.split(split_terms)
+                    .filter(|&s| !s.is_empty())
                     .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
                     .filter(move |term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
                     .map(move |term_slice| {
@@ -118,7 +118,8 @@ impl SearchTokenizer for Tokenizer {
         let should_expand = !text.ends_with(' ');
 
         let terms = text
-            .split_whitespace()
+            .split(split_terms)
+            .filter(|&s| !s.is_empty())
             .map(|term_slice| {
                 let mut terms = Vec::new();
                 let preprocessed = ascii_and_nonword_filter(&mut terms, term_slice);

@@ -764,21 +764,27 @@ pub mod test {
         assert_eq!(
             parse("http://localhost:8080 lorem"),
             vec![
-                get_term("httplocalhost8080"),
+                get_term("http"),
+                get_term("localhost"),
+                get_term("8080"),
                 get_lorem(),
             ]
         );
         assert_eq!(
             parse("http://localhost:8080 NOT lorem"),
             vec![
-                get_term("httplocalhost8080").no_expand(),
+                get_term("http").no_expand(),
+                get_term("localhost").no_expand(),
+                get_term("8080").no_expand(),
                 wrap_in_not(get_lorem()),
             ]
         );
         assert_eq!(
             parse("http://localhost:8080 title:lorem"),
             vec![
-                get_term("httplocalhost8080").no_expand(),
+                get_term("http").no_expand(),
+                get_term("localhost").no_expand(),
+                get_term("8080").no_expand(),
                 get_lorem().with_field("title"),
             ]
         );
@@ -786,7 +792,9 @@ pub mod test {
             parse("body:ipsum http://localhost:8080 title:lorem"),
             vec![
                 get_ipsum().with_field("body").no_expand(),
-                get_term("httplocalhost8080").no_expand(),
+                get_term("http").no_expand(),
+                get_term("localhost").no_expand(),
+                get_term("8080").no_expand(),
                 get_lorem().with_field("title"),
             ]
         );
@@ -822,7 +830,11 @@ pub mod test {
             vec![
                 wrap_in_and(vec![
                     get_ipsum().with_field("body"),
-                    get_term("httplocalhost8080"),
+                    get_term("http"),
+                ]),
+                get_term("localhost"),
+                wrap_in_and(vec![
+                    get_term("8080"),
                     wrap_in_not(wrap_in_parentheses(vec![get_lorem().with_field("title")])),
                 ])
             ]
@@ -879,14 +891,16 @@ pub mod test {
         assert_eq!(
             parse("title\\:lorem\\ AND ipsum\\ AND \\NOT lorem ipsum body\\:lorem \\NOT ipsum"),
             vec![
-                get_term("titlelorem"),
+                get_term("title"),
+                get_term("lorem"),
                 get_term("and"),
                 get_term("ipsum"),
                 get_term("and"),
                 get_term("not"),
                 get_term("lorem"),
                 get_term("ipsum"),
-                get_term("bodylorem"),
+                get_term("body"),
+                get_term("lorem"),
                 get_term("not"),
                 get_term("ipsum"),
             ]

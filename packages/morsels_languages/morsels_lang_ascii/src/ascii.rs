@@ -9,7 +9,7 @@ use smartstring::alias::String as SmartString;
 
 use crate::ascii_folding_filter;
 use crate::stop_words::get_stop_words;
-use crate::utils::term_filter;
+use crate::utils::{term_filter, split_terms};
 use morsels_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::{IndexerTokenizer, TermIter};
@@ -87,8 +87,8 @@ impl IndexerTokenizer for Tokenizer {
         text.make_ascii_lowercase();
         let it = SENTENCE_SPLITTER.split(text)
             .flat_map(move |sent_slice| {
-                sent_slice
-                    .split_whitespace()
+                sent_slice.split(split_terms)
+                    .filter(|&s| !s.is_empty())
                     .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
                     .filter(move |term| {
                         let term_byte_len = term.len();
@@ -110,7 +110,8 @@ impl SearchTokenizer for Tokenizer {
         let should_expand = !text.ends_with(' ');
 
         let terms = text
-            .split_whitespace()
+            .split(split_terms)
+            .filter(|&s| !s.is_empty())
             .map(|term_slice| {
                 let mut terms = Vec::new();
                 let filtered = ascii_and_nonword_filter(&mut terms, term_slice);

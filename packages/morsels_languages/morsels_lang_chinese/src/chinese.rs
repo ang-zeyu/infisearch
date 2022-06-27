@@ -19,7 +19,7 @@ use morsels_lang_ascii::utils::intra_filter;
 
 #[cfg(feature = "indexer")]
 fn term_filter(input: Cow<str>) -> Cow<str> {
-    let mut char_iter = input.char_indices().filter(|(_idx, c)| intra_filter(*c));
+    let mut char_iter = input.char_indices().filter(|(_idx, c)| intra_filter(*c, true));
 
     if let Some((char_start, c)) = char_iter.next() {
         let mut output: Vec<u8> = Vec::with_capacity(input.len());
