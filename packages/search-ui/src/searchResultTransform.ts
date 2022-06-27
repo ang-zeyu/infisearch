@@ -60,7 +60,28 @@ async function singleResultRender(
     || (hasSourceFilesUrl && relativeLink && `${sourceFilesUrl}${relativeLink}`)
     || '';
 
-  resultTitle = resultTitle || relativeLink || link;
+  if (!resultTitle) {
+    if (relativeLink) {
+      // HTML files: remove the extension
+      // PDF: <...breadcumbs...> (PDF)
+
+      const breadCrumbed = relativeLink.split('/').join(' » ');
+      const breadCrumbsAndExt = breadCrumbed.split('.');
+
+      let ext = breadCrumbsAndExt.pop().toUpperCase();
+      if (ext === 'HTML') {
+        ext = '';
+      } else if (ext === 'PDF') {
+        ext = ' (PDF)';
+      } else {
+        ext = '.' + ext;
+      }
+
+      resultTitle = breadCrumbsAndExt.join('.') + ext;
+    } else {
+      resultTitle = link;
+    }
+  }
 
   let linkToAttach = fullLink;
   if (addSearchedTerms && fullLink) {

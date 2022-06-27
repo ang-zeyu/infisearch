@@ -91,21 +91,8 @@ impl<'de> Deserialize<'de> for PdfLoader {
     }
 }
 
-impl PdfLoaderResult {
-    fn format_title(path: &Path, link: &str) -> String {
-        if let Some(file_name) = path.file_name() {
-            if let Some(file_name) = file_name.to_str() {
-                return format!("{} (pdf)", &file_name[0..file_name.len() - 4]);
-            }
-        }
-
-        link.to_owned()
-    }
-}
-
 impl LoaderResult for PdfLoaderResult {
     fn get_field_texts_and_path(self: Box<Self>) -> (Vec<(String, String)>, PathBuf) {
-        let title = Self::format_title(&self.absolute_path, &self.link);
         let text = if let Ok(text) = pdf_extract::extract_text(&self.absolute_path) {
             text
         } else {
@@ -116,7 +103,6 @@ impl LoaderResult for PdfLoaderResult {
         (
             vec![
                 (RELATIVE_FP_FIELD.to_owned(), self.link),
-                ("title".to_owned(), title),
                 (self.options.field.clone(), text),
             ],
             self.absolute_path,
