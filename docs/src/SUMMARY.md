@@ -1,8 +1,9 @@
 # Summary
 
+- [Introduction](./introduction.md)
+
 # User Guide
 
-- [Introduction](./introduction.md)
 - [Search Features](./search_features.md)
 - [Getting Started](./getting_started.md)
   - [mdBook](./getting_started_mdbook.md)
