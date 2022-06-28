@@ -51,4 +51,4 @@ jobs:
           folder: docs/book/html
           repository-name: ang-zeyu/morsels-demo-1
           target-folder: morsels
-          token: docs
+          ssh-key: ${{ secrets.DOCS }}
