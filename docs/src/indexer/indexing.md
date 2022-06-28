@@ -230,7 +230,7 @@ Another example use case might be to redirect to another domain using the [`link
 
 ```json
 {
-  "link": "https://ang-zeyu.github.io/morsels-demo-1/",
+  "link": "https://morsels-search.com",
   "_add_files": "./main.html"
 }
 ```

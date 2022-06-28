@@ -6,7 +6,7 @@ Morsels provides 2 built-in themes by default, which correspond to the 2 stylesh
 
 These 2 stylesheets also expose a wide range of css variables which you can alter as needed.
 
-Head on over to the demo site [here](https://ang-zeyu.github.io/morsels-demo-1/) to try them out!
+Head on over to the demo site [here](https://morsels-search.com) to try them out!
 
 ### Light
 

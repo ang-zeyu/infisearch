@@ -18,7 +18,7 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 - Powered by **WebAssembly**, enabling efficient index (de)compression and query processing 
 - **Semi-Scalable** 📈, achieved by (optionally) splitting the index into chunks ("morsels").
 - **Incremental** Indexing
-- **Customisable** and **Accessible** dropdown / fullscreen popup user [interface](http://ang-zeyu.github.io/morsels/search_configuration_styling.html) 🖥️
+- **Customisable** and **Accessible** dropdown / fullscreen popup user [interface](https://morsels-search.com/morsels/search_configuration_styling.html) 🖥️
 
 ## Use Cases
 
@@ -30,9 +30,9 @@ The indexing tool supports a few other file formats (`.json`, `.csv`, `.pdf`, `.
 
 Powering static site search requires just a folder of your HTML files! Titles, links, headings, etc. are automatically sourced.
 
-Please check out the [documentation](http://ang-zeyu.github.io/morsels/getting_started.html), which also uses Morsels for its search function.
+Please check out the [documentation](https://morsels-search.com/morsels/getting_started.html), which also uses Morsels for its search function.
 
-A much heavier demo on a 500MB, 52000 document Gutenberg collection subcorpus is also available [here](https://ang-zeyu.github.io/morsels-demo-1/).
+A much heavier demo on a 500MB, 52000 document Gutenberg collection subcorpus is also available [here](https://morsels-search.com).
 
 ## Contributing
 

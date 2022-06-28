@@ -86,7 +86,7 @@ You may want to use this option over **2.1** nevertheless if:
 - You want to increase result preview generation performance (mentioned [here](search_configuration.md#2-from-field-stores))
 
 
-> Refer [here](https://ang-zeyu.github.io/morsels-demo-1/) for a demo of what `RTT=2` is like.
+> Refer [here](https://morsels-search.com) for a demo of what `RTT=2` is like.
 
 #### Improving 2.1 or 2.2 to `RTT=1`
 

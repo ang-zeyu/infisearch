@@ -38,11 +38,11 @@ You may want to use this tool if:
 
 1. **Latency** & File Bloat (*only if* fragmenting the index)
 
-   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree. (see this [demo](https://ang-zeyu.github.io/morsels-demo-1/))
+   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree. (see this [demo](https://morsels-search.com))
 
    This tool should be able to handle `800MB` **pure text** (not counting things like HTML soup) collections with the full set of features enabled and some configuration tweaking.
 
-   The degree of fragmentation can be [configured](https://ang-zeyu.github.io/morsels/presets.html) to varying degrees. That is, by default, Morsels can, and does function much like other existing monolithic pre-built index options in terms of the number of network requests, and you only "pay for what you need".
+   The degree of fragmentation can be [configured](https://morsels-search.com/morsels/presets.html) to varying degrees. That is, by default, Morsels can, and does function much like other existing monolithic pre-built index options in terms of the number of network requests, and you only "pay for what you need".
 
 2. **Wasm** -- no IE support =(
 

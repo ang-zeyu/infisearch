@@ -45,7 +45,10 @@ jobs:
       - run: npm run installMdbook
       - run: npm run buildDocs
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages
+          branch: main
           folder: docs/book/html
+          repository-name: ang-zeyu/morsels-demo-1
+          target-folder: morsels
+          token: docs

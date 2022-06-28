@@ -23,7 +23,7 @@ Specify the `preset` key in your configuration file to change this.
 | -----------         | ----------- |
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
 | `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only field stores of documents to generate result previews for a retrieved.
-| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](./language.md#stop-words). This is the preset used in the demo [here](https://ang-zeyu.github.io/morsels-demo-1/)!
+| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](./language.md#stop-words). This is the preset used in the demo [here](https://morsels-search.com)!
 | `medium_source`     | Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation.
 | `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps [stop words](./language.md#stop-words).
 
