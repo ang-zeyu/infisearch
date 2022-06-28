@@ -66,6 +66,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: search.morsels.zip
-          asset_name: search-bundle
+          asset_name: search.morsels.zip
           tag: ${{ github.ref }}
         if: matrix.os == 'ubuntu-latest'
