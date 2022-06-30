@@ -3,9 +3,9 @@
     --morsels-dropdown-max-height: 32em;
     --morsels-font-size: 14px;
     --morsels-border: none;
-    --morsels-item-spacing: 13px;
+    --morsels-item-spacing: 15px;
     --morsels-item-sub-border: none;
-    --morsels-fs-item-spacing: 11px;
+    --morsels-fs-item-spacing: 15px;
     --morsels-fs-desktop-width: 650px;
     --morsels-fs-desktop-height: 70vh;
     --morsels-tip-icon-size: 21px;
@@ -354,9 +354,9 @@
     color: var(--morsels-title-fg);
     line-height: 1.4em;
     word-break: break-word;
-    padding: 3px 7px;
+    padding: 3px 7px 2px 7px;
     background: var(--morsels-title-bg);
-    font-size: 1.02em;
+    font-size: 1.01em;
     font-weight: 600;
 }
 
@@ -385,7 +385,8 @@
 }
 
 .morsels-heading {
-    width: 25%;
+    width: 28%;
+    max-width: 160px;
     font-size: 0.96em;
     word-break: break-word;
     padding: 3px 3px 4px 7px;

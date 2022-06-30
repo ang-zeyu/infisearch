@@ -6,7 +6,7 @@
     --morsels-triangle-bg: white;
     --morsels-item-border: none;
     --morsels-item-border-radius: 6px;
-    --morsels-item-box-shadow: 0 1px 3px rgb(230, 230, 230), -2px 1px 3px rgb(239, 239, 239), 2px 1px 3px rgb(239, 239, 239);
+    --morsels-item-box-shadow: 0 1px 3px rgb(239, 239, 239), -2px 1px 3px rgb(239, 239, 239), 2px 1px 3px rgb(239, 239, 239);
     --morsels-title-fg: rgb(20, 20, 20);
     --morsels-title-bg: rgb(248, 247, 247);
     --morsels-title-hover-fg: black;
