@@ -56,6 +56,6 @@ There are a few other options especially worth highlighting that can help reduce
 - [`ignore_stop_words=false`](language.md#note-on-stop-words)
 
   This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size.
-- [`with_positions=false`](indexing.md#miscellaneous-options)
+- [`with_positions=true`](indexing.md#miscellaneous-options)
 
-  Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size! This option can help to reduce the index size overall in all cases.
+  Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size! If you don't mind giving up term proximity ranking and phrase queries, this option can help to reduce the index size in all cases.

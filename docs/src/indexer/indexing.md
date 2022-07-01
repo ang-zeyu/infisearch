@@ -27,7 +27,7 @@ The snippet below shows the default values:
 
     "num_pls_per_dir": 1000,
 
-    "with_positions": false
+    "with_positions": true
   }
 }
 ```
@@ -184,7 +184,7 @@ This loader simply reads `.txt` files and indexes all its contents into a single
 
 Global file exclusions can be specified in this parameter, which is simply an array of file globs.
 
-#### Adding Positions: **`with_positions = false`**
+#### Adding Positions: **`with_positions = true`**
 
 This option controls whether positions will be stored.
 

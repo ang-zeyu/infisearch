@@ -55,7 +55,7 @@ fn get_default_num_pls_per_dir() -> u32 {
 }
 
 fn get_default_with_positions() -> bool {
-    false
+    true
 }
 
 #[derive(Serialize, Deserialize)]
