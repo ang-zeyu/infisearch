@@ -127,6 +127,7 @@ extern "C" {
         pl_name: u32,
         num_pls_per_dir: u32,
         base_url: &str,
+        pl_lazy_cache_threshold: u32,
     ) -> JsValue;
 }
 
@@ -227,6 +228,7 @@ impl PostingsList {
         num_scored_fields: usize,
         num_pls_per_dir: u32,
         with_positions: bool,
+        pl_lazy_cache_threshold: u32,
     ) -> Result<(), JsValue> {
         if self.term_info.is_none() {
             return Ok(());
@@ -238,6 +240,7 @@ impl PostingsList {
             term_info.postings_file_name,
             num_pls_per_dir,
             base_url,
+            pl_lazy_cache_threshold,
         ).await;
         let pl_vec = js_sys::Uint8Array::new(&pl_array_buffer).to_vec();
 

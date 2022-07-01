@@ -123,6 +123,7 @@ export default class WorkerSearcher {
       searcherOptions.url,
       searcherOptions.numberOfExpandedTerms,
       searcherOptions.useQueryTermProximity,
+      searcherOptions.plLazyCacheThreshold,
       searcherOptions.resultLimit,
     );
   }

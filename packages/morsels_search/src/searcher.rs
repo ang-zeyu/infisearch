@@ -54,6 +54,7 @@ struct SearcherOptions {
     url: String,
     number_of_expanded_terms: usize,
     pub use_query_term_proximity: bool,
+    pl_lazy_cache_threshold: u32,
     result_limit: Option<u32>,
 }
 
@@ -100,6 +101,7 @@ pub async fn get_new_searcher(
     url: String,
     number_of_expanded_terms: usize,
     use_query_term_proximity: bool,
+    pl_lazy_cache_threshold: u32,
     result_limit: Option<u32>,
 ) -> Result<Searcher, JsValue> {
     #[cfg(feature = "perf")]
@@ -172,6 +174,7 @@ pub async fn get_new_searcher(
             url,
             number_of_expanded_terms,
             use_query_term_proximity,
+            pl_lazy_cache_threshold,
             result_limit,
         }
     };
@@ -352,6 +355,7 @@ pub mod test {
                     url: "/".to_owned(),
                     number_of_expanded_terms: 0,
                     use_query_term_proximity: true,
+                    pl_lazy_cache_threshold: 0,
                     result_limit: None,
                 },
             },

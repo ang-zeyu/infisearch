@@ -106,25 +106,30 @@ initMorsels({
 
 ## Search Functionality Options
 
-The options for the search library are rather brief, and can be summarised in this snippet:
+The options regarding search functionalities itself are rather brief, its defaults are summarised in this snippet:
 
 ```js
 initMorsels({
-    // Options belonging to @morsels/search-lib, the search library package
     searcherOptions: {
         // Base url of output directory that the cli tool generated
         url: 'http://192.168.10.132:3000/output/',
         
-        // Maximum number of terms for query term expansion
+        // Maximum number of terms for query term expansion (see below for more info)
         numberOfExpandedTerms: 3,
         
-        // Override for using query term proximity ranking or not.
-        // Disabled for mobile devices by default
+        // Override for using query term proximity ranking or not. (see below for more info)
         useQueryTermProximity: true,
 
-        // Whether to retrieve all field stores on initialisation
-        // (see chapter "Fields" for more details)
-        cacheAllFieldStores: true,
+        // ---------------------------------------------------------------
+        // Caching Options
+        // Whether to cache **all** field stores on initialisation
+        // defaults to the same setting in the indexer configuration file
+        cacheAllFieldStores: undefined,
+
+        // Any index file >= this size requested before will be persistently cached
+        // This option does not affect field stores.
+        plLazyCacheThreshold: 0,
+        // ---------------------------------------------------------------
 
         // The maximum number of results to retrieve (unlimited if null).
         resultLimit: null,
@@ -148,3 +153,7 @@ For all [language modules](./indexer/language.md) available currently, this is o
 
 If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other.
 This may be costly for mobile devices however, and is disabled by default in such cases.
+
+#### Caching Options (Advanced)
+
+This is discussed more in the chapter on [larger collections](./indexer/presets.md).

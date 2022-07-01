@@ -1,4 +1,4 @@
-export async function fetchPl(plName, numPlsPerDir, baseUrl) {
+export async function fetchPl(plName, numPlsPerDir, baseUrl, plLazyCacheThreshold) {
   const plUrl = `${baseUrl}pl_${Math.floor(plName / numPlsPerDir)}/pl_${plName}.json`;
   const cacheName = `morsels:${baseUrl}`;
 
@@ -13,7 +13,13 @@ export async function fetchPl(plName, numPlsPerDir, baseUrl) {
       return await cacheResp.arrayBuffer();
     } else {
       // Not in cache
-      return await fetchUrl(plUrl);
+      const buf = await fetchUrl(plUrl);
+
+      if (buf.byteLength >= plLazyCacheThreshold) {
+        cache.add(plUrl);
+      }
+
+      return buf;
     }
   } catch {
     // Cache API blocked / unsupported (e.g. firefox private)

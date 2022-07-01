@@ -48,10 +48,14 @@ Any of these values specified in the configuration file will override that of th
 
 ### Other Options
 
-There are 2 other options especially worth highlighting that can help reduce the index size (and hence support larger collections) in general.
+There are a few other options especially worth highlighting that can help reduce the index size (and hence support larger collections) or modify caching strategies.
 
+- [`plLazyCacheThreshold`](../search_configuration.md#caching-options-advanced)
+
+  In addition to **upfront** caching of index files with the `pl_cache_threshold` indexing parameter, Morsels also persistently caches any index shard that was requested before, but fell short of the `pl_cache_threshold`.
 - [`ignore_stop_words=false`](language.md#note-on-stop-words)
-- [`with_positions=false`](indexing.md#miscellaneous-options)<br>
-  Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size!
 
-If you are willing to forgo some features (e.g. phrase queries, boolean queries of stop words) in return for reducing the index size, you can enable / disable these options as appropriate.
+  This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size.
+- [`with_positions=false`](indexing.md#miscellaneous-options)
+
+  Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size! This option can help to reduce the index size overall in all cases.

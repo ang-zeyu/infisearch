@@ -28,6 +28,10 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   if (!('useQueryTermProximity' in searcherOptions)) {
     searcherOptions.useQueryTermProximity = !isMobile;
   }
+
+  if (!('plLazyCacheThreshold' in searcherOptions)) {
+    searcherOptions.plLazyCacheThreshold = 0;
+  }
   
   if (!('resultLimit' in searcherOptions)) {
     searcherOptions.resultLimit = null; // unlimited

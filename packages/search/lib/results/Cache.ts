@@ -28,19 +28,20 @@ export default class PersistentCache {
   private _mrlLinkToJsons: { [link: string]: Promise<any> } = Object.create(null);
 
   async _mrlCacheJson(url: string) {
-    let response: Response;
     if (this.cache) {
-      response = await this.cache.match(url);
-      if (!response) {
+      let cacheResp = await this.cache.match(url);
+      if (cacheResp) {
+        this._mrlLinkToJsons[url] = cacheResp.json();
+      } else {
         throttle(async () => {
           await this.cache.add(url);
-          response = await this.cache.match(url);
-          this._mrlLinkToJsons[url] = response.json();
+          cacheResp = await this.cache.match(url);
+          this._mrlLinkToJsons[url] = cacheResp.json();
         });
       }
     } else {
       throttle(async () => {
-        response = await fetch(url);
+        const response = await fetch(url);
         this._mrlLinkToJsons[url] = response.json();
       });
     }
