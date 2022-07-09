@@ -59,6 +59,8 @@ pub struct WorkerMiner {
     pub total_terms: u32,
     #[cfg(debug_assertions)]
     pub total_len: u64,
+    #[cfg(debug_assertions)]
+    pub total_pos: u64,
 }
 
 pub struct WorkerBlockIndexResults {
@@ -173,6 +175,8 @@ impl WorkerMiner {
             total_terms: 0,
             #[cfg(debug_assertions)]
             total_len: 0,
+            #[cfg(debug_assertions)]
+            total_pos: 0,
         }
     }
 
@@ -181,9 +185,19 @@ impl WorkerMiner {
 
         #[cfg(debug_assertions)]
         {
-            i_debug!("Worker {}, total_len {}, total_terms {}!", self.id, self.total_len, self.total_terms);
+            let num_docs = self.doc_infos.len() as u64;
+            let average_pos = if num_docs == 0 {
+                0
+            } else {
+                self.total_pos / num_docs
+            };
+            i_debug!(
+                "Worker {}, num_docs {}, total_len {}, total_terms {}, average_pos {}",
+                self.id, num_docs, self.total_len, self.total_terms, average_pos,
+            );
             self.total_len = 0;
             self.total_terms = 0;
+            self.total_pos = 0;
         }
 
         WorkerBlockIndexResults {
@@ -397,6 +411,11 @@ impl WorkerMiner {
             num_scored_fields,
             &mut pos,
         );
+
+        #[cfg(debug_assertions)]
+        {
+            self.total_pos += pos as u64;
+        }
 
         field_store_buffered_writer.write_all(b"]").unwrap();
         field_store_buffered_writer.flush().unwrap();
