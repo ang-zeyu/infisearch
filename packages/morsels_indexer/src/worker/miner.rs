@@ -16,6 +16,8 @@ use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos};
 use crate::loader::LoaderBoxed;
 use crate::i_debug;
 
+static ZONE_SEPARATION: u32 = 10;
+
 #[derive(Default)]
 pub struct DocField {
     pub field_tf: u32,
@@ -385,7 +387,9 @@ impl WorkerMiner {
                 *pos += 1;
             }
 
-            *pos += 120; // to "split up zones"
+            // To split up "zones" positionally (separate field tuples)
+            // TODO consider making this smarter / configurable
+            *pos += ZONE_SEPARATION;
         }
     }
 
