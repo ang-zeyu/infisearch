@@ -41,6 +41,63 @@ impl PostingsStreamReader {
     }
 
     #[inline]
+    fn read_and_write_doc(
+        pl_reader: &mut BufReader<File>,
+        combined_var_ints: &mut Vec<u8>,
+        u8_buf: &mut [u8; 1],
+        u32_buf: &mut [u8; 4],
+        with_positions: bool,
+     ) {
+        pl_reader.read_exact(u8_buf).unwrap();
+        let num_fields = u8_buf[0];
+
+        for _j in 1..num_fields {
+            Self::read_and_write_field(pl_reader, combined_var_ints, u8_buf, u32_buf, false, with_positions);
+        }
+
+        Self::read_and_write_field(pl_reader, combined_var_ints, u8_buf, u32_buf, true, with_positions);
+    }
+
+    #[inline]
+    fn read_and_write_field(
+        pl_reader: &mut BufReader<File>,
+        combined_var_ints: &mut Vec<u8>,
+        u8_buf: &mut [u8; 1],
+        u32_buf: &mut [u8; 4],
+        is_last: bool,
+        with_positions: bool,
+    ) {
+        pl_reader.read_exact(u8_buf).unwrap();
+        let field_id = u8_buf[0];
+        combined_var_ints.push(if is_last {
+            // Delimit the last field with a leading LAST_FIELD_MASK bit for compression
+            // Instead of storing num_fields
+            field_id | LAST_FIELD_MASK
+        } else {
+            field_id
+        });
+
+        pl_reader.read_exact(u32_buf).unwrap();
+        let field_tf = LittleEndian::read_u32(u32_buf);
+        varint::get_var_int_vec(field_tf, combined_var_ints);
+
+        /*
+            Pre-encode field tf and position gaps into varint in the worker,
+            then write it out in the main thread later.
+        */
+
+        if with_positions {
+            let mut prev_pos = 0;
+            for _k in 0..field_tf {
+                pl_reader.read_exact(u32_buf).unwrap();
+                let curr_pos = LittleEndian::read_u32(u32_buf);
+                varint::get_var_int_vec(curr_pos - prev_pos, combined_var_ints);
+                prev_pos = curr_pos;
+            }
+        }
+    }
+
+    #[inline]
     pub fn decode_next_n(
         mut self,
         n: usize,
@@ -67,52 +124,6 @@ impl PostingsStreamReader {
                 // TODO improve the capacity heuristic
                 let mut combined_var_ints = Vec::with_capacity((doc_freq * 20) as usize);
 
-                let read_and_write_doc =
-                    |pl_reader: &mut BufReader<File>,
-                     combined_var_ints: &mut Vec<u8>,
-                     u8_buf: &mut [u8; 1],
-                     u32_buf: &mut [u8; 4]| {
-                        let read_and_write_field =
-                            |pl_reader: &mut BufReader<File>,
-                             combined_var_ints: &mut Vec<u8>,
-                             u32_buf: &mut [u8; 4]| {
-                                pl_reader.read_exact(u32_buf).unwrap();
-                                let field_tf = LittleEndian::read_u32(u32_buf);
-                                varint::get_var_int_vec(field_tf, combined_var_ints);
-
-                                /*
-                                    Pre-encode field tf and position gaps into varint in the worker,
-                                    then write it out in the main thread later.
-                                */
-
-                                if with_positions {
-                                    let mut prev_pos = 0;
-                                    for _k in 0..field_tf {
-                                        pl_reader.read_exact(u32_buf).unwrap();
-                                        let curr_pos = LittleEndian::read_u32(u32_buf);
-                                        varint::get_var_int_vec(curr_pos - prev_pos, combined_var_ints);
-                                        prev_pos = curr_pos;
-                                    }
-                                }
-                            };
-
-                        pl_reader.read_exact(u8_buf).unwrap();
-                        let num_fields = u8_buf[0];
-                        for _j in 1..num_fields {
-                            pl_reader.read_exact(u8_buf).unwrap();
-                            let field_id = u8_buf[0];
-                            combined_var_ints.push(field_id);
-
-                            read_and_write_field(pl_reader, combined_var_ints, u32_buf);
-                        }
-
-                        // Delimit the last field with LAST_FIELD_MASK
-                        pl_reader.read_exact(u8_buf).unwrap();
-                        let field_id = u8_buf[0];
-                        combined_var_ints.push(field_id | LAST_FIELD_MASK);
-                        read_and_write_field(pl_reader, combined_var_ints, u32_buf);
-                    };
-
                 /*
                 For the first document, don't encode the doc id variable integer.
                 Encode it in the main thread later where the gap information between blocks is available.
@@ -121,11 +132,12 @@ impl PostingsStreamReader {
                 let first_doc_id = LittleEndian::read_u32(&u32_buf);
 
                 let mut prev_doc_id = first_doc_id;
-                read_and_write_doc(
+                Self::read_and_write_doc(
                     pl_reader,
                     &mut combined_var_ints,
                     &mut u8_buf,
                     &mut u32_buf,
+                    with_positions,
                 );
 
                 for _i in 1..doc_freq {
@@ -134,7 +146,7 @@ impl PostingsStreamReader {
                     varint::get_var_int_vec(doc_id - prev_doc_id, &mut combined_var_ints);
 
                     prev_doc_id = doc_id;
-                    read_and_write_doc(pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf);
+                    Self::read_and_write_doc(pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf, with_positions);
                 }
 
                 self.future_term_buffer.push_back(TermDocsForMerge {
