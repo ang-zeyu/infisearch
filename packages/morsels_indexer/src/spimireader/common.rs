@@ -93,6 +93,7 @@ pub fn initialise_postings_stream_readers(
     postings_stream_heap: &mut BinaryHeap<PostingsStream>,
     postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
     doc_infos: &Arc<DocInfos>,
+    num_scored_fields: usize,
     tx_main: &Sender<MainToWorkerMessage>,
     blocking_sndr: &Sender<()>,
     blocking_rcvr: &Receiver<()>,
@@ -115,6 +116,7 @@ pub fn initialise_postings_stream_readers(
             buffered_dict_reader: BufReader::new(block_dict_file),
             future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE),
             doc_infos_unlocked: Arc::clone(doc_infos),
+            num_scored_fields,
         })
         .read_next_batch(POSTINGS_STREAM_INITIAL_READ, tx_main, Arc::clone(postings_stream_decoders));
     }

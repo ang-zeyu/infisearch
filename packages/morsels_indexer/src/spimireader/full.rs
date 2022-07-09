@@ -72,6 +72,7 @@ pub fn merge_blocks(
         &mut postings_streams,
         &postings_stream_decoders,
         &doc_infos_unlocked_arc,
+        field_infos.num_scored_fields,
         tx_main,
         &blocking_sndr,
         &blocking_rcvr,

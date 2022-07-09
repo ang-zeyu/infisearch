@@ -1,0 +1,2 @@
+pub static LAST_FIELD_MASK: u8 = 0b10000000;
+pub static SHORT_FORM_MASK: u8 = 0b01000000;

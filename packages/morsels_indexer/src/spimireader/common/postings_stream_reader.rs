@@ -9,6 +9,8 @@ use byteorder::{ByteOrder, LittleEndian};
 use crossbeam::channel::Sender;
 use dashmap::DashMap;
 
+use morsels_common::postings_list::{LAST_FIELD_MASK, SHORT_FORM_MASK};
+
 use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::docinfo::DocInfos;
 use crate::utils::varint;
@@ -20,9 +22,8 @@ pub struct PostingsStreamReader {
     pub buffered_dict_reader: BufReader<File>,
     pub future_term_buffer: VecDeque<TermDocsForMerge>,
     pub doc_infos_unlocked: Arc<DocInfos>,
+    pub num_scored_fields: usize,
 }
-
-static LAST_FIELD_MASK: u8 = 0x80; // 1000 0000
 
 impl PostingsStreamReader {
     pub fn read_next_batch(
@@ -47,15 +48,31 @@ impl PostingsStreamReader {
         u8_buf: &mut [u8; 1],
         u32_buf: &mut [u8; 4],
         with_positions: bool,
+        num_scored_fields: usize,
      ) {
         pl_reader.read_exact(u8_buf).unwrap();
         let num_fields = u8_buf[0];
 
         for _j in 1..num_fields {
-            Self::read_and_write_field(pl_reader, combined_var_ints, u8_buf, u32_buf, false, with_positions);
+            Self::read_and_write_field(
+                pl_reader,
+                combined_var_ints,
+                u8_buf, u32_buf,
+                false,
+                with_positions,
+                num_scored_fields,
+            );
         }
 
-        Self::read_and_write_field(pl_reader, combined_var_ints, u8_buf, u32_buf, true, with_positions);
+        Self::read_and_write_field(
+            pl_reader,
+            combined_var_ints,
+            u8_buf,
+            u32_buf,
+            true,
+            with_positions,
+            num_scored_fields
+        );
     }
 
     #[inline]
@@ -66,23 +83,44 @@ impl PostingsStreamReader {
         u32_buf: &mut [u8; 4],
         is_last: bool,
         with_positions: bool,
+        num_scored_fields: usize,
     ) {
         pl_reader.read_exact(u8_buf).unwrap();
+
+        // If it is the last field, mask with |= LAST_FIELD_MASK (instead of storing number of fields).
         let field_id = u8_buf[0];
-        combined_var_ints.push(if is_last {
-            // Delimit the last field with a leading LAST_FIELD_MASK bit for compression
-            // Instead of storing num_fields
-            field_id | LAST_FIELD_MASK
-        } else {
-            field_id
-        });
 
         pl_reader.read_exact(u32_buf).unwrap();
         let field_tf = LittleEndian::read_u32(u32_buf);
-        varint::get_var_int_vec(field_tf, combined_var_ints);
+
+        if num_scored_fields <= 8 && field_tf <= 7  {
+            /*
+            If the number of scored fields is <= 8,
+            and the field term frequency is <= 7,
+            also compress the field tf into this single byte like so:
+
+            SHORT_FORM_MASK | field_id << 3 | field_tf
+            | LAST_FIELD_MASK (if applicable)
+             */
+            let compressed_field_info = SHORT_FORM_MASK
+                | (field_id << 3)
+                | (field_tf as u8)
+                | if is_last { LAST_FIELD_MASK } else { 0_u8 };
+
+            combined_var_ints.push(compressed_field_info);
+        } else {
+            if is_last {
+                combined_var_ints.push(field_id | LAST_FIELD_MASK);
+            } else {
+                combined_var_ints.push(field_id);
+            }
+
+            // Store field tf separately otherwise
+            varint::get_var_int_vec(field_tf, combined_var_ints);
+        }
 
         /*
-            Pre-encode field tf and position gaps into varint in the worker,
+            Pre-encode position gaps into varint in the worker,
             then write it out in the main thread later.
         */
 
@@ -138,6 +176,7 @@ impl PostingsStreamReader {
                     &mut u8_buf,
                     &mut u32_buf,
                     with_positions,
+                    self.num_scored_fields,
                 );
 
                 for _i in 1..doc_freq {
@@ -146,7 +185,14 @@ impl PostingsStreamReader {
                     varint::get_var_int_vec(doc_id - prev_doc_id, &mut combined_var_ints);
 
                     prev_doc_id = doc_id;
-                    Self::read_and_write_doc(pl_reader, &mut combined_var_ints, &mut u8_buf, &mut u32_buf, with_positions);
+                    Self::read_and_write_doc(
+                        pl_reader,
+                        &mut combined_var_ints,
+                        &mut u8_buf,
+                        &mut u32_buf,
+                        with_positions, 
+                        self.num_scored_fields,
+                    );
                 }
 
                 self.future_term_buffer.push_back(TermDocsForMerge {

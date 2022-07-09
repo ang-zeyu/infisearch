@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+use morsels_common::postings_list::{LAST_FIELD_MASK, SHORT_FORM_MASK};
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
@@ -264,10 +265,13 @@ impl PostingsList {
                 let next_int = pl_vec[pos];
                 pos += 1;
 
-                let field_id = next_int & 0x7f;
-                is_last = next_int & 0x80;
+                is_last = next_int & LAST_FIELD_MASK;
 
-                let field_tf = decode_var_int(&pl_vec, &mut pos);
+                let (field_id, field_tf) = if (next_int & SHORT_FORM_MASK) != 0 {
+                    ((next_int & 0b00111000) >> 3, (next_int & 0b00000111) as u32)
+                } else {
+                    (next_int & 0b00111111, decode_var_int(&pl_vec, &mut pos))
+                };
 
                 let field_positions = if with_positions {
                     let mut field_positions = Vec::with_capacity(field_tf as usize);

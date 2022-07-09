@@ -14,6 +14,7 @@ use smartstring::LazyCompact;
 use smartstring::SmartString;
 
 use morsels_common::{bitmap, FILE_EXT};
+use morsels_common::postings_list::{LAST_FIELD_MASK, SHORT_FORM_MASK};
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::varint::decode_var_int;
 
@@ -69,10 +70,16 @@ impl ExistingPlWriter {
 
             let mut is_last: u8 = 0;
             while is_last == 0 {
-                is_last = self.pl_vec[pl_vec_pos] & 0x80;
+                let next_int = self.pl_vec[pl_vec_pos];
                 pl_vec_pos += 1;
 
-                let field_tf = decode_var_int(&self.pl_vec, &mut pl_vec_pos);
+                is_last = next_int & LAST_FIELD_MASK;
+
+                let field_tf = if (next_int & SHORT_FORM_MASK) != 0 {
+                    (next_int & 0b00000111) as u32
+                } else {
+                    decode_var_int(&self.pl_vec, &mut pl_vec_pos)
+                };
 
                 if self.with_positions {
                     for _j in 0..field_tf {
@@ -178,6 +185,7 @@ pub fn modify_blocks(
             &mut postings_streams,
             &postings_stream_decoders,
             &doc_infos_unlocked_arc,
+            field_infos.num_scored_fields,
             tx_main,
             &blocking_sndr,
             &blocking_rcvr,

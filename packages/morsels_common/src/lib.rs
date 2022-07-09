@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 
 pub mod bitmap;
 pub mod dictionary;
+pub mod postings_list;
 pub mod tokenize;
 pub mod utils;
 
