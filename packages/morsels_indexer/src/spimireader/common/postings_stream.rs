@@ -11,11 +11,11 @@ use log::warn;
 use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::worker::MainToWorkerMessage;
 
-pub static POSTINGS_STREAM_BUFFER_SIZE: usize = 3000;
+pub const POSTINGS_STREAM_BUFFER_SIZE: usize = 3000;
 
-pub static POSTINGS_STREAM_INITIAL_READ: usize = 2000;
+pub const POSTINGS_STREAM_INITIAL_READ: usize = 2000;
 
-static POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 1000;
+const POSTINGS_STREAM_READER_ADVANCE_READ_THRESHOLD: usize = 1000;
 
 pub struct PostingsStream {
     idx: u32,

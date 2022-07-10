@@ -1,5 +1,5 @@
-static VALUE_MASK: u8 = 0x7f; // 0111 1111
-static CONTINUATION_MASK: u8 = 0x80; // 1000 0000
+const VALUE_MASK: u8 = 0x7f; // 0111 1111
+const CONTINUATION_MASK: u8 = 0x80; // 1000 0000
 
 #[inline(always)]
 pub fn decode_var_int(slice: &[u8], pos: &mut usize) -> u32 {

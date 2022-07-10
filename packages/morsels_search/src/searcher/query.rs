@@ -206,8 +206,8 @@ impl Searcher {
      while encouraging matches in multiple fields to some degree.
     */
     pub fn calc_doc_bm25_score(&self, td: &TermDoc, doc_id: u32, pl: &PostingsList) -> f32 {
-        static MAJOR_FIELD_FACTOR: f32 = 0.7;
-        static MINOR_FIELD_FACTOR: f32 = 0.3;
+        const MAJOR_FIELD_FACTOR: f32 = 0.7;
+        const MINOR_FIELD_FACTOR: f32 = 0.3;
 
         let mut doc_term_score = 0.0;
         let mut highest_field_score = 0.0;
@@ -329,8 +329,8 @@ fn proximity_rank<'a>(
         }
 
         if min_window_len < 200 {
-            static PROXIMITY_SCALING: f32 = 2.5;     // how much should larger windows scale
-            static PROXIMITY_SATURATION: f32 = 5.0;  // how fast it flattens to 1.0
+            const PROXIMITY_SCALING: f32 = 2.5;     // how much should larger windows scale
+            const PROXIMITY_SATURATION: f32 = 5.0;  // how fast it flattens to 1.0
             *scaling_factor = 1.0 + (
                 (PROXIMITY_SCALING * num_pl_its_curr_doc)
                 / (PROXIMITY_SATURATION + total_proximity_ranking_terms + min_window_len as f32)

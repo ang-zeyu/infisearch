@@ -12,8 +12,8 @@ use crate::utils;
 
 pub type Dictionary = dictionary::Dictionary;
 
-static TERM_EXPANSION_ALPHA: f32 = 0.75;  // ceil(0.75x) in https://www.desmos.com/calculator to visualize
-static MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;  // **total** weight of expanded terms
+const TERM_EXPANSION_ALPHA: f32 = 0.75;  // ceil(0.75x) in https://www.desmos.com/calculator to visualize
+const MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;  // **total** weight of expanded terms
 
 struct TermWeightPair {
     term: String,

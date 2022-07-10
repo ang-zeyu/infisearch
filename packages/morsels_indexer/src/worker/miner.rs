@@ -16,7 +16,7 @@ use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos};
 use crate::loader::LoaderBoxed;
 use crate::i_debug;
 
-static ZONE_SEPARATION: u32 = 10;
+const ZONE_SEPARATION: u32 = 10;
 
 #[derive(Default)]
 pub struct DocField {
@@ -148,7 +148,7 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
     }
 }
 
-static NULL_FIELD: FieldInfo = FieldInfo { id: 0, do_store: false, weight: 0.0, k: 0.0, b: 0.0 };
+const NULL_FIELD: FieldInfo = FieldInfo { id: 0, do_store: false, weight: 0.0, k: 0.0, b: 0.0 };
 
 impl WorkerMiner {
     pub fn new(
