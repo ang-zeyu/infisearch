@@ -4,12 +4,10 @@ use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 
-use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldInfos;
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::indexer::input_config::MorselsIndexingConfig;
@@ -22,48 +20,33 @@ use crate::worker::MainToWorkerMessage;
 
 #[allow(clippy::too_many_arguments)]
 pub fn merge_blocks(
-    doc_id_counter: u32,
     num_blocks: u32,
     first_block: u32,
     last_block: u32,
     indexing_config: &MorselsIndexingConfig,
     field_infos: &Arc<FieldInfos>,
-    doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
     mut docinfo_dicttable_writer: BufWriter<File>,
     incremental_info: &mut IncrementalIndexInfo,
 ) {
     /*
-    Gist of this function:
+    Merges the intermediate results written earlier.
+    Each block of intermediate results is abstracted by a "postings stream".
 
     Whenever a postings stream's primary buffer depletes below a certain count,
-    request a worker to decode more terms and postings lists into the secondary buffer.
+    request a worker to decode more terms and postings lists into a secondary buffer.
 
-    Once the primary buffer is fully depleted, wait for the decoding to complete **if not yet done**, then swap the two buffers.
+    Once the primary buffer is fully depleted, wait for the decoding to complete **if not yet done**,
+    then swap the two buffers.
 
-    We keep track of postings streams being decoded by threads... (secondary buffers being filled)
-    using a concurrent HashMap (DashMap)...
+    Keep track of postings streams being decoded by threads (secondary buffers being filled)
+    using a concurrent HashMap (DashMap).
     */
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
     let postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>> =
         Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
-
-    // Unwrap the inner mutex to avoid locks as it is now read-only
-    let doc_infos_unlocked_arc = {
-        let mut doc_infos_unwrapped_inner = Arc::try_unwrap(doc_infos)
-            .expect("No thread should be holding doc infos arc when merging blocks")
-            .into_inner()
-            .expect("No thread should be holding doc infos mutex when merging blocks");
-        doc_infos_unwrapped_inner.finalize_and_flush(
-            &mut docinfo_dicttable_writer,
-            doc_id_counter, field_infos.num_scored_fields,
-            incremental_info
-        );
-
-        Arc::from(doc_infos_unwrapped_inner)
-    };
 
     common::initialise_postings_stream_readers(
         first_block,
@@ -71,7 +54,6 @@ pub fn merge_blocks(
         output_folder_path,
         &mut postings_streams,
         &postings_stream_decoders,
-        &doc_infos_unlocked_arc,
         field_infos.num_scored_fields,
         tx_main,
         &blocking_sndr,

@@ -415,6 +415,19 @@ impl Indexer {
         self.doc_id_counter == self.start_doc_id
     }
 
+    fn flush_doc_infos(&mut self, docinfo_dicttable_writer: &mut BufWriter<File>, num_docs: f64) {
+        let mut doc_infos_unwrapped_inner = Arc::try_unwrap(std::mem::take(&mut self.doc_infos))
+            .expect("No thread should be holding doc infos arc when merging blocks")
+            .into_inner()
+            .expect("No thread should be holding doc infos mutex when merging blocks");
+
+        doc_infos_unwrapped_inner.finalize_and_flush(
+            docinfo_dicttable_writer,
+            num_docs as u32, self.field_infos.num_scored_fields,
+            &mut self.incremental_info,
+        );
+    }
+
     fn merge_blocks(&mut self, first_block: u32, last_block: u32) {
         let bitmap_docinfo_dicttable_file = self.output_folder_path.join(BITMAP_DOCINFO_DICT_TABLE_FILE);
         let mut bitmap_docinfo_dicttable_writer = BufWriter::new(
@@ -422,19 +435,22 @@ impl Indexer {
         );
 
         let num_blocks = last_block - first_block + 1;
+
         if self.is_incremental {
             self.incremental_info.delete_unencountered_external_ids();
             self.incremental_info.write_invalidation_vec(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter);
+            self.flush_doc_infos(
+                &mut bitmap_docinfo_dicttable_writer,
+                (self.doc_id_counter - self.incremental_info.num_deleted_docs) as f64,
+            );
 
             spimireader::incremental::modify_blocks(
                 self.is_deletion_only_run(),
-                self.doc_id_counter,
                 num_blocks,
                 first_block,
                 last_block,
                 &self.indexing_config,
                 &self.field_infos,
-                std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
                 bitmap_docinfo_dicttable_writer,
@@ -442,15 +458,14 @@ impl Indexer {
             );
         } else {
             self.incremental_info.write_invalidation_vec(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter);
+            self.flush_doc_infos(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter as f64);
 
             spimireader::full::merge_blocks(
-                self.doc_id_counter,
                 num_blocks,
                 first_block,
                 last_block,
                 &self.indexing_config,
                 &self.field_infos,
-                std::mem::take(&mut self.doc_infos),
                 &self.tx_main,
                 &self.output_folder_path,
                 bitmap_docinfo_dicttable_writer,

@@ -5,7 +5,6 @@ use std::io::BufWriter;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
@@ -21,7 +20,6 @@ use morsels_common::postings_list::{
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::varint::decode_var_int;
 
-use crate::docinfo::DocInfos;
 use crate::fieldinfo::FieldInfos;
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::indexer::input_config::MorselsIndexingConfig;
@@ -173,13 +171,11 @@ impl ExistingPlWriter {
 #[allow(clippy::too_many_arguments)]
 pub fn modify_blocks(
     is_deletion_only_run: bool,
-    doc_id_counter: u32,
     num_blocks: u32,
     first_block: u32,
     last_block: u32,
     indexing_config: &MorselsIndexingConfig,
     field_infos: &Arc<FieldInfos>,
-    doc_infos: Arc<Mutex<DocInfos>>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
     mut docinfo_dicttable_writer: BufWriter<File>,
@@ -190,23 +186,6 @@ pub fn modify_blocks(
         Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
-    let new_num_docs = (doc_id_counter - incremental_info.num_deleted_docs) as f64;
-
-    // Unwrap the inner mutex to avoid locks as it is now read-only
-    let doc_infos_unlocked_arc = {
-        let mut doc_infos_unwrapped_inner = Arc::try_unwrap(doc_infos)
-            .expect("No thread should be holding doc infos arc when merging blocks")
-            .into_inner()
-            .expect("No thread should be holding doc infos mutex when merging blocks");
-        doc_infos_unwrapped_inner.finalize_and_flush(
-            &mut docinfo_dicttable_writer,
-            new_num_docs as u32, field_infos.num_scored_fields,
-            incremental_info,
-        );
-
-        Arc::from(doc_infos_unwrapped_inner)
-    };
-
     if !is_deletion_only_run {
         common::initialise_postings_stream_readers(
             first_block,
@@ -214,7 +193,6 @@ pub fn modify_blocks(
             output_folder_path,
             &mut postings_streams,
             &postings_stream_decoders,
-            &doc_infos_unlocked_arc,
             field_infos.num_scored_fields,
             tx_main,
             &blocking_sndr,

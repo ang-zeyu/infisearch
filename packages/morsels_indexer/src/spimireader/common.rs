@@ -19,7 +19,6 @@ use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME};
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
-use crate::docinfo::DocInfos;
 use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::utils::bufwriter::ReusableWriter;
 use crate::utils::varint;
@@ -92,7 +91,6 @@ pub fn initialise_postings_stream_readers(
     output_folder_path: &Path,
     postings_stream_heap: &mut BinaryHeap<PostingsStream>,
     postings_stream_decoders: &Arc<DashMap<u32, PostingsStreamDecoder>>,
-    doc_infos: &Arc<DocInfos>,
     num_scored_fields: usize,
     tx_main: &Sender<MainToWorkerMessage>,
     blocking_sndr: &Sender<()>,
@@ -115,7 +113,6 @@ pub fn initialise_postings_stream_readers(
             buffered_reader: BufReader::new(block_file),
             buffered_dict_reader: BufReader::new(block_dict_file),
             future_term_buffer: VecDeque::with_capacity(POSTINGS_STREAM_BUFFER_SIZE),
-            doc_infos_unlocked: Arc::clone(doc_infos),
             num_scored_fields,
         })
         .read_next_batch(POSTINGS_STREAM_INITIAL_READ, tx_main, Arc::clone(postings_stream_decoders));

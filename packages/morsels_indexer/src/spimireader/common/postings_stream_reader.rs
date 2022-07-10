@@ -18,7 +18,6 @@ use morsels_common::postings_list::{
 };
 
 use super::{PostingsStreamDecoder, TermDocsForMerge};
-use crate::docinfo::DocInfos;
 use crate::utils::varint;
 use crate::worker::MainToWorkerMessage;
 
@@ -27,7 +26,6 @@ pub struct PostingsStreamReader {
     pub buffered_reader: BufReader<File>,
     pub buffered_dict_reader: BufReader<File>,
     pub future_term_buffer: VecDeque<TermDocsForMerge>,
-    pub doc_infos_unlocked: Arc<DocInfos>,
     pub num_scored_fields: usize,
 }
 
