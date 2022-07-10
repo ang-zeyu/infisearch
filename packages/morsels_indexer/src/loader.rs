@@ -6,6 +6,8 @@ pub mod txt;
 
 use std::path::{Path, PathBuf};
 
+use crate::worker::miner::Zone;
+
 pub type LoaderResultIterator<'a> = Box<dyn Iterator<Item = Box<dyn LoaderResult + Send>> + 'a>;
 
 pub type LoaderBoxed = Box<dyn Loader + Send + Sync>;
@@ -22,16 +24,16 @@ pub trait Loader {
 }
 
 pub trait LoaderResult {
-    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<(String, String)>, PathBuf);
+    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<Zone>, PathBuf);
 }
 
 pub struct BasicLoaderResult {
-    field_texts: Vec<(String, String)>,
+    field_texts: Vec<Zone>,
     absolute_path: PathBuf,
 }
 
 impl LoaderResult for BasicLoaderResult {
-    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<(String, String)>, PathBuf) {
+    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<Zone>, PathBuf) {
         (self.field_texts, self.absolute_path)
     }
 }

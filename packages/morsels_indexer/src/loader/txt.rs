@@ -9,6 +9,7 @@ use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
+use crate::worker::miner::{DEFAULT_ZONE_SEPARATION, Zone};
 
 #[derive(Serialize, Deserialize)]
 pub struct TxtLoaderOptions {
@@ -29,8 +30,16 @@ impl TxtLoader {
 
     fn get_txt_loader_result(&self, text: String, link: String, absolute_path: PathBuf) -> Box<dyn LoaderResult + Send> {
         let field_texts = vec![
-            (RELATIVE_FP_FIELD.to_owned(), link),
-            (self.options.field.clone(), text)
+            Zone {
+                field_name: RELATIVE_FP_FIELD.to_owned(),
+                field_text: link,
+                separation: DEFAULT_ZONE_SEPARATION,
+            },
+            Zone {
+                field_name: self.options.field.clone(),
+                field_text: text,
+                separation: DEFAULT_ZONE_SEPARATION,
+            },
         ];
         Box::new(BasicLoaderResult { field_texts, absolute_path }) as Box<dyn LoaderResult + Send>
     }

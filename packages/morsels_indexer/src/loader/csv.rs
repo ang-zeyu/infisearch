@@ -9,6 +9,7 @@ use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
+use crate::worker::miner::{DEFAULT_ZONE_SEPARATION, Zone};
 
 fn get_default_delimiter() -> u8 {
     b","[0]
@@ -97,17 +98,18 @@ impl CsvLoader {
         num_fields: usize,
         absolute_path: PathBuf,
     ) -> Box<dyn LoaderResult + Send> {
-        let mut field_texts: Vec<(String, String)> = Vec::with_capacity(num_fields);
+        let mut field_texts: Vec<Zone> = Vec::with_capacity(num_fields);
 
         let record = read_result.expect("Failed to unwrap csv record result!");
         for idx in self.options.index_field_order.iter() {
             if let Some(text) = record.get(*idx) {
-                field_texts.push((
-                    self.options.index_field_map.get(idx)
+                field_texts.push(Zone {
+                    field_name: self.options.index_field_map.get(idx)
                         .expect("index_field_map does not match index_field_order!")
                         .to_owned(),
-                    text.to_owned()
-                ));
+                    field_text: text.to_owned(),
+                    separation: DEFAULT_ZONE_SEPARATION,
+                });
             }
         }
 
@@ -120,16 +122,17 @@ impl CsvLoader {
         num_fields: usize,
         absolute_path: PathBuf,
     ) -> Box<dyn LoaderResult + Send> {
-        let mut field_texts: Vec<(String, String)> = Vec::with_capacity(num_fields);
+        let mut field_texts: Vec<Zone> = Vec::with_capacity(num_fields);
 
         for header_name in self.options.header_field_order.iter() {
             if let Some(text) = read_result.get(header_name) {
-                field_texts.push((
-                    self.options.header_field_map.get(header_name)
+                field_texts.push(Zone {
+                    field_name: self.options.header_field_map.get(header_name)
                         .expect("header_field_map does not match header_field_order!")
                         .to_owned(),
-                    text.to_owned(),
-                ));
+                    field_text: text.to_owned(),
+                    separation: DEFAULT_ZONE_SEPARATION,
+                });
             }
         }
 

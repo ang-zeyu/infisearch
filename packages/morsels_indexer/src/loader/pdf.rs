@@ -10,6 +10,7 @@ use crate::fieldinfo::RELATIVE_FP_FIELD;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
+use crate::worker::miner::{DEFAULT_ZONE_SEPARATION, Zone};
 
 fn default_field() -> String {
     "body".to_owned()
@@ -92,7 +93,7 @@ impl<'de> Deserialize<'de> for PdfLoader {
 }
 
 impl LoaderResult for PdfLoaderResult {
-    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<(String, String)>, PathBuf) {
+    fn get_field_texts_and_path(self: Box<Self>) -> (Vec<Zone>, PathBuf) {
         let text = if let Ok(text) = pdf_extract::extract_text(&self.absolute_path) {
             text
         } else {
@@ -102,8 +103,16 @@ impl LoaderResult for PdfLoaderResult {
 
         (
             vec![
-                (RELATIVE_FP_FIELD.to_owned(), self.link),
-                (self.options.field.clone(), text),
+                Zone {
+                    field_name: RELATIVE_FP_FIELD.to_owned(),
+                    field_text: self.link,
+                    separation: DEFAULT_ZONE_SEPARATION,
+                },
+                Zone {
+                    field_name: self.options.field.clone(),
+                    field_text: text,
+                    separation: DEFAULT_ZONE_SEPARATION,
+                },
             ],
             self.absolute_path,
         )

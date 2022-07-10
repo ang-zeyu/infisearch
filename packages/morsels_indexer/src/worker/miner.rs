@@ -16,7 +16,13 @@ use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos};
 use crate::loader::LoaderBoxed;
 use crate::i_debug;
 
-const ZONE_SEPARATION: u32 = 10;
+pub const DEFAULT_ZONE_SEPARATION: u32 = 10;
+
+pub struct Zone {
+    pub field_name: String,
+    pub field_text: String,
+    pub separation: u32,
+}
 
 #[derive(Default)]
 pub struct DocField {
@@ -293,7 +299,7 @@ impl WorkerMiner {
     #[allow(clippy::too_many_arguments)]
     fn process_field_texts(
         &mut self,
-        field_texts: Vec<(String, String)>,
+        field_texts: Vec<Zone>,
         original_absolute_path: PathBuf,
         is_first_stored_field: &mut bool,
         field_store_buffered_writer: &mut Vec<u8>,
@@ -302,7 +308,7 @@ impl WorkerMiner {
         num_scored_fields: usize,
         pos: &mut u32,
     ) {
-        for (field_name, mut field_text) in field_texts {
+        for Zone { field_name, mut field_text, separation } in field_texts {
             if field_name == ADD_FILES_FIELD {
                 self.add_other_file(
                     field_text,
@@ -387,13 +393,13 @@ impl WorkerMiner {
                 *pos += 1;
             }
 
-            // To split up "zones" positionally (separate field tuples)
+            // To split up "zones" positionally
             // TODO consider making this smarter / configurable
-            *pos += ZONE_SEPARATION;
+            *pos += separation;
         }
     }
 
-    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<(String, String)>, original_absolute_path: PathBuf) {
+    pub fn index_doc(&mut self, doc_id: u32, field_texts: Vec<Zone>, original_absolute_path: PathBuf) {
         let mut is_first_stored_field = true;
 
         let mut pos = 0;
@@ -401,7 +407,7 @@ impl WorkerMiner {
         let num_scored_fields = self.field_infos.num_scored_fields;
         let mut field_lengths = vec![0; num_scored_fields];
         let mut field_store_buffered_writer = Vec::with_capacity(
-            ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.1.len())) as f32 * 1.1) as usize,
+            ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.field_text.len())) as f32 * 1.1) as usize,
         );
         field_store_buffered_writer.write_all("[".as_bytes()).unwrap();
 

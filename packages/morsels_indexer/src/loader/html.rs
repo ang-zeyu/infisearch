@@ -13,6 +13,9 @@ use crate::fieldinfo::RELATIVE_FP_FIELD;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
+use crate::worker::miner::{DEFAULT_ZONE_SEPARATION, Zone};
+
+const HTML_ZONE_SEPARATION: u32 = 4;
 
 pub struct HtmlLoaderSelector {
     selector: Selector,
@@ -155,14 +158,18 @@ impl HtmlLoaderResult {
     fn traverse_node(
         &self,
         node: ElementRef,
-        field_texts: &mut Vec<(String, String)>,
+        field_texts: &mut Vec<Zone>,
         field_name: Option<&String>,
     ) {
         for html_loader_selector in self.options.selectors.iter() {
             if html_loader_selector.selector.matches(&node) {
                 for (attr_name, attr_field_name) in html_loader_selector.attr_map.iter() {
                     if let Some(attr) = node.value().attr(attr_name) {
-                        field_texts.push((attr_field_name.to_owned(), attr.to_owned()));
+                        field_texts.push(Zone {
+                            field_name: attr_field_name.to_owned(),
+                            field_text: attr.to_owned(),
+                            separation: 2,
+                        });
                     }
                 }
 
@@ -198,24 +205,36 @@ impl HtmlLoaderResult {
 }
 
 #[inline(always)]
-fn add_text_to_field(field_texts: &mut Vec<(String, String)>, field_name: &String, text: &scraper::node::Text) {
+fn add_text_to_field(field_texts: &mut Vec<Zone>, field_name: &String, text: &scraper::node::Text) {
     if let Some(last) = field_texts.last_mut() {
-        if last.0 == *field_name {
-            last.1 += text;
+        if last.field_name == *field_name {
+            last.field_text += text;
         } else {
-            field_texts.push((field_name.to_owned(), text.to_string()));
+            field_texts.push(Zone {
+                field_name: field_name.to_owned(),
+                field_text: text.to_string(),
+                separation: HTML_ZONE_SEPARATION,
+            });
         }
     } else {
-        field_texts.push((field_name.to_owned(), text.to_string()));
+        field_texts.push(Zone {
+            field_name: field_name.to_owned(),
+            field_text: text.to_string(),
+            separation: HTML_ZONE_SEPARATION,
+        });
     }
 }
 
 impl LoaderResult for HtmlLoaderResult {
-    fn get_field_texts_and_path(mut self: Box<Self>) -> (Vec<(String, String)>, PathBuf) {
-        let mut field_texts: Vec<(String, String)> = Vec::with_capacity(20);
+    fn get_field_texts_and_path(mut self: Box<Self>) -> (Vec<Zone>, PathBuf) {
+        let mut field_texts: Vec<Zone> = Vec::with_capacity(20);
         let mut document = Html::parse_document(&self.text);
 
-        field_texts.push((RELATIVE_FP_FIELD.to_owned(), std::mem::take(&mut self.link)));
+        field_texts.push(Zone {
+            field_name: RELATIVE_FP_FIELD.to_owned(),
+            field_text: std::mem::take(&mut self.link),
+            separation: DEFAULT_ZONE_SEPARATION,
+        });
 
         for selector in self.options.exclude_selectors.iter() {
             let ids: Vec<_> = document.select(selector).map(|selected| selected.id()).collect();

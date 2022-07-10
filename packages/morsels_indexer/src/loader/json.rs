@@ -11,6 +11,7 @@ use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
+use crate::worker::miner::{DEFAULT_ZONE_SEPARATION, Zone};
 
 #[derive(Serialize, Deserialize)]
 pub struct JsonLoaderOptions {
@@ -41,18 +42,23 @@ impl JsonLoader {
         link: String,
         absolute_path: PathBuf,
     ) -> Box<dyn LoaderResult + Send> {
-        let mut field_texts: Vec<(String, String)> = Vec::with_capacity(self.options.field_order.len() + 1);
+        let mut field_texts: Vec<Zone> = Vec::with_capacity(self.options.field_order.len() + 1);
 
-        field_texts.push((RELATIVE_FP_FIELD.to_owned(), link));
+        field_texts.push(Zone {
+            field_name: RELATIVE_FP_FIELD.to_owned(),
+            field_text: link,
+            separation: DEFAULT_ZONE_SEPARATION,
+        });
 
         for header_name in self.options.field_order.iter() {
             if let Some((field_name, text)) = read_result.remove_entry(header_name) {
-                field_texts.push((
-                    self.options.field_map.get(&field_name)
+                field_texts.push(Zone {
+                    field_name: self.options.field_map.get(&field_name)
                         .expect("field_order does not match field_map!")
                         .to_owned(),
-                    text
-                ));
+                    field_text: text,
+                    separation: DEFAULT_ZONE_SEPARATION,
+                });
             }
         }
 
