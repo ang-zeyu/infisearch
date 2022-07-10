@@ -3,8 +3,6 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use rustc_hash::FxHashMap;
-
 use crate::docinfo::DocInfos;
 use crate::docinfo::BlockDocLengths;
 use crate::fieldinfo::FieldInfos;
@@ -30,15 +28,15 @@ pub fn combine_worker_results_and_write_block(
     spimi_counter: u32,
     doc_id_counter: u32,
 ) {
-    let mut combined_terms: FxHashMap<String, Vec<Vec<TermDoc>>> = FxHashMap::default();
+    let mut combined_terms: Vec<(String, Vec<TermDoc>)> = Vec::with_capacity(
+        worker_index_results.iter().map(|result| result.terms.len()).sum()
+    );
 
     let mut heap: BinaryHeap<DocIdAndFieldLengthsComparator> = BinaryHeap::with_capacity(worker_index_results.len());
 
-    // Combine
+    // Combine all (String, Vec<TermDoc>) pairs into one vector, and initialise docinfos heapsort
     for worker_result in worker_index_results.into_iter().filter(|w| !w.doc_infos.is_empty()) {
-        for (worker_term, worker_term_docs) in worker_result.terms {
-            combined_terms.entry(worker_term).or_insert_with(Vec::new).push(worker_term_docs);
-        }
+        combined_terms.extend(worker_result.terms);
 
         let mut doc_infos_iter = worker_result.doc_infos.into_iter();
         if let Some(worker_document_length) = doc_infos_iter.next() {
