@@ -13,7 +13,7 @@ use std::time::Instant;
 
 use log::{info, warn};
 use morsels_common::tokenize::IndexerTokenizer;
-use morsels_common::{MorselsLanguageConfig, BITMAP_DOCINFO_DICT_TABLE_FILE, BitmapDocinfoDicttableReader};
+use morsels_common::{MorselsLanguageConfig, METADATA_FILE, MetadataReader};
 use morsels_lang_ascii::ascii;
 use morsels_lang_latin::latin;
 use morsels_lang_chinese::chinese;
@@ -67,11 +67,11 @@ impl Indexer {
         // -----------------------------------------------------------
         // Initialise the previously indexed metadata, if any
 
-        let bitmap_docinfo_dicttable_path = output_folder_path.join(BITMAP_DOCINFO_DICT_TABLE_FILE);
-        let mut bitmap_docinfo_dicttable_rdr = if let Ok(mut file) = File::open(bitmap_docinfo_dicttable_path) {
+        let metadata_path = output_folder_path.join(METADATA_FILE);
+        let mut metadata_rdr = if let Ok(mut file) = File::open(metadata_path) {
             let mut buf = Vec::new();
             file.read_to_end(&mut buf).unwrap();
-            Some(BitmapDocinfoDicttableReader { buf, pos: 0 })
+            Some(MetadataReader::new(buf))
         } else {
             None
         };
@@ -81,7 +81,7 @@ impl Indexer {
             &config.json_config,
             &mut is_incremental,
             use_content_hash,
-            bitmap_docinfo_dicttable_rdr.as_mut(),
+            metadata_rdr.as_mut(),
         );
         // -----------------------------------------------------------
 
@@ -143,13 +143,12 @@ impl Indexer {
         let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(
             is_incremental,
             field_infos.num_scored_fields,
-            bitmap_docinfo_dicttable_rdr.as_mut(),
+            metadata_rdr.as_mut(),
         )));
 
         if is_incremental {
             incremental_info.setup_dictionary(
-                output_folder_path,
-                bitmap_docinfo_dicttable_rdr.as_mut().expect("missing dicttable metadata file!"),
+                metadata_rdr.as_mut().expect("missing dicttable metadata file!"),
             );
         }
         // ------------------------------
@@ -386,7 +385,7 @@ impl Indexer {
         print_time_elapsed(&instant, "Block indexing done!");
 
         // N-way merge of spimi blocks
-        self.merge_blocks(first_block, last_block);
+        self.merge_blocks(first_block, last_block, instant.is_some());
 
         self.incremental_info.write_info(&self.input_folder_path, &self.output_folder_path);
 
@@ -415,36 +414,77 @@ impl Indexer {
         self.doc_id_counter == self.start_doc_id
     }
 
-    fn flush_doc_infos(&mut self, docinfo_dicttable_writer: &mut BufWriter<File>, num_docs: f64) {
+    fn flush_doc_infos(&mut self, num_docs: f64) -> Vec<u8> {
         let mut doc_infos_unwrapped_inner = Arc::try_unwrap(std::mem::take(&mut self.doc_infos))
             .expect("No thread should be holding doc infos arc when merging blocks")
             .into_inner()
             .expect("No thread should be holding doc infos mutex when merging blocks");
 
         doc_infos_unwrapped_inner.finalize_and_flush(
-            docinfo_dicttable_writer,
             num_docs as u32, self.field_infos.num_scored_fields,
             &mut self.incremental_info,
-        );
+        )
     }
 
-    fn merge_blocks(&mut self, first_block: u32, last_block: u32) {
-        let bitmap_docinfo_dicttable_file = self.output_folder_path.join(BITMAP_DOCINFO_DICT_TABLE_FILE);
-        let mut bitmap_docinfo_dicttable_writer = BufWriter::new(
-            File::create(bitmap_docinfo_dicttable_file).unwrap()
+    pub fn flush_metadata(
+        &self,
+        invalidation_vec_ser: Vec<u8>,
+        doc_infos_ser: Vec<u8>,
+        dict_table_ser: Vec<u8>,
+        dict_string_ser: Vec<u8>,
+        log_sizes: bool,
+    ) {
+        let metadata_file = self.output_folder_path.join(METADATA_FILE);
+        let mut metadata_writer = BufWriter::new(
+            File::create(metadata_file).unwrap()
         );
+    
+        /*
+         Store the dictionary string first for better gzip compression,
+         followed by the dict table for locality.
 
+         The invalidation vec and docinfo needs to be read first however,
+         so store 3 u32 offsets totalling 12 bytes:
+         - dictionary table
+         - invalidation vec
+         - docinfo
+         */
+
+        if log_sizes {
+            println!("Metadata lengths:");
+            println!("  Dictionary string: {}", dict_string_ser.len());
+            println!("  Dictionary table: {}", dict_table_ser.len());
+            println!("  Invalidation Vec: {}", invalidation_vec_ser.len());
+            println!("  Doc Infos: {}", doc_infos_ser.len());
+        }
+
+        let dict_table_offset = 12 + dict_string_ser.len() as u32;
+        let invalidation_vec_offset = dict_table_offset + dict_table_ser.len() as u32;
+        let doc_infos_offset = invalidation_vec_offset + invalidation_vec_ser.len() as u32;
+
+        metadata_writer.write_all(&dict_table_offset.to_le_bytes()).unwrap();
+        metadata_writer.write_all(&invalidation_vec_offset.to_le_bytes()).unwrap();
+        metadata_writer.write_all(&doc_infos_offset.to_le_bytes()).unwrap();
+
+        metadata_writer.write_all(&dict_string_ser).unwrap();
+        metadata_writer.write_all(&dict_table_ser).unwrap();
+        metadata_writer.write_all(&invalidation_vec_ser).unwrap();
+        metadata_writer.write_all(&doc_infos_ser).unwrap();
+
+        metadata_writer.flush().expect("Failed to flush metadata.json");
+    }
+
+    fn merge_blocks(&mut self, first_block: u32, last_block: u32, log_metadata_sizes: bool) {
         let num_blocks = last_block - first_block + 1;
 
         if self.is_incremental {
             self.incremental_info.delete_unencountered_external_ids();
-            self.incremental_info.write_invalidation_vec(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter);
-            self.flush_doc_infos(
-                &mut bitmap_docinfo_dicttable_writer,
+            let invalidation_vec_ser = self.incremental_info.write_invalidation_vec(self.doc_id_counter);
+            let doc_infos_ser = self.flush_doc_infos(
                 (self.doc_id_counter - self.incremental_info.num_deleted_docs) as f64,
             );
 
-            spimireader::incremental::modify_blocks(
+            let (dict_table, dict_string) = spimireader::incremental::modify_blocks(
                 self.is_deletion_only_run(),
                 num_blocks,
                 first_block,
@@ -453,14 +493,21 @@ impl Indexer {
                 &self.field_infos,
                 &self.tx_main,
                 &self.output_folder_path,
-                bitmap_docinfo_dicttable_writer,
                 &mut self.incremental_info,
             );
+            
+            self.flush_metadata(
+                invalidation_vec_ser,
+                doc_infos_ser,
+                dict_table,
+                dict_string,
+                log_metadata_sizes,
+            );
         } else {
-            self.incremental_info.write_invalidation_vec(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter);
-            self.flush_doc_infos(&mut bitmap_docinfo_dicttable_writer, self.doc_id_counter as f64);
+            let invalidation_vec_ser = self.incremental_info.write_invalidation_vec(self.doc_id_counter);
+            let doc_infos_ser = self.flush_doc_infos(self.doc_id_counter as f64);
 
-            spimireader::full::merge_blocks(
+            let (dict_table, dict_string) = spimireader::full::merge_blocks(
                 num_blocks,
                 first_block,
                 last_block,
@@ -468,8 +515,15 @@ impl Indexer {
                 &self.field_infos,
                 &self.tx_main,
                 &self.output_folder_path,
-                bitmap_docinfo_dicttable_writer,
                 &mut self.incremental_info,
+            );
+
+            self.flush_metadata(
+                invalidation_vec_ser,
+                doc_infos_ser,
+                dict_table,
+                dict_string,
+                log_metadata_sizes,
             );
         }
     }

@@ -2,11 +2,9 @@ use std::cmp::Ordering;
 
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::worker::miner::WorkerMinerDocInfo;
-use std::fs::File;
-use std::io::BufWriter;
 use std::io::Write;
 
-use morsels_common::BitmapDocinfoDicttableReader;
+use morsels_common::MetadataReader;
 use morsels_common::bitmap;
 
 #[derive(Debug)]
@@ -43,7 +41,7 @@ impl DocInfos {
     pub fn init_doc_infos(
         is_incremental: bool,
         num_scored_fields: usize,
-        bitmap_docinfo_dicttable: Option<&mut BitmapDocinfoDicttableReader>,
+        metadata_rdr: Option<&mut MetadataReader>,
     ) -> DocInfos {
         if !is_incremental {
             return DocInfos {
@@ -55,9 +53,9 @@ impl DocInfos {
 
         let mut doc_id_counter = 0;
         let mut average_lengths: Vec<f64> = Vec::new();
-        let bitmap_docinfo_dicttable = bitmap_docinfo_dicttable
-            .expect("dynamic_index_info.json exists but bitmap_docinfo_dicttable does not");
-        bitmap_docinfo_dicttable.read_docinfo_inital_metadata(
+        let metadata_rdr = metadata_rdr
+            .expect("dynamic_index_info.json exists but metadata.json does not");
+        metadata_rdr.read_docinfo_inital_metadata(
             &mut 0, &mut doc_id_counter, &mut average_lengths, num_scored_fields,
         );
 
@@ -70,7 +68,7 @@ impl DocInfos {
             };
 
             for _i in 0..num_scored_fields {
-                doc_info.field_lengths.push(bitmap_docinfo_dicttable.read_field_length());
+                doc_info.field_lengths.push(metadata_rdr.read_docinfo_field_length());
             }
 
             doc_lengths.push(doc_info);
@@ -91,7 +89,7 @@ impl DocInfos {
 
     fn calculate_field_average_lengths(
         &mut self,
-        writer: &mut BufWriter<std::fs::File>,
+        writer: &mut Vec<u8>,
         num_docs: u32,
         num_scored_fields: usize,
         incremental_info: &mut IncrementalIndexInfo,
@@ -115,11 +113,14 @@ impl DocInfos {
 
     pub fn finalize_and_flush(
         &mut self,
-        doc_info_writer: &mut BufWriter<File>,
         num_docs: u32,
         num_scored_fields: usize,
         incremental_info: &mut IncrementalIndexInfo,
-    ) {
+    ) -> Vec<u8> {
+        let mut doc_info_writer = Vec::with_capacity(
+            8 + num_scored_fields * 8 + num_scored_fields * self.doc_lengths.len()
+        );
+
         self.sort_and_merge_block_doclengths();
 
         doc_info_writer.write_all(&num_docs.to_le_bytes()).unwrap();
@@ -127,13 +128,17 @@ impl DocInfos {
         let doc_lengths_len = self.doc_lengths.len() as u32;
         doc_info_writer.write_all(&doc_lengths_len.to_le_bytes()).unwrap();
 
-        self.calculate_field_average_lengths(doc_info_writer, num_docs, num_scored_fields, incremental_info);
+        self.calculate_field_average_lengths(&mut doc_info_writer, num_docs, num_scored_fields, incremental_info);
 
         for worker_miner_doc_info in self.doc_lengths.iter() {
             for &field_length in worker_miner_doc_info.field_lengths.iter() {
                 doc_info_writer.write_all(&field_length.to_le_bytes()).unwrap();
             }
         }
+
+        doc_info_writer.flush().unwrap();
+
+        doc_info_writer
     }
 }
 

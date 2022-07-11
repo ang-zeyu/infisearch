@@ -1,5 +1,4 @@
-use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::Write;
 
 #[inline(always)]
 pub fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
@@ -21,14 +20,13 @@ pub fn get_common_unicode_prefix_byte_len(str1: &str, str2: &str) -> usize {
 }
 
 #[inline(always)]
-pub fn frontcode_and_store_term(prev_term: &str, curr_term: &str, dict_string_writer: &mut BufWriter<File>) {
+pub fn frontcode_and_store_term(prev_term: &str, curr_term: &str, dict_string_writer: &mut Vec<u8>) -> [u8; 2] {
     let unicode_prefix_byte_len = get_common_unicode_prefix_byte_len(prev_term, curr_term);
 
-    dict_string_writer
-        .write_all(&[
-            unicode_prefix_byte_len as u8,                     // Prefix length
-            (curr_term.len() - unicode_prefix_byte_len) as u8, // Remaining length
-        ])
-        .unwrap();
     dict_string_writer.write_all(&curr_term.as_bytes()[unicode_prefix_byte_len..]).unwrap();
+
+    [
+        unicode_prefix_byte_len as u8,                     // Prefix length
+        (curr_term.len() - unicode_prefix_byte_len) as u8, // Remaining length
+    ]
 }

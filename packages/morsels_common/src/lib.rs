@@ -8,20 +8,38 @@ pub mod postings_list;
 pub mod tokenize;
 pub mod utils;
 
-pub static FILE_EXT: &str = "json";
-pub static BITMAP_DOCINFO_DICT_TABLE_FILE: &str = "bitmap_docinfo_dicttable.json";
+use dictionary::Dictionary;
 
-pub struct BitmapDocinfoDicttableReader {
-    pub buf: Vec<u8>,
-    pub pos: usize,
+pub static FILE_EXT: &str = "json";
+pub static METADATA_FILE: &str = "metadata.json";
+
+pub struct MetadataReader {
+    buf: Vec<u8>,
+    dict_table_offset: usize,
+    invalidation_vec_offset: usize,
+    doc_infos_offset: usize,
+    doc_infos_pos: usize,
 }
 
-impl BitmapDocinfoDicttableReader {
-    pub fn read_invalidation_vec(&mut self, output: &mut Vec<u8>) {
-        let invalidation_vec_size = LittleEndian::read_u32(&self.buf) as usize;
-        self.pos += 4;
-        output.extend(&self.buf[self.pos..(self.pos + invalidation_vec_size)]);
-        self.pos += invalidation_vec_size;
+impl MetadataReader {
+    pub fn new(buf: Vec<u8>) -> Self {
+        let dict_table_offset = LittleEndian::read_u32(&buf) as usize;
+        let invalidation_vec_offset = LittleEndian::read_u32(&buf[4..]) as usize;
+        let doc_infos_offset = LittleEndian::read_u32(&buf[8..]) as usize;
+
+        MetadataReader {
+            buf,
+            dict_table_offset,
+            invalidation_vec_offset,
+            doc_infos_offset,
+            doc_infos_pos: 0,
+        }
+    }
+}
+
+impl MetadataReader {
+    pub fn get_invalidation_vec(&self, output: &mut Vec<u8>) {
+        output.extend(&self.buf[self.invalidation_vec_offset..self.doc_infos_offset]);
     }
 
     pub fn read_docinfo_inital_metadata(
@@ -30,26 +48,31 @@ impl BitmapDocinfoDicttableReader {
         average_lengths: &mut Vec<f64>,
         num_fields: usize,
     ) {
-        *num_docs = LittleEndian::read_u32(&self.buf[self.pos..]);
-        self.pos += 4;
-        *doc_id_counter = LittleEndian::read_u32(&self.buf[self.pos..]);
-        self.pos += 4;
+        self.doc_infos_pos = self.doc_infos_offset;
+
+        *num_docs = LittleEndian::read_u32(&self.buf[self.doc_infos_pos..]);
+        self.doc_infos_pos += 4;
+        *doc_id_counter = LittleEndian::read_u32(&self.buf[self.doc_infos_pos..]);
+        self.doc_infos_pos += 4;
 
         for _i in 0..num_fields {
-            average_lengths.push(LittleEndian::read_f64(&self.buf[self.pos..]));
-            self.pos += 8;
+            average_lengths.push(LittleEndian::read_f64(&self.buf[self.doc_infos_pos..]));
+            self.doc_infos_pos += 8;
         }
     }
 
     #[inline(always)]
-    pub fn read_field_length(&mut self) -> u32 {
-        let field_length = LittleEndian::read_u32(&self.buf[self.pos..]);
-        self.pos += 4;
+    pub fn read_docinfo_field_length(&mut self) -> u32 {
+        let field_length = LittleEndian::read_u32(&self.buf[self.doc_infos_pos..]);
+        self.doc_infos_pos += 4;
         field_length
     }
 
-    pub fn get_dicttable_slice(&self) -> &[u8] {
-        &self.buf[self.pos..]
+    pub fn setup_dictionary(&self) -> Dictionary {
+        dictionary::setup_dictionary(
+            &self.buf[self.dict_table_offset..self.invalidation_vec_offset],
+            &self.buf[12..self.dict_table_offset],
+        )
     }
 }
 

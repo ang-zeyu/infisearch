@@ -1,6 +1,4 @@
 use std::collections::BinaryHeap;
-use std::fs::File;
-use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
@@ -27,9 +25,8 @@ pub fn merge_blocks(
     field_infos: &Arc<FieldInfos>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
-    mut docinfo_dicttable_writer: BufWriter<File>,
     incremental_info: &mut IncrementalIndexInfo,
-) {
+) -> (Vec<u8>, Vec<u8>) {
     /*
     Merges the intermediate results written earlier.
     Each block of intermediate results is abstracted by a "postings stream".
@@ -65,7 +62,8 @@ pub fn merge_blocks(
     Sort and aggregate worker docIds into one vector
     */
 
-    let mut dict_string_writer = common::get_dictstring_writer(output_folder_path);
+    let mut dict_table_writer = Vec::with_capacity(1024);
+    let mut dict_string_writer = Vec::with_capacity(1024);
     let mut pl_writer = common::get_pl_writer(output_folder_path, 0, indexing_config.num_pls_per_dir);
 
     // Preallocate some things
@@ -105,7 +103,7 @@ pub fn merge_blocks(
         let start_pl_offset = common::write_new_term_postings(
             &mut curr_combined_term_docs,
             &mut varint_buf,
-            Some(&mut docinfo_dicttable_writer),
+            Some(&mut dict_table_writer),
             &mut curr_pl,
             &mut pl_writer,
             &mut curr_pl_offset,
@@ -120,9 +118,9 @@ pub fn merge_blocks(
         // ---------------------------------------------
         // Dictionary table writing: doc freq (var-int), pl offset (var-int)
 
-        docinfo_dicttable_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
+        dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
 
-        docinfo_dicttable_writer
+        dict_table_writer
             .write_all(varint::get_var_int(start_pl_offset - prev_pl_start_offset, &mut varint_buf))
             .unwrap();
         prev_pl_start_offset = start_pl_offset;
@@ -130,7 +128,8 @@ pub fn merge_blocks(
         // ---------------------------------------------
         // Dictionary string writing
 
-        terms::frontcode_and_store_term(&prev_term, &curr_term, &mut dict_string_writer);
+        let prefix_and_remaining_len = terms::frontcode_and_store_term(&prev_term, &curr_term, &mut dict_string_writer);
+        dict_table_writer.write_all(&prefix_and_remaining_len).unwrap();
 
         prev_term = curr_term;
 
@@ -139,12 +138,14 @@ pub fn merge_blocks(
 
     pl_writer.flush(curr_pl_offset, indexing_config.pl_cache_threshold, &mut incremental_info.pl_names_to_cache);
 
-    docinfo_dicttable_writer.flush().unwrap();
-    dict_string_writer.flush().unwrap();
-
     incremental_info.last_pl_number = if curr_pl_offset != 0 || curr_pl == 0 {
         curr_pl
     } else {
         curr_pl - 1
     };
+
+    dict_table_writer.flush().unwrap();
+    dict_string_writer.flush().unwrap();
+
+    (dict_table_writer, dict_string_writer)
 }

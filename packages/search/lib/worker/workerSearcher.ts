@@ -41,8 +41,7 @@ export default class WorkerSearcher {
     }
   }
 
-  private async _mrlSetupWasm(metadataDictString: [ArrayBuffer, ArrayBuffer], wasmModule: Promise<any>) {
-    const [metadata, dictString] = metadataDictString;
+  private async _mrlSetupWasm(metadata: ArrayBuffer, wasmModule: Promise<any>) {
     this._mrlWasmModule = await wasmModule;
 
     const {
@@ -111,7 +110,6 @@ export default class WorkerSearcher {
 
     this._mrlWasmSearcher = await this._mrlWasmModule.get_new_searcher(
       metadata,
-      dictString,
       indexingConfig.numPlsPerDir,
       indexingConfig.withPositions,
       lang,
@@ -132,8 +130,7 @@ export default class WorkerSearcher {
     const workerSearcher = new WorkerSearcher(data);
 
     const baseUrl = data.searcherOptions.url;
-    const metadataUrl = `${baseUrl}bitmap_docinfo_dicttable.json`;
-    const dictStringUrl = `${baseUrl}dictionary_string.json`;
+    const metadataUrl = `${baseUrl}metadata.json`;
 
     let cache: Cache;
     try {
@@ -142,22 +139,15 @@ export default class WorkerSearcher {
       // Cache API blocked / unsupported (e.g. firefox private)
     }
 
-    const metadataDictString = await Promise.all([
-      (cache
+    const metadata = await (
+      cache
         ? cache.match(metadataUrl)
           .then((resp) => !resp && cache.add(metadataUrl))
           .then(() => cache.match(metadataUrl))
         : fetch(metadataUrl)
-      ).then((resp) => resp.arrayBuffer()),
-      (cache
-        ? cache.match(dictStringUrl)
-          .then((resp) => !resp && cache.add(dictStringUrl))
-          .then(() => cache.match(dictStringUrl))
-        : fetch(dictStringUrl)
-      ).then((resp) => resp.arrayBuffer()),
-    ]);
+    ).then((resp) => resp.arrayBuffer());
 
-    await workerSearcher._mrlSetupWasm(metadataDictString, wasmModule);
+    await workerSearcher._mrlSetupWasm(metadata, wasmModule);
 
     return workerSearcher;
   }

@@ -6,7 +6,6 @@ use std::collections::BinaryHeap;
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io::BufReader;
-use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
@@ -15,7 +14,6 @@ use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 
 use morsels_common::FILE_EXT;
-use morsels_common::dictionary::{DICTIONARY_STRING_FILE_NAME};
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
@@ -77,13 +75,6 @@ pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u
     PlWriter { writer, pl: curr_pl }
 }
 
-pub fn get_dictstring_writer(output_folder_path: &Path) -> BufWriter<File> {
-    BufWriter::new(
-        File::create(Path::new(output_folder_path).join(DICTIONARY_STRING_FILE_NAME))
-            .expect("Failed to open final dictionary string for writing."),
-    )
-}
-
 #[allow(clippy::too_many_arguments)]
 pub fn initialise_postings_stream_readers(
     first_block: u32,
@@ -135,7 +126,7 @@ pub fn initialise_postings_stream_readers(
 pub fn write_new_term_postings(
     curr_combined_term_docs: &mut [TermDocsForMerge],
     varint_buf: &mut [u8],
-    dict_table_writer: Option<&mut BufWriter<File>>,
+    dict_table_writer: Option<&mut Vec<u8>>,
     curr_pl: &mut u32,
     pl_writer: &mut PlWriter,
     pl_offset: &mut u32,

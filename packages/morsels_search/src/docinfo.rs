@@ -1,4 +1,4 @@
-use morsels_common::BitmapDocinfoDicttableReader;
+use morsels_common::MetadataReader;
 
 pub struct DocInfo {
     pub doc_length_factors: Vec<f64>,
@@ -8,7 +8,7 @@ pub struct DocInfo {
 }
 
 impl DocInfo {
-    pub fn create(docinfo_rdr: &mut BitmapDocinfoDicttableReader, num_fields: usize) -> DocInfo {
+    pub fn create(docinfo_rdr: &mut MetadataReader, num_fields: usize) -> DocInfo {
         // num_docs =/= doc_length_factors.len() due to incremental indexing
         let mut num_docs = 0;
         let mut doc_id_counter = 0;
@@ -22,7 +22,7 @@ impl DocInfo {
             doc_id += 1;
 
             for avg_doc_length in avg_doc_lengths.iter() {
-                let field_length = docinfo_rdr.read_field_length() as f64;
+                let field_length = docinfo_rdr.read_docinfo_field_length() as f64;
                 doc_length_factors.push(field_length / *avg_doc_length);
             }
         }

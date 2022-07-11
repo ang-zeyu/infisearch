@@ -6,15 +6,13 @@ use smartstring::alias::String;
 use crate::tokenize::TermInfo;
 use crate::utils::varint;
 
-pub static DICTIONARY_STRING_FILE_NAME: &str = "dictionary_string.json";
-
 pub struct Dictionary {
     pub term_infos: BTreeMap<String, TermInfo>,
 }
 
 struct DictionaryConstructor<'a> {
     table_vec: &'a [u8],
-    string_vec: Vec<u8>,
+    string_vec: &'a [u8],
     postings_file_name: u32,
     postings_file_offset: u32,
     dict_string_pos: usize,
@@ -42,11 +40,11 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
 
         self.postings_file_offset += varint::decode_var_int(self.table_vec, &mut self.dict_table_pos);
 
-        let prefix_len = self.string_vec[self.dict_string_pos] as usize;
-        self.dict_string_pos += 1;
+        let prefix_len = self.table_vec[self.dict_table_pos] as usize;
+        self.dict_table_pos += 1;
 
-        let remaining_len = self.string_vec[self.dict_string_pos] as usize;
-        self.dict_string_pos += 1;
+        let remaining_len = self.table_vec[self.dict_table_pos] as usize;
+        self.dict_table_pos += 1;
 
         let term = String::from(&self.prev_term[..prefix_len])
             + unsafe {
@@ -73,7 +71,7 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
 
 pub fn setup_dictionary(
     table_vec: &[u8],
-    string_vec: Vec<u8>,
+    string_vec: &[u8],
 ) -> Dictionary {
     let term_infos = BTreeMap::from_iter(DictionaryConstructor {
         table_vec,
@@ -105,29 +103,25 @@ mod test {
 
     #[test]
     fn test_dictionary_setup() {
+        let mut string_vec = Vec::new();
+
         let dictionary = super::setup_dictionary(
                 // Format: doc freq var-int, then pl offset var-int
-            &[129, 127, 127, 131,
-                129, 127, 127, 131,
+            &[
+                129, 127, 127, 131, 0, 3,
+                129, 127, 127, 131, 3, 3,
                 128,                // doc freq 0 is a new pl file delimiter
-                129, 127, 127, 131,
-                129, 127, 127, 131],
+                129, 127, 127, 131, 0, 4,
+                129, 127, 127, 131, 2, 4,
+            ],
             {
-                let mut string_vec = Vec::new();
 
-                string_vec.extend(&[0, 3]);
                 string_vec.extend("foo".as_bytes());
-
-                string_vec.extend(&[3, 3]);
                 string_vec.extend("bar".as_bytes());
-
-                string_vec.extend(&[0, 4]);
+                string_vec.extend("test".as_bytes());
                 string_vec.extend("test".as_bytes());
 
-                string_vec.extend(&[2, 4]);
-                string_vec.extend("test".as_bytes());
-
-                string_vec
+                &string_vec
             },
         );
 

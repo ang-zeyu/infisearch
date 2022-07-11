@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Write, BufWriter};
+use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -9,8 +9,8 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use morsels_common::dictionary::{self, Dictionary, DICTIONARY_STRING_FILE_NAME};
-use morsels_common::{bitmap, BitmapDocinfoDicttableReader};
+use morsels_common::dictionary::Dictionary;
+use morsels_common::{bitmap, MetadataReader};
 
 use crate::{MORSELS_VERSION, i_debug};
 
@@ -87,7 +87,7 @@ impl IncrementalIndexInfo {
         json_config: &Value,
         is_incremental: &mut bool,
         use_content_hash: bool,
-        bitmap_docinfo_dicttable: Option<&mut BitmapDocinfoDicttableReader>,
+        metadata_rdr: Option<&mut MetadataReader>,
     ) -> IncrementalIndexInfo {
         if !*is_incremental {
             return IncrementalIndexInfo::empty(use_content_hash);
@@ -138,22 +138,15 @@ impl IncrementalIndexInfo {
         }
 
         // Invalidation vector
-        bitmap_docinfo_dicttable
-            .expect("dynamic_index_info.json exists but bitmap_docinfo_dicttable does not")
-            .read_invalidation_vec(&mut info.invalidation_vector);
+        metadata_rdr
+            .expect("dynamic_index_info.json exists but metadata.json does not")
+            .get_invalidation_vec(&mut info.invalidation_vector);
 
         info
     }
 
-    pub fn setup_dictionary(&mut self, output_folder_path: &Path, dicttable_rdr: &BitmapDocinfoDicttableReader) {
-        let dictionary_table_vec = dicttable_rdr.get_dicttable_slice();
-        let mut dictionary_string_vec: Vec<u8> = Vec::new();
-        File::open(output_folder_path.join(DICTIONARY_STRING_FILE_NAME))
-            .unwrap()
-            .read_to_end(&mut dictionary_string_vec)
-            .unwrap();
-
-        self.dictionary = dictionary::setup_dictionary(dictionary_table_vec, dictionary_string_vec);
+    pub fn setup_dictionary(&mut self, metadata_rdr: &MetadataReader) {
+        self.dictionary = metadata_rdr.setup_dictionary();
     }
 
     pub fn add_doc_to_file(&mut self, external_id: &str, doc_id: u32) {
@@ -281,14 +274,13 @@ impl IncrementalIndexInfo {
             .collect();
     }
 
-    pub fn write_invalidation_vec(&mut self, bitmap_writer: &mut BufWriter<File>, doc_id_counter: u32) {
+    pub fn write_invalidation_vec(&mut self, doc_id_counter: u32) -> Vec<u8> {
         let num_bytes = (doc_id_counter as f64 / 8.0).ceil() as usize;
         
         // Extend with the added documents
         self.invalidation_vector.extend(vec![0; num_bytes - self.invalidation_vector.len()]);
 
-        bitmap_writer.write_all(&(self.invalidation_vector.len() as u32).to_le_bytes()).unwrap();
-        bitmap_writer.write_all(&*self.invalidation_vector).unwrap();
+        self.invalidation_vector.clone()
     }
 
     fn update_file_hashes(&mut self, input_folder_path: &Path) {

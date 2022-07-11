@@ -7,9 +7,8 @@ mod futures;
 
 use byteorder::ByteOrder;
 use byteorder::LittleEndian;
-use morsels_common::BitmapDocinfoDicttableReader;
+use morsels_common::MetadataReader;
 use morsels_common::MorselsLanguageConfigOpts;
-use morsels_common::dictionary;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
@@ -88,8 +87,7 @@ fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer
 #[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_new_searcher(
-    bitmap_docinfo_dt_buf: JsValue,
-    dict_string_buf: JsValue,
+    metadata_buf: JsValue,
     num_pls_per_dir: u32,
     with_positions: bool,
     lang: String,
@@ -179,28 +177,22 @@ pub async fn get_new_searcher(
         }
     };
 
-    let bitmap_docinfo_dt = js_sys::Uint8Array::new(&bitmap_docinfo_dt_buf).to_vec();
-    let mut bitmap_docinfo_dt_rdr = BitmapDocinfoDicttableReader { buf: bitmap_docinfo_dt, pos: 0 };
+    let mut metadata_rdr = MetadataReader::new(
+        js_sys::Uint8Array::new(&metadata_buf).to_vec()
+    );
 
     let mut invalidation_vector = Vec::new();
-    bitmap_docinfo_dt_rdr.read_invalidation_vec(&mut invalidation_vector);
+    metadata_rdr.get_invalidation_vec(&mut invalidation_vector);
 
-    let doc_info = DocInfo::create(&mut bitmap_docinfo_dt_rdr, searcher_config.num_scored_fields);
+    let doc_info = DocInfo::create(&mut metadata_rdr, searcher_config.num_scored_fields);
 
     let tokenizer = get_tokenizer(&searcher_config.lang_config);
 
-    let string_vec = js_sys::Uint8Array::new(&dict_string_buf).to_vec();
-
-    let dictionary = dictionary::setup_dictionary(
-        bitmap_docinfo_dt_rdr.get_dicttable_slice(), string_vec,
-    );
+    let dictionary = metadata_rdr.setup_dictionary();
 
     #[cfg(feature = "perf")]
     {
-        web_sys::console::log_1(
-            &format!("Finished reading bitmap_docinfo_dt_rdr. Pos {} Len {}",
-            bitmap_docinfo_dt_rdr.pos, bitmap_docinfo_dt_rdr.buf.len(),
-        ).into());
+        web_sys::console::log_1(&format!("Finished reading metadata.").into());
         web_sys::console::log_1(
             &format!("Dictionary initial setup took {}, num terms {}",
             performance.now() - start, dictionary.term_infos.len(),
