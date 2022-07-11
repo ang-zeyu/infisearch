@@ -108,7 +108,7 @@ export default class WorkerSearcher {
       fieldInfosSerializedPos += 12;
     });
 
-    this._mrlWasmSearcher = await this._mrlWasmModule.get_new_searcher(
+    this._mrlWasmSearcher = this._mrlWasmModule.get_new_searcher(
       metadata,
       indexingConfig.numPlsPerDir,
       indexingConfig.withPositions,

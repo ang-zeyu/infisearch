@@ -86,7 +86,7 @@ fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer
 #[allow(clippy::too_many_arguments)]
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub async fn get_new_searcher(
+pub fn get_new_searcher(
     metadata_buf: JsValue,
     num_pls_per_dir: u32,
     with_positions: bool,
@@ -101,7 +101,7 @@ pub async fn get_new_searcher(
     use_query_term_proximity: bool,
     pl_lazy_cache_threshold: u32,
     result_limit: Option<u32>,
-) -> Result<Searcher, JsValue> {
+) -> Searcher {
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
     #[cfg(feature = "perf")]
@@ -208,14 +208,14 @@ pub async fn get_new_searcher(
         (searcher_config.num_scored_fields - 1) as f32
     };
 
-    Ok(Searcher {
+    Searcher {
         dictionary,
         tokenizer,
         doc_info,
         searcher_config,
         invalidation_vector,
         num_scored_fields_less_one
-    })
+    }
 }
 
 #[wasm_bindgen]
