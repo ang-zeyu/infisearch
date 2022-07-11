@@ -3,7 +3,11 @@ use std::cmp::Ordering;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use morsels_common::postings_list::{LAST_FIELD_MASK, SHORT_FORM_MASK};
+use morsels_common::bitmap::read_bits_from;
+use morsels_common::postings_list::{
+    LAST_FIELD_MASK, SHORT_FORM_MASK,
+    MIN_CHUNK_SIZE, CHUNK_SIZE,
+};
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
@@ -274,12 +278,42 @@ impl PostingsList {
                 };
 
                 let field_positions = if with_positions {
+                    /*
+                     Positions are encoded with one of 2 schemes. See PostingsStreamReader.
+                     */
                     let mut field_positions = Vec::with_capacity(field_tf as usize);
 
-                    let mut prev_pos = 0;
-                    for _j in 0..field_tf {
-                        prev_pos += decode_var_int(&pl_vec, &mut pos);
-                        field_positions.push(prev_pos);
+                    if field_tf >= MIN_CHUNK_SIZE {
+                        let mut bit_pos = 0;
+
+                        let num_chunks = (field_tf / CHUNK_SIZE)
+                            + if field_tf % CHUNK_SIZE == 0 { 0 } else { 1 };
+
+                        let slice_starting_here = &pl_vec[pos..];
+                        let mut prev_pos = 0;
+                        let mut read = 0;
+                        for _chunk in 0..num_chunks {
+                            // Read position length in this chunk
+                            let chunk_len = read_bits_from(&mut bit_pos, 5, slice_starting_here) as usize;
+
+                            for _i in 0..CHUNK_SIZE {
+                                prev_pos += read_bits_from(&mut bit_pos, chunk_len, slice_starting_here);
+                                field_positions.push(prev_pos);
+
+                                read += 1;
+                                if read == field_tf {
+                                    break;
+                                }
+                            }
+                        }
+
+                        pos += (bit_pos / 8) + if bit_pos % 8 == 0 { 0 } else { 1 };
+                    } else {
+                        let mut prev_pos = 0;
+                        for _j in 0..field_tf {
+                            prev_pos += decode_var_int(&pl_vec, &mut pos);
+                            field_positions.push(prev_pos);
+                        }
                     }
 
                     field_positions

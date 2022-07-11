@@ -5,11 +5,17 @@ use std::io::Read;
 use std::str;
 use std::sync::Arc;
 
+use bitvec::prelude::*;
+use bitvec::order::Msb0;
+use bitvec::view::BitView;
 use byteorder::{ByteOrder, LittleEndian};
 use crossbeam::channel::Sender;
 use dashmap::DashMap;
 
-use morsels_common::postings_list::{LAST_FIELD_MASK, SHORT_FORM_MASK};
+use morsels_common::postings_list::{
+    LAST_FIELD_MASK, SHORT_FORM_MASK,
+    MIN_CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE_USIZE,
+};
 
 use super::{PostingsStreamDecoder, TermDocsForMerge};
 use crate::docinfo::DocInfos;
@@ -48,6 +54,7 @@ impl PostingsStreamReader {
         u8_buf: &mut [u8; 1],
         u32_buf: &mut [u8; 4],
         with_positions: bool,
+        packed_positions_writer: &mut BitVec<u8, Msb0>,
         num_scored_fields: usize,
      ) {
         pl_reader.read_exact(u8_buf).unwrap();
@@ -60,6 +67,7 @@ impl PostingsStreamReader {
                 u8_buf, u32_buf,
                 false,
                 with_positions,
+                packed_positions_writer,
                 num_scored_fields,
             );
         }
@@ -71,6 +79,7 @@ impl PostingsStreamReader {
             u32_buf,
             true,
             with_positions,
+            packed_positions_writer,
             num_scored_fields
         );
     }
@@ -83,6 +92,7 @@ impl PostingsStreamReader {
         u32_buf: &mut [u8; 4],
         is_last: bool,
         with_positions: bool,
+        packed_positions_writer: &mut BitVec<u8, Msb0>,
         num_scored_fields: usize,
     ) {
         pl_reader.read_exact(u8_buf).unwrap();
@@ -125,12 +135,71 @@ impl PostingsStreamReader {
         */
 
         if with_positions {
-            let mut prev_pos = 0;
-            for _k in 0..field_tf {
-                pl_reader.read_exact(u32_buf).unwrap();
-                let curr_pos = LittleEndian::read_u32(u32_buf);
-                varint::get_var_int_vec(curr_pos - prev_pos, combined_var_ints);
-                prev_pos = curr_pos;
+            /*
+             For positions, a 1. hybrid block-compression OR 2. variable integer scheme is employed.
+
+             In both instances, positions are delta-encoded.
+
+             1. Positions are split into chunks. Next, the maximum value in each chunk is found,
+                along with the minimum number of bits to encode that value.
+                The minimum number of bits is written, along with the positions, in a bitwise manner.
+             2. Positions are simply bytewise-variable-integer encoded.
+            */
+
+            if field_tf >= MIN_CHUNK_SIZE {
+                let mut gaps: [u32; CHUNK_SIZE_USIZE] = [0; CHUNK_SIZE_USIZE];
+
+                let mut chunk_max = 0;
+                
+                packed_positions_writer.clear();
+
+                let mut prev_pos = 0;
+                for k in 0..field_tf {
+                    let idx = (k % CHUNK_SIZE) as usize;
+
+                    pl_reader.read_exact(u32_buf).unwrap();
+                    let curr_pos = LittleEndian::read_u32(u32_buf);
+                    gaps[idx] = curr_pos - prev_pos;
+                    prev_pos = curr_pos;
+
+                    chunk_max = chunk_max.max(gaps[idx]);
+
+                    if (idx + 1) % CHUNK_SIZE_USIZE == 0 {
+                        let min_bits = (chunk_max as f64).log2() as u8 + 1;
+
+                        packed_positions_writer.extend(&min_bits.view_bits::<Msb0>()[3..]);
+                        
+                        let from = 32 - min_bits as usize;
+                        for gap in gaps {
+                            packed_positions_writer.extend(&gap.view_bits::<Msb0>()[from..]);
+                        }
+
+                        chunk_max = 0;
+                    }
+                }
+                
+                let last_chunk = field_tf % CHUNK_SIZE;
+                if last_chunk > 0 {
+                    let min_bits = (chunk_max as f64).log2() as u8 + 1;
+
+                    packed_positions_writer.extend(&min_bits.view_bits::<Msb0>()[3..]);
+                    
+                    let from = 32 - min_bits as usize;
+                    for gap in &gaps[..last_chunk as usize] {
+                        packed_positions_writer.extend(&gap.view_bits::<Msb0>()[from..]);
+                    }
+                }
+
+                combined_var_ints.extend(packed_positions_writer.as_raw_slice());
+            } else {
+                let mut prev_pos = 0;
+                
+                for _k in 0..field_tf {
+                    pl_reader.read_exact(u32_buf).unwrap();
+                    let curr_pos = LittleEndian::read_u32(u32_buf);
+                    varint::get_var_int_vec(curr_pos - prev_pos, combined_var_ints);
+                    prev_pos = curr_pos;
+                }
             }
         }
     }
@@ -144,6 +213,8 @@ impl PostingsStreamReader {
     ) {
         let mut u32_buf: [u8; 4] = [0; 4];
         let mut u8_buf: [u8; 1] = [0; 1];
+
+        let mut packed_positions_writer: BitVec<u8, Msb0> = BitVec::with_capacity(8 * 32);
 
         let pl_reader = &mut self.buffered_reader;
 
@@ -176,6 +247,7 @@ impl PostingsStreamReader {
                     &mut u8_buf,
                     &mut u32_buf,
                     with_positions,
+                    &mut packed_positions_writer,
                     self.num_scored_fields,
                 );
 
@@ -190,7 +262,8 @@ impl PostingsStreamReader {
                         &mut combined_var_ints,
                         &mut u8_buf,
                         &mut u32_buf,
-                        with_positions, 
+                        with_positions,
+                        &mut packed_positions_writer,
                         self.num_scored_fields,
                     );
                 }

@@ -14,7 +14,10 @@ use smartstring::LazyCompact;
 use smartstring::SmartString;
 
 use morsels_common::{bitmap, FILE_EXT};
-use morsels_common::postings_list::{LAST_FIELD_MASK, SHORT_FORM_MASK};
+use morsels_common::postings_list::{
+    LAST_FIELD_MASK, SHORT_FORM_MASK,
+    MIN_CHUNK_SIZE, CHUNK_SIZE,
+};
 use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::varint::decode_var_int;
 
@@ -82,9 +85,36 @@ impl ExistingPlWriter {
                 };
 
                 if self.with_positions {
-                    for _j in 0..field_tf {
-                        // Not interested in positions here, just decode and forward pos
-                        decode_var_int(&self.pl_vec, &mut pl_vec_pos);
+                    // Not interested in positions here, just decode and forward pos
+
+                    if field_tf >= MIN_CHUNK_SIZE {
+                        let mut bit_pos = 0;
+
+                        let num_chunks = (field_tf / CHUNK_SIZE)
+                            + if field_tf % CHUNK_SIZE == 0 { 0 } else { 1 };
+                            
+                        let slice_starting_here = &self.pl_vec[pl_vec_pos..];
+
+                        let mut read = 0;
+                        for _chunk in 0..num_chunks {
+                            // Read position length in this chunk
+                            let chunk_len = bitmap::read_bits_from(&mut bit_pos, 5, slice_starting_here) as usize;
+
+                            for _i in 0..CHUNK_SIZE {
+                                bit_pos += chunk_len;
+
+                                read += 1;
+                                if read == field_tf {
+                                    break;
+                                }
+                            }
+                        }
+
+                        pl_vec_pos += (bit_pos / 8) + if bit_pos % 8 == 0 { 0 } else { 1 };
+                    } else {
+                        for _j in 0..field_tf {
+                            decode_var_int(&self.pl_vec, &mut pl_vec_pos);
+                        }
                     }
                 }
             }
