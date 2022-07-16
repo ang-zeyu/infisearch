@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
 use crate::incremental_info::IncrementalIndexInfo;
+use crate::utils::varint;
 use crate::worker::miner::WorkerMinerDocInfo;
 use std::io::Write;
 
@@ -132,7 +133,7 @@ impl DocInfos {
 
         for worker_miner_doc_info in self.doc_lengths.iter() {
             for &field_length in worker_miner_doc_info.field_lengths.iter() {
-                doc_info_writer.write_all(&field_length.to_le_bytes()).unwrap();
+                varint::get_var_int_vec(field_length, &mut doc_info_writer);
             }
         }
 

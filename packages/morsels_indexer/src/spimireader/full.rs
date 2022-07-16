@@ -3,6 +3,8 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
+use bitvec::order::Msb0;
+use bitvec::prelude::BitVec;
 use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 
@@ -13,7 +15,7 @@ use crate::i_debug;
 use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
-use crate::utils::varint;
+use crate::spimireader::dict_table_writer;
 use crate::worker::MainToWorkerMessage;
 
 #[allow(clippy::too_many_arguments)]
@@ -26,7 +28,7 @@ pub fn merge_blocks(
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
     incremental_info: &mut IncrementalIndexInfo,
-) -> (Vec<u8>, Vec<u8>) {
+) -> (BitVec<u8, Msb0>, Vec<u8>) {
     /*
     Merges the intermediate results written earlier.
     Each block of intermediate results is abstracted by a "postings stream".
@@ -62,7 +64,7 @@ pub fn merge_blocks(
     Sort and aggregate worker docIds into one vector
     */
 
-    let mut dict_table_writer = Vec::with_capacity(1024);
+    let mut dict_table_writer = dict_table_writer::new();
     let mut dict_string_writer = Vec::with_capacity(1024);
     let mut pl_writer = common::get_pl_writer(output_folder_path, 0, indexing_config.num_pls_per_dir);
 
@@ -118,18 +120,18 @@ pub fn merge_blocks(
         // ---------------------------------------------
         // Dictionary table writing: doc freq (var-int), pl offset (var-int)
 
-        dict_table_writer.write_all(varint::get_var_int(doc_freq, &mut varint_buf)).unwrap();
+        dict_table_writer.write_doc_freq(doc_freq);
 
-        dict_table_writer
-            .write_all(varint::get_var_int(start_pl_offset - prev_pl_start_offset, &mut varint_buf))
-            .unwrap();
+        dict_table_writer.write_pl_offset(start_pl_offset - prev_pl_start_offset);
+
         prev_pl_start_offset = start_pl_offset;
 
         // ---------------------------------------------
         // Dictionary string writing
 
-        let prefix_and_remaining_len = terms::frontcode_and_store_term(&prev_term, &curr_term, &mut dict_string_writer);
-        dict_table_writer.write_all(&prefix_and_remaining_len).unwrap();
+        let (prefix_len, remaining_len) = terms::frontcode_and_store_term(&prev_term, &curr_term, &mut dict_string_writer);
+        dict_table_writer.write_prefix_len(prefix_len);
+        dict_table_writer.write_term_len(remaining_len);
 
         prev_term = curr_term;
 
@@ -144,8 +146,7 @@ pub fn merge_blocks(
         curr_pl - 1
     };
 
-    dict_table_writer.flush().unwrap();
     dict_string_writer.flush().unwrap();
 
-    (dict_table_writer, dict_string_writer)
+    (dict_table_writer.flush(), dict_string_writer)
 }

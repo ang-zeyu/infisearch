@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use morsels_common::bitmap::read_bits_from;
+use morsels_common::packed_var_int::read_bits_from;
 use morsels_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
     MIN_CHUNK_SIZE, CHUNK_SIZE,

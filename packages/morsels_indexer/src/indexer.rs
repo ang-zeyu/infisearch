@@ -11,7 +11,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Instant;
 
-use log::{info, warn};
 use morsels_common::tokenize::IndexerTokenizer;
 use morsels_common::{MorselsLanguageConfig, METADATA_FILE, MetadataReader};
 use morsels_lang_ascii::ascii;
@@ -27,7 +26,10 @@ use crate::loader::LoaderBoxed;
 use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
+use bitvec::order::Msb0;
+use bitvec::prelude::BitVec;
 use crossbeam::channel::{self, Receiver, Sender};
+use log::{info, warn};
 
 pub struct Indexer {
     indexing_config: Arc<MorselsIndexingConfig>,
@@ -430,7 +432,7 @@ impl Indexer {
         &self,
         invalidation_vec_ser: Vec<u8>,
         doc_infos_ser: Vec<u8>,
-        dict_table_ser: Vec<u8>,
+        dict_table_ser: BitVec<u8, Msb0>,
         dict_string_ser: Vec<u8>,
         log_sizes: bool,
     ) {
@@ -438,6 +440,8 @@ impl Indexer {
         let mut metadata_writer = BufWriter::new(
             File::create(metadata_file).unwrap()
         );
+
+        let dict_table_ser: &[u8] = dict_table_ser.as_raw_slice();
     
         /*
          Store the dictionary string first for better gzip compression,

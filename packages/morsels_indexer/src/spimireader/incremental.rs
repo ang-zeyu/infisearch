@@ -5,6 +5,8 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use bitvec::order::Msb0;
+use bitvec::prelude::BitVec;
 use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 use rustc_hash::FxHashMap;
@@ -12,6 +14,7 @@ use smartstring::LazyCompact;
 use smartstring::SmartString;
 
 use morsels_common::{bitmap, FILE_EXT};
+use morsels_common::packed_var_int::read_bits_from;
 use morsels_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
     MIN_CHUNK_SIZE, CHUNK_SIZE,
@@ -25,6 +28,7 @@ use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::spimireader::common::{
     self, postings_stream::PostingsStream, terms, PostingsStreamDecoder, TermDocsForMerge,
 };
+use crate::spimireader::dict_table_writer::{self, DictTableWriter};
 use crate::utils::varint;
 use crate::worker::MainToWorkerMessage;
 
@@ -95,7 +99,7 @@ impl ExistingPlWriter {
                         let mut read = 0;
                         for _chunk in 0..num_chunks {
                             // Read position length in this chunk
-                            let chunk_len = bitmap::read_bits_from(&mut bit_pos, 5, slice_starting_here) as usize;
+                            let chunk_len = read_bits_from(&mut bit_pos, 5, slice_starting_here) as usize;
 
                             for _i in 0..CHUNK_SIZE {
                                 bit_pos += chunk_len;
@@ -178,7 +182,7 @@ pub fn modify_blocks(
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
     incremental_info: &mut IncrementalIndexInfo,
-) -> (Vec<u8>, Vec<u8>) {
+) -> (BitVec<u8, Msb0>, Vec<u8>) {
     let mut postings_streams: BinaryHeap<PostingsStream> = BinaryHeap::new();
     let postings_stream_decoders: Arc<DashMap<u32, PostingsStreamDecoder>> =
         Arc::from(DashMap::with_capacity(num_blocks as usize));
@@ -198,7 +202,7 @@ pub fn modify_blocks(
         );
     }
 
-    let mut dict_table_writer = Vec::with_capacity(1024);
+    let mut dict_table_writer = dict_table_writer::new();
 
     // Preallocate some things
     let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);
@@ -322,25 +326,25 @@ pub fn modify_blocks(
         Ordering::Less => Ordering::Less,
     });
 
-    let mut term_terminfo_pairs: Vec<(SmartString<LazyCompact>, TermInfo, [u8; 2])> = Vec::new();
+    let mut term_terminfo_pairs: Vec<(SmartString<LazyCompact>, TermInfo, (u8, u8))> = Vec::new();
 
     fn commit_pairs(
-        dict_table_writer: &mut Vec<u8>,
-        varint_buf: &mut [u8],
-        term_terminfo_pairs: &mut Vec<(SmartString<LazyCompact>, TermInfo, [u8; 2])>,
+        dict_table_writer: &mut DictTableWriter,
+        term_terminfo_pairs: &mut Vec<(SmartString<LazyCompact>, TermInfo, (u8, u8))>,
         prev_offset: &mut u32,
         curr_existing_pl_difference: i32,
     ) {
-        for (_term, term_info, prefix_and_remaining_len) in term_terminfo_pairs.iter_mut() {
-            dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, varint_buf)).unwrap();
+        for (_term, term_info, (prefix_len, remaining_len)) in term_terminfo_pairs.iter_mut() {
+            dict_table_writer.write_doc_freq(term_info.doc_freq);
 
             let pl_offset = (term_info.postings_file_offset as i32 + curr_existing_pl_difference) as u32;
 
-            dict_table_writer.write_all(varint::get_var_int(pl_offset - *prev_offset, varint_buf)).unwrap();
+            dict_table_writer.write_pl_offset(pl_offset - *prev_offset);
 
             *prev_offset = pl_offset;
 
-            dict_table_writer.write_all(prefix_and_remaining_len).unwrap();
+            dict_table_writer.write_prefix_len(*prefix_len);
+            dict_table_writer.write_term_len(*remaining_len);
         }
         term_terminfo_pairs.clear();
     }
@@ -352,13 +356,12 @@ pub fn modify_blocks(
         if prev_dict_pl != term_info.postings_file_name {
             commit_pairs(
                 &mut dict_table_writer,
-                &mut varint_buf,
                 &mut term_terminfo_pairs,
                 &mut prev_offset,
                 if let Some(diff) = pl_file_length_differences.get(&prev_dict_pl) { *diff } else { 0 },
             );
 
-            dict_table_writer.write_all(&[128_u8]).unwrap();
+            dict_table_writer.write_doc_freq(0);
             prev_offset = 0;
             prev_dict_pl = term_info.postings_file_name;
         }
@@ -366,25 +369,18 @@ pub fn modify_blocks(
         if let Some(updated_term_info) = term_info_updates.get(&prev_term[..]) {
             commit_pairs(
                 &mut dict_table_writer,
-                &mut varint_buf,
                 &mut term_terminfo_pairs,
                 &mut prev_offset,
                 updated_term_info.postings_file_offset as i32 - term_info.postings_file_offset as i32,
             );
 
-            dict_table_writer
-                .write_all(varint::get_var_int(updated_term_info.doc_freq, &mut varint_buf))
-                .unwrap();
-            dict_table_writer
-                .write_all(varint::get_var_int(
-                    updated_term_info.postings_file_offset - prev_offset,
-                    &mut varint_buf,
-                ))
-                .unwrap();
+            dict_table_writer.write_doc_freq(updated_term_info.doc_freq);
+            dict_table_writer.write_pl_offset(updated_term_info.postings_file_offset - prev_offset);
 
             prev_offset = updated_term_info.postings_file_offset;
 
-            dict_table_writer.write_all(&prefix_and_remaining_len).unwrap();
+            dict_table_writer.write_prefix_len(prefix_and_remaining_len.0);
+            dict_table_writer.write_term_len(prefix_and_remaining_len.1);
         } else {
             term_terminfo_pairs.push((prev_term.clone(), term_info, prefix_and_remaining_len));
         }
@@ -393,7 +389,6 @@ pub fn modify_blocks(
     if !term_terminfo_pairs.is_empty() {
         commit_pairs(
             &mut dict_table_writer,
-            &mut varint_buf,
             &mut term_terminfo_pairs,
             &mut prev_offset,
             if let Some(diff) = pl_file_length_differences.get(&prev_dict_pl) { *diff } else { 0 },
@@ -414,19 +409,18 @@ pub fn modify_blocks(
         prev_term = term;
 
         if prev_dict_pl != term_info.postings_file_name {
-            dict_table_writer.write_all(&[128_u8]).unwrap();
+            dict_table_writer.write_doc_freq(0);
             prev_offset = 0;
             prev_dict_pl = term_info.postings_file_name;
         }
 
-        dict_table_writer.write_all(varint::get_var_int(term_info.doc_freq, &mut varint_buf)).unwrap();
-        dict_table_writer
-            .write_all(varint::get_var_int(term_info.postings_file_offset - prev_offset, &mut varint_buf))
-            .unwrap();
+        dict_table_writer.write_doc_freq(term_info.doc_freq);
+        dict_table_writer.write_pl_offset(term_info.postings_file_offset - prev_offset);
 
         prev_offset = term_info.postings_file_offset;
 
-        dict_table_writer.write_all(&prefix_and_remaining_len).unwrap();
+        dict_table_writer.write_prefix_len(prefix_and_remaining_len.0);
+        dict_table_writer.write_term_len(prefix_and_remaining_len.1);
     }
 
     incremental_info.last_pl_number = if new_pls_offset != 0 || new_pl == 0 {
@@ -437,5 +431,5 @@ pub fn modify_blocks(
 
     dict_string_writer.flush().unwrap();
 
-    (dict_table_writer, dict_string_writer)
+    (dict_table_writer.flush(), dict_string_writer)
 }

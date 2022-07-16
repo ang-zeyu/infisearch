@@ -3,20 +3,23 @@ use std::iter::FromIterator;
 
 use smartstring::alias::String;
 
+use crate::packed_var_int::PackedVarIntReader;
 use crate::tokenize::TermInfo;
-use crate::utils::varint;
+
+pub const DICT_MAX_BIT_LENS: [usize; 4] = [5, 5, 3, 3];
+pub const DICT_MAX_VALUES: [usize; 4] = [4, 4, 8, 8];
+pub const DICT_MAX_VALUES_U8: [u8; 4] = [4, 4, 8, 8];
 
 pub struct Dictionary {
     pub term_infos: BTreeMap<String, TermInfo>,
 }
 
 struct DictionaryConstructor<'a> {
-    table_vec: &'a [u8],
+    table_rdr: PackedVarIntReader<'a, 4>,
     string_vec: &'a [u8],
     postings_file_name: u32,
     postings_file_offset: u32,
     dict_string_pos: usize,
-    dict_table_pos: usize,
     prev_term: String,
 }
 
@@ -25,26 +28,23 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
     type Item = (String, TermInfo);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.dict_table_pos >= self.table_vec.len() {
+        if self.dict_string_pos >= self.string_vec.len() {
             return None;
         }
 
-        let mut doc_freq = varint::decode_var_int(self.table_vec, &mut self.dict_table_pos);
+        let mut doc_freq = self.table_rdr.read_type(0);
 
         // new postings list delimiter
         if doc_freq == 0 {
             self.postings_file_name += 1;
             self.postings_file_offset = 0;
-            doc_freq = varint::decode_var_int(self.table_vec, &mut self.dict_table_pos);
+            doc_freq = self.table_rdr.read_type(0);
         }
 
-        self.postings_file_offset += varint::decode_var_int(self.table_vec, &mut self.dict_table_pos);
+        self.postings_file_offset += self.table_rdr.read_type(1);
 
-        let prefix_len = self.table_vec[self.dict_table_pos] as usize;
-        self.dict_table_pos += 1;
-
-        let remaining_len = self.table_vec[self.dict_table_pos] as usize;
-        self.dict_table_pos += 1;
+        let prefix_len = self.table_rdr.read_type(2) as usize;
+        let remaining_len = self.table_rdr.read_type(3) as usize;
 
         let term = String::from(&self.prev_term[..prefix_len])
             + unsafe {
@@ -73,13 +73,18 @@ pub fn setup_dictionary(
     table_vec: &[u8],
     string_vec: &[u8],
 ) -> Dictionary {
-    let term_infos = BTreeMap::from_iter(DictionaryConstructor {
+    let table_rdr = PackedVarIntReader::<4>::new(
         table_vec,
+        DICT_MAX_BIT_LENS,
+        DICT_MAX_VALUES_U8,
+    );
+
+    let term_infos = BTreeMap::from_iter(DictionaryConstructor {
+        table_rdr,
         string_vec,
         postings_file_name: 0,
         postings_file_offset: 0,
         dict_string_pos: 0,
-        dict_table_pos: 0,
         prev_term: String::from(""),
     });
 
@@ -106,13 +111,18 @@ mod test {
         let mut string_vec = Vec::new();
 
         let dictionary = super::setup_dictionary(
-                // Format: doc freq var-int, then pl offset var-int
+            /*
+             Format: doc freq, then pl offset, then prefix len, term len,
+             all as packed variable integers (see dict_table_writer)
+
+             00000_1_01__111_11111__11111111__111_001_00___010_011
+             1_1__11111111__1111111_1__1_011
+             0                                                // doc freq 0 is a new pl file delimiter
+             1_11__11111111__111111_00___100
+             00000___1_1111111__11111111__1_10_100
+             */
             &[
-                129, 127, 127, 131, 0, 3,
-                129, 127, 127, 131, 3, 3,
-                128,                // doc freq 0 is a new pl file delimiter
-                129, 127, 127, 131, 0, 4,
-                129, 127, 127, 131, 2, 4,
+                5, 255, 255, 228, 79, 255, 255, 183, 255, 252, 128, 255, 255, 208
             ],
             {
 

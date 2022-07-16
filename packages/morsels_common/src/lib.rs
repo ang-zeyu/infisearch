@@ -4,11 +4,13 @@ use serde::{Serialize, Deserialize};
 
 pub mod bitmap;
 pub mod dictionary;
+pub mod packed_var_int;
 pub mod postings_list;
 pub mod tokenize;
 pub mod utils;
 
 use dictionary::Dictionary;
+use utils::varint;
 
 pub static FILE_EXT: &str = "json";
 pub static METADATA_FILE: &str = "metadata.json";
@@ -63,9 +65,7 @@ impl MetadataReader {
 
     #[inline(always)]
     pub fn read_docinfo_field_length(&mut self) -> u32 {
-        let field_length = LittleEndian::read_u32(&self.buf[self.doc_infos_pos..]);
-        self.doc_infos_pos += 4;
-        field_length
+        varint::decode_var_int(&self.buf, &mut self.doc_infos_pos)
     }
 
     pub fn setup_dictionary(&self) -> Dictionary {
