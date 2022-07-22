@@ -354,22 +354,22 @@
     color: var(--morsels-title-fg);
     line-height: 1.4em;
     word-break: break-word;
-    padding: 3px 7px 2px 7px;
+    padding: 3px 7px 1px;
     background: var(--morsels-title-bg);
-    font-size: 1.01em;
-    font-weight: 600;
+    font-size: 1.0em;
+    font-weight: 500;
 }
 
 @media (hover: hover) {
     .morsels-list-item:hover .morsels-title {
-        transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
+        transition: background 0.1s ease-in-out, color 0.1s ease-in-out, border-bottom 0.1s ease-in-out;
         color: var(--morsels-title-hover-fg);
         background: var(--morsels-title-hover-bg);
     }
 }
 
 .morsels-title:active {
-    transition: background 0.2s ease-in, color 0.2s ease-in;
+    transition: background 0.2s ease-in, color 0.2s ease-in, border-bottom 0.2s ease-in;
 }
 
 .morsels-title:active,
@@ -387,9 +387,9 @@
 .morsels-heading {
     width: 28%;
     max-width: 160px;
-    font-size: 0.96em;
+    font-size: 0.93em;
     word-break: break-word;
-    padding: 3px 3px 4px 7px;
+    padding: 5px 5px 4px 8px;
     display: inline-block;
     line-height: 1.3em;
     vertical-align: top;
@@ -425,7 +425,7 @@
     line-height: 1.2em;
     word-break: break-word;
     grid-column-start: 2;
-    padding: 4px 5px 4px 7px;
+    padding: 6px 5px 4px 8px;
     color: var(--morsels-body-fg);
     background: var(--morsels-body-bg);
 }
