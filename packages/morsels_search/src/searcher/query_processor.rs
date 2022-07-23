@@ -194,7 +194,7 @@ impl Searcher {
             return Rc::new(new_pl);
         }
 
-        let mut child_postings_lists = self.populate_postings_lists(
+        let mut child_postings_lists = self.populate_pls(
             query_part.children.as_mut().unwrap(),
             term_postings_lists,
         );
@@ -282,7 +282,7 @@ impl Searcher {
         result_pl.include_in_proximity_ranking = false;
 
         let mut not_child_postings_lists =
-            self.populate_postings_lists(query_part.children.as_mut().unwrap(), term_postings_lists);
+            self.populate_pls(query_part.children.as_mut().unwrap(), term_postings_lists);
 
         let mut prev = 0;
         if !not_child_postings_lists.is_empty() {
@@ -358,7 +358,7 @@ impl Searcher {
         }
     }
 
-    fn populate_postings_lists(
+    pub fn populate_pls(
         &self,
         query_parts: &mut Vec<QueryPart>,
         term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
@@ -414,6 +414,7 @@ impl Searcher {
         result
     }
 
+    #[cfg(test)]
     pub fn process(
         &self,
         query_parts: &mut Vec<QueryPart>,
@@ -422,7 +423,7 @@ impl Searcher {
         let term_rc_postings_lists: Vec<(String, Rc<PostingsList>)> =
             term_postings_lists.into_iter().map(|(term, pl)| (term, Rc::new(pl))).collect();
 
-        self.populate_postings_lists(query_parts, &term_rc_postings_lists)
+        self.populate_pls(query_parts, &term_rc_postings_lists)
     }
 }
 

@@ -1,4 +1,8 @@
+use std::rc::Rc;
+
 use morsels_common::utils::idf::get_idf;
+use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::dictionary::SearchDictionary;
 use crate::postings_list::{self, PostingsList};
@@ -121,26 +125,113 @@ num_desired_expanded_terms,
     }
 
     pub async fn retrieve_term_pls(
-        &self,
+        &mut self,
         query_parts: &mut Vec<QueryPart>,
-    ) -> Vec<(String, PostingsList)> {
+    ) -> Vec<(String, Rc<PostingsList>)> {
         let mut postings_lists: Vec<(String, PostingsList)> = Vec::new();
-        self.populate_term_postings_lists(query_parts, &mut postings_lists);
 
+        self.populate_term_postings_lists(query_parts, &mut postings_lists);
         self.expand_term_postings_lists(query_parts, &mut postings_lists);
 
-        join_all(postings_lists.iter_mut().map(|(_, pl)| {
-            pl.fetch_term(
+        let mut pl_numbers: Vec<u32> = postings_lists.iter()
+            .filter_map(|(_term, pl)| {
+                if let Some(term_info) = &pl.term_info {
+                    Some(term_info.postings_file_name)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // --------------------------------------------
+        // Dedup
+
+        if pl_numbers.len() > 1 {
+            for i in (1..pl_numbers.len()).rev() {
+                if pl_numbers[..i].contains(&pl_numbers[i]) {
+                    pl_numbers.remove(i);
+                }
+            }
+        }
+
+        // --------------------------------------------
+        
+        let parsed_postings_lists = join_all(
+            pl_numbers.into_iter()
+                .map(|pl_num| {
+                    let mut curr_pl_num_pls = Vec::new();
+
+                    for i in (0..postings_lists.len()).rev() {
+                        if let Some(term_info) = &postings_lists[i].1.term_info {
+                            if pl_num == term_info.postings_file_name {
+                                curr_pl_num_pls.push(postings_lists.remove(i));
+                            }
+                        }
+                    }
+
+                    #[cfg(feature = "perf")]
+                    web_sys::console::log_1(
+                        &format!("Retrieving pl {}. Number of terms using it: {}", pl_num, curr_pl_num_pls.len()).into()
+                    );
+
+                    self.fetch_pl_into_vec(
+                        pl_num,
+                        curr_pl_num_pls,
+                    )
+                })
+        ).await;
+
+        for (pls, pl_name, raw_pl) in parsed_postings_lists {
+            if let Some(to_cache) = raw_pl {
+                self.postings_list_cache.add(pl_name, to_cache);
+            }
+
+            postings_lists.extend(pls);
+        }
+
+        postings_lists.into_iter().map(|(term, pl)| (term, Rc::new(pl))).collect()
+    }
+
+    async fn fetch_pl_into_vec(
+        &self,
+        pl_name: u32,
+        mut postings_lists: Vec<(String, PostingsList)>
+    ) -> (Vec<(String, PostingsList)>, u32, Option<Vec<u8>>) {
+        let mut retrieved = None;
+
+        let pl_vec = if let Some(cached) = self.postings_list_cache.get(pl_name) {
+            cached
+        } else {
+            let pl_array_buffer = fetchPl(
+                pl_name,
+                self.searcher_config.indexing_config.num_pls_per_dir,
                 &self.searcher_config.searcher_options.url,
+                self.searcher_config.searcher_options.pl_lazy_cache_threshold,
+            ).await;
+            retrieved = Some(js_sys::Uint8Array::new(&pl_array_buffer).to_vec());
+
+            retrieved.as_ref().unwrap()
+        } ;
+    
+        for (_, pl) in postings_lists.iter_mut() {
+            pl.parse_pl(
+                pl_vec,
                 &self.invalidation_vector,
                 self.searcher_config.num_scored_fields,
-                self.searcher_config.indexing_config.num_pls_per_dir,
                 self.searcher_config.indexing_config.with_positions,
-                self.searcher_config.searcher_options.pl_lazy_cache_threshold,
-            )
-        }))
-        .await;
-
-        postings_lists
+            );
+        }
+    
+        (postings_lists, pl_name, retrieved)
     }
+}
+
+#[wasm_bindgen(module = "/src/searcher/fetchPl.js")]
+extern "C" {
+    async fn fetchPl(
+        pl_name: u32,
+        num_pls_per_dir: u32,
+        base_url: &str,
+        pl_lazy_cache_threshold: u32,
+    ) -> JsValue;
 }

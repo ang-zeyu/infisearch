@@ -17,6 +17,7 @@ use wasm_bindgen::JsValue;
 
 use crate::dictionary::Dictionary;
 use crate::docinfo::DocInfo;
+use crate::postings_list_cache::PostingsListCache;
 
 #[cfg(feature = "lang_ascii")]
 use morsels_lang_ascii::ascii;
@@ -64,6 +65,8 @@ pub struct Searcher {
     doc_info: DocInfo,
     searcher_config: SearcherConfig,
     invalidation_vector: Vec<u8>,
+    postings_list_cache: PostingsListCache,
+
     // For soft dismax scoring
     num_scored_fields_less_one: f32,
 }
@@ -214,6 +217,7 @@ pub fn get_new_searcher(
         doc_info,
         searcher_config,
         invalidation_vector,
+        postings_list_cache: PostingsListCache::new(),
         num_scored_fields_less_one
     }
 }
@@ -245,7 +249,7 @@ fn add_processed_terms(query_parts: &[QueryPart], result: &mut Vec<Vec<String>>)
 
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query::Query, JsValue> {
+pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::Query, JsValue> {
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
     #[cfg(feature = "perf")]
@@ -253,7 +257,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     #[cfg(feature = "perf")]
     let start = performance.now();
 
-    let searcher_val = unsafe { &*searcher };
+    let searcher_val = unsafe { &mut *searcher };
     let (mut query_parts, mut terms_searched) = parse_query(
         query,
         &*searcher_val.tokenizer,
@@ -282,7 +286,7 @@ pub async fn get_query(searcher: *const Searcher, query: String) -> Result<query
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
-    let pls = searcher_val.process(&mut query_parts, term_pls);
+    let pls = searcher_val.populate_pls(&mut query_parts, &term_pls);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
@@ -308,6 +312,7 @@ pub mod test {
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
     use crate::dictionary::Dictionary;
     use crate::docinfo::DocInfo;
+    use crate::postings_list_cache::PostingsListCache;
 
     pub fn create_searcher(num_docs: usize, num_fields: usize) -> Searcher {
         let mut field_infos = Vec::new();
@@ -352,6 +357,7 @@ pub mod test {
                 },
             },
             invalidation_vector: vec![0; num_docs],
+            postings_list_cache: PostingsListCache::new(),
             num_scored_fields_less_one: 1.0
         }
     }

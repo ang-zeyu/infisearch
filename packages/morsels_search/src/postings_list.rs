@@ -1,8 +1,5 @@
 use std::cmp::Ordering;
 
-use wasm_bindgen::JsValue;
-use wasm_bindgen::prelude::wasm_bindgen;
-
 use morsels_common::packed_var_int::read_bits_from;
 use morsels_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
@@ -126,16 +123,6 @@ impl<'a> PartialOrd for PlIterator<'a> {
     }
 }
 
-#[wasm_bindgen(module = "/src/searcher/fetchPl.js")]
-extern "C" {
-    async fn fetchPl(
-        pl_name: u32,
-        num_pls_per_dir: u32,
-        base_url: &str,
-        pl_lazy_cache_threshold: u32,
-    ) -> JsValue;
-}
-
 pub struct PostingsList {
     pub term_docs: Vec<TermDoc>,
     pub weight: f32,
@@ -225,29 +212,14 @@ impl PostingsList {
         td
     }
 
-    #[allow(clippy::too_many_arguments)]
-    pub async fn fetch_term(
+    pub fn parse_pl(
         &mut self,
-        base_url: &str,
+        pl_vec: &[u8],
         invalidation_vector: &[u8],
         num_scored_fields: usize,
-        num_pls_per_dir: u32,
         with_positions: bool,
-        pl_lazy_cache_threshold: u32,
-    ) -> Result<(), JsValue> {
-        if self.term_info.is_none() {
-            return Ok(());
-        }
-
+    ) {
         let term_info = self.term_info.as_ref().unwrap();
-
-        let pl_array_buffer = fetchPl(
-            term_info.postings_file_name,
-            num_pls_per_dir,
-            base_url,
-            pl_lazy_cache_threshold,
-        ).await;
-        let pl_vec = js_sys::Uint8Array::new(&pl_array_buffer).to_vec();
 
         let mut pos = term_info.postings_file_offset as usize;
 
@@ -332,8 +304,6 @@ impl PostingsList {
                 self.term_docs.push(term_doc);
             }
         }
-
-        Ok(())
     }
 }
 
