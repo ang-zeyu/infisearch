@@ -203,6 +203,11 @@ fn is_double_quote(c: char) -> bool {
     }
 }
 
+#[inline(never)]
+fn is_ascii_whitespace(c: char) -> bool {
+    matches!(c, '\t' | '\n' | '\x0C' | '\r' | ' ')
+}
+
 // TODO cleanup query parsing, hopefully reduce its size while at it. Currently ~7.5KB.
 
 /// Called when 1 of the operators: NOT, AND, (, ), ", :, is encountered
@@ -365,9 +370,9 @@ pub fn parse_query(
                         i = j + 1;
                         last_possible_unaryop_idx = i;
                     }
-                } else if c.is_ascii_whitespace() {
+                } else if is_ascii_whitespace(c) {
                     let initial_j = j;
-                    while j < query_chars_len && query_chars[j].is_ascii_whitespace() {
+                    while j < query_chars_len && is_ascii_whitespace(query_chars[j]) {
                         j += 1;
                     }
 
@@ -375,7 +380,7 @@ pub fn parse_query(
                         && query_chars_len > 6 // overflow
                         &&  j < query_chars_len - 4
                         && query_chars[j] == 'A' && query_chars[j + 1] == 'N' && query_chars[j + 2] == 'D'
-                        && query_chars[j + 3].is_ascii_whitespace()
+                        && is_ascii_whitespace(query_chars[j + 3])
                     {
                         handle_terminator(
                             tokenizer,
@@ -406,7 +411,7 @@ pub fn parse_query(
                         op_stack.push(Operator::And);
 
                         j += 4;
-                        while j < query_chars_len && query_chars[j].is_ascii_whitespace() {
+                        while j < query_chars_len && is_ascii_whitespace(query_chars[j]) {
                             j += 1;
                         }
                         i = j;
@@ -419,7 +424,7 @@ pub fn parse_query(
                     && query_chars_len > 5 // overflow guard
                     && j < query_chars_len - 4
                     && query_chars[j] == 'N' && query_chars[j + 1] == 'O' && query_chars[j + 2] == 'T'
-                    && query_chars[j + 3].is_ascii_whitespace()
+                    && is_ascii_whitespace(query_chars[j + 3])
                 {
                     handle_terminator(
                         tokenizer,
@@ -435,7 +440,7 @@ pub fn parse_query(
                     op_stack.push(Operator::Not);
 
                     j += 4;
-                    while j < query_chars_len && query_chars[j].is_ascii_whitespace() {
+                    while j < query_chars_len && is_ascii_whitespace(query_chars[j]) {
                         j += 1;
                     }
                     i = j;
