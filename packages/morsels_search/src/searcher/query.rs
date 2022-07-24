@@ -47,7 +47,7 @@ struct Position {
     pos: u32,
     pl_it_idx: usize,
     pl_it_field_idx: usize,
-    pl_it_field_fieldposition_next_idx: usize,
+    pl_it_field_position_idx: usize,
 }
 
 impl Eq for Position {}
@@ -131,10 +131,23 @@ impl Searcher {
             .filter(|pl_it| pl_it.td.is_some())
             .collect();
 
-        let mut pl_its_for_proximity_ranking: Vec<*const PlIterator> = Vec::with_capacity(pl_its.len());
+        // ------------------------------------------
+        // Query term proximity ranking
+        const PROXIMITY_BASE_SCALING: f32 = 2.5;
+        const PROXIMITY_PER_TERM_SCALING: f32 = 0.5;
 
-        let total_proximity_ranking_terms =
-            postings_lists.iter().filter(|pl| pl.include_in_proximity_ranking).count() as f32;
+        let total_proximity_ranking_terms = postings_lists.iter()
+            .filter(|pl| pl.include_in_proximity_ranking)
+            .count();
+        let min_proximity_ranking_terms = ((total_proximity_ranking_terms as f32 / 2.0).ceil() as usize).max(2);
+        let proximity_scaling = PROXIMITY_BASE_SCALING
+            + (total_proximity_ranking_terms as f32 * PROXIMITY_PER_TERM_SCALING);
+
+        let mut pl_its_for_proximity_ranking: Vec<*const PlIterator> = Vec::with_capacity(pl_its.len());
+        let mut position_heap = BinaryHeap::with_capacity(
+            total_proximity_ranking_terms as usize * self.searcher_config.num_scored_fields,
+        );
+        // ------------------------------------------
 
         loop {
             utils::insertion_sort(&mut pl_its, |a, b| a.lt(b));
@@ -148,8 +161,13 @@ impl Searcher {
                 // Query term proximity ranking
                 if self.searcher_config.searcher_options.use_query_term_proximity {
                     proximity_rank(
-                        &pl_its, &mut pl_its_for_proximity_ranking,
-                        curr_doc_id, total_proximity_ranking_terms,
+                        &pl_its,
+                        &mut pl_its_for_proximity_ranking,
+                        proximity_scaling,
+                        &mut position_heap,
+                        curr_doc_id,
+                        total_proximity_ranking_terms,
+                        min_proximity_ranking_terms,
                         &mut positional_scaling_factor
                     );
                 }
@@ -239,10 +257,17 @@ impl Searcher {
 fn proximity_rank<'a>(
     pl_its: &[PlIterator<'a>],
     pl_its_for_proximity_ranking: &mut Vec<*const PlIterator<'a>>,
+    proximity_scaling: f32,
+    position_heap: &mut BinaryHeap<Position>,
     curr_doc_id: u32,
-    total_proximity_ranking_terms: f32,
+    total_proximity_ranking_terms: usize,
+    min_proximity_ranking_terms: usize,
     scaling_factor: &mut f32,
 ) {
+    const MAX_WINDOW_LEN: u32 = 200;
+    const MISSED_TERMS_PENALTY: usize = 4;  // penalty for gaps in terms
+    const PROXIMITY_SATURATION: f32 = 4.0;  // how fast it flattens to 1.0
+
     pl_its_for_proximity_ranking.extend(
         pl_its
             .iter()
@@ -257,85 +282,95 @@ fn proximity_rank<'a>(
             }),
     );
 
-    if pl_its_for_proximity_ranking.len() > 1 {
+    let num_pl_its_curr_doc = pl_its_for_proximity_ranking.len();
+
+    if num_pl_its_curr_doc >= min_proximity_ranking_terms {
         utils::insertion_sort(pl_its_for_proximity_ranking, |&a, &b| unsafe {
             (*a).original_idx.lt(&(*b).original_idx)
         });
 
-        let num_pl_its_curr_doc = pl_its_for_proximity_ranking.len() as f32;
+        debug_assert!(position_heap.is_empty());
 
-        let mut position_heap: BinaryHeap<Position> = BinaryHeap::new();
         for (i, &pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
             let curr_fields = unsafe {
                 &(*pl_it).td.as_ref().unwrap().fields
             };
             for (j, curr_field) in curr_fields.iter().enumerate() {
-                if curr_field.field_positions.is_empty() {
-                    continue;
+                if let Some(&pos) = curr_field.field_positions.first() {
+                    position_heap.push(Position {
+                        pos,
+                        pl_it_idx: i,
+                        pl_it_field_idx: j,
+                        pl_it_field_position_idx: 0,
+                    });
                 }
-                position_heap.push(Position {
-                    pos: curr_field.field_positions[0],
-                    pl_it_idx: i,
-                    pl_it_field_idx: j,
-                    pl_it_field_fieldposition_next_idx: 1,
-                });
             }
         }
 
-        // Merge disjoint fields' positions into one
-        // Vec<(pos, pl_it_idx)>
-        let mut merged_positions: Vec<(u32, usize)> = Vec::new();
-        while let Some(top) = position_heap.pop() {
+        let mut next_expected = std::usize::MAX;
+        let mut min_window_len = std::u32::MAX;
+        let mut min_pos = std::u32::MAX;
+        let mut min_terms_missed = min_proximity_ranking_terms
+            - (total_proximity_ranking_terms - num_pl_its_curr_doc);
+        let mut terms_missed = 0;
+        while let Some(mut top) = position_heap.pop() {
+            if top.pl_it_idx < next_expected {
+                // (Re)start the match from this pl_it
+                min_pos = top.pos;
+                terms_missed = top.pl_it_idx;
+                next_expected = top.pl_it_idx + 1;
+            } else if next_expected <= top.pl_it_idx {
+                // Continue the match
+                terms_missed += top.pl_it_idx - next_expected;
+                next_expected = top.pl_it_idx + 1;
+
+                let curr_window_len = top.pos - min_pos;
+                let terms_missed = terms_missed + (total_proximity_ranking_terms - next_expected);
+                if terms_missed < min_terms_missed {
+                    min_terms_missed = terms_missed;
+                    min_window_len = curr_window_len;
+                } else if terms_missed == min_terms_missed && curr_window_len < min_window_len {
+                    min_window_len = curr_window_len;
+                    // #[cfg(feature="perf")]
+                    // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
+                }
+            } else {
+                // Restart the match
+                next_expected = std::usize::MAX;
+            }
+
+            // Update Position iterator
             let doc_field = unsafe {
                 &(*pl_its_for_proximity_ranking[top.pl_it_idx]).td.as_ref().unwrap().fields[top.pl_it_field_idx]
             };
 
-            if top.pl_it_field_fieldposition_next_idx < doc_field.field_positions.len() {
-                position_heap.push(Position {
-                    pos: doc_field.field_positions[top.pl_it_field_fieldposition_next_idx],
-                    pl_it_idx: top.pl_it_idx,
-                    pl_it_field_idx: top.pl_it_field_idx,
-                    pl_it_field_fieldposition_next_idx: top.pl_it_field_fieldposition_next_idx + 1,
-                });
-            }
-
-            merged_positions.push((top.pos, top.pl_it_idx));
-        }
-
-        let mut next_expected = 0;
-        let mut min_window_len = std::u32::MAX;
-        let mut min_pos = std::u32::MAX;
-        for (pos, pl_it_idx) in merged_positions {
-            if pl_it_idx == 0 {
-                // (Re)start the match from 1
-                min_pos = pos;
-                next_expected = 1;
-            } else if next_expected == pl_it_idx {
-                // Continue the match
-                next_expected += 1;
-
-                if next_expected >= pl_its_for_proximity_ranking.len() {
-                    next_expected = 0;
-                    let curr_window_len = pos - min_pos;
-                    if curr_window_len < min_window_len {
-                        min_window_len = curr_window_len;
-                        // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
-                    }
-                }
-            } else {
-                // Restart the match from 0
-                next_expected = 0;
+            top.pl_it_field_position_idx += 1;
+            if let Some(&pos) = doc_field.field_positions.get(top.pl_it_field_position_idx) {
+                top.pos = pos;
+                position_heap.push(top);
             }
         }
 
-        if min_window_len < 200 {
-            const PROXIMITY_SCALING: f32 = 2.5;     // how much should larger windows scale
-            const PROXIMITY_SATURATION: f32 = 5.0;  // how fast it flattens to 1.0
-            *scaling_factor = 1.0 + (
-                (PROXIMITY_SCALING * num_pl_its_curr_doc)
-                / (PROXIMITY_SATURATION + total_proximity_ranking_terms + min_window_len as f32)
-            );
-            // web_sys::console::log_1(&format!("min_window_len {} scaling_factor {}", min_window_len, scaling_factor).into());
+        if min_window_len < MAX_WINDOW_LEN {
+            // TODO make this non-linear? (caps off at certain degree)
+            min_window_len *= 1 + (min_terms_missed * MISSED_TERMS_PENALTY) as u32;
+
+            if min_window_len < MAX_WINDOW_LEN {
+                *scaling_factor = 1.0 + (
+                    proximity_scaling
+                    /
+                    (
+                        PROXIMITY_SATURATION
+                        + min_window_len as f32
+                    )
+                );
+
+                /* #[cfg(feature="perf")]
+                web_sys::console::log_1(
+                    &format!("min_window_len {} terms_in_doc {} min_terms_missed {} scaling_factor {}",
+                    min_window_len, num_pl_its_curr_doc, min_terms_missed, scaling_factor,
+                ).into()); */
+            }
         }
     }
 
