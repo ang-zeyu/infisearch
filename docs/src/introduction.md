@@ -22,7 +22,7 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 
 You may want to use this tool if:
 - You want a complete solution for static site search
-- You have a fairly **large collection** of HTML, CSV, JSON, PDF or text (only these are supported for now) files that cannot be monolithically retrieved or kept in memory feasibly
+- You have a collection of HTML, CSV, JSON, PDF or TXT (only these are supported for now) files on disk to index
 - Running a search server / SaaS (eg. Algolia Docsearch) is not an option
 
 > ⚠️ 
@@ -34,19 +34,11 @@ You may want to use this tool if:
 
 ![Morsels' architecture diagram](./images/architecture.png)
 
-## Other Limitations
+## Other Notes
 
-1. **Latency** & File Bloat (*only if* fragmenting the index)
+1. **Wasm** is used -- that means no IE support =(
 
-   Scaling this tool for larger collections necessitates fragmenting the index and **retrieving only what's needed** when searched, which means extra network requests, but to a reasonable degree. (see this [demo](https://morsels-search.com))
+1. **Not production ready!**
 
-   This tool should be able to handle `800MB` **pure text** (not counting things like HTML soup) collections with the full set of features enabled and some configuration tweaking.
-
-   The degree of fragmentation can be [configured](https://morsels-search.com/morsels/presets.html) to varying degrees. That is, by default, Morsels can, and does function much like other existing monolithic pre-built index options in terms of the number of network requests, and you only "pay for what you need".
-
-2. **Wasm** -- no IE support =(
-
-3. **Not production ready!**
-
-4. **Browser Focused**: For now, the focus is on providing e2e search functionalities in the browser. That means no Node.js support and such.
+1. **Browser Focused**: For now, the focus is static site search. That means no Node.js support and such.
 

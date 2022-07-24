@@ -16,10 +16,6 @@ initMorsels({
 })
 ```
 
-For brevity, this page covers only a subset of the most important options.
-
-The subsequent [sub-chapter](./search_configuration_renderers.md) provides a few more APIs to customise the HTML output. If you have a configuration use case that cannot be achieved without these APIs, and you think should be included as a simpler configuration option here, feel free to raise a feature request!
-
 #### Input Element
 
 | Option      | Default Value | Description |
@@ -41,9 +37,39 @@ To try the different modes out, head on over to the [mdbook plugin](./getting_st
 | ----------- | ----------- |
 | `"auto"`        | This option is the **default**, and combines the `dropdown` and `fullscreen` options below. If a mobile device is [detected](#changing-the-mobile-device-detection-method), the `fullscreen` mode is used. Otherwise, the `dropdown` mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.   |
 | `"dropdown"`    | This wraps the specified `input` element with a root container. Search results are placed in a `<ul>` container next to the input element.    |
-| `"fullscreen"`  | This option creates a completely distinct root container (complete with its own input element, backdrop, close button, ...), and attaches it to the `<body>` element.<br><br>Under the default stylesheet, the user interface is fullscreen under `max-width: 1025px`, and takes up roughly 50% of the screen estate otherwise.<br><br>If the `input` element is specified, the interface is also shown whenever the `input` is focused. For keyboard accessibility, some minimal, but overidable [styling](./search_configuration_styling.md#input-element) is applied to the input element in this case.<br><br>Alternatively, the `showFullscreen` and `hideFullscreen` functions returned by the `initMorsels` call can be used to toggle the UI programatically. This is also *the only use case you would not need to specify the `input` element*.    |
+| `"fullscreen"`  | This option creates a completely distinct root container (complete with its own input element, backdrop, close button, ...), and attaches it to the `<body>` element.<br><br>Under the default stylesheet, the user interface is fullscreen under `max-width: 1025px`, and takes up roughly 50% of the screen estate otherwise.<br><br>If the `input` element is specified, a click handler is attached to open this UI. For accessibility, some minimal, but overidable [styling](./search_configuration_styling.md#input-element) is applied to the input element.<br><br>This UI can also be shown/hidden [programatically](#manually-showing--hiding-the-fullscreen-ui), which is also *the only case* you would not need to specify the `input` element.    |
 | `"target"`      | This option is the most flexible, and is used by the mdbook plugin (by default) and this documentation. The `input` element must be specified, where keystroke event listeners are attached. No dom manipulation is performed unlike the `dropdown` or `auto` modes.<br><br>The search results are output to a custom `target` element of choice.    |
 
+Use the following buttons to try out the different modes. The default in this documentation is `target`.
+
+<style>
+    .demo-btn {
+        padding: 5px 9px;
+        margin: 0 8px 8px 8px;
+        border: 2px solid var(--sidebar-bg) !important;
+        border-radius: 10px;
+        transition: all 0.15s linear;
+        color: var(--fg) !important;
+        text-decoration: none !important;
+        font-weight: 600 !important;
+    }
+
+    .demo-btn:hover {
+        color: var(--sidebar-fg) !important;
+        background: var(--sidebar-bg) !important;
+    }
+
+    .demo-btn:active {
+        color: var(--sidebar-active) !important;
+    }
+</style>
+
+<div style="display: flex; justify-content: center; flex-wrap: wrap;">
+    <a class="demo-btn" href="?mode=auto">Auto</a>
+    <a class="demo-btn" href="?mode=dropdown">Dropdown</a>
+    <a class="demo-btn" href="?mode=fullscreen">Fullscreen</a>
+    <a class="demo-btn" href="?mode=target">Target</a>
+</div>
 
 #### UI Mode Specific Options
 
@@ -51,8 +77,8 @@ There are also several options specific to each mode. Note that `dropdown` and `
 
 | Mode        | Option                | Default                 | Description |
 | ----------- | -----------           | -----------             | ----------- |
-| `auto`         | `fsInputButtonText`        | `undefined`| Placeholder override when the fullscreen UI is in use (i.e. when the input functions like a button). By default, Morsels uses the original placeholder you've configured, but makes some minimal [styling](./search_configuration_styling.md#input-element-as-a-button) changes to ensure keyboard accessibility.
-| `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom'` or `'bottom-start'` or `'bottom-end'`.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment of the dropdown container will also be automatically flipped horizontally to ensure the most optimal placement (see [floating-ui's](https://floating-ui.com/docs/size#using-with-flip) docs for a demonstration).
+| `dropdown`  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom'` or `'bottom-start'` or `'bottom-end'`.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment will also be automatically flipped horizontally to ensure the most optimal placement.
+| `auto`      | `fsInputButtonText`        | `undefined`| Placeholder override for the `input` if the fullscreen UI is in use.<br><br>This is added for keyboard [accessibility](./search_configuration_styling.md#input-element-as-a-button).
 | `fullscreen` | `fsInputLabel`        | `'Search'` | Accessibility label for the original input element, when the fullscreen UI is in use.
 | `fullscreen` | `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
 | `fullscreen` | `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
@@ -89,7 +115,11 @@ In all UI modes, an infinite scrolling intersection observer is attached to the 
 
 If the client is a "mobile device", the fullscreen version of the user interface is used for `mode='auto'`.
 
-This check is done through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query, which may be inadequate for your use case.
+This check is done through a simple media query, which may not be adequate for your use case.
+
+```js
+window.matchMedia('only screen and (max-width: 1024px)').matches
+```
 
 Use the `isMobileDevice` option to the override this check:
 
@@ -143,7 +173,7 @@ Stemming is turned off in the default [language module](./indexer/language.md#as
 
 To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.
 
-For all [language modules](./indexer/language.md) available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term. (similar to Algolia Docsearch's behaviour)
+For all [language modules](./indexer/language.md) available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term.
 
 #### Term Proximity Ranking
 

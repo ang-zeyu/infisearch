@@ -28,9 +28,57 @@ The indexing tool supports a few other file formats (`.json`, `.csv`, `.pdf`, `.
 
 ## Getting Started
 
-Powering static site search requires just a folder of your HTML files! Titles, links, headings, etc. are automatically sourced.
+Powering static site search with Morsels is extremely easy, and requires just a folder of your HTML files! Titles, links, headings, etc. are automatically sourced, assuming your folder structure follows how your site's pages are layed out as well.
 
-Please check out the [documentation](https://morsels-search.com/morsels/getting_started.html), which also uses Morsels for its search function.
+### 1. Installing the indexer
+
+There are two options here:
+- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.2.1`.
+- Alternatively, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
+
+
+### 2. Running the indexer
+
+Run the executable as such, replacing `<source-folder-path>` with the relative or absolute folder path of your source html files, and `<output-folder-path>` with your desired index output folder.
+
+```
+morsels <source-folder-path> <output-folder-path>
+```
+
+If you are using the binaries, replace `morsels` with the appropriate executable name.
+
+### 3. Installing the Search UI via CDN
+
+Add the following resources to your pages:
+
+```html
+<!--  Search UI script -->
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.1/packages/search-ui/dist/search-ui.bundle.js"></script>
+<!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.1/packages/search-ui/dist/search-ui-light.css" />
+```
+
+### 4. UI Initialisation
+
+Give any `<input>` element in your page an `id` of `morsels-search`, then call:
+
+```js
+initMorsels({
+  searcherOptions: {
+    // Output folder url specified as the second parameter in the cli command
+    // Urls like '/output/' will work as well
+    url: 'http://<your-domain>/output/',
+  },
+  uiOptions: {
+    // Input / source folder url, specified as the first parameter in the cli command
+    sourceFilesUrl: 'http://<your-domain>/source/',
+  }
+});
+```
+
+## Documentation
+
+Please check out the [documentation](https://morsels-search.com/morsels/getting_started.html) next, which also uses Morsels for its search function.
 
 A much heavier demo on a 500MB, 52000 document Gutenberg collection subcorpus is also available [here](https://morsels-search.com).
 

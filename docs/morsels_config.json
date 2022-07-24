@@ -1,50 +1,9 @@
 {
-  "fields_config": {
-    "cache_all_field_stores": true,
-    "field_store_block_size": 250,
-    "fields": [
-      {
-        "b": 0.15,
-        "do_store": true,
-        "k": 1.2,
-        "name": "title",
-        "weight": 2.0
-      },
-      {
-        "b": 0.25,
-        "do_store": true,
-        "k": 1.2,
-        "name": "heading",
-        "weight": 1.5
-      },
-      {
-        "b": 0.75,
-        "do_store": true,
-        "k": 1.2,
-        "name": "body",
-        "weight": 1.0
-      },
-      {
-        "b": 0.75,
-        "do_store": true,
-        "k": 1.2,
-        "name": "headingLink",
-        "weight": 0.0
-      },
-      {
-        "b": 0.75,
-        "do_store": true,
-        "k": 1.2,
-        "name": "_relative_fp",
-        "weight": 0.0
-      }
-    ],
-    "num_stores_per_dir": 1000
-  },
   "indexing_config": {
     "exclude": [
       "index.html",
       "print.html",
+      "404.html",
       "morsels_config.json"
     ],
     "loader_configs": {
@@ -73,17 +32,6 @@
         ],
         "type": "HtmlLoader"
       }
-    },
-    "num_docs_per_block": 1000,
-    "num_pls_per_dir": 1000,
-    "pl_cache_threshold": 0,
-    "pl_limit": 2097151,
-    "with_positions": true
-  },
-  "lang_config": {
-    "lang": "ascii",
-    "options": {
-      "ignore_stop_words": false
     }
   },
   "preset": "small"

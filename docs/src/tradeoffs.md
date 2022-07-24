@@ -1,12 +1,8 @@
 # Tradeoffs
 
-> This page goes *into detail* on how the various indexer presets (`small`, `medium`, ...) are configured, what tradeoffs they make, and is a (mostly) optional read, especially if your collection isn't too large.
+> This page goes *into **excruciating** detail* on how the various indexer presets (`small`, `medium`, ...) are configured for better understanding (if you need to know how to fine-tune the settings), and is an entirely optional read.
 
 ## Overview
-
-Each preset largely makes a tradeoff between your document collection size and the number of rounds of network requests to make. File bloat is also discussed, if it is of concern.
-
-> The last column, `RTT=3`, is included only for hypothetical discussion but not present in any of the presets!
 
 The possible tradeoffs are marked with ✔️. Those that are likely impossible are marked ❌ (or in other words, you likely need a search server / SaaS for these options). Options that are possible but are relatively undesirable (for which better equivalent options exist) are marked ⚪. The default tradeoff is marked ⭐. Some roughly equivalent / adjacent options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.
 
@@ -25,11 +21,11 @@ Latency is labelled in terms of `RTT` (round trip time), the maximum of which is
 | Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat        | ❌ | ❌ | ✔️ | ⚪
 | Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)      | ❌ | ❌ | ❌ | ❌
 
+> The last column, `RTT=3`, is included only for hypothetical discussion but not present in any of the presets!
+
 ### Monolithic Index
 
 Of particular note, the only possible option under `RTT=0` is equivalent to using some other existing client side search library and generating a monolithic prebuilt index **and** document/field store (used for generating result previews).
-
-You may still want to use morsels since it packages a search UI, or, if you prefer the simplicity of a cli indexer tool (e.g. for CI build tools).
 
 
 ## Configuration
@@ -129,21 +125,20 @@ With a monolithic index, expect about 3-4x compression ratios **without position
 
 Compression ratios with positions tends to be poorer from some empircal testing, likely since the number of unique positions is fairly large.
 
-When opting to fragment the index heavily however, also note gzip would serve little to no purpose as:
-- The fragmented files are already very small
-- Compression ratios for smaller files tends to be poorer
+When fragmenting the index heavily, gzip would also serve little to no purpose as compression ratios for smaller files tends to be poorer.
 
 > ⭐ Morsels' binary output files are named `.json` by default, so you shouldn't have to manually configure the relevant settings in your server.
 
 ### Limits of Scalability
 
-Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the index fragment size limit (`pl_limit`), especially when the chunk contains a very common term (e.g. a stop word like "the"). While the information for this term could be further split into multiple chunks, this would be almost pointless as all such chunks would still have to be retrieved when the term is searched.
+Scaling the tool requires splitting the index into many chunks. Some of these chunks may however exceed the index fragment size limit (`pl_limit`), especially when the chunk contains a very common term (e.g. a stop word like "the"). Splitting such chunks further would be pointless as all such chunks would still have to be retrieved when the term is searched.
 
 This impacts (depending on the configuration):
-- The total size of index chunks retrieved upfront and persistently cached, which exceed the defined `pl_cache_threshold`.
-- The total size of the index chunks that need to be retrieved for the query, which is relevant when `pl_cache_threshold` is fairly high (such that no files are cached).
+- The total size of index chunks retrieved for caching during initialisation, that exceed the defined `pl_cache_threshold`.
+- The total size of the index chunks that need to be retrieved for a particular query, which is relevant when `pl_cache_threshold` is fairly high (such that no files are cached).
 
-#### Some Data & Estimations
+<details>
+<summary>Some Data & Estimations</summary>
 
 As a rough estimate from testing, this library should be able to handle text collections < `800MB` with positional indexing and stop words kept.
 
@@ -182,3 +177,4 @@ On the other hand, removing stop words with a lower `pl_cache_threshold` would h
 [7234  209   65   11    5    1    0    0    0    0    0    0    0    0]
 ```
 
+</details>

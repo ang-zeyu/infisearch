@@ -6,12 +6,13 @@ This page assumes the use case of a **static site**, that is:
 - You have an `<input>` element to attach a search dropdown to.
   <details>
   <summary><em>For mobile devices</em></summary>
-  A fullscreen UI will show instead when the input element is focused.<br><br>
-  This documentation uses an alternative interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
+  <br>A fullscreen UI will show instead when the input element is focused.
+
+  This documentation uses an alternative user interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
   To preview the defaults, head on over [here](./search_configuration_styling.html).
   </details>
 
-If you require more (e.g. indexing custom json files), have a look through here first, then head on over to the subsequent configuration pages.
+If you require more (e.g. indexing custom json files), have a quick look through here, then head on over to the subsequent configuration pages.
 
 ## Installing the indexer
 
@@ -64,19 +65,20 @@ If you wish to serve the files locally instead, you can find the necessary files
 
 ### UI Initialisation
 
-Once you have loaded the bundles, to initialise morsels, simply call the `initMorsels` function in your page.
+Once you have loaded the bundles, simply call the `initMorsels` function in your page.
 
-This requires an input element with an `id=morsels-search` to be present in the page by default. The `id`can be configured via `uiOptions.input`.
+This requires an input element with an `id=morsels-search` to be present in the page by default. The `id` can be configured via `uiOptions.input`.
 
 ```ts
 initMorsels({
   searcherOptions: {
     // Output folder url specified as the second parameter in the cli command
-    url: 'http://192.168.10.132:3000/output/',
+    // Urls like '/output/' will work as well
+    url: 'http://<your-domain>/output/',
   },
   uiOptions: {
     // Input / source folder url, specified as the first parameter in the cli command
-    sourceFilesUrl: 'http://192.168.10.132:3000/source/',
+    sourceFilesUrl: 'http://<your-domain>/source/',
     input: 'morsels-search',
   }
 });
