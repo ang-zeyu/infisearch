@@ -253,7 +253,7 @@ If your documents are very small, increasing this *may* help improve indexing pe
 
 ## Indexing and Search Scaling (advanced)
 
-Prefer the in-built [scaling presets](./presets.md) option for configuring the tool's scalability. Where needed, the following options are available for finer control.
+Prefer the in-built [scaling presets](./larger_collections.md) option for configuring the tool's scalability. Where needed, the following options are available for finer control.
 
 #### Index Shard Size: **`pl_limit`**
 
@@ -269,7 +269,7 @@ Increasing the value may also be useful for caching when used in conjunction wit
 
 Index files that exceed this number will be cached by the search library at initilisation.
 
-It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./presets.md).
+It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./larger_collections.md).
 
 #### Index Shards per Directory: **`num_pls_per_dir`**
 

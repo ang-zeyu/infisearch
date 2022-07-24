@@ -13,6 +13,7 @@ pub fn apply_config(config: &mut MorselsConfig, json_config: &Value) {
         u32::MAX,
         0,
         true,
+        true,
         true
     );
 }

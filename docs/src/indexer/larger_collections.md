@@ -1,8 +1,8 @@
 # Larger Collections
 
-5 configuration presets are designed primarily for use with Morsels' main intended use case of supporting static site search.
+*Five* configuration presets are available for scaling this tool to larger collections. They are designed primarily for Morsels' main intended use case of supporting static site search.
 
-Each preset primarily makes a tradeoff between the **document collection size** it can support, and the number of rounds of **network requests** (`RTT`). Morsels also supports generating result previews from [source files](../search_configuration.md#1-from-source-documents), if it is preferable (e.g. to reduce file bloat from additional field stores).
+Each preset primarily makes a tradeoff between the **document collection size** it can support, and the number of rounds of **network requests** (`RTT`). Morsels also supports generating result previews from [source files](../search_configuration.md#1-from-source-documents), if it is preferable to reduce file bloat from additional field stores.
 
 The default preset is `small`, which generates a monolithic index and field store, much like other client side indexing tools.
 
@@ -22,12 +22,15 @@ Specify the `preset` key in your configuration file to change this.
 | Preset              | Description |
 | -----------         | ----------- |
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
-| `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only field stores of documents to generate result previews for a retrieved.
+| `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only required field stores are retrieved for generating result previews. Positions are not indexed.
 | `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](./language.md#stop-words). This is the preset used in the demo [here](https://morsels-search.com)!
-| `medium_source`     | Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation.
+| `medium_source`     | Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation. Positions are not indexed.
 | `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps [stop words](./language.md#stop-words).
 
-> The 2 `large` presets do not remove stop words by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
+#### Notes
+
+- The 2 `large` presets do not remove stop words by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
+- The 2 `medium` presets do not index positions by default. Since positions take up a considerable proportion of the index size and a *sizeable* (at least, more so than `small`) monolithic index is assumed to be generated. The downside is that term proximity ranking and phrase queries will not be available.
 
 ## Modified Properties
 
@@ -42,6 +45,7 @@ Presets modify the following properties:
   - [`field_store_block_size`](./fields.md)
   - [`pl_limit`](./indexing.md#indexing-and-search-scaling-advanced)
   - [`pl_cache_threshold`](./indexing.md#indexing-and-search-scaling-advanced)
+  - [`with_positions`](indexing.md#miscellaneous-options)
 
 Any of these values specified in the configuration file will override that of the preset's.
 
@@ -56,6 +60,3 @@ There are a few other options especially worth highlighting that can help reduce
 - [`ignore_stop_words=false`](language.md#note-on-stop-words)
 
   This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size.
-- [`with_positions=true`](indexing.md#miscellaneous-options)
-
-  Positional information takes up a considerable (up to **3-4** times larger) proportion of the index size! If you don't mind giving up term proximity ranking and phrase queries, this option can help to reduce the index size in all cases.

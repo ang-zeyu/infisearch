@@ -116,7 +116,7 @@ These are Okapi BM25 model parameters. The following [article](https://www.elast
 
 ## Miscellaneous Parameters (advanced)
 
-The 3 parameters below allow you to adjust response times, caching, and file bloat individually. However, you should mostly be well-served by the preconfigured [scaling presets](./presets.md) for such purposes.
+The 3 parameters below allow you to adjust response times, caching, and file bloat individually. However, you should mostly be well-served by the preconfigured [scaling presets](./larger_collections.md) for such purposes.
 
 #### Field Store Granularity: **`field_store_block_size`, `num_stores_per_dir`**
 
@@ -133,4 +133,4 @@ If both are specified, the value specified in the `initMorsels` call will take p
 
 All fields specified with `do_store=true` would be cached up front on initialisation of the search library.
 
-Its usage alongside other options is discussed in more detail under the chapter [Larger Collections](presets.md).
+Its usage alongside other options is discussed in more detail under the chapter [Larger Collections](larger_collections.md).

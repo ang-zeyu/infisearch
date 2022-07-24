@@ -73,4 +73,4 @@ To facilitate decompression efficiency of such a low-level format, most of the s
 
 Most query expressions (e.g. free text queries like `lorem ipsum`) are ranked using the BM25 model, while `AND` and `()` operators sum the respective BM25 scores of their operands. A soft disjunctive maximum is calculated across a document's field scores.
 
-A simple form of **query term proximity ranking** is also supported and enabled by default for top-level expressions when the `with_positions` index [feature](./indexer/indexing.html#miscellaneous-options) is enabled. Results are scaled in an inverse logarithmic manner according to how close disjunctive search expressions are to one another.
+**Query term proximity ranking** is also supported and enabled by default for top-level expressions, when the `with_positions` index [feature](./indexer/indexing.html#miscellaneous-options) is enabled. Results are scaled according to how close search expressions are to one another.

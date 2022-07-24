@@ -19,6 +19,6 @@
 
 - [Search UI](./search_configuration_advanced.md)
   - [Altering HTML outputs](./search_configuration_renderers.md)
-- [Larger Collections](./indexer/presets.md)
+- [Larger Collections](./indexer/larger_collections.md)
   - [Tradeoffs](./tradeoffs.md)
   - [Incremental Indexing](./incremental_indexing.md)

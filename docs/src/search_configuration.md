@@ -87,13 +87,11 @@ In all UI modes, an infinite scrolling intersection observer is attached to the 
 #### Changing The Mobile Device Detection Method
 
 
-Some options are (by default) tuned based on whether the client is a "mobile device":
-- Query term proximity ranking is disabled
-- The fullscreen version of the user interface is used for `mode='auto'`
+If the client is a "mobile device", the fullscreen version of the user interface is used for `mode='auto'`.
 
-The mobile device check is done through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query at initialisation time, which may be inadequate for your use case.
- 
-An override may be provided through the `isMobileDevice` option shown below.
+This check is done through a simple `window.matchMedia('only screen and (max-width: 1024px)').matches` query, which may be inadequate for your use case.
+
+Use the `isMobileDevice` option to the override this check:
 
 ```js
 initMorsels({
@@ -149,11 +147,10 @@ For all [language modules](./indexer/language.md) available currently, this is o
 
 #### Term Proximity Ranking
 
-`useQueryTermProximity = !isMobileDevice()`
+`useQueryTermProximity = true`
 
-If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other.
-This may be costly for mobile devices however, and is disabled by default in such cases.
+If positions are indexed, document scores are also scaled by how close query expressions or terms are to each other. This is the more time consuming part of Morsels' document ranking algorithm, but still incredibly fast.
 
 #### Caching Options (Advanced)
 
-This is discussed more in the chapter on [larger collections](./indexer/presets.md).
+This is discussed more in the chapter on [larger collections](./indexer/larger_collections.md).

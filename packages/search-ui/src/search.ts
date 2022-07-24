@@ -149,7 +149,7 @@ function initMorsels(options: SearchUiOptions): {
       || (() => window.matchMedia('only screen and (max-width: 1024px)').matches);
 
   isMobileSizeGlobal = isMobileDevice();
-  prepareOptions(options, isMobileSizeGlobal);
+  prepareOptions(options);
 
   const { uiOptions } = options;
   const {

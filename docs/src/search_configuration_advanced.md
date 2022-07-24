@@ -10,7 +10,7 @@ You should have at least read the chapter on fields, on the [default field confi
 
 ## Options for Generating Result Previews
 
-There are 3 available ways of generating result previews, and some [presets](./indexer/presets.md) are available to help with switching between options 1 and 2 easily. How these presets are configured individually are also covered under [larger collections](./indexer/presets.md), as the rationale for using alternative methods links closely to your collection size. (except option 3)
+There are 3 available ways of generating result previews, and some [presets](./indexer/larger_collections.md) are available to help with switching between options 1 and 2 easily. How these presets are configured individually are also covered under [larger collections](./indexer/larger_collections.md), as the rationale for using alternative methods links closely to your collection size. (except option 3)
 
 #### 1. From Source Documents
 

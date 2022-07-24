@@ -3,7 +3,7 @@ import { SearchUiOptions, UiMode } from '../SearchUiOptions';
 import { parseURL } from '../utils/url';
 import { LOADING_INDICATOR_ID } from '../utils/dom';
 
-export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
+export function prepareOptions(options: SearchUiOptions) {
   // ------------------------------------------------------------
   // Search Lib Options
   
@@ -26,7 +26,7 @@ export function prepareOptions(options: SearchUiOptions, isMobile: boolean) {
   }
   
   if (!('useQueryTermProximity' in searcherOptions)) {
-    searcherOptions.useQueryTermProximity = !isMobile;
+    searcherOptions.useQueryTermProximity = true;
   }
 
   if (!('plLazyCacheThreshold' in searcherOptions)) {

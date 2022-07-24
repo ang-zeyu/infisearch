@@ -21,6 +21,7 @@ pub fn apply_preset_override(
     cache_all_field_stores: bool,
     pl_limit: u32,
     pl_cache_threshold: u32,
+    with_positions: bool,
     do_store_fields: bool,
     ignore_stop_words: bool
 ) {
@@ -53,6 +54,10 @@ pub fn apply_preset_override(
 
         if val.get("pl_cache_threshold").is_none() {
             config.indexing_config.pl_cache_threshold = pl_cache_threshold;
+        }
+
+        if val.get("with_positions").is_none() {
+            config.indexing_config.with_positions = with_positions;
         }
     } else {
         config.indexing_config.pl_limit = pl_limit;
