@@ -128,7 +128,6 @@ impl Searcher {
             .iter()
             .enumerate()
             .map(|(idx, pl)| pl.iter(idx as u8))
-            .filter(|pl_it| pl_it.td.is_some())
             .collect();
 
         // ------------------------------------------
