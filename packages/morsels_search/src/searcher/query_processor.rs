@@ -35,7 +35,7 @@ impl Searcher {
     fn populate_phrasal_postings_lists(
         &self,
         query_part: &QueryPart,
-        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
+        term_postings_lists: &Vec<Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut encountered_empty_pl = false;
 
@@ -49,7 +49,7 @@ impl Searcher {
             .iter()
             .enumerate()
             .map(|(idx, term)| {
-                let pl_iter = postings_list::get_postings_list(term, term_postings_lists)
+                let pl_iter = postings_list::get_postings_list_rc(term, term_postings_lists)
                     .unwrap()
                     .iter(idx as u8);
                 if pl_iter.td.is_none() {
@@ -185,7 +185,7 @@ impl Searcher {
         &self,
         maybe_partial: bool,
         query_part: &mut QueryPart,
-        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
+        term_postings_lists: &Vec<Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut new_pl = empty_pl();
         new_pl.calc_pseudo_idf(self.doc_info.num_docs);
@@ -276,7 +276,7 @@ impl Searcher {
     fn populate_not_postings_list(
         &self,
         query_part: &mut QueryPart,
-        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
+        term_postings_lists: &Vec<Rc<PostingsList>>,
     ) -> Rc<PostingsList> {
         let mut result_pl = empty_pl();
         result_pl.include_in_proximity_ranking = false;
@@ -361,7 +361,7 @@ impl Searcher {
     pub fn populate_pls(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: &Vec<(String, Rc<PostingsList>)>,
+        term_postings_lists: &Vec<Rc<PostingsList>>,
     ) -> Vec<Rc<PostingsList>> {
         let mut result: Vec<Rc<PostingsList>> = Vec::new();
 
@@ -370,7 +370,7 @@ impl Searcher {
             match query_part.part_type {
                 QueryPartType::Term => {
                     if let Some(term) = query_part.terms.as_ref().unwrap().first() {
-                        if let Some(term_pl) = postings_list::get_postings_list(term, term_postings_lists) {
+                        if let Some(term_pl) = postings_list::get_postings_list_rc(term, term_postings_lists) {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     } /* else {
@@ -379,7 +379,7 @@ impl Searcher {
                 }
                 QueryPartType::Phrase => {
                     if query_part.terms.as_ref().unwrap().len() == 1 {
-                        if let Some(term_pl) = postings_list::get_postings_list(
+                        if let Some(term_pl) = postings_list::get_postings_list_rc(
                             query_part.terms.as_ref().unwrap().first().unwrap(),
                             term_postings_lists,
                         ) {
@@ -413,18 +413,6 @@ impl Searcher {
 
         result
     }
-
-    #[cfg(test)]
-    pub fn process(
-        &self,
-        query_parts: &mut Vec<QueryPart>,
-        term_postings_lists: Vec<(String, PostingsList)>,
-    ) -> Vec<Rc<PostingsList>> {
-        let term_rc_postings_lists: Vec<(String, Rc<PostingsList>)> =
-            term_postings_lists.into_iter().map(|(term, pl)| (term, Rc::new(pl))).collect();
-
-        self.populate_pls(query_parts, &term_rc_postings_lists)
-    }
 }
 
 #[cfg(test)]
@@ -438,7 +426,7 @@ mod test {
     use crate::searcher::query_parser::test as query_parser_test;
     use crate::searcher::test as searcher_test;
 
-    struct TermPostingsListsBuilder(Vec<(String, PostingsList)>);
+    struct TermPostingsListsBuilder(Vec<PostingsList>);
 
     impl TermPostingsListsBuilder {
         fn new() -> Self {
@@ -446,14 +434,21 @@ mod test {
         }
 
         fn with(mut self, term: &str, pl_str: &str) -> Self {
-            self.0.push((term.to_owned(), to_pl(pl_str)));
+            self.0.push(to_pl(Some(term.to_owned()), pl_str));
             self
+        }
+
+        fn get_rc_wrapped(self) -> Vec<Rc<PostingsList>> {
+            self.0.into_iter().map(Rc::new).collect()
         }
     }
 
-    fn search(query: &str, term_postings_lists: Vec<(String, PostingsList)>) -> Vec<Rc<PostingsList>> {
+    fn search(query: &str, term_postings_lists: Vec<Rc<PostingsList>>) -> Vec<Rc<PostingsList>> {
         let mut parsed = query_parser_test::parse(query);
-        searcher_test::create_searcher(10, 3).process(&mut parsed, term_postings_lists)
+        searcher_test::create_searcher(10, 3).populate_pls(
+            &mut parsed,
+            &term_postings_lists,
+        )
     }
 
     // See postings_list.rs to_pl for construction format
@@ -466,7 +461,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[3,[1,12,31]]]")
                     .with("ipsum", "[[3,[11,13,32]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[2,[12,31]],[0,[]],[0,[]]]")]
         );
@@ -477,7 +472,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[0,[]],[3,[1,12,31]]]")
                     .with("ipsum", "[[0,[]],[0,[]],[3,[11,13,32]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[0,[]],[0,[]],[2,[12,31]]]")]
         );
@@ -488,7 +483,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "null, null, [[0,[]],[0,[]],[3,[1,12,31]]]")
                     .with("ipsum", "null, null, [[0,[]],[0,[]],[3,[11,13,32]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("null, null, [[0,[]],[0,[]],[2,[12,31]]]")]
         );
@@ -499,7 +494,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[4,[1,3,5,7]]]")
                     .with("ipsum", "[[4,[2,4,6,8]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[4,[1,3,5,7]],[0,[]],[0,[]]]")]
         );
@@ -514,7 +509,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[3,[1,12,31]]]")
                     .with("ipsum", "[[3,[11,14,33]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("")]
         );
@@ -526,7 +521,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "null,             [[3,[1,12,31]]]")
                     .with("ipsum", "[[3,[11,13,32]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("")]
         );
@@ -538,7 +533,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[3,[1,12,31]]]")
                     .with("ipsum", "[[3,[11,13,32]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("")]
         );
@@ -549,7 +544,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "null, null, [[0,[]],[3,[1,12,31]],         [0,[]]]")
                     .with("ipsum", "null, null, [[0,[]],[0,[]],[3,[11,13,32]]]        ")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("")]
         );
@@ -563,7 +558,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "")
                     .with("ipsum", "")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("")]
         );
@@ -574,7 +569,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[1,[1]]]")
                     .with("ipsum", "")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("")]
         );
@@ -586,7 +581,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[1,[1]]]")
                     .with("ipsum", "[[1,[1]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[2,[1]]]")]
         );
@@ -598,7 +593,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[1,[2]]]")
                     .with("ipsum", "[[1,[10]],[1,[1]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[1,[10]],[2,[1,2]]]")]
         );
@@ -610,7 +605,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[3,[1,2,8]]], [[0,[]],[1,[1]]], [[1,[1]]]")
                     .with("ipsum", "[[1,[1]]]           , null            , [[3,[1,5,9]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[1,[1]],[3,[1,2,8]]], null, [[4,[1,5,9]]]")]
         );
@@ -624,7 +619,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "null,     [[1,[1]]]")
                     .with("ipsum", "[[1,[1]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("")]
         );
@@ -638,7 +633,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
                     .with("ipsum", "[[4,[2,4,6,8]],[0,[]]], null, [],   null")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![
                 to_pl_rc("[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]"),
@@ -651,7 +646,7 @@ mod test {
                 "lorem lorem",
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![
                 to_pl_rc("[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]"),
@@ -665,7 +660,7 @@ mod test {
         assert_eq!(
             search(
                 "(lorem AND ipsum)",
-                TermPostingsListsBuilder::new().with("lorem", "[[1,[1]]]").with("ipsum", "[[1,[1]]]").0
+                TermPostingsListsBuilder::new().with("lorem", "[[1,[1]]]").with("ipsum", "[[1,[1]]]").get_rc_wrapped()
             ),
             vec![to_pl_rc("[[2,[1]]]")]
         );
@@ -676,7 +671,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
                     .with("ipsum", "[[4,[2,4,6,8]],[0,[]]], null, [],   null")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[4,[2,4,6,8]],[4,[1,3,5,7]]], null, [], [[0,[]],[4,[1,3,5,7]]]")]
         );
@@ -686,7 +681,7 @@ mod test {
                 "(lorem lorem)",
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[0,[]],[8,[1,3,5,7]]], null, null, [[0,[]],[8,[1,3,5,7]]]")]
         );
@@ -697,7 +692,7 @@ mod test {
         assert_eq!(
             search(
                 "NOT lorem",
-                TermPostingsListsBuilder::new().with("lorem", "null, [[1,[1]]], null, [[1,[1]]]").0
+                TermPostingsListsBuilder::new().with("lorem", "null, [[1,[1]]], null, [[1,[1]]]").get_rc_wrapped()
             ),
             vec![to_pl_rc("[], null, [], null, [], [], [], [], [], []")]
         );
@@ -705,7 +700,7 @@ mod test {
         assert_eq!(
             search(
                 "NOT lorem ipsum",
-                TermPostingsListsBuilder::new().with("lorem", "null, [[1,[1]]], null, [[1,[1]]]").0
+                TermPostingsListsBuilder::new().with("lorem", "null, [[1,[1]]], null, [[1,[1]]]").get_rc_wrapped()
             ),
             vec![
                 to_pl_rc("[], null, [], null, [], [], [], [], [], []"),
@@ -719,7 +714,7 @@ mod test {
                 TermPostingsListsBuilder::new()
                     .with("lorem", "null,      [[1,[1]]], null, [[1,[1]]]")
                     .with("ipsum", "[[1,[1]]], [[1,[1]]], null, null")
-                    .0
+                    .get_rc_wrapped()
             ),
             vec![to_pl_rc("[[1,[1]]], [[1,[1]]], [], null, [], [], [], [], [], []")]
         );

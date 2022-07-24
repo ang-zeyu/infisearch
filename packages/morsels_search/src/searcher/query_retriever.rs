@@ -15,7 +15,7 @@ impl Searcher {
     fn expand_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        postings_lists: &mut Vec<(String, PostingsList)>,
+        postings_lists: &mut Vec<PostingsList>,
     ) {
         let num_desired_expanded_terms = self.searcher_config.searcher_options.number_of_expanded_terms;
         if query_parts.is_empty() || num_desired_expanded_terms == 0 {
@@ -72,8 +72,7 @@ num_desired_expanded_terms,
                     children: None,
                 });
 
-                postings_lists.push((
-                    term.clone(),
+                postings_lists.push(
                     PostingsList {
                         weight,
                         include_in_proximity_ranking: false,
@@ -82,7 +81,7 @@ num_desired_expanded_terms,
                         term: Some(term),
                         term_info: Some(term_info.to_owned()),
                     },
-                ));
+                );
             }
         }
 
@@ -92,7 +91,7 @@ num_desired_expanded_terms,
     fn populate_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
-        postings_lists: &mut Vec<(String, PostingsList)>,
+        postings_lists: &mut Vec<PostingsList>,
     ) {
         for query_part in query_parts {
             if let Some(terms) = &query_part.terms {
@@ -116,7 +115,7 @@ num_desired_expanded_terms,
                         term: Some(term.clone()),
                         term_info,
                     };
-                    postings_lists.push((term.to_owned(), postings_list));
+                    postings_lists.push(postings_list);
                 }
             } else if let Some(children) = &mut query_part.children {
                 self.populate_term_postings_lists(children, postings_lists);
@@ -127,14 +126,15 @@ num_desired_expanded_terms,
     pub async fn retrieve_term_pls(
         &mut self,
         query_parts: &mut Vec<QueryPart>,
-    ) -> Vec<(String, Rc<PostingsList>)> {
-        let mut postings_lists: Vec<(String, PostingsList)> = Vec::new();
+    ) -> Vec<Rc<PostingsList>> {
+        let mut postings_lists: Vec<PostingsList> = Vec::new();
 
         self.populate_term_postings_lists(query_parts, &mut postings_lists);
         self.expand_term_postings_lists(query_parts, &mut postings_lists);
 
-        let mut pl_numbers: Vec<u32> = postings_lists.iter()
-            .filter_map(|(_term, pl)| {
+        let mut pl_numbers: Vec<u32> = postings_lists
+            .iter()
+            .filter_map(|pl| {
                 if let Some(term_info) = &pl.term_info {
                     Some(term_info.postings_file_name)
                 } else {
@@ -162,7 +162,7 @@ num_desired_expanded_terms,
                     let mut curr_pl_num_pls = Vec::new();
 
                     for i in (0..postings_lists.len()).rev() {
-                        if let Some(term_info) = &postings_lists[i].1.term_info {
+                        if let Some(term_info) = &postings_lists[i].term_info {
                             if pl_num == term_info.postings_file_name {
                                 curr_pl_num_pls.push(postings_lists.remove(i));
                             }
@@ -189,14 +189,17 @@ num_desired_expanded_terms,
             postings_lists.extend(pls);
         }
 
-        postings_lists.into_iter().map(|(term, pl)| (term, Rc::new(pl))).collect()
+        postings_lists.into_iter().map(Rc::new).collect()
     }
 
+    /// Fetches a raw postings list file for all PostingList structs that rely on it.
+    /// 
+    /// Then populates them in `parse_pl`.
     async fn fetch_pl_into_vec(
         &self,
         pl_name: u32,
-        mut postings_lists: Vec<(String, PostingsList)>
-    ) -> (Vec<(String, PostingsList)>, u32, Option<Vec<u8>>) {
+        mut postings_lists: Vec<PostingsList>
+    ) -> (Vec<PostingsList>, u32, Option<Vec<u8>>) {
         let mut retrieved = None;
 
         let pl_vec = if let Some(cached) = self.postings_list_cache.get(pl_name) {
@@ -213,7 +216,7 @@ num_desired_expanded_terms,
             retrieved.as_ref().unwrap()
         } ;
     
-        for (_, pl) in postings_lists.iter_mut() {
+        for pl in postings_lists.iter_mut() {
             pl.parse_pl(
                 pl_vec,
                 &self.invalidation_vector,

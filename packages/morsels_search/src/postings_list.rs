@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::rc::Rc;
 
 use morsels_common::packed_var_int::read_bits_from;
 use morsels_common::postings_list::{
@@ -10,10 +11,19 @@ use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
 
 #[inline(never)]
-pub fn get_postings_list<'a, 'b, T>(term: &'b str, postings_lists: &'a Vec<(String, T)>) -> Option<&'a T> {
-    postings_lists.iter()
-        .find(|(t, _)| t.as_str() == term)
-        .map(|(_, v)| v)
+pub fn get_postings_list<'a, 'b>(
+    term: &'b str,
+    postings_lists: &'a Vec<PostingsList>,
+) -> Option<&'a PostingsList> {
+    postings_lists.iter().find(|pl| pl.term.as_ref().unwrap() == term)
+}
+
+#[inline(never)]
+pub fn get_postings_list_rc<'a, 'b>(
+    term: &'b str,
+    postings_lists: &'a Vec<Rc<PostingsList>>,
+) -> Option<&'a Rc<PostingsList>> {
+    postings_lists.iter().find(|pl| pl.term.as_ref().unwrap() == term)
 }
 
 #[cfg_attr(test, derive(Debug))]
@@ -325,7 +335,7 @@ pub mod test {
 
     // Takes a vector of "TermDoc", containing a vector of "fields", containing a tuple of (field_tf, vector of field positions)
     // E.g. a TermDoc containing 2 fields of term frequency 2 and 1: [ [2,[1,2]], [1,[120]] ]
-    pub fn to_pl(text: &str) -> PostingsList {
+    pub fn to_pl(term: Option<String>, text: &str) -> PostingsList {
         let vec: Vec<Option<Vec<(f32, Vec<u32>)>>> = miniserde::json::from_str(&format!("[{}]", text)).unwrap();
 
         let term_docs: Vec<Doc> = vec
@@ -341,7 +351,7 @@ pub mod test {
             weight: 1.0,
             idf: 1.0,
             include_in_proximity_ranking: true,
-            term: None,
+            term,
             term_info: None,
         }
     }
@@ -356,7 +366,7 @@ pub mod test {
     }
 
     pub fn to_pl_rc(text: &str) -> Rc<PostingsList> {
-        Rc::new(to_pl(text))
+        Rc::new(to_pl(None, text))
     }
 
     fn to_term_doc(text: &str) -> Doc {
