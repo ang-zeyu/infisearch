@@ -315,32 +315,27 @@ pub fn parse_query(
                         // Guard against ')' without a matching '(' (just treat it literally, almost)
                         if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup)
                         {
-                            let mut children: Vec<QueryPart> = Vec::new();
-
                             // Keep going until we find the QueryPartType::Bracket added by '('
-                            while let Some(mut last_part) = query_parts.pop() {
-                                if let QueryPartType::Bracket = last_part.part_type {
-                                    if last_part.children.is_none() {
-                                        // Found it
-
-                                        debug_assert!(matches!(op_stack.last().unwrap(), Operator::OpenGroup));
-
-                                        op_stack.pop(); // throw the OpenGroup
-
-                                        children.reverse();
-                                        last_part.children = Some(children);
-                                        query_parts.push(last_part);
-                                        handle_op(&mut query_parts, &mut op_stack);
-                                        break;
+                            let open_bracket_querypart_idx = query_parts
+                                .iter()
+                                .enumerate()
+                                .rev()
+                                .find_map(|(idx, query_part)|
+                                    if matches!(query_part.part_type, QueryPartType::Bracket)
+                                        && query_part.children.is_none()
+                                    {
+                                        Some(idx)
                                     } else {
-                                        // A nested parentheses that was already populated
-                                        // also add it to this parentheses group
-                                        children.push(last_part);
+                                        None
                                     }
-                                } else {
-                                    // Add it to this parentheses group
-                                    children.push(last_part);
-                                }
+                                );
+                            
+                            if let Some(idx) = open_bracket_querypart_idx {
+                                let children: Vec<QueryPart> = query_parts.drain(idx + 1..).collect();
+                                query_parts.last_mut().unwrap().children = Some(children);
+
+                                op_stack.pop(); // throw the OpenGroup
+                                handle_op(&mut query_parts, &mut op_stack);
                             }
                         }
                         last_possible_unaryop_idx = i;
@@ -668,6 +663,8 @@ pub mod test {
 
     #[test]
     fn parentheses_test() {
+        // assert_eq!(parse("(lorem ipsum"), vec![get_lorem(), get_ipsum()]);
+
         assert_eq!(parse("(lorem ipsum)"), vec![wrap_in_parentheses(vec![get_lorem(), get_ipsum()])]);
         assert_eq!(
             parse("(lorem ipsum )"),
