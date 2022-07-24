@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::postings_list::PlIterator;
 use crate::postings_list::PostingsList;
-use crate::postings_list::TermDoc;
+use crate::postings_list::Doc;
 use crate::searcher::query_parser::{self, QueryPart};
 use crate::searcher::Searcher;
 use crate::utils;
@@ -127,7 +127,7 @@ impl Searcher {
         let mut pl_its: Vec<PlIterator> = postings_lists
             .iter()
             .enumerate()
-            .map(|(idx, pl)| pl.get_it(idx as u8))
+            .map(|(idx, pl)| pl.iter(idx as u8))
             .filter(|pl_it| pl_it.td.is_some())
             .collect();
 
@@ -223,7 +223,7 @@ impl Searcher {
      This avoids penalizing documents that don't have the search term in all fields overly heavily,
      while encouraging matches in multiple fields to some degree.
     */
-    pub fn calc_doc_bm25_score(&self, td: &TermDoc, doc_id: u32, pl: &PostingsList) -> f32 {
+    pub fn calc_doc_bm25_score(&self, td: &Doc, doc_id: u32, pl: &PostingsList) -> f32 {
         const MAJOR_FIELD_FACTOR: f32 = 0.7;
         const MINOR_FIELD_FACTOR: f32 = 0.3;
 

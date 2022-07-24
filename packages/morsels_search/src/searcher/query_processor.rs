@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use morsels_common::bitmap;
 
-use crate::postings_list::{self, DocField, PlIterator, PostingsList, TermDoc};
+use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc};
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
@@ -42,32 +42,32 @@ impl Searcher {
         // Keep the original ordering for performing the phrase query.
         // The contents can be mutated, but the Vec itself must never be resized / reordered / etc.
         // Otherwise, sorted_pl_its below might point to invalid things...
-        let mut pl_iterators: Vec<PlIterator> = query_part
+        let mut pl_iters: Vec<PlIterator> = query_part
             .terms
             .as_ref()
             .unwrap()
             .iter()
             .enumerate()
             .map(|(idx, term)| {
-                let pl_iterator = postings_list::get_postings_list(term, term_postings_lists)
+                let pl_iter = postings_list::get_postings_list(term, term_postings_lists)
                     .unwrap()
-                    .get_it(idx as u8);
-                if pl_iterator.td.is_none() {
+                    .iter(idx as u8);
+                if pl_iter.td.is_none() {
                     encountered_empty_pl = true;
                 }
 
-                pl_iterator
+                pl_iter
             })
             .collect();
 
         let mut result_pl = empty_pl();
 
-        if encountered_empty_pl || pl_iterators.is_empty() {
+        if encountered_empty_pl || pl_iters.is_empty() {
             return Rc::new(result_pl);
         }
 
         // Avoid Rc<RefCell<...>>
-        let mut sorted_pl_its: Vec<*mut PlIterator> = pl_iterators
+        let mut sorted_pl_its: Vec<*mut PlIterator> = pl_iters
             .iter_mut()
             .map(|pl_it| pl_it as *mut PlIterator)
             .collect();
@@ -78,8 +78,8 @@ impl Searcher {
                 (*a).lt(&*b)
             });
 
-            let min_pl_iterator = unsafe { &**sorted_pl_its.first().unwrap() };
-            if let Some(first_td) = min_pl_iterator.td {
+            let min_pl_iter = unsafe { &**sorted_pl_its.first().unwrap() };
+            if let Some(first_td) = min_pl_iter.td {
                 // Do an "AND" query first
 
                 let curr_doc_id = first_td.doc_id;
@@ -101,7 +101,7 @@ impl Searcher {
 
                 if num_matched_docs == num_pls {
                     // Now do the phrase query on curr_doc_id
-                    let (td, has_match) = self.has_position_match(curr_doc_id, num_pls, &pl_iterators);
+                    let (td, has_match) = self.has_position_match(curr_doc_id, num_pls, &pl_iters);
 
                     if has_match {
                         result_pl.term_docs.push(td);
@@ -117,18 +117,18 @@ impl Searcher {
         Rc::new(result_pl)
     }
 
-    fn has_position_match(&self, curr_doc_id: u32, num_pls: usize, pl_iterators: &Vec<PlIterator>) -> (TermDoc, bool) {
-        let mut td = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
+    fn has_position_match(&self, curr_doc_id: u32, num_pls: usize, pl_iters: &Vec<PlIterator>) -> (Doc, bool) {
+        let mut td = Doc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
         let mut has_match = false;
         for field_id in 0..self.searcher_config.num_scored_fields as usize {
-            let mut result_doc_field = DocField { field_tf: 0.0, field_positions: Vec::new() };
+            let mut result_doc_field = Field { field_tf: 0.0, field_positions: Vec::new() };
 
             let mut term_field_position_idxes = vec![0; num_pls];
             let mut curr_pos: u32 = 0;
             let mut term_idx = 0;
 
             // Go through the terms in this field, controlled by term_idx modifications below
-            while let Some(curr_pl_field) = pl_iterators[term_idx].peek_prev().unwrap().fields.get(field_id) {
+            while let Some(curr_pl_field) = pl_iters[term_idx].peek_prev().unwrap().fields.get(field_id) {
                 if let Some(&pos) = curr_pl_field.field_positions.get(term_field_position_idxes[term_idx]) {
                     if term_idx == 0 {
                         // First term in the query
@@ -207,7 +207,7 @@ impl Searcher {
         let mut sorted_pl_its: Vec<PlIterator> = child_postings_lists
             .iter()
             .enumerate()
-            .map(|(idx, pl_vec)| pl_vec.get_it(idx as u8))
+            .map(|(idx, pl_vec)| pl_vec.iter(idx as u8))
             .filter(|pl_it| pl_it.td.is_some())
             .collect();
         let num_pls = sorted_pl_its.len();
@@ -220,8 +220,8 @@ impl Searcher {
         loop {
             utils::insertion_sort(&mut sorted_pl_its, |a, b| a.lt(b));
 
-            let min_pl_iterator = sorted_pl_its.first().unwrap();
-            if let Some(first_td) = min_pl_iterator.td {
+            let min_pl_iter = sorted_pl_its.first().unwrap();
+            if let Some(first_td) = min_pl_iter.td {
                 let curr_doc_id = first_td.doc_id;
                 let mut num_matched_docs = 0;
                 for pl_it in sorted_pl_its.iter_mut() {
@@ -247,7 +247,7 @@ impl Searcher {
 
                     // Calculate the new score of the conjunctive expression now (before query.rs)
                     // for preserving the **original** ranking of documents once propagated to the top.
-                    let mut acc = TermDoc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
+                    let mut acc = Doc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
                     let mut new_score = 0.0;
                     for pl_it in sorted_pl_its.iter().take(num_matched_docs) {
                         let term_doc = pl_it.peek_prev().unwrap();
@@ -293,7 +293,7 @@ impl Searcher {
             for td in not_child_postings_list.term_docs.iter() {
                 for doc_id in prev..td.doc_id {
                     if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                        result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new(), score: 0.0 });
+                        result_pl.term_docs.push(Doc { doc_id, fields: Vec::new(), score: 0.0 });
                     }
                 }
                 prev = td.doc_id + 1;
@@ -302,7 +302,7 @@ impl Searcher {
 
         for doc_id in prev..self.doc_info.doc_length_factors_len {
             if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                result_pl.term_docs.push(TermDoc { doc_id, fields: Vec::new(), score: 0.0 });
+                result_pl.term_docs.push(Doc { doc_id, fields: Vec::new(), score: 0.0 });
             }
         }
 
@@ -335,14 +335,14 @@ impl Searcher {
                 term_info: pl.term_info.clone(),
             };
 
-            let fields_before = vec![DocField::default(); field_id];
+            let fields_before = vec![Field::default(); field_id];
             for term_doc in &pl.term_docs {
                 if let Some(doc_field) = term_doc.fields.get(field_id) {
                     if doc_field.field_tf == 0.0 {
                         continue;
                     }
 
-                    let mut fields: Vec<DocField> = fields_before.clone();
+                    let mut fields: Vec<Field> = fields_before.clone();
                     fields.push(doc_field.clone()); // TODO reduce potential allocations?
 
                     let score = if term_doc.score != 0.0 {
@@ -350,7 +350,7 @@ impl Searcher {
                     } else {
                         self.calc_doc_bm25_score(term_doc, term_doc.doc_id, pl)
                     };
-                    new_pl.term_docs.push(TermDoc { doc_id: term_doc.doc_id, fields, score })
+                    new_pl.term_docs.push(Doc { doc_id: term_doc.doc_id, fields, score })
                 }
             }
 
