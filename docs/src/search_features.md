@@ -23,7 +23,7 @@ Phrase queries are also supported by enclosing the relevant terms in `"..."`.
 "lorem ipsum" - documents containing "lorem" and "ipsum" appearing one after the other
 ```
 
-You will need to enable the [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature for this to work.
+The [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature needs to be enabled for this to work (by default it is).
 
 ## Field Search
 
@@ -55,22 +55,27 @@ title\:lorem
 
 Most of the search library operates on a WebWorker where it matters (e.g. setup, query ranking), so you don't have to worry about blocking the UI thread.
 
+<details>
+
+<summary>Exceptions</summary>
+
 Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.
 
 Search UI related functionalities, for example result preview generation, is also done on the main thread.
 The main rationale is that there is simply no way of parsing HTML faster than implementations provided by the browser. (the original HTML document can be used as an alternative to storing document fields for result preview generation)
 
+</details>
 
 ### Low-Level Inverted Index Format
 
-Some basic, but high-return compression schemes are also employed:
+Some efficient, high-return compression schemes are also employed, so you get all these features without much penalty.
 - Gap encoding for document ids, positions
-- Bytewise variable integer encoding
+- Byte-and-bit-wise variable integer encoding
 
 To facilitate decompression efficiency of such a low-level format, most of the search library is powered by WebAssembly (Rust) as such.
 
 ### Ranking Specifics
 
-Most query expressions (e.g. free text queries like `lorem ipsum`) are ranked using the BM25 model, while `AND` and `()` operators sum the respective BM25 scores of their operands. A soft disjunctive maximum is calculated across a document's field scores.
+Most query expressions (e.g. free text queries like `lorem ipsum`) are ranked using the BM25 model, while `AND` and `()` operators sum the respective BM25 scores of their operands. A soft disjunctive maximum of document's field scores is calculated.
 
 **Query term proximity ranking** is also supported and enabled by default for top-level expressions, when the `with_positions` index [feature](./indexer/indexing.html#miscellaneous-options) is enabled. Results are scaled according to how close search expressions are to one another.

@@ -34,10 +34,6 @@ Please check out the [documentation](https://morsels-search.com/morsels/getting_
 
 A much heavier demo on a 500MB, 52000 document Gutenberg collection subcorpus is also available [here](https://morsels-search.com).
 
-## Contributing
-
-Contributions are highly welcome! Please see [contributing.md](./CONTRIBUTING.md) to get started.
-
 ## License
 
 This project is [MIT licensed](./LICENSE.md).
