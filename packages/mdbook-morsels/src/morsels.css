@@ -112,3 +112,18 @@
     margin: 0;
     padding: 0;
 }
+
+.morsels-title {
+    border-bottom: none;
+}
+
+@media (hover: hover) {
+    .morsels-list-item:hover .morsels-title {
+        border-bottom: none;
+    }
+}
+
+.morsels-title:active,
+.morsels-list-item.focus .morsels-title {
+    border-bottom: none;
+}
