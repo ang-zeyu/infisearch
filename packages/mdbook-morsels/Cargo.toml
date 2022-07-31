@@ -8,7 +8,7 @@ documentation = "https://morsels-search.com/morsels/"
 repository = "https://github.com/ang-zeyu/morsels"
 readme = "../../README.md"
 license = "MIT"
-include = ["/src", "/search-ui-dist", "mark.min.js"]
+include = ["/src", "/search-ui-dist", "mark.min.js", "default_morsels_config.json"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

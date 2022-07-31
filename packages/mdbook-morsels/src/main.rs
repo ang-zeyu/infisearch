@@ -22,6 +22,8 @@ use serde_json::{Value as JsonValue, json};
 
 const SEARCH_UI_DIST: Dir = include_dir!("$CARGO_MANIFEST_DIR/search-ui-dist");
 
+const DEFAULT_CONFIG: &'static str = include_str!("../default_morsels_config.json");
+
 const MARK_MIN_JS: &[u8] = include_bytes!("../mark.min.js");
 
 pub fn make_app() -> App<'static, 'static> {
@@ -100,21 +102,7 @@ fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::Pa
     let morsels_config_path = get_config_file_path(&ctx.root, ctx.config.get("output.morsels.config"));
 
     if !morsels_config_path.exists() || !morsels_config_path.is_file() {
-        let mut init_config_command = Command::new("morsels");
-        init_config_command.current_dir(ctx.root.clone()).args(&["./", "./morsels_output", "--config-init"]);
-        init_config_command.arg("-c");
-        init_config_command.arg(&morsels_config_path);
-        init_config_command
-            .output()
-            .expect("mdbook-morsels: failed to create default configuration file");
-
-        let config = fs::read_to_string(&morsels_config_path).unwrap();
-        fs::write(
-            &morsels_config_path,
-            config.replace("\"exclude\": [", "\"exclude\": [\n      \"index.html\",\n      \"print.html\", \n      \"404.html\",")
-                .replace("script,style,pre", "script,style,pre,#sidebar,#menu-bar"),
-        )
-        .unwrap();
+        fs::write(&morsels_config_path, DEFAULT_CONFIG).expect("Failed to write default morsels configuration");
     }
 
     let scaling_config = ctx.config.get("output.morsels.scaling");
