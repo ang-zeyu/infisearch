@@ -1,6 +1,6 @@
 import { computePosition, flip } from '@floating-ui/dom';
 import { Searcher } from '@morsels/search-lib';
-import { UiOptions } from '../SearchUiOptions';
+import { UiOptions } from '../Options';
 import h from '../utils/dom';
 
 export default function createTipButton(

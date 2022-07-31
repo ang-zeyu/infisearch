@@ -1,4 +1,4 @@
-import { SearchUiOptions } from '../SearchUiOptions';
+import { Options } from '../Options';
 import createElement from '../utils/dom';
 
 export interface MatchResult {
@@ -109,7 +109,7 @@ const PREVIEW_LENGTH = 80;
 export function highlightMatchResult(
   matchResult: MatchResult,
   addEllipses: boolean,
-  options: SearchUiOptions,
+  options: Options,
 ): (string | HTMLElement)[] {
   const { highlightRender } = options.uiOptions.resultsRenderOpts;
   const { _mrlStr: str, _mrlWindow: window } = matchResult;

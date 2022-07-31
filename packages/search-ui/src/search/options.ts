@@ -1,9 +1,9 @@
 import { resultsRender } from '../searchResultTransform';
-import { SearchUiOptions, UiMode } from '../SearchUiOptions';
+import { Options, UiMode } from '../Options';
 import { parseURL } from '../utils/url';
 import { LOADING_INDICATOR_ID } from '../utils/dom';
 
-export function prepareOptions(options: SearchUiOptions) {
+export function prepareOptions(options: Options) {
   // ------------------------------------------------------------
   // Search Lib Options
   

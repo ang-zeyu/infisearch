@@ -38,25 +38,25 @@ export interface UiOptions {
   // Renderers
 
   // Miscellaneous
-  errorRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
-  noResultsRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
-  fsBlankRender?: (h: CreateElement, opts: SearchUiOptions) => HTMLElement,
+  errorRender?: (h: CreateElement, opts: Options) => HTMLElement,
+  noResultsRender?: (h: CreateElement, opts: Options) => HTMLElement,
+  fsBlankRender?: (h: CreateElement, opts: Options) => HTMLElement,
   loadingIndicatorRender?: (
     h: CreateElement,
-    opts: SearchUiOptions,
+    opts: Options,
     isInitialising: boolean,
     wasResultsBlank: boolean,
   ) => HTMLElement,
   termInfoRender?: (
     h: CreateElement,
-    opts: SearchUiOptions,
+    opts: Options,
     queryParts: QueryPart[],
   ) => HTMLElement[],
 
   // Rendering Results
   resultsRender?: (
     h: CreateElement,
-    opts: SearchUiOptions,
+    opts: Options,
     config: MorselsConfig,
     results: Result[],
     query: Query,
@@ -65,7 +65,7 @@ export interface UiOptions {
     addSearchedTerms?: string,
     listItemRender?: (
       h: CreateElement,
-      opts: SearchUiOptions,
+      opts: Options,
       searchedTermsJSON: string,
       fullLink: string,
       resultTitle: string,
@@ -74,25 +74,25 @@ export interface UiOptions {
     ) => HTMLElement,
     headingBodyRender?: (
       h: CreateElement,
-      opts: SearchUiOptions,
+      opts: Options,
       headingHighlights: (HTMLElement | string)[],
       bodyHighlights: (HTMLElement | string)[],
       href?: string
     ) => HTMLElement,
     bodyOnlyRender?: (
       h: CreateElement,
-      opts: SearchUiOptions,
+      opts: Options,
       bodyHighlights: (HTMLElement | string)[],
     ) => HTMLElement,
     highlightRender?: (
       h: CreateElement,
-      opts: SearchUiOptions,
+      opts: Options,
       matchedPart: string,
     ) => HTMLElement,
   },
 }
 
-export interface SearchUiOptions {
+export interface Options {
   searcherOptions?: SearcherOptions,
   uiOptions?: UiOptions,
   isMobileDevice: () => boolean,

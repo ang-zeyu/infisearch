@@ -67,7 +67,7 @@ export type CreateElement = (
 All renderer functions are also passed an `opts` parameter. This is the original input object that you provided to the `initMorsels` call, with default parameters populated at this point.
 
 ```ts
-opts = export interface SearchUiOptions {
+opts = export interface Options {
   searcherOptions?: SearcherOptions,
   uiOptions?: UiOptions,
   isMobileDevice: () => boolean,

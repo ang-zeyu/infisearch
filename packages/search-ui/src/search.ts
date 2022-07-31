@@ -1,6 +1,6 @@
 import { Searcher } from '@morsels/search-lib';
 import loadQueryResults from './searchResultTransform';
-import { SearchUiOptions, UiMode, UiOptions } from './SearchUiOptions';
+import { Options, UiMode, UiOptions } from './Options';
 import createElement, { LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState } from './utils/input';
 import { prepareOptions } from './search/options';
@@ -27,7 +27,7 @@ function createInputListener(
   root: HTMLElement,
   listContainer: HTMLElement,
   searcher: Searcher,
-  options: SearchUiOptions,
+  options: Options,
 ) {
   const { uiOptions } = options;
 
@@ -141,7 +141,7 @@ function createInputListener(
 }
 
 
-function initMorsels(options: SearchUiOptions): {
+function initMorsels(options: Options): {
   showFullscreen: () => void,
   hideFullscreen: () => void,
 } {

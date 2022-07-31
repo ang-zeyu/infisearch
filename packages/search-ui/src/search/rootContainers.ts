@@ -1,7 +1,7 @@
 import { computePosition, size, flip, arrow, Placement } from '@floating-ui/dom';
 import { Searcher } from '@morsels/search-lib';
 
-import { SearchUiOptions, UiOptions } from '../SearchUiOptions';
+import { Options, UiOptions } from '../Options';
 import { setCombobox, setInputAria } from '../utils/aria';
 import h from '../utils/dom';
 import createTipButton from './tips';
@@ -122,7 +122,7 @@ export function unsetDropdownInputAria(
 }
 
 export function fsRootRender(
-  opts: SearchUiOptions,
+  opts: Options,
   searcher: Searcher,
   onClose: (isKeyboardClose: boolean) => void,
 ): [HTMLElement, HTMLElement, HTMLElement, () => void, (isKeyboardClose: boolean) => void] {

@@ -1,5 +1,5 @@
 import createElement from '../utils/dom';
-import { SearchUiOptions } from '../SearchUiOptions';
+import { Options } from '../Options';
 import { getBestMatchResult, highlightMatchResult, MatchResult } from './highlight';
 
 interface ProcessedMatchResult extends MatchResult {
@@ -16,7 +16,7 @@ export function transformText(
   texts: [string, string][],
   termRegexes: RegExp[],
   baseUrl: string,
-  options: SearchUiOptions,
+  options: Options,
 ): (string | HTMLElement)[] {
   const { maxSubMatches, resultsRenderOpts } = options.uiOptions;
   const {
@@ -114,7 +114,7 @@ export function transformJson(
   loaderConfig: any,
   termRegexes: RegExp[],
   baseUrl: string,
-  options: SearchUiOptions,
+  options: Options,
 ) {
   const fields: [string, string][] = [];
   
@@ -148,7 +148,7 @@ export function transformHtml(
   loaderConfig: any,
   termRegexes: RegExp[],
   baseUrl: string,
-  options: SearchUiOptions,
+  options: Options,
 ): { title: string, bodies: (string | HTMLElement)[] } {
   const fields: [string, string][] = [];
   

@@ -2,7 +2,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { SearchUiOptions } from './SearchUiOptions';
+import { Options } from './Options';
 import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
@@ -19,7 +19,7 @@ const RELATIVE_LINK_FIELD_NAME = '_relative_fp';
  */
 async function singleResultRender(
   result: Result,
-  options: SearchUiOptions,
+  options: Options,
   configs: MorselsConfig,
   hasStoredContentField: FieldInfo,
   searchedTermsJSON: string,
@@ -146,7 +146,7 @@ async function singleResultRender(
 
 export function resultsRender(
   h: CreateElement,
-  options: SearchUiOptions,
+  options: Options,
   config: MorselsConfig,
   results: Result[],
   query: Query,
@@ -194,7 +194,7 @@ export default async function loadQueryResults(
   config: MorselsConfig,
   isFirst: boolean,
   container: HTMLElement,
-  options: SearchUiOptions,
+  options: Options,
 ): Promise<boolean> {
   if (inputState._mrlNextAction) {
     // If a new query interrupts the current one
