@@ -81,6 +81,7 @@ export function prepareOptions(options: SearchUiOptions) {
   uiOptions.fsContainer = uiOptions.fsContainer || document.getElementsByTagName('body')[0] as HTMLElement;
   
   uiOptions.resultsPerPage = uiOptions.resultsPerPage || 8;
+  uiOptions.maxSubMatches = uiOptions.maxSubMatches || 2;
   
   uiOptions.label = uiOptions.label || 'Search this site';
   uiOptions.resultsLabel = uiOptions.resultsLabel || 'Site results';

@@ -29,6 +29,7 @@ export interface UiOptions {
   target?: HTMLElement,
   tip: boolean,
   resultsPerPage?: number,
+  maxSubMatches?: number,
   // This is specific to the default resultsRender implementation,
   // pulling it up as its a common option
   sourceFilesUrl?: string,

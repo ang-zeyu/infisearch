@@ -18,10 +18,11 @@ export function transformText(
   baseUrl: string,
   options: SearchUiOptions,
 ): (string | HTMLElement)[] {
+  const { maxSubMatches, resultsRenderOpts } = options.uiOptions;
   const {
     bodyOnlyRender,
     headingBodyRender,
-  } = options.uiOptions.resultsRenderOpts;
+  } = resultsRenderOpts;
   
   let lastHeadingMatch: ProcessedMatchResult = undefined;
   let lastHeadingLinkIdx = -2;
@@ -79,7 +80,7 @@ export function transformText(
   });
   
   const matches: ProcessedMatchResult[] = [];
-  const maxMatches = Math.min(matchResults.length, 2); // maximum 2 for now
+  const maxMatches = Math.min(matchResults.length, maxSubMatches);
   for (let i = 0; i < maxMatches; i += 1) {
     if (matchResults[i]._mrlNumTerms !== matchResults[0]._mrlNumTerms) {
       break;

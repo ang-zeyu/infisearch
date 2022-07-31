@@ -87,10 +87,11 @@ There are also several options specific to each mode. Note that `dropdown` and `
 
 #### General Options
 
-| Mode        | Option                | Default                 | Description |
-| ----------- | -----------           | -----------             | ----------- |
-| all         | `label`               | `'Search this site'`    | Accessibility label for the fullscreen UI input.
-| all         | `resultsLabel`        | `'Site results'`        | Accessibility label for result `listbox`es.
+| Option                | Default                 | Description |
+| -----------           | -----------             | ----------- |
+| `label`               | `'Search this site'`    | Accessibility label for the fullscreen UI input.
+| `resultsLabel`        | `'Site results'`        | Accessibility label for result `listbox`es.
+| `maxSubMatches`       | `2`                     | Maximum number of heading-body pairs to show for a document.
 
 #### Manually Showing / Hiding the Fullscreen UI
 
