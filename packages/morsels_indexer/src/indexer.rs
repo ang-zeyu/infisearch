@@ -395,20 +395,13 @@ impl Indexer {
 
         print_time_elapsed(&instant, "Blocks merged!");
 
-        /*
-         Circumvent partial move
-         TODO find a cleaner solution.
+        // mem::replace/take to circumvent partial move, TODO find a cleaner solution
+        Self::terminate_all_workers(
+            std::mem::replace(&mut self.tx_main, channel::bounded(0).0),
+            std::mem::take(&mut self.workers),
+        );
 
-         Config needs to be written after workers are joined, as it calls Arc::try_unwrap.
-         */
-        let (dummy_tx_main, _): (
-            Sender<MainToWorkerMessage>, Receiver<MainToWorkerMessage>
-        ) = channel::bounded(0);
-        let actual_tx_main = std::mem::replace(&mut self.tx_main, dummy_tx_main);
-        let workers = std::mem::take(&mut self.workers);
-
-        Self::terminate_all_workers(actual_tx_main, workers);
-
+        // Config needs to be written after workers are joined, as it calls Arc::try_unwrap.
         output_config::write_output_config(self);
     }
 
