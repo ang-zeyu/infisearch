@@ -137,6 +137,7 @@
     right: 19px;
     width: var(--morsels-tip-icon-size);
     height: var(--morsels-tip-icon-size);
+    z-index: 1;
 }
 
 .morsels-tip-icon {

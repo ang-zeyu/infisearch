@@ -63,9 +63,10 @@ export function dropdownRootRender(
   const innerRoot = h('div',
     { class: 'morsels-inner-root', style: 'display: none;' },
     h('div', { class: 'morsels-input-dropdown-separator' }),
+    createTipButton(uiOptions, searcher),
     listContainer,
   );
-  createTipButton(innerRoot, uiOptions, searcher);
+  
   const root = h('div', { class: 'morsels-root' },
     inputEl, innerRoot,
   );
@@ -157,13 +158,13 @@ export function fsRootRender(
       inputEl,
       buttonEl,
     ),
+    createTipButton(uiOptions, searcher),
     listContainer,
   );
   innerRoot.onclick = (ev) => ev.stopPropagation();
   innerRoot.onmousedown = (ev) => ev.stopPropagation();
   
   setCombobox(innerRoot, listContainer, uiOptions.label);
-  createTipButton(innerRoot, uiOptions, searcher);
   
   const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
 

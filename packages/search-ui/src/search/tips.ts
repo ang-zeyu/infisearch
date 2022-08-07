@@ -4,7 +4,6 @@ import { UiOptions } from '../Options';
 import h from '../utils/dom';
 
 export default function createTipButton(
-  root: HTMLElement,
   opts: UiOptions,
   searcher: Searcher,
 ): HTMLElement | string {
@@ -92,8 +91,6 @@ export default function createTipButton(
   tipContainer.onmouseleave = resetPopupStyle;
   tipContainer.onblur = resetPopupStyle;
 
-  root.append(tipContainer);
-
   searcher.setupPromise.then(() => {
     if (searcher.cfg.indexingConfig.withPositions) {
       tipList.append(createListItem(
@@ -102,4 +99,6 @@ export default function createTipButton(
       ));
     }
   });
+
+  return tipContainer;
 }
