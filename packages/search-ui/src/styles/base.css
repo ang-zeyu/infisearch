@@ -110,6 +110,10 @@
     transition: background 0.2s linear, color 0.2s linear;
 }
 
+.morsels-input-close-fs > span {
+    vertical-align: middle;
+}
+
 @media (hover: hover) {
     .morsels-input-close-fs:hover {
         color: var(--morsels-fs-header-close-hover-fg);
