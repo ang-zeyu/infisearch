@@ -21,6 +21,13 @@ This snippet shows the default values:
         "b": 0.15
       },
       {
+        "name": "h1",
+        "do_store": false,
+        "weight": 2.0,
+        "k": 1.2,
+        "b": 0.15
+      },
+      {
         "name": "heading",
         "do_store": false,
         "weight": 1.5,
@@ -60,7 +67,7 @@ The functions of the default fields for the user interface are as follows:
 
 <img alt="annotation for fields" src="../images/fields_annotated.png" />
 
-- `title`: This is the header for a single document match, usually sourced from the HTML `<title>` tag. When unavailable, `_relative_fp` field is formatted into a breadcrumb format (e.g. `user guide » introduction`) instead.
+- `h1`, `title`: This is the header for a single document match, usually sourced from the HTML `<title>` or `<h1>` tag. When unavailable, `_relative_fp` field is formatted into a breadcrumb format (e.g. `user guide » introduction`) instead.
 
 - `heading`: These are section headers which appear on the left of corresponding `body` field, sourced from `<h1-6>` tags.
 

@@ -38,6 +38,7 @@ impl Default for FieldsConfig {
             cache_all_field_stores: get_default_cache_all_field_stores(),
             fields: vec![
                 FieldConfig { name: "title".to_owned(), do_store: false, weight: 2.0, k: 1.2, b: 0.15 },
+                FieldConfig { name: "h1".to_owned(), do_store: false, weight: 2.0, k: 1.2, b: 0.15 },
                 FieldConfig { name: "heading".to_owned(), do_store: false, weight: 1.5, k: 1.2, b: 0.25 },
                 FieldConfig { name: "body".to_owned(), do_store: false, weight: 1.0, k: 1.2, b: 0.75 },
                 FieldConfig { name: "headingLink".to_owned(), do_store: false, weight: 0.0, k: 1.2, b: 0.75 },

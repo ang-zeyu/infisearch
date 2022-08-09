@@ -55,6 +55,13 @@ You may configure loaders by **including them under the `loader_configs` key**, 
         "field_name": "title",
         "selector": "title"
       },
+      // <h1> tags are indexed into a separate field,
+      // and takes overwrites the title in the generated SERP if found
+      {
+        "attr_map": {},
+        "field_name": "h1",
+        "selector": "h1"
+      },
       {
         "attr_map": {},
         "field_name": "body",
@@ -65,7 +72,7 @@ You may configure loaders by **including them under the `loader_configs` key**, 
           "id": "headingLink" // "store the id attribute under headingLink"
         },
         "field_name": "heading",
-        "selector": "h1,h2,h3,h4,h5,h6"
+        "selector": "h2,h3,h4,h5,h6"
       }
     ]
   }

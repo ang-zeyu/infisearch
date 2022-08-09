@@ -205,10 +205,20 @@ export function transformHtml(
   
   traverse(doc.documentElement, undefined);
   
-  const titleField = fields.find((pair) => pair[0] === 'title');
   let title = '';
-  if (titleField) {
-    [,title] = titleField;
+  let encounteredH1 = false;
+  for (const fieldNameAndField of fields) {
+    const [fieldName, fieldText] = fieldNameAndField;
+    if (fieldName === 'title') {
+      title = title || fieldText;
+    } else if (fieldName === 'h1' && !encounteredH1) {
+      title = fieldText;
+      encounteredH1 = true;
+    }
+
+    if (title && encounteredH1) {
+      break;
+    }
   }
   
   return {

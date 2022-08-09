@@ -32,6 +32,7 @@ async function singleResultRender(
   let link: string;
   let relativeLink: string;
   let resultTitle: string;
+  let encounteredH1 = false;
   for (const fieldNameAndField of fields) {
     const [fieldName, fieldText] = fieldNameAndField;
     switch (fieldName) {
@@ -44,8 +45,15 @@ async function singleResultRender(
       case 'title':
         resultTitle = resultTitle || fieldText;
         break;
+      case 'h1':
+        if (!encounteredH1) {
+          resultTitle = fieldText;
+          encounteredH1 = true;
+        }
+        break;
+      case 'body':
     }
-    if (link && relativeLink && resultTitle) {
+    if (link && relativeLink && resultTitle && encounteredH1) {
       break;
     }
   }

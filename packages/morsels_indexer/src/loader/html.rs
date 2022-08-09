@@ -32,7 +32,7 @@ pub struct HtmlLoaderSelectorRaw {
 
 fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
     let mut heading_selector = HtmlLoaderSelectorRaw {
-        selector: "h1,h2,h3,h4,h5,h6".to_owned(),
+        selector: "h2,h3,h4,h5,h6".to_owned(),
         field_name: Some("heading".to_owned()),
         attr_map: FxHashMap::default(),
     };
@@ -42,6 +42,11 @@ fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
         HtmlLoaderSelectorRaw {
             selector: "title".to_owned(),
             field_name: Some("title".to_owned()),
+            attr_map: FxHashMap::default(),
+        },
+        HtmlLoaderSelectorRaw {
+            selector: "h1".to_owned(),
+            field_name: Some("h1".to_owned()),
             attr_map: FxHashMap::default(),
         },
         HtmlLoaderSelectorRaw {
