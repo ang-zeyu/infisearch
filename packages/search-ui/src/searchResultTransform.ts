@@ -2,7 +2,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { Options } from './Options';
+import { Options, UiMode } from './Options';
 import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
@@ -209,7 +209,16 @@ export default async function loadQueryResults(
     return false;
   }
 
-  const bottomLoader = options.uiOptions.loadingIndicatorRender(createElement, options, false, true);
+  const {
+    loadingIndicatorRender,
+    termInfoRender,
+    resultsPerPage,
+    resultsRender: renderResults,
+    noResultsRender,
+    mode,
+  } = options.uiOptions;
+
+  const bottomLoader = loadingIndicatorRender(createElement, options, false, true);
   if (!isFirst) {
     container.appendChild(bottomLoader);
   }
@@ -220,13 +229,13 @@ export default async function loadQueryResults(
 
   const fragment = document.createDocumentFragment();
   const termInfoEls = isFirst
-    ? options.uiOptions.termInfoRender(createElement, options, query.queryParts)
+    ? termInfoRender(createElement, options, query.queryParts)
     : [];
   termInfoEls.forEach((el) => fragment.appendChild(el));
 
   //let now = performance.now();
 
-  const results = await query.getNextN(options.uiOptions.resultsPerPage);
+  const results = await query.getNextN(resultsPerPage);
 
   //console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
   //now = performance.now();
@@ -236,7 +245,7 @@ export default async function loadQueryResults(
     return false;
   }
 
-  const resultsEls = await options.uiOptions.resultsRender(
+  const resultsEls = await renderResults(
     createElement, options, config, results, query,
   );
 
@@ -248,7 +257,7 @@ export default async function loadQueryResults(
   if (resultsEls.length) {
     resultsEls.forEach((el) => fragment.appendChild(el));
   } else if (isFirst) {
-    fragment.appendChild(options.uiOptions.noResultsRender(createElement, options));
+    fragment.appendChild(noResultsRender(createElement, options));
   }
   const sentinel = fragment.lastElementChild;
 
@@ -264,6 +273,8 @@ export default async function loadQueryResults(
   //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
   if (resultsEls.length) {
+    const root = mode === UiMode.Target ? null : container;
+
     inputState._mrlLastElObserver = new IntersectionObserver(async ([entry], observer) => {
       if (!entry.isIntersecting) {
         return;
@@ -271,7 +282,7 @@ export default async function loadQueryResults(
   
       observer.unobserve(sentinel);
       await loadQueryResults(inputState, query, config, false, container, options);
-    }, { root: container, rootMargin: '150px 0px' });
+    }, { root, rootMargin: '150px 0px' });
 
     inputState._mrlLastElObserver.observe(sentinel);
   }
