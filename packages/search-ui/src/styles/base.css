@@ -21,7 +21,6 @@
 .morsels-root {
     display: inline-block;
     position: relative;
-    width: 100%;
     box-sizing: border-box;
     font-size: var(--morsels-font-size);
 }

@@ -166,3 +166,7 @@
     margin: 0;
     padding: 0;
 }
+
+.morsels-root:not(.morsels-fs-root) {
+    width: 100%;
+}
