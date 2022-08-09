@@ -40,14 +40,14 @@ pub trait SearchTokenizer {
     fn get_best_corrected_term(
         &self,
         term: &str,
-        dictionary: &BTreeMap<SmartString, TermInfo>,
+        dictionary: &BTreeMap<SmartString, &'static TermInfo>,
     ) -> Option<String>;
 
     fn get_prefix_terms(
         &self,
         number_of_expanded_terms: usize,
         term: &str,
-        dictionary: &BTreeMap<SmartString, TermInfo>,
+        dictionary: &BTreeMap<SmartString, &'static TermInfo>,
     ) -> Vec<(String, f32)>;
 }
 

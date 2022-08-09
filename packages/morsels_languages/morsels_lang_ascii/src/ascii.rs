@@ -138,7 +138,7 @@ impl SearchTokenizer for Tokenizer {
     fn get_best_corrected_term(
         &self,
         _term: &str,
-        _dictionary: &BTreeMap<SmartString, TermInfo>,
+        _dictionary: &BTreeMap<SmartString, &'static TermInfo>,
     ) -> Option<String> {
         None
     }
@@ -147,7 +147,7 @@ impl SearchTokenizer for Tokenizer {
         &self,
         _number_of_expanded_terms: usize,
         _term: &str,
-        _dictionary: &BTreeMap<SmartString, TermInfo>,
+        _dictionary: &BTreeMap<SmartString, &'static TermInfo>,
     ) -> Vec<(String, f32)> {
         Vec::new()
     }

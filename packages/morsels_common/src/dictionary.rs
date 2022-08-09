@@ -11,7 +11,7 @@ pub const DICT_MAX_VALUES: [usize; 4] = [4, 4, 8, 8];
 pub const DICT_MAX_VALUES_U8: [u8; 4] = [4, 4, 8, 8];
 
 pub struct Dictionary {
-    pub term_infos: BTreeMap<String, TermInfo>,
+    pub term_infos: BTreeMap<String, &'static TermInfo>,
 }
 
 struct DictionaryConstructor<'a> {
@@ -25,7 +25,7 @@ struct DictionaryConstructor<'a> {
 
 /// An iterator to avoid double collecting into Vec during BTreeMap::from_iter
 impl<'a> Iterator for DictionaryConstructor<'a> {
-    type Item = (String, TermInfo);
+    type Item = (String, &'static TermInfo);
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.dict_string_pos >= self.string_vec.len() {
@@ -54,13 +54,15 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
             };
         self.dict_string_pos += remaining_len;
 
+        let term_info: &'static TermInfo = Box::leak(Box::new(TermInfo {
+            doc_freq,
+            postings_file_name: self.postings_file_name,
+            postings_file_offset: self.postings_file_offset,
+        }));
+
         let ret = Some((
             term.clone(),
-            TermInfo {
-                doc_freq,
-                postings_file_name: self.postings_file_name,
-                postings_file_offset: self.postings_file_offset,
-            },
+            term_info
         ));
 
         self.prev_term = term;
@@ -93,7 +95,7 @@ pub fn setup_dictionary(
 
 impl Dictionary {
     pub fn get_term_info(&self, term: &str) -> Option<&TermInfo> {
-        self.term_infos.get(term)
+        self.term_infos.get(term).map(|ti| *ti)
     }
 }
 
@@ -138,40 +140,44 @@ mod test {
         assert_eq!(dictionary.term_infos, {
             let mut terms = BTreeMap::default();
 
+            let term_info: &'static TermInfo = Box::leak(Box::new(TermInfo {
+                doc_freq: 1,
+                postings_file_name: 0,
+                postings_file_offset: 65535,
+            }));
             terms.insert(
                 String::from("foo"),
-                TermInfo {
-                    doc_freq: 1,
-                    postings_file_name: 0,
-                    postings_file_offset: 65535,
-                },
+                term_info,
             );
 
+            let term_info: &'static TermInfo = Box::leak(Box::new(TermInfo {
+                doc_freq: 1,
+                postings_file_name: 0,
+                postings_file_offset: 65535 + 65535,
+            }));
             terms.insert(
                 String::from("foobar"),
-                TermInfo {
-                    doc_freq: 1,
-                    postings_file_name: 0,
-                    postings_file_offset: 65535 + 65535,
-                },
+                term_info,
             );
 
+            let term_info: &'static TermInfo = Box::leak(Box::new(TermInfo {
+                doc_freq: 1,
+                postings_file_name: 1,
+                postings_file_offset: 65535,
+            }));
             terms.insert(
                 String::from("test"),
-                TermInfo {
-                    doc_freq: 1,
-                    postings_file_name: 1,
-                    postings_file_offset: 65535,
-                },
+                term_info,
             );
 
+            let term_info: &'static TermInfo = Box::leak(Box::new(TermInfo {
+                doc_freq: 1,
+                postings_file_name: 1,
+                postings_file_offset: 65535 + 65535,
+            }));
             terms.insert(
                 String::from("tetest"),
-                TermInfo {
-                    doc_freq: 1,
-                    postings_file_name: 1,
-                    postings_file_offset: 65535 + 65535,
-                },
+                term_info,
             );
 
             terms

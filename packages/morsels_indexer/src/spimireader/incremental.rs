@@ -326,11 +326,11 @@ pub fn modify_blocks(
         Ordering::Less => Ordering::Less,
     });
 
-    let mut term_terminfo_pairs: Vec<(SmartString<LazyCompact>, TermInfo, (u8, u8))> = Vec::new();
+    let mut term_terminfo_pairs: Vec<(SmartString<LazyCompact>, &TermInfo, (u8, u8))> = Vec::new();
 
     fn commit_pairs(
         dict_table_writer: &mut DictTableWriter,
-        term_terminfo_pairs: &mut Vec<(SmartString<LazyCompact>, TermInfo, (u8, u8))>,
+        term_terminfo_pairs: &mut Vec<(SmartString<LazyCompact>, &TermInfo, (u8, u8))>,
         prev_offset: &mut u32,
         curr_existing_pl_difference: i32,
     ) {
