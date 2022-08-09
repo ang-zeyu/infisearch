@@ -88,6 +88,40 @@
 .navy .morsels-root,
 .ayu .morsels-root {
     --morsels-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
+    --morsels-fs-input-fg: var(--fg);
+    --morsels-fs-input-focus-border: 2px solid #4f95cc;
+    --morsels-fs-input-focus-box-shadow: 0 0 5px -1px #63baff;
+}
+
+.rust .morsels-root {
+    --morsels-fs-input-fg: var(--sidebar-fg);
+    --morsels-fs-input-bg: #29201d;
+    --morsels-fs-input-border: 2px solid #584d4a;
+    --morsels-fs-input-focus-border: 2px solid #4f95cc;
+    --morsels-fs-input-focus-box-shadow: 0 0 5px -1px #63baff;
+}
+
+.coal .morsels-root {
+    --morsels-fs-input-bg: #1d1f21;
+    --morsels-fs-input-border: 2px solid #3e4144;
+}
+
+.coal .morsels-root {
+    --morsels-fs-input-bg: #1d1f21;
+    --morsels-fs-input-border: 2px solid #3e4144;
+}
+
+.navy .morsels-root {
+    --morsels-fs-input-bg: #1e222f;
+    --morsels-fs-input-border: 2px solid #3d4252;
+}
+
+.ayu .morsels-root {
+    --morsels-fs-input-fg: var(--fg);
+    --morsels-fs-input-bg: #2b3035;
+    --morsels-fs-input-border: 2px solid #43474c;
+    --morsels-fs-input-focus-border: 2px solid #4f95cc;
+    --morsels-fs-input-focus-box-shadow: 0 0 5px -1px #63baff;
 }
 
 #morsels-search {
