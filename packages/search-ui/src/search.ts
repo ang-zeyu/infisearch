@@ -249,12 +249,21 @@ function initMorsels(options: Options): {
     const originalPlaceholder = input.getAttribute('placeholder') || '';
 
     const parent = input.parentElement;
+    const parentChildNodes = parent.childNodes;
+
+    let inputIdx = 0;
+    for (; inputIdx < parentChildNodes.length && parentChildNodes[inputIdx] !== input; inputIdx += 1);
+
     input.remove();
     const [dropdownRoot, d] = dropdownRootRender(uiOptions, searcher, input, () => {
       initState._mrlHideDropdown();
     });
     dropdownListContainer = d;
-    parent.appendChild(dropdownRoot);
+    if (inputIdx < parentChildNodes.length) {
+      parent.insertBefore(dropdownRoot, parentChildNodes[inputIdx]);
+    } else {
+      parent.appendChild(dropdownRoot);
+    }
 
     initState._mrlShowDropdown = () => {
       openDropdown(dropdownRoot, dropdownListContainer, dropdownAlignment);
