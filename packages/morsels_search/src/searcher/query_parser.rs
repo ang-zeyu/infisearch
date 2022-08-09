@@ -711,6 +711,13 @@ pub mod test {
             ]
         );
         assert_eq!(
+            parse("((lorem ipsum) lorem) (lorem()ipsum)"),
+            vec![
+                wrap_in_parentheses(vec![wrap_in_parentheses(vec![get_lorem(), get_ipsum()]), get_lorem(),]),
+                wrap_in_parentheses(vec![get_lorem(), wrap_in_parentheses(vec![]), get_ipsum()]),
+            ]
+        );
+        assert_eq!(
             parse_with_sw_removal("(for and by)"),
             vec![wrap_in_parentheses(vec![get_term("for"), get_term("and"), get_term("by")])]
         );
@@ -905,6 +912,14 @@ pub mod test {
                 get_term("lorem"),
                 get_term("not"),
                 get_term("ipsum"),
+            ]
+        );
+
+        assert_eq!(
+            parse("((lorem ipsum) lorem) (lorem()NOT ipsum)"),
+            vec![
+                wrap_in_parentheses(vec![wrap_in_parentheses(vec![get_lorem(), get_ipsum()]), get_lorem(),]),
+                wrap_in_parentheses(vec![get_lorem(), wrap_in_parentheses(vec![]), wrap_in_not(get_ipsum())]),
             ]
         );
     }
