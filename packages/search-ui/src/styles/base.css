@@ -38,10 +38,6 @@
     cursor: pointer;
 }
 
-.morsels-button-input::placeholder {
-    text-align: center;
-}
-
 .morsels-button-input:focus:not(:hover) {
     transition: 0.3s ease-out;
     background: var(--morsels-fs-button-input-bg) !important;

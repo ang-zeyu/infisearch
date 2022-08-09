@@ -78,10 +78,9 @@ Where the `input` option passed to `initMorsels` is concerned, Morsels adopts a 
 
 For reasons of accessbility however, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button. This is limited to:
 - A `background` + `box-shadow` + `color` application on *focus* only
-- `cursor: pointer` application on *hover* only
-- `text-align: center` (for the placeholder) application
 
-Note that the background, box-shadow and color application in particular are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels' css variables.
+  These are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels' css variables.
+- `cursor: pointer` application on *hover* only
 
 You may override and addon to these styles as needed, to convey the intention of a button further.
 

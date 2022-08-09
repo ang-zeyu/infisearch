@@ -33,7 +33,7 @@
     */
     --morsels-fs-button-input-fg: #fff;
     --morsels-fs-button-input-bg: #3498db;
-    --morsels-fs-button-input-shadow: 0 0 0 3px rgb(82 167 224 / 50%);
+    --morsels-fs-button-input-shadow: 0 0 0 3px rgb(82 167 224 / 40%);
     --morsels-fs-border: none;
     --morsels-fs-box-shadow: 0 1px 5px rgba(128, 128, 128, 0.3);
     --morsels-fs-header-bg: rgb(247, 246, 246);
