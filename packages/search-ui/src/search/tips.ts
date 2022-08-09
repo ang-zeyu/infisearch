@@ -15,33 +15,43 @@ export default function createTipButton(
     return h('code', {}, example);
   }
 
-  function createListItem(...contents: (string | HTMLElement)[]) {
-    return h('li', { class: 'morsels-tip-item' }, ...contents);
+  function createRow(...contents: (string | HTMLElement)[]) {
+    return h('tr', { class: 'morsels-tip-item' }, ...contents.map((el) => h('td', {}, h('div', {}, el))));
   }
 
-  const tipList = h(
-    'ul',
-    { class: 'morsels-tip-list' },
-    createListItem(
-      'Match multiple terms or expressions',
+  const tipListBody = h(
+    'tbody', {},
+    createRow(
+      'Require all terms to match',
       wrapInCode('weather AND forecast AND sunny'),
     ),
-    createListItem(
-      'Flip results for any expression',
+    createRow(
+      'Flip search results',
       wrapInCode('NOT rainy'),
     ),
-    createListItem(
-      'Match 1 of 3 specific areas of pages',
-      h('ul', {}, 
-        h('li', {}, wrapInCode('title:forecast')),
-        h('li', {}, wrapInCode( 'heading:sunny')),
-        h('li', {}, wrapInCode('body:rainy')),
-      ),
-    ),
-    createListItem(
-      'Group/nest expressions together',
+    createRow(
+      'Group terms together',
       wrapInCode('forecast AND (sunny warm)'),
     ),
+    createRow(
+      'Match specific areas',
+      h('ul', {}, 
+        h('li', {}, wrapInCode('title:forecast')),
+        h('li', {}, wrapInCode('heading:sunny')),
+        h('li', {}, wrapInCode('body:(rainy gloomy)')),
+      ),
+    ),
+  );
+
+  const tipList = h(
+    'table',
+    { class: 'morsels-tip-table' },
+    h(
+      'thead',
+      { class: 'morsels-tip-table-header' },
+      h('tr', {}, h('th', { scope: 'col' }, 'Tip'), h('th', {}, 'Example')),
+    ),
+    tipListBody,
   );
   const tipPopup = h(
     'div', { class: 'morsels-tip-popup-root' },
@@ -93,8 +103,8 @@ export default function createTipButton(
 
   searcher.setupPromise.then(() => {
     if (searcher.cfg.indexingConfig.withPositions) {
-      tipList.append(createListItem(
-        'Search for phrases using quotes',
+      tipListBody.prepend(createRow(
+        'Search for phrases',
         wrapInCode('"for tomorrow"'),
       ));
     }

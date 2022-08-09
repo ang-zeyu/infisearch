@@ -14,7 +14,7 @@
     :root {
         --morsels-dropdown-max-width: 100vw;
         --morsels-dropdown-max-height: 75vh;
-        --morsels-tip-icon-size: 24px;
+        --morsels-tip-icon-size: 26px;
     }
 }
 
@@ -175,44 +175,97 @@
     font-size: 14px;
     box-shadow: var(--morsels-box-shadow);
     width: 300px;
-    color: var(--morsels-tip-fg);
     background: var(--morsels-tip-bg);
 }
 
 .morsels-tip-popup-title {
+    color: var(--morsels-tip-fg);
     font-weight: bold;
 }
 
-.morsels-tip-list {
-    padding: 10px 0 0 20px;
-    margin-bottom: 0;
+table.morsels-tip-table {
+    font-size: 14px;
+    margin: 7px 0 0 20px;
+    width: auto;
 }
 
-.morsels-tip-item {
-    line-height: 1.2;
-    margin-bottom: 4px;
+/* Reset styles */
+table.morsels-tip-table,
+table.morsels-tip-table thead,
+table.morsels-tip-table tbody,
+table.morsels-tip-table tr {
+    background: none;
+    border: none;
 }
 
-.morsels-tip-item code {
+table.morsels-tip-table th,
+table.morsels-tip-table td {
+    background: none;
+    border: none;
+    text-align: left;
+    vertical-align: text-top;
+    box-shadow: none;
+    color: var(--morsels-tip-fg);
+}
+
+table.morsels-tip-table th {
+    border-bottom: 3px solid;
+    border-bottom-color: var(--morsels-tip-table-border) !important;
+    font-weight: bold;
+}
+
+table.morsels-tip-table td {
+    border-bottom: 1px solid;
+    border-bottom-color: var(--morsels-tip-table-border) !important;
+}
+
+table.morsels-tip-table > tbody > tr:last-child > td {
+    border: none;
+}
+
+table.morsels-tip-table td:first-child,
+table.morsels-tip-table th:first-child {
+    width: 45%;
+    padding: 3px 5px 5px 0;
+}
+
+table.morsels-tip-table td:last-child,
+table.morsels-tip-table th:last-child {
+    width: 55%;
+    padding: 3px 0 5px 7px;
+}
+
+table.morsels-tip-table th:first-child,
+table.morsels-tip-table th:last-child {
+    padding-bottom: 3px;
+}
+
+table.morsels-tip-table .morsels-tip-item > td > div {
+    padding: 0;
+    margin: 0;
+    line-height: 1.4;
+}
+
+table.morsels-tip-table .morsels-tip-item > td span {
+    font-size: 0.95em;
+}
+
+table.morsels-tip-table .morsels-tip-item code {
     font-size: 0.9em;
     color: var(--morsels-tip-code-fg);
     background: var(--morsels-tip-code-bg);
+    word-wrap: break-word;
 }
 
-.morsels-tip-item > ul,
-.morsels-tip-item > code {
-    display: block;
-    margin: 5px 0 0 3px;
+table.morsels-tip-table .morsels-tip-item ul {
     padding: 0;
+    margin: 0;
 }
 
-.morsels-tip-item > ul {
-    margin: 2px 0 0 3px;
-}
-
-.morsels-tip-item li {
+table.morsels-tip-table .morsels-tip-item li {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 .morsels-tip-popup-separator {
