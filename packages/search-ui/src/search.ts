@@ -12,133 +12,160 @@ import {
 
 let isMobileSizeGlobal = false;
 
-let showDropdown: () => void;
-let hideDropdown: () => void;
-let dropdownShown = false;
-let fullscreenShown = false;
-
-
 function useDropdown(uiOptions: UiOptions): boolean {
   return (uiOptions.mode === UiMode.Auto && !isMobileSizeGlobal)
       || uiOptions.mode === UiMode.Dropdown;
 }
 
-function createInputListener(
-  root: HTMLElement,
-  listContainer: HTMLElement,
-  searcher: Searcher,
-  options: Options,
-) {
-  const { uiOptions } = options;
+// State / handlers for a single initMorsels() call
+class InitState {
+  _mrlShowDropdown: () => void;
 
-  /*
-   Behaviour:
-   - Wait for the **first** run of the previous active query to finish before running a new one.
-   - Do not wait for subsequent runs however -- should be able to "change queries" quickly
-   */
-  const inputState = new InputState();
-  async function runNewQuery(queryString: string): Promise<void> {
-    inputState._mrlIsRunningQuery = true;
+  _mrlHideDropdown: () => void;
 
-    const newIndicatorElement = uiOptions.loadingIndicatorRender(
-      createElement, options, false, inputState._mrlIsResultsBlank,
-    );
-    inputState._mrlLoader.replaceWith(newIndicatorElement);
-    inputState._mrlLoader = newIndicatorElement;
+  _mrlDropdownShown = false;
 
-    try {
-      // const now = performance.now();
+  _mrlFsShown = false;
+
+  _mrlCreateInputListener(
+    root: HTMLElement,
+    listContainer: HTMLElement,
+    searcher: Searcher,
+    options: Options,
+  ) {
+    const { uiOptions } = options;
   
-      inputState.currQuery?.free();
-      inputState.currQuery = await searcher.getQuery(queryString);
+    /*
+     Behaviour:
+     - Wait for the **first** run of the previous active query to finish before running a new one.
+     - Do not wait for subsequent runs however -- should be able to "change queries" quickly
+     */
+    const inputState = new InputState();
+
+    async function runNewQuery(queryString: string): Promise<void> {
+      inputState._mrlIsRunningQuery = true;
   
-      // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
-  
-      const resultsDisplayed = await loadQueryResults(
-        inputState, inputState.currQuery, searcher.cfg,
-        true,
-        listContainer,
-        options,
+      const newIndicatorElement = uiOptions.loadingIndicatorRender(
+        createElement, options, false, inputState._mrlIsResultsBlank,
       );
-      if (resultsDisplayed) {
-        inputState._mrlIsResultsBlank = false;
-      }
+      inputState._mrlLoader.replaceWith(newIndicatorElement);
+      inputState._mrlLoader = newIndicatorElement;
   
-      root.scrollTo({ top: 0 });
-      listContainer.scrollTo({ top: 0 });
-    } catch (ex) {
-      console.error(ex);
-      listContainer.innerHTML = '';
-      listContainer.appendChild(uiOptions.errorRender(createElement, options));
-      throw ex;
-    } finally {
-      if (inputState._mrlNextAction) {
-        const nextActionTemp = inputState._mrlNextAction;
-        inputState._mrlNextAction = undefined;
-        await nextActionTemp();
-      } else {
-        inputState._mrlIsRunningQuery = false;
-      }
-    }
-  }
-
-  searcher.setupPromise.then(() => {
-    if (inputState._mrlNextAction) {
-      inputState._mrlNextAction();
-      inputState._mrlNextAction = undefined;
-    }
-  });
-
-  let inputTimer: any = -1;
-  return (ev: InputEvent) => {
-    const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
-  
-    clearTimeout(inputTimer);
-    if (query.length) {
-      inputTimer = setTimeout(() => {
-        if (inputState._mrlIsResultsBlank
-          && !listContainer.firstElementChild?.getAttribute(LOADING_INDICATOR_ID)) {
-          listContainer.innerHTML = '';
-          inputState._mrlLoader = uiOptions.loadingIndicatorRender(
-            createElement, options, !searcher.isSetupDone, true,
-          );
-          listContainer.appendChild(inputState._mrlLoader);
-  
-          if (useDropdown(uiOptions)) {
-            showDropdown();
-          }
+      try {
+        // const now = performance.now();
+    
+        inputState.currQuery?.free();
+        inputState.currQuery = await searcher.getQuery(queryString);
+    
+        // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
+    
+        const resultsDisplayed = await loadQueryResults(
+          inputState, inputState.currQuery, searcher.cfg,
+          true,
+          listContainer,
+          options,
+        );
+        if (resultsDisplayed) {
+          inputState._mrlIsResultsBlank = false;
         }
-  
-        if (inputState._mrlIsRunningQuery || !searcher.isSetupDone) {
-          inputState._mrlNextAction = () => runNewQuery(query);
-        } else {
-          runNewQuery(query);
-        }
-      }, uiOptions.inputDebounce);
-    } else {
-      const reset = () => {
+    
+        root.scrollTo({ top: 0 });
+        listContainer.scrollTo({ top: 0 });
+      } catch (ex) {
+        console.error(ex);
         listContainer.innerHTML = '';
-        if (uiOptions.mode !== UiMode.Target) {
-          if (useDropdown(uiOptions)) {
-            hideDropdown();
-          } else {
-            // useFullscreen
-            listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
-          }
+        listContainer.appendChild(uiOptions.errorRender(createElement, options));
+        throw ex;
+      } finally {
+        // Run the next queued query if there is one
+        if (inputState._mrlNextAction) {
+          const nextActionTemp = inputState._mrlNextAction;
+          inputState._mrlNextAction = undefined;
+          await nextActionTemp();
+        } else {
+          inputState._mrlIsRunningQuery = false;
         }
-  
-        inputState._mrlIsRunningQuery = false;
-        inputState._mrlIsResultsBlank = true;
-      };
-  
-      if (inputState._mrlIsRunningQuery) {
-        inputState._mrlNextAction = reset;
-      } else {
-        reset();
       }
     }
-  };
+  
+    searcher.setupPromise.then(() => {
+      if (inputState._mrlNextAction) {
+        inputState._mrlNextAction();
+        inputState._mrlNextAction = undefined;
+      }
+    });
+  
+    let inputTimer: any = -1;
+    return (ev: InputEvent) => {
+      const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
+    
+      clearTimeout(inputTimer);
+      if (query.length) {
+        // Only debounce queries
+
+        inputTimer = setTimeout(() => {
+          if (
+            inputState._mrlIsResultsBlank
+            && !listContainer.firstElementChild?.getAttribute(LOADING_INDICATOR_ID)
+          ) {
+            /*
+             The first ever query for this input.
+             Add the setup loading indicator (if not done)
+             or the normal query loading indicator.
+            */
+
+            listContainer.innerHTML = '';
+
+            const loader = uiOptions.loadingIndicatorRender(
+              createElement, options, !searcher.isSetupDone, true,
+            );
+            inputState._mrlLoader = loader;
+            listContainer.appendChild(loader);
+
+            if (useDropdown(uiOptions)) {
+              this._mrlShowDropdown();
+            }
+          }
+
+          // Queue or immediately run the query
+          if (inputState._mrlIsRunningQuery || !searcher.isSetupDone) {
+            inputState._mrlNextAction = () => runNewQuery(query);
+          } else {
+            runNewQuery(query);
+          }
+        }, uiOptions.inputDebounce);
+      } else {
+        // Resets should be instant
+
+        const reset = () => {
+          listContainer.innerHTML = '';
+
+          if (useDropdown(uiOptions)) {
+            // Dropdown, hide it
+            this._mrlHideDropdown();
+          } else if (uiOptions.mode !== UiMode.Target) {
+            // Fullscreen, render the initial element / text
+            listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
+          } /* else {
+            // Target, no action needed other than clearing the HTML
+          } */
+    
+          inputState._mrlIsRunningQuery = false;
+          inputState._mrlIsResultsBlank = true;
+        };
+    
+        if (inputState._mrlIsRunningQuery) {
+          inputState._mrlNextAction = reset;
+        } else {
+          reset();
+        }
+      }
+    };
+  }
 }
+
+const searchers: { [url: string]: Searcher } = {};
+
 
 
 function initMorsels(options: Options): {
@@ -151,15 +178,21 @@ function initMorsels(options: Options): {
   isMobileSizeGlobal = isMobileDevice();
   prepareOptions(options);
 
-  const { uiOptions } = options;
+  const { uiOptions, searcherOptions } = options;
   const {
     input, mode,
     dropdownAlignment,
     label, fsInputButtonText, fsInputLabel,
     target,
   } = uiOptions;
+  const { url } = searcherOptions;
 
-  const searcher = new Searcher(options.searcherOptions);
+  if (!searchers[url]) {
+    searchers[url] = new Searcher(options.searcherOptions);
+  }
+  const searcher = searchers[url];
+
+  const initState = new InitState();
 
 
   // --------------------------------------------------
@@ -168,19 +201,22 @@ function initMorsels(options: Options): {
     options, searcher,
     (isKeyboardClose) => {
       if (isKeyboardClose && input) input.focus();
-      fullscreenShown = false;
+      initState._mrlFsShown = false;
     },
   );
 
-  fsInput.addEventListener('input', createInputListener(fsRoot, fsListContainer, searcher, options));
+  fsInput.addEventListener(
+    'input',
+    initState._mrlCreateInputListener(fsRoot, fsListContainer, searcher, options),
+  );
 
   // Initial state is blank
   fsListContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
 
   function showFullscreen() {
-    if (!fullscreenShown) {
+    if (!initState._mrlFsShown) {
       openFullscreen();
-      fullscreenShown = true;
+      initState._mrlFsShown = true;
     }
   }
 
@@ -218,24 +254,24 @@ function initMorsels(options: Options): {
     dropdownListContainer = d;
     parent.appendChild(dropdownRoot);
 
-    showDropdown = () => {
+    initState._mrlShowDropdown = () => {
       openDropdown(dropdownRoot, dropdownListContainer, dropdownAlignment);
-      dropdownShown = true;
+      initState._mrlDropdownShown = true;
     };
-    hideDropdown = () => {
+    initState._mrlHideDropdown = () => {
       closeDropdown(dropdownRoot);
-      dropdownShown = false;
+      initState._mrlDropdownShown = false;
     };
 
     input.addEventListener(
       'input',
-      createInputListener(dropdownRoot, dropdownListContainer, searcher, options),
+      initState._mrlCreateInputListener(dropdownRoot, dropdownListContainer, searcher, options),
     );
 
     function refreshDropdown() {
-      hideDropdown();
+      initState._mrlHideDropdown();
       if (document.activeElement === input) {
-        showDropdown();
+        initState._mrlShowDropdown();
       }
     }
 
@@ -246,7 +282,7 @@ function initMorsels(options: Options): {
         refreshDropdown();
         setDropdownInputAria(input, dropdownRoot, dropdownListContainer, label, originalPlaceholder);
       } else {
-        hideDropdown();
+        initState._mrlHideDropdown();
         unsetDropdownInputAria(dropdownRoot, dropdownListContainer, input, fsInputLabel, fsInputButtonText);
       }
     }
@@ -268,12 +304,12 @@ function initMorsels(options: Options): {
               return;
             }
           }
-          hideDropdown();
+          initState._mrlHideDropdown();
         }, 100);
       }
     });
 
-    input.addEventListener('focus', () => useDropdown(uiOptions) && showDropdown());
+    input.addEventListener('focus', () => useDropdown(uiOptions) && initState._mrlShowDropdown());
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
@@ -283,7 +319,7 @@ function initMorsels(options: Options): {
     // Target
     input.addEventListener(
       'input',
-      createInputListener(target, target, searcher, options),
+      initState._mrlCreateInputListener(target, target, searcher, options),
     );
 
     let ariaControlsId = target.getAttribute('id');
@@ -317,7 +353,7 @@ function initMorsels(options: Options): {
 
     const isDropdown = useDropdown(uiOptions);
     if (isDropdown) {
-      if (!dropdownShown) {
+      if (!initState._mrlDropdownShown) {
         return;
       }
 
@@ -330,7 +366,7 @@ function initMorsels(options: Options): {
         });
       };
     } else {
-      if (!fullscreenShown) {
+      if (!initState._mrlFsShown) {
         return;
       }
 
