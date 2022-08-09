@@ -54,6 +54,7 @@ export function dropdownRootRender(
   uiOptions: UiOptions,
   searcher: Searcher,
   inputEl: HTMLInputElement,
+  hideDropdown: () => void,
 ) {
   const listContainer = h('ul', {
     id: 'morsels-dropdown-list',
@@ -70,6 +71,12 @@ export function dropdownRootRender(
   const root = h('div', { class: 'morsels-root' },
     inputEl, innerRoot,
   );
+  innerRoot.onkeyup = (ev) => {
+    if (ev.code === 'Escape') {
+      ev.stopPropagation();
+      hideDropdown();
+    }
+  };
 
   return [root, listContainer];
 }

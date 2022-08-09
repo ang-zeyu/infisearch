@@ -250,7 +250,9 @@ function initMorsels(options: Options): {
 
     const parent = input.parentElement;
     input.remove();
-    const [dropdownRoot, d] = dropdownRootRender(uiOptions, searcher, input);
+    const [dropdownRoot, d] = dropdownRootRender(uiOptions, searcher, input, () => {
+      initState._mrlHideDropdown();
+    });
     dropdownListContainer = d;
     parent.appendChild(dropdownRoot);
 
