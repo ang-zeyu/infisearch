@@ -187,9 +187,10 @@ table.morsels-tip-table {
 
 /* Reset styles */
 table.morsels-tip-table,
-table.morsels-tip-table thead,
+table.morsels-tip-table thead.morsels-tip-table-header,
+table.morsels-tip-table thead.morsels-tip-table-header tr,
 table.morsels-tip-table tbody,
-table.morsels-tip-table tr {
+table.morsels-tip-table tbody tr.morsels-tip-item {
     background: none;
     border: none;
 }
@@ -522,6 +523,10 @@ table.morsels-tip-table .morsels-tip-item li {
     color: var(--morsels-highlight);
     background-color: var(--morsels-highlight-bg);
     font-weight: bold;
+}
+
+.morsels-heading .morsels-highlight {
+    color: var(--morsels-heading-highlight, var(--morsels-highlight));
 }
 
 .morsels-ellipsis {

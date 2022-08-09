@@ -67,6 +67,18 @@
     outline: 2px solid grey;
 }
 
+.light .morsels-root {
+    --morsels-heading-highlight: #82a6c4;
+}
+
+.rust .morsels-root {
+    --morsels-heading-highlight: #ebb285;
+}
+
+.coal .morsels-root {
+    --morsels-heading-highlight: #496c8a;
+}
+
 .morsels-theme .morsels-root .morsels-tip-item code,
 .rust .morsels-root .morsels-tip-item code {
     color: var(--morsels-tip-code-fg) !important;;
