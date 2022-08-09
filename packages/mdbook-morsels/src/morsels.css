@@ -59,6 +59,14 @@
     --morsels-tip-icon-fg: rgb(50, 50, 50);
 }
 
+.light .morsels-root .morsels-list-item.focus,
+.rust .morsels-root .morsels-list-item.focus,
+.coal .morsels-root .morsels-list-item.focus,
+.navy .morsels-root .morsels-list-item.focus,
+.ayu .morsels-root .morsels-list-item.focus {
+    outline: 2px solid grey;
+}
+
 .morsels-theme .morsels-root .morsels-tip-item code,
 .rust .morsels-root .morsels-tip-item code {
     color: var(--morsels-tip-code-fg) !important;;
