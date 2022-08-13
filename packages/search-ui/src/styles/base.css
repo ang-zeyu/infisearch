@@ -1,6 +1,7 @@
 :root {
     --morsels-dropdown-max-width: 525px;
     --morsels-dropdown-max-height: 32em;
+    --morsels-dropdown-z-index: 9999;
     --morsels-font-size: 14px;
     --morsels-border: none;
     --morsels-item-spacing: 18px;
@@ -318,6 +319,7 @@ table.morsels-tip-table .morsels-tip-item li {
     position: absolute;
     top: 0;
     left: 100vw;
+    z-index: var(--morsels-dropdown-z-index);
 }
 
 .morsels-list {
