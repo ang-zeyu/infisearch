@@ -3,6 +3,8 @@ mod preset_small;
 mod preset_medium;
 mod preset_large;
 
+use std::path::Path;
+
 use morsels_common::MorselsLanguageConfig;
 
 use crate::fieldinfo::FieldsConfig;
@@ -75,8 +77,14 @@ pub struct MorselsIndexingConfig {
     #[serde(default = "get_default_exclude_patterns")]
     pub exclude: Vec<String>,
 
+    #[serde(default = "Vec::new")]
+    pub include: Vec<String>,
+
     #[serde(skip, default = "Vec::new")]
     pub exclude_patterns: Vec<Pattern>,
+
+    #[serde(skip, default = "Vec::new")]
+    pub include_patterns: Vec<Pattern>,
 
     #[serde(default = "get_default_loader_configs")]
     pub loader_configs: FxHashMap<String, serde_json::Value>,
@@ -96,13 +104,15 @@ impl Default for MorselsIndexingConfig {
             pl_limit: get_default_pl_limit(),
             pl_cache_threshold: get_default_pl_cache_threshold(),
             exclude: get_default_exclude_patterns(),
+            include: Vec::new(),
             exclude_patterns: Vec::new(),
+            include_patterns: Vec::new(),
             loader_configs: get_default_loader_configs(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
             with_positions: get_default_with_positions(),
         };
 
-        indexing_config.init_excludes();
+        indexing_config.init_patterns();
         indexing_config
     }
 }
@@ -125,10 +135,24 @@ impl MorselsIndexingConfig {
         loaders
     }
 
-    pub fn init_excludes(&mut self) {
+    pub fn is_excluded(&self, relative_path: &Path) -> bool {
+        self.exclude_patterns.iter().any(|pat| pat.matches_path(relative_path))
+        ||
+        !(
+            self.include_patterns.is_empty()
+            || self.include_patterns.iter().any(|pat| pat.matches_path(relative_path))
+        )
+    }
+
+    fn init_patterns(&mut self) {
         self.exclude_patterns = self.exclude
             .iter()
             .map(|pat_str| Pattern::new(pat_str).expect("Invalid exclude glob pattern!"))
+            .collect();
+
+        self.include_patterns = self.include
+            .iter()
+            .map(|pat_str| Pattern::new(pat_str).expect("Invalid include glob pattern!"))
             .collect();
     }
 }
@@ -176,7 +200,7 @@ impl MorselsConfig {
         }
 
         config.json_config = json_config;
-        config.indexing_config.init_excludes();
+        config.indexing_config.init_patterns();
 
         config
     }

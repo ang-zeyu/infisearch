@@ -268,7 +268,7 @@ impl Indexer {
     }
 
     pub fn index_file(&mut self, absolute_path: &Path, relative_path: &Path) {
-        if let Some(_match) = self.indexing_config.exclude_patterns.iter().find(|pat| pat.matches_path(relative_path)) {
+        if self.indexing_config.is_excluded(relative_path) {
             return;
         }
 

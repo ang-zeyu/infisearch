@@ -17,6 +17,8 @@ The snippet below shows the default values:
       "morsels_config.json"
     ],
 
+    "include": [],
+
     "loader_configs": {
       "HtmlLoader": {}
     },
@@ -190,6 +192,12 @@ This loader simply reads `.txt` files and indexes all its contents into a single
 #### File Exclusions: **`exclude = ["morsels_config.json"]`**
 
 Global file exclusions can be specified in this parameter, which is simply an array of file globs.
+
+#### File Inclusions: **`include = []`**
+
+Similarly, you can specify only specific files to index. This is an empty array by default, which indexes everything.
+
+If a file matches both an `exclude` and `include` pattern, the `exclude` pattern will take precedence.
 
 #### Adding Positions: **`with_positions = true`**
 
