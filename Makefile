@@ -4,7 +4,7 @@
 # Update the cargo.toml version numbers before running anything!
 
 # And this
-VERSION=v0.2.5
+VERSION=v0.2.6
 
 # Run in order
 # Check preReleaseXX outputs manually before running release
@@ -57,6 +57,7 @@ releaseIndexer:
 releaseTillIndexerWin:
 	make preReleaseCommon
 	make releaseCommon
+	timeout 20
 	make releaseAsciiLanguage
 	timeout 20
 	make releaseOtherLanguages
