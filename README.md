@@ -2,7 +2,7 @@
 
 ![CI workflow](https://github.com/ang-zeyu/morsels/actions/workflows/ci.yml/badge.svg)
 
-Feature rich client-side search for static sites.
+Easy, precise, efficient and accessible client-side search for static sites.
 
 ## Description
 
@@ -20,9 +20,11 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 - **Incremental** Indexing
 - **Customisable** and **Accessible** dropdown / fullscreen popup user [interface](https://morsels-search.com/morsels/search_configuration_styling.html) 🖥️
 
+Not convinced yet? Check out the demos [here](https://morsels-search.com) as well!
+
 ## Use Cases
 
-The main target use case for this tool right now is providing a complete and feature-rich, but efficient search solution for static sites or static site generators.
+Morsels' aim is to provide an easy to set up, yet feature-rich, and efficient search solution for static sites and/or static site generators.
 
 The indexing tool supports a few other file formats (`.json`, `.csv`, `.pdf`, `.html`) as well, which can help support more custom data requirements (e.g. linking to another domain).
 
@@ -79,8 +81,6 @@ initMorsels({
 ## Documentation
 
 Please check out the [documentation](https://morsels-search.com/morsels/getting_started.html) next, which also uses Morsels for its search function.
-
-A much heavier demo on a 500MB, 52000 document Gutenberg collection subcorpus is also available [here](https://morsels-search.com).
 
 ## License
 
