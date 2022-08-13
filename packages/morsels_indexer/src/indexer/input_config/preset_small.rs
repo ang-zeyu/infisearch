@@ -8,7 +8,7 @@ pub fn apply_config(config: &mut MorselsConfig, json_config: &Value) {
     preset::apply_preset_override(
         config,
         json_config,
-        u32::MAX,
+        100000000,
         true,
         u32::MAX,
         0,

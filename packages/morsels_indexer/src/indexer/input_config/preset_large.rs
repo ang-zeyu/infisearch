@@ -20,7 +20,7 @@ pub fn apply_source_file_config(config: &mut MorselsConfig, json_config: &Value)
     preset::apply_preset_override(
         config,
         json_config,
-        u32::MAX,
+        100000000,
         true,
         75000,
         1048576,
