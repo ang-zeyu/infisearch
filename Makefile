@@ -53,6 +53,16 @@ releaseIndexer:
 	cd packages/morsels_indexer &&\
 	cargo publish
 
+# Extremely small iteratively releases
+releaseTillIndexerWin:
+	make preReleaseCommon
+	make releaseCommon
+	make releaseAsciiLanguage
+	timeout 20
+	make releaseOtherLanguages
+	timeout 20
+	make releaseIndexer
+
 # git checkout -- . is to discard wasm-pack package.json changes
 preReleaseSearch:
 	npm run setup
@@ -80,6 +90,11 @@ preReleaseMdbook:
 releaseMdbook:
 	cd packages/mdbook-morsels &&\
 	cargo publish
+
+finalise:
+	git push
+	git push morsels $(VERSION)
+	npm run updateDemo
 
 buildWinBinaries:
 	cargo build --release --target x86_64-pc-windows-msvc -p morsels_indexer
