@@ -10,6 +10,10 @@ use serde::{Deserialize, Serialize};
 pub static RELATIVE_FP_FIELD: &str = "_relative_fp";
 pub static ADD_FILES_FIELD: &str = "_add_files";
 
+fn get_default_field_store_block_size() -> u32 {
+    100000000
+}
+
 fn get_default_num_field_stores_per_dir() -> u32 {
     1000
 }
@@ -21,6 +25,7 @@ fn get_default_cache_all_field_stores() -> bool {
 // Raw Json field configuration
 #[derive(Serialize, Deserialize)]
 pub struct FieldsConfig {
+    #[serde(default = "get_default_field_store_block_size")]
     pub field_store_block_size: u32,
     #[serde(default = "get_default_num_field_stores_per_dir")]
     pub num_stores_per_dir: u32,

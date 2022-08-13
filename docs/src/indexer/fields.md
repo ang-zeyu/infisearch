@@ -10,7 +10,7 @@ This snippet shows the default values:
 {
   "fields_config": {
     "cache_all_field_stores": true,
-    "field_store_block_size": 10000,
+    "field_store_block_size": 100000000,
     "num_stores_per_dir": 1000,
     "fields": [
       {
