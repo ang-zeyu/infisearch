@@ -53,8 +53,8 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     background: var(--morsels-fs-backdrop-bg);
     z-index: 1000;
 }
@@ -132,12 +132,19 @@
 }
 
 .morsels-tip-root {
-    position: fixed;
-    bottom: 19px;
-    right: 19px;
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
     width: var(--morsels-tip-icon-size);
     height: var(--morsels-tip-icon-size);
     z-index: 1;
+}
+
+@media screen and (max-width: 1024px) {
+    .morsels-fs-root .morsels-tip-root {
+        bottom: 19px;
+        right: 19px;
+    }
 }
 
 .morsels-tip-icon {
@@ -290,12 +297,6 @@ table.morsels-tip-table .morsels-tip-item li {
         width: var(--morsels-fs-desktop-width);
         height: var(--morsels-fs-desktop-height);
     }
-
-    .morsels-tip-root {
-        position: absolute;
-        bottom: 15px;
-        right: 15px;
-    }
 }
 
 /*
@@ -345,16 +346,9 @@ table.morsels-tip-table .morsels-tip-item li {
     max-width: none;
     border: none;
     box-shadow: none;
-    padding: 0 0.5em 0.5em 0.5em;
+    padding: 0 7px 60px 7px;
     background-color: transparent;
     position: static;
-}
-
-@media screen and (max-width: 1025px) {
-    .morsels-fs-root .morsels-list {
-        /* Generous amount of bottom padding for device navigation bar. The alternative is dynamic style detection. */
-        padding-bottom: 100px;
-    }
 }
 
 .morsels-fs-root::-webkit-scrollbar-track,
