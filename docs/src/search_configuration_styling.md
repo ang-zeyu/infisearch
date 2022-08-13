@@ -13,8 +13,8 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 #### CDN link
 
 ```html
-<!-- Replace "v0.2.4" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.4/packages/search-ui/dist/search-ui-light.css" />
+<!-- Replace "v0.2.5" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.5/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 #### Preview
@@ -61,8 +61,8 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 #### CDN link
 
 ```html
-<!-- Replace "v0.2.4" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.4/packages/search-ui/dist/search-ui-dark.css" />
+<!-- Replace "v0.2.5" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.5/packages/search-ui/dist/search-ui-dark.css" />
 ```
 
 #### Preview
