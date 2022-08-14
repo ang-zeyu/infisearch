@@ -68,7 +68,7 @@ export function dropdownRootRender(
     listContainer,
   );
   
-  const root = h('div', { class: 'morsels-root' },
+  const root = h('div', { class: 'morsels-root morsels-dropdown-root' },
     inputEl, innerRoot,
   );
   innerRoot.onkeyup = (ev) => {

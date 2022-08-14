@@ -167,7 +167,7 @@ static INPUT_EL: &str = "\n<input
     placeholder=\"Search\"
 />\n\n
 <span style=\"font-weight: 600;\"><!--preload weight 600--></span>\n\n
-<ul class=\"morsels-root\" id=\"morsels-mdbook-target\"></ul>\n\n";
+<ul id=\"morsels-mdbook-target\"></ul>\n\n";
 
 static STYLES: &str = include_str!("morsels.css");
 

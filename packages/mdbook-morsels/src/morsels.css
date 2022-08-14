@@ -168,5 +168,5 @@
 }
 
 .morsels-root:not(.morsels-fs-root) {
-    width: 100%;
+    display: block;
 }

@@ -328,6 +328,9 @@ function initMorsels(options: Options): {
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Target) {
     // Target
+
+    target.classList.add('morsels-root');
+
     input.addEventListener(
       'input',
       initState._mrlCreateInputListener(target, target, searcher, options),

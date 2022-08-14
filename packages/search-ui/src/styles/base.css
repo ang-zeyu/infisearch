@@ -20,9 +20,6 @@
 }
 
 .morsels-root {
-    display: inline-block;
-    position: relative;
-    box-sizing: border-box;
     font-size: var(--morsels-font-size);
 }
 
@@ -302,6 +299,11 @@ table.morsels-tip-table .morsels-tip-item li {
 /*
  Dropdown version
  */
+
+.morsels-dropdown-root {
+    display: inline-block;
+    position: relative;
+}
 
 .morsels-input-dropdown-separator {
     position: relative;
