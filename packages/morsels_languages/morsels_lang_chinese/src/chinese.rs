@@ -46,7 +46,6 @@ pub struct Tokenizer {
     #[cfg(not(feature = "indexer"))]
     pub stop_words: Vec<String>,
 
-    #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
 
     jieba: Jieba,
@@ -66,7 +65,6 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
 
     Tokenizer {
         stop_words,
-        #[cfg(feature = "indexer")]
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         jieba: Jieba::empty(),
         #[cfg(feature = "indexer")]
@@ -118,14 +116,17 @@ impl SearchTokenizer for Tokenizer {
 
                 terms_searched.push(terms);
 
-                filtered
+                filtered.trim().to_owned()
             })
-            .filter(|s| !s.trim().is_empty())
+            .filter(|term| term.len() > 0
+                && !(self.ignore_stop_words && self.is_stop_word(term))
+            )
             .collect();
 
         SearchTokenizeResult { terms, should_expand }
     }
 
+    #[inline(never)]
     fn is_stop_word(&self, term: &str) -> bool {
         self.stop_words.iter().any(|t| t == term)
     }

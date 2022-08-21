@@ -26,7 +26,6 @@ pub struct Tokenizer {
     #[cfg(not(feature = "indexer"))]
     pub stop_words: Vec<String>,
 
-    #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
 
     stemmer: Stemmer,
@@ -75,7 +74,6 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
 
     Tokenizer {
         stop_words,
-        #[cfg(feature = "indexer")]
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         stemmer,
         #[cfg(feature = "indexer")]
@@ -115,12 +113,13 @@ impl SearchTokenizer for Tokenizer {
     fn search_tokenize(&self, mut text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
-        let should_expand = !text.ends_with(' ');
-
         let terms = text
             .split(split_terms)
-            .filter(|&s| !s.is_empty())
-            .map(|term_slice| {
+            .filter_map(|term_slice| {
+                if term_slice.is_empty() {
+                    return None;
+                }
+
                 let mut terms = Vec::new();
                 let preprocessed = ascii_and_nonword_filter(&mut terms, term_slice);
 
@@ -128,16 +127,21 @@ impl SearchTokenizer for Tokenizer {
                     terms.push(v.clone());
                     Cow::Owned(v)
                 } else {
-                    preprocessed
+                    preprocessed.clone()
                 };
 
                 terms_searched.push(terms);
 
-                stemmed
+                if stemmed.is_empty()
+                    || (self.ignore_stop_words && self.is_stop_word(&preprocessed)) {
+                    return None;
+                }
+
+                Some(stemmed.into_owned())
             })
-            .filter(|term| term.len() > 0)
-            .map(|cow| cow.into_owned())
             .collect();
+
+        let should_expand = !text.ends_with(' ');
 
         SearchTokenizeResult {
             terms,
@@ -145,6 +149,7 @@ impl SearchTokenizer for Tokenizer {
         }
     }
 
+    #[inline(never)]
     fn is_stop_word(&self, term: &str) -> bool {
         self.stop_words.iter().any(|t| t == term)
     }

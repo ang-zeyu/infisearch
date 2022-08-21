@@ -170,7 +170,10 @@ fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator
                 return;
             }
             Operator::Field(field_name) => {
-                query_parts.last_mut().unwrap().field_name = Some(field_name);
+                let last = query_parts.last_mut().unwrap();
+                if last.field_name.is_none() {
+                    last.field_name = Some(field_name);
+                }
             }
         }
     }
@@ -586,8 +589,7 @@ pub mod test {
         super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false).0
     }
 
-    // The tokenizer should not remove stop words no matter what when searching,
-    // this is left to query_preprocessor
+    // The tokenizer will remove stop words if they are not even indexed
     pub fn parse_with_sw_removal(query: &str) -> Vec<QueryPart> {
         let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
             lang: "ascii".to_owned(),
@@ -606,7 +608,7 @@ pub mod test {
     fn free_text_test() {
         assert_eq!(parse("lorem ipsum"), vec![get_lorem(), get_ipsum()]);
         assert_eq!(parse("lorem ipsum "), vec![get_lorem().no_expand(), get_ipsum().no_expand()]);
-        assert_eq!(parse_with_sw_removal("for by and"), vec![get_term("for"), get_term("by"), get_term("and")]);
+        assert_eq!(parse_with_sw_removal("for by lorem and"), vec![get_lorem()]);
     }
 
     #[test]
@@ -638,7 +640,8 @@ pub mod test {
                 wrap_in_not(get_ipsum())
             ]
         );
-        assert_eq!(parse_with_sw_removal("for AND by"), vec![wrap_in_and(vec![get_term("for"), get_term("by")])]);
+        assert_eq!(parse_with_sw_removal("for AND by"), vec![wrap_in_and(vec![])]);
+        assert_eq!(parse_with_sw_removal("for AND lorem"), vec![wrap_in_and(vec![get_lorem()])]);
     }
 
     #[test]
@@ -661,8 +664,16 @@ pub mod test {
             ]
         );
         assert_eq!(
-            parse_with_sw_removal("\"for by and\""),
-            vec![get_phrase(vec!["for", "by", "and"])]
+            parse_with_sw_removal("\"for by lorem and\""),
+            vec![get_phrase(vec!["lorem"])]
+        );
+        assert_eq!(
+            parse_with_sw_removal("\"lorem for by ipsum and\""),
+            vec![get_phrase(vec!["lorem", "ipsum"])]
+        );
+        assert_eq!(
+            parse_with_sw_removal("\"lorem for by ipsum and\""),
+            parse_with_sw_removal("\"lorem ipsum\""),
         );
     }
 
@@ -718,8 +729,8 @@ pub mod test {
             ]
         );
         assert_eq!(
-            parse_with_sw_removal("(for and by)"),
-            vec![wrap_in_parentheses(vec![get_term("for"), get_term("and"), get_term("by")])]
+            parse_with_sw_removal("(for and lorem by)"),
+            vec![wrap_in_parentheses(vec![get_lorem()])]
         );
     }
 
@@ -727,6 +738,7 @@ pub mod test {
     fn field_name_test() {
         assert_eq!(parse("title:lorem"), vec![get_lorem().with_field("title")]);
         assert_eq!(parse("title:lorem ipsum"), vec![get_lorem().with_field("title"), get_ipsum()]);
+        assert_eq!(parse("lorem title: "), vec![get_lorem().no_expand()]);
         assert_eq!(
             parse("title:lorem body:ipsum"),
             vec![get_lorem().with_field("title").no_expand(), get_ipsum().with_field("body")]
@@ -758,7 +770,15 @@ pub mod test {
         );
         assert_eq!(
             parse_with_sw_removal("title:for)"),
-            vec![get_term("for").with_field("title")]
+            vec![]
+        );
+        assert_eq!(
+            parse_with_sw_removal("title:for body:lorem"),
+            vec![get_lorem().with_field("body")]
+        );
+        assert_eq!(
+            parse_with_sw_removal("title:lorem body:for"),
+            vec![get_lorem().with_field("title").no_expand()]
         );
 
         // Test invalid field names (should be parsed verbose / as-is)

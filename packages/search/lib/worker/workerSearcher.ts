@@ -114,6 +114,7 @@ export default class WorkerSearcher {
       indexingConfig.withPositions,
       lang,
       stopWords,
+      options.ignore_stop_words,
       options.stemmer,
       options.max_term_len,
       fieldInfosSerialized,

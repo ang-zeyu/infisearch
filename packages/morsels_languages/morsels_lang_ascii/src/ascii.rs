@@ -27,7 +27,6 @@ pub struct Tokenizer {
     #[cfg(not(feature = "indexer"))]
     pub stop_words: Vec<String>,
 
-    #[cfg(feature = "indexer")]
     ignore_stop_words: bool,
 
     // Just needs to be filtered during indexing
@@ -48,7 +47,6 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
 
     Tokenizer {
         stop_words,
-        #[cfg(feature = "indexer")]
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         #[cfg(feature = "indexer")]
         max_term_len,
@@ -117,7 +115,9 @@ impl SearchTokenizer for Tokenizer {
                 terms_searched.push(terms);
                 filtered
             })
-            .filter(|term| term.len() > 0)
+            .filter(|term| term.len() > 0
+                && !(self.ignore_stop_words && self.is_stop_word(term))
+            )
             .map(|cow| cow.into_owned())
             .collect();
 
@@ -127,6 +127,7 @@ impl SearchTokenizer for Tokenizer {
         }
     }
 
+    #[inline(never)]
     fn is_stop_word(&self, term: &str) -> bool {
         self.stop_words.iter().any(|t| t == term)
     }

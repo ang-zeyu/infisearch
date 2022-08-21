@@ -95,6 +95,7 @@ pub fn get_new_searcher(
     with_positions: bool,
     lang: String,
     stop_words: JsValue,  // serialized in workerSearcher.ts
+    ignore_stop_words: Option<bool>,
     stemmer: Option<String>,
     max_term_len: Option<usize>,
     field_infos_raw: JsValue, // custom uint8array, serialized in workerSearcher.ts
@@ -164,7 +165,7 @@ pub fn get_new_searcher(
             lang,
             options: MorselsLanguageConfigOpts {
                 stop_words,
-                ignore_stop_words: None, // unused in search
+                ignore_stop_words,
                 stemmer,
                 max_term_len,
             },
