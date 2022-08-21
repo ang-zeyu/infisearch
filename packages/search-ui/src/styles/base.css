@@ -388,6 +388,9 @@ table.morsels-tip-table .morsels-tip-item li {
     border-radius: var(--morsels-item-border-radius);
     box-shadow: var(--morsels-item-box-shadow);
     margin: var(--morsels-item-spacing) 13px;
+}
+
+.morsels-link {
     overflow: hidden;
 }
 
