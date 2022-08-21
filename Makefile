@@ -10,6 +10,7 @@ VERSION=v0.3.1
 # Check preReleaseXX outputs manually before running release
 
 preReleaseCommon:
+	git stash
 	cargo clean
 	cd packages/morsels_common &&\
 	cargo package &&\
@@ -67,7 +68,7 @@ releaseTillIndexerWin:
 # git checkout -- . is to discard wasm-pack package.json changes
 preReleaseSearch:
 	npm run setup
-	npx lerna version $(VERSION) --no-push
+	npx lerna version $(VERSION) --no-push --yes
 	npm run buildSearch
 	git add packages/search-ui/dist/*
 	git commit --amend -m "Bump search"
@@ -95,7 +96,16 @@ releaseMdbook:
 finalise:
 	git push
 	git push morsels $(VERSION)
+	git stash pop
 	npm run updateDemo
+
+# Extremely small iteratively releases
+releaseAll:
+	make releaseTillIndexerWin
+	make preReleaseSearch
+	make preReleaseMdbook
+	make releaseMdbook
+	make finalise
 
 buildWinBinaries:
 	cargo build --release --target x86_64-pc-windows-msvc -p morsels_indexer
