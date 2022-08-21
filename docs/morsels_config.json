@@ -39,5 +39,11 @@
       }
     }
   },
+  "lang_config": {
+    "lang": "ascii",
+    "options": {
+      "ignore_stop_words": false
+    }
+  },
   "preset": "small"
 }
