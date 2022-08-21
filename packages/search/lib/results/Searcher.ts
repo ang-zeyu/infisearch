@@ -44,17 +44,17 @@ class Searcher {
   private _mrlCache: PersistentCache;
 
   constructor(private _mrlOptions: SearcherOptions) {
-    const configSetupPromise = this._mrlRetrieveConfig();
+    const configSetupPromise = this._mrlRetrieveConfig()
+      .then(() => this._mrlSetupCache(`morsels:${_mrlOptions.url}`));
+
     this.setupPromise = Promise.all([
       configSetupPromise,
       new Promise<void>((resolve) => {
         const objectUrl = URL.createObjectURL(new Blob([
-          `const __morsWrkrUrl="${scriptUrl}";const __indexUrl="${_mrlOptions.url}";${workerScript.s}`,
+          `const __morsWrkrUrl="${scriptUrl}";${workerScript.s}`,
         ], { type: 'text/javascript' }));
 
         this._mrlWorker = new Worker(objectUrl);
-
-        const cacheSetupPromise = this._mrlSetupCache(`morsels:${_mrlOptions.url}`);
       
         this._mrlWorker.onmessage = (ev) => {
           if (ev.data.query) {
@@ -73,9 +73,7 @@ class Searcher {
               queryParts,
             });
           } else if (ev.data === '') {
-            Promise.all([
-              configSetupPromise, cacheSetupPromise,
-            ]).then(() => this._mrlWorker.postMessage(this.cfg));
+            configSetupPromise.then(() => this._mrlWorker.postMessage(this.cfg));
             URL.revokeObjectURL(objectUrl);
           } else if (ev.data.isSetupDone) {
             this.isSetupDone = true;

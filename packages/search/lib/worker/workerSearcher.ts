@@ -38,9 +38,28 @@ export function freeQuery(query: string, queryId: number) {
   }
 }
 
+
+async function setupMetadata(baseUrl: string): Promise<ArrayBuffer> {
+  let cache: Cache;
+  try {
+    cache = await caches.open(`morsels:${baseUrl}`);
+  } catch {
+    // Cache API blocked / unsupported (e.g. firefox private)
+  }
+
+  const metadataUrl = `${baseUrl}metadata.json`;
+
+  return (
+    cache
+      ? cache.match(metadataUrl)
+        .then((resp) => !resp && cache.add(metadataUrl))
+        .then(() => cache.match(metadataUrl))
+      : fetch(metadataUrl)
+  ).then((resp) => resp.arrayBuffer());
+}
+
 export async function setupWasm(
   config: MorselsConfig,
-  metadataPromise: Promise<ArrayBuffer>,
   wasmModulePromise: Promise<any>,
 ) {
   const {
@@ -50,6 +69,8 @@ export async function setupWasm(
     numScoredFields,
     searcherOptions,
   } = config;
+
+  const metadataPromise = setupMetadata(searcherOptions.url);
 
   const encoder = new TextEncoder();
 
