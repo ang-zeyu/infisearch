@@ -1,5 +1,5 @@
 import './publicPath';
-import WorkerSearcher from './workerSearcher';
+import { setupWasm, processQuery, getQueryNextN, freeQuery } from './workerSearcher';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 declare const __indexUrl: string;
@@ -24,30 +24,28 @@ async function setupMetadata(): Promise<ArrayBuffer> {
 }
 
 export default function setupWithWasmModule(wasmModule: Promise<any>) {
-  let workerSearcher: WorkerSearcher;
-
   const metadata = setupMetadata();
   
   onmessage = async function worker(ev) {
     const data = ev.data;
     if (data.searcherOptions) {
-      workerSearcher = await WorkerSearcher._mrlSetup(data, metadata, wasmModule);
+      await setupWasm(data, metadata, wasmModule);
       postMessage({ isSetupDone: true });
     } else if (data.query) {
       const {
         query, queryId, n, isFree, isGetNextN,
       } = data;
       if (isFree) {
-        workerSearcher._mrlFreeQuery(query, queryId);
+        freeQuery(query, queryId);
       } else if (isGetNextN) {
-        const nextResults = workerSearcher._mrlGetQueryNextN(query, queryId, n);
+        const nextResults = getQueryNextN(query, queryId, n);
         postMessage({
           query,
           queryId,
           nextResults,
         });
       } else {
-        const workerQuery = await workerSearcher._mrlProcessQuery(query, queryId);
+        const workerQuery = await processQuery(query, queryId);
         postMessage({
           query,
           queryId,

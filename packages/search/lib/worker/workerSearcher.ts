@@ -1,83 +1,84 @@
 import { MorselsConfig } from '../results/Config';
 import WorkerQuery from './workerQuery';
 
-export default class WorkerSearcher {
-  private _mrlWorkerQueries: {
-    [query: string]: {
-      [queryId: number]: WorkerQuery
-    }
-  } = Object.create(null);
-
-  private _mrlWasmModule: any;
-
-  private _mrlWasmSearcher: any;
-
-  constructor(private _mrlConfig: MorselsConfig) {}
-
-  async _mrlProcessQuery(query: string, queryId: number): Promise<WorkerQuery> {
-    const wasmQuery: any = await this._mrlWasmModule.get_query(this._mrlWasmSearcher.get_ptr(), query);
-
-    this._mrlWorkerQueries[query] = this._mrlWorkerQueries[query] || {};
-    this._mrlWorkerQueries[query][queryId] = new WorkerQuery(
-      JSON.parse(wasmQuery.get_searched_terms()),
-      JSON.parse(wasmQuery.get_query_parts()),
-      wasmQuery,
-    );
-
-    return this._mrlWorkerQueries[query][queryId];
+const workerQueries: {
+  [query: string]: {
+    [queryId: number]: WorkerQuery
   }
+} = Object.create(null);
 
-  _mrlGetQueryNextN(query: string, queryId: number, n: number): number[] {
-    return this._mrlWorkerQueries[query][queryId]._mrlGetNextN(n);
+let wasmModule: any;
+
+let wasmSearcher: any;
+
+export async function processQuery(query: string, queryId: number): Promise<WorkerQuery> {
+  const wasmQuery: any = await wasmModule.get_query(wasmSearcher.get_ptr(), query);
+
+  workerQueries[query] = workerQueries[query] || {};
+  workerQueries[query][queryId] = new WorkerQuery(
+    JSON.parse(wasmQuery.get_searched_terms()),
+    JSON.parse(wasmQuery.get_query_parts()),
+    wasmQuery,
+  );
+
+  return workerQueries[query][queryId];
+}
+
+export function getQueryNextN(query: string, queryId: number, n: number): number[] {
+  return workerQueries[query][queryId]._mrlGetNextN(n);
+}
+
+export function freeQuery(query: string, queryId: number) {
+  if (workerQueries[query][queryId]) {
+    workerQueries[query][queryId]._mrlFree();
   }
-
-  _mrlFreeQuery(query: string, queryId: number) {
-    if (this._mrlWorkerQueries[query][queryId]) {
-      this._mrlWorkerQueries[query][queryId]._mrlFree();
-    }
-    delete this._mrlWorkerQueries[query][queryId];
-    if (Object.keys(this._mrlWorkerQueries[query]).length === 0) {
-      delete this._mrlWorkerQueries[query];
-    }
+  delete workerQueries[query][queryId];
+  if (Object.keys(workerQueries[query]).length === 0) {
+    delete workerQueries[query];
   }
+}
 
-  private async _mrlSetupWasm(metadata: Promise<ArrayBuffer>, wasmModule: Promise<any>) {
-    const {
-      indexingConfig,
-      langConfig: { lang, options },
-      fieldInfos,
-      numScoredFields,
-      searcherOptions,
-    } = this._mrlConfig;
+export async function setupWasm(
+  config: MorselsConfig,
+  metadataPromise: Promise<ArrayBuffer>,
+  wasmModulePromise: Promise<any>,
+) {
+  const {
+    indexingConfig,
+    langConfig: { lang, options },
+    fieldInfos,
+    numScoredFields,
+    searcherOptions,
+  } = config;
 
-    const encoder = new TextEncoder();
+  const encoder = new TextEncoder();
 
-    let stopWords: Uint8Array | undefined = undefined;
+  let stopWords: Uint8Array | undefined = undefined;
 
-    const stopWordsOption: string[] | undefined = options.stop_words;
-    if (stopWordsOption) {
-      const encodedStopWords = stopWordsOption
-        .map((sw) => encoder.encode(sw))
-        .filter((swEncoded) => swEncoded.length < 255);
-      const totalLength = encodedStopWords.length
+  const stopWordsOption: string[] | undefined = options.stop_words;
+  if (stopWordsOption) {
+    const encodedStopWords = stopWordsOption
+      .map((sw) => encoder.encode(sw))
+      .filter((swEncoded) => swEncoded.length < 255);
+    const totalLength = encodedStopWords.length
         + encodedStopWords.reduce((acc, next) => acc + next.length, 0);
 
-      // Stored in ... byteLength stopWordEncoded ... format
-      stopWords = new Uint8Array(totalLength);
+    // Stored in ... byteLength stopWordEncoded ... format
+    stopWords = new Uint8Array(totalLength);
 
-      let writePos = 0;
-      encodedStopWords.forEach((encodedSw) => {
-        stopWords[writePos++] = encodedSw.length;
-        stopWords.set(encodedSw, writePos);
-        writePos += encodedSw.length;
-      });
-    }
+    let writePos = 0;
+    encodedStopWords.forEach((encodedSw) => {
+      stopWords[writePos++] = encodedSw.length;
+      stopWords.set(encodedSw, writePos);
+      writePos += encodedSw.length;
+    });
+  }
 
-    const encodedFieldNames = fieldInfos.map((fieldInfo) => encoder.encode(fieldInfo.name));
-    const fieldNameTotalLength = encodedFieldNames.reduce((acc, next) => acc + next.length, 0);
+  const encodedFieldNames = fieldInfos.map((fieldInfo) => encoder.encode(fieldInfo.name));
+  const fieldNameTotalLength = encodedFieldNames.reduce((acc, next) => acc + next.length, 0);
 
-    const fieldInfosSerialized = new Uint8Array(
-      /*
+  const fieldInfosSerialized = new Uint8Array(
+    /*
        "13" from:
        - 1 u8 to store each field name length
        - 4 bytes for f32 for each
@@ -85,56 +86,43 @@ export default class WorkerSearcher {
          - k
          - b
       */
-      13 * encodedFieldNames.length + fieldNameTotalLength,
-    );
+    13 * encodedFieldNames.length + fieldNameTotalLength,
+  );
     // Separate view to write floats then copy into fieldInfosSerialized
-    const fieldInfosFloatsTemp = new Float32Array(3);
+  const fieldInfosFloatsTemp = new Float32Array(3);
 
-    let fieldInfosSerializedPos = 0;
-    fieldInfos.forEach((fieldInfo, idx) => {
-      const fieldNameByteLength = encodedFieldNames[idx].length;
-      fieldInfosSerialized[fieldInfosSerializedPos++] = fieldNameByteLength;
-      fieldInfosSerialized.set(encodedFieldNames[idx], fieldInfosSerializedPos);
-      fieldInfosSerializedPos += fieldNameByteLength;
+  let fieldInfosSerializedPos = 0;
+  fieldInfos.forEach((fieldInfo, idx) => {
+    const fieldNameByteLength = encodedFieldNames[idx].length;
+    fieldInfosSerialized[fieldInfosSerializedPos++] = fieldNameByteLength;
+    fieldInfosSerialized.set(encodedFieldNames[idx], fieldInfosSerializedPos);
+    fieldInfosSerializedPos += fieldNameByteLength;
 
-      fieldInfosFloatsTemp[0] = fieldInfo.weight;
-      fieldInfosFloatsTemp[1] = fieldInfo.k;
-      fieldInfosFloatsTemp[2] = fieldInfo.b;
+    fieldInfosFloatsTemp[0] = fieldInfo.weight;
+    fieldInfosFloatsTemp[1] = fieldInfo.k;
+    fieldInfosFloatsTemp[2] = fieldInfo.b;
 
-      fieldInfosSerialized.set(new Uint8Array(fieldInfosFloatsTemp.buffer), fieldInfosSerializedPos);
+    fieldInfosSerialized.set(new Uint8Array(fieldInfosFloatsTemp.buffer), fieldInfosSerializedPos);
 
-      fieldInfosSerializedPos += 12;
-    });
+    fieldInfosSerializedPos += 12;
+  });
 
-    this._mrlWasmModule = await wasmModule;
-    this._mrlWasmSearcher = this._mrlWasmModule.get_new_searcher(
-      await metadata,
-      indexingConfig.numPlsPerDir,
-      indexingConfig.withPositions,
-      lang,
-      stopWords,
-      options.ignore_stop_words,
-      options.stemmer,
-      options.max_term_len,
-      fieldInfosSerialized,
-      numScoredFields,
-      searcherOptions.url,
-      searcherOptions.numberOfExpandedTerms,
-      searcherOptions.useQueryTermProximity,
-      searcherOptions.plLazyCacheThreshold,
-      searcherOptions.resultLimit,
-    );
-  }
-
-  static async _mrlSetup(
-    data: MorselsConfig,
-    metadata: Promise<ArrayBuffer>,
-    wasmModule: Promise<any>,
-  ): Promise<WorkerSearcher> {
-    const workerSearcher = new WorkerSearcher(data);
-
-    await workerSearcher._mrlSetupWasm(metadata, wasmModule);
-
-    return workerSearcher;
-  }
+  wasmModule = await wasmModulePromise;
+  wasmSearcher = wasmModule.get_new_searcher(
+    await metadataPromise,
+    indexingConfig.numPlsPerDir,
+    indexingConfig.withPositions,
+    lang,
+    stopWords,
+    options.ignore_stop_words,
+    options.stemmer,
+    options.max_term_len,
+    fieldInfosSerialized,
+    numScoredFields,
+    searcherOptions.url,
+    searcherOptions.numberOfExpandedTerms,
+    searcherOptions.useQueryTermProximity,
+    searcherOptions.plLazyCacheThreshold,
+    searcherOptions.resultLimit,
+  );
 }
