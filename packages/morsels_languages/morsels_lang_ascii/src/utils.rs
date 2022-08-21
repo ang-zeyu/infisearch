@@ -120,10 +120,7 @@ pub fn separating_filter(c: char) -> bool {
         // More controversial ones
         '\u{2013}' | // –  [EN DASH]
         '\u{2014}' | // —  [EM DASH]
-        '\u{2018}' | // ‘  [LEFT SINGLE QUOTATION MARK]
-        '\u{2019}' | // ’  [RIGHT SINGLE QUOTATION MARK]
         '\u{201A}' | // ‚  [SINGLE LOW-9 QUOTATION MARK]
-        '\u{201B}' | // ‛  [SINGLE HIGH-REVERSED-9 QUOTATION MARK]
         '\u{2039}' | // ‹  [SINGLE LEFT-POINTING ANGLE QUOTATION MARK]
         '\u{203A}' | // ›  [SINGLE RIGHT-POINTING ANGLE QUOTATION MARK]
         '\u{275B}' | // ❛  [HEAVY SINGLE TURNED COMMA QUOTATION MARK ORNAMENT]
@@ -139,6 +136,8 @@ pub fn intra_filter(c: char) -> bool {
         '\'' |
         '-' |
         '_' |
+        '\u{2019}' | // ’  [RIGHT SINGLE QUOTATION MARK]
+        '\u{2018}' | // ‘  [LEFT SINGLE QUOTATION MARK]
         '\u{2010}' | // ‐  [HYPHEN]
         '\u{2011}' | // ‑  [NON-BREAKING HYPHEN]
         '\u{2012}' | // ‒  [FIGURE DASH]
@@ -149,6 +148,7 @@ pub fn intra_filter(c: char) -> bool {
         '\u{FF07}' | // ＇  [FULLWIDTH APOSTROPHE]
         '\u{2032}' | // ′  [PRIME]
         '\u{2035}' | // ‵  [REVERSED PRIME]
+        '\u{201B}' | // ‛  [SINGLE HIGH-REVERSED-9 QUOTATION MARK]
         // Moved from above
         '\u{2033}' | // ″  [DOUBLE PRIME]
         '\u{2036}'   // ‶  [REVERSED DOUBLE PRIME]
@@ -232,5 +232,13 @@ pub mod test {
     fn removes_all_characters() {
         assert("-a1a-a2a-", "a1aa2a");
         assert("-a1a⥄a2a-", "a1a⥄a2a");
+    }
+
+    #[test]
+    fn removes_single_quotations() {
+        assert("today's", "todays");
+        assert("today‛s", "todays");
+        assert("today’s", "todays");
+        assert("today‘s", "todays");
     }
 }
