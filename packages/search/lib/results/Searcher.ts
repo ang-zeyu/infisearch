@@ -45,15 +45,17 @@ class Searcher {
   private _mrlCache: PersistentCache;
 
   constructor(private _mrlOptions: SearcherOptions) {
-    this.setupPromise = this._mrlRetrieveConfig()
-      .then(() => new Promise<void>((resolve) => {
+    const configSetupPromise = this._mrlRetrieveConfig();
+    this.setupPromise = Promise.all([
+      configSetupPromise,
+      new Promise<void>((resolve) => {
         const objectUrl = URL.createObjectURL(new Blob([
           `const __morsWrkrUrl="${scriptUrl}";const __indexUrl="${_mrlOptions.url}";${workerScript.s}`,
         ], { type: 'text/javascript' }));
 
         this._mrlWorker = new Worker(objectUrl);
 
-        const cacheSetup = this._mrlSetupCache(`morsels:${_mrlOptions.url}`);
+        const cacheSetupPromise = this._mrlSetupCache(`morsels:${_mrlOptions.url}`);
       
         this._mrlWorker.onmessage = (ev) => {
           if (ev.data.query) {
@@ -72,7 +74,9 @@ class Searcher {
               queryParts,
             });
           } else if (ev.data === '') {
-            cacheSetup.then(() => this._mrlWorker.postMessage(this.cfg));
+            Promise.all([
+              configSetupPromise, cacheSetupPromise,
+            ]).then(() => this._mrlWorker.postMessage(this.cfg));
             URL.revokeObjectURL(objectUrl);
           } else if (ev.data.isSetupDone) {
             this.isSetupDone = true;
@@ -85,7 +89,8 @@ class Searcher {
         this._mrlWorker.onmessageerror = (ev) => {
           console.log(ev);
         };
-      }));
+      }),
+    ]);
   }
 
   private async _mrlSetupCache(cacheName: string) {

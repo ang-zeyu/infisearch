@@ -1,21 +1,42 @@
 import './publicPath';
 import WorkerSearcher from './workerSearcher';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
+declare const __indexUrl: string;
+
+async function setupMetadata(): Promise<ArrayBuffer> {
+  let cache: Cache;
+  try {
+    cache = await caches.open(`morsels:${__indexUrl}`);
+  } catch {
+    // Cache API blocked / unsupported (e.g. firefox private)
+  }
+
+  const metadataUrl = `${__indexUrl}metadata.json`;
+
+  return (
+    cache
+      ? cache.match(metadataUrl)
+        .then((resp) => !resp && cache.add(metadataUrl))
+        .then(() => cache.match(metadataUrl))
+      : fetch(metadataUrl)
+  ).then((resp) => resp.arrayBuffer());
+}
+
 export default function setupWithWasmModule(wasmModule: Promise<any>) {
   let workerSearcher: WorkerSearcher;
+
+  const metadata = setupMetadata();
   
   onmessage = async function worker(ev) {
-    if (ev.data.searcherOptions) {
-      // const now = performance.now();
-  
-      workerSearcher = await WorkerSearcher._mrlSetup(ev.data, wasmModule);
+    const data = ev.data;
+    if (data.searcherOptions) {
+      workerSearcher = await WorkerSearcher._mrlSetup(data, metadata, wasmModule);
       postMessage({ isSetupDone: true });
-  
-      // console.log(`Worker setup took ${performance.now() - now} ms`);
-    } else if (ev.data.query) {
+    } else if (data.query) {
       const {
         query, queryId, n, isFree, isGetNextN,
-      } = ev.data;
+      } = data;
       if (isFree) {
         workerSearcher._mrlFreeQuery(query, queryId);
       } else if (isGetNextN) {

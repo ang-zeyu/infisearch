@@ -41,9 +41,7 @@ export default class WorkerSearcher {
     }
   }
 
-  private async _mrlSetupWasm(metadata: ArrayBuffer, wasmModule: Promise<any>) {
-    this._mrlWasmModule = await wasmModule;
-
+  private async _mrlSetupWasm(metadata: Promise<ArrayBuffer>, wasmModule: Promise<any>) {
     const {
       indexingConfig,
       langConfig: { lang, options },
@@ -108,8 +106,9 @@ export default class WorkerSearcher {
       fieldInfosSerializedPos += 12;
     });
 
+    this._mrlWasmModule = await wasmModule;
     this._mrlWasmSearcher = this._mrlWasmModule.get_new_searcher(
-      metadata,
+      await metadata,
       indexingConfig.numPlsPerDir,
       indexingConfig.withPositions,
       lang,
@@ -127,26 +126,12 @@ export default class WorkerSearcher {
     );
   }
 
-  static async _mrlSetup(data: MorselsConfig, wasmModule: Promise<any>): Promise<WorkerSearcher> {
+  static async _mrlSetup(
+    data: MorselsConfig,
+    metadata: Promise<ArrayBuffer>,
+    wasmModule: Promise<any>,
+  ): Promise<WorkerSearcher> {
     const workerSearcher = new WorkerSearcher(data);
-
-    const baseUrl = data.searcherOptions.url;
-    const metadataUrl = `${baseUrl}metadata.json`;
-
-    let cache: Cache;
-    try {
-      cache = await caches.open(`morsels:${baseUrl}`);
-    } catch {
-      // Cache API blocked / unsupported (e.g. firefox private)
-    }
-
-    const metadata = await (
-      cache
-        ? cache.match(metadataUrl)
-          .then((resp) => !resp && cache.add(metadataUrl))
-          .then(() => cache.match(metadataUrl))
-        : fetch(metadataUrl)
-    ).then((resp) => resp.arrayBuffer());
 
     await workerSearcher._mrlSetupWasm(metadata, wasmModule);
 
