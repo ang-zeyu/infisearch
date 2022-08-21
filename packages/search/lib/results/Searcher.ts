@@ -66,12 +66,15 @@ class Searcher {
               queryParts,
             } = ev.data;
 
-            this._mrlQueries[queryId].resolve({
-              query,
-              nextResults,
-              searchedTerms,
-              queryParts,
-            });
+            const q = this._mrlQueries[queryId];
+            if (q) {
+              q.resolve({
+                query,
+                nextResults,
+                searchedTerms,
+                queryParts,
+              });
+            }
           } else if (ev.data === '') {
             configSetupPromise.then(() => this._mrlWorker.postMessage(this.cfg));
             URL.revokeObjectURL(objectUrl);
