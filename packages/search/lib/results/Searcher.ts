@@ -32,15 +32,14 @@ class Searcher {
   private _mrlWorker: Worker;
 
   private _mrlQueries: {
-    [query: string]: {
-      [queryId: number]: {
-        promise: Promise<any>,
-        resolve: any,
-      }
+    [queryId: number]: {
+      promise: Promise<any>,
+      resolve: any,
     }
   } = Object.create(null);
 
-  private _mrlNextId = 0;
+  // Use an auto-incrementing id to resolve queries to-fro the Worker
+  private id = 0;
 
   private _mrlCache: PersistentCache;
 
@@ -67,7 +66,7 @@ class Searcher {
               queryParts,
             } = ev.data;
 
-            this._mrlQueries[query][queryId].resolve({
+            this._mrlQueries[queryId].resolve({
               query,
               nextResults,
               searchedTerms,
@@ -95,17 +94,19 @@ class Searcher {
 
   private async _mrlSetupCache(cacheName: string) {
     try {
+      const { indexVer } = this.cfg;
+
       let cache = await caches.open(cacheName);
       const cacheIndexVerResp = await cache.match('/index_ver');
       if (cacheIndexVerResp) {
         const cacheIndexVer = await cacheIndexVerResp.text();
-        if (this.cfg.indexVer !== cacheIndexVer) {
+        if (indexVer !== cacheIndexVer) {
           await caches.delete(cacheName);
           cache = await caches.open(cacheName);
         }
       }
 
-      await cache.put('/index_ver', new Response(this.cfg.indexVer));
+      await cache.put('/index_ver', new Response(indexVer));
       this._mrlCache = new PersistentCache(cache);
     } catch {
       // Cache API blocked / unsupported (e.g. firefox private)
@@ -119,9 +120,9 @@ class Searcher {
     }
 
     // These 2 parameters are "clean" multiples / divisors of each other
-    const { fieldStoreBlockSize, indexingConfig } = this.cfg;
+    const { fieldStoreBlockSize, indexingConfig, lastDocId } = this.cfg;
     const increment = Math.min(fieldStoreBlockSize, indexingConfig.numDocsPerBlock);
-    for (let docId = 0; docId < this.cfg.lastDocId; docId += increment) {
+    for (let docId = 0; docId < lastDocId; docId += increment) {
       this._mrlCache._mrlCacheJson(getFieldUrl(this._mrlOptions.url, docId, this.cfg));
     }
   }
@@ -136,78 +137,73 @@ class Searcher {
   }
 
   private async _mrlRetrieveConfig(): Promise<void> {
-    this.cfg = await (await fetch(`${this._mrlOptions.url}morsels_config.json`)).json();
+    const searcherOpts = this._mrlOptions;
+    this.cfg = await (await fetch(`${searcherOpts.url}morsels_config.json`)).json();
 
     if (this.cfg.ver !== MORSELS_VERSION) {
       throw new Error('Morsels search !== indexer version!');
     }
 
-    if (!('cacheAllFieldStores' in this._mrlOptions)) {
-      this._mrlOptions.cacheAllFieldStores = !!this.cfg.cacheAllFieldStores;
+    if (!('cacheAllFieldStores' in searcherOpts)) {
+      searcherOpts.cacheAllFieldStores = !!this.cfg.cacheAllFieldStores;
     }
 
-    this._mrlOptions.useQueryTermProximity = this._mrlOptions.useQueryTermProximity
+    searcherOpts.useQueryTermProximity = searcherOpts.useQueryTermProximity
         && this.cfg.indexingConfig.withPositions;
 
-    this.cfg.searcherOptions = this._mrlOptions;
-  }
-
-  private _mrlDeleteQuery(query: string, queryId: number) {
-    delete this._mrlQueries[query][queryId];
-    if (Object.keys(this._mrlQueries[query]).length === 0) {
-      delete this._mrlQueries[query];
-    }
+    this.cfg.searcherOptions = searcherOpts;
   }
 
   async getQuery(query: string): Promise<Query> {
     await this.setupPromise;
 
-    // The same query may be launched multiple times,
-    // a "sub" id is needed to differentiate them
-    const queryId = this._mrlNextId;
-    this._mrlNextId += 1;
+    const queryId = this.id;
+    this.id += 1;
 
-    this._mrlQueries[query] = this._mrlQueries[query] || {};
-    this._mrlQueries[query][queryId] = {
+    const queries = this._mrlQueries;
+
+    queries[queryId] = {
       promise: undefined,
       resolve: undefined,
     };
 
-    this._mrlQueries[query][queryId].promise = new Promise((resolve) => {
-      this._mrlQueries[query][queryId].resolve = resolve;
+    queries[queryId].promise = new Promise((resolve) => {
+      queries[queryId].resolve = resolve;
 
+      // Resolved when the worker replies
       this._mrlWorker.postMessage({ query, queryId });
     });
 
     const result: {
       searchedTerms: string[][],
       queryParts: QueryPart[],
-    } = await this._mrlQueries[query][queryId].promise;
+    } = await queries[queryId].promise;
 
     const getNextN = async (n: number) => {
-      if (!this._mrlQueries[query] || !this._mrlQueries[query][queryId]) {
+      if (!queries[queryId]) {
         return []; // free() already called
       }
 
-      await this._mrlQueries[query][queryId].promise;
+      await queries[queryId].promise;
 
       // Initiate worker request
-      this._mrlQueries[query][queryId].promise = new Promise((resolve) => {
-        this._mrlQueries[query][queryId].resolve = resolve;
+      queries[queryId].promise = new Promise((resolve) => {
+        queries[queryId].resolve = resolve;
 
+        // Resolved when the worker replies
         this._mrlWorker.postMessage({
           query, queryId, isGetNextN: true, n,
         });
       });
 
-      if (!this._mrlQueries[query] || !this._mrlQueries[query][queryId]) {
+      if (!queries[queryId]) {
         return []; // free() already called
       }
 
       // Wait for worker to finish
       const getNextNResult: {
         nextResults: number[]
-      } = await this._mrlQueries[query][queryId].promise;
+      } = await queries[queryId].promise;
 
       // Simple transform into Result objects
       const retrievedResults: Result[] = getNextNResult.nextResults.map((docId) => new Result(
@@ -225,11 +221,10 @@ class Searcher {
     };
 
     const free = () => {
-      this._mrlDeleteQuery(query, queryId);
+      delete queries[queryId];
       this._mrlWorker.postMessage({ query, isFree: true });
     };
 
-    // eslint-disable-next-line consistent-return
     return new Query(
       query,
       result.searchedTerms,
