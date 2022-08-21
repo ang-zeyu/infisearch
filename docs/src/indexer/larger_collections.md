@@ -25,9 +25,9 @@ Specify the `preset` key in your configuration file to change this.
 | -----------         | ----------- |
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
 | `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only required field stores are retrieved for generating result previews. Positions are not indexed.
-| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](./language.md#stop-words). This is the preset used in the demo [here](https://morsels-search.com)!
+| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](../language.md#stop-words). This is the preset used in the demo [here](https://morsels-search.com)!
 | `medium_source`     | Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation. Positions are not indexed.
-| `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps [stop words](./language.md#stop-words).
+| `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps [stop words](../language.md#stop-words).
 
 #### Notes
 
@@ -44,7 +44,7 @@ Presets modify the following properties:
 - Search Configuration: 
   - [`cacheAllFieldStores`](../search_configuration.md#search-functionality-options)
 - Language Configuration:
-  - [`ignore_stop_words`](./language.md#stop-words)
+  - [`ignore_stop_words`](../language.md#stop-words)
 - Indexing Configuration:
   - What [fields](./fields.md) are stored (`do_store`). Not set if `fields_config.fields` is present.
   - [`field_store_block_size`](./fields.md)
@@ -62,6 +62,6 @@ There are a few other options especially worth highlighting that can help reduce
 - [`plLazyCacheThreshold`](../search_configuration.md#caching-options-advanced)
 
   In addition to **upfront** caching of index files with the `pl_cache_threshold` indexing parameter, Morsels also persistently caches any index shard that was requested before, but fell short of the `pl_cache_threshold`.
-- [`ignore_stop_words=false`](language.md#note-on-stop-words)
+- [`ignore_stop_words=false`](../language.md#stop-words)
 
   This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size.

@@ -168,7 +168,7 @@ In addition, large postings lists are all but removed in this case:
 
 ##### Removing Stop Words
 
-If disabling caching via setting a very high `pl_cache_threshold`, [removing stop words](./indexer/language.md#note-on-stop-words) when indexing would have little to no effect as such terms are already separated into different postings lists and never retrieved unless necessary.
+If disabling caching via setting a very high `pl_cache_threshold`, [removing stop words](./language.md#note-on-stop-words) when indexing would have little to no effect as such terms are already separated into different postings lists and never retrieved unless necessary.
 
 On the other hand, removing stop words with a lower `pl_cache_threshold` would help to avoid caching the "outliers" on the right of the distribution up front, if initial network usage is a concern.
 

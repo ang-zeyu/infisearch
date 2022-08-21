@@ -1,12 +1,11 @@
 # Language Configuration
 
-The snippet below shows the default values for language configuration. The main tokenizer module is specified by `lang`, while the `options` key supplies tokenization options unique to each language module.
-
-> These options are also applied at search time, which is retrieved from a metadata file in the index output directory.
+There are 3 language modules available. To configure these, you will need to serve the appropriate [language bundle](./getting_started.md#hosting-the-files) in your HTML, and edit the indexer configuration file to include `lang_config`:
 
 ```json
 {
   "lang_config": {
+    // Specify the main module here
     "lang": "ascii",
     "options": {
       // Language dependent
@@ -14,8 +13,6 @@ The snippet below shows the default values for language configuration. The main 
   }
 }
 ```
-
-Only the following 3 tokenizers are supported for now:
 
 ## Ascii Tokenizer
 
@@ -66,9 +63,7 @@ If you do not need stemming, use the `ascii` tokenizer, which has a smaller wasm
 
 ## Chinese Tokenizer
 
-A basic `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieba-rs) is also available, although, it hasn't been extensively tested. Use with caution!
-
-This tokenizer applies jieba's `cut` method to obtain various tokens, then applies a punctuation filter to these tokens. Thereafter, tokens are grouped into sentences.
+A `chinese` tokenizer based on [jieba-rs](https://github.com/messense/jieba-rs) is also available, although, it hasn't been as extensively tested. Use with caution!
 
 ```json
 {
@@ -85,6 +80,6 @@ This tokenizer applies jieba's `cut` method to obtain various tokens, then appli
 All tokenizers support keeping or removing (default) stop words using the `ignore_stop_words` option.
 
 Keeping them enables the following:
-- Processing phrase queries such as `"for tomorrow"`
+- Processing phrase queries such as `"for tomorrow"` accurately
 - Boolean queries of stop words (e.g. `if AND forecast AND sunny`)
 - More accurate ranking for free text queries, which employ an inverse document frequency heuristic to prune stop words only when their impact is small (far from always the case!). 

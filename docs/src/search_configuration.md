@@ -170,11 +170,11 @@ initMorsels({
 
 `numberOfExpandedTerms = 3`
 
-Stemming is turned off in the default [language module](./indexer/language.md#ascii-tokenizer). This does mean a bigger dictionary (but not too much usually), and lower recall, but much more precise searches.
+Stemming is turned off by [default](./language.md#ascii-tokenizer). This does mean a bigger dictionary (but not too much usually), and lower recall, but much more precise searches.
 
 To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.
 
-For all [language modules](./indexer/language.md) available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term.
+For all [language modules](./language.md) available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term.
 
 #### Term Proximity Ranking
 

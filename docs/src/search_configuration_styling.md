@@ -40,27 +40,14 @@ These 3 stylesheets also expose a wide range of css variables which you can alte
 
 Head on over to the demo site [here](https://morsels-search.com) to try them out!
 
-### Basic
-
-#### CDN link
-
-```html
-<!-- Replace "v0.2.6" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui-basic.css" />
-```
-
-<div class="image-container">
-<img src="./images/light-theme.png" alt="Preview of basic theme">
-<img src="./images/light-theme-fullscreen.png" alt="Preview of basic theme (fullscreen)">
-</div>
 
 ### Light
 
 #### CDN link
 
 ```html
-<!-- Replace "v0.2.6" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui-light.css" />
+<!-- Replace "v0.3.0" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.0/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 #### Preview
@@ -70,13 +57,28 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 <img src="./images/light-theme-fullscreen.png" alt="Preview of light theme (fullscreen)">
 </div>
 
+
+### Basic
+
+#### CDN link
+
+```html
+<!-- Replace "v0.3.0" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.0/packages/search-ui/dist/search-ui-basic.css" />
+```
+
+<div class="image-container">
+<img src="./images/basic-theme.png" alt="Preview of basic theme">
+<img src="./images/basic-theme-fullscreen.png" alt="Preview of basic theme (fullscreen)">
+</div>
+
 ### Dark
 
 #### CDN link
 
 ```html
-<!-- Replace "v0.2.6" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui-dark.css" />
+<!-- Replace "v0.3.0" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.0/packages/search-ui/dist/search-ui-dark.css" />
 ```
 
 #### Preview

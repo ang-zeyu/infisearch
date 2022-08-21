@@ -11,9 +11,9 @@
 - [Search UI](./search_configuration.md)
   - [Styling](./search_configuration_styling.md)
 - [Indexer](./indexer_configuration.md)
-  - [Language](./indexer/language.md)
   - [Fields](./indexer/fields.md)
   - [Indexing](./indexer/indexing.md)
+- [Language](./language.md)
 
 # Advanced
 

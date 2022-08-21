@@ -17,7 +17,7 @@ If you require more (e.g. indexing custom json files), have a quick look through
 ## Installing the indexer
 
 There are two options here:
-- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.2.6`.
+- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.3.0`.
 - Alternatively, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
 
 ## Running the indexer
@@ -40,28 +40,24 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 ### Installation via CDN
 
 ```html
-<!-- Replace "v0.2.6" as appropriate -->
+<!-- Replace "v0.3.0" as appropriate -->
 
 <!--  Search UI script -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.0/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.0/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 > ⚠️ Ensure the versions here **match the indexer version** used exactly.
 
 ### Hosting the Files
 
-If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). The following files inside `search.morsels.zip` are required:
+If you wish to serve the files locally instead, you can find the necessary files in the release packages [here](https://github.com/ang-zeyu/morsels/releases). You will find the following files inside `search.morsels.zip`:
 
-- `search-ui.bundle.js`
-- Either `search-ui-light.css` / `search-ui-dark.css`
-  - unless you want to design your own stylesheet from scratch!
-- A pair of language-specific bundles which are requested as necessary at runtime.
-  - `search.worker-*.bundle.js`
-  - an accompanying wasm binary
-
-> ⚠️ All files are expected to be **accessible in the same folder** relative to the linked `search-ui.bundle.js`.
+- A pair of language-specific bundles that should be served from the same folder:
+  - `search-ui.*.bundle.js`
+  - An accompanying `wasm` binary
+- A stylesheet: `search-ui-basic.css` / `search-ui-light.css` / `search-ui-dark.css`
 
 ### UI Initialisation
 
