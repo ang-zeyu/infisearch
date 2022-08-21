@@ -35,7 +35,7 @@ Powering static site search with Morsels is extremely easy, and requires just a 
 ### 1. Installing the indexer
 
 There are two options here:
-- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.3.0`.
+- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.3.1`.
 - Alternatively, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
 
 
@@ -55,9 +55,9 @@ Add the following resources to your pages:
 
 ```html
 <!--  Search UI script -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.0/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.1/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.0/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.1/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 ### 4. UI Initialisation
