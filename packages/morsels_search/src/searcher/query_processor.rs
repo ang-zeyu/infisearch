@@ -73,6 +73,9 @@ impl Searcher {
             .collect();
         let num_pls = sorted_pl_its.len();
 
+        // Local to has_position_match
+        let mut term_field_position_idxes = vec![0; num_pls];
+
         loop {
             utils::insertion_sort(&mut sorted_pl_its, |&a, &b| unsafe {
                 (*a).lt(&*b)
@@ -101,7 +104,9 @@ impl Searcher {
 
                 if num_matched_docs == num_pls {
                     // Now do the phrase query on curr_doc_id
-                    let (td, has_match) = self.has_position_match(curr_doc_id, num_pls, &pl_iters);
+                    let (td, has_match) = self.has_position_match(
+                        curr_doc_id, num_pls, &pl_iters, &mut term_field_position_idxes
+                    );
 
                     if has_match {
                         result_pl.term_docs.push(td);
@@ -117,13 +122,19 @@ impl Searcher {
         Rc::new(result_pl)
     }
 
-    fn has_position_match(&self, curr_doc_id: u32, num_pls: usize, pl_iters: &Vec<PlIterator>) -> (Doc, bool) {
+    fn has_position_match(
+        &self,
+        curr_doc_id: u32, 
+        num_pls: usize,
+        pl_iters: &Vec<PlIterator>,
+        term_field_position_idxes: &mut Vec<usize>,
+    ) -> (Doc, bool) {
         let mut td = Doc { doc_id: curr_doc_id, fields: Vec::new(), score: 0.0 };
         let mut has_match = false;
         for field_id in 0..self.searcher_config.num_scored_fields as usize {
             let mut result_doc_field = Field { field_tf: 0.0, field_positions: Vec::new() };
 
-            let mut term_field_position_idxes = vec![0; num_pls];
+            for v in term_field_position_idxes.iter_mut() { *v = 0; }
             let mut curr_pos: u32 = 0;
             let mut term_idx = 0;
 
