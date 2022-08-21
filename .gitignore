@@ -1,6 +1,7 @@
 # test files
 test_files
 e2e/output/*
+packages/search/worker-dist
 
 # docs build
 docs/book

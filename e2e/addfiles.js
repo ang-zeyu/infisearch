@@ -13,6 +13,10 @@ const {
 } = require('./utils');
 
 async function addFilesTest(with_positions, configFile) {
+  const lang = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '..', configFile), 'utf8'),
+  ).lang_config.lang;
+
   await typePhraseOrAnd('secondary file test from html', with_positions);
   await assertMultiple(['secondary file test from html'], 2);
   
@@ -47,7 +51,7 @@ async function addFilesTest(with_positions, configFile) {
   
   runIncrementalIndex(configFile);
   
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('last document in the recursive linkage', with_positions);
   await assertSingle('last document in the recursive linkage');
   
@@ -72,7 +76,7 @@ async function addFilesTest(with_positions, configFile) {
   
   expectNumDeletedDocs(2); // update
   
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('last document in the recursive linkage', with_positions);
   await waitNoResults();
   
@@ -92,7 +96,7 @@ async function addFilesTest(with_positions, configFile) {
   
   expectNumDeletedDocs(3); // update
   
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('main document in the recursive linkage', with_positions);
   await waitNoResults();
   
@@ -109,7 +113,7 @@ async function addFilesTest(with_positions, configFile) {
   runIncrementalIndex(configFile);
   expectNumDeletedDocs(4); // deletion
   
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('last updated document in the recursive linkage', with_positions);
   await waitNoResults();
   

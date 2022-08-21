@@ -24,7 +24,11 @@ beforeAll(async () => {
 const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   runFullIndex(configFile);
 
-  await reloadPage();
+  const lang = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '..', configFile), 'utf8'),
+  ).lang_config.lang;
+
+  await reloadPage(lang);
 
   // ------------------------------------------------------
   // Various basic tests on docid=0
@@ -137,7 +141,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   runFullIndex(configFile);
 
   // 1, to be deleted later
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('This URL is invaldi', with_positions);
   await waitNoResults();
 
@@ -147,7 +151,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   );
   runIncrementalIndex(configFile);
 
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('This URL is invaldi', with_positions);
   await assertSingle('this url is invalid');
 
@@ -162,7 +166,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   );
   runIncrementalIndex(configFile);
   
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('Contributions of any form', with_positions);
   await assertSingle('contributions of any form');
 
@@ -176,7 +180,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   fs.rmSync(path.join(__dirname, 'input/404.html'));
   runIncrementalIndex(configFile);
   
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('This URL is invaldi', with_positions);
   await waitNoResults();
 
@@ -197,7 +201,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   fs.writeFileSync(contributingHtmlOutputPath, contributingHtml);
   runIncrementalIndex(configFile);
 
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
@@ -214,7 +218,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   fs.rmSync(contributingHtmlOutputPath);
   runIncrementalIndex(configFile);
   
-  await reloadPage();
+  await reloadPage(lang);
   await typePhraseOrAnd('Contributions of any form', with_positions);
   await waitNoResults();
 
@@ -235,11 +239,11 @@ async function testTokenizerOptions(configFile) {
 
   runFullIndex(configFile);
 
-  await reloadPage();
-
   const sourceConfigFile = JSON.parse(
     fs.readFileSync(path.join(__dirname, '..', configFile), 'utf8'),
   );
+
+  await reloadPage(sourceConfigFile.lang_config.lang);
 
   // ------------------------------------------------------
   // Stop words are only completely ignored if this is true

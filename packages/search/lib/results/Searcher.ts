@@ -20,6 +20,8 @@ if (document.currentScript) {
 }
 scriptUrl = scriptUrl.replace(/#.*$/, '').replace(/\?.*$/, '').replace(/\/[^\/]+$/, '/');
 
+export const workerScript = { s: '' };
+
 class Searcher {
   cfg: MorselsConfig;
 
@@ -45,12 +47,9 @@ class Searcher {
   constructor(private _mrlOptions: SearcherOptions) {
     this.setupPromise = this._mrlRetrieveConfig()
       .then(() => new Promise<void>((resolve) => {
-        const workerUrl = new URL(
-          scriptUrl + `search-worker-${this.cfg.langConfig.lang}.bundle.js`,
-          document.baseURI || self.location.href,
-        ) + '';
-        const content = `const __morsWrkrUrl="${workerUrl}";importScripts(__morsWrkrUrl);`;
-        const objectUrl = URL.createObjectURL(new Blob([content], { type: 'text/javascript' }));
+        const objectUrl = URL.createObjectURL(new Blob([
+          `const __morsWrkrUrl="${scriptUrl}";const __indexUrl="${_mrlOptions.url}";${workerScript.s}`,
+        ], { type: 'text/javascript' }));
 
         this._mrlWorker = new Worker(objectUrl);
 

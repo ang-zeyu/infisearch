@@ -116,7 +116,7 @@ function expectNumDeletedDocs(n) {
   expect(incrementalIndexInfo.num_deleted_docs).toBe(n);
 }
   
-async function reloadPage() {
+async function reloadPage(lang = 'ascii') {
   await jestPuppeteer.resetPage();
   await jestPuppeteer.resetBrowser();
   
@@ -126,7 +126,7 @@ async function reloadPage() {
     .on('error', (ex) => console.error('Unexpected (1): ' + ex))
     .on('pageerror', ({ message }) => console.error('Unexpected (2): ' + message));
   
-  const url = 'http://localhost:8080?mode=target'
+  const url = `http://localhost:8080/basic-theme_${lang}-lang.html?mode=target`
       + '&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Foutput%2F'
       + '&sourceFilesUrl=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Finput%2F'
       + '&resultsPerPage=100';

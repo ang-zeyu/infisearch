@@ -56,7 +56,7 @@
           }
 
           function changeToE2e() {
-            window.location.href = 'http://localhost:8080?mode=target'
+            window.location.href = 'http://localhost:8080/basic-theme_ascii-lang.html?mode=target'
               + '&url=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Foutput%2F'
               + '&sourceFilesUrl=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Finput%2F'
               + '&resultsPerPage=100';
@@ -81,24 +81,29 @@
             window.location.href = window.location.href.replace(/(\?.+)|$/, `?${params.toString()}`);
           }
 
-          function toggleTheme(ev) {
-            const isDark = window.location.pathname.includes('dark');
-            const isLight = window.location.pathname.includes('light');
-            if (isDark) {
-              window.location.href = window.location.href.replace(/dark\.html/, 'index.html');
-            } else if (isLight) {
-              window.location.href = window.location.href.replace(/light\.html/, 'dark.html');
+          function toggleTheme() {
+            if (window.location.pathname.includes('dark-theme')) {
+              window.location.href = window.location.href.replace(/dark-theme/, 'basic-theme');
+            } else if (window.location.pathname.includes('light-theme')) {
+              window.location.href = window.location.href.replace(/light-theme/, 'dark-theme');
             } else {
-              // Basic
-              window.location.href = window.location.href.replace(
-                /\/?(index\.html)?((\?.+)|$)/,
-                '/light.html$2'
-              );
+              window.location.href = window.location.href.replace(/basic-theme/, 'light-theme');
+            }
+          }
+
+          function toggleLang() {
+            if (window.location.pathname.includes('chinese-lang')) {
+              window.location.href = window.location.href.replace(/chinese-lang/, 'ascii-lang');
+            } else if (window.location.pathname.includes('latin-lang')) {
+              window.location.href = window.location.href.replace(/latin-lang/, 'chinese-lang');
+            } else {
+              window.location.href = window.location.href.replace(/ascii-lang/, 'latin-lang');
             }
           }
         </script>
         <button class="btn btn-outline-primary m-1" onclick="toggleCacheFieldStores()">Toggle Cache Field Stores</button>
-        <button id="theme-toggle" class="btn btn-outline-dark m-1" onclick="toggleTheme(event)">Theme Toggle</button>
+        <button id="theme-toggle" class="btn btn-outline-dark m-1" onclick="toggleTheme()">Cycle Theme</button>
+        <button id="theme-toggle" class="btn btn-outline-dark m-1" onclick="toggleLang()">Cycle Language</button>
         <script>
           (function setDarkTheme() {
             if (window.location.pathname.includes('dark')) {

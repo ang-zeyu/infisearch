@@ -3,7 +3,7 @@ extern crate mdbook;
 use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::Error;
@@ -98,13 +98,19 @@ fn main() {
     }
 }
 
-fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::PathBuf {
+
+fn setup_config_file(ctx: &PreprocessorContext) -> PathBuf {
     let morsels_config_path = get_config_file_path(&ctx.root, ctx.config.get("output.morsels.config"));
 
     if !morsels_config_path.exists() || !morsels_config_path.is_file() {
         fs::write(&morsels_config_path, DEFAULT_CONFIG).expect("Failed to write default morsels configuration");
     }
 
+    morsels_config_path
+}
+
+
+fn setup_config_scaling(morsels_config_path: &Path, ctx: &PreprocessorContext, total_len: u64) {
     let scaling_config = ctx.config.get("output.morsels.scaling");
     let do_scale = scaling_config.is_none()
         || (scaling_config.unwrap().is_bool() && scaling_config.unwrap().as_bool().unwrap());
@@ -115,13 +121,13 @@ fn setup_config_file(ctx: &PreprocessorContext, total_len: u64) -> std::path::Pa
             ctx.config.get("debug").unwrap_or(&Value::Boolean(false)).as_bool().unwrap_or(false),
         );
     }
-
-    morsels_config_path
 }
+
 
 fn auto_scale_config(morsels_config_path: &Path, total_len: u64, debug: bool) {
     let config = fs::read_to_string(morsels_config_path).unwrap();
-    let mut config_as_value: JsonValue = serde_json::from_str(&config).expect("unexpected error parsing search config file");
+    let mut config_as_value: JsonValue = serde_json::from_str(&config)
+        .expect("unexpected error parsing search config file");
 
     if debug {
         config_as_value.as_object_mut().unwrap().insert(
@@ -191,8 +197,8 @@ fn get_css_el(base_url: &str, ctx: &PreprocessorContext) -> String {
     output
 }
 
-fn get_script_els(mode: Option<&Value>, base_url: &str) -> String {
-    let mode = if let Some(TomlString(mode)) = mode {
+fn get_script_els(morsels_config_path: &Path, ctx: &PreprocessorContext, base_url: &str) -> String {
+    let mode = if let Some(TomlString(mode)) = ctx.config.get("output.morsels.mode") {
         if mode == "query_param" {
             // Documentation specific, do not use!
             // For demoing the different modes only
@@ -214,17 +220,34 @@ fn get_script_els(mode: Option<&Value>, base_url: &str) -> String {
         "'target'".to_owned()
     };
 
-    let morsels_js = include_bytes!("morsels.js");
+    let config = fs::read_to_string(morsels_config_path).unwrap();
+    let config_as_value: JsonValue = serde_json::from_str(&config)
+        .expect("unexpected error parsing search config file");
+    let lang = if let Some(lang_config) = config_as_value.get("lang_config") {
+        if let Some(serde_json::Value::String(lang)) = lang_config.get("lang") {
+            lang
+        } else {
+            "ascii"
+        }
+    } else {
+        "ascii"
+    };
+
+    let morsels_js = include_str!("morsels.js");
     format!(
 "\n
-<script src=\"{}morsels_assets/search-ui.bundle.js\" type=\"text/javascript\" charset=\"utf-8\"></script>
+<script src=\"{}morsels_assets/search-ui.{}.bundle.js\" type=\"text/javascript\" charset=\"utf-8\"></script>
 <script src=\"{}morsels_assets/mark.min.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n
 <script>
 const base_url = '{}';
 const mode = {};
 {}
 </script>",
-        base_url, base_url, base_url, mode, std::str::from_utf8(morsels_js).unwrap(),
+        base_url, lang,
+        base_url,
+        base_url,
+        mode,
+        morsels_js,
     )
 }
 
@@ -246,7 +269,9 @@ impl Preprocessor for Morsels {
             "/"
         };
 
-        let init_morsels_el = get_script_els(ctx.config.get("output.morsels.mode"), site_url);
+        let config_path = setup_config_file(ctx);
+
+        let init_morsels_el = get_script_els(&config_path, ctx, site_url);
 
         let mut total_len: u64 = 0;
 
@@ -257,7 +282,7 @@ impl Preprocessor for Morsels {
             }
         });
 
-        setup_config_file(ctx, total_len);
+        setup_config_scaling(&config_path, ctx, total_len);
 
         Ok(book)
     }

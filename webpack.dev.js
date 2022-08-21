@@ -5,7 +5,7 @@ const { merge } = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const common = require('./webpack.common');
 
-module.exports = (env) => merge(common(env), {
+module.exports = (env) => merge(common, {
   mode: 'development',
   devtool: 'inline-source-map',
   devServer: {
@@ -25,6 +25,10 @@ module.exports = (env) => merge(common(env), {
     open: false,
     static: [
       {
+        directory: path.join(__dirname, 'packages/search/worker-dist'),
+        publicPath: '/',
+      },
+      {
         directory: path.join(__dirname, 'test_files/1'),
         publicPath: '/1',
       },
@@ -41,15 +45,10 @@ module.exports = (env) => merge(common(env), {
         publicPath: '/e2e',
       },
       {
-        directory: path.join(__dirname, 'packages/search-ui/public/styles'),
+        directory: path.join(__dirname, 'packages/search-ui/public/static'),
         publicPath: '/',
       },
     ],
-  },
-  optimization: {
-    runtimeChunk: {
-      name: (entrypoint) => entrypoint.name.includes('worker') ? false : 'runtime',
-    },
   },
   output: {
     filename: '[name].bundle.js',
@@ -63,22 +62,20 @@ module.exports = (env) => merge(common(env), {
       template: './packages/search-ui/public/template.html',
     };
 
-    return [
-      new HtmlWebpackPlugin({
-        ...baseHtmlConfig,
-        filename: 'index.html',
-        chunks: ['search-ui', 'search-ui-basic'],
-      }),
-      new HtmlWebpackPlugin({
-        ...baseHtmlConfig,
-        filename: 'light.html',
-        chunks: ['search-ui', 'search-ui-light'],
-      }),
-      new HtmlWebpackPlugin({
-        ...baseHtmlConfig,
-        filename: 'dark.html',
-        chunks: ['search-ui', 'search-ui-dark'],
-      }),
-    ];
+    const themes = ['basic', 'light', 'dark'];
+    const languages = ['ascii', 'latin', 'chinese'];
+
+    const plugins = [];
+    for (const theme of themes) {
+      for (const language of languages) {
+        plugins.push(new HtmlWebpackPlugin({
+          ...baseHtmlConfig,
+          filename: `${theme}-theme_${language}-lang.html`,
+          chunks: [`search-ui-${language}`, `search-ui-${theme}`],
+        }));
+      }
+    }
+
+    return plugins;
   })(),
 });
