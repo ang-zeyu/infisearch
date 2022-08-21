@@ -6,6 +6,9 @@ packages/search/worker-dist
 # docs build
 docs/book
 
+# tools
+/wasm-*.exe
+
 # cargo
 target
 
