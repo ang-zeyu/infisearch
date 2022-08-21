@@ -1,0 +1,50 @@
+:root {
+    --morsels-box-shadow: 0 0 5px rgb(220, 220, 220);
+    --morsels-bg: white;
+    --morsels-triangle-bg: white;
+    --morsels-item-border: none;
+    --morsels-title-fg: rgb(20, 20, 20);
+    --morsels-title-hover-fg: black;
+    --morsels-title-hover-bg: rgb(188, 224, 254);
+    --morsels-title-border-bottom: 2px solid rgb(242, 241, 241);
+    --morsels-heading-fg: black;
+    --morsels-heading-hover-fg: black;
+    --morsels-heading-hover-bg: rgb(188, 224, 254);
+    --morsels-body-fg: black;
+    --morsels-body-hover-fg: black;
+    --morsels-body-hover-bg: rgb(188, 224, 254);
+    --morsels-highlight: rgb(30, 148, 244);
+    --morsels-highlight-bg: none;
+    --morsels-error-fg: black;
+    --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
+    --morsels-loading-bg: rgba(99, 186, 255, 0.4);
+    --morsels-loading-secondary-bg: rgba(99, 186, 255, 0.7);
+    --morsels-scrollbar-bg: rgb(253, 253, 253);
+    --morsels-scrollbar-thumb-bg: rgb(246, 245, 245);
+    /* 
+     Below 3 values from https://bootswatch.com/darkly/'s info-themed button.
+    */
+    --morsels-fs-button-input-fg: #fff;
+    --morsels-fs-button-input-bg: #3498db;
+    --morsels-fs-button-input-shadow: 0 0 0 3px rgb(82 167 224 / 40%);
+    --morsels-fs-border: none;
+    --morsels-fs-box-shadow: 0 1px 5px rgba(128, 128, 128, 0.3);
+    --morsels-fs-header-border-bottom: 1px solid rgb(235, 235, 235);
+    --morsels-fs-input-fg: black;
+    --morsels-fs-input-bg: white;
+    --morsels-fs-input-border: 2px solid rgb(240, 240, 240);
+    --morsels-fs-input-focus-border: 2px solid rgba(99, 186, 255, 0.7);
+    --morsels-fs-input-focus-box-shadow: 0 0 5px -1px rgb(99, 186, 255);
+    --morsels-fs-header-close-fg: rgb(80, 80, 80);
+    --morsels-fs-header-close-hover-bg: rgba(80, 80, 80, 0.7);
+    --morsels-fs-header-close-hover-fg: rgb(255, 255, 255);
+    --morsels-fs-header-close-active-bg: rgba(80, 80, 80, 0.95);
+    --morsels-fs-header-close-active-fg: rgb(255, 255, 255);
+    --morsels-tip-bg: rgb(253, 253, 253);
+    --morsels-tip-fg: black;
+    --morsels-tip-table-border: #dee2e6;
+    --morsels-tip-code-fg: #1876c3;
+    --morsels-tip-code-bg: transparent;
+    --morsels-tip-icon-bg: rgb(230, 230, 230);
+    --morsels-tip-icon-fg: rgb(70, 70, 70);
+}

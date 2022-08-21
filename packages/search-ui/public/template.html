@@ -81,24 +81,29 @@
             window.location.href = window.location.href.replace(/(\?.+)|$/, `?${params.toString()}`);
           }
 
-          function toggleDarkTheme(ev) {
-            if (window.location.pathname.includes('dark')) {
+          function toggleTheme(ev) {
+            const isDark = window.location.pathname.includes('dark');
+            const isLight = window.location.pathname.includes('light');
+            if (isDark) {
               window.location.href = window.location.href.replace(/dark\.html/, 'index.html');
+            } else if (isLight) {
+              window.location.href = window.location.href.replace(/light\.html/, 'dark.html');
             } else {
+              // Basic
               window.location.href = window.location.href.replace(
                 /\/?(index\.html)?((\?.+)|$)/,
-                '/dark.html$2'
+                '/light.html$2'
               );
             }
           }
         </script>
         <button class="btn btn-outline-primary m-1" onclick="toggleCacheFieldStores()">Toggle Cache Field Stores</button>
-        <button id="dark-theme-toggle" class="btn btn-outline-dark m-1" onclick="toggleDarkTheme(event)">Dark Theme Toggle</button>
+        <button id="theme-toggle" class="btn btn-outline-dark m-1" onclick="toggleTheme(event)">Theme Toggle</button>
         <script>
           (function setDarkTheme() {
             if (window.location.pathname.includes('dark')) {
-              document.getElementById('dark-theme-toggle').classList.add('btn-outline-light');
-              document.getElementById('dark-theme-toggle').classList.remove('btn-outline-dark');
+              document.getElementById('theme-toggle').classList.add('btn-outline-light');
+              document.getElementById('theme-toggle').classList.remove('btn-outline-dark');
               document.getElementById('app').classList.add('dark');
             }
           })();

@@ -12,7 +12,7 @@
     --morsels-title-bg: var(--table-header-bg);
     --morsels-title-hover-fg: var(--fg);
     --morsels-title-hover-bg: var(--table-header-bg);
-    --morsels-title-border-bottom: var(--table-header-bg);
+    --morsels-title-border-bottom: 2px solid var(--table-header-bg);
     --morsels-heading-fg: var(--fg);
     --morsels-heading-bg: var(--table-alternate-bg);
     --morsels-heading-hover-fg: var(--fg);

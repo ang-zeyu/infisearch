@@ -31,6 +31,9 @@ module.exports = (env) => {
       'search-worker-ascii': getWorkerLangConfig('ascii'),
       'search-worker-latin': getWorkerLangConfig('latin'),
       'search-worker-chinese': getWorkerLangConfig('chinese'),
+      'search-ui-basic': {
+        import: path.resolve(__dirname, 'packages/search-ui/src/styles/basic.css'),
+      },
       'search-ui-light': {
         import: path.resolve(__dirname, 'packages/search-ui/src/styles/light.css'),
       },

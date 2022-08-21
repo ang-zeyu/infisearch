@@ -1,24 +1,5 @@
 # Styling
 
-## Themes
-
-Morsels provides 2 built-in themes by default, which correspond to the 2 stylesheets in the [releases](https://github.com/ang-zeyu/morsels/releases).
-
-These 2 stylesheets also expose a wide range of css variables which you can alter as needed.
-
-Head on over to the demo site [here](https://morsels-search.com) to try them out!
-
-### Light
-
-#### CDN link
-
-```html
-<!-- Replace "v0.2.6" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui-light.css" />
-```
-
-#### Preview
-
 <style>
 .image-container {
     display: flex;
@@ -50,6 +31,39 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
     }
 }
 </style>
+
+## Themes
+
+Morsels provides 3 built-in themes by default, which correspond to the 3 stylesheets in the [releases](https://github.com/ang-zeyu/morsels/releases).
+
+These 3 stylesheets also expose a wide range of css variables which you can alter as needed.
+
+Head on over to the demo site [here](https://morsels-search.com) to try them out!
+
+### Basic
+
+#### CDN link
+
+```html
+<!-- Replace "v0.2.6" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui-basic.css" />
+```
+
+<div class="image-container">
+<img src="./images/light-theme.png" alt="Preview of basic theme">
+<img src="./images/light-theme-fullscreen.png" alt="Preview of basic theme (fullscreen)">
+</div>
+
+### Light
+
+#### CDN link
+
+```html
+<!-- Replace "v0.2.6" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.2.6/packages/search-ui/dist/search-ui-light.css" />
+```
+
+#### Preview
 
 <div class="image-container">
 <img src="./images/light-theme.png" alt="Preview of light theme">

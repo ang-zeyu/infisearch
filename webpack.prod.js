@@ -35,6 +35,7 @@ module.exports = (env) => merge(common(env), {
       after: {
         root: path.resolve(__dirname, 'packages/search-ui/dist'),
         include: [
+          'search-ui-basic.bundle.js',
           'search-ui-light.bundle.js',
           'search-ui-dark.bundle.js',
         ],

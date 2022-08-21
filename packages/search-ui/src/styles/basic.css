@@ -1,0 +1,38 @@
+@import url('./base.css');
+@import url('./light-base.css');
+
+:root {
+    --morsels-item-spacing: 14px;
+    --morsels-fs-item-spacing: 14px;
+
+    --morsels-item-border-radius: 0;
+    --morsels-item-box-shadow: none;
+    --morsels-title-bg: none;
+    --morsels-title-border-bottom: 1px solid #b1b2b1;
+    --morsels-title-border-bottom-hover: 1px solid #b1b2b1;
+    --morsels-heading-bg: none;
+    --morsels-body-bg: none;
+    --morsels-item-sub-border: none;
+    --morsels-item-sub-border-hover: none;
+
+    --morsels-fs-header-bg: #fbfbfb;
+    --morsels-fs-header-close-bg: #fbfbfb;
+}
+
+@media screen and (min-width: 1025px) {
+    .morsels-fs-root {
+        border-radius: 5px;
+    }
+}
+
+.morsels-title {
+    padding: 7px 7px 2px;
+}
+
+.morsels-heading {
+    border-right: 1px solid #c7c8c7;
+}
+
+.morsels-input-close-fs {
+    font-weight: normal;
+}

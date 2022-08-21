@@ -67,6 +67,11 @@ module.exports = (env) => merge(common(env), {
       new HtmlWebpackPlugin({
         ...baseHtmlConfig,
         filename: 'index.html',
+        chunks: ['search-ui', 'search-ui-basic'],
+      }),
+      new HtmlWebpackPlugin({
+        ...baseHtmlConfig,
+        filename: 'light.html',
         chunks: ['search-ui', 'search-ui-light'],
       }),
       new HtmlWebpackPlugin({
