@@ -232,14 +232,14 @@ impl Searcher {
 
 fn add_processed_terms(query_parts: &[QueryPart], result: &mut Vec<Vec<String>>) {
     for query_part in query_parts {
-        if let Some(terms) = &query_part.terms {
-            if query_part.is_expanded || query_part.is_corrected {
-                let mut searched_terms = Vec::new();
-                for term in terms {
-                    searched_terms.push(term.clone());
-                }
-                if !searched_terms.is_empty() {
-                    result.push(searched_terms);
+        if let Some(terms_searched) = &query_part.terms_searched {
+            for terms in terms_searched {
+                result.push(terms.clone());
+            }
+
+            if let Some(terms) = &query_part.terms {
+                if query_part.is_corrected && !terms.is_empty() {
+                    result.push(terms.clone());
                 }
             }
         } else if let Some(children) = &query_part.children {
@@ -259,7 +259,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     let start = performance.now();
 
     let searcher_val = unsafe { &mut *searcher };
-    let (mut query_parts, mut terms_searched) = parse_query(
+    let mut query_parts = parse_query(
         query,
         &*searcher_val.tokenizer,
         &searcher_val.searcher_config.field_infos.iter().map(|fi| fi.name.as_str()).collect(),
@@ -292,6 +292,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
 
+    let mut terms_searched = Vec::new();
     add_processed_terms(&query_parts, &mut terms_searched);
 
     let result_limit = searcher_val.searcher_config.searcher_options.result_limit;

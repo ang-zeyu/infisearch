@@ -17,6 +17,7 @@ pub struct QueryPart {
     pub is_expanded: bool,
     pub original_terms: Option<Vec<String>>,
     pub terms: Option<Vec<String>>,
+    pub terms_searched: Option<Vec<Vec<String>>>,
     pub part_type: QueryPartType,
     pub field_name: Option<String>,
     pub children: Option<Vec<QueryPart>>,
@@ -128,6 +129,7 @@ impl QueryPart {
             is_expanded: false,
             original_terms: None,
             terms: None,
+            terms_searched: None,
             part_type,
             field_name: None,
             children: None,
@@ -228,22 +230,26 @@ fn handle_terminator(
     escape_indices: &[usize],
     query_parts: &mut Vec<QueryPart>,
     operator_stack: &mut Vec<Operator>,
-    terms_searched: &mut Vec<Vec<String>>,
 ) {
     if i == j {
         return;
     }
 
-    let tokenize_result = tokenizer.search_tokenize(collect_slice(query_chars, i, j, escape_indices), terms_searched);
+    let tokenize_result = tokenizer.search_tokenize(collect_slice(query_chars, i, j, escape_indices));
     if tokenize_result.terms.is_empty() {
         return;
     }
 
     let mut is_first = true;
-    for term in tokenize_result.terms {
+    for (term, term_inflections) in tokenize_result.terms {
         query_parts.push(QueryPart {
             should_expand: tokenize_result.should_expand,
-            terms: Some(vec![term]),
+            terms: if let Some(term) = term {
+                Some(vec![term])
+            } else {
+                None
+            },
+            terms_searched: Some(vec![term_inflections]),
             ..QueryPart::get_base(QueryPartType::Term)
         });
 
@@ -259,9 +265,8 @@ pub fn parse_query(
     tokenizer: &dyn SearchTokenizer,
     valid_fields: &Vec<&str>,
     with_positions: bool,
-) -> (Vec<QueryPart>, Vec<Vec<String>>) {
+) -> Vec<QueryPart> {
     let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
-    let mut terms_searched: Vec<Vec<String>> = Vec::new();
 
     let mut query_parse_state: QueryParseState = QueryParseState::None;
     let mut did_encounter_escape = false;
@@ -284,8 +289,22 @@ pub fn parse_query(
                     let content = collect_slice(&query_chars, i, j, &escape_indices);
                     query_parse_state = QueryParseState::None;
 
+                    let tokenize_result = tokenizer.search_tokenize(content);
+
+                    let mut terms = Vec::new();
+                    let mut terms_searched = Vec::new();
+
+                    for (term, term_inflections) in tokenize_result.terms {
+                        if let Some(term) = term {
+                            terms.push(term);
+                        }
+
+                        terms_searched.push(term_inflections);
+                    }
+
                     query_parts.push(QueryPart {
-                        terms: Some(tokenizer.search_tokenize(content, &mut terms_searched).terms),
+                        terms: Some(terms),
+                        terms_searched: Some(terms_searched),
                         ..QueryPart::get_base(QueryPartType::Phrase)
                     });
                     handle_op(&mut query_parts, &mut op_stack);
@@ -308,7 +327,6 @@ pub fn parse_query(
                         &escape_indices,
                         &mut query_parts,
                         &mut op_stack,
-                        &mut terms_searched,
                     );
 
                     i = j + 1;
@@ -366,7 +384,6 @@ pub fn parse_query(
                             &escape_indices,
                             &mut query_parts,
                             &mut op_stack,
-                            &mut terms_searched,
                         );
 
                         op_stack.push(Operator::Field(field_name));
@@ -393,7 +410,6 @@ pub fn parse_query(
                             &escape_indices,
                             &mut query_parts,
                             &mut op_stack,
-                            &mut terms_searched,
                         );
 
                         if query_parts.is_empty()
@@ -437,7 +453,6 @@ pub fn parse_query(
                         &escape_indices,
                         &mut query_parts,
                         &mut op_stack,
-                        &mut terms_searched,
                     );
 
                     op_stack.push(Operator::Not);
@@ -463,9 +478,17 @@ pub fn parse_query(
         j += 1;
     }
 
-    handle_terminator(tokenizer, &query_chars, i, j, &escape_indices, &mut query_parts, &mut op_stack, &mut terms_searched);
+    handle_terminator(
+        tokenizer,
+        &query_chars,
+        i,
+        j,
+        &escape_indices,
+        &mut query_parts,
+        &mut op_stack,
+    );
 
-    (query_parts, terms_searched)
+    query_parts
 }
 
 #[cfg(test)]
@@ -487,6 +510,28 @@ pub mod test {
             }
         }
 
+        fn no_term(mut self) -> QueryPart {
+            if matches!(self.part_type, QueryPartType::Term) && self.terms.is_some() {
+                self.terms = None;
+                self
+            } else {
+                panic!("Tried to call no_term test function on non-term query part");
+            }
+        }
+
+        fn with_searched_terms(mut self, terms_searched: Vec<Vec<&str>>) -> QueryPart {
+            if self.terms.is_some() {
+                self.terms_searched = Some(
+                    terms_searched.into_iter()
+                        .map(|inner_vec| inner_vec.into_iter().map(|s| s.to_owned()).collect())
+                        .collect()
+                );
+                self
+            } else {
+                panic!("Tried to call with_searched_terms test function on query part with no terms");
+            }
+        }
+
         fn with_field(mut self, field_name: &str) -> QueryPart {
             self.field_name = Some(field_name.to_owned());
             self
@@ -501,6 +546,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: None,
+            terms_searched: None,
             part_type: QueryPartType::Not,
             field_name: None,
             children: Some(vec![query_part]),
@@ -515,6 +561,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: None,
+            terms_searched: None,
             part_type: QueryPartType::And,
             field_name: None,
             children: Some(query_parts),
@@ -529,6 +576,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: None,
+            terms_searched: None,
             part_type: QueryPartType::Bracket,
             field_name: None,
             children: Some(query_parts),
@@ -543,6 +591,7 @@ pub mod test {
             is_expanded: false,
             original_terms: None,
             terms: Some(vec![term.to_owned()]),
+            terms_searched: Some(vec![vec![term.to_owned()]]),
             part_type: QueryPartType::Term,
             field_name: None,
             children: None,
@@ -564,7 +613,8 @@ pub mod test {
             should_expand: false,
             is_expanded: false,
             original_terms: None,
-            terms: Some(terms.into_iter().map(|term| term.to_owned()).collect()),
+            terms: Some(terms.iter().map(|&term| term.to_owned()).collect()),
+            terms_searched: Some(terms.iter().map(|&term| vec![term.to_owned()]).collect()),
             part_type: QueryPartType::Phrase,
             field_name: None,
             children: None,
@@ -577,7 +627,7 @@ pub mod test {
             options: MorselsLanguageConfigOpts::default(),
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
+        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true)
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
@@ -586,7 +636,7 @@ pub mod test {
             options: MorselsLanguageConfigOpts::default(),
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false).0
+        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false)
     }
 
     // The tokenizer will remove stop words if they are not even indexed
@@ -601,14 +651,17 @@ pub mod test {
             },
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true).0
+        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true)
     }
 
     #[test]
     fn free_text_test() {
         assert_eq!(parse("lorem ipsum"), vec![get_lorem(), get_ipsum()]);
         assert_eq!(parse("lorem ipsum "), vec![get_lorem().no_expand(), get_ipsum().no_expand()]);
-        assert_eq!(parse_with_sw_removal("for by lorem and"), vec![get_lorem()]);
+        assert_eq!(parse_with_sw_removal("for by lorem and"), vec![
+            get_term("for").no_term(), get_term("by").no_term(),
+            get_lorem(), get_term("and").no_term(),
+        ]);
     }
 
     #[test]
@@ -640,8 +693,12 @@ pub mod test {
                 wrap_in_not(get_ipsum())
             ]
         );
-        assert_eq!(parse_with_sw_removal("for AND by"), vec![wrap_in_and(vec![])]);
-        assert_eq!(parse_with_sw_removal("for AND lorem"), vec![wrap_in_and(vec![get_lorem()])]);
+        assert_eq!(parse_with_sw_removal("for AND by"), vec![wrap_in_and(vec![
+            get_term("for").no_term(), get_term("by").no_term(),
+        ])]);
+        assert_eq!(parse_with_sw_removal("for AND lorem"), vec![wrap_in_and(vec![
+            get_term("for").no_term(), get_lorem()
+        ])]);
     }
 
     #[test]
@@ -665,15 +722,26 @@ pub mod test {
         );
         assert_eq!(
             parse_with_sw_removal("\"for by lorem and\""),
-            vec![get_phrase(vec!["lorem"])]
+            vec![
+                get_phrase(vec!["lorem"]).with_searched_terms(vec![
+                    vec!["for"], vec!["by"], vec!["lorem"], vec!["and"],
+                ])
+            ]
         );
         assert_eq!(
-            parse_with_sw_removal("\"lorem for by ipsum and\""),
-            vec![get_phrase(vec!["lorem", "ipsum"])]
+            parse_with_sw_removal("\"l'orem for by ipsum and\""),
+            vec![
+                get_phrase(vec!["lorem", "ipsum"]).with_searched_terms(vec![
+                    vec!["l'orem", "l’orem", "lorem"], vec!["for"], vec!["by"],
+                    vec!["ipsum"], vec!["and"],
+                ])
+            ]
         );
         assert_eq!(
-            parse_with_sw_removal("\"lorem for by ipsum and\""),
             parse_with_sw_removal("\"lorem ipsum\""),
+            vec![
+                get_phrase(vec!["lorem", "ipsum"]),
+            ]
         );
     }
 
@@ -730,7 +798,9 @@ pub mod test {
         );
         assert_eq!(
             parse_with_sw_removal("(for and lorem by)"),
-            vec![wrap_in_parentheses(vec![get_lorem()])]
+            vec![wrap_in_parentheses(vec![
+                get_term("for").no_term(), get_term("and").no_term(), get_lorem(), get_term("by").no_term(),
+            ])]
         );
     }
 
@@ -770,15 +840,21 @@ pub mod test {
         );
         assert_eq!(
             parse_with_sw_removal("title:for)"),
-            vec![]
+            vec![get_term("for").with_field("title").no_term()]
         );
         assert_eq!(
             parse_with_sw_removal("title:for body:lorem"),
-            vec![get_lorem().with_field("body")]
+            vec![
+                get_term("for").with_field("title").no_expand().no_term(),
+                get_lorem().with_field("body"),
+            ]
         );
         assert_eq!(
             parse_with_sw_removal("title:lorem body:for"),
-            vec![get_lorem().with_field("title").no_expand()]
+            vec![
+                get_lorem().with_field("title").no_expand(),
+                get_term("for").with_field("body").no_term(),
+            ],
         );
 
         // Test invalid field names (should be parsed verbose / as-is)

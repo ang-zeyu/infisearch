@@ -380,10 +380,14 @@ impl Searcher {
             let mut pl_opt: Option<Rc<PostingsList>> = None;
             match query_part.part_type {
                 QueryPartType::Term => {
-                    if let Some(term) = query_part.terms.as_ref().unwrap().first() {
-                        if let Some(term_pl) = postings_list::get_postings_list_rc(term, term_postings_lists) {
-                            pl_opt = Some(Rc::clone(term_pl));
-                        }
+                    if let Some(terms) = &query_part.terms {
+                        if let Some(term) = terms.first() {
+                            if let Some(term_pl) = postings_list::get_postings_list_rc(term, term_postings_lists) {
+                                pl_opt = Some(Rc::clone(term_pl));
+                            }
+                        } /* else {
+                            spelling correct / stop word removed, ignore
+                        } */
                     } /* else {
                         spelling correct / stop word removed, ignore
                     } */

@@ -30,7 +30,7 @@ pub trait IndexerTokenizer {
 }
 
 pub trait SearchTokenizer {
-    fn search_tokenize(&self, text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult;
+    fn search_tokenize(&self, text: String) -> SearchTokenizeResult;
 
     fn is_stop_word(&self, term: &str) -> bool;
 
@@ -52,6 +52,6 @@ pub trait SearchTokenizer {
 }
 
 pub struct SearchTokenizeResult {
-    pub terms: Vec<String>,
     pub should_expand: bool,
+    pub terms: Vec<(Option<String>, Vec<String>)>,
 }

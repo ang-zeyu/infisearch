@@ -77,6 +77,9 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
     'forenote on stop words',
     'forenote on mobile device detection',
   ], 2);
+
+  await typePhraseOrAnd('middle fornote on stop words');
+  await assertSingle('middle forenote on stop words');
   // ------------------------------------------------------
 
   // ------------------------------------------------------

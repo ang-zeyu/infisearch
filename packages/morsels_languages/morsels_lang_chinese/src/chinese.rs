@@ -99,7 +99,7 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -108,22 +108,32 @@ impl SearchTokenizer for Tokenizer {
             .jieba
             .cut_for_search(&text, false)
             .into_iter()
-            .filter(|s| !s.trim().is_empty())
-            .map(|s| {
-                let mut terms = vec![s.to_owned()];
+            .filter_map(|s| {
+                let s = s.trim();
+                if s.is_empty() {
+                    return None;
+                }
 
-                let filtered = ascii_and_nonword_filter(&mut terms, s).into_owned();
+                let mut term_inflections = Vec::new();
 
-                terms_searched.push(terms);
+                let filtered = ascii_and_nonword_filter(&mut term_inflections, s).trim().to_owned();
 
-                filtered.trim().to_owned()
+                if filtered.is_empty() {
+                    return None;
+                }
+
+                if self.ignore_stop_words && self.is_stop_word(&filtered) {
+                    return Some((None, term_inflections));
+                }
+
+                Some((Some(filtered), term_inflections))
             })
-            .filter(|term| term.len() > 0
-                && !(self.ignore_stop_words && self.is_stop_word(term))
-            )
             .collect();
 
-        SearchTokenizeResult { terms, should_expand }
+        SearchTokenizeResult {
+            terms,
+            should_expand,
+        }
     }
 
     #[inline(never)]

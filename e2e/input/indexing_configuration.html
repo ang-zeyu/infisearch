@@ -282,7 +282,7 @@
   }
 }
 </code></pre>
-<h3 id="forenote-on-stop-words"><a class="header" href="#forenote-on-stop-words">Forenote on Stop Words</a></h3>
+<h3 id="forenote-on-stop-words"><a class="header" href="#forenote-on-stop-words">Spelling Corrected in Middle Forenote on Stop Words</a></h3>
 <p>A slightly different approach with stop words is taken in that stop words are only filtered at <strong>query time</strong> for certain types of queries (currently this is for free-text queries with more than two terms).</p>
 <p>This is because splitting up the index means that we are already able to put each of such commonly occuring words into one file, so, information for stop words is never requested unless necessary:</p>
 <ul>
@@ -308,6 +308,7 @@
 }
 </code></pre>
 <h3 id="latin-tokenizer"><a class="header" href="#latin-tokenizer">Latin Tokenizer</a></h3>
+<p>Spelling Corrected in Middle on Stop Words Forenote</p>
 <p>This is essentially the same as the ascii tokenizer, but adds a <code>stemmer</code> option.</p>
 <pre><code>&quot;lang_config&quot;: {
   &quot;lang&quot;: &quot;latin&quot;,

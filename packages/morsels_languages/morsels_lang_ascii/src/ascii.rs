@@ -53,24 +53,26 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
     }
 }
 
-pub fn ascii_and_nonword_filter<'a>(base_term_terms: &mut Vec<String>, term_slice: &'a str) -> Cow<'a, str> {
-    base_term_terms.push(term_slice.to_owned());
+pub fn ascii_and_nonword_filter<'a>(term_inflections: &mut Vec<String>, term_slice: &'a str) -> Cow<'a, str> {
+    term_inflections.push(term_slice.to_owned());
 
     let mut ascii_replaced = ascii_folding_filter::to_ascii(term_slice);
-    if let Cow::Owned(inner) = ascii_replaced {
-        base_term_terms.push(inner.clone());
-        ascii_replaced = Cow::Owned(inner);
+    if let Cow::Owned(ascii_replaced_inner) = ascii_replaced {
+        if !ascii_replaced_inner.is_empty() {
+            term_inflections.push(ascii_replaced_inner.clone());
+        }
+        ascii_replaced = Cow::Owned(ascii_replaced_inner);
     }
 
     if ascii_replaced.contains('\'') {
         // Somewhat hardcoded fix for this common keyboard "issue"
-        base_term_terms.push(ascii_replaced.replace('\'', "’"));
+        term_inflections.push(ascii_replaced.replace('\'', "’"));
     }
 
     let term_filtered = term_filter(ascii_replaced);
     if let Cow::Owned(inner) = term_filtered {
         if !inner.trim().is_empty() {
-            base_term_terms.push(inner.clone());
+            term_inflections.push(inner.clone());
         }
         Cow::Owned(inner)
     } else {
@@ -101,24 +103,32 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
 
         let terms = text
             .split(split_terms)
-            .filter(|&s| !s.is_empty())
-            .map(|term_slice| {
-                let mut terms = Vec::new();
-                let filtered = ascii_and_nonword_filter(&mut terms, term_slice);
-                terms_searched.push(terms);
-                filtered
+            .filter_map(|term_slice| {
+                if term_slice.is_empty() {
+                    return None;
+                }
+
+                let mut term_inflections = Vec::new();
+
+                let preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
+
+                if preprocessed.is_empty() {
+                    return None;
+                }
+
+                if self.ignore_stop_words && self.is_stop_word(&preprocessed) {
+                    return Some((None, term_inflections));
+                }
+
+                Some((Some(preprocessed.into_owned()), term_inflections))
             })
-            .filter(|term| term.len() > 0
-                && !(self.ignore_stop_words && self.is_stop_word(term))
-            )
-            .map(|cow| cow.into_owned())
             .collect();
 
         SearchTokenizeResult {

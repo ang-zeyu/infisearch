@@ -110,8 +110,10 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String, terms_searched: &mut Vec<Vec<String>>) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
+
+        let should_expand = !text.ends_with(' ');
 
         let terms = text
             .split(split_terms)
@@ -120,28 +122,27 @@ impl SearchTokenizer for Tokenizer {
                     return None;
                 }
 
-                let mut terms = Vec::new();
-                let preprocessed = ascii_and_nonword_filter(&mut terms, term_slice);
+                let mut term_inflections = Vec::new();
+                let preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
 
                 let stemmed = if let Cow::Owned(v) = self.stemmer.stem(&preprocessed) {
-                    terms.push(v.clone());
+                    term_inflections.push(v.clone());
                     Cow::Owned(v)
                 } else {
                     preprocessed.clone()
                 };
 
-                terms_searched.push(terms);
-
-                if stemmed.is_empty()
-                    || (self.ignore_stop_words && self.is_stop_word(&preprocessed)) {
+                if stemmed.is_empty() {
                     return None;
                 }
 
-                Some(stemmed.into_owned())
+                if self.ignore_stop_words && self.is_stop_word(&preprocessed) {
+                    return Some((None, term_inflections));
+                }
+
+                Some((Some(stemmed.into_owned()), term_inflections))
             })
             .collect();
-
-        let should_expand = !text.ends_with(' ');
 
         SearchTokenizeResult {
             terms,
