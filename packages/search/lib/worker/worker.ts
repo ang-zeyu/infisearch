@@ -13,9 +13,9 @@ export default function setupWithWasmModule(wasmModule: Promise<any>) {
         query, queryId, n, isFree, isGetNextN,
       } = data;
       if (isFree) {
-        freeQuery(query, queryId);
+        freeQuery(queryId);
       } else if (isGetNextN) {
-        const nextResults = getQueryNextN(query, queryId, n);
+        const nextResults = getQueryNextN(queryId, n);
         postMessage({
           query,
           queryId,

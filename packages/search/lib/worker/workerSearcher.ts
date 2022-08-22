@@ -2,9 +2,7 @@ import { MorselsConfig } from '../results/Config';
 import WorkerQuery from './workerQuery';
 
 const workerQueries: {
-  [query: string]: {
-    [queryId: number]: WorkerQuery
-  }
+  [queryId: number]: WorkerQuery
 } = Object.create(null);
 
 let wasmModule: any;
@@ -14,27 +12,23 @@ let wasmSearcher: any;
 export async function processQuery(query: string, queryId: number): Promise<WorkerQuery> {
   const wasmQuery: any = await wasmModule.get_query(wasmSearcher.get_ptr(), query);
 
-  workerQueries[query] = workerQueries[query] || {};
-  workerQueries[query][queryId] = new WorkerQuery(
+  workerQueries[queryId] = new WorkerQuery(
     JSON.parse(wasmQuery.get_searched_terms()),
     JSON.parse(wasmQuery.get_query_parts()),
     wasmQuery,
   );
 
-  return workerQueries[query][queryId];
+  return workerQueries[queryId];
 }
 
-export function getQueryNextN(query: string, queryId: number, n: number): number[] {
-  return workerQueries[query][queryId]._mrlGetNextN(n);
+export function getQueryNextN(queryId: number, n: number): number[] {
+  return (workerQueries[queryId]?._mrlGetNextN(n)) || [];
 }
 
-export function freeQuery(query: string, queryId: number) {
-  if (workerQueries[query][queryId]) {
-    workerQueries[query][queryId]._mrlFree();
-  }
-  delete workerQueries[query][queryId];
-  if (Object.keys(workerQueries[query]).length === 0) {
-    delete workerQueries[query];
+export function freeQuery(queryId: number) {
+  if (workerQueries[queryId]) {
+    workerQueries[queryId]._mrlFree();
+    delete workerQueries[queryId];
   }
 }
 
