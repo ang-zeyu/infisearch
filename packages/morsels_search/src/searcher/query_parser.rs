@@ -1,4 +1,7 @@
-use morsels_common::tokenize::SearchTokenizer;
+use morsels_common::{
+    tokenize::{SearchTokenizer, SearchTokenizeTerm},
+    dictionary::Dictionary,
+};
 
 #[cfg_attr(test, derive(Debug, Eq, PartialEq))]
 pub enum QueryPartType {
@@ -230,25 +233,27 @@ fn handle_terminator(
     escape_indices: &[usize],
     query_parts: &mut Vec<QueryPart>,
     operator_stack: &mut Vec<Operator>,
+    dict: &Dictionary,
 ) {
     if i == j {
         return;
     }
 
-    let tokenize_result = tokenizer.search_tokenize(collect_slice(query_chars, i, j, escape_indices));
+    let tokenize_result = tokenizer.search_tokenize(collect_slice(query_chars, i, j, escape_indices), dict);
     if tokenize_result.terms.is_empty() {
         return;
     }
 
     let mut is_first = true;
-    for (term, term_inflections) in tokenize_result.terms {
+    for SearchTokenizeTerm {
+        term,
+        term_inflections,
+        original_term,
+    } in tokenize_result.terms {
         query_parts.push(QueryPart {
             should_expand: tokenize_result.should_expand,
-            terms: if let Some(term) = term {
-                Some(vec![term])
-            } else {
-                None
-            },
+            terms: term.map(|t| vec![t]),
+            original_terms: Some(vec![original_term]),
             terms_searched: Some(vec![term_inflections]),
             ..QueryPart::get_base(QueryPartType::Term)
         });
@@ -265,6 +270,7 @@ pub fn parse_query(
     tokenizer: &dyn SearchTokenizer,
     valid_fields: &Vec<&str>,
     with_positions: bool,
+    dict: &Dictionary,
 ) -> Vec<QueryPart> {
     let mut query_parts: Vec<QueryPart> = Vec::with_capacity(5);
 
@@ -289,12 +295,16 @@ pub fn parse_query(
                     let content = collect_slice(&query_chars, i, j, &escape_indices);
                     query_parse_state = QueryParseState::None;
 
-                    let tokenize_result = tokenizer.search_tokenize(content);
+                    let tokenize_result = tokenizer.search_tokenize(content, dict);
 
                     let mut terms = Vec::new();
                     let mut terms_searched = Vec::new();
 
-                    for (term, term_inflections) in tokenize_result.terms {
+                    for SearchTokenizeTerm {
+                        term,
+                        term_inflections,
+                        original_term: _,
+                    } in tokenize_result.terms {
                         if let Some(term) = term {
                             terms.push(term);
                         }
@@ -327,6 +337,7 @@ pub fn parse_query(
                         &escape_indices,
                         &mut query_parts,
                         &mut op_stack,
+                        dict,
                     );
 
                     i = j + 1;
@@ -384,6 +395,7 @@ pub fn parse_query(
                             &escape_indices,
                             &mut query_parts,
                             &mut op_stack,
+                            dict,
                         );
 
                         op_stack.push(Operator::Field(field_name));
@@ -410,6 +422,7 @@ pub fn parse_query(
                             &escape_indices,
                             &mut query_parts,
                             &mut op_stack,
+                            dict,
                         );
 
                         if query_parts.is_empty()
@@ -453,6 +466,7 @@ pub fn parse_query(
                         &escape_indices,
                         &mut query_parts,
                         &mut op_stack,
+                        dict,
                     );
 
                     op_stack.push(Operator::Not);
@@ -486,6 +500,7 @@ pub fn parse_query(
         &escape_indices,
         &mut query_parts,
         &mut op_stack,
+        dict,
     );
 
     query_parts
@@ -493,10 +508,13 @@ pub fn parse_query(
 
 #[cfg(test)]
 pub mod test {
-    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
+    use std::collections::BTreeMap;
+
+    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts, dictionary::Dictionary, tokenize::TermInfo};
     use pretty_assertions::assert_eq;
 
     use morsels_lang_ascii::ascii;
+    use smartstring::{SmartString, LazyCompact};
 
     use super::{QueryPart, QueryPartType};
 
@@ -536,6 +554,28 @@ pub mod test {
             self.field_name = Some(field_name.to_owned());
             self
         }
+    }
+
+    fn get_dictionary() -> Dictionary {
+        static TERM_INFO: TermInfo = TermInfo {
+            doc_freq: 1,
+            postings_file_name: 0,
+            postings_file_offset: 65535,
+        };
+
+        let mut term_infos: BTreeMap<SmartString<LazyCompact>, &'static TermInfo> = BTreeMap::default();
+
+        for term in vec![
+            "lorem", "ipsum", "for", "by", "and", "notipsum", "http", "localhost",
+            "8080", "title", "body", "not", "invalidfield",
+        ] {
+            term_infos.insert(
+                SmartString::from(term),
+                &TERM_INFO,
+            );
+        }
+
+        Dictionary { term_infos }
     }
 
     fn wrap_in_not(query_part: QueryPart) -> QueryPart {
@@ -589,7 +629,7 @@ pub mod test {
             is_stop_word_removed: false,
             should_expand: true,
             is_expanded: false,
-            original_terms: None,
+            original_terms: Some(vec![term.to_owned()]),
             terms: Some(vec![term.to_owned()]),
             terms_searched: Some(vec![vec![term.to_owned()]]),
             part_type: QueryPartType::Term,
@@ -627,7 +667,13 @@ pub mod test {
             options: MorselsLanguageConfigOpts::default(),
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true)
+        super::parse_query(
+            query.to_owned(),
+            &tokenizer,
+            &vec!["title", "body"],
+            true,
+            &get_dictionary(),
+        )
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
@@ -636,7 +682,13 @@ pub mod test {
             options: MorselsLanguageConfigOpts::default(),
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], false)
+        super::parse_query(
+            query.to_owned(),
+            &tokenizer,
+            &vec!["title", "body"],
+            false,
+            &get_dictionary(),
+        )
     }
 
     // The tokenizer will remove stop words if they are not even indexed
@@ -651,7 +703,13 @@ pub mod test {
             },
         });
 
-        super::parse_query(query.to_owned(), &tokenizer, &vec!["title", "body"], true)
+        super::parse_query(
+            query.to_owned(),
+            &tokenizer,
+            &vec!["title", "body"],
+            true,
+            &get_dictionary(),
+        )
     }
 
     #[test]

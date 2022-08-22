@@ -2,14 +2,12 @@
 use std::borrow::Cow;
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;
-use std::collections::BTreeMap;
 
 use jieba_rs::Jieba;
-use smartstring::alias::String as SmartString;
 
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::{IndexerTokenizer, TermIter};
-use morsels_common::{tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer}, MorselsLanguageConfig};
+use morsels_common::{tokenize::{SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm}, MorselsLanguageConfig, dictionary::Dictionary};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
 use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
@@ -99,7 +97,7 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String, dict: &Dictionary) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -122,11 +120,22 @@ impl SearchTokenizer for Tokenizer {
                     return None;
                 }
 
-                if self.ignore_stop_words && self.is_stop_word(&filtered) {
-                    return Some((None, term_inflections));
+                let original_term = filtered.to_owned();
+
+                if self.ignore_stop_words && self.is_stop_word(&filtered)
+                    || dict.get_term_info(&filtered).is_none() {
+                    return Some(SearchTokenizeTerm {
+                        term: None,
+                        term_inflections,
+                        original_term,
+                    });
                 }
 
-                Some((Some(filtered), term_inflections))
+                Some(SearchTokenizeTerm {
+                    term: Some(filtered),
+                    term_inflections,
+                    original_term,
+                })
             })
             .collect();
 
@@ -139,26 +148,5 @@ impl SearchTokenizer for Tokenizer {
     #[inline(never)]
     fn is_stop_word(&self, term: &str) -> bool {
         self.stop_words.iter().any(|t| t == term)
-    }
-
-    fn use_default_fault_tolerance(&self) -> bool {
-        true
-    }
-
-    fn get_best_corrected_term(
-        &self,
-        _term: &str,
-        _dictionary: &BTreeMap<SmartString, &'static TermInfo>,
-    ) -> Option<String> {
-        None
-    }
-
-    fn get_prefix_terms(
-        &self,
-        _number_of_expanded_terms: usize,
-        _term: &str,
-        _dictionary: &BTreeMap<SmartString, &'static TermInfo>,
-    ) -> Vec<(String, f32)> {
-        Vec::new()
     }
 }

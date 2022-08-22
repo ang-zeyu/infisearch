@@ -1,19 +1,18 @@
 use std::borrow::Cow;
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;
-use std::collections::BTreeMap;
 
+use morsels_common::dictionary::Dictionary;
 #[cfg(feature = "indexer")]
 use regex::Regex;
-use smartstring::alias::String as SmartString;
 
-use crate::ascii_folding_filter;
+use crate::{ascii_folding_filter, spelling};
 use crate::stop_words::get_stop_words;
 use crate::utils::{term_filter, split_terms};
 use morsels_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::{IndexerTokenizer, TermIter};
-use morsels_common::tokenize::{TermInfo, SearchTokenizeResult, SearchTokenizer};
+use morsels_common::tokenize::{SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
 
 #[cfg(feature = "indexer")]
 lazy_static! {
@@ -103,7 +102,7 @@ impl IndexerTokenizer for Tokenizer {
 }
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String) -> SearchTokenizeResult {
+    fn search_tokenize(&self, mut text: String, dict: &Dictionary) -> SearchTokenizeResult {
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -117,17 +116,42 @@ impl SearchTokenizer for Tokenizer {
 
                 let mut term_inflections = Vec::new();
 
-                let preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
+                let mut preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
 
                 if preprocessed.is_empty() {
                     return None;
                 }
 
+                let original_term = preprocessed.clone().into_owned();
+
+                // This comes before spelling correction,
+                // as ignore_stop_words removes from the index (won't be present in the dictionary)
                 if self.ignore_stop_words && self.is_stop_word(&preprocessed) {
-                    return Some((None, term_inflections));
+                    return Some(SearchTokenizeTerm {
+                        term: None,
+                        term_inflections,
+                        original_term,
+                    });
                 }
 
-                Some((Some(preprocessed.into_owned()), term_inflections))
+                if dict.get_term_info(&preprocessed).is_none() {
+                    if let Some(corrected_term) = spelling::get_best_corrected_term(dict, &preprocessed) {
+                        term_inflections.push(corrected_term.clone());
+                        preprocessed = Cow::Owned(corrected_term);
+                    } else {
+                        return Some(SearchTokenizeTerm {
+                            term: None,
+                            term_inflections,
+                            original_term,
+                        });
+                    }
+                }
+
+                Some(SearchTokenizeTerm {
+                    term: Some(preprocessed.into_owned()),
+                    term_inflections,
+                    original_term,
+                })
             })
             .collect();
 
@@ -140,26 +164,5 @@ impl SearchTokenizer for Tokenizer {
     #[inline(never)]
     fn is_stop_word(&self, term: &str) -> bool {
         self.stop_words.iter().any(|t| t == term)
-    }
-
-    fn use_default_fault_tolerance(&self) -> bool {
-        true
-    }
-
-    fn get_best_corrected_term(
-        &self,
-        _term: &str,
-        _dictionary: &BTreeMap<SmartString, &'static TermInfo>,
-    ) -> Option<String> {
-        None
-    }
-
-    fn get_prefix_terms(
-        &self,
-        _number_of_expanded_terms: usize,
-        _term: &str,
-        _dictionary: &BTreeMap<SmartString, &'static TermInfo>,
-    ) -> Vec<(String, f32)> {
-        Vec::new()
     }
 }

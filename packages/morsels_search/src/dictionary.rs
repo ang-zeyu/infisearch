@@ -1,10 +1,6 @@
-mod edit_distance;
-
 use std::ops::Bound::{Excluded, Unbounded};
 
 use smartstring::alias::String;
-#[cfg(feature = "perf")]
-use wasm_bindgen::JsCast;
 
 use morsels_common::dictionary;
 
@@ -21,8 +17,6 @@ struct TermWeightPair {
 }
 
 pub trait SearchDictionary {
-    fn get_best_corrected_term(&self, misspelled_term: &str) -> Option<std::string::String>;
-
     fn get_prefix_terms(
         &self,
         number_of_expanded_terms: usize,
@@ -31,62 +25,6 @@ pub trait SearchDictionary {
 }
 
 impl SearchDictionary for Dictionary {
-    fn get_best_corrected_term(&self, misspelled_term: &str) -> Option<std::string::String> {
-        #[cfg(feature = "perf")]
-        let window: web_sys::Window = js_sys::global().unchecked_into();
-        #[cfg(feature = "perf")]
-        let performance = window.performance().unwrap();
-        #[cfg(feature = "perf")]
-        let start = performance.now();
-
-        let mut best_term = None;
-        let mut max_doc_freq = 0;
-
-        let base_term_char_count = misspelled_term.chars().count();
-        let mut min_edit_distance: usize = match base_term_char_count {
-            0..=3 => 1,
-            4..=7 => 2,
-            _ => 3,
-        };
-
-        let mut cache = [255_usize; 255];
-
-        for (term, term_info) in self.term_infos.iter() {
-            if term.chars().count().abs_diff(base_term_char_count) > min_edit_distance {
-                continue;
-            }
-
-            if min_edit_distance == 1 && term_info.doc_freq < max_doc_freq {
-                continue;
-            }
-
-            let edit_distance = edit_distance::levenshtein(
-                term,
-                misspelled_term,
-                base_term_char_count,
-                &mut cache,
-            );
-            if edit_distance < min_edit_distance {
-                min_edit_distance = edit_distance;
-                max_doc_freq = term_info.doc_freq;
-                best_term = Some(term);
-            } else if edit_distance == min_edit_distance && term_info.doc_freq > max_doc_freq {
-                max_doc_freq = term_info.doc_freq;
-                best_term = Some(term);
-            }
-        }
-
-        #[cfg(feature = "perf")]
-        web_sys::console::log_1(&format!("Spelling correction took {}", performance.now() - start).into());
-
-        if let Some(best_term) = best_term {
-            let normal_string = std::string::String::from(&best_term[..]);
-            Some(normal_string)
-        } else {
-            None
-        }
-    }
-
     /// Gets terms for prefix search in the following manner:
     /// 
     /// 1. Does a substring check on the terms greater in the BTree,

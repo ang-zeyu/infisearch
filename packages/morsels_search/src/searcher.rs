@@ -236,12 +236,6 @@ fn add_processed_terms(query_parts: &[QueryPart], result: &mut Vec<Vec<String>>)
             for terms in terms_searched {
                 result.push(terms.clone());
             }
-
-            if let Some(terms) = &query_part.terms {
-                if query_part.is_corrected && !terms.is_empty() {
-                    result.push(terms.clone());
-                }
-            }
         } else if let Some(children) = &query_part.children {
             add_processed_terms(children, result);
         }
@@ -264,6 +258,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
         &*searcher_val.tokenizer,
         &searcher_val.searcher_config.field_infos.iter().map(|fi| fi.name.as_str()).collect(),
         searcher_val.searcher_config.indexing_config.with_positions,
+        &searcher_val.dictionary,
     );
 
     #[cfg(feature = "perf")]
@@ -277,7 +272,9 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
         }
     });
 
-    searcher_val.preprocess(&mut query_parts, is_free_text_query);
+    if is_free_text_query {
+        searcher_val.remove_free_text_sw(&mut query_parts);
+    }
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Preprocess took {}, is_free_text_query {}", performance.now() - start, is_free_text_query).into());

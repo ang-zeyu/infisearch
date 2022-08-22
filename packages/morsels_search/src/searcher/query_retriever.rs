@@ -27,27 +27,16 @@ impl Searcher {
             return;
         }
 
-        if !matches!(last_query_part.part_type, QueryPartType::Term) {
+        if !matches!(last_query_part.part_type, QueryPartType::Term)
+            || last_query_part.original_terms.is_none() {
             last_query_part.should_expand = false;
             return;
         }
 
-        if last_query_part.original_terms.is_none() {
-            last_query_part.original_terms = last_query_part.terms.clone();
-        } /* else {
-            from spelling correction / stop word removal
-        } */
-
         let term_to_expand = last_query_part.original_terms.as_ref().unwrap().first().unwrap();
-        let expanded_terms = if self.tokenizer.use_default_fault_tolerance() {
-            self.dictionary.get_prefix_terms(num_desired_expanded_terms,term_to_expand)
-        } else {
-            self.tokenizer.get_prefix_terms(
-num_desired_expanded_terms,
-                term_to_expand,
-                &self.dictionary.term_infos,
-            )
-        };
+        let expanded_terms = self.dictionary.get_prefix_terms(
+            num_desired_expanded_terms,term_to_expand,
+        );
 
         if expanded_terms.is_empty() {
             return;
