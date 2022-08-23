@@ -285,7 +285,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
-    let pls = searcher_val.process_pls(&mut query_parts, &term_pls, 1.0);
+    let result_heap = searcher_val.process_and_rank(&mut query_parts, &term_pls);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
@@ -294,10 +294,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     add_processed_terms(&query_parts, &mut terms_searched);
 
     let result_limit = searcher_val.searcher_config.searcher_options.result_limit;
-    let query = searcher_val.create_query(terms_searched, query_parts, pls, result_limit);
-
-    #[cfg(feature = "perf")]
-    web_sys::console::log_1(&format!("Ranking took {}", performance.now() - start).into());
+    let query = searcher_val.create_query(terms_searched, query_parts, result_heap, result_limit);
 
     Ok(query)
 }

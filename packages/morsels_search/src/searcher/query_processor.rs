@@ -1,3 +1,7 @@
+mod bm25;
+mod proximity_ranking;
+
+use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 use morsels_common::bitmap;
@@ -8,17 +12,8 @@ use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
 use crate::utils;
 
-/*
- Processes query operators before the final round in query.rs which ranks the results.
- Postings lists are always still in document id order after being processed here.
- (for efficient processing in AND / NOT / () / Phrase operators)
+use super::query::DocResult;
 
- Scoring:
- - AND / () operators: scores of expressions within are calculated if necessary and summed
- - Field filters: the filtered expression's score is calculated if necessary
- - NOT: the same score is calculated and assigned to every document in the result set
- - Phrase: scoring is delayed until necessary
- */
 
 fn empty_pl() -> PostingsList {
     PostingsList {
@@ -373,7 +368,18 @@ impl Searcher {
         }
     }
 
-    pub fn process_pls(
+    /*
+    Processes query operators before the final round in rank_top_level.
+    Postings lists are always still in document id order after being processed here.
+    (for efficient processing in AND / NOT / () / Phrase operators)
+
+    Scoring:
+    - AND / () operators: scores of expressions within are calculated if necessary and summed
+    - Field filters: the filtered expression's score is calculated if necessary
+    - NOT: the same score is calculated and assigned to every document in the result set
+    - Phrase: scoring is delayed until necessary
+    */
+    fn process_pls(
         &self,
         query_parts: &mut Vec<QueryPart>,
         term_postings_lists: &Vec<Rc<PostingsList>>,
@@ -443,7 +449,118 @@ impl Searcher {
 
         result
     }
+
+    /// Processes the top level PlAndInfo structures
+    /// 
+    /// Differences:
+    /// - Proximity ranking is done here
+    /// - Heapification of scores is done here, where all scores have been propagated upward
+    fn rank_top_level(
+        &self,
+        postings_lists: Vec<PlAndInfo>,
+    ) -> BinaryHeap<DocResult> {
+        let max_results = postings_lists
+            .iter()
+            .max_by_key(|pl_and_info| pl_and_info.pl.term_docs.len())
+            .map(|pl_and_info| pl_and_info.pl.term_docs.len())
+            .unwrap_or(10);
+        let mut result_heap: Vec<DocResult> = Vec::with_capacity(max_results);
+
+        let mut pl_its: Vec<PlIterator> = postings_lists
+            .iter()
+            .enumerate()
+            .map(|(idx, pl_and_info)| {
+                pl_and_info.pl.iter(idx as u8, pl_and_info.weight, pl_and_info.include_in_proximity_ranking)
+            })
+            .collect();
+
+        // ------------------------------------------
+        // Query term proximity ranking
+        const PROXIMITY_BASE_SCALING: f32 = 2.5;
+        const PROXIMITY_PER_TERM_SCALING: f32 = 0.5;
+
+        let total_proximity_ranking_terms = postings_lists.iter()
+            .filter(|pl_and_info| pl_and_info.include_in_proximity_ranking)
+            .count();
+        let min_proximity_ranking_terms = ((total_proximity_ranking_terms as f32 / 2.0).ceil() as usize).max(2);
+        let proximity_scaling = PROXIMITY_BASE_SCALING
+            + (total_proximity_ranking_terms as f32 * PROXIMITY_PER_TERM_SCALING);
+
+        let mut pl_its_for_proximity_ranking: Vec<*const PlIterator> = Vec::with_capacity(pl_its.len());
+        let mut position_heap = BinaryHeap::with_capacity(
+            total_proximity_ranking_terms as usize * self.searcher_config.num_scored_fields,
+        );
+        // ------------------------------------------
+
+        loop {
+            utils::insertion_sort(&mut pl_its, |a, b| a.lt(b));
+
+            if let Some(&PlIterator { td: Some(lowest_id_term_doc), .. }) = pl_its.first() {
+                let curr_doc_id = lowest_id_term_doc.doc_id;
+                let mut result = DocResult { doc_id: curr_doc_id, score: 0.0 };
+                let mut positional_scaling_factor = 1.0;
+    
+                // ------------------------------------------
+                // Query term proximity ranking
+                if self.searcher_config.searcher_options.use_query_term_proximity {
+                    proximity_ranking::rank(
+                        &pl_its,
+                        &mut pl_its_for_proximity_ranking,
+                        proximity_scaling,
+                        &mut position_heap,
+                        curr_doc_id,
+                        total_proximity_ranking_terms,
+                        min_proximity_ranking_terms,
+                        &mut positional_scaling_factor
+                    );
+                }
+                // ------------------------------------------
+    
+                // ------------------------------------------
+                // BM25 calculation
+    
+                for pl_it in pl_its.iter_mut() {
+                    if let Some(td) = pl_it.td {
+                        if td.doc_id == curr_doc_id {
+                            result.score += if td.score != 0.0 {
+                                td.score
+                            } else {
+                                self.calc_doc_bm25_score(td, curr_doc_id, pl_it.pl, pl_it.weight)
+                            };
+        
+                            pl_it.next();
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+    
+                result.score *= positional_scaling_factor;
+                result_heap.push(result);
+    
+                // ------------------------------------------
+                
+            } else {
+                // None values are ordered last, finished iterating
+                break;
+            }
+        }
+
+        BinaryHeap::from(result_heap)
+    }
+
+    pub fn process_and_rank(
+        &self,
+        query_parts: &mut Vec<QueryPart>,
+        term_postings_lists: &Vec<Rc<PostingsList>>,
+    ) -> BinaryHeap<DocResult> {
+        let postings_lists = self.process_pls(query_parts, term_postings_lists, 1.0);
+        self.rank_top_level(postings_lists)
+    }
 }
+
 
 #[cfg(test)]
 mod test {
