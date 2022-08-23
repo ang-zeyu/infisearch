@@ -2,10 +2,17 @@ import createElement from '../utils/dom';
 import { Options } from '../Options';
 import { getBestMatchResult, highlightMatchResult, MatchResult } from './highlight';
 
+enum MatchType {
+  HEADING_BODY = 2,
+  BODY_ONLY = 1,
+  HEADING_ONLY = 0,
+}
+
 interface ProcessedMatchResult extends MatchResult {
   _mrlPairIdx: number,
   _mrlHeadingMatch?: MatchResult,
   _mrlHeadingLink?: string,
+  _mrlType: MatchType,
 }
   
 /**
@@ -40,7 +47,7 @@ export function transformText(
       case 'heading': {
         lastHeadingMatch = getBestMatchResult(fieldText, termRegexes) as ProcessedMatchResult;
         lastHeadingMatch._mrlPairIdx = pairIdx;
-        lastHeadingMatch._mrlHeadingLink = lastHeadingLinkIdx === lastHeadingMatch._mrlPairIdx - 1
+        lastHeadingMatch._mrlHeadingLink = lastHeadingLinkIdx === pairIdx - 1
           ? lastHeadingLinkText
           : '';
           
@@ -48,10 +55,11 @@ export function transformText(
         matchResults.push({
           _mrlStr: '',
           _mrlWindow: [],
-          _mrlNumTerms: -2000, // even less preferable than body-only matches
+          _mrlNumTerms: 0,
           _mrlHeadingMatch: lastHeadingMatch,
           _mrlHeadingLink: lastHeadingMatch._mrlHeadingLink,
           _mrlPairIdx: pairIdx,
+          _mrlType: MatchType.HEADING_ONLY,
         });
         break;
       }
@@ -62,9 +70,9 @@ export function transformText(
           finalMatchResult._mrlHeadingMatch = lastHeadingMatch;
           finalMatchResult._mrlHeadingLink = lastHeadingMatch._mrlHeadingLink;
           finalMatchResult._mrlNumTerms += lastHeadingMatch._mrlNumTerms;
+          finalMatchResult._mrlType = MatchType.HEADING_BODY;
         } else {
-          // body-only match, add an offset to prefer heading-body matches
-          finalMatchResult._mrlNumTerms -= 1000;
+          finalMatchResult._mrlType = MatchType.BODY_ONLY;
         }
         matchResults.push(finalMatchResult);
         break;
@@ -73,16 +81,20 @@ export function transformText(
   }
   
   matchResults.sort((a, b) => {
-    return a._mrlNumTerms === 0 && b._mrlNumTerms === 0
-    // If there are 0 terms matched for both matches, prefer "longer" snippets
-      ? b._mrlStr.length - a._mrlStr.length
+    if (a._mrlNumTerms === 0 && b._mrlNumTerms === 0) {
+      // If there are 0 terms matched for both matches, prefer "longer" snippets
+      return b._mrlStr.length - a._mrlStr.length;
+    }
+    return a._mrlNumTerms === b._mrlNumTerms
+      ? b._mrlType - a._mrlType
       : b._mrlNumTerms - a._mrlNumTerms;
   });
   
   const matches: ProcessedMatchResult[] = [];
   const maxMatches = Math.min(matchResults.length, maxSubMatches);
   for (let i = 0; i < maxMatches; i += 1) {
-    if (matchResults[i]._mrlNumTerms !== matchResults[0]._mrlNumTerms) {
+    if (matchResults[i]._mrlNumTerms !== matchResults[0]._mrlNumTerms
+      || matchResults[i]._mrlType !== matchResults[0]._mrlType) {
       break;
     }
     matches.push(matchResults[i]);
