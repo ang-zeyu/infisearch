@@ -14,6 +14,7 @@ module.exports = (env) => {
   const perfMode = env.perf ? { forceMode: 'production' } : {};
   
   return {
+    target: 'webworker',
     mode: 'development',
     entry: {
       'search-worker-ascii': getWorkerLangConfig('ascii'),
