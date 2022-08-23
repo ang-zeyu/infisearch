@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use morsels_common::bitmap;
 
-use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc};
+use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc, PlAndInfo};
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
@@ -22,8 +22,6 @@ use crate::utils;
 
 fn empty_pl() -> PostingsList {
     PostingsList {
-        weight: 1.0,
-        include_in_proximity_ranking: true,
         term_docs: Vec::new(),
         idf: 0.0,
         term: None,
@@ -36,6 +34,7 @@ impl Searcher {
         &self,
         query_part: &QueryPart,
         term_postings_lists: &Vec<Rc<PostingsList>>,
+        weight: f32,
     ) -> Rc<PostingsList> {
         let mut encountered_empty_pl = false;
 
@@ -51,7 +50,7 @@ impl Searcher {
             .map(|(idx, term)| {
                 let pl_iter = postings_list::get_postings_list_rc(term, term_postings_lists)
                     .unwrap()
-                    .iter(idx as u8);
+                    .iter(idx as u8, weight, false);
                 if pl_iter.td.is_none() {
                     encountered_empty_pl = true;
                 }
@@ -197,6 +196,7 @@ impl Searcher {
         maybe_partial: bool,
         query_part: &mut QueryPart,
         term_postings_lists: &Vec<Rc<PostingsList>>,
+        weight: f32,
     ) -> Rc<PostingsList> {
         let mut new_pl = empty_pl();
         new_pl.calc_pseudo_idf(self.doc_info.num_docs);
@@ -205,20 +205,23 @@ impl Searcher {
             return Rc::new(new_pl);
         }
 
-        let mut child_postings_lists = self.populate_pls(
+        let mut child_postings_lists = self.process_pls(
             query_part.children.as_mut().unwrap(),
             term_postings_lists,
+            weight,
         );
         if child_postings_lists.is_empty() {
             return Rc::new(new_pl);
         } else if child_postings_lists.len() == 1 {
-            return child_postings_lists.pop().unwrap();
+            return child_postings_lists.pop().unwrap().pl;
         }
 
         let mut sorted_pl_its: Vec<PlIterator> = child_postings_lists
             .iter()
             .enumerate()
-            .map(|(idx, pl_vec)| pl_vec.iter(idx as u8))
+            .map(|(idx, pl_and_info)| {
+                pl_and_info.pl.iter(idx as u8, pl_and_info.weight, pl_and_info.include_in_proximity_ranking)
+            })
             .filter(|pl_it| pl_it.td.is_some())
             .collect();
         let num_pls = sorted_pl_its.len();
@@ -265,7 +268,7 @@ impl Searcher {
                         new_score += if term_doc.score != 0.0 {
                             term_doc.score
                         } else {
-                            self.calc_doc_bm25_score(term_doc, curr_doc_id, pl_it.pl)
+                            self.calc_doc_bm25_score(term_doc, curr_doc_id, pl_it.pl, pl_it.weight)
                         };
                         acc = PostingsList::merge_term_docs(term_doc, &acc);
                     }
@@ -288,12 +291,15 @@ impl Searcher {
         &self,
         query_part: &mut QueryPart,
         term_postings_lists: &Vec<Rc<PostingsList>>,
+        weight: f32,
     ) -> Rc<PostingsList> {
         let mut result_pl = empty_pl();
-        result_pl.include_in_proximity_ranking = false;
 
-        let mut not_child_postings_lists =
-            self.populate_pls(query_part.children.as_mut().unwrap(), term_postings_lists);
+        let mut not_child_postings_lists = self.process_pls(
+            query_part.children.as_mut().unwrap(),
+            term_postings_lists,
+            weight,
+        );
 
         let mut prev = 0;
         if !not_child_postings_lists.is_empty() {
@@ -301,7 +307,7 @@ impl Searcher {
 
             let not_child_postings_list = not_child_postings_lists.remove(0);
 
-            for td in not_child_postings_list.term_docs.iter() {
+            for td in not_child_postings_list.pl.term_docs.iter() {
                 for doc_id in prev..td.doc_id {
                     if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
                         result_pl.term_docs.push(Doc { doc_id, fields: Vec::new(), score: 0.0 });
@@ -320,7 +326,7 @@ impl Searcher {
         result_pl.calc_pseudo_idf(self.doc_info.num_docs);
 
         // Same score for every result. Score resulting from field tf is taken as 1.
-        let score = result_pl.idf as f32 * result_pl.weight;
+        let score = result_pl.idf as f32 * weight;
         for term_doc in result_pl.term_docs.iter_mut() {
             term_doc.score = score;
         }
@@ -328,7 +334,7 @@ impl Searcher {
         Rc::new(result_pl)
     }
 
-    fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>) {
+    fn filter_field_postings_list(&self, field_name: &str, pl: &mut Rc<PostingsList>, weight: f32) {
         let field_id_and_info = self
             .searcher_config
             .field_infos
@@ -338,8 +344,6 @@ impl Searcher {
 
         if let Some((field_id, _field_info)) = field_id_and_info {
             let mut new_pl = PostingsList {
-                weight: pl.weight,
-                include_in_proximity_ranking: pl.include_in_proximity_ranking,
                 term_docs: Vec::new(),
                 idf: pl.idf,
                 term: pl.term.clone(),
@@ -359,7 +363,7 @@ impl Searcher {
                     let score = if term_doc.score != 0.0 {
                         term_doc.score
                     } else {
-                        self.calc_doc_bm25_score(term_doc, term_doc.doc_id, pl)
+                        self.calc_doc_bm25_score(term_doc, term_doc.doc_id, pl, weight)
                     };
                     new_pl.term_docs.push(Doc { doc_id: term_doc.doc_id, fields, score })
                 }
@@ -369,15 +373,18 @@ impl Searcher {
         }
     }
 
-    pub fn populate_pls(
+    pub fn process_pls(
         &self,
         query_parts: &mut Vec<QueryPart>,
         term_postings_lists: &Vec<Rc<PostingsList>>,
-    ) -> Vec<Rc<PostingsList>> {
-        let mut result: Vec<Rc<PostingsList>> = Vec::new();
+        weight: f32,
+    ) -> Vec<PlAndInfo> {
+        let mut result: Vec<PlAndInfo> = Vec::new();
+
 
         for query_part in query_parts {
             let mut pl_opt: Option<Rc<PostingsList>> = None;
+            let weight = weight * query_part.weight;
             match query_part.part_type {
                 QueryPartType::Term => {
                     if let Some(terms) = &query_part.terms {
@@ -401,28 +408,36 @@ impl Searcher {
                             pl_opt = Some(Rc::clone(term_pl));
                         }
                     } else {
-                        pl_opt = Some(self.populate_phrasal_postings_lists(query_part, term_postings_lists));
+                        pl_opt = Some(self.populate_phrasal_postings_lists(query_part, term_postings_lists, weight));
                     }
                 }
                 QueryPartType::And => {
-                    pl_opt = Some(self.populate_conjunctive_postings_lists(false, query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_conjunctive_postings_lists(false, query_part, term_postings_lists, weight));
                 }
                 QueryPartType::Not => {
-                    pl_opt = Some(self.populate_not_postings_list(query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_not_postings_list(query_part, term_postings_lists, weight));
                 }
                 QueryPartType::Bracket => {
-                    pl_opt = Some(self.populate_conjunctive_postings_lists(true, query_part, term_postings_lists));
+                    pl_opt = Some(self.populate_conjunctive_postings_lists(true, query_part, term_postings_lists, weight));
                 }
             }
 
             if let Some(mut pl) = pl_opt {
                 if let Some(field_name) = &query_part.field_name {
-                    self.filter_field_postings_list(field_name, &mut pl);
+                    self.filter_field_postings_list(field_name, &mut pl, weight);
                 }
 
-                result.push(pl);
+                result.push(PlAndInfo {
+                    pl,
+                    weight,
+                    include_in_proximity_ranking: query_part.include_in_proximity_ranking,
+                });
             } else {
-                result.push(Rc::new(empty_pl()))
+                result.push(PlAndInfo {
+                    pl: Rc::new(empty_pl()),
+                    weight,
+                    include_in_proximity_ranking: query_part.include_in_proximity_ranking,
+                })
             }
         }
 
@@ -460,10 +475,11 @@ mod test {
 
     fn search(query: &str, term_postings_lists: Vec<Rc<PostingsList>>) -> Vec<Rc<PostingsList>> {
         let mut parsed = query_parser_test::parse(query);
-        searcher_test::create_searcher(10, 3).populate_pls(
+        searcher_test::create_searcher(10, 3).process_pls(
             &mut parsed,
             &term_postings_lists,
-        )
+            1.0,
+        ).into_iter().map(|pl_and_info| pl_and_info.pl).collect()
     }
 
     // See postings_list.rs to_pl for construction format

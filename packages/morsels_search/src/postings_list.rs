@@ -87,6 +87,8 @@ pub struct PlIterator<'a> {
     pub pl: &'a PostingsList,
     idx: usize,
     pub original_idx: u8,
+    pub weight: f32,
+    pub include_in_proximity_ranking: bool,
 }
 
 impl<'a> PlIterator<'a> {
@@ -139,12 +141,16 @@ impl<'a> PartialOrd for PlIterator<'a> {
 
 pub struct PostingsList {
     pub term_docs: Vec<Doc>,
-    pub weight: f32,
     pub idf: f32,
-    pub include_in_proximity_ranking: bool,
     // For postings lists representing raw terms
     pub term: Option<String>,
     pub term_info: Option<TermInfo>,
+}
+
+pub struct PlAndInfo {
+    pub pl: Rc<PostingsList>,
+    pub weight: f32,
+    pub include_in_proximity_ranking: bool,
 }
 
 #[cfg(test)]
@@ -165,8 +171,15 @@ impl std::fmt::Debug for PostingsList {
 }
 
 impl PostingsList {
-    pub fn iter(&self, original_idx: u8) -> PlIterator {
-        PlIterator { td: self.term_docs.get(0), pl: self, idx: 0, original_idx }
+    pub fn iter(&self, original_idx: u8, weight: f32, include_in_proximity_ranking: bool) -> PlIterator {
+        PlIterator {
+            td: self.term_docs.get(0),
+            pl: &self,
+            idx: 0,
+            original_idx,
+            weight,
+            include_in_proximity_ranking,
+        }
     }
 
     // Used for "processed" (e.g. phrase, bracket, AND) postings lists
@@ -348,9 +361,7 @@ pub mod test {
 
         PostingsList {
             term_docs,
-            weight: 1.0,
             idf: 1.0,
-            include_in_proximity_ranking: true,
             term,
             term_info: None,
         }

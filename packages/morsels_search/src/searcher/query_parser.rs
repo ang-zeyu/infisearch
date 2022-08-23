@@ -12,7 +12,7 @@ pub enum QueryPartType {
     Not,
 }
 
-#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
+#[cfg_attr(test, derive(Debug))]
 pub struct QueryPart {
     pub is_corrected: bool,
     pub is_stop_word_removed: bool,
@@ -24,6 +24,29 @@ pub struct QueryPart {
     pub part_type: QueryPartType,
     pub field_name: Option<String>,
     pub children: Option<Vec<QueryPart>>,
+    pub include_in_proximity_ranking: bool,
+    pub weight: f32,
+}
+
+#[cfg(test)]
+impl Eq for QueryPart {}
+
+#[cfg(test)]
+impl PartialEq for QueryPart {
+    fn eq(&self, other: &Self) -> bool {
+        self.is_corrected == other.is_corrected
+            && self.is_stop_word_removed == other.is_stop_word_removed
+            && self.should_expand == other.should_expand
+            && self.is_expanded == other.is_expanded
+            && self.original_terms == other.original_terms
+            && self.terms == other.terms
+            && self.terms_searched == other.terms_searched
+            && self.part_type == other.part_type
+            && self.field_name == other.field_name
+            && self.children == other.children
+            && self.include_in_proximity_ranking == other.include_in_proximity_ranking
+            && (self.weight - other.weight).abs() < 0.001
+    }
 }
 
 #[inline(never)]
@@ -136,6 +159,8 @@ impl QueryPart {
             part_type,
             field_name: None,
             children: None,
+            weight: 1.0,
+            include_in_proximity_ranking: true,
         }
     }
 }
@@ -161,6 +186,7 @@ fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator
                 let last_part = query_parts.pop().unwrap();
                 query_parts.push(QueryPart {
                     children: Some(vec![last_part]),
+                    include_in_proximity_ranking: false,
                     ..QueryPart::get_base(QueryPartType::Not)
                 });
             }
@@ -590,6 +616,8 @@ pub mod test {
             part_type: QueryPartType::Not,
             field_name: None,
             children: Some(vec![query_part]),
+            weight: 1.0,
+            include_in_proximity_ranking: false,
         }
     }
 
@@ -605,6 +633,8 @@ pub mod test {
             part_type: QueryPartType::And,
             field_name: None,
             children: Some(query_parts),
+            weight: 1.0,
+            include_in_proximity_ranking: true,
         }
     }
 
@@ -620,6 +650,8 @@ pub mod test {
             part_type: QueryPartType::Bracket,
             field_name: None,
             children: Some(query_parts),
+            weight: 1.0,
+            include_in_proximity_ranking: true,
         }
     }
 
@@ -635,6 +667,8 @@ pub mod test {
             part_type: QueryPartType::Term,
             field_name: None,
             children: None,
+            weight: 1.0,
+            include_in_proximity_ranking: true,
         }
     }
 
@@ -658,6 +692,8 @@ pub mod test {
             part_type: QueryPartType::Phrase,
             field_name: None,
             children: None,
+            weight: 1.0,
+            include_in_proximity_ranking: true,
         }
     }
 

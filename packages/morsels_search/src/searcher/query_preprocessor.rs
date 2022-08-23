@@ -1,7 +1,10 @@
 use morsels_common::utils::idf;
 
+use crate::dictionary::SearchDictionary;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
+
+use super::query_parser::QueryPartType;
 
 impl Searcher {
     pub fn remove_free_text_sw(&self, query_parts: &mut Vec<QueryPart>) {
@@ -41,6 +44,49 @@ impl Searcher {
                         } */
                     }
                 }
+            }
+        }
+    }
+
+    pub fn expand_term_postings_lists(&self, query_parts: &mut Vec<QueryPart>) {
+        let num_desired_expanded_terms = self.searcher_config.searcher_options.number_of_expanded_terms;
+        if query_parts.is_empty() || num_desired_expanded_terms == 0 {
+            return;
+        }
+
+        let last_query_part = query_parts.last_mut().unwrap();
+        if !last_query_part.should_expand {
+            return;
+        }
+
+        if !matches!(last_query_part.part_type, QueryPartType::Term)
+            || last_query_part.original_terms.is_none() {
+            last_query_part.should_expand = false;
+            return;
+        }
+
+        let term_to_expand = last_query_part.original_terms.as_ref().unwrap().first().unwrap();
+        let expanded_terms = self.dictionary.get_prefix_terms(
+            num_desired_expanded_terms,&term_to_expand,
+        );
+        let field_name = last_query_part.field_name.clone();
+
+        for (term, weight) in expanded_terms {
+            if let Some(_term_info) = self.dictionary.get_term_info(&term) {
+                query_parts.push(QueryPart {
+                    is_corrected: false,
+                    is_stop_word_removed: false,
+                    should_expand: false,
+                    is_expanded: true,
+                    original_terms: None,
+                    terms: Some(vec![term.clone()]),
+                    terms_searched: Some(vec![vec![term.clone()]]),
+                    part_type: QueryPartType::Term,
+                    field_name: field_name.clone(),
+                    children: None,
+                    weight,
+                    include_in_proximity_ranking: false,
+                });
             }
         }
     }

@@ -1,9 +1,9 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
-use std::rc::Rc;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 
+use crate::postings_list::PlAndInfo;
 use crate::postings_list::PlIterator;
 use crate::postings_list::PostingsList;
 use crate::postings_list::Doc;
@@ -114,20 +114,22 @@ impl Searcher {
         &self,
         searched_terms: Vec<Vec<String>>,
         query_parts: Vec<QueryPart>,
-        postings_lists: Vec<Rc<PostingsList>>,
+        postings_lists: Vec<PlAndInfo>,
         result_limit: Option<u32>,
     ) -> Query {
         let max_results = postings_lists
             .iter()
-            .max_by_key(|pl| pl.term_docs.len())
-            .map(|pl| pl.term_docs.len())
+            .max_by_key(|pl_and_info| pl_and_info.pl.term_docs.len())
+            .map(|pl_and_info| pl_and_info.pl.term_docs.len())
             .unwrap_or(10);
         let mut result_heap: Vec<DocResult> = Vec::with_capacity(max_results);
 
         let mut pl_its: Vec<PlIterator> = postings_lists
             .iter()
             .enumerate()
-            .map(|(idx, pl)| pl.iter(idx as u8))
+            .map(|(idx, pl_and_info)| {
+                pl_and_info.pl.iter(idx as u8, pl_and_info.weight, pl_and_info.include_in_proximity_ranking)
+            })
             .collect();
 
         // ------------------------------------------
@@ -136,7 +138,7 @@ impl Searcher {
         const PROXIMITY_PER_TERM_SCALING: f32 = 0.5;
 
         let total_proximity_ranking_terms = postings_lists.iter()
-            .filter(|pl| pl.include_in_proximity_ranking)
+            .filter(|pl_and_info| pl_and_info.include_in_proximity_ranking)
             .count();
         let min_proximity_ranking_terms = ((total_proximity_ranking_terms as f32 / 2.0).ceil() as usize).max(2);
         let proximity_scaling = PROXIMITY_BASE_SCALING
@@ -181,7 +183,7 @@ impl Searcher {
                             result.score += if td.score != 0.0 {
                                 td.score
                             } else {
-                                self.calc_doc_bm25_score(td, curr_doc_id, pl_it.pl)
+                                self.calc_doc_bm25_score(td, curr_doc_id, pl_it.pl, pl_it.weight)
                             };
         
                             pl_it.next();
@@ -222,7 +224,7 @@ impl Searcher {
      This avoids penalizing documents that don't have the search term in all fields overly heavily,
      while encouraging matches in multiple fields to some degree.
     */
-    pub fn calc_doc_bm25_score(&self, td: &Doc, doc_id: u32, pl: &PostingsList) -> f32 {
+    pub fn calc_doc_bm25_score(&self, td: &Doc, doc_id: u32, pl: &PostingsList, weight: f32) -> f32 {
         const MAJOR_FIELD_FACTOR: f32 = 0.7;
         const MINOR_FIELD_FACTOR: f32 = 0.3;
 
@@ -247,7 +249,7 @@ impl Searcher {
         }
 
         let minor_fields_score = (doc_term_score - highest_field_score) / self.num_scored_fields_less_one;
-        ((MINOR_FIELD_FACTOR * minor_fields_score) + (MAJOR_FIELD_FACTOR * highest_field_score)) * pl.idf as f32 * pl.weight
+        ((MINOR_FIELD_FACTOR * minor_fields_score) + (MAJOR_FIELD_FACTOR * highest_field_score)) * pl.idf as f32 * weight
     }
 }
 
@@ -272,7 +274,7 @@ fn proximity_rank<'a>(
             .iter()
             .filter_map(|pl_it| {
                 if let Some(td) = pl_it.td {
-                    if pl_it.pl.include_in_proximity_ranking
+                    if pl_it.include_in_proximity_ranking
                         && td.doc_id == curr_doc_id {
                         return Some(pl_it as *const PlIterator);
                     }

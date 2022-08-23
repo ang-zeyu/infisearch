@@ -275,6 +275,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     if is_free_text_query {
         searcher_val.remove_free_text_sw(&mut query_parts);
     }
+    searcher_val.expand_term_postings_lists(&mut query_parts);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Preprocess took {}, is_free_text_query {}", performance.now() - start, is_free_text_query).into());
@@ -284,7 +285,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
-    let pls = searcher_val.populate_pls(&mut query_parts, &term_pls);
+    let pls = searcher_val.process_pls(&mut query_parts, &term_pls, 1.0);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
