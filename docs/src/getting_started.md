@@ -15,7 +15,7 @@ This page assumes the use case of a **static site**, that is:
 ## Installing the indexer
 
 There are two options here:
-- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.3.2`.
+- If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.3.3`.
 - You can also get the cli binaries [here](https://github.com/ang-zeyu/morsels/releases).
 
 ## Running the indexer
@@ -38,12 +38,12 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 ### Installation via CDN
 
 ```html
-<!-- Replace "v0.3.2" as appropriate -->
+<!-- Replace "v0.3.3" as appropriate -->
 
 <!--  Search UI script -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.2/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.3/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.2/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.3.3/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 > ⚠️ Ensure the versions here **match the indexer version** used exactly.

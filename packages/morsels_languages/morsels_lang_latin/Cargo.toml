@@ -1,6 +1,6 @@
 [package]
 name = "morsels_lang_latin"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Ascii tokenizer with stemmers for morsels."
@@ -13,7 +13,7 @@ license = "MIT"
 indexer = []
 
 [dependencies]
-morsels_common = { path = "../../morsels_common", version="=0.3.2" }
-morsels_lang_ascii = { path = "../morsels_lang_ascii", version="=0.3.2" }
+morsels_common = { path = "../../morsels_common", version="=0.3.3" }
+morsels_lang_ascii = { path = "../morsels_lang_ascii", version="=0.3.3" }
 rust-stemmers = "^1.0"
 smartstring = "0.2.7"
