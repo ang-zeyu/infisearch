@@ -44,6 +44,12 @@ class Searcher {
   private _mrlCache: PersistentCache;
 
   constructor(private _mrlOptions: SearcherOptions) {
+    if (typeof WebAssembly !== 'object'
+      || typeof WebAssembly.instantiateStreaming !== 'function') {
+      this.setupPromise = Promise.reject('WA unsupported');
+      return;
+    }
+
     const configSetupPromise = this._mrlRetrieveConfig()
       .then(() => this._mrlSetupCache(`morsels:${_mrlOptions.url}`));
 

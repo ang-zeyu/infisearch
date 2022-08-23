@@ -72,7 +72,6 @@ class InitState {
         root.scrollTo({ top: 0 });
         listContainer.scrollTo({ top: 0 });
       } catch (ex) {
-        console.error(ex);
         listContainer.innerHTML = '';
         listContainer.appendChild(uiOptions.errorRender(createElement, options));
         throw ex;
@@ -88,15 +87,26 @@ class InitState {
       }
     }
   
-    searcher.setupPromise.then(() => {
-      if (inputState._mrlNextAction) {
-        inputState._mrlNextAction();
-        inputState._mrlNextAction = undefined;
-      }
-    });
+    let setupOk = true;
+    searcher.setupPromise
+      .then(() => {
+        if (inputState._mrlNextAction) {
+          inputState._mrlNextAction();
+          inputState._mrlNextAction = undefined;
+        }
+      })
+      .catch(() => {
+        listContainer.innerHTML = '';
+        listContainer.appendChild(uiOptions.errorRender(createElement, options));
+        setupOk = false;
+      });
   
     let inputTimer: any = -1;
     return (ev: InputEvent) => {
+      if (!setupOk) {
+        return;
+      }
+
       const query = uiOptions.preprocessQuery((ev.target as HTMLInputElement).value);
     
       clearTimeout(inputTimer);
