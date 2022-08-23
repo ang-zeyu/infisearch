@@ -67,6 +67,14 @@
     outline: 2px solid grey;
 }
 
+.light .morsels-root,
+.coal .morsels-root,
+.navy .morsels-root,
+.ayu .morsels-root {
+    --morsels-title-bg: var(--theme-hover);
+    --morsels-title-border-bottom: 2px solid var(--theme-hover);
+}
+
 .light .morsels-root {
     --morsels-heading-highlight: #82a6c4;
 }
