@@ -3,7 +3,6 @@
 
 :root {
     --morsels-item-spacing: 14px;
-    --morsels-fs-item-spacing: 14px;
 
     --morsels-item-border-radius: 0;
     --morsels-item-box-shadow: none;
@@ -17,6 +16,12 @@
 
     --morsels-fs-header-bg: #fbfbfb;
     --morsels-fs-header-close-bg: #fbfbfb;
+    --morsels-fs-header-border-bottom: 1px solid rgb(245, 245, 245);
+    --morsels-fs-input-focus-box-shadow: 0 0 3px -2px rgb(99, 186, 255);
+}
+
+.morsels-fs-root .morsels-list-item {
+    margin: 14px 4px 0 5px;
 }
 
 @media screen and (min-width: 1025px) {

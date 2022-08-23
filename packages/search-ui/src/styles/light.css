@@ -10,4 +10,6 @@
 
     --morsels-fs-header-bg: rgb(247, 246, 246);
     --morsels-fs-header-close-bg: rgb(247, 246, 246);
+    --morsels-fs-header-border-bottom: 1px solid rgb(235, 235, 235);
+    --morsels-fs-input-focus-box-shadow: 0 0 4px -1px rgb(99, 186, 255);
 }
