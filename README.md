@@ -27,7 +27,7 @@ Morsels' aim is to provide an easy to set up, yet feature-rich, and efficient se
 
 The indexing tool supports a few other file formats (`.json`, `.csv`, `.pdf`, `.html`) as well, which can help support more custom data requirements (e.g. linking to another domain).
 
-Check out the demo at https://morsels-search.com as well!
+Check out the demo at https://morsels-search.com!
 
 
 ## Documentation

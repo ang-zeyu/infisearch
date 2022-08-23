@@ -48,6 +48,22 @@ impl Searcher {
         }
     }
 
+    fn is_term_used(term: &str, query_parts: &Vec<QueryPart>) -> bool {
+        for query_part in query_parts {
+            if let Some(terms) = &query_part.terms {
+                if terms.iter().any(|t| t == term) {
+                    return true;
+                }
+            } else if let Some(children) = &query_part.children {
+                if Self::is_term_used(term, children) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     pub fn expand_term_postings_lists(&self, query_parts: &mut Vec<QueryPart>) {
         let num_desired_expanded_terms = self.searcher_config.searcher_options.number_of_expanded_terms;
         if query_parts.is_empty() || num_desired_expanded_terms == 0 {
@@ -73,20 +89,22 @@ impl Searcher {
 
         for (term, weight) in expanded_terms {
             if let Some(_term_info) = self.dictionary.get_term_info(&term) {
-                query_parts.push(QueryPart {
-                    is_corrected: false,
-                    is_stop_word_removed: false,
-                    should_expand: false,
-                    is_expanded: true,
-                    original_terms: None,
-                    terms: Some(vec![term.clone()]),
-                    terms_searched: Some(vec![vec![term.clone()]]),
-                    part_type: QueryPartType::Term,
-                    field_name: field_name.clone(),
-                    children: None,
-                    weight,
-                    include_in_proximity_ranking: false,
-                });
+                if !Self::is_term_used(&term, query_parts) {
+                    query_parts.push(QueryPart {
+                        is_corrected: false,
+                        is_stop_word_removed: false,
+                        should_expand: false,
+                        is_expanded: true,
+                        original_terms: None,
+                        terms: Some(vec![term.clone()]),
+                        terms_searched: Some(vec![vec![term.clone()]]),
+                        part_type: QueryPartType::Term,
+                        field_name: field_name.clone(),
+                        children: None,
+                        weight,
+                        include_in_proximity_ranking: false,
+                    });
+                }
             }
         }
     }
