@@ -1,6 +1,6 @@
 {
   "name": "@morsels/search-ui",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "A complete and more scalable pre-built index approach to client-side search.",
   "keywords": [
     "search"
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^0.5.0",
-    "@morsels/search-lib": "^0.3.2",
+    "@morsels/search-lib": "^0.3.3",
     "escape-string-regexp": "^5.0.0"
   }
 }
