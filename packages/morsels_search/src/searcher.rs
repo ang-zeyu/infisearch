@@ -230,14 +230,22 @@ impl Searcher {
     }
 }
 
-fn add_processed_terms(query_parts: &[QueryPart], result: &mut Vec<Vec<String>>) {
+fn add_processed_terms(query_parts: &[QueryPart], result: &mut Vec<Vec<String>>, not_context: bool) {
     for query_part in query_parts {
         if let Some(terms_searched) = &query_part.terms_searched {
-            for terms in terms_searched {
-                result.push(terms.clone());
+            if not_context {
+                for terms in terms_searched {
+                    result.push(terms.clone());
+                }
             }
         } else if let Some(children) = &query_part.children {
-            add_processed_terms(children, result);
+            let not_context = if let QueryPartType::Not = query_part.part_type {
+                !not_context
+            } else {
+                not_context
+            };
+
+            add_processed_terms(children, result, not_context);
         }
     }
 }
@@ -291,7 +299,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
 
     let mut terms_searched = Vec::new();
-    add_processed_terms(&query_parts, &mut terms_searched);
+    add_processed_terms(&query_parts, &mut terms_searched, true);
 
     let result_limit = searcher_val.searcher_config.searcher_options.result_limit;
     let query = searcher_val.create_query(terms_searched, query_parts, result_heap, result_limit);
