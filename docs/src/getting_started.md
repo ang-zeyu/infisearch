@@ -3,22 +3,20 @@
 This page assumes the use case of a **static site**, that is:
 - You have some HTML files you want to index.
 - These HTML files are served in a static file server, and are linkable to.
-- You have an `<input>` element to attach a search dropdown to.
+- You have an `<input>` element for attaching a search dropdown.
   <details>
   <summary><em>For mobile devices</em></summary>
-  <br>A fullscreen UI will show instead when the input element is focused.
+  <br>A fullscreen modal will show when the input element is focused.
 
   This documentation uses an alternative user interface (try the search function!), which is covered [later](./search_configuration.md#ui-mode).
   To preview the defaults, head on over [here](./search_configuration_styling.html).
   </details>
 
-If you require more (e.g. indexing custom json files), have a quick look through here, then head on over to the subsequent configuration pages.
-
 ## Installing the indexer
 
 There are two options here:
 - If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.3.2`.
-- Alternatively, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
+- You can also get the cli binaries [here](https://github.com/ang-zeyu/morsels/releases).
 
 ## Running the indexer
 

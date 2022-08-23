@@ -20,13 +20,20 @@ Morsels is a complete client-side search solution tailored for static sites, inc
 - **Incremental** Indexing
 - **Customisable** and **Accessible** dropdown / fullscreen popup user [interface](https://morsels-search.com/morsels/search_configuration_styling.html) 🖥️
 
-Not convinced yet? Check out the demos [here](https://morsels-search.com) as well!
 
 ## Use Cases
 
 Morsels' aim is to provide an easy to set up, yet feature-rich, and efficient search solution for static sites and/or static site generators.
 
 The indexing tool supports a few other file formats (`.json`, `.csv`, `.pdf`, `.html`) as well, which can help support more custom data requirements (e.g. linking to another domain).
+
+Check out the demo at https://morsels-search.com as well!
+
+
+## Documentation
+
+The documentation, which also uses Morsels for its search function,  is available [here](https://morsels-search.com/morsels/getting_started.html).
+
 
 ## Getting Started
 
@@ -36,7 +43,7 @@ Powering static site search with Morsels is extremely easy, and requires just a 
 
 There are two options here:
 - If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.3.2`.
-- Alternatively, the cli binaries are also available [here](https://github.com/ang-zeyu/morsels/releases).
+- You can also get the cli binaries [here](https://github.com/ang-zeyu/morsels/releases).
 
 
 ### 2. Running the indexer
@@ -78,9 +85,6 @@ initMorsels({
 });
 ```
 
-## Documentation
-
-Please check out the [documentation](https://morsels-search.com/morsels/getting_started.html) next, which also uses Morsels for its search function.
 
 ## License
 

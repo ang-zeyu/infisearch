@@ -1,6 +1,6 @@
 # Indexing Configuration
 
-The configurations in this section mainly specify **how (mapping file contents to fields)** and **which** files to index.
+The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
 All configurations are optional, save for the `loader_configs` key. The cli tool will *do nothing* if the `loader_configs` dictionary is empty.
 
@@ -39,7 +39,7 @@ The snippet below shows the default values:
 
 The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a "Loader" abstraction.
 
-You may configure loaders by **including them under the `loader_configs` key**, with any applicable options.
+You may configure loaders by including them under the **`loader_configs` key**, with any applicable options.
 
 
 #### HTML Files: **`loader_configs.HtmlLoader`**
@@ -209,7 +209,7 @@ Turning this off for very large collections (~> 1GB) can increase the tool's sca
 
 ## Indexing Multiple Files Under One Document
 
-You can **index multiple files** together **into a single document** / result using the reserved field [`_add_files`](./fields.md#reserved-fields). This can be particularly useful for overriding data on a case-by-case basis.
+You can index **multiple files** into **one document** using the reserved field [`_add_files`](./fields.md#reserved-fields). This can be particularly useful for overriding data on a case-by-case basis.
 
 For example, suppose you have the following files:
 
