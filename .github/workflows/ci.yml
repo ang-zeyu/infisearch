@@ -49,6 +49,6 @@ jobs:
         with:
           branch: main
           folder: docs/book/html
-          repository-name: ang-zeyu/morsels-demo-1
+          repository-name: ang-zeyu/morsels-website
           target-folder: morsels
           ssh-key: ${{ secrets.DOCS }}
