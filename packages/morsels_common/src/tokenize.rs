@@ -2,25 +2,6 @@ use std::borrow::Cow;
 
 use crate::dictionary::Dictionary;
 
-#[derive(Clone)]
-#[cfg_attr(test, derive(Debug))]
-pub struct TermInfo {
-    pub doc_freq: u32,
-    pub postings_file_name: u32,
-    pub postings_file_offset: u32,
-}
-
-#[cfg(test)]
-impl Eq for TermInfo {}
-
-#[cfg(test)]
-impl PartialEq for TermInfo {
-    fn eq(&self, other: &Self) -> bool {
-        self.doc_freq == other.doc_freq
-            && self.postings_file_name == other.postings_file_name
-            && self.postings_file_offset == other.postings_file_offset
-    }
-}
 
 // When None is yielded, it indicates a positional gap
 pub type TermIter<'a> = Box<dyn Iterator<Item = Option<Cow<'a, str>>> + 'a>;

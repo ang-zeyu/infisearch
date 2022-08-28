@@ -14,12 +14,12 @@ use smartstring::LazyCompact;
 use smartstring::SmartString;
 
 use morsels_common::{bitmap, FILE_EXT};
+use morsels_common::dictionary::TermInfo;
 use morsels_common::packed_var_int::read_bits_from;
 use morsels_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
     MIN_CHUNK_SIZE, CHUNK_SIZE,
 };
-use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::varint::decode_var_int;
 
 use crate::fieldinfo::FieldInfos;

@@ -1,12 +1,12 @@
 use std::cmp::Ordering;
 use std::rc::Rc;
 
+use morsels_common::dictionary::TermInfo;
 use morsels_common::packed_var_int::read_bits_from;
 use morsels_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
     MIN_CHUNK_SIZE, CHUNK_SIZE,
 };
-use morsels_common::tokenize::TermInfo;
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
 

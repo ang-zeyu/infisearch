@@ -536,7 +536,7 @@ pub fn parse_query(
 pub mod test {
     use std::collections::BTreeMap;
 
-    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts, dictionary::Dictionary, tokenize::TermInfo};
+    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts, dictionary::{Dictionary, TermInfo}};
     use pretty_assertions::assert_eq;
 
     use morsels_lang_ascii::ascii;

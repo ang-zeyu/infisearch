@@ -4,11 +4,18 @@ use std::iter::FromIterator;
 use smartstring::alias::String;
 
 use crate::packed_var_int::PackedVarIntReader;
-use crate::tokenize::TermInfo;
 
 pub const DICT_MAX_BIT_LENS: [usize; 4] = [5, 5, 3, 3];
 pub const DICT_MAX_VALUES: [usize; 4] = [4, 4, 8, 8];
 pub const DICT_MAX_VALUES_U8: [u8; 4] = [4, 4, 8, 8];
+
+#[derive(Clone)]
+#[cfg_attr(test, derive(Debug, Eq, PartialEq))]
+pub struct TermInfo {
+    pub doc_freq: u32,
+    pub postings_file_name: u32,
+    pub postings_file_offset: u32,
+}
 
 pub struct Dictionary {
     pub term_infos: BTreeMap<String, &'static TermInfo>,
@@ -106,7 +113,7 @@ mod test {
     use pretty_assertions::assert_eq;
     use smartstring::alias::String;
 
-    use crate::tokenize::TermInfo;
+    use super::TermInfo;
 
     #[test]
     fn test_dictionary_setup() {
