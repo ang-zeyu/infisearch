@@ -375,23 +375,15 @@ table.morsels-tip-table .morsels-tip-item li {
     padding: 1em;
 }
 
-.morsels-misc {
+.morsels-header {
     color: var(--morsels-header-fg);
-    padding: 7px 13px 0 13px;
-    margin-bottom: calc(-0.7 * var(--morsels-item-spacing));
+    padding: 7px 13px;
     font-weight: bold;
     font-size: 1.05em;
 }
 
-.morsels-fs-root .morsels-misc {
+.morsels-fs-root .morsels-header {
     padding-left: 3px;
-}
-
-.morsels-no-results {
-    text-align: center;
-    font-size: 0.9em;
-    color: var(--morsels-fine-print-fg);
-    padding: 1em;
 }
 
 .morsels-list-item {
@@ -408,6 +400,10 @@ table.morsels-tip-table .morsels-tip-item li {
 
 .morsels-fs-root .morsels-list-item {
     margin: var(--morsels-fs-item-spacing) 6px 0 8px;
+}
+
+.morsels-header + .morsels-list-item {
+    margin-top: 2px;
 }
 
 .morsels-link,

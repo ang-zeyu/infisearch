@@ -24,6 +24,10 @@
     margin: 14px 4px 0 5px;
 }
 
+.morsels-header + .morsels-list-item {
+    margin-top: 0;
+}
+
 @media screen and (min-width: 1025px) {
     .morsels-fs-root {
         border-radius: 5px;

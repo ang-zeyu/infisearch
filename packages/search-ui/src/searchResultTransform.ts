@@ -216,7 +216,6 @@ export default async function loadQueryResults(
     headerRender,
     resultsPerPage,
     resultsRender: renderResults,
-    noResultsRender,
     mode,
   } = options.uiOptions;
 
@@ -257,11 +256,7 @@ export default async function loadQueryResults(
     return false;
   }
 
-  if (resultsEls.length) {
-    resultsEls.forEach((el) => fragment.appendChild(el));
-  } else if (isFirst) {
-    fragment.appendChild(noResultsRender(createElement, options));
-  }
+  resultsEls.forEach((el) => fragment.appendChild(el));
   const sentinel = fragment.lastElementChild;
 
   if (isFirst) {

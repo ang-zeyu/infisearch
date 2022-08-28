@@ -92,9 +92,6 @@ export function prepareOptions(options: Options) {
   uiOptions.errorRender = uiOptions.errorRender
         || ((h) => h('div', { class: 'morsels-error' }, 'Oops! Something went wrong... 🙁'));
   
-  uiOptions.noResultsRender = uiOptions.noResultsRender
-        || ((h) => h('div', { class: 'morsels-no-results' }, 'No results found'));
-  
   uiOptions.fsBlankRender = uiOptions.fsBlankRender
         || ((h) => h('div', { class: 'morsels-fs-blank' }, 'Start Searching Above!'));
   
@@ -124,7 +121,7 @@ export function prepareOptions(options: Options) {
   };
   
   uiOptions.headerRender = uiOptions.headerRender || ((h, opts, query) => {
-    return h('div', { class: 'morsels-misc' }, `${query.resultsTotal} results found`);
+    return h('div', { class: 'morsels-header' }, `${query.resultsTotal} results found`);
   });
   
   uiOptions.resultsRender = uiOptions.resultsRender || resultsRender;

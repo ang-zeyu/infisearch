@@ -30,7 +30,7 @@ export type CreateElement = (
   ...children: (string | HTMLElement)[]
 ) => HTMLElement;
 
-export const MISC_INFO_ID = 'data-morsels-misc-info';
+export const MISC_INFO_ID = 'data-morsels-header';
 
 export const LOADING_INDICATOR_ID = 'data-morsels-loading-indicator';
 

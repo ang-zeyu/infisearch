@@ -38,7 +38,6 @@ export interface UiOptions {
 
   // Miscellaneous
   errorRender?: (h: CreateElement, opts: Options) => HTMLElement,
-  noResultsRender?: (h: CreateElement, opts: Options) => HTMLElement,
   fsBlankRender?: (h: CreateElement, opts: Options) => HTMLElement,
   loadingIndicatorRender?: (
     h: CreateElement,
