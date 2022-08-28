@@ -80,30 +80,43 @@ If you need to include some custom options (e.g. an API base url), you can use t
 
 ## Changing Supporting Parts of the UI
 
-The options here are intended for changing small, supporting parts of the output (e.g. error messages), which can be especially useful for localizing the UI.
+The options here are intended for changing small, supporting elements, which can be especially useful for localizing the UI.
 
-| Function        | Return | Description |
-| ----- | ----- | ----------- |
-| `errorRender(h, opts)` | `HTMLElement`        | Renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when an unexpected error occurs.   |
-| `noResultsRender(h, opts)` | `HTMLElement`        | This API renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when there are no results found for a given query. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |
-| `loadingIndicatorRender(h, opts, isInitialising: boolean, wasResultsBlank: boolean)` | `HTMLElement`  | This API renders the loading indicator attached under the `listContainer` when running a query.<br><br>While the search library is doing initialising work, the `isInitialising` parameter will be `true`. <br><br>The `wasResultsBlank` boolean is `true` when there are no results yet. You may use this parameter to change the look of the indicator in subsequent queries. In the default design, this corresponds to the spinning indicator on the top right of the search box.   |
-| `headerRender(h, opts, query: Query)` | `HTMLElement[]`      | This API renders the "10 results found" text by default.<br><br>This can also be used to render messages like "*Did you mean <u>spelling</u>?*", or any information that you'd like to place as a header.   |
-| `fsBlankRender(h, opts)`<br><br>( `mode='fullscreen'` only ) | `HTMLElement` | This API renders the element attached under the `listContainer` when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.    |
+#### `headerRender(h, opts, query: Query): HTMLElement`
 
-### `query.resultsTotal`
+This API renders the "10 results found" text by default.
+
+This can also be used to render messages like "*Did you mean <u>spelling</u>?*", or any information that you'd like to place as a header.
+
+**`query.resultsTotal`**
 
 This property of the `query` parameter gives the total number of results.
 
-### `query.queryParts` Parameter
+**`query.queryParts`**
 
 This parameter passed to the `headerRender` function is the parsed structure of the input query string.
 
-The structure is fairly [detailed](https://github.com/ang-zeyu/morsels/blob/main/packages/search/lib/parser/queryParser.ts), `console.log` it out to see what it looks like!
+The structure is fairly detailed, `console.log` it out to see what it looks like, our check out the [source](https://github.com/ang-zeyu/morsels/blob/main/packages/search/lib/parser/queryParser.ts)!
 
+#### `loadingIndicatorRender(h, opts, isSetup: boolean, isInitial: boolean)`
+
+This API renders the loading indicator.
+
+While the search library is doing initialising work, the `isSetup` parameter is set to `true`.
+
+The `isInitial` boolean is `true` when the user runs the first query, where there are no results yet. You may use this parameter to change the look of the indicator in subsequent queries. In the default design, subsequent queries move the spinning indicator to the top right.
+
+#### `fsBlankRender(h, opts): HTMLElement`
+
+This method renders the *Start searching above!* text when the search box is empty in the fullscreen UI. The dropdown UI which is hidden in such a case.
+
+#### `errorRender(h, opts): HTMLElement`
+
+Renders the element when an unexpected error occurs.
 
 ## Rendering Search Results
 
-The below 2 *mutually exclusive* sets of APIs render the results for all document matches. The first, simpler set of APIs are "building blocks" of the second (which only has one available API). Reconfiguring the second API would also invalidate any changes to the first.
+The below 2 *mutually exclusive* sets of APIs render the results for all document matches. The first, simpler set of APIs are "building blocks" of the second. Reconfiguring the second API would also invalidate the first.
 
 ### 1. Rendering a Single Result
 
@@ -205,8 +218,8 @@ For example, the default implementation does the following:
 
 | Parameter   | Description |
 | ----------- | ----------- |
-| `config`    | This is the *indexing* configuration. |
-| `query`     | a `Query` object. `query.searchedTerms` contains a nested array of grouped terms that were searched. Groupings contain raw terms and their spelling corrections (if any).  |
-| `results`   | an array of `Result` objects.<br><br>This class exposes the `getStorageWithFieldNames(): [string, string][]` method which returns an array of `[field name, field content]` pairs. |
+| `config`    | This is the *indexer* configuration. |
+| `query`     | A `Query` [object](#headerrenderh-opts-query-query-htmlelement).  |
+| `results`   | An array of `Result` objects.<br><br>This class exposes the `getFields()` method which returns an array of `[field name, field content]` pairs. |
 
 You may also refer to the default implementation [here](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform.ts#L369) to get an idea of how to use the API.
