@@ -7,6 +7,7 @@ import createElement, { CreateElement, createInvisibleLoadingIndicator, MISC_INF
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
 import { transformHtml, transformJson, transformText } from './searchResultTransform/transform';
+import { QueryPart, QueryPartType } from '@morsels/search-lib/lib/parser/queryParser';
 
 const domParser = new DOMParser();
 
@@ -154,6 +155,24 @@ async function singleResultRender(
   );
 }
 
+function getSearchedTerms(queryParts: QueryPart[], result: string[][], notContext: boolean) {
+  for (const queryPart of queryParts) {
+    if (queryPart.termsSearched) {
+      if (notContext) {
+        for (const terms of queryPart.termsSearched) {
+          result.push(terms);
+        }
+      }
+    } else if (queryPart.children) {
+      getSearchedTerms(
+        queryPart.children,
+        result,
+        queryPart.partType === QueryPartType.NOT ? !notContext : notContext,
+      );
+    }
+  }
+}
+
 export function resultsRender(
   h: CreateElement,
   options: Options,
@@ -162,11 +181,15 @@ export function resultsRender(
   query: Query,
 ): Promise<HTMLElement[]> {
   const termRegexes: RegExp[] = [];
-  const searchedTerms: string[] = [];
-  for (const innerTerms of query.searchedTerms) {
+
+  const searchedTerms: string[][] = [];
+  getSearchedTerms(query.queryParts, searchedTerms, true);
+
+  const searchedTermsFlat: string[] = [];
+  for (const innerTerms of searchedTerms) {
     const innerTermsJoined = innerTerms
       .map(t => {
-        searchedTerms.push(t);
+        searchedTermsFlat.push(t);
         return escapeStringRegexp(t);
       })
       .sort((a, b) => b.length - a.length)
@@ -190,7 +213,7 @@ export function resultsRender(
 
   return Promise.all(results.map(
     (result) => singleResultRender(
-      result, options, config, hasStoredContentField, JSON.stringify(searchedTerms), termRegexes,
+      result, options, config, hasStoredContentField, JSON.stringify(searchedTermsFlat), termRegexes,
     ),
   ));
 }

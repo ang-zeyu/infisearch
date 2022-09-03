@@ -12,11 +12,6 @@ class Query {
      */
     public readonly resultsTotal: number,
     /**
-     * A nested array of "grouped" search terms.
-     * Such a group may contain a spelling-corrected variant.
-     */
-    public readonly searchedTerms: string[][],
-    /**
      * Syntactic tree of query parsed by Morsels.
      */
     public readonly queryParts: QueryPart[],

@@ -88,6 +88,16 @@ pub fn serialize_string_vec(v: &Vec<String>) -> String {
     output
 }
 
+fn get_searched_terms(searched_terms: &Vec<Vec<String>>) -> String {
+    let mut output = "[".to_owned();
+    let wrapped: Vec<String> = searched_terms.iter().map(|term_group| {
+        serialize_string_vec(term_group)
+    }).collect();
+    output.push_str(wrapped.join(",").as_str());
+    output.push(']');
+    output
+}
+
 impl QueryPart {
     #[inline(never)]
     pub fn serialize_parts(parts: &Vec<QueryPart>) -> String {
@@ -116,6 +126,13 @@ impl QueryPart {
         output.push_str(r#","terms":"#);
         output.push_str(&if let Some(v) = &self.terms {
             serialize_string_vec(v)
+        } else {
+            get_null()
+        });
+
+        output.push_str(r#","termsSearched":"#);
+        output.push_str(&if let Some(v) = &self.terms_searched {
+            get_searched_terms(v)
         } else {
             get_null()
         });

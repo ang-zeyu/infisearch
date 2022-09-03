@@ -141,12 +141,17 @@ export function prepareOptions(options: Options) {
   
     if (fullLink) {
       let linkToAttach = fullLink;
+
+      // ---------------------------------
+      // Undocumented option for mdBook
       const { addSearchedTerms } = resultsRenderOpts;
       if (addSearchedTerms) {
         const fullLinkUrl = parseURL(fullLink);
         fullLinkUrl.searchParams.append(addSearchedTerms, searchedTermsJSON);
         linkToAttach = fullLinkUrl.toString();
       }
+      // ---------------------------------
+
       linkEl.setAttribute('href', linkToAttach);
     }
   

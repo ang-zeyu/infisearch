@@ -14,6 +14,7 @@ export interface QueryPart {
   originalTerms?: string[];
   partType: QueryPartType;
   terms?: string[];
+  termsSearched?: string[][];
   children?: QueryPart[];
   weight?: number;
 }

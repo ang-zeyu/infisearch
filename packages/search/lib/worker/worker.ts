@@ -27,7 +27,6 @@ export default function setupWithWasmModule(wasmModule: Promise<any>) {
           query,
           queryId,
           resultsTotal: workerQuery._mrlResultsTotal,
-          searchedTerms: workerQuery._mrlSearchedTerms,
           queryParts: workerQuery._mrlQueryParts,
         });
       }

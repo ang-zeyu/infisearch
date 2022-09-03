@@ -3,7 +3,7 @@ use std::collections::BinaryHeap;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::searcher::query_parser::{self, QueryPart};
+use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
 
 #[derive(Clone)]
@@ -41,7 +41,6 @@ impl PartialOrd for DocResult {
 
 #[wasm_bindgen]
 pub struct Query {
-    searched_terms: Vec<Vec<String>>,
     query_parts: Vec<QueryPart>,
     result_heap: BinaryHeap<DocResult>,
     results_retrieved: u32,
@@ -67,29 +66,17 @@ impl Query {
     pub fn get_query_parts(&self) -> String {
         QueryPart::serialize_parts(&self.query_parts)
     }
-
-    pub fn get_searched_terms(&self) -> String {
-        let mut output = "[".to_owned();
-        let wrapped: Vec<String> = self.searched_terms.iter().map(|term_group| {
-            query_parser::serialize_string_vec(term_group)
-        }).collect();
-        output.push_str(wrapped.join(",").as_str());
-        output.push(']');
-        output
-    }
 }
 
 impl Searcher {
     pub fn create_query(
         &self,
-        searched_terms: Vec<Vec<String>>,
         query_parts: Vec<QueryPart>,
         result_heap: BinaryHeap<DocResult>,
         result_limit: Option<u32>,
     ) -> Query {
         let results_total = result_heap.len();
         Query {
-            searched_terms,
             query_parts,
             result_heap,
             results_retrieved: 0,

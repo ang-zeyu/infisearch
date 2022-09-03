@@ -12,9 +12,16 @@ let wasmSearcher: any;
 export async function processQuery(query: string, queryId: number): Promise<WorkerQuery> {
   const wasmQuery: any = await wasmModule.get_query(wasmSearcher.get_ptr(), query);
 
+  const queryPartsRaw = wasmQuery.get_query_parts() as string;
+  let queryParts = [];
+  try {
+    queryParts = JSON.parse(queryPartsRaw);
+  } catch (ex) {
+    console.error(`Error deserializing query parts:\n${queryPartsRaw}\n${ex}`);
+  }
+
   workerQueries[queryId] = new WorkerQuery(
-    JSON.parse(wasmQuery.get_searched_terms()),
-    JSON.parse(wasmQuery.get_query_parts()),
+    queryParts,
     wasmQuery.results_total,
     wasmQuery,
   );
