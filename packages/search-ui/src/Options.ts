@@ -1,7 +1,6 @@
 import { SearcherOptions, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
 import { Query } from '@morsels/search-lib';
-import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
 import { CreateElement } from './utils/dom';
 
 export type ArbitraryOptions = any;
@@ -47,11 +46,11 @@ export interface UiOptions {
     isInitialising: boolean,
     wasResultsBlank: boolean,
   ) => HTMLElement,
-  termInfoRender?: (
+  headerRender?: (
     h: CreateElement,
     opts: Options,
-    queryParts: QueryPart[],
-  ) => HTMLElement[],
+    queryParts: Query,
+  ) => HTMLElement,
 
   // Rendering Results
   resultsRender?: (

@@ -23,6 +23,7 @@
     --morsels-body-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
     --morsels-highlight-bg: none;
+    --morsels-header-fg: var(--fg);
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);

@@ -15,6 +15,7 @@
     --morsels-body-hover-bg: rgb(188, 224, 254);
     --morsels-highlight: rgb(30, 148, 244);
     --morsels-highlight-bg: none;
+    --morsels-header-fg: black;
     --morsels-error-fg: black;
     --morsels-fine-print-fg: rgba(0, 0, 0, 0.6);
     --morsels-loading-bg: rgba(99, 186, 255, 0.4);

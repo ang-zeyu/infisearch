@@ -4,6 +4,7 @@ export default class WorkerQuery {
   constructor(
     public _mrlSearchedTerms: string[],
     public _mrlQueryParts: QueryPart[],
+    public _mrlResultsTotal: number,
     private _mrlQuery: any,
   ) {}
 

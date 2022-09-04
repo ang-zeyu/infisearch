@@ -8,6 +8,10 @@ class Query {
      */
     public readonly query: string,
     /**
+     * Total number of results.
+     */
+    public readonly resultsTotal: number,
+    /**
      * A nested array of "grouped" search terms.
      * Such a group may contain a spelling-corrected variant.
      */

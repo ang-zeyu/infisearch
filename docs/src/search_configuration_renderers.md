@@ -87,36 +87,19 @@ The options here are intended for changing small, supporting parts of the output
 | `errorRender(h, opts)` | `HTMLElement`        | Renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when an unexpected error occurs.   |
 | `noResultsRender(h, opts)` | `HTMLElement`        | This API renders the element attached under the `listContainer` (or the target element when using `mode = 'target'`) when there are no results found for a given query. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |
 | `loadingIndicatorRender(h, opts, isInitialising: boolean, wasResultsBlank: boolean)` | `HTMLElement`  | This API renders the loading indicator attached under the `listContainer` when running a query.<br><br>While the search library is doing initialising work, the `isInitialising` parameter will be `true`. <br><br>The `wasResultsBlank` boolean is `true` when there are no results yet. You may use this parameter to change the look of the indicator in subsequent queries. In the default design, this corresponds to the spinning indicator on the top right of the search box.   |
-| `termInfoRender(h, opts, queryParts: QueryPart[])` | `HTMLElement[]`      | This API renders element(s) attached under the `listContainer` related to the searched terms, and is blank by default.<br><br>This can be used to render messages like "*Did you mean <u>spelling</u>?* ".    |
+| `headerRender(h, opts, query: Query)` | `HTMLElement[]`      | This API renders the "10 results found" text by default.<br><br>This can also be used to render messages like "*Did you mean <u>spelling</u>?*", or any information that you'd like to place as a header.   |
 | `fsBlankRender(h, opts)`<br><br>( `mode='fullscreen'` only ) | `HTMLElement` | This API renders the element attached under the `listContainer` when the search box is empty for the fullscreen UI.<br><br>This contrasts with the dropdown UI which is hidden in such a case.    |
 
-### `queryParts` Parameter
+### `query.resultsTotal`
 
-This parameter passed to the `termInfoRender` function is the parsed structure of the input query string.
+This property of the `query` parameter gives the total number of results.
 
-Its interface is as follows:
+### `query.queryParts` Parameter
 
-```ts
-{
-  partType: 'TERM' | 'PHRASE' | 'BRACKET' | 'AND' | 'NOT';
+This parameter passed to the `headerRender` function is the parsed structure of the input query string.
 
-  // Raw, original term(s) contained, if any of the below 3 operations were applied
-  originalTerms?: string[];
+The structure is fairly [detailed](https://github.com/ang-zeyu/morsels/blob/main/packages/search/lib/parser/queryParser.ts), `console.log` it out to see what it looks like!
 
-  isCorrected?: boolean;        // did this query part undergo spelling correction?
-  isStopWordRemoved?: boolean;  // did this query part undergo stop word removal?
-  isExpanded?: boolean;         // is this an added / expanded term?
-
-  shouldExpand?: boolean;       // was this term a source for query term expansion?
-
-  fieldName?: string;           // was a field filter applied?
-
-  // Spelling corrected / Expanded / Stop word removed result
-  terms?: string[];
-
-  children?: QueryPart[];
-}
-```
 
 ## Rendering Search Results
 

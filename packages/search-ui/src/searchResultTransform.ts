@@ -3,7 +3,7 @@ import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
 import { Options, UiMode } from './Options';
-import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';
+import createElement, { CreateElement, createInvisibleLoadingIndicator, MISC_INFO_ID } from './utils/dom';
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
 import { transformHtml, transformJson, transformText } from './searchResultTransform/transform';
@@ -211,7 +211,7 @@ export default async function loadQueryResults(
 
   const {
     loadingIndicatorRender,
-    termInfoRender,
+    headerRender,
     resultsPerPage,
     resultsRender: renderResults,
     noResultsRender,
@@ -228,10 +228,11 @@ export default async function loadQueryResults(
   }
 
   const fragment = document.createDocumentFragment();
-  const termInfoEls = isFirst
-    ? termInfoRender(createElement, options, query.queryParts)
-    : [];
-  termInfoEls.forEach((el) => fragment.appendChild(el));
+  if (isFirst) {
+    const miscInfo = headerRender(createElement, options, query);
+    miscInfo.setAttribute(MISC_INFO_ID, 'true');
+    fragment.appendChild(miscInfo);
+  }
 
   //let now = performance.now();
 

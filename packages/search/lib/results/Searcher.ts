@@ -68,6 +68,7 @@ class Searcher {
               query,
               queryId,
               nextResults,
+              resultsTotal,
               searchedTerms,
               queryParts,
             } = ev.data;
@@ -78,6 +79,7 @@ class Searcher {
                 query,
                 nextResults,
                 searchedTerms,
+                resultsTotal,
                 queryParts,
               });
             }
@@ -182,6 +184,7 @@ class Searcher {
     });
 
     const result: {
+      resultsTotal: number,
       searchedTerms: string[][],
       queryParts: QueryPart[],
     } = await queries[queryId].promise;
@@ -234,6 +237,7 @@ class Searcher {
 
     return new Query(
       query,
+      result.resultsTotal,
       result.searchedTerms,
       result.queryParts,
       getNextN,

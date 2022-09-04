@@ -1,7 +1,7 @@
 import { Searcher } from '@morsels/search-lib';
 import loadQueryResults from './searchResultTransform';
 import { Options, UiMode, UiOptions } from './Options';
-import createElement, { LOADING_INDICATOR_ID } from './utils/dom';
+import createElement, { LOADING_INDICATOR_ID, MISC_INFO_ID } from './utils/dom';
 import { InputState } from './utils/input';
 import { prepareOptions } from './search/options';
 import { setCombobox, setInputAria } from './utils/aria';
@@ -404,10 +404,12 @@ function initMorsels(options: Options): {
         focusedItem.removeAttribute('aria-selected');
         focusedItem.removeAttribute('id');
       }
-      el.classList.add('focus');
-      el.setAttribute('aria-selected', 'true');
-      el.setAttribute('id', 'morsels-list-selected');
-      scrollListContainer(el);
+      if (el) {
+        el.classList.add('focus');
+        el.setAttribute('aria-selected', 'true');
+        el.setAttribute('id', 'morsels-list-selected');
+        scrollListContainer(el);
+      }
     }
 
     function focusOr(newItem: Element, newItem2: Element) {
@@ -418,20 +420,20 @@ function initMorsels(options: Options): {
       }
     }
 
-    const firstItem = listContainer.firstElementChild;
+    const firstItem = listContainer.querySelector(`[${MISC_INFO_ID}]`)?.nextElementSibling;
     const lastItem = listContainer.lastElementChild;
     if (ev.key === 'ArrowDown') {
       if (focusedItem) {
         focusOr(focusedItem.nextElementSibling, null);
       } else {
-        focusOr(firstItem, firstItem?.nextElementSibling);
+        focusEl(firstItem);
       }
     } else if (ev.key === 'ArrowUp') {
       if (focusedItem) {
         focusOr(focusedItem.previousElementSibling, null);
       }
     } else if (ev.key === 'Home') {
-      focusOr(firstItem, firstItem?.nextElementSibling);
+      focusEl(firstItem);
     } else if (ev.key === 'End') {
       focusOr(lastItem, lastItem?.previousElementSibling);
     } else if (ev.key === 'Enter') {

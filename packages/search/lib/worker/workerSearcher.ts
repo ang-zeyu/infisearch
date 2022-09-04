@@ -15,6 +15,7 @@ export async function processQuery(query: string, queryId: number): Promise<Work
   workerQueries[queryId] = new WorkerQuery(
     JSON.parse(wasmQuery.get_searched_terms()),
     JSON.parse(wasmQuery.get_query_parts()),
+    wasmQuery.results_total,
     wasmQuery,
   );
 

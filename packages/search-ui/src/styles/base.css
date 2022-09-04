@@ -375,6 +375,18 @@ table.morsels-tip-table .morsels-tip-item li {
     padding: 1em;
 }
 
+.morsels-misc {
+    color: var(--morsels-header-fg);
+    padding: 7px 13px 0 13px;
+    margin-bottom: calc(-0.7 * var(--morsels-item-spacing));
+    font-weight: bold;
+    font-size: 1.05em;
+}
+
+.morsels-fs-root .morsels-misc {
+    padding-left: 3px;
+}
+
 .morsels-no-results {
     text-align: center;
     font-size: 0.9em;

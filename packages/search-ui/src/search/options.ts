@@ -123,7 +123,9 @@ export function prepareOptions(options: Options) {
     return loadingIndicator;
   };
   
-  uiOptions.termInfoRender = uiOptions.termInfoRender || (() => []);
+  uiOptions.headerRender = uiOptions.headerRender || ((h, opts, query) => {
+    return h('div', { class: 'morsels-misc' }, `${query.resultsTotal} results found`);
+  });
   
   uiOptions.resultsRender = uiOptions.resultsRender || resultsRender;
   

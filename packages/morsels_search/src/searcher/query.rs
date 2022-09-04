@@ -45,6 +45,7 @@ pub struct Query {
     query_parts: Vec<QueryPart>,
     result_heap: BinaryHeap<DocResult>,
     results_retrieved: u32,
+    pub results_total: usize,
     result_limit: Option<u32>,
 }
 
@@ -86,11 +87,13 @@ impl Searcher {
         result_heap: BinaryHeap<DocResult>,
         result_limit: Option<u32>,
     ) -> Query {
+        let results_total = result_heap.len();
         Query {
             searched_terms,
             query_parts,
             result_heap,
             results_retrieved: 0,
+            results_total,
             result_limit,
         }
     }
