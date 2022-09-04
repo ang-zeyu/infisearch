@@ -21,8 +21,12 @@ export function prepareOptions(options: Options) {
     searcherOptions.url = window.location.origin + searcherOptions.url;
   }
 
-  if (!('numberOfExpandedTerms' in searcherOptions)) {
-    searcherOptions.numberOfExpandedTerms = 3;
+  if (!('maxAutoSuffixSearchTerms' in searcherOptions)) {
+    searcherOptions.maxAutoSuffixSearchTerms = 3;
+  }
+
+  if (!('maxSuffixSearchTerms' in searcherOptions)) {
+    searcherOptions.maxSuffixSearchTerms = 5;
   }
   
   if (!('useQueryTermProximity' in searcherOptions)) {

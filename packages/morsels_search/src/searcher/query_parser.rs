@@ -16,8 +16,9 @@ pub enum QueryPartType {
 pub struct QueryPart {
     pub is_corrected: bool,
     pub is_stop_word_removed: bool,
-    pub should_expand: bool,
-    pub is_expanded: bool,
+    pub auto_suffix_wildcard: bool,
+    pub suffix_wildcard: bool,
+    pub is_suffixed: bool,
     pub original_terms: Option<Vec<String>>,
     pub terms: Option<Vec<String>>,
     pub terms_searched: Option<Vec<Vec<String>>>,
@@ -36,8 +37,9 @@ impl PartialEq for QueryPart {
     fn eq(&self, other: &Self) -> bool {
         self.is_corrected == other.is_corrected
             && self.is_stop_word_removed == other.is_stop_word_removed
-            && self.should_expand == other.should_expand
-            && self.is_expanded == other.is_expanded
+            && self.auto_suffix_wildcard == other.auto_suffix_wildcard
+            && self.suffix_wildcard == other.suffix_wildcard
+            && self.is_suffixed == other.is_suffixed
             && self.original_terms == other.original_terms
             && self.terms == other.terms
             && self.terms_searched == other.terms_searched
@@ -113,8 +115,9 @@ impl QueryPart {
 
         serialize_bool("isCorrected", self.is_corrected, &mut output);
         serialize_bool("isStopWordRemoved", self.is_stop_word_removed, &mut output);
-        serialize_bool("shouldExpand", self.should_expand, &mut output);
-        serialize_bool("isExpanded", self.is_expanded, &mut output);
+        serialize_bool("autoSuffixWildcard", self.auto_suffix_wildcard, &mut output);
+        serialize_bool("suffixWildcard", self.suffix_wildcard, &mut output);
+        serialize_bool("isSuffixed", self.is_suffixed, &mut output);
 
         output.push_str(r#""originalTerms":"#);
         output.push_str(&if let Some(v) = &self.original_terms {
@@ -164,12 +167,13 @@ impl QueryPart {
         output
     }
 
-    fn get_base(part_type: QueryPartType) -> Self {
+    pub fn get_base(part_type: QueryPartType) -> Self {
         QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
-            should_expand: false,
-            is_expanded: false,
+            auto_suffix_wildcard: false,
+            suffix_wildcard: false,
+            is_suffixed: false,
             original_terms: None,
             terms: None,
             terms_searched: None,
@@ -292,9 +296,11 @@ fn handle_terminator(
         term,
         term_inflections,
         original_term,
+        suffix_wildcard,
     } in tokenize_result.terms {
         query_parts.push(QueryPart {
-            should_expand: tokenize_result.should_expand,
+            auto_suffix_wildcard: tokenize_result.auto_suffix_wildcard,
+            suffix_wildcard,
             terms: term.map(|t| vec![t]),
             original_terms: Some(vec![original_term]),
             terms_searched: Some(vec![term_inflections]),
@@ -347,6 +353,8 @@ pub fn parse_query(
                         term,
                         term_inflections,
                         original_term: _,
+                        // TODO unsupported for now
+                        suffix_wildcard: _,
                     } in tokenize_result.terms {
                         if let Some(term) = term {
                             terms.push(term);
@@ -564,7 +572,7 @@ pub mod test {
     impl QueryPart {
         fn no_expand(mut self) -> QueryPart {
             if let QueryPartType::Term = self.part_type {
-                self.should_expand = false;
+                self.auto_suffix_wildcard = false;
                 self
             } else {
                 panic!("Tried to call no_expand test function on non-term query part");
@@ -597,6 +605,15 @@ pub mod test {
             self.field_name = Some(field_name.to_owned());
             self
         }
+
+        fn with_suffix(mut self) -> QueryPart {
+            if matches!(self.part_type, QueryPartType::Term) && self.original_terms.is_some() {
+                self.suffix_wildcard = true;
+                self
+            } else {
+                panic!("Tried to call no_term test function on non-term query part");
+            }
+        }
     }
 
     fn get_dictionary() -> Dictionary {
@@ -625,8 +642,9 @@ pub mod test {
         QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
-            should_expand: false,
-            is_expanded: false,
+            auto_suffix_wildcard: false,
+            suffix_wildcard: false,
+            is_suffixed: false,
             original_terms: None,
             terms: None,
             terms_searched: None,
@@ -642,8 +660,9 @@ pub mod test {
         QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
-            should_expand: false,
-            is_expanded: false,
+            auto_suffix_wildcard: false,
+            suffix_wildcard: false,
+            is_suffixed: false,
             original_terms: None,
             terms: None,
             terms_searched: None,
@@ -659,8 +678,9 @@ pub mod test {
         QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
-            should_expand: false,
-            is_expanded: false,
+            auto_suffix_wildcard: false,
+            suffix_wildcard: false,
+            is_suffixed: false,
             original_terms: None,
             terms: None,
             terms_searched: None,
@@ -676,8 +696,9 @@ pub mod test {
         QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
-            should_expand: true,
-            is_expanded: false,
+            auto_suffix_wildcard: true,
+            suffix_wildcard: false,
+            is_suffixed: false,
             original_terms: Some(vec![term.to_owned()]),
             terms: Some(vec![term.to_owned()]),
             terms_searched: Some(vec![vec![term.to_owned()]]),
@@ -701,8 +722,9 @@ pub mod test {
         QueryPart {
             is_corrected: false,
             is_stop_word_removed: false,
-            should_expand: false,
-            is_expanded: false,
+            auto_suffix_wildcard: false,
+            suffix_wildcard: false,
+            is_suffixed: false,
             original_terms: None,
             terms: Some(terms.iter().map(|&term| term.to_owned()).collect()),
             terms_searched: Some(terms.iter().map(|&term| vec![term.to_owned()]).collect()),
@@ -771,6 +793,28 @@ pub mod test {
         assert_eq!(parse("lorem ipsum "), vec![get_lorem().no_expand(), get_ipsum().no_expand()]);
         assert_eq!(parse_with_sw_removal("for by lorem and"), vec![
             get_term("for").no_term(), get_term("by").no_term(),
+            get_lorem(), get_term("and").no_term(),
+        ]);
+    }
+
+    #[test]
+    fn wildcard_suffix_test() {
+        assert_eq!(parse("lorem* ipsum"), vec![get_lorem().with_suffix(), get_ipsum()]);
+        assert_eq!(parse("lorem* ipsum "), vec![
+            get_lorem().no_expand().with_suffix(),
+            get_ipsum().no_expand(),
+        ]);
+        assert_eq!(parse("lorem ipsum*"), vec![
+            get_lorem(),
+            get_ipsum().with_suffix(),
+        ]);
+        assert_eq!(parse("lorem* ipsum* "), vec![
+            get_lorem().no_expand().with_suffix(),
+            get_ipsum().no_expand().with_suffix(),
+        ]);
+        assert_eq!(parse_with_sw_removal("for* by* lorem and"), vec![
+            get_term("for").no_term().with_suffix(),
+            get_term("by").no_term().with_suffix(),
             get_lorem(), get_term("and").no_term(),
         ]);
     }

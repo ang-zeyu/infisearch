@@ -107,57 +107,85 @@ impl SearchTokenizer for Tokenizer {
 
         let should_expand = !text.ends_with(' ');
 
-        let terms = text
-            .split(split_terms)
-            .filter_map(|term_slice| {
-                if term_slice.is_empty() {
-                    return None;
+        let mut terms = Vec::new();
+        let mut last_asterisk_idx = text.len() + 1;
+        let mut start = 0;
+        for (idx, c) in text.char_indices() {
+            let is_last = (idx + 1) == text.len();
+            let is_separator = split_terms(c);
+            if !(is_separator || is_last) {
+                continue;
+            } else if c == '*' {
+                last_asterisk_idx = idx;
+                if !is_last {
+                    continue;
                 }
+            }
 
-                let mut term_inflections = Vec::new();
-
-                let mut preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
-
-                if preprocessed.is_empty() {
-                    return None;
+            let suffix_wildcard = last_asterisk_idx == idx || (last_asterisk_idx + 1) == idx;
+            let end_idx = if is_separator {
+                if last_asterisk_idx + 1 == idx {
+                    last_asterisk_idx
+                } else {
+                    idx
                 }
+            } else {
+                idx + 1
+            };
 
-                let original_term = preprocessed.clone().into_owned();
+            let term_slice = &text[start..end_idx];
+            start = idx + 1;
 
-                // This comes before spelling correction,
-                // as ignore_stop_words removes from the index (won't be present in the dictionary)
-                if self.ignore_stop_words && self.is_stop_word(&preprocessed) {
-                    return Some(SearchTokenizeTerm {
-                        term: None,
-                        term_inflections,
-                        original_term,
-                    });
-                }
+            if term_slice.is_empty() {
+                continue;
+            }
 
-                if dict.get_term_info(&preprocessed).is_none() {
-                    if let Some(corrected_term) = spelling::get_best_corrected_term(dict, &preprocessed) {
-                        term_inflections.push(corrected_term.clone());
-                        preprocessed = Cow::Owned(corrected_term);
-                    } else {
-                        return Some(SearchTokenizeTerm {
-                            term: None,
-                            term_inflections,
-                            original_term,
-                        });
-                    }
-                }
+            let mut term_inflections = Vec::new();
 
-                Some(SearchTokenizeTerm {
-                    term: Some(preprocessed.into_owned()),
+            let preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
+
+            if preprocessed.is_empty() {
+                continue;
+            }
+
+            let original_term = preprocessed.clone().into_owned();
+
+            // This comes before spelling correction,
+            // as ignore_stop_words removes from the index (won't be present in the dictionary)
+            if self.ignore_stop_words && self.is_stop_word(&preprocessed) {
+                terms.push(SearchTokenizeTerm {
+                    term: None,
                     term_inflections,
                     original_term,
-                })
-            })
-            .collect();
+                    suffix_wildcard,
+                });
+                continue;
+            }
+
+            let term = if dict.get_term_info(&preprocessed).is_none() {
+                if suffix_wildcard {
+                    None
+                } else if let Some(corrected_term) = spelling::get_best_corrected_term(dict, &preprocessed) {
+                    term_inflections.push(corrected_term.clone());
+                    Some(corrected_term)
+                } else {
+                    None
+                }
+            } else {
+                Some(preprocessed.into_owned())
+            };
+
+            terms.push(SearchTokenizeTerm {
+                term,
+                term_inflections,
+                original_term,
+                suffix_wildcard,
+            });
+        }
 
         SearchTokenizeResult {
             terms,
-            should_expand,
+            auto_suffix_wildcard: should_expand,
         }
     }
 

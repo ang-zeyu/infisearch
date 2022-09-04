@@ -1,6 +1,7 @@
 export interface SearcherOptions {
   url: string,
-  numberOfExpandedTerms?: number,
+  maxSuffixSearchTerms?: number,
+  maxAutoSuffixSearchTerms?: number,
   useQueryTermProximity?: boolean,
   cacheAllFieldStores?: boolean,
   plLazyCacheThreshold: number,

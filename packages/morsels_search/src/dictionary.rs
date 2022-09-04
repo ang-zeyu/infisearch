@@ -8,7 +8,6 @@ use crate::utils;
 
 pub type Dictionary = dictionary::Dictionary;
 
-const TERM_EXPANSION_ALPHA: f32 = 0.75;  // ceil(0.75x) in https://www.desmos.com/calculator to visualize
 const MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;  // **total** weight of expanded terms
 
 struct TermWeightPair {
@@ -32,6 +31,7 @@ impl SearchDictionary for Dictionary {
     /// 2. Returns `number_of_expanded_terms` terms which have the closest doc freq to the original prefix
     ///    - if the prefix is not a valid term, u32::Max is filled in (i.e. return the most common terms)
     ///    - the terms are weighted in the query according to how long they are (versus the prefix)
+    #[inline(never)]
     fn get_prefix_terms(
         &self,
         number_of_expanded_terms: usize,
@@ -49,9 +49,7 @@ impl SearchDictionary for Dictionary {
         let mut top_n: Vec<TermWeightPair> = Vec::with_capacity(100);
 
         // string to do the prefix check with
-        let min_baseterm_substring: String = prefix.chars().take(
-            (TERM_EXPANSION_ALPHA * prefix_char_count as f32).ceil() as usize
-        ).collect();
+        let min_baseterm_substring = String::from(prefix);
 
         for (term, term_info) in self.term_infos.range((Excluded(min_baseterm_substring.clone()), Unbounded)) {
             if term.starts_with(min_baseterm_substring.as_str()) {

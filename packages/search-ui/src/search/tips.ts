@@ -34,6 +34,10 @@ export default function createTipButton(
       wrapInCode('forecast AND (sunny warm)'),
     ),
     createRow(
+      'Search for prefixes',
+      wrapInCode('run*'),
+    ),
+    createRow(
       'Match specific areas',
       h('ul', {}, 
         h('li', {}, wrapInCode('title:forecast')),

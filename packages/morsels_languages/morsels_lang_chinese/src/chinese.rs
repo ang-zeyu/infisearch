@@ -112,6 +112,8 @@ impl SearchTokenizer for Tokenizer {
                     return None;
                 }
 
+                let suffix_wildcard = s.ends_with('*');
+
                 let mut term_inflections = Vec::new();
 
                 let filtered = ascii_and_nonword_filter(&mut term_inflections, s).trim().to_owned();
@@ -128,6 +130,7 @@ impl SearchTokenizer for Tokenizer {
                         term: None,
                         term_inflections,
                         original_term,
+                        suffix_wildcard,
                     });
                 }
 
@@ -135,13 +138,14 @@ impl SearchTokenizer for Tokenizer {
                     term: Some(filtered),
                     term_inflections,
                     original_term,
+                    suffix_wildcard,
                 })
             })
             .collect();
 
         SearchTokenizeResult {
             terms,
-            should_expand,
+            auto_suffix_wildcard: should_expand,
         }
     }
 

@@ -83,19 +83,33 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
-  // Automatic term expansion / prefix search tests
+  // (Automatic) term expansion / prefix search tests
   await typeText('foreno');
   await assertMultiple([
     'forenote on stop words',
     'forenote on mobile device detection',
   ], 2);
 
-  await typeText('detec');
-  await assertMultiple([
+  await typeText('detect ');
+  await waitNoResults();
+
+  // No ending space triggers an automatic prefix search
+  const expectedPrefixResults = [
     'detecting deleted, changed, or added',
     'detecting such terms',
-    'detected as per the earlier section',
-  ], 3);
+    'detectedd as per the earlier section',
+  ];
+  await typeText('detect');
+  await assertMultiple(expectedPrefixResults, 2);
+
+  await typeText('detect* ');
+  await assertMultiple(expectedPrefixResults, 2);
+
+  await typeText('detect*');
+  await assertMultiple(expectedPrefixResults, 2);
+
+  await typeText('detect* AND deleted AND changed AND added AND dynamic');
+  await assertSingle('detecting deleted, changed, or added');
   // ------------------------------------------------------
 
   // ------------------------------------------------------

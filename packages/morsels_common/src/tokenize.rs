@@ -17,7 +17,7 @@ pub trait SearchTokenizer {
 }
 
 pub struct SearchTokenizeResult {
-    pub should_expand: bool,
+    pub auto_suffix_wildcard: bool,
     pub terms: Vec<SearchTokenizeTerm>,
 }
 
@@ -25,4 +25,5 @@ pub struct SearchTokenizeTerm {
     pub term: Option<String>,
     pub term_inflections: Vec<String>,
     pub original_term: String,
+    pub suffix_wildcard: bool,
 }

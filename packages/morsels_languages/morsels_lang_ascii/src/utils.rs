@@ -136,6 +136,7 @@ pub fn intra_filter(c: char) -> bool {
         '\'' |
         '-' |
         '_' |
+        '*' |
         '\u{2019}' | // ’  [RIGHT SINGLE QUOTATION MARK]
         '\u{2018}' | // ‘  [LEFT SINGLE QUOTATION MARK]
         '\u{2010}' | // ‐  [HYPHEN]
@@ -224,6 +225,7 @@ pub mod test {
     #[test]
     fn removes_ending_characters() {
         assert("a1aa2a-", "a1aa2a");
+        assert("a1aa2a*", "a1aa2a");
         assert("a1aa2a⥄", "a1aa2a");
         assert("a1aa2a⥄⥄", "a1aa2a");
     }

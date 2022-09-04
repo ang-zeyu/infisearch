@@ -36,6 +36,16 @@ title:(lorem AND ipsum) - documents with both "lorem" and "ipsum" in the
 lorem AND title:ipsum   - documents with "ipsum" in the title and "lorem" in any field
 ```
 
+## Wildcard Search
+
+You can also perform suffix searches on any term using the `*` character:
+
+```
+run* - searches for "run", "running"
+```
+
+In most instances, an [*automatic*](./search_configuration.md#automatic-suffix-search) wildcard suffix search is also performed on the last query term that the user is still typing.
+
 ## Escaping Search Operators
 
 All search operators can also be escaped using the `\` character like such:

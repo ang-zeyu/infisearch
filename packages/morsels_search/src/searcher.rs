@@ -52,7 +52,8 @@ struct FieldInfo {
 
 struct SearcherOptions {
     url: String,
-    number_of_expanded_terms: usize,
+    max_auto_suffix_search_terms: usize,
+    max_suffix_search_terms: usize,
     pub use_query_term_proximity: bool,
     pl_lazy_cache_threshold: u32,
     result_limit: Option<u32>,
@@ -101,7 +102,8 @@ pub fn get_new_searcher(
     field_infos_raw: JsValue, // custom uint8array, serialized in workerSearcher.ts
     num_scored_fields: usize,
     url: String,
-    number_of_expanded_terms: usize,
+    max_auto_suffix_search_terms: usize,
+    max_suffix_search_terms: usize,
     use_query_term_proximity: bool,
     pl_lazy_cache_threshold: u32,
     result_limit: Option<u32>,
@@ -174,7 +176,8 @@ pub fn get_new_searcher(
         num_scored_fields,
         searcher_options: SearcherOptions {
             url,
-            number_of_expanded_terms,
+            max_auto_suffix_search_terms,
+            max_suffix_search_terms,
             use_query_term_proximity,
             pl_lazy_cache_threshold,
             result_limit,
@@ -254,7 +257,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
 
     let is_free_text_query = query_parts.iter().all(|query_part| {
         if let QueryPartType::Term = query_part.part_type {
-            query_part.field_name.is_none()
+            query_part.field_name.is_none() && !query_part.suffix_wildcard
         } else {
             false
         }
@@ -332,7 +335,8 @@ pub mod test {
                 num_scored_fields: num_fields,
                 searcher_options: SearcherOptions {
                     url: "/".to_owned(),
-                    number_of_expanded_terms: 0,
+                    max_auto_suffix_search_terms: 0,
+                    max_suffix_search_terms: 0,
                     use_query_term_proximity: true,
                     pl_lazy_cache_threshold: 0,
                     result_limit: None,

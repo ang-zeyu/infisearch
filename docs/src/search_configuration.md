@@ -144,7 +144,10 @@ initMorsels({
         url: 'http://192.168.10.132:3000/output/',
         
         // Maximum number of terms for query term expansion (see below for more info)
-        numberOfExpandedTerms: 3,
+        maxAutoSuffixSearchTerms: 3,
+
+        // Maximum number of terms for manual suffix search
+        maxSuffixSearchTerms: 5,
         
         // Override for using query term proximity ranking or not. (see below for more info)
         useQueryTermProximity: true,
@@ -166,15 +169,17 @@ initMorsels({
 });
 ```
 
-#### Automatic Term Expansion
+#### (Automatic) Suffix Search
 
-`numberOfExpandedTerms = 3`
+`maxAutoSuffixSearchTerms = 3`
 
 Stemming is turned off by [default](./language.md#ascii-tokenizer). This does mean a bigger dictionary (but not too much usually), and lower recall, but much more precise searches.
 
-To provide a compromise for recall, query terms that are similar to the searched term are added to the query, although with a lower weight.
+To provide a compromise for recall, an automatic wildcard suffix search is performed on the last query term of a free text query, and only if the query does not end with a whitespace (as this is fair indicator of whether the user has finished typing the term).
 
-For all [language modules](./language.md) available currently, this is only applied for the last query term, and if the query string does not end with a whitespace. An implicit wildcard (suffix) search is performed on this term.
+`maxSuffixSearchTerms = 5`
+
+This controls the maximum number of terms to search for wildcard [suffix searches](./search_features.md#wildcard-search).
 
 #### Term Proximity Ranking
 
