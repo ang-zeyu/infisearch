@@ -15,35 +15,35 @@ This snippet shows the default values:
     "fields": [
       {
         "name": "title",
-        "do_store": false,
+        "do_store": true,
         "weight": 2.0,
         "k": 1.2,
         "b": 0.15
       },
       {
         "name": "h1",
-        "do_store": false,
+        "do_store": true,
         "weight": 2.0,
         "k": 1.2,
         "b": 0.15
       },
       {
         "name": "heading",
-        "do_store": false,
+        "do_store": true,
         "weight": 1.5,
         "k": 1.2,
         "b": 0.25
       },
       {
         "name": "body",
-        "do_store": false,
+        "do_store": true,
         "weight": 1.0,
         "k": 1.2,
         "b": 0.75
       },
       {
         "name": "headingLink",
-        "do_store": false,
+        "do_store": true,
         "weight": 0.0,
         "k": 1.2,
         "b": 0.75
