@@ -79,7 +79,6 @@ impl Searcher {
         if !(is_expand_candidate(last_query_part) && last_query_part.auto_suffix_wildcard) {
             return;
         }
-        last_query_part.is_suffixed = true;
 
         let term_to_expand = last_query_part.original_terms.as_ref().unwrap().first().unwrap();
         let field_name = last_query_part.field_name.clone();
@@ -87,6 +86,8 @@ impl Searcher {
             self.searcher_config.searcher_options.max_auto_suffix_search_terms,
             &term_to_expand,
         );
+
+        set_suffixed_info(last_query_part, &expanded_terms);
 
         for (term, weight) in expanded_terms {
             // For auto suffix search, exclude terms that are used in any other part of the query
@@ -110,8 +111,9 @@ impl Searcher {
                     query_part,
                     QueryPart::get_base(QueryPartType::Bracket),
                 );
-                old_query_part.is_suffixed = true;
+
                 let weight = old_query_part.weight;
+                set_suffixed_info(&mut old_query_part, &expanded_terms);
 
                 let mut wrapper_part_children = Vec::with_capacity(expanded_terms.len() + 1);
                 wrapper_part_children.push(old_query_part);
@@ -124,6 +126,19 @@ impl Searcher {
             } else if let Some(children) = &mut query_part.children {
                 self.expand_wildcard_suffix(children);
             }
+        }
+    }
+}
+
+
+#[inline(never)]
+fn set_suffixed_info(last_query_part: &mut QueryPart, expanded_terms: &Vec<(String, f32)>) {
+    if !expanded_terms.is_empty() {
+        last_query_part.is_suffixed = true;
+        if last_query_part.is_corrected {
+            // Delete the corrected term; Expanded terms would be a better match
+            last_query_part.terms = None;
+            last_query_part.is_corrected = false;
         }
     }
 }

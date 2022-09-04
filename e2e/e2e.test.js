@@ -90,8 +90,14 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
     'forenote on mobile device detection',
   ], 2);
 
-  await typeText('detect ');
-  await waitNoResults();
+  /*
+  Using "detec" here specifically also does an integration test with
+  spelling correction; Terms that are suffix-searched should remove
+  any spelling corrections.
+  */
+
+  await typeText('detec ');
+  await assertSingle('date');
 
   // No ending space triggers an automatic prefix search
   const expectedPrefixResults = [
@@ -99,16 +105,16 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
     'detecting such terms',
     'detectedd as per the earlier section',
   ];
-  await typeText('detect');
+  await typeText('detec');
   await assertMultiple(expectedPrefixResults, 2);
 
-  await typeText('detect* ');
+  await typeText('detec* ');
   await assertMultiple(expectedPrefixResults, 2);
 
-  await typeText('detect*');
+  await typeText('detec*');
   await assertMultiple(expectedPrefixResults, 2);
 
-  await typeText('detect* AND deleted AND changed AND added AND dynamic');
+  await typeText('detec* AND deleted AND changed AND added AND dynamic');
   await assertSingle('detecting deleted, changed, or added');
   // ------------------------------------------------------
 
