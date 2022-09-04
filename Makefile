@@ -82,7 +82,7 @@ preReleaseMdbook:
 	npx rimraf ./packages/mdbook-morsels/search-ui-dist/*
 	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
 	git add packages/mdbook-morsels/search-ui-dist/*
-	git commit -m "Update mdbook search-ui dist"
+	git commit -m "Bump search packages" --amend
 	git tag --force $(VERSION)
 	cargo clean --release -p mdbook-morsels
 	cd packages/mdbook-morsels &&\
