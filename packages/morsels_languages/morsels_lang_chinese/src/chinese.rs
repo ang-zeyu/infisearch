@@ -1,4 +1,3 @@
-#[cfg(feature = "indexer")]
 use std::borrow::Cow;
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;
@@ -8,14 +7,10 @@ use jieba_rs::Jieba;
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::{IndexerTokenizer, TermIter};
 use morsels_common::{tokenize::{SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm}, MorselsLanguageConfig, dictionary::Dictionary};
-#[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
-use morsels_lang_ascii::ascii::ascii_and_nonword_filter;
 use morsels_lang_ascii::stop_words::get_stop_words;
-#[cfg(feature = "indexer")]
 use morsels_lang_ascii::utils::{intra_filter, separating_filter};
 
-#[cfg(feature = "indexer")]
 fn term_filter(input: Cow<str>) -> Cow<str> {
     let mut char_iter = input.char_indices()
         .filter(|(_idx, c)| intra_filter(*c) || separating_filter(*c));
@@ -95,6 +90,35 @@ impl IndexerTokenizer for Tokenizer {
         Box::new(it)
     }
 }
+
+
+fn ascii_and_nonword_filter<'a>(term_inflections: &mut Vec<String>, term_slice: &'a str) -> Cow<'a, str> {
+    term_inflections.push(term_slice.to_owned());
+
+    let mut ascii_replaced = ascii_folding_filter::to_ascii(term_slice);
+    if let Cow::Owned(ascii_replaced_inner) = ascii_replaced {
+        if !ascii_replaced_inner.is_empty() {
+            term_inflections.push(ascii_replaced_inner.clone());
+        }
+        ascii_replaced = Cow::Owned(ascii_replaced_inner);
+    }
+
+    if ascii_replaced.contains('\'') {
+        // Somewhat hardcoded fix for this common keyboard "issue"
+        term_inflections.push(ascii_replaced.replace('\'', "’"));
+    }
+
+    let term_filtered = term_filter(ascii_replaced);
+    if let Cow::Owned(inner) = term_filtered {
+        if !inner.trim().is_empty() {
+            term_inflections.push(inner.clone());
+        }
+        Cow::Owned(inner)
+    } else {
+        term_filtered
+    }
+}
+
 
 impl SearchTokenizer for Tokenizer {
     fn search_tokenize(&self, mut text: String, dict: &Dictionary) -> SearchTokenizeResult {
