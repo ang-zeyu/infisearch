@@ -149,6 +149,7 @@ impl SearchTokenizer for Tokenizer {
             }
 
             let original_term = preprocessed.clone().into_owned();
+            let mut is_corrected = false;
 
             // This comes before spelling correction,
             // as ignore_stop_words removes from the index (won't be present in the dictionary)
@@ -158,6 +159,7 @@ impl SearchTokenizer for Tokenizer {
                     term_inflections,
                     original_term,
                     suffix_wildcard,
+                    is_corrected,
                 });
                 continue;
             }
@@ -167,6 +169,7 @@ impl SearchTokenizer for Tokenizer {
                     None
                 } else if let Some(corrected_term) = spelling::get_best_corrected_term(dict, &preprocessed) {
                     term_inflections.push(corrected_term.clone());
+                    is_corrected = true;
                     Some(corrected_term)
                 } else {
                     None
@@ -180,6 +183,7 @@ impl SearchTokenizer for Tokenizer {
                 term_inflections,
                 original_term,
                 suffix_wildcard,
+                is_corrected,
             });
         }
 

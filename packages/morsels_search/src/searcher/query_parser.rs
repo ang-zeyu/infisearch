@@ -297,10 +297,12 @@ fn handle_terminator(
         term_inflections,
         original_term,
         suffix_wildcard,
+        is_corrected,
     } in tokenize_result.terms {
         query_parts.push(QueryPart {
             auto_suffix_wildcard: tokenize_result.auto_suffix_wildcard,
             suffix_wildcard,
+            is_corrected,
             terms: term.map(|t| vec![t]),
             original_terms: Some(vec![original_term]),
             terms_searched: Some(vec![term_inflections]),
@@ -349,13 +351,16 @@ pub fn parse_query(
                     let mut terms = Vec::new();
                     let mut terms_searched = Vec::new();
 
+                    let mut is_corrected = false;
                     for SearchTokenizeTerm {
                         term,
                         term_inflections,
                         original_term: _,
                         // TODO unsupported for now
                         suffix_wildcard: _,
+                        is_corrected: is_term_corrected,
                     } in tokenize_result.terms {
+                        is_corrected = is_corrected || is_term_corrected;
                         if let Some(term) = term {
                             terms.push(term);
                         }
@@ -366,6 +371,7 @@ pub fn parse_query(
                     query_parts.push(QueryPart {
                         terms: Some(terms),
                         terms_searched: Some(terms_searched),
+                        is_corrected,
                         ..QueryPart::get_base(QueryPartType::Phrase)
                     });
                     handle_op(&mut query_parts, &mut op_stack);
@@ -601,6 +607,15 @@ pub mod test {
             }
         }
 
+        fn with_original_terms(mut self, original_terms: Vec<&str>) -> QueryPart {
+            if self.terms.is_some() {
+                self.original_terms = Some(original_terms.into_iter().map(|s| s.to_owned()).collect());
+                self
+            } else {
+                panic!("Tried to call with_searched_terms test function on query part with no terms");
+            }
+        }
+
         fn with_field(mut self, field_name: &str) -> QueryPart {
             self.field_name = Some(field_name.to_owned());
             self
@@ -612,6 +627,18 @@ pub mod test {
                 self
             } else {
                 panic!("Tried to call no_term test function on non-term query part");
+            }
+        }
+
+        fn with_corrected(mut self) -> QueryPart {
+            if (
+                matches!(self.part_type, QueryPartType::Term)
+                || matches!(self.part_type, QueryPartType::Phrase)
+            ) {
+                self.is_corrected = true;
+                self
+            } else {
+                panic!("Tried to call no_term test function on non-term/phrase query part");
             }
         }
     }
@@ -1058,6 +1085,29 @@ pub mod test {
                 get_lorem().with_field("title"),
             ]
         );
+    }
+
+    #[test]
+    fn spelling_correction_test() {
+        assert_eq!(parse("lore"), vec![
+            get_lorem()
+                .with_corrected()
+                .with_original_terms(vec!["lore"])
+                .with_searched_terms(vec![vec!["lore", "lorem"]]),
+        ]);
+        assert_eq!(parse("lore AND ipsum"), vec![wrap_in_and(vec![
+            get_lorem()
+                .with_corrected()
+                .with_original_terms(vec!["lore"])
+                .with_searched_terms(vec![vec!["lore", "lorem"]]),
+            get_ipsum(),
+        ])]);
+        assert_eq!(parse("\"lore ipsum\" AND ipsum"), vec![wrap_in_and(vec![
+            get_phrase(vec!["lorem", "ipsum"])
+                .with_corrected()
+                .with_searched_terms(vec![vec!["lore", "lorem"], vec!["ipsum"]]),
+            get_ipsum(),
+        ])]);
     }
 
     #[test]

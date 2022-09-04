@@ -131,6 +131,7 @@ impl SearchTokenizer for Tokenizer {
                         term_inflections,
                         original_term,
                         suffix_wildcard,
+                        is_corrected: false,
                     });
                 }
 
@@ -139,6 +140,7 @@ impl SearchTokenizer for Tokenizer {
                     term_inflections,
                     original_term,
                     suffix_wildcard,
+                    is_corrected: false,
                 })
             })
             .collect();

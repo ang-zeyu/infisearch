@@ -26,4 +26,5 @@ pub struct SearchTokenizeTerm {
     pub term_inflections: Vec<String>,
     pub original_term: String,
     pub suffix_wildcard: bool,
+    pub is_corrected: bool,
 }
