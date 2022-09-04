@@ -101,7 +101,7 @@ async function singleResultRender(
     linkToAttach = fullLinkUrl.toString();
   }
 
-  let resultHeadingsAndTexts: (string | HTMLElement)[];
+  let resultHeadingsAndTexts: (string | HTMLElement)[] = [];
   if (hasStoredContentField) {
     resultHeadingsAndTexts = transformText(
       fields,
@@ -138,7 +138,9 @@ async function singleResultRender(
       );
       resultTitle = newTitle || resultTitle;
       resultHeadingsAndTexts = newBodies;
-    }
+    } /* else {
+      // CSV / PDF source file generation. Unsupported.
+    } */
   }
 
   return listItemRender(
