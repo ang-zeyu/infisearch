@@ -40,6 +40,15 @@ fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
 
     vec![
         HtmlLoaderSelectorRaw {
+            selector: "span[data-morsels-link]".to_owned(),
+            field_name: None,
+            attr_map: {
+                let mut map = FxHashMap::default();
+                map.insert("data-morsels-link".to_owned(), "link".to_owned());
+                map
+            },
+        },
+        HtmlLoaderSelectorRaw {
             selector: "title".to_owned(),
             field_name: Some("title".to_owned()),
             attr_map: FxHashMap::default(),

@@ -75,7 +75,16 @@ You may configure loaders by including them under the **`loader_configs` key**, 
         },
         "field_name": "heading",
         "selector": "h2,h3,h4,h5,h6"
-      }
+      },
+      // Provides a means to override the link used in the result preview
+      // See "Linking to other pages" for more information
+      {
+        "attr_map": {
+          "data-morsels-link": "link"
+        },
+        "field_name": null,
+        "selector": "span[data-morsels-link]"
+      },
     ]
   }
 }

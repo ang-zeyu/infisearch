@@ -14,6 +14,8 @@
   - [Fields](./indexer/fields.md)
   - [Indexing](./indexer/indexing.md)
 - [Language](./language.md)
+- [Guides](./guides.md)
+  - [Linking to other pages](./linking_to_others.md)
 
 # Advanced
 

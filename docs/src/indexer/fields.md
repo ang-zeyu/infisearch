@@ -48,7 +48,14 @@ This snippet shows the default values:
         "k": 1.2,
         "b": 0.75
       },
-      // Internal, hardcoded field (see "Reserved Fields")
+      {
+        "name": "link",
+        "do_store": true,
+        "weight": 0.0,
+        "k": 1.2,
+        "b": 0.15
+      },
+      // Internal, hardcoded fields (see "Reserved Fields")
       {
         "name": "_relative_fp",
         "do_store": true,
@@ -71,13 +78,13 @@ The functions of the default fields for the user interface are as follows:
 
 - `heading`: These are section headers which appear on the left of corresponding `body` field, sourced from `<h1-6>` tags.
 
-- `headingLink`: These are the `id` attributes of corresponding `<h1-6>` tags. When found, an `#anchor` is appended to the link.
+- `headingLink`: These are the `id` attributes of corresponding `<h1-6>` tags. If available, a page `#anchor` is appended to the heading's link.
 
 - `body`: This field is the text that appears to the right of headings (or on its own if there is no corresponding heading).
 
-- `_relative_fp` **or** `link`: If the `title` field is missing for any document, this field takes its place in the header. It is also used to link to the source document (in the `<a />` tag) and (optionally) for generating result [previews](../search_configuration.md#default-rendering-output--purpose).
+- `_relative_fp`: If the `title` field is missing for any document, this field takes its place in the header, formatted into a pretty breadcrumb.<br><br>It is also used to generate the link to the source document (with the provided `sourceFilesUrl` option) and (optionally) for generating result [previews](../search_configuration.md#default-rendering-output--purpose).
 
-  - Note: The `link` field is not setup by default; The combination of `sourceFilesUrl` + `_relative_fp` serves the same purpose. The `link` field serves to accomodate more custom data requirements (e.g. linking to another domain, or indexing a json document).
+- The `link` field serves to support custom data requirements (e.g. linking to another page, indexing a json document), and also provides a means to override the default link generation of `sourceFilesUrl + _relative_fp`.
 
 ### Reserved Fields
 
