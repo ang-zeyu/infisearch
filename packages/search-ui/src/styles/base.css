@@ -215,13 +215,17 @@ table.morsels-tip-table td {
 
 table.morsels-tip-table th {
     border-bottom: 3px solid;
-    border-bottom-color: var(--morsels-tip-table-border) !important;
+    border-bottom-color: var(--morsels-tip-table-header-border, var(--morsels-tip-table-border)) !important;
     font-weight: bold;
 }
 
 table.morsels-tip-table td {
     border-bottom: 1px solid;
     border-bottom-color: var(--morsels-tip-table-border) !important;
+}
+
+table.morsels-tip-table > tbody > tr:nth-child(2n) > td {
+    background: var(--morsels-tip-table-alternate);
 }
 
 table.morsels-tip-table > tbody > tr:last-child > td {
@@ -231,7 +235,7 @@ table.morsels-tip-table > tbody > tr:last-child > td {
 table.morsels-tip-table td:first-child,
 table.morsels-tip-table th:first-child {
     width: 45%;
-    padding: 3px 5px 5px 0;
+    padding: 3px 5px 5px 4px;
 }
 
 table.morsels-tip-table td:last-child,

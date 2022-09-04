@@ -41,7 +41,10 @@
     --morsels-fs-header-close-active-fg: rgb(255, 255, 255);
     --morsels-tip-bg: rgb(253, 253, 253);
     --morsels-tip-fg: black;
-    --morsels-tip-table-border: #dee2e6;
+    --morsels-tip-table-header-border: hsl(0, 0%, 93%);
+    /* Following 2 colours from mdbook's light theme */
+    --morsels-tip-table-border: hsl(0, 0%, 95%);
+    --morsels-tip-table-alternate: hsl(0, 0%, 97%);
     --morsels-tip-code-fg: #1876c3;
     --morsels-tip-code-bg: transparent;
     --morsels-tip-icon-bg: rgb(230, 230, 230);

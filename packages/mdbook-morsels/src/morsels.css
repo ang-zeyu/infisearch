@@ -41,6 +41,9 @@
     --morsels-fs-header-close-hover-fg: var(--fg);
     --morsels-fs-header-close-active-bg: var(--table-header-bg);
     --morsels-fs-header-close-active-fg: var(--fg);
+    --morsels-tip-table-header-border: var(--table-border-color);
+    --morsels-tip-table-border: transparent;
+    --morsels-tip-table-alternate: var(--table-alternate-bg);
     --morsels-tip-bg: var(--sidebar-bg);
     --morsels-tip-fg: var(--sidebar-fg);
     --morsels-tip-code-fg: var(--inline-code-color);
@@ -82,6 +85,7 @@
 
 .rust .morsels-root {
     --morsels-heading-highlight: #ebb285;
+    --morsels-tip-table-alternate: var(--sidebar-bg);
 }
 
 .coal .morsels-root {
