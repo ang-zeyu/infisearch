@@ -61,6 +61,7 @@ pub fn apply_preset_override(
         }
     } else {
         config.indexing_config.pl_limit = pl_limit;
-        config.indexing_config.pl_limit = pl_cache_threshold;
+        config.indexing_config.pl_cache_threshold = pl_cache_threshold;
+        config.indexing_config.with_positions = with_positions;
     };
 }
