@@ -1,4 +1,5 @@
 use std::env;
+use std::io;
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -33,6 +34,8 @@ struct CliArgs {
     preserve_output_folder: bool,
     #[structopt(short, long, parse(from_os_str))]
     config_file_path: Option<PathBuf>,
+    #[structopt(long, help = "Allows you to input your indexer configuration via stdin in json format. The entire json should be serialized in one line. Intended for programmatic use.")]
+    config_stdin: bool,
     #[structopt(long, help = "Initialises the configuration file in the source folder. Does not run any indexing.")]
     config_init: bool,
     #[structopt(
@@ -131,9 +134,21 @@ fn main() {
         return;
     }
 
-    let config = match initialise_config(config_file_path, &args) {
-        Some(value) => value,
-        None => return,
+    let config = if args.config_stdin {
+        let mut buf = Vec::new();
+        for line in io::stdin().lines() {
+            if let Ok(line) = line {
+                buf.push(line);
+            } else {
+                panic!("Failed to read config from stdin!");
+            }
+        }
+        MorselsConfig::new(buf.join("\n"))
+    } else {
+        match initialise_config(config_file_path, &args) {
+            Some(value) => value,
+            None => return,
+        }
     };
 
     let mut indexer = Indexer::new(
