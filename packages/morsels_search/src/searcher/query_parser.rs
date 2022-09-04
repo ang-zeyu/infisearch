@@ -207,6 +207,7 @@ fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator
                 let last_part = query_parts.pop().unwrap();
                 query_parts.push(QueryPart {
                     children: Some(vec![last_part]),
+                    // NOT operators cannot produce any meaningful positional information
                     include_in_proximity_ranking: false,
                     ..QueryPart::get_base(QueryPartType::Not)
                 });
