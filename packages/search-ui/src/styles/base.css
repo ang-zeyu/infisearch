@@ -381,7 +381,7 @@ table.morsels-tip-table .morsels-tip-item li {
 
 .morsels-header {
     color: var(--morsels-header-fg);
-    padding: 7px 13px;
+    padding: 9px 13px 7px 13px;
     font-weight: bold;
     font-size: 1.05em;
 }
@@ -419,7 +419,7 @@ table.morsels-tip-table .morsels-tip-item li {
 .morsels-title {
     border-bottom: var(--morsels-title-border-bottom, 2px solid var(--morsels-title-bg));
     color: var(--morsels-title-fg);
-    line-height: 1.4em;
+    line-height: 1.3;
     word-break: break-word;
     padding: 7px 7px 3px;
     background: var(--morsels-title-bg);
@@ -460,7 +460,7 @@ table.morsels-tip-table .morsels-tip-item li {
     word-break: break-word;
     padding: 5px 5px 4px 8px;
     display: inline-block;
-    line-height: 1.3em;
+    line-height: 1.3;
     vertical-align: top;
     background: var(--morsels-heading-bg);
     color: var(--morsels-heading-fg);
@@ -491,7 +491,7 @@ table.morsels-tip-table .morsels-tip-item li {
 .morsels-body {
     height: 100%;
     font-size: 0.91em;
-    line-height: 1.15em;
+    line-height: 1.15;
     word-break: break-word;
     grid-column-start: 2;
     padding: 6px 5px 4px 8px;

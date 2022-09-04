@@ -3,7 +3,7 @@
 
 :root {
     --morsels-item-border-radius: 6px;
-    --morsels-item-box-shadow: 0 1px 3px rgb(239, 239, 239), -2px 1px 3px rgb(239, 239, 239), 2px 1px 3px rgb(239, 239, 239);
+    --morsels-item-box-shadow: 0 -1px 2px rgb(245, 245, 245), 0 1px 3px rgb(239, 239, 239), -2px 1px 3px rgb(239, 239, 239), 2px 1px 3px rgb(239, 239, 239);
     --morsels-title-bg: rgb(247, 246, 246);
     --morsels-heading-bg: rgb(250, 249, 249);
     --morsels-body-bg: white;

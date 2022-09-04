@@ -52,6 +52,14 @@
     --morsels-tip-icon-fg: rgb(80, 80, 80);
 }
 
+.light .morsels-root .morsels-title,
+.rust .morsels-root .morsels-title,
+.coal .morsels-root .morsels-title,
+.navy .morsels-root .morsels-title,
+.ayu .morsels-root .morsels-title {
+    font-weight: 600;
+}
+
 .ayu .morsels-root,
 .rust .morsels-root {
     --morsels-fs-header-close-hover-bg: var(--sidebar-bg);
