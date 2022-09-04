@@ -1,10 +1,10 @@
 # Linking to other pages
 
-Morsels is extremely easy to get started with if the pages you want to link to are the same files you index, and these files are hosted inside the `sourceFilesUrl` option in the same manner your folders are structured.
+Morsels is extremely easy to get started with if the pages you link to are the same files you index, and these files are hosted at the [`sourceFilesUrl`](./search_configuration.md#base-url) in the same manner your source file folders are structured.
 
-Linking to other pages is facilitated by the default [`link`](./indexer/fields.md#default-field-configuration) field, which lets you override the link used in the result preview.
+Linking to other pages is facilitated by the default [`link`](./indexer/fields.md#default-field-configuration) field, which lets you override the link used in the result preview. You will however need to let Morsels know where to find the content for this field.
 
-You will however need to let Morsels know where to find the content for this field. The section below covers only the common case for HTML files, which has some default configurations setup already. If you are using JSON, CSV, or other file formats, you should have sufficient knowledge to map your file contents to this field.
+The section below covers only the common case for HTML files, which has some default configurations setup already. If you are using JSON, CSV, or other formats, you should already have the know how to map your file contents to this field.
 
 ## Indexing HTML Files
 
