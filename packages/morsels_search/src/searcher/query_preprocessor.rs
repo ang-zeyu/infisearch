@@ -130,6 +130,7 @@ impl Searcher {
         let term_to_expand_char_count = term_to_expand.chars().count();
         let expanded_terms = self.dictionary.get_prefix_terms(
             &term_to_expand,
+            |s| self.tokenizer.is_stop_word(s),
         );
 
         let num_expanded_terms = expanded_terms.len().min(max_suffix_search_terms);
@@ -176,7 +177,7 @@ impl Searcher {
 
         for (term, weight) in expanded_terms {
             // For auto suffix search, exclude terms that are used in any other part of the query
-            // query_parts is an empty Vec::new() for manual suffix search
+            // query_parts is an empty Vec::new() for manual suffix
             if !Self::is_term_used(&term, query_parts) {
                 wrapper_part_children.push(QueryPart {
                     is_corrected: false,
