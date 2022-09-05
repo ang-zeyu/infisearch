@@ -11,40 +11,43 @@ const MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;
 
 impl Searcher {
     pub fn remove_free_text_sw(&self, query_parts: &mut Vec<QueryPart>) {
-        let max_idf = query_parts.iter().fold(0.0, |max_idf: f32, query_part| max_idf.max(
+        let mut idf_sum = 0.0;
+        for query_part in query_parts.iter() {
             if let Some(terms) = &query_part.terms {
-                terms.iter().fold(0.0, |max_idf, term| {
+                for term in terms {
                     if let Some(term_info) = self.dictionary.get_term_info(term) {
-                        max_idf.max(idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32))
-                    } else {
-                        max_idf
+                        idf_sum += idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
                     }
-                })
-            } else {
-                0.0
+                }
             }
-        ));
+        }
+
+        /*
+         Stop word removal strategy uses idf impact instead of removing all of them.
+         When multiplied by this, it should be larger than the idf sum.
+        */
+        let min_idf_proportion = if self.searcher_config.indexing_config.with_positions {
+            // Much higher if positions are indexed. (2%)
+            // As query term proximity ranking may change rankings significantly.
+            50.0
+        } else {
+            // 4%
+            25.0
+        };
 
         for query_part in query_parts {
             if let Some(terms) = &mut query_part.terms {
                 debug_assert!(terms.len() <= 1);
 
                 if let Some(term) = terms.first() {
-                    /*
-                     Stop word removal strategy uses idf impact instead of removing all of them.
-                     When multiplied by a 100, it should minimally be larger than the maximum idf.
-                     */
                     if self.tokenizer.is_stop_word(term) {
                         if let Some(term_info) = self.dictionary.get_term_info(term) {
                             let sw_idf = idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
-                            // Hardcoded 100.0 factor for now.
-                            if sw_idf * 100.0 < max_idf {
+                            if sw_idf * min_idf_proportion < idf_sum {
                                 query_part.is_stop_word_removed = true;
                                 terms.pop();
                             }
-                        }/*  else {
-                            spelling correction handles this
-                        } */
+                        }
                     }
                 }
             }
