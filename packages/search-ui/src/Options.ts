@@ -29,6 +29,7 @@ export interface UiOptions {
   tip: boolean,
   resultsPerPage?: number,
   maxSubMatches?: number,
+  useBreadcrumb?: boolean,
   // This is specific to the default resultsRender implementation,
   // pulling it up as its a common option
   sourceFilesUrl?: string,

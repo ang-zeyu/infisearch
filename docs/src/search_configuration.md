@@ -100,6 +100,7 @@ There are also several options specific to each mode. Note that `dropdown` and `
 | -----------           | -----------             | ----------- |
 | `label`               | `'Search this site'`    | Accessibility label for the fullscreen UI input.
 | `resultsLabel`        | `'Site results'`        | Accessibility label for result `listbox`es.
+| `useBreadcrumb`       | `false`                 | Prefer the file path of the indexed file for the result preview's title. This is prettified into a breadcrumb, with its components transformed to Title Case.<br><br>For example, `documentation/userGuide/my_file.html` is displayed as `Documentation » User Guide » My File`.
 | `maxSubMatches`       | `2`                     | Maximum number of heading-body pairs to show for a document.
 
 #### Manually Showing / Hiding the Fullscreen UI

@@ -60,6 +60,7 @@ async function singleResultRender(
   }
 
   const {
+    useBreadcrumb,
     sourceFilesUrl,
     resultsRenderOpts: { addSearchedTerms, listItemRender },
   } = options.uiOptions;
@@ -69,7 +70,7 @@ async function singleResultRender(
     || (hasSourceFilesUrl && relativeLink && `${sourceFilesUrl}${relativeLink}`)
     || '';
 
-  if (!resultTitle) {
+  if (!resultTitle || useBreadcrumb) {
     if (relativeLink) {
       // HTML files: remove the extension
       // PDF: <...breadcumbs...> (PDF)
