@@ -97,7 +97,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   */
 
   await typeText('detec ');
-  await assertSingle('date');
+  await assertMultiple(['date'], 2);
 
   // No ending space triggers an automatic prefix search
   const expectedPrefixResults = [

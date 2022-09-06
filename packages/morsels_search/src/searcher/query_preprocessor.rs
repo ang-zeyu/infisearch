@@ -154,6 +154,7 @@ impl Searcher {
             if query_part.is_corrected {
                 // Delete the corrected term; Expanded terms would be a better match
                 query_part.terms = None;
+                query_part.terms_searched = None;
                 query_part.is_corrected = false;
             }
         }
