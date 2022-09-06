@@ -4,7 +4,7 @@
 # Update the cargo.toml version numbers before running anything!
 
 # And this
-VERSION=v0.4.0
+VERSION=v0.4.1
 
 # Run in order
 # Check preReleaseXX outputs manually before running release
@@ -68,10 +68,10 @@ releaseTillIndexerWin:
 # git checkout -- . is to discard wasm-pack package.json changes
 preReleaseSearch:
 	npm run setup
-	npx lerna version $(VERSION) --no-push --yes
+	npx lerna version $(VERSION) --amend --no-push --yes
 	npm run buildSearch
 	git add packages/search-ui/dist/*
-	git commit --amend -m "Bump search"
+	git commit --amend -m "Bump version"
 	git checkout -- .
 	git tag --force $(VERSION)
 
@@ -82,7 +82,7 @@ preReleaseMdbook:
 	npx rimraf ./packages/mdbook-morsels/search-ui-dist/*
 	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
 	git add packages/mdbook-morsels/search-ui-dist/*
-	git commit -m "Bump search packages" --amend
+	git commit --amend -m "Bump version"
 	git tag --force $(VERSION)
 	cargo clean --release -p mdbook-morsels
 	cd packages/mdbook-morsels &&\

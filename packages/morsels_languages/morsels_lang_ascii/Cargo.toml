@@ -1,6 +1,6 @@
 [package]
 name = "morsels_lang_ascii"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Basic ascii tokenizer for morsels."
@@ -14,6 +14,6 @@ indexer = ["lazy_static", "regex"]
 
 [dependencies]
 lazy_static = { version = "1.4", optional = true }
-morsels_common = { path = "../../morsels_common", version="=0.4.0" }
+morsels_common = { path = "../../morsels_common", version="=0.4.1" }
 regex = { version = "1", optional = true }
 smartstring = "0.2.7"
