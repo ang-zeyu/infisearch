@@ -105,6 +105,7 @@
     color: var(--morsels-fs-header-close-fg);
     background: var(--morsels-fs-header-close-bg);
     transition: background 0.2s linear, color 0.2s linear;
+    user-select: none;
 }
 
 .morsels-input-close-fs > span {
