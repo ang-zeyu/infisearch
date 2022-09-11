@@ -1,6 +1,5 @@
 pub mod postings_stream;
 pub mod postings_stream_reader;
-pub mod terms;
 
 use std::collections::BinaryHeap;
 use std::collections::VecDeque;
@@ -16,12 +15,12 @@ use morsels_common::FILE_EXT;
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
+
+use crate::dictionary_writer::DictWriter;
 use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::utils::bufwriter::ReusableWriter;
 use crate::utils::varint;
 use crate::worker::MainToWorkerMessage;
-
-use super::dict_table_writer::DictTableWriter;
 
 #[derive(Default)]
 pub struct TermDocsForMerge {
@@ -127,7 +126,7 @@ pub fn initialise_postings_stream_readers(
 pub fn write_new_term_postings(
     curr_combined_term_docs: &mut [TermDocsForMerge],
     varint_buf: &mut [u8],
-    dict_table_writer: Option<&mut DictTableWriter>,
+    dict_writer: Option<&mut DictWriter>,
     curr_pl: &mut u32,
     pl_writer: &mut PlWriter,
     pl_offset: &mut u32,
@@ -149,8 +148,8 @@ pub fn write_new_term_postings(
         // Dictionary table writing
         // (1 byte varint = 0 in place of the docFreq varint, delimiting a new postings list)
 
-        if let Some(dict_table_writer) = dict_table_writer {
-            dict_table_writer.write_doc_freq(0);
+        if let Some(dict_table_writer) = dict_writer {
+            dict_table_writer.write_pl_separator();
         }
         // --------------------------------
 

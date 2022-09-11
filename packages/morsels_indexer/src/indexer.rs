@@ -17,6 +17,7 @@ use morsels_lang_ascii::ascii;
 use morsels_lang_latin::latin;
 use morsels_lang_chinese::chinese;
 
+use crate::dictionary_writer::DictWriter;
 use crate::docinfo::DocInfos;
 use crate::{i_debug, spimireader};
 use crate::incremental_info::IncrementalIndexInfo;
@@ -26,8 +27,6 @@ use crate::loader::LoaderBoxed;
 use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
-use bitvec::order::Msb0;
-use bitvec::prelude::BitVec;
 use crossbeam::channel::{self, Receiver, Sender};
 use log::{info, warn};
 
@@ -425,8 +424,7 @@ impl Indexer {
         &self,
         invalidation_vec_ser: Vec<u8>,
         doc_infos_ser: Vec<u8>,
-        dict_table_ser: BitVec<u8, Msb0>,
-        dict_string_ser: Vec<u8>,
+        dict_writer: DictWriter,
         log_sizes: bool,
     ) {
         let metadata_file = self.output_folder_path.join(METADATA_FILE);
@@ -434,6 +432,7 @@ impl Indexer {
             File::create(metadata_file).unwrap()
         );
 
+        let (dict_table_ser, dict_string_ser) = dict_writer.flush();
         let dict_table_ser: &[u8] = dict_table_ser.as_raw_slice();
     
         /*
@@ -481,7 +480,7 @@ impl Indexer {
                 (self.doc_id_counter - self.incremental_info.num_deleted_docs) as f64,
             );
 
-            let (dict_table, dict_string) = spimireader::incremental::modify_blocks(
+            let dict_writer = spimireader::incremental::modify_blocks(
                 self.is_deletion_only_run(),
                 num_blocks,
                 first_block,
@@ -496,15 +495,14 @@ impl Indexer {
             self.flush_metadata(
                 invalidation_vec_ser,
                 doc_infos_ser,
-                dict_table,
-                dict_string,
+                dict_writer,
                 log_metadata_sizes,
             );
         } else {
             let invalidation_vec_ser = self.incremental_info.write_invalidation_vec(self.doc_id_counter);
             let doc_infos_ser = self.flush_doc_infos(self.doc_id_counter as f64);
 
-            let (dict_table, dict_string) = spimireader::full::merge_blocks(
+            let dict_writer = spimireader::full::merge_blocks(
                 num_blocks,
                 first_block,
                 last_block,
@@ -518,8 +516,7 @@ impl Indexer {
             self.flush_metadata(
                 invalidation_vec_ser,
                 doc_infos_ser,
-                dict_table,
-                dict_string,
+                dict_writer,
                 log_metadata_sizes,
             );
         }

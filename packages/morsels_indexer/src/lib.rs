@@ -1,3 +1,4 @@
+mod dictionary_writer;
 mod docinfo;
 mod incremental_info;
 pub mod indexer;
