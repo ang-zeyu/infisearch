@@ -25,6 +25,7 @@ export interface UiOptions {
   fsContainer?: HTMLElement,
   fsPlaceholder?: string,
   fsCloseText?: string,
+  fsScrollLock: boolean,
   target?: HTMLElement,
   tip: boolean,
   resultsPerPage?: number,

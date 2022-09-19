@@ -91,6 +91,8 @@ There are also several options specific to each mode. Note that `dropdown` and `
 | `fullscreen` | `fsInputLabel`        | `'Search'` | Accessibility label for the original input element, when the fullscreen UI is in use.
 | `fullscreen` | `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
 | `fullscreen` | `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
+| `fullscreen` | `fsCloseText`         | `'Close'` | Text for the <kbd>Close</kbd> button.
+| `fullscreen` | `fsScrollLock`        | `true` | Whether to automatically scroll lock the body element when the fullscreen UI is opened.
 | all except `target`         | `tip`                 | `true`        | Whether to show the tip icon. When hovered over, this shows advanced usage information (e.g. how to perform phrase queries).
 | `target`    | `target`              | `undefined`                       | `id` of the element, or an element reference to attach results to.<br><br>Required if using `mode='target'`.
 

@@ -92,6 +92,9 @@ export function prepareOptions(options: Options) {
   uiOptions.fsInputLabel = uiOptions.fsInputLabel || 'Search';
   uiOptions.fsPlaceholder = uiOptions.fsPlaceholder || 'Search this site...';
   uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
+  if (!('fsScrollLock' in uiOptions)) {
+    uiOptions.fsScrollLock = true;
+  }
   
   uiOptions.errorRender = uiOptions.errorRender
         || ((h) => h('div', { class: 'morsels-error' }, 'Oops! Something went wrong... 🙁'));

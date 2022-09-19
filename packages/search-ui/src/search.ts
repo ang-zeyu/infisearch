@@ -145,7 +145,8 @@ function initMorsels(options: Options): {
   const {
     input, mode,
     dropdownAlignment,
-    label, fsInputButtonText, fsInputLabel,
+    label,
+    fsInputButtonText, fsInputLabel, fsScrollLock,
     target,
   } = uiOptions;
   const { url } = searcherOptions;
@@ -165,6 +166,9 @@ function initMorsels(options: Options): {
     (isKeyboardClose) => {
       if (isKeyboardClose && input) input.focus();
       initState._mrlFsShown = false;
+      if (fsScrollLock) {
+        document.body.style.overflow = '';
+      }
     },
   );
 
@@ -180,11 +184,17 @@ function initMorsels(options: Options): {
     if (!initState._mrlFsShown) {
       openFullscreen();
       initState._mrlFsShown = true;
+      if (fsScrollLock) {
+        document.body.style.overflow = 'hidden';
+      }
     }
   }
 
   function hideFullscreen() {
     closeFullscreen(false);
+    if (fsScrollLock) {
+      document.body.style.overflow = '';
+    }
   }
 
   function addFsTriggerInputListeners() {
