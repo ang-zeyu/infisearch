@@ -1,14 +1,16 @@
-use std::borrow::Cow;
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;
 
 use morsels_common::dictionary::Dictionary;
+use morsels_common::utils::split_incl::SplitIncl;
 #[cfg(feature = "indexer")]
 use regex::Regex;
 
-use crate::{ascii_folding_filter, spelling};
+#[cfg(feature = "indexer")]
+use crate::ascii_folding_filter;
+use crate::spelling;
 use crate::stop_words::get_stop_words;
-use crate::utils::{term_filter, split_terms};
+use crate::utils;
 use morsels_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::{IndexerTokenizer, TermIter};
@@ -52,42 +54,15 @@ pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
     }
 }
 
-pub fn ascii_and_nonword_filter<'a>(term_inflections: &mut Vec<String>, term_slice: &'a str) -> Cow<'a, str> {
-    term_inflections.push(term_slice.to_owned());
-
-    let mut ascii_replaced = ascii_folding_filter::to_ascii(term_slice);
-    if let Cow::Owned(ascii_replaced_inner) = ascii_replaced {
-        if !ascii_replaced_inner.is_empty() {
-            term_inflections.push(ascii_replaced_inner.clone());
-        }
-        ascii_replaced = Cow::Owned(ascii_replaced_inner);
-    }
-
-    if ascii_replaced.contains('\'') {
-        // Somewhat hardcoded fix for this common keyboard "issue"
-        term_inflections.push(ascii_replaced.replace('\'', "’"));
-    }
-
-    let term_filtered = term_filter(ascii_replaced);
-    if let Cow::Owned(inner) = term_filtered {
-        if !inner.trim().is_empty() {
-            term_inflections.push(inner.clone());
-        }
-        Cow::Owned(inner)
-    } else {
-        term_filtered
-    }
-}
-
 #[cfg(feature = "indexer")]
 impl IndexerTokenizer for Tokenizer {
     fn tokenize<'a>(&'a self, text: &'a mut str) -> TermIter<'a> {
         text.make_ascii_lowercase();
         let it = SENTENCE_SPLITTER.split(text)
             .flat_map(move |sent_slice| {
-                sent_slice.split(split_terms)
+                sent_slice.split(utils::split_terms)
                     .filter(|&s| !s.is_empty())
-                    .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
+                    .map(|term_slice| utils::term_filter(ascii_folding_filter::to_ascii(term_slice)))
                     .filter(move |term| {
                         let term_byte_len = term.len();
                         term_byte_len > 0
@@ -108,42 +83,21 @@ impl SearchTokenizer for Tokenizer {
         let should_expand = !text.ends_with(' ');
 
         let mut terms = Vec::new();
-        let mut last_asterisk_idx = text.len() + 1;
-        let mut start = 0;
-        for (idx, c) in text.char_indices() {
-            let is_last = (idx + 1) == text.len();
-            let is_separator = split_terms(c);
-            if !(is_separator || is_last) {
-                continue;
-            } else if c == '*' {
-                last_asterisk_idx = idx;
-                if !is_last {
-                    continue;
-                }
-            }
+        let split: Vec<_> = SplitIncl::split(
+            &text,
+            utils::split_terms,
+        ).collect();
 
-            let suffix_wildcard = last_asterisk_idx == idx || (last_asterisk_idx + 1) == idx;
-            let end_idx = if is_separator {
-                if last_asterisk_idx + 1 == idx {
-                    last_asterisk_idx
-                } else {
-                    idx
-                }
-            } else {
-                idx + 1
-            };
-
-            let term_slice = &text[start..end_idx];
-            start = idx + 1;
-
-            if term_slice.is_empty() {
+        for (idx, s) in split.iter().enumerate() {
+            if s.is_empty() {
                 continue;
             }
+
+            let suffix_wildcard = (idx + 1 != split.len()) && split[idx + 1] == "*";
 
             let mut term_inflections = Vec::new();
 
-            let preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
-
+            let preprocessed = utils::ascii_and_nonword_filter(&mut term_inflections, s, utils::term_filter);
             if preprocessed.is_empty() {
                 continue;
             }
@@ -184,7 +138,7 @@ impl SearchTokenizer for Tokenizer {
                 original_term,
                 suffix_wildcard,
                 is_corrected,
-            });
+            })
         }
 
         SearchTokenizeResult {

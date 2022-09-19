@@ -4,13 +4,13 @@ use std::collections::HashSet;
 
 use rust_stemmers::{Algorithm, Stemmer};
 
-use morsels_common::{MorselsLanguageConfig, dictionary::Dictionary, tokenize::SearchTokenizeTerm};
+use morsels_common::{MorselsLanguageConfig, dictionary::Dictionary, tokenize::SearchTokenizeTerm, utils::split_incl::SplitIncl};
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::{IndexerTokenizer, TermIter};
 use morsels_common::tokenize::{SearchTokenizeResult, SearchTokenizer};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii_folding_filter;
-use morsels_lang_ascii::{ascii::ascii_and_nonword_filter, utils::split_terms, spelling};
+use morsels_lang_ascii::{utils as ascii_utils, spelling};
 #[cfg(feature = "indexer")]
 use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
 use morsels_lang_ascii::stop_words::get_stop_words;
@@ -85,7 +85,7 @@ impl IndexerTokenizer for Tokenizer {
         text.make_ascii_lowercase();
         let it = SENTENCE_SPLITTER.split(text)
             .flat_map(move |sent_slice| {
-                sent_slice.split(split_terms)
+                sent_slice.split(ascii_utils::split_terms)
                     .filter(|&s| !s.is_empty())
                     .map(|term_slice| term_filter(ascii_folding_filter::to_ascii(term_slice)))
                     .filter(move |term_slice| !(self.ignore_stop_words && self.stop_words.contains(term_slice.as_ref())))
@@ -114,42 +114,21 @@ impl SearchTokenizer for Tokenizer {
         let should_expand = !text.ends_with(' ');
 
         let mut terms = Vec::new();
-        let mut last_asterisk_idx = text.len() + 1;
-        let mut start = 0;
-        for (idx, c) in text.char_indices() {
-            let is_last = (idx + 1) == text.len();
-            let is_separator = split_terms(c);
-            if !(is_separator || is_last) {
-                continue;
-            } else if c == '*' {
-                last_asterisk_idx = idx;
-                if !is_last {
-                    continue;
-                }
-            }
+        let split: Vec<_> = SplitIncl::split(
+            &text,
+            ascii_utils::split_terms,
+        ).collect();
 
-            let suffix_wildcard = last_asterisk_idx == idx || (last_asterisk_idx + 1) == idx;
-            let end_idx = if is_separator {
-                if last_asterisk_idx + 1 == idx {
-                    last_asterisk_idx
-                } else {
-                    idx
-                }
-            } else {
-                idx + 1
-            };
-
-            let term_slice = &text[start..end_idx];
-            start = idx + 1;
-
-            if term_slice.is_empty() {
+        for (idx, s) in split.iter().enumerate() {
+            if s.is_empty() {
                 continue;
             }
+
+            let suffix_wildcard = (idx + 1 != split.len()) && split[idx + 1] == "*";
 
             let mut term_inflections = Vec::new();
 
-            let preprocessed = ascii_and_nonword_filter(&mut term_inflections, term_slice);
-
+            let preprocessed = ascii_utils::ascii_and_nonword_filter(&mut term_inflections, s, ascii_utils::term_filter);
             let stemmed = if let Cow::Owned(v) = self.stemmer.stem(&preprocessed) {
                 term_inflections.push(v.clone());
                 Cow::Owned(v)
@@ -197,7 +176,7 @@ impl SearchTokenizer for Tokenizer {
                 original_term,
                 suffix_wildcard,
                 is_corrected,
-            });
+            })
         }
 
         SearchTokenizeResult {

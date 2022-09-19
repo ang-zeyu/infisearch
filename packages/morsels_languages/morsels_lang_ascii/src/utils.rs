@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use crate::ascii_folding_filter;
+
 #[inline(always)]
 pub fn split_terms(c: char) -> bool {
     c.is_whitespace() || separating_filter(c)
@@ -194,6 +196,37 @@ pub fn term_filter(input: Cow<str>) -> Cow<str> {
         }
     } else {
         input
+    }
+}
+
+pub fn ascii_and_nonword_filter<'a, F: Fn(Cow<str>) -> Cow<str>>(
+    term_inflections: &mut Vec<String>,
+    term_slice: &'a str,
+    term_filter: F,
+) -> Cow<'a, str> {
+    term_inflections.push(term_slice.to_owned());
+
+    let mut ascii_replaced = ascii_folding_filter::to_ascii(term_slice);
+    if let Cow::Owned(ascii_replaced_inner) = ascii_replaced {
+        if !ascii_replaced_inner.is_empty() {
+            term_inflections.push(ascii_replaced_inner.clone());
+        }
+        ascii_replaced = Cow::Owned(ascii_replaced_inner);
+    }
+
+    if ascii_replaced.contains('\'') {
+        // Somewhat hardcoded fix for this common keyboard "issue"
+        term_inflections.push(ascii_replaced.replace('\'', "’"));
+    }
+
+    let term_filtered = term_filter(ascii_replaced);
+    if let Cow::Owned(inner) = term_filtered {
+        if !inner.trim().is_empty() {
+            term_inflections.push(inner.clone());
+        }
+        Cow::Owned(inner)
+    } else {
+        term_filtered
     }
 }
 
