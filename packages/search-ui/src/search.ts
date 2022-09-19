@@ -1,8 +1,7 @@
 import { Searcher } from '@morsels/search-lib';
-import loadQueryResults from './searchResultTransform';
 import { Options, UiMode, UiOptions } from './Options';
 import createElement, { LOADING_INDICATOR_ID, MISC_INFO_ID } from './utils/dom';
-import { InputState } from './utils/input';
+import { InputState, runNewQuery } from './utils/input';
 import { prepareOptions } from './search/options';
 import { setCombobox, setInputAria } from './utils/aria';
 import {
@@ -41,51 +40,6 @@ class InitState {
      - Do not wait for subsequent runs however -- should be able to "change queries" quickly
      */
     const inputState = new InputState();
-
-    async function runNewQuery(queryString: string): Promise<void> {
-      inputState._mrlIsRunningQuery = true;
-  
-      const newIndicatorElement = uiOptions.loadingIndicatorRender(
-        createElement, options, false, inputState._mrlIsResultsBlank,
-      );
-      inputState._mrlLoader.replaceWith(newIndicatorElement);
-      inputState._mrlLoader = newIndicatorElement;
-  
-      try {
-        // const now = performance.now();
-    
-        inputState.currQuery?.free();
-        inputState.currQuery = await searcher.getQuery(queryString);
-    
-        // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
-    
-        const resultsDisplayed = await loadQueryResults(
-          inputState, inputState.currQuery, searcher.cfg,
-          true,
-          listContainer,
-          options,
-        );
-        if (resultsDisplayed) {
-          inputState._mrlIsResultsBlank = false;
-        }
-    
-        root.scrollTo({ top: 0 });
-        listContainer.scrollTo({ top: 0 });
-      } catch (ex) {
-        listContainer.innerHTML = '';
-        listContainer.appendChild(uiOptions.errorRender(createElement, options));
-        throw ex;
-      } finally {
-        // Run the next queued query if there is one
-        if (inputState._mrlNextAction) {
-          const nextActionTemp = inputState._mrlNextAction;
-          inputState._mrlNextAction = undefined;
-          await nextActionTemp();
-        } else {
-          inputState._mrlIsRunningQuery = false;
-        }
-      }
-    }
   
     let setupOk = true;
     searcher.setupPromise
@@ -138,10 +92,11 @@ class InitState {
           }
 
           // Queue or immediately run the query
+          const action = () => runNewQuery(query, inputState, searcher, root, listContainer, options);
           if (inputState._mrlIsRunningQuery || !searcher.isSetupDone) {
-            inputState._mrlNextAction = () => runNewQuery(query);
+            inputState._mrlNextAction = action;
           } else {
-            runNewQuery(query);
+            action();
           }
         }, uiOptions.inputDebounce);
       } else {
@@ -175,8 +130,6 @@ class InitState {
 }
 
 const searchers: { [url: string]: Searcher } = {};
-
-
 
 function initMorsels(options: Options): {
   showFullscreen: () => void,
@@ -309,10 +262,10 @@ function initMorsels(options: Options): {
     }
     toggleUiMode();
 
-    let debounce;
+    let resizeDebounce;
     window.addEventListener('resize', () => {
-      clearTimeout(debounce);
-      debounce = setTimeout(toggleUiMode, 10);
+      clearTimeout(resizeDebounce);
+      resizeDebounce = setTimeout(toggleUiMode, 10);
     });
 
     dropdownRoot.addEventListener('focusout', () => {
@@ -361,7 +314,8 @@ function initMorsels(options: Options): {
   // Keyboard Events
 
   function keydownListener(ev: KeyboardEvent) {
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(ev.key)) {
+    const { key } = ev;
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(key)) {
       return;
     }
 
@@ -399,44 +353,43 @@ function initMorsels(options: Options): {
 
     const focusedItem = listContainer.querySelector('.focus');
     function focusEl(el: Element) {
-      if (focusedItem) {
-        focusedItem.classList.remove('focus');
-        focusedItem.removeAttribute('aria-selected');
-        focusedItem.removeAttribute('id');
-      }
-      if (el) {
+      if (el && !el.getAttribute(MISC_INFO_ID) && !el.getAttribute(LOADING_INDICATOR_ID)) {
+        if (focusedItem) {
+          focusedItem.classList.remove('focus');
+          focusedItem.removeAttribute('aria-selected');
+          focusedItem.removeAttribute('id');
+        }
+
         el.classList.add('focus');
         el.setAttribute('aria-selected', 'true');
         el.setAttribute('id', 'morsels-list-selected');
         scrollListContainer(el);
-      }
-    }
 
-    function focusOr(newItem: Element, newItem2: Element) {
-      if (newItem && !newItem.getAttribute(LOADING_INDICATOR_ID)) {
-        focusEl(newItem);
-      } else if (newItem2 && !newItem2.getAttribute(LOADING_INDICATOR_ID)) {
-        focusEl(newItem2);
+        return true;
       }
+
+      return false;
     }
 
     const firstItem = listContainer.querySelector(`[${MISC_INFO_ID}]`)?.nextElementSibling;
     const lastItem = listContainer.lastElementChild;
-    if (ev.key === 'ArrowDown') {
+    if (key === 'ArrowDown') {
       if (focusedItem) {
-        focusOr(focusedItem.nextElementSibling, null);
+        focusEl(focusedItem.nextElementSibling);
       } else {
         focusEl(firstItem);
       }
-    } else if (ev.key === 'ArrowUp') {
+    } else if (key === 'ArrowUp') {
       if (focusedItem) {
-        focusOr(focusedItem.previousElementSibling, null);
+        focusEl(focusedItem.previousElementSibling);
       }
-    } else if (ev.key === 'Home') {
+    } else if (key === 'Home') {
       focusEl(firstItem);
-    } else if (ev.key === 'End') {
-      focusOr(lastItem, lastItem?.previousElementSibling);
-    } else if (ev.key === 'Enter') {
+    } else if (key === 'End') {
+      if (!focusEl(lastItem)) {
+        focusEl(lastItem?.previousElementSibling);
+      }
+    } else if (key === 'Enter') {
       if (focusedItem) {
         const link = focusedItem.querySelector('a[href]');
         if (link) {
