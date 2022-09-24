@@ -16,27 +16,25 @@ impl Searcher {
         postings_lists: &mut Vec<PostingsList>,
     ) {
         for query_part in query_parts {
-            if let Some(terms) = &query_part.terms {
-                for term in terms {
-                    if postings_list::get_postings_list(term, postings_lists).is_some() {
-                        continue;
-                    }
-
-                    let mut idf = 0.0;
-                    let term_info = if let Some(term_info) = self.dictionary.get_term_info(term) {
-                        idf = get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
-                        Some(term_info.to_owned())
-                    } else {
-                        None
-                    };
-
-                    postings_lists.push(PostingsList {
-                        term_docs: Vec::new(),
-                        idf,
-                        term: Some(term.clone()),
-                        term_info,
-                    });
+            if let Some(term) = &query_part.term {
+                if postings_list::get_postings_list(term, postings_lists).is_some() {
+                    continue;
                 }
+
+                let mut idf = 0.0;
+                let term_info = if let Some(term_info) = self.dictionary.get_term_info(term) {
+                    idf = get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
+                    Some(term_info.to_owned())
+                } else {
+                    None
+                };
+
+                postings_lists.push(PostingsList {
+                    term_docs: Vec::new(),
+                    idf,
+                    term: Some(term.clone()),
+                    term_info,
+                });
             } else if let Some(children) = &mut query_part.children {
                 self.populate_term_postings_lists(children, postings_lists);
             }

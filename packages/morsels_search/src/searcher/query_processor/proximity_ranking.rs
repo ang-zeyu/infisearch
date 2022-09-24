@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, collections::BinaryHeap};
 
-use crate::{postings_list::PlIterator, utils};
+use crate::{postings_list::{PlIterator, Doc, Field}, utils};
 
 pub struct Position {
     pos: u32,
@@ -25,12 +25,15 @@ impl Ord for Position {
 
 impl PartialOrd for Position {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(other.pos.cmp(&self.pos))
+        Some(self.cmp(other))
     }
 }
 
 #[inline]
 pub fn rank<'a>(
+    is_phrase: bool,
+    max_window_len: u32,
+    num_scored_fields: usize,
     pl_its: &[PlIterator<'a>],
     pl_its_for_proximity_ranking: &mut Vec<*const PlIterator<'a>>,
     proximity_scaling: f32,
@@ -39,10 +42,12 @@ pub fn rank<'a>(
     total_proximity_ranking_terms: usize,
     min_proximity_ranking_terms: usize,
     scaling_factor: &mut f32,
-) {
-    const MAX_WINDOW_LEN: u32 = 200;
+) -> Option<Doc> {
     const MISSED_TERMS_PENALTY: usize = 4;  // penalty for gaps in terms
     const PROXIMITY_SATURATION: f32 = 4.0;  // how fast it flattens to 1.0
+
+    let mut min_window_len = std::u32::MAX;
+    let mut phrase_query_res: Option<Doc> = None;
 
     pl_its_for_proximity_ranking.extend(
         pl_its
@@ -50,6 +55,7 @@ pub fn rank<'a>(
             .filter_map(|pl_it| {
                 if let Some(prev_td) = pl_it.prev_td {
                     if pl_it.include_in_proximity_ranking
+                        && (!is_phrase || pl_it.is_mandatory)
                         && prev_td.doc_id == curr_doc_id {
                         return Some(pl_it as *const PlIterator);
                     }
@@ -69,7 +75,8 @@ pub fn rank<'a>(
 
         for (i, &pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
             let curr_fields = unsafe {
-                &(*pl_it).prev_td.as_ref().unwrap().fields
+                // prev_td unwrap_unchecked guaranteed by filter_map earlier
+                &(*pl_it).prev_td.as_ref().unwrap_unchecked().fields
             };
             for (j, curr_field) in curr_fields.iter().enumerate() {
                 if let Some(&pos) = curr_field.field_positions.first() {
@@ -84,18 +91,34 @@ pub fn rank<'a>(
         }
 
         let mut next_expected = std::usize::MAX;
-        let mut min_window_len = std::u32::MAX;
         let mut min_pos = std::u32::MAX;
+        let mut min_pl_it_field_idx = std::usize::MAX;
         let mut min_terms_missed = min_proximity_ranking_terms
             - (total_proximity_ranking_terms - num_pl_its_curr_doc);
         let mut terms_missed = 0;
         while let Some(mut top) = position_heap.pop() {
+            while let Some(t) = position_heap.peek() {
+                if top.pos == t.pos {
+                    let mut t = unsafe { position_heap.pop().unwrap_unchecked() };
+                    if t.pl_it_idx == next_expected {
+                        // Use the one that is supposed to fall exactly next,
+                        // if any, for phrase queries
+                        std::mem::swap(&mut t, &mut top);
+                    }
+
+                    forward_pos(pl_its_for_proximity_ranking, t, position_heap);
+                } else {
+                    break;
+                }
+            }
+
             if top.pl_it_idx < next_expected {
                 // (Re)start the match from this pl_it
                 min_pos = top.pos;
+                min_pl_it_field_idx = top.pl_it_field_idx;
                 terms_missed = top.pl_it_idx;
                 next_expected = top.pl_it_idx + 1;
-            } else if next_expected <= top.pl_it_idx {
+            } else {
                 // Continue the match
                 terms_missed += top.pl_it_idx - next_expected;
                 next_expected = top.pl_it_idx + 1;
@@ -110,28 +133,37 @@ pub fn rank<'a>(
                     // #[cfg(feature="perf")]
                     // web_sys::console::log_1(&format!("min window len {} {} {}", min_window_len, pos, min_pos).into());
                 }
-            } else {
-                // Restart the match
-                next_expected = std::usize::MAX;
+
+                if is_phrase && terms_missed == 0 && curr_window_len == max_window_len {
+                    if phrase_query_res.is_none() {
+                        phrase_query_res = Some(Doc {
+                            doc_id: curr_doc_id,
+                            fields: vec![
+                                Field {
+                                    field_tf: 0.0,
+                                    field_positions: Vec::new(),
+                                };
+                                num_scored_fields
+                            ],
+                            score: 0.0,
+                        })
+                    }
+
+                    let fields = &mut unsafe { phrase_query_res.as_mut().unwrap_unchecked() }.fields;
+                    let field = unsafe { fields.get_unchecked_mut(min_pl_it_field_idx) };
+                    field.field_positions.push(min_pos);
+                    field.field_tf += 1.0;
+                }
             }
 
-            // Update Position iterator
-            let doc_field = unsafe {
-                &(*pl_its_for_proximity_ranking[top.pl_it_idx]).prev_td.as_ref().unwrap().fields[top.pl_it_field_idx]
-            };
-
-            top.pl_it_field_position_idx += 1;
-            if let Some(&pos) = doc_field.field_positions.get(top.pl_it_field_position_idx) {
-                top.pos = pos;
-                position_heap.push(top);
-            }
+            forward_pos(pl_its_for_proximity_ranking, top, position_heap);
         }
 
-        if min_window_len < MAX_WINDOW_LEN {
+        if min_window_len <= max_window_len {
             // TODO make this non-linear? (caps off at certain degree)
             min_window_len *= 1 + (min_terms_missed * MISSED_TERMS_PENALTY) as u32;
 
-            if min_window_len < MAX_WINDOW_LEN {
+            if min_window_len <= max_window_len {
                 *scaling_factor = 1.0 + (
                     proximity_scaling
                     /
@@ -151,4 +183,26 @@ pub fn rank<'a>(
     }
 
     pl_its_for_proximity_ranking.clear();
+
+    return phrase_query_res;
+}
+
+fn forward_pos(
+    pl_its_for_proximity_ranking: &mut Vec<*const PlIterator>,
+    mut top: Position,
+    position_heap: &mut BinaryHeap<Position>,
+) {
+    let doc_field = unsafe {
+        // The get_unchecked's are guaranteed by the for loop initilisation
+        &(**pl_its_for_proximity_ranking.get_unchecked(top.pl_it_idx))
+            // guaranteed by filter_map earlier
+            .prev_td.as_ref().unwrap_unchecked()
+            .fields.get_unchecked(top.pl_it_field_idx)
+    };
+    // Update Position iterator
+    top.pl_it_field_position_idx += 1;
+    if let Some(&pos) = doc_field.field_positions.get(top.pl_it_field_position_idx) {
+        top.pos = pos;
+        position_heap.push(top);
+    }
 }

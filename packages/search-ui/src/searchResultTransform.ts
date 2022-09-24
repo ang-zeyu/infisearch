@@ -176,9 +176,7 @@ function getSearchedTerms(queryParts: QueryPart[], result: string[][], notContex
 
     if (queryPart.termsSearched) {
       if (currNotContext) {
-        for (const terms of queryPart.termsSearched) {
-          result.push(terms);
-        }
+        result.push([...queryPart.termsSearched]);
       }
     } else if (queryPart.children) {
       getSearchedTerms(

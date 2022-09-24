@@ -27,9 +27,9 @@ pub struct QueryPart {
     pub is_stop_word_removed: bool,
     pub auto_suffix_wildcard: bool,
     pub is_suffixed: bool,
-    pub original_terms: Option<Vec<String>>,
-    pub terms: Option<Vec<String>>,
-    pub terms_searched: Option<Vec<Vec<String>>>,
+    pub original_term: Option<String>,
+    pub term: Option<String>,
+    pub terms_searched: Option<Vec<String>>,
     pub part_type: QueryPartType,
     pub children: Option<Vec<QueryPart>>,
     pub weight: f32,
@@ -49,8 +49,8 @@ impl PartialEq for QueryPart {
             && self.auto_suffix_wildcard == other.auto_suffix_wildcard
             && self.suffix_wildcard == other.suffix_wildcard
             && self.is_suffixed == other.is_suffixed
-            && self.original_terms == other.original_terms
-            && self.terms == other.terms
+            && self.original_term == other.original_term
+            && self.term == other.term
             && self.terms_searched == other.terms_searched
             && self.part_type == other.part_type
             && self.field_name == other.field_name
@@ -98,16 +98,6 @@ pub fn serialize_string_vec(v: &Vec<String>) -> String {
     output
 }
 
-fn get_searched_terms(searched_terms: &Vec<Vec<String>>) -> String {
-    let mut output = "[".to_owned();
-    let wrapped: Vec<String> = searched_terms.iter().map(|term_group| {
-        serialize_string_vec(term_group)
-    }).collect();
-    output.push_str(wrapped.join(",").as_str());
-    output.push(']');
-    output
-}
-
 impl QueryPart {
     #[inline(never)]
     pub fn serialize_parts(parts: &Vec<QueryPart>) -> String {
@@ -130,23 +120,23 @@ impl QueryPart {
         serialize_bool("suffixWildcard", self.suffix_wildcard, &mut output);
         serialize_bool("isSuffixed", self.is_suffixed, &mut output);
 
-        output.push_str(r#""originalTerms":"#);
-        output.push_str(&if let Some(v) = &self.original_terms {
-            serialize_string_vec(v)
+        output.push_str(r#""originalTerm":"#);
+        output.push_str(&if let Some(v) = &self.original_term {
+            wrap_string(v)
         } else {
             get_null()
         });
 
-        output.push_str(r#","terms":"#);
-        output.push_str(&if let Some(v) = &self.terms {
-            serialize_string_vec(v)
+        output.push_str(r#","term":"#);
+        output.push_str(&if let Some(v) = &self.term {
+            wrap_string(v)
         } else {
             get_null()
         });
 
         output.push_str(r#","termsSearched":"#);
         output.push_str(&if let Some(v) = &self.terms_searched {
-            get_searched_terms(v)
+            serialize_string_vec(v)
         } else {
             get_null()
         });
@@ -186,8 +176,8 @@ impl QueryPart {
             auto_suffix_wildcard: false,
             suffix_wildcard: false,
             is_suffixed: false,
-            original_terms: None,
-            terms: None,
+            original_term: None,
+            term: None,
             terms_searched: None,
             part_type,
             field_name: None,
@@ -310,9 +300,9 @@ fn handle_terminator(
             auto_suffix_wildcard: tokenize_result.auto_suffix_wildcard,
             suffix_wildcard,
             is_corrected,
-            terms: term.map(|t| vec![t]),
-            original_terms: Some(vec![original_term]),
-            terms_searched: Some(vec![term_inflections]),
+            term,
+            original_term: Some(original_term),
+            terms_searched: Some(term_inflections),
             ..QueryPart::get_base(QueryPartType::Term)
         };
         set_prefix_ops(prefix_ops, &mut part);
@@ -362,30 +352,28 @@ pub fn parse_query(
                         dict,
                     );
 
-                    let mut terms = Vec::new();
-                    let mut terms_searched = Vec::new();
+                    let mut children = Vec::new();
 
-                    let mut is_corrected = false;
                     for SearchTokenizeTerm {
                         term,
                         term_inflections,
-                        original_term: _,
+                        is_corrected,
+                        original_term,
                         suffix_wildcard: _, // TODO unsupported for now
-                        is_corrected: is_term_corrected,
                         prefix_ops: _,
                     } in tokenize_result.terms {
-                        is_corrected = is_corrected || is_term_corrected;
-                        if let Some(term) = term {
-                            terms.push(term);
-                        }
-
-                        terms_searched.push(term_inflections);
+                        children.push(QueryPart {
+                            is_mandatory: term.is_some(),
+                            is_corrected,
+                            term,
+                            original_term: Some(original_term),
+                            terms_searched: Some(term_inflections),
+                            ..QueryPart::get_base(QueryPartType::Term)
+                        });
                     }
 
                     let mut phrase_part = QueryPart {
-                        terms: Some(terms),
-                        terms_searched: Some(terms_searched),
-                        is_corrected,
+                        children: Some(children),
                         ..QueryPart::get_base(QueryPartType::Phrase)
                     };
                     let prefix_ops = tokenize::get_prefix_ops(
@@ -554,19 +542,19 @@ pub mod test {
         }
 
         fn no_term(mut self) -> QueryPart {
-            if matches!(self.part_type, QueryPartType::Term) && self.terms.is_some() {
-                self.terms = None;
+            if matches!(self.part_type, QueryPartType::Term) && self.term.is_some() {
+                self.term = None;
                 self
             } else {
                 panic!("Tried to call no_term test function on non-term query part");
             }
         }
 
-        fn with_searched_terms(mut self, terms_searched: Vec<Vec<&str>>) -> QueryPart {
-            if self.terms.is_some() {
+        fn with_searched_terms(mut self, terms_searched: Vec<&str>) -> QueryPart {
+            if self.term.is_some() {
                 self.terms_searched = Some(
                     terms_searched.into_iter()
-                        .map(|inner_vec| inner_vec.into_iter().map(|s| s.to_owned()).collect())
+                        .map(|s| s.to_owned())
                         .collect()
                 );
                 self
@@ -575,9 +563,9 @@ pub mod test {
             }
         }
 
-        fn with_original_terms(mut self, original_terms: Vec<&str>) -> QueryPart {
-            if self.terms.is_some() {
-                self.original_terms = Some(original_terms.into_iter().map(|s| s.to_owned()).collect());
+        fn with_original_term(mut self, original_term: &str) -> QueryPart {
+            if self.term.is_some() {
+                self.original_term = Some(original_term.to_owned());
                 self
             } else {
                 panic!("Tried to call with_searched_terms test function on query part with no terms");
@@ -590,7 +578,7 @@ pub mod test {
         }
 
         fn with_suffix(mut self) -> QueryPart {
-            if matches!(self.part_type, QueryPartType::Term) && self.original_terms.is_some() {
+            if matches!(self.part_type, QueryPartType::Term) && self.original_term.is_some() {
                 self.suffix_wildcard = true;
                 self
             } else {
@@ -599,14 +587,11 @@ pub mod test {
         }
 
         fn with_corrected(mut self) -> QueryPart {
-            if (
-                matches!(self.part_type, QueryPartType::Term)
-                || matches!(self.part_type, QueryPartType::Phrase)
-            ) {
+            if matches!(self.part_type, QueryPartType::Term) {
                 self.is_corrected = true;
                 self
             } else {
-                panic!("Tried to call no_term test function on non-term/phrase query part");
+                panic!("Tried to call no_term test function on non-term query part");
             }
         }
     }
@@ -643,8 +628,8 @@ pub mod test {
             auto_suffix_wildcard: false,
             suffix_wildcard: false,
             is_suffixed: false,
-            original_terms: None,
-            terms: None,
+            original_term: None,
+            term: None,
             terms_searched: None,
             part_type: QueryPartType::Bracket,
             field_name: None,
@@ -663,9 +648,9 @@ pub mod test {
             auto_suffix_wildcard: true,
             suffix_wildcard: false,
             is_suffixed: false,
-            original_terms: Some(vec![term.to_owned()]),
-            terms: Some(vec![term.to_owned()]),
-            terms_searched: Some(vec![vec![term.to_owned()]]),
+            original_term: Some(term.to_owned()),
+            term: Some(term.to_owned()),
+            terms_searched: Some(vec![term.to_owned()]),
             part_type: QueryPartType::Term,
             field_name: None,
             children: None,
@@ -681,7 +666,11 @@ pub mod test {
         get_term("ipsum")
     }
 
-    fn get_phrase(terms: Vec<&str>) -> QueryPart {
+    fn get_phrase(mut children: Vec<QueryPart>) -> QueryPart {
+        for child in children.iter_mut() {
+            child.auto_suffix_wildcard = false;
+        }
+
         QueryPart {
             is_mandatory: false,
             is_subtracted: false,
@@ -691,12 +680,12 @@ pub mod test {
             auto_suffix_wildcard: false,
             suffix_wildcard: false,
             is_suffixed: false,
-            original_terms: None,
-            terms: Some(terms.iter().map(|&term| term.to_owned()).collect()),
-            terms_searched: Some(terms.iter().map(|&term| vec![term.to_owned()]).collect()),
+            original_term: None,
+            term: None,
+            terms_searched: None,
             part_type: QueryPartType::Phrase,
             field_name: None,
-            children: None,
+            children: Some(children),
             weight: 1.0,
         }
     }
@@ -889,42 +878,85 @@ pub mod test {
     fn phrase_test() {
         assert_eq!(parse_wo_pos("\"lorem ipsum\""), vec![get_term("lorem"), get_term("ipsum")]);
 
-        assert_eq!(parse("\"lorem ipsum\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
-        assert_eq!(parse("\"(lorem ipsum)\""), vec![get_phrase(vec!["lorem", "ipsum"])]);
-        assert_eq!(parse("lorem\"lorem ipsum\""), vec![get_lorem(), get_phrase(vec!["lorem", "ipsum"])]);
+        assert_eq!(parse("\"lorem ipsum\""), vec![
+            get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()]),
+        ]);
+        assert_eq!(
+            parse("\"(lorem ipsum)\""),
+            vec![get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()])],
+        );
+        assert_eq!(
+            parse("lorem\"lorem ipsum\""),
+            vec![get_lorem(), get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()])],
+        );
         assert_eq!(
             parse("\"lorem ipsum\"lorem\"lorem ipsum\""),
-            vec![get_phrase(vec!["lorem", "ipsum"]), get_lorem(), get_phrase(vec!["lorem", "ipsum"]),]
+            vec![
+                get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()]),
+                get_lorem(),
+                get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()]),
+            ]
         );
         assert_eq!(
             parse("\"lorem ipsum\" lorem \"lorem ipsum\""),
             vec![
-                get_phrase(vec!["lorem", "ipsum"]),
+                get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()]),
                 get_lorem().no_expand(),
-                get_phrase(vec!["lorem", "ipsum"]),
+                get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()]),
+            ]
+        );
+        assert_eq!(
+            parse("\"lore ipsum\""),
+            vec![
+                get_phrase(vec![
+                    get_lorem().mandatory()
+                        .with_corrected()
+                        .with_original_term("lore")
+                        .with_searched_terms(vec!["lore", "lorem"]),
+                    get_ipsum().mandatory(),
+                ]),
+            ],
+        );
+        assert_eq!(
+            parse("\"nonexistentterm lore ipsum\""),
+            vec![
+                get_phrase(vec![
+                    get_term("nonexistentterm").no_term(),
+                    get_lorem().mandatory()
+                        .with_corrected()
+                        .with_original_term("lore")
+                        .with_searched_terms(vec!["lore", "lorem"]),
+                    get_ipsum().mandatory(),
+                ]),
             ]
         );
         assert_eq!(
             parse_with_sw_removal("\"for by lorem and\""),
             vec![
-                get_phrase(vec!["lorem"]).with_searched_terms(vec![
-                    vec!["for"], vec!["by"], vec!["lorem"], vec!["and"],
-                ])
+                get_phrase(vec![
+                    get_term("for").no_term(),
+                    get_term("by").no_term(),
+                    get_lorem().mandatory(),
+                    get_term("and").no_term(),
+                ]),
             ]
         );
         assert_eq!(
             parse_with_sw_removal("\"l'orem for by ipsum and\""),
             vec![
-                get_phrase(vec!["lorem", "ipsum"]).with_searched_terms(vec![
-                    vec!["l'orem", "l’orem", "lorem"], vec!["for"], vec!["by"],
-                    vec!["ipsum"], vec!["and"],
-                ])
+                get_phrase(vec![
+                    get_lorem().mandatory().with_searched_terms(vec!["l'orem", "l’orem", "lorem"]),
+                    get_term("for").no_term(),
+                    get_term("by").no_term(),
+                    get_ipsum().mandatory(),
+                    get_term("and").no_term(),
+                ]),
             ]
         );
         assert_eq!(
             parse_with_sw_removal("\"lorem ipsum\""),
             vec![
-                get_phrase(vec!["lorem", "ipsum"]),
+                get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()]),
             ]
         );
     }
@@ -1105,22 +1137,26 @@ pub mod test {
         assert_eq!(parse("lore"), vec![
             get_lorem()
                 .with_corrected()
-                .with_original_terms(vec!["lore"])
-                .with_searched_terms(vec![vec!["lore", "lorem"]]),
+                .with_original_term("lore")
+                .with_searched_terms(vec!["lore", "lorem"]),
         ]);
         assert_eq!(parse("+lore +ipsum"), vec![
             get_lorem()
                 .with_corrected()
-                .with_original_terms(vec!["lore"])
-                .with_searched_terms(vec![vec!["lore", "lorem"]])
+                .with_original_term("lore")
+                .with_searched_terms(vec!["lore", "lorem"])
                 .mandatory(),
             get_ipsum().mandatory(),
         ]);
         assert_eq!(parse("+\"lore ipsum\" +ipsum"), vec![
-            get_phrase(vec!["lorem", "ipsum"])
-                .with_corrected()
-                .with_searched_terms(vec![vec!["lore", "lorem"], vec!["ipsum"]])
-                .mandatory(),
+            get_phrase(vec![
+                get_lorem()
+                    .mandatory()
+                    .with_corrected()
+                    .with_original_term("lore")
+                    .with_searched_terms(vec!["lore", "lorem"]),
+                get_ipsum().mandatory(),
+            ]).mandatory(),
             get_ipsum().mandatory(),
         ]);
     }
@@ -1130,7 +1166,9 @@ pub mod test {
         assert_eq!(
             parse("title: \"lorem ipsum\""),
             vec![
-                get_phrase(vec!["lorem", "ipsum"]).with_field("title")
+                get_phrase(vec![
+                    get_lorem().mandatory(), get_ipsum().mandatory(),
+                ]).with_field("title")
             ]
         );
 
@@ -1170,9 +1208,15 @@ pub mod test {
         assert_eq!(
             parse("title:\"+lorem +ipsum\" ~title:(\"lorem ipsum\") body:(lorem ~ipsum)"),
             vec![
-                get_phrase(vec!["lorem", "ipsum"]).with_field("title"),
-                wrap_in_parentheses(vec![get_phrase(vec!["lorem", "ipsum"])]).with_field("title").negated(),
-                wrap_in_parentheses(vec![get_lorem(), get_ipsum().negated()]).with_field("body")
+                get_phrase(
+                    vec![get_lorem().mandatory(), get_ipsum().mandatory()],
+                ).with_field("title"),
+                wrap_in_parentheses(
+                    vec![get_phrase(vec![get_lorem().mandatory(), get_ipsum().mandatory()])],
+                ).with_field("title").negated(),
+                wrap_in_parentheses(
+                    vec![get_lorem(), get_ipsum().negated()],
+                ).with_field("body")
             ]
         );
 
@@ -1188,7 +1232,7 @@ pub mod test {
                 ]).with_field("title"),
                 wrap_in_parentheses(vec![
                     wrap_in_parentheses(vec![
-                        get_phrase(vec!["lorem"]).with_field("body"),
+                        get_phrase(vec![get_lorem().mandatory()]).with_field("body"),
                     ]),
                     get_ipsum(),
                 ]).with_field("title").subtracted(),

@@ -13,11 +13,9 @@ impl Searcher {
     pub fn remove_free_text_sw(&self, query_parts: &mut Vec<QueryPart>) {
         let mut idf_sum = 0.0;
         for query_part in query_parts.iter() {
-            if let Some(terms) = &query_part.terms {
-                for term in terms {
-                    if let Some(term_info) = self.dictionary.get_term_info(term) {
-                        idf_sum += idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
-                    }
+            if let Some(term) = &query_part.term {
+                if let Some(term_info) = self.dictionary.get_term_info(term) {
+                    idf_sum += idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
                 }
             }
         }
@@ -36,17 +34,13 @@ impl Searcher {
         };
 
         for query_part in query_parts {
-            if let Some(terms) = &mut query_part.terms {
-                debug_assert!(terms.len() <= 1);
-
-                if let Some(term) = terms.first() {
-                    if self.tokenizer.is_stop_word(term) {
-                        if let Some(term_info) = self.dictionary.get_term_info(term) {
-                            let sw_idf = idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
-                            if sw_idf * min_idf_proportion < idf_sum {
-                                query_part.is_stop_word_removed = true;
-                                terms.pop();
-                            }
+            if let Some(term) = &mut query_part.term {
+                if self.tokenizer.is_stop_word(term) {
+                    if let Some(term_info) = self.dictionary.get_term_info(term) {
+                        let sw_idf = idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
+                        if sw_idf * min_idf_proportion < idf_sum {
+                            query_part.is_stop_word_removed = true;
+                            query_part.term = None;
                         }
                     }
                 }
@@ -56,8 +50,8 @@ impl Searcher {
 
     fn is_term_used(term: &str, query_parts: &Vec<QueryPart>) -> bool {
         for query_part in query_parts {
-            if let Some(terms) = &query_part.terms {
-                if terms.iter().any(|t| t == term) {
+            if let Some(t) = &query_part.term {
+                if t == term {
                     return true;
                 }
             } else if let Some(children) = &query_part.children {
@@ -133,7 +127,7 @@ impl Searcher {
         query_part: &mut QueryPart,
         max_suffix_search_terms: usize,
     ) -> (Vec<(String, f32)>, QueryPart) {
-        let term_to_expand = query_part.original_terms.as_ref().unwrap().first().unwrap();
+        let term_to_expand = query_part.original_term.as_ref().unwrap();
 
         let term_to_expand_char_count = term_to_expand.chars().count();
         let expanded_terms = self.dictionary.get_prefix_terms(
@@ -158,7 +152,7 @@ impl Searcher {
             query_part.is_suffixed = true;
             if query_part.is_corrected {
                 // Delete the corrected term; Expanded terms would be a better match
-                query_part.terms = None;
+                query_part.term = None;
                 query_part.terms_searched = None;
                 query_part.is_corrected = false;
             }
@@ -196,8 +190,8 @@ impl Searcher {
             if !Self::is_term_used(&term, query_parts) {
                 wrapper_part_children.push(QueryPart {
                     is_suffixed: true,
-                    terms: Some(vec![term.clone()]),
-                    terms_searched: Some(vec![vec![term.clone()]]),
+                    term: Some(term.to_owned()),
+                    terms_searched: Some(vec![term.to_owned()]),
                     weight: if use_old_weight { old_weight } else { weight },
                     ..QueryPart::get_base(QueryPartType::Term)
                 });
@@ -210,7 +204,7 @@ impl Searcher {
 
 fn is_expand_candidate(query_part: &QueryPart) -> bool {
     matches!(query_part.part_type, QueryPartType::Term)
-        && query_part.original_terms.is_some()
+        && query_part.original_term.is_some()
         // don't further expand query parts that were already from expansion
         && !query_part.is_suffixed
 }

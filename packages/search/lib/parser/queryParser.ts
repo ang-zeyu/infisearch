@@ -13,10 +13,10 @@ export interface QueryPart {
   autoSuffixWildcard: boolean;
   suffixWildcard: boolean;
   isSuffixed: boolean;
-  originalTerms?: string[];
+  originalTerm?: string;
   partType: QueryPartType;
-  terms?: string[];
-  termsSearched?: string[][];
+  term?: string;
+  termsSearched?: string[];
   children?: QueryPart[];
   weight?: number;
 }
