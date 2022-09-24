@@ -10,7 +10,6 @@ use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc, PlAndInfo
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
-use crate::utils;
 
 use super::query::DocResult;
 
@@ -48,9 +47,7 @@ impl Searcher {
 
         let mut sorted_pl_its: Vec<PlIterator> = child_postings_lists
             .iter()
-            .enumerate()
-            .map(|(idx, pl_and_info)| pl_and_info.pl.iter(
-                idx as u8,
+            .map(|pl_and_info| pl_and_info.pl.iter(
                 pl_and_info.weight,
                 pl_and_info.include_in_proximity_ranking,
                 pl_and_info.is_mandatory,
@@ -79,49 +76,52 @@ impl Searcher {
             MAX_WINDOW_LEN
         };
 
-        let total_proximity_ranking_terms = child_postings_lists.iter()
+        let total_proximity_ranking_pls = child_postings_lists.iter()
             .filter(|pl_and_info| pl_and_info.include_in_proximity_ranking && (!is_phrase || pl_and_info.is_mandatory))
             .count();
-        let min_proximity_ranking_terms = ((total_proximity_ranking_terms as f32 / 2.0).ceil() as usize).max(2);
-        let proximity_scaling = PROXIMITY_BASE_SCALING
-            + (total_proximity_ranking_terms as f32 * PROXIMITY_PER_TERM_SCALING);
+        let min_proximity_ranking_pls = if is_phrase {
+            total_proximity_ranking_pls
+        } else {
+            (total_proximity_ranking_pls as f32 / 2.0).ceil() as usize
+        }.max(2);
 
-        let mut pl_its_for_proximity_ranking: Vec<*const PlIterator> = Vec::with_capacity(sorted_pl_its.len());
+        let proximity_scaling = PROXIMITY_BASE_SCALING
+            + (total_proximity_ranking_pls as f32 * PROXIMITY_PER_TERM_SCALING);
+
         let mut position_heap = BinaryHeap::with_capacity(
-            total_proximity_ranking_terms as usize * self.searcher_config.num_scored_fields,
+            total_proximity_ranking_pls * self.searcher_config.num_scored_fields,
         );
+
+        let do_run_proximity = self.searcher_config.searcher_options.use_query_term_proximity || is_phrase;
         // ------------------------------------------
 
-        let do_accumulate = is_bracket || (is_phrase && total_proximity_ranking_terms == 1);
+        let do_accumulate = is_bracket || (is_phrase && total_proximity_ranking_pls == 1);
 
         loop {
-            utils::insertion_sort(&mut sorted_pl_its, |a, b| a.lt(b));
-
             let doc_id = if num_mandatory_pls > 0 {
                 // Find the largest mandatory id for forwarding other postings lists
-                let id = sorted_pl_its
-                    .iter()
-                    .rev()
-                    .find_map(|pl_it| if pl_it.is_mandatory {
-                        if let Some(td) = pl_it.td {
-                            Some(td.doc_id)
+                let id = unsafe {
+                    sorted_pl_its
+                        .iter()
+                        .filter_map(|pl_it| if pl_it.is_mandatory {
+                            Some(pl_it.td.map(|td| td.doc_id).unwrap_or(std::u32::MAX))
                         } else {
-                            // An exhausted, mandatory postings list
                             None
-                        }
-                    } else {
-                        None
-                    });
+                        })
+                        .max()
+                        .unwrap_unchecked() // guaranteed by num_mandatory_pls > 0
+                };
 
-                if let Some(id) = id {
+                if id < std::u32::MAX {
                     id
                 } else {
                     break;
                 }
-            } else if let Some(first_id) = unsafe {
-                // guaranteed by .is_empty() check
-                sorted_pl_its.get_unchecked(0)
-            }.td.map(|td| td.doc_id) {
+            } else if let Some(first_id) = sorted_pl_its
+                .iter()
+                .filter_map(|pl_it| pl_it.td.map(|doc| doc.doc_id))
+                .min()
+            {
                 first_id
             } else {
                 break;
@@ -129,6 +129,7 @@ impl Searcher {
 
             let mut score = 0.0;
             let mut num_mandatory_pls_matched = 0;
+            let mut num_proximity_ranking_pls = 0;
             let mut is_subtracted = false;
 
             let mut acc = Doc { doc_id, fields: Vec::new(), score: 0.0 };
@@ -149,6 +150,11 @@ impl Searcher {
                                 num_mandatory_pls_matched += 1;
                             }
 
+                            if pl_it.include_in_proximity_ranking
+                                && (!is_phrase || pl_it.is_mandatory) {
+                                num_proximity_ranking_pls += 1;
+                            }
+
                             if do_accumulate {
                                 // Skip merging positions, term frequencies for non top-level postings lists
                                 acc = PostingsList::merge_term_docs(td, &acc);
@@ -166,22 +172,21 @@ impl Searcher {
             // Query term proximity ranking
 
             let mut positional_scaling_factor = 1.0;
-            if self.searcher_config.searcher_options.use_query_term_proximity || is_phrase {
+            if do_run_proximity && num_proximity_ranking_pls >= min_proximity_ranking_pls {
                 let phrase_query_res = proximity_ranking::rank(
                     is_phrase,
                     max_window_len,
                     self.searcher_config.num_scored_fields,
                     &sorted_pl_its,
-                    &mut pl_its_for_proximity_ranking,
                     proximity_scaling,
                     &mut position_heap,
                     doc_id,
-                    total_proximity_ranking_terms,
-                    min_proximity_ranking_terms,
+                    total_proximity_ranking_pls,
+                    min_proximity_ranking_pls,
                     &mut positional_scaling_factor,
                 );
 
-                if is_phrase && total_proximity_ranking_terms > 1 {
+                if is_phrase {
                     if let Some(mut doc) = phrase_query_res {
                         doc.score = score * positional_scaling_factor;
                         new_pl.term_docs.push(doc);
@@ -415,6 +420,16 @@ mod test {
 
     #[test]
     fn test_phrasal_queries() {
+        assert_eq!(
+            search(
+                "\" \"",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[3,[1,12,31]]]")
+                    .get_rc_wrapped()
+            ),
+            to_pl_rc(""),
+        );
+
         assert_eq!(
             search(
                 "\"lorem\"",
@@ -725,6 +740,40 @@ mod test {
                     .get_rc_wrapped()
             ),
             to_pl_rc(""),
+        );
+
+        // Different documents
+        assert_eq!(
+            search(
+                "+lorem +ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "null,      [[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]], [[1,[1]]]")
+                    .get_rc_wrapped()
+            ),
+            to_pl_rc("null, [[2,[1]]]"),
+        );
+
+        assert_eq!(
+            search(
+                "+lorem +ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[1,[1]]], [[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]]")
+                    .get_rc_wrapped()
+            ),
+            to_pl_rc("[[2,[1]]]"),
+        );
+
+        assert_eq!(
+            search(
+                "+lorem ipsum",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[1,[1]]], null,     [[1,[1]]]")
+                    .with("ipsum", "[[1,[1]]], [[1,[1]]]")
+                    .get_rc_wrapped()
+            ),
+            to_pl_rc("[[2,[1]]], null,     [[1,[1]]]"),
         );
 
         // Different fields still match

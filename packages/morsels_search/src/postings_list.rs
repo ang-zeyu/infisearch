@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::rc::Rc;
 
 use morsels_common::dictionary::TermInfo;
@@ -85,7 +84,6 @@ pub struct PlIterator<'a> {
     pub td: Option<&'a Doc>,
     pub pl: &'a PostingsList,
     idx: usize,
-    pub original_idx: u8,
     pub weight: f32,
     pub include_in_proximity_ranking: bool,
     pub is_mandatory: bool,
@@ -99,38 +97,6 @@ impl<'a> PlIterator<'a> {
         self.prev_td = self.td;
         self.td = self.pl.term_docs.get(self.idx);
         self.td
-    }
-}
-
-// Order by term, then block number
-impl<'a> Eq for PlIterator<'a> {}
-
-impl<'a> PartialEq for PlIterator<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        self.idx == other.idx
-    }
-}
-
-impl<'a> Ord for PlIterator<'a> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        if let Some(td) = self.td {
-            if let Some(other_td) = other.td {
-                td.doc_id.cmp(&other_td.doc_id)
-            } else {
-                // Orders None values at the back when sorted in a Vec
-                Ordering::Less
-            }
-        } else if other.td.is_some() {
-            Ordering::Greater
-        } else {
-            Ordering::Equal
-        }
-    }
-}
-
-impl<'a> PartialOrd for PlIterator<'a> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }
 
@@ -171,7 +137,6 @@ impl std::fmt::Debug for PostingsList {
 impl PostingsList {
     pub fn iter(
         &self,
-        original_idx: u8,
         weight: f32,
         include_in_proximity_ranking: bool,
         is_mandatory: bool,
@@ -183,7 +148,6 @@ impl PostingsList {
             td: self.term_docs.get(0),
             pl: &self,
             idx: 0,
-            original_idx,
             weight,
             include_in_proximity_ranking,
             is_mandatory,
