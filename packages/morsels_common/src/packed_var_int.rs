@@ -71,12 +71,14 @@ pub fn read_bits_from(bit_pos: &mut usize, mut bit_len: usize, buf: &[u8]) -> u3
 
         let shift = (bit_len - bits_this_byte) as u32;
 
+        debug_assert!(byte_number < buf.len());
+
         if bits_this_byte == 8 {
-            v += (buf[byte_number] as u32) << shift;
+            v += (unsafe { *buf.get_unchecked(byte_number) } as u32) << shift;
         } else {
             let mask = (1_u8 << bits_this_byte) - 1;
             v += (
-                ((buf[byte_number] >> (bit_offset_from_end - bits_this_byte)) & mask) as u32
+                ((unsafe { *buf.get_unchecked(byte_number) } >> (bit_offset_from_end - bits_this_byte)) & mask) as u32
             ) << shift;
         }
 

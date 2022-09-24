@@ -53,12 +53,18 @@ impl<'a> Iterator for DictionaryConstructor<'a> {
         let prefix_len = self.table_rdr.read_type(2) as usize;
         let remaining_len = self.table_rdr.read_type(3) as usize;
 
-        let term = String::from(&self.prev_term[..prefix_len])
-            + unsafe {
-                std::str::from_utf8_unchecked(
-                    &self.string_vec[self.dict_string_pos..self.dict_string_pos + remaining_len],
+        debug_assert!(
+            prefix_len <= self.prev_term.len()
+            && self.dict_string_pos <= self.string_vec.len()
+            && (self.dict_string_pos + remaining_len) <= self.string_vec.len()
+        );
+
+        let term = unsafe {
+            String::from(self.prev_term.get_unchecked(..prefix_len))
+                + std::str::from_utf8_unchecked(
+                    self.string_vec.get_unchecked(self.dict_string_pos..self.dict_string_pos + remaining_len),
                 )
-            };
+        };
         self.dict_string_pos += remaining_len;
 
         let term_info: &'static TermInfo = Box::leak(Box::new(TermInfo {

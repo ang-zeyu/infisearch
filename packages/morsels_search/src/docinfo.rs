@@ -37,6 +37,10 @@ impl DocInfo {
 
     #[inline(always)]
     pub fn get_doc_length_factor(&self, doc_id: usize, field_id: usize) -> f32 {
-        self.doc_length_factors[(doc_id * self.num_fields) + field_id] as f32
+        debug_assert!(((doc_id * self.num_fields) + field_id) < self.doc_length_factors.len());
+
+        (unsafe {
+            *self.doc_length_factors.get_unchecked((doc_id * self.num_fields) + field_id)
+        }) as f32
     }
 }

@@ -223,7 +223,9 @@ impl PostingsList {
 
             let mut is_last: u8 = 0;
             while is_last == 0 {
-                let next_int = pl_vec[pos];
+                debug_assert!(pos < pl_vec.len());
+
+                let next_int = unsafe { *pl_vec.get_unchecked(pos) };
                 pos += 1;
 
                 is_last = next_int & LAST_FIELD_MASK;
@@ -246,7 +248,9 @@ impl PostingsList {
                         let num_chunks = (field_tf / CHUNK_SIZE)
                             + if field_tf % CHUNK_SIZE == 0 { 0 } else { 1 };
 
-                        let slice_starting_here = &pl_vec[pos..];
+                        debug_assert!(pos <= pl_vec.len());
+
+                        let slice_starting_here = unsafe { pl_vec.get_unchecked(pos..) };
                         let mut prev_pos = 0;
                         let mut read = 0;
                         for _chunk in 0..num_chunks {

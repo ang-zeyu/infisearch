@@ -20,7 +20,8 @@ impl Searcher {
 
         for (field_id, field) in td.fields.iter().enumerate() {
             if field.field_tf > 0.0 {
-                let field_info = self.searcher_config.field_infos.get(field_id).unwrap();
+                debug_assert!(field_id < self.searcher_config.num_scored_fields);
+                let field_info = unsafe { self.searcher_config.field_infos.get_unchecked(field_id) };
                 let field_len_factor = self.doc_info.get_doc_length_factor(doc_id as usize, field_id as usize);
 
                 let field_score = ((field.field_tf * (field_info.k + 1.0))
