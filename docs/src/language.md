@@ -100,9 +100,9 @@ You are highly recommended to keep positions indexed and query term proximity ra
 
 ## Stop Words
 
-All tokenizers support keeping or removing (default) stop words using the `ignore_stop_words` option.
+All tokenizers support keeping (default) or removing stop words using the `ignore_stop_words` option.
 
 Keeping them enables the following:
 - Processing phrase queries such as `"for tomorrow"` accurately; Stop words would be removed automatically from such queries.
 - Boolean queries of stop words (e.g. `if AND forecast AND sunny`)
-- More accurate ranking for free text queries, which prunes stop words only when their impact is small (far from always the case!). 
+- More accurate ranking for free text queries, which uses stop words in term proximity ranking, and removes them only when their impact is small.

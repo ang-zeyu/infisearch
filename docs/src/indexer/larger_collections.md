@@ -24,7 +24,7 @@ Specify the `preset` key in your configuration file to change this.
 | Preset              | Description |
 | -----------         | ----------- |
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
-| `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only required field stores are retrieved for generating result previews. Positions are not indexed.
+| `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only required field stores are retrieved for generating result previews. Positions are not indexed, and stop words are removed.
 | `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](../language.md#stop-words). This is the preset used in the demo [here](https://morsels-search.com)!
 | `medium_source`     | Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation. Positions are not indexed.
 | `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps [stop words](../language.md#stop-words).
@@ -32,7 +32,7 @@ Specify the `preset` key in your configuration file to change this.
 #### Notes
 
 - The 2 `large` presets do not remove stop words by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
-- The 2 `medium` presets do not index positions by default. Since positions take up a considerable proportion of the index size and a *sizeable* (at least, more so than `small`) monolithic index is assumed to be generated. The downside is that term proximity ranking and phrase queries will not be available.
+- The 2 `medium` presets do not index positions and stop words by default. These take up a considerable proportion of the index size and a *sizeable* (at least, more so than `small`) monolithic index is assumed to be generated. The downside is that term proximity ranking and phrase queries will not be available.
 - Note that scaling this tool for larger collections dosen't come freely, and necessitates fragmenting the index and/or field stores, **retrieving only what's needed**. This means extra network requests, but to a reasonable degree.
 
   This tool should be able to handle `800MB` (not counting things like HTML tags) collections with the full set of features enabled in the `large` preset.

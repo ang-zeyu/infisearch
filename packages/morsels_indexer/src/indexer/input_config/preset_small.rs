@@ -14,6 +14,6 @@ pub fn apply_config(config: &mut MorselsConfig, json_config: &Value) {
         0,
         true,
         true,
-        true
+        false
     );
 }
