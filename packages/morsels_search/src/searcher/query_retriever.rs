@@ -100,12 +100,12 @@ impl Searcher {
                 })
         ).await;
 
-        for (pls, pl_name, raw_pl) in parsed_postings_lists {
-            if let Some(to_cache) = raw_pl {
-                self.postings_list_cache.add(pl_name, to_cache);
+        for result in parsed_postings_lists {
+            if let Some(raw_pl_to_cache) = result.raw_pl_to_cache {
+                self.postings_list_cache.add(result.pl_num, raw_pl_to_cache);
             }
 
-            postings_lists.extend(pls);
+            postings_lists.extend(result.postings_lists);
         }
 
         postings_lists.into_iter().map(Rc::new).collect()
@@ -116,23 +116,23 @@ impl Searcher {
     /// Then populates them in `parse_pl`.
     async fn fetch_pl_into_vec(
         &self,
-        pl_name: u32,
+        pl_num: u32,
         mut postings_lists: Vec<PostingsList>
-    ) -> (Vec<PostingsList>, u32, Option<Vec<u8>>) {
-        let mut retrieved = None;
+    ) -> FetchPlResult {
+        let mut raw_pl_to_cache = None;
 
-        let pl_vec = if let Some(cached) = self.postings_list_cache.get(pl_name) {
+        let pl_vec = if let Some(cached) = self.postings_list_cache.get(pl_num) {
             cached
         } else {
             let pl_array_buffer = fetchPl(
-                pl_name,
+                pl_num,
                 self.searcher_config.indexing_config.num_pls_per_dir,
                 &self.searcher_config.searcher_options.url,
                 self.searcher_config.searcher_options.pl_lazy_cache_threshold,
             ).await;
-            retrieved = Some(js_sys::Uint8Array::new(&pl_array_buffer).to_vec());
+            raw_pl_to_cache = Some(js_sys::Uint8Array::new(&pl_array_buffer).to_vec());
 
-            unsafe { retrieved.as_ref().unwrap_unchecked() }
+            unsafe { raw_pl_to_cache.as_ref().unwrap_unchecked() }
         } ;
     
         for pl in postings_lists.iter_mut() {
@@ -145,8 +145,18 @@ impl Searcher {
             );
         }
     
-        (postings_lists, pl_name, retrieved)
+        FetchPlResult {
+            postings_lists,
+            pl_num,
+            raw_pl_to_cache,
+        }
     }
+}
+
+struct FetchPlResult {
+    postings_lists: Vec<PostingsList>,
+    pl_num: u32,
+    raw_pl_to_cache: Option<Vec<u8>>,
 }
 
 #[wasm_bindgen(module = "/src/searcher/fetchPl.js")]
