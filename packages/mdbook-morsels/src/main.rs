@@ -4,7 +4,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use anyhow::Error;
 use clap::App;
@@ -23,6 +23,8 @@ use serde_json::{Value as JsonValue, json};
 const SEARCH_UI_DIST: Dir = include_dir!("$CARGO_MANIFEST_DIR/search-ui-dist");
 
 const DEFAULT_CONFIG: &'static str = include_str!("../default_morsels_config.json");
+
+const CONFIG_KEY: &'static str = "output.morsels.config";
 
 const MARK_MIN_JS: &[u8] = include_bytes!("../mark.min.js");
 
@@ -58,20 +60,37 @@ fn main() {
         mark_js.write_all(MARK_MIN_JS).expect("mdbook-morsels: Failed to copy search-ui asset (mark.min.js)!");
         // ---------------------------------
 
-        let morsels_config_path = get_config_file_path(&ctx.root, ctx.config.get("output.morsels.config"));
-
         let mut command = Command::new("morsels");
         command
             .current_dir(html_renderer_path)
-            .args(&["./", "./morsels_output"])
-            .arg("-c")
-            .arg(morsels_config_path);
+            .args(&["./", "./morsels_output"]);
 
         if let Some(_livereload_url) = ctx.config.get("output.html.livereload-url") {
             command.arg("--incremental");
         }
 
-        let output = command.output().expect("mdbook-morsels: failed to execute indexer process");
+        command.stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .arg("--config-stdin");
+        let temporary_config_path = get_temp_config_file_path(&ctx.root);
+        let temporary_config = if let Ok(config) = std::fs::read_to_string(&temporary_config_path) {
+            std::fs::remove_file(&temporary_config_path).expect("Failed to delete temp config file");
+            config
+        } else {
+            if let Ok(_) = std::fs::remove_file(&temporary_config_path) {}
+            panic!("Failed to read temporary config file back in renderer")
+        };
+
+        let mut child_process = command.spawn()
+            .expect("mdbook-morsels: failed to spawn indexer process");
+
+        let stdin = child_process.stdin.as_mut().unwrap();
+        stdin.write_all(temporary_config.as_bytes()).unwrap();
+        drop(stdin);
+
+        let output = child_process.wait_with_output()
+            .expect("mdbook-morsels: failed to execute indexer process");
+        
         let mut log_file = File::create(ctx.destination.join(Path::new("morsels_indexer_log.txt"))).unwrap();
         log_file.write_all("\n".as_bytes()).unwrap();
         log_file.write_all(&output.stdout).unwrap();
@@ -99,34 +118,36 @@ fn main() {
 }
 
 
-fn setup_config_file(ctx: &PreprocessorContext) -> PathBuf {
-    let morsels_config_path = get_config_file_path(&ctx.root, ctx.config.get("output.morsels.config"));
+fn setup_config_file(ctx: &PreprocessorContext) -> String {
+    if let Some(morsels_config_path) = get_config_file_path(&ctx.root, ctx.config.get(CONFIG_KEY)) {
+        if !morsels_config_path.exists() || !morsels_config_path.is_file() {
+            fs::write(&morsels_config_path, DEFAULT_CONFIG).expect("Failed to write default morsels configuration");
+        }
 
-    if !morsels_config_path.exists() || !morsels_config_path.is_file() {
-        fs::write(&morsels_config_path, DEFAULT_CONFIG).expect("Failed to write default morsels configuration");
+        std::fs::read_to_string(&morsels_config_path).expect("invalid morsels configuration file")
+    } else {
+        String::from(DEFAULT_CONFIG)
     }
-
-    morsels_config_path
 }
 
-
-fn setup_config_scaling(morsels_config_path: &Path, ctx: &PreprocessorContext, total_len: u64) {
+fn setup_config_scaling(config: String, ctx: &PreprocessorContext, total_len: u64) -> String {
     let scaling_config = ctx.config.get("output.morsels.scaling");
     let do_scale = scaling_config.is_none()
         || (scaling_config.unwrap().is_bool() && scaling_config.unwrap().as_bool().unwrap());
+
     if do_scale  {
         auto_scale_config(
-            &morsels_config_path,
+            &config,
             total_len,
             ctx.config.get("debug").unwrap_or(&Value::Boolean(false)).as_bool().unwrap_or(false),
-        );
+        )
+    } else {
+        config
     }
 }
 
-
-fn auto_scale_config(morsels_config_path: &Path, total_len: u64, debug: bool) {
-    let config = fs::read_to_string(morsels_config_path).unwrap();
-    let mut config_as_value: JsonValue = serde_json::from_str(&config)
+fn auto_scale_config(config: &str, total_len: u64, debug: bool) -> String {
+    let mut config_as_value: JsonValue = serde_json::from_str(config)
         .expect("unexpected error parsing search config file");
 
     if debug {
@@ -149,19 +170,20 @@ fn auto_scale_config(morsels_config_path: &Path, total_len: u64, debug: bool) {
     };
     config_as_value.as_object_mut().unwrap().insert("preset".to_owned(), json!(preset));
 
-    fs::write(
-        &morsels_config_path,
-        serde_json::to_string_pretty(&config_as_value).unwrap(),
-    )
-    .unwrap();
+    serde_json::to_string_pretty(&config_as_value)
+        .expect("auto scaling serialization should not fail")
 }
 
-fn get_config_file_path(root: &Path, config: Option<&Value>) -> std::path::PathBuf {
+fn get_config_file_path(root: &Path, config: Option<&Value>) -> Option<PathBuf> {
     if let Some(TomlString(morsels_config_file_path)) = config {
-        root.join(morsels_config_file_path)
+        Some(root.join(morsels_config_file_path))
     } else {
-        root.join("morsels_config.json")
+        None
     }
+}
+
+fn get_temp_config_file_path(root: &Path) -> PathBuf {
+    root.join("_morsels_config_temp.json")
 }
 
 // Preprocessor for adding input search box
@@ -197,7 +219,7 @@ fn get_css_el(base_url: &str, ctx: &PreprocessorContext) -> String {
     output
 }
 
-fn get_script_els(morsels_config_path: &Path, ctx: &PreprocessorContext, base_url: &str) -> String {
+fn get_script_els(config: &str, ctx: &PreprocessorContext, base_url: &str) -> String {
     let mode = if let Some(TomlString(mode)) = ctx.config.get("output.morsels.mode") {
         if mode == "query_param" {
             // Documentation specific, do not use!
@@ -220,8 +242,7 @@ fn get_script_els(morsels_config_path: &Path, ctx: &PreprocessorContext, base_ur
         "'target'".to_owned()
     };
 
-    let config = fs::read_to_string(morsels_config_path).unwrap();
-    let config_as_value: JsonValue = serde_json::from_str(&config)
+    let config_as_value: JsonValue = serde_json::from_str(config)
         .expect("unexpected error parsing search config file");
     let lang = if let Some(lang_config) = config_as_value.get("lang_config") {
         if let Some(serde_json::Value::String(lang)) = lang_config.get("lang") {
@@ -269,9 +290,9 @@ impl Preprocessor for Morsels {
             "/"
         };
 
-        let config_path = setup_config_file(ctx);
+        let config = setup_config_file(ctx);
 
-        let init_morsels_el = get_script_els(&config_path, ctx, site_url);
+        let init_morsels_el = get_script_els(&config, ctx, site_url);
 
         let mut total_len: u64 = 0;
 
@@ -282,7 +303,10 @@ impl Preprocessor for Morsels {
             }
         });
 
-        setup_config_scaling(&config_path, ctx, total_len);
+        let config = setup_config_scaling(config, ctx, total_len);
+
+        fs::write(&get_temp_config_file_path(&ctx.root), config)
+            .expect("Failed to write default temporary morsels configuration");
 
         Ok(book)
     }
