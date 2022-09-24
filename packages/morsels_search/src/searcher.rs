@@ -122,7 +122,7 @@ pub fn get_new_searcher(
     let mut valid_fields = Vec::new();
     let mut field_infos_raw_pos = 0;
     while field_infos_raw_pos < field_infos_raw.len() {
-        let name_len = field_infos_raw[field_infos_raw_pos] as usize;
+        let name_len = (unsafe { *field_infos_raw.get_unchecked(field_infos_raw_pos) }) as usize;
         field_infos_raw_pos += 1;
 
         let name = unsafe {
@@ -154,7 +154,7 @@ pub fn get_new_searcher(
 
         let mut i = 0;
         while i < stop_words_raw.len() {
-            let len = stop_words_raw[i] as usize;
+            let len = (unsafe { *stop_words_raw.get_unchecked(i) }) as usize;
             i += 1;
             stop_words_vec.push(unsafe {
                 std::str::from_utf8_unchecked(&stop_words_raw[i..i + len])

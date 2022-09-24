@@ -119,7 +119,7 @@ impl SearchTokenizer for Tokenizer {
         escape_indices: &[usize],
         dict: &Dictionary,
     ) -> SearchTokenizeResult {
-        let mut text: String = query_chars[query_chars_offset..query_chars_offset_end].iter().collect();
+        let mut text: String = unsafe { query_chars.get_unchecked(query_chars_offset..query_chars_offset_end) }.iter().collect();
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -135,7 +135,7 @@ impl SearchTokenizer for Tokenizer {
                 continue;
             }
 
-            let suffix_wildcard = (idx + 1 != split.len()) && split[idx + 1].1 == "*";
+            let suffix_wildcard = (idx + 1 != split.len()) && unsafe { split.get_unchecked(idx + 1) }.1 == "*";
             let prefix_ops = tokenize::get_prefix_ops(
                 *char_idx + query_chars_offset, 1, query_chars_offset, query_chars, escape_indices, self,
             );

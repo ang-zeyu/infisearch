@@ -75,7 +75,7 @@ impl Searcher {
     }
 
     fn expand_last_query_part(&self, query_parts: &mut Vec<QueryPart>) {
-        let last_query_part = query_parts.last_mut().unwrap();
+        let last_query_part = unsafe { query_parts.last_mut().unwrap_unchecked() };
         if !(
             is_expand_candidate(last_query_part)
             && last_query_part.auto_suffix_wildcard
@@ -96,7 +96,7 @@ impl Searcher {
             Self::get_expanded_query_parts(expanded_terms, old_query_part, false, query_parts),
         );
 
-        query_parts.last_mut().unwrap().children = children;
+        unsafe { query_parts.last_mut().unwrap_unchecked() }.children = children;
     }
 
     fn expand_wildcard_suffix(&self, query_parts: &mut Vec<QueryPart>) {
@@ -127,7 +127,7 @@ impl Searcher {
         query_part: &mut QueryPart,
         max_suffix_search_terms: usize,
     ) -> (Vec<(String, f32)>, QueryPart) {
-        let term_to_expand = query_part.original_term.as_ref().unwrap();
+        let term_to_expand = unsafe { query_part.original_term.as_ref().unwrap_unchecked() };
 
         let term_to_expand_char_count = term_to_expand.chars().count();
         let expanded_terms = self.dictionary.get_prefix_terms(

@@ -27,7 +27,7 @@ SOFTWARE.
 /*
  Modified and optimized from strsim-rs for Morsels' use case:
  Avoid unnecessary Vec allocation,
- reduces data sizes (Vec -> [; 255]) for the term length hard limit,
+ reduces data sizes (Vec -> [; 255]) for the term length hard limit (guarantees unsafe too),
  and remove an unnecessary empty term check.
  */
 
@@ -39,7 +39,7 @@ pub fn levenshtein(
     cache: &mut [usize],
 ) -> usize {
     for i in 0..b_len {
-        cache[i] = i + 1;
+        unsafe { *cache.get_unchecked_mut(i) = i + 1; }
     }
 
     let mut result = 0_usize;
@@ -51,9 +51,11 @@ pub fn levenshtein(
         for (j, b_elem) in b.chars().enumerate() {
             let cost = if a_elem == b_elem { 0usize } else { 1usize };
             let distance_a = distance_b + cost;
-            distance_b = cache[j];
+            distance_b = unsafe { *cache.get_unchecked(j) };
             result = std::cmp::min(result + 1, std::cmp::min(distance_a, distance_b + 1));
-            cache[j] = result;
+            unsafe {
+                *cache.get_unchecked_mut(j) = result;
+            }
         }
     }
 

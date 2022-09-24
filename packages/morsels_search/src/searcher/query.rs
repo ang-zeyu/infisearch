@@ -6,7 +6,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
 
-#[derive(Clone)]
 pub struct DocResult {
     pub doc_id: u32,
     pub score: f32,
@@ -54,9 +53,9 @@ impl Query {
         let mut doc_ids: Vec<u32> = Vec::with_capacity(n);
         while !self.result_heap.is_empty()
             && doc_ids.len() < n
-            && (self.result_limit.is_none() || self.results_retrieved < self.result_limit.unwrap())
+            && (self.result_limit.is_none() || self.results_retrieved < unsafe { self.result_limit.unwrap_unchecked() })
         {
-            doc_ids.push(self.result_heap.pop().unwrap().doc_id);
+            doc_ids.push(unsafe { self.result_heap.pop().unwrap_unchecked().doc_id });
             self.results_retrieved += 1;
         }
 

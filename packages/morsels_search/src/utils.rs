@@ -9,7 +9,7 @@ where
 
     if len >= 2 {
         for i in (0..len - 1).rev() {
-            insert_head(&mut v[i..], &mut is_less);
+            insert_head(unsafe { v.get_unchecked_mut(i..) }, &mut is_less);
         }
     }
 }
@@ -25,7 +25,7 @@ where
 {
     use std::{mem, ptr};
 
-    if v.len() >= 2 && is_less(&v[1], &v[0]) {
+    if v.len() >= 2 && unsafe { is_less(v.get_unchecked(1), v.get_unchecked(0)) } {
         unsafe {
             // There are three ways to implement insertion here:
             //
@@ -44,7 +44,7 @@ where
             //    performance than with the 2nd method.
             //
             // All methods were benchmarked, and the 3rd showed best results. So we chose that one.
-            let tmp = mem::ManuallyDrop::new(ptr::read(&v[0]));
+            let tmp = mem::ManuallyDrop::new(ptr::read(v.get_unchecked(0)));
 
             // Intermediate state of the insertion process is always tracked by `hole`, which
             // serves two purposes:
@@ -56,15 +56,18 @@ where
             // If `is_less` panics at any point during the process, `hole` will get dropped and
             // fill the hole in `v` with `tmp`, thus ensuring that `v` still holds every object it
             // initially held exactly once.
-            let mut hole = InsertionHole { src: &*tmp, dest: &mut v[1] };
-            ptr::copy_nonoverlapping(&v[1], &mut v[0], 1);
+            let mut hole = InsertionHole {
+                src: &*tmp,
+                dest: v.get_unchecked_mut(1),
+            };
+            ptr::copy_nonoverlapping(v.get_unchecked(1), v.get_unchecked_mut(0), 1);
 
             for i in 2..v.len() {
-                if !is_less(&v[i], &*tmp) {
+                if !is_less(v.get_unchecked(i), &*tmp) {
                     break;
                 }
-                ptr::copy_nonoverlapping(&v[i], &mut v[i - 1], 1);
-                hole.dest = &mut v[i];
+                ptr::copy_nonoverlapping(v.get_unchecked(i), v.get_unchecked_mut(i - 1), 1);
+                hole.dest = v.get_unchecked_mut(i);
             }
             // `hole` gets dropped and thus copies `tmp` into the remaining hole in `v`.
         }

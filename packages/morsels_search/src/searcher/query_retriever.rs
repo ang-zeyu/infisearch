@@ -10,6 +10,7 @@ use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
 
 impl Searcher {
+    // Guarantees: postings_lists will have term, term_info populated
     fn populate_term_postings_lists(
         &self,
         query_parts: &mut Vec<QueryPart>,
@@ -65,7 +66,7 @@ impl Searcher {
 
         if pl_numbers.len() > 1 {
             for i in (1..pl_numbers.len()).rev() {
-                if pl_numbers[..i].contains(&pl_numbers[i]) {
+                if unsafe { pl_numbers.get_unchecked(..i).contains(pl_numbers.get_unchecked(i)) } {
                     pl_numbers.remove(i);
                 }
             }
@@ -76,10 +77,11 @@ impl Searcher {
         let parsed_postings_lists = join_all(
             pl_numbers.into_iter()
                 .map(|pl_num| {
+                    // Postings lists that are populated from the same pl_num (postings list file)
                     let mut curr_pl_num_pls = Vec::new();
 
                     for i in (0..postings_lists.len()).rev() {
-                        if let Some(term_info) = &postings_lists[i].term_info {
+                        if let Some(term_info) = &unsafe { postings_lists.get_unchecked(i) }.term_info {
                             if pl_num == term_info.postings_file_name {
                                 curr_pl_num_pls.push(postings_lists.remove(i));
                             }
@@ -130,10 +132,11 @@ impl Searcher {
             ).await;
             retrieved = Some(js_sys::Uint8Array::new(&pl_array_buffer).to_vec());
 
-            retrieved.as_ref().unwrap()
+            unsafe { retrieved.as_ref().unwrap_unchecked() }
         } ;
     
         for pl in postings_lists.iter_mut() {
+            // Guarantee: pl.term_info is populated at this point
             pl.parse_pl(
                 pl_vec,
                 &self.invalidation_vector,

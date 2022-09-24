@@ -31,20 +31,26 @@ impl<'s, const NUM_TYPES: usize> PackedVarIntReader<'s, NUM_TYPES> {
     }
 
     pub fn read_type(&mut self, t: usize) -> u32 {
-        if self.type_chunk_idxes[t] == 0 {
+        // Guarantees: t < NUM_TYPES at compile time
+
+        if unsafe { *self.type_chunk_idxes.get_unchecked(t) } == 0 {
             // Read current chunk's bit length
-            self.type_chunk_lens[t] = read_bits_from(
+            *unsafe { self.type_chunk_lens.get_unchecked_mut(t) } = read_bits_from(
                 &mut self.bit_pos,
-                self.max_bit_lens[t],
+                unsafe { *self.max_bit_lens.get_unchecked(t) },
                 &self.bits_as_bytes,
             ) as usize + 1; // was -1 ed when encoding to allow encoding 1 more power, reverse it
         }
 
-        self.type_chunk_idxes[t] = (self.type_chunk_idxes[t] + 1) % self.type_chunk_max_idxes[t];
+        unsafe {
+            *self.type_chunk_idxes.get_unchecked_mut(t) =
+                ((*self.type_chunk_idxes.get_unchecked(t)) + 1)
+                % (*self.type_chunk_max_idxes.get_unchecked(t));
+        }
 
         read_bits_from(
             &mut self.bit_pos,
-            self.type_chunk_lens[t],
+            unsafe { *self.type_chunk_lens.get_unchecked(t) },
             &self.bits_as_bytes,
         )
     }

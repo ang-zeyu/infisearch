@@ -7,7 +7,7 @@ pub fn decode_var_int(slice: &[u8], pos: &mut usize) -> u32 {
     let mut shift_amount: u8 = 0;
 
     while *pos < slice.len() {
-        let current_byte = slice[*pos];
+        let current_byte = unsafe { *slice.get_unchecked(*pos) };
         let mask_result = VALUE_MASK & current_byte;
         current_value |= (mask_result as u32) << shift_amount;
 

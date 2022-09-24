@@ -10,20 +10,18 @@ use morsels_common::postings_list::{
 use morsels_common::utils::idf::get_idf;
 use morsels_common::utils::varint::decode_var_int;
 
-#[inline(never)]
 pub fn get_postings_list<'a, 'b>(
     term: &'b str,
     postings_lists: &'a Vec<PostingsList>,
 ) -> Option<&'a PostingsList> {
-    postings_lists.iter().find(|pl| pl.term.as_ref().unwrap() == term)
+    postings_lists.iter().find(|pl| unsafe { pl.term.as_ref().unwrap_unchecked() } == term)
 }
 
-#[inline(never)]
 pub fn get_postings_list_rc<'a, 'b>(
     term: &'b str,
     postings_lists: &'a Vec<Rc<PostingsList>>,
 ) -> Option<&'a Rc<PostingsList>> {
-    postings_lists.iter().find(|pl| pl.term.as_ref().unwrap() == term)
+    postings_lists.iter().find(|pl| unsafe { pl.term.as_ref().unwrap_unchecked() } == term)
 }
 
 #[cfg_attr(test, derive(Debug))]
@@ -206,7 +204,7 @@ impl PostingsList {
         num_scored_fields: usize,
         with_positions: bool,
     ) {
-        let term_info = self.term_info.as_ref().unwrap();
+        let term_info = unsafe { self.term_info.as_ref().unwrap_unchecked() };
 
         let mut pos = term_info.postings_file_offset as usize;
 
@@ -316,15 +314,19 @@ impl PostingsList {
 
                     let mut pos2_idx = 0;
                     for &pos1 in term_doc_1_field.field_positions.iter() {
+                        // Guarantee: pos2_idx is at most term_doc_2_field.field_positions.len() - 1 at this point
                         while pos2_idx < term_doc_2_field.field_positions.len()
-                            && term_doc_2_field.field_positions[pos2_idx] < pos1
+                            && unsafe { *term_doc_2_field.field_positions.get_unchecked(pos2_idx) } < pos1
                         {
-                            doc_field.field_positions.push(term_doc_2_field.field_positions[pos2_idx]);
+                            doc_field.field_positions.push(
+                                unsafe { *term_doc_2_field.field_positions.get_unchecked(pos2_idx) }
+                            );
                             pos2_idx += 1;
                         }
 
+                        // Guarantee: pos2_idx is at most term_doc_2_field.field_positions.len() - 1 at this point
                         if pos2_idx < term_doc_2_field.field_positions.len()
-                            && term_doc_2_field.field_positions[pos2_idx] == pos1
+                            && unsafe { *term_doc_2_field.field_positions.get_unchecked(pos2_idx) } == pos1
                         {
                             pos2_idx += 1;
                         }
@@ -332,8 +334,9 @@ impl PostingsList {
                         doc_field.field_positions.push(pos1);
                     }
 
-                    for i in pos2_idx..term_doc_2_field.field_positions.len() {
-                        doc_field.field_positions.push(term_doc_2_field.field_positions[i]);
+                    // Guarantee: pos2_idx is at most term_doc_2_field.field_positions.len() at this point
+                    for &p in unsafe { term_doc_2_field.field_positions.get_unchecked(pos2_idx..) } {
+                        doc_field.field_positions.push(p);
                     }
 
                     td.fields.push(doc_field);

@@ -22,12 +22,12 @@ impl<'a, F> Iterator for SplitIncl<'a, F> where F: Fn(char) -> bool {
             return None;
         }
 
-        let remaining_slice = &self.s[self.idx..];
+        let remaining_slice = unsafe { self.s.get_unchecked(self.idx..) };
         let mut seen_first = false;
         for (char_idx, (idx, c)) in remaining_slice.char_indices().chain(std::iter::once((remaining_slice.len(), ','))).enumerate() {
             if (self.is_delimiter)(c) {
                 if seen_first {
-                    let ret = (self.char_idx, &remaining_slice[..idx]);
+                    let ret = (self.char_idx, unsafe { remaining_slice.get_unchecked(..idx) });
                     self.idx += idx;
                     self.char_idx += char_idx;
                     return Some(ret);
@@ -36,7 +36,7 @@ impl<'a, F> Iterator for SplitIncl<'a, F> where F: Fn(char) -> bool {
                     let len = c.len_utf8();
                     self.idx += len;
                     self.char_idx += 1;
-                    return Some((1, &remaining_slice[..len]));
+                    return Some((1, unsafe { remaining_slice.get_unchecked(..len) }));
                 }
             }
 

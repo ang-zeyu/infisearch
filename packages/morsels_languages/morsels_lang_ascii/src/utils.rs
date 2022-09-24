@@ -166,33 +166,50 @@ pub fn term_filter(input: Cow<str>) -> Cow<str> {
 
     if let Some((mut char_start, mut c)) = char_iter.next() {
         let mut output: Vec<u8> = Vec::with_capacity(input.len());
-        let mut at_start = true;
+        let mut prev_seg_start = 0;
         let mut prev_char_end = 0;
+        let mut prev_seg_end = 0;
 
         loop {
-            let mut do_delete = true;
-            if !(at_start && prev_char_end == char_start) {
-                at_start = false;
-                do_delete = intra_filter(c);
+            if prev_char_end != char_start {
+                prev_seg_start = char_start;
             }
 
-            if do_delete {
-                output.extend_from_slice(input[prev_char_end..char_start].as_bytes());
-                prev_char_end = char_start + c.len_utf8();
+            prev_char_end = char_start + c.len_utf8();
+
+            if prev_seg_start == 0 || intra_filter(c) {
+                // Guarantees:
+                // prev_seg_end is never assigned the last character's end before this op
+                // char_start is always assigned to the start of a character's index in the input string
+                output.extend_from_slice(unsafe { input.get_unchecked(prev_seg_end..char_start) }.as_bytes());
+                prev_seg_end = prev_char_end;
             }
+
+            debug_assert!(prev_seg_start != prev_seg_end);
 
             if let Some((next_idx, next_c)) = char_iter.next() {
                 char_start = next_idx;
                 c = next_c;
             } else {
-                output.extend_from_slice(input[prev_char_end..].as_bytes());
-                let mut output = unsafe { String::from_utf8_unchecked(output) };
-                if let Some((idx, c)) = output.char_indices().rev().find(|(_, c)| !boundary_filter(*c)) {
-                    output.drain((idx + c.len_utf8())..);
-                    return Cow::Owned(output);
+                let has_end_boundary_seg = prev_char_end == input.len();
+                let end = if prev_seg_start > prev_seg_end && has_end_boundary_seg {
+                    prev_seg_start
                 } else {
-                    return Cow::Owned("".to_owned());
-                }
+                    input.len()
+                };
+
+                // Guarantees:
+                // - prev_seg_start is never the last character's end.
+                // - prev_seg_end is the last character's end at most.
+                //   - if it is the last character, prev_seg_start < prev_seg_end, and end = input.len()
+                //   - if not,
+                //     - if prev_seg_start > prev_seg_end
+                //        - if has_end_boundary_seg, prev_seg_start = start of the end boundary segment
+                //        - if !has_end_boundary_seg, prev_seg_start = start of an intermediate, non filterable segment
+                //     - if prev_seg_start < prev_seg_end, the segment is still being contiguously filtered
+                // - slicing str[str.len()..] is still valid.
+                output.extend_from_slice(unsafe { input.get_unchecked(prev_seg_end..end) }.as_bytes());
+                return Cow::Owned(unsafe { String::from_utf8_unchecked(output) });
             }
         }
     } else {
@@ -239,6 +256,14 @@ pub mod test {
 
     fn assert(input: &str, expected: &str) {
         assert_eq!(term_filter(Cow::Borrowed(input)), expected);
+    }
+
+    #[test]
+    fn removes_single_characters() {
+        assert("我", "");
+        assert("-", "");
+        assert("⥄", "");
+        assert("a", "a");
     }
 
     #[test]

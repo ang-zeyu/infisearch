@@ -337,7 +337,7 @@ pub fn parse_query(
     let query_chars_len = query_chars.len();
 
     while j < query_chars_len {
-        let c = query_chars[j];
+        let c = unsafe { *query_chars.get_unchecked(j) };
 
         match query_parse_state {
             QueryParseState::Quote => {
@@ -416,7 +416,7 @@ pub fn parse_query(
                         op_stack.push(Operator::OpenGroup);
                     } else if c == ')' {
                         // Guard against ')' without a matching '(' (just treat it literally, almost)
-                        if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup)
+                        if !op_stack.is_empty() && matches!(unsafe { op_stack.last().unwrap_unchecked() }, Operator::OpenGroup)
                         {
                             // Keep going until we find the QueryPartType::Bracket added by '('
                             let open_bracket_querypart_idx = query_parts
@@ -435,7 +435,7 @@ pub fn parse_query(
                             
                             if let Some(idx) = open_bracket_querypart_idx {
                                 let children: Vec<QueryPart> = query_parts.drain(idx + 1..).collect();
-                                query_parts.last_mut().unwrap().children = Some(children);
+                                unsafe { query_parts.last_mut().unwrap_unchecked() }.children = Some(children);
 
                                 op_stack.pop(); // throw the OpenGroup
                                 handle_op(&mut query_parts, &mut op_stack);
@@ -447,7 +447,7 @@ pub fn parse_query(
                     for field_name in valid_fields {
                         if j >= field_name.len() {
                             let field_name_start = j - field_name.len();
-                            let text = query_chars[field_name_start..j].iter().collect();
+                            let text = unsafe { query_chars.get_unchecked(field_name_start..j) }.iter().collect();
     
                             // Treat it literally otherwise
                             if field_name == &text {

@@ -1517,16 +1517,16 @@ pub fn to_ascii(text: &str) -> Cow<str> {
 
     if let Some((start, folded, c)) = iter.next() {
         let mut output: Vec<u8> = Vec::with_capacity(text.len());
-        output.extend_from_slice(text[0..start].as_bytes());
+        output.extend_from_slice(unsafe { text.get_unchecked(..start) }.as_bytes());
         output.extend_from_slice(folded.as_bytes());
         let mut prev_end = start + c.len_utf8();
 
         for (start, folded, c) in iter {
-            output.extend_from_slice(text[prev_end..start].as_bytes());
+            output.extend_from_slice(unsafe { text.get_unchecked(prev_end..start) }.as_bytes());
             output.extend_from_slice(folded.as_bytes());
             prev_end = start + c.len_utf8();
         }
-        output.extend_from_slice(text[prev_end..].as_bytes());
+        output.extend_from_slice(unsafe { text.get_unchecked(prev_end..) }.as_bytes());
 
         Cow::Owned(unsafe { String::from_utf8_unchecked(output) })
     } else {

@@ -80,7 +80,7 @@ where
         if all_done {
             let mut elems = mem::replace(&mut self.elems, Box::pin([]));
             let result = iter_pin_mut(elems.as_mut())
-                .map(|e| e.take_output().unwrap()).collect();
+                .map(|e| unsafe { e.take_output().unwrap_unchecked() }).collect();
             Poll::Ready(result)
         } else {
             Poll::Pending

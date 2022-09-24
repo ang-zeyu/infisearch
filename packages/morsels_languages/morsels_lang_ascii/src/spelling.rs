@@ -41,7 +41,7 @@ pub fn get_best_corrected_term(dict: &Dictionary, misspelled_term: &str) -> Opti
     }
 
     if let Some(best_term) = best_term {
-        let normal_string = std::string::String::from(&best_term[..]);
+        let normal_string = std::string::String::from(best_term.as_str());
         Some(normal_string)
     } else {
         None
