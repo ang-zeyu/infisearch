@@ -8,8 +8,8 @@ pub fn get_best_corrected_term(dict: &Dictionary, misspelled_term: &str) -> Opti
 
     let base_term_char_count = misspelled_term.chars().count();
     let mut min_edit_distance: usize = match base_term_char_count {
-        0..=3 => 1,
-        4..=7 => 2,
+        0..=4 => 1,
+        5..=8 => 2,
         _ => 3,
     };
 
