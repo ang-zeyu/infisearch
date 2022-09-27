@@ -373,7 +373,7 @@ impl Indexer {
             self.incremental_info.extend_secondary_inv_mappings(secondary_inv_mappings);
 
             self.spimi_counter = 0;
-        } else if !self.is_deletion_only_run() {
+        } else if !self.has_docs_added() {
             last_block -= 1;
         }
         self.wait_on_all_workers();
@@ -404,7 +404,7 @@ impl Indexer {
         output_config::write_output_config(self);
     }
 
-    fn is_deletion_only_run(&self) -> bool {
+    fn has_docs_added(&self) -> bool {
         self.doc_id_counter == self.start_doc_id
     }
 
@@ -481,7 +481,7 @@ impl Indexer {
             );
 
             let dict_writer = spimireader::incremental::modify_blocks(
-                self.is_deletion_only_run(),
+                self.has_docs_added(),
                 num_blocks,
                 first_block,
                 last_block,
@@ -503,6 +503,7 @@ impl Indexer {
             let doc_infos_ser = self.flush_doc_infos(self.doc_id_counter as f64);
 
             let dict_writer = spimireader::full::merge_blocks(
+                self.has_docs_added(),
                 num_blocks,
                 first_block,
                 last_block,

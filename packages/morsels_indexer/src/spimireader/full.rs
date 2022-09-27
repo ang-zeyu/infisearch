@@ -17,6 +17,7 @@ use crate::worker::MainToWorkerMessage;
 
 #[allow(clippy::too_many_arguments)]
 pub fn merge_blocks(
+    has_docs_added: bool,
     num_blocks: u32,
     first_block: u32,
     last_block: u32,
@@ -44,17 +45,19 @@ pub fn merge_blocks(
         Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
-    common::initialise_postings_stream_readers(
-        first_block,
-        last_block,
-        output_folder_path,
-        &mut postings_streams,
-        &postings_stream_decoders,
-        field_infos.num_scored_fields,
-        tx_main,
-        &blocking_sndr,
-        &blocking_rcvr,
-    );
+    if !has_docs_added {
+        common::initialise_postings_stream_readers(
+            first_block,
+            last_block,
+            output_folder_path,
+            &mut postings_streams,
+            &postings_stream_decoders,
+            field_infos.num_scored_fields,
+            tx_main,
+            &blocking_sndr,
+            &blocking_rcvr,
+        );
+    }
 
     /*
     N-way merge according to lexicographical order

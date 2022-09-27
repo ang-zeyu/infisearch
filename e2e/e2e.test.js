@@ -347,6 +347,8 @@ function readOutputConfig() {
 }
 
 test('Test with different field and block size configs', async () => {
+  runFullIndex('e2e/input/morsels_config_empty.json');
+
   cleanup(false);
   console.log('Starting morsels_config_0 tests');
   const config0 = 'e2e/input/morsels_config_0.json';

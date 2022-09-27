@@ -171,7 +171,7 @@ impl ExistingPlWriter {
 
 #[allow(clippy::too_many_arguments)]
 pub fn modify_blocks(
-    is_deletion_only_run: bool,
+    has_docs_added: bool,
     num_blocks: u32,
     first_block: u32,
     last_block: u32,
@@ -186,7 +186,7 @@ pub fn modify_blocks(
         Arc::from(DashMap::with_capacity(num_blocks as usize));
     let (blocking_sndr, blocking_rcvr): (Sender<()>, Receiver<()>) = crossbeam::channel::bounded(1);
 
-    if !is_deletion_only_run {
+    if !has_docs_added {
         common::initialise_postings_stream_readers(
             first_block,
             last_block,
