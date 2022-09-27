@@ -15,27 +15,20 @@ Simply run `npm run devDocsFull` to build the project and launch the mdBook deve
 
 # Developing
 
+## Using the Docs
 
-## Test Files
+`npm run devDocsFull` uses mdBook's local development server, which is fine for documentation updates. To launch a Webpack development server for frontend development, use the `npm run serve` command. The site will be available at `localhost:8080`, after which click the `Docs` button to use that site.
 
-You'll need to source a suitable set of html, json, or csv files that is loadable by one of the command-line [loaders](./indexer/indexing.md#mapping-file-data-to-fields-loader_configs). The data in the collection should be mappable to the [fields](./indexer/fields.md) required by `@morsels/search-ui` for easy testing.
+The WebAssembly binary build process is also separate from `npm run serve`. Concurrently use the `npm run watchPerfWorker` command to run a webpack watcher for the WebWorker and WebAssembly bundles.
 
-The test collection I used for the majority of development is a `380mb` csv corpus for example, in the following format.
+## Custom Test Files
 
-```
-"date", | "title",                 | "content",              | "court"
-----------------------------------------------------------------------------------------
-unused, | mapped to 'title' field, | mapped to 'body' field, | mapped to 'heading' field
-```
-
-Once you have your test files, place them under the `<project-root>/test_files/1/source` directory. If using a custom file format, you will likely need to configure the [data and field mappings](./indexer/fields.md) as well. You can run `cargo run -p morsels_indexer <project-root>/test_files/1/source --config-init` to create the default configuration file as a template, and proceed from there.
-
-Alternatively, there are some small amount of files used for e2e testing already set up. Simply copy the files from `e2e/input` to `1/source`, and rename one of the `morsels_config_X.json` configuration files to `morsels_config.json`.
+To use custom test files, place them under the `<project-root>/test_files/1/source` directory. If not using HTML, you will need to configure the [data and field mappings](./docs/src/indexer/fields.md) as well.
 
 ## Building and Running the Development Site
 
 Once you have you test files placed in the correct folder per the previous chapter, run the `npm run index1R` script to index your content.
 
-Then, use the `npm run dev` script to open the development site on port `8080`. This script runs the webpack build process, which in turn triggers the WebAssembly build process as well through the wasm-pack webpack plugin.
+The process for launching the frontend and WebAssembly processes is the same as using the docs. There are a few buttons in the development site to switch between the folders quickly.
 
-There are also `npm run index2R/3R` scripts available. An interactive script may be added in the future, but for now 2 should suffice (1 to test a smaller site, 1 to test a very large collection). There are a few buttons in the development site to switch between the folders quickly.
+There are also `npm run index2R/3R` scripts available, which use the `test_files/2` and `test_files/3` folders. 

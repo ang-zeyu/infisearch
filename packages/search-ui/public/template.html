@@ -38,21 +38,18 @@
             return new URL(window.location.href).origin;
           }
 
-          function changeUrl(number) {
+          function changeUrl(url, sourceFilesUrl) {
             const params = new URLSearchParams(window.location.search);
-            if (params.get('url')) {
-              params.set('url', `${getOrigin()}/${number}/output/`);
-            } else {
-              params.set('url', `${getOrigin()}/${number}/output/`);
-            }
-
-            if (params.get('sourceFilesUrl')) {
-              params.set('sourceFilesUrl', `${getOrigin()}/${number}/source/`);
-            } else {
-              params.set('sourceFilesUrl', `${getOrigin()}/${number}/source/`);
-            }
-
+            params.set('url', url);
+            params.set('sourceFilesUrl', sourceFilesUrl);
             window.location.href = window.location.href.replace(/(\?.+)|$/, `?${params.toString()}`);
+          }
+
+          function changeTestUrl(number) {
+            changeUrl(
+              `${getOrigin()}/${number}/output/`,
+              `${getOrigin()}/${number}/source/`,
+            );
           }
 
           function changeToE2e() {
@@ -61,11 +58,18 @@
               + '&sourceFilesUrl=http%3A%2F%2Flocalhost%3A8080%2Fe2e%2Finput%2F'
               + '&resultsPerPage=100';
           }
+          function changeToDocs() {
+            changeUrl(
+              `${getOrigin()}/docs/morsels_output`,
+              `${getOrigin()}/docs`,
+            )
+          }
         </script>
-        <button class="btn btn-outline-primary m-1" onclick="changeUrl(1)">Site 1</button>
-        <button class="btn btn-outline-success m-1" onclick="changeUrl(2)">Site 2</button>
-        <button class="btn btn-outline-warning m-1" onclick="changeUrl(3)">Site 3</button>
+        <button class="btn btn-outline-primary m-1" onclick="changeTestUrl(1)">Site 1</button>
+        <button class="btn btn-outline-success m-1" onclick="changeTestUrl(2)">Site 2</button>
+        <button class="btn btn-outline-warning m-1" onclick="changeTestUrl(3)">Site 3</button>
         <button class="btn btn-outline-secondary m-1" onclick="changeToE2e()">e2e</button>
+        <button class="btn btn-outline-secondary m-1" onclick="changeToDocs()">Docs</button>
       </div>
       <div class="d-flex justify-content-center w-75 flex-wrap">
         <script>

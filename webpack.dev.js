@@ -31,14 +31,17 @@ module.exports = (env) => merge(common, {
       {
         directory: path.join(__dirname, 'test_files/1'),
         publicPath: '/1',
+        watch: false,
       },
       {
         directory: path.join(__dirname, 'test_files/2'),
         publicPath: '/2',
+        watch: false,
       },
       {
         directory: path.join(__dirname, 'test_files/3'),
         publicPath: '/3',
+        watch: false,
       },
       {
         directory: path.join(__dirname, 'e2e'),
@@ -47,6 +50,11 @@ module.exports = (env) => merge(common, {
       {
         directory: path.join(__dirname, 'packages/search-ui/public/static'),
         publicPath: '/',
+      },
+      {
+        directory: path.join(__dirname, 'docs/book/html'),
+        publicPath: '/docs',
+        watch: false,
       },
     ],
   },
