@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 pub static RELATIVE_FP_FIELD: &str = "_relative_fp";
 pub static ADD_FILES_FIELD: &str = "_add_files";
 
-fn get_default_field_store_block_size() -> u32 {
+fn get_default_num_docs_per_store() -> u32 {
     100000000
 }
 
@@ -25,8 +25,8 @@ fn get_default_cache_all_field_stores() -> bool {
 // Raw Json field configuration
 #[derive(Serialize, Deserialize)]
 pub struct FieldsConfig {
-    #[serde(default = "get_default_field_store_block_size")]
-    pub field_store_block_size: u32,
+    #[serde(default = "get_default_num_docs_per_store")]
+    pub num_docs_per_store: u32,
     #[serde(default = "get_default_num_field_stores_per_dir")]
     pub num_stores_per_dir: u32,
     #[serde(default="get_default_cache_all_field_stores")]
@@ -38,7 +38,7 @@ impl Default for FieldsConfig {
     fn default() -> Self {
         // The default configuration required for @morsels/search-ui
         FieldsConfig {
-            field_store_block_size: 10000,
+            num_docs_per_store: 10000,
             num_stores_per_dir: get_default_num_field_stores_per_dir(),
             cache_all_field_stores: get_default_cache_all_field_stores(),
             fields: vec![
@@ -89,7 +89,7 @@ impl FieldsConfig {
 
         Arc::new(FieldInfos::init(
             field_infos_by_name,
-            self.field_store_block_size,
+            self.num_docs_per_store,
             self.num_stores_per_dir,
             output_folder_path,
         ))
@@ -122,7 +122,7 @@ pub struct FieldInfos {
 
     pub num_scored_fields: usize,
 
-    pub field_store_block_size: u32,
+    pub num_docs_per_store: u32,
 
     pub num_stores_per_dir: u32,
 
@@ -142,7 +142,7 @@ pub struct FieldInfoOutput {
 impl FieldInfos {
     pub fn init(
         field_infos_map: FxHashMap<String, FieldInfo>,
-        field_store_block_size: u32,
+        num_docs_per_store: u32,
         num_stores_per_dir: u32,
         output_folder_path: &Path,
     ) -> FieldInfos {
@@ -163,7 +163,7 @@ impl FieldInfos {
             field_infos_map,
             field_infos_by_id,
             num_scored_fields,
-            field_store_block_size,
+            num_docs_per_store,
             num_stores_per_dir,
             field_output_folder_path,
         }

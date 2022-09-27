@@ -19,9 +19,9 @@ class Result {
     try {
       const rawJson = await cache.getJson(fileUrl);
 
-      let idx = this._mrlDocId % config.fieldStoreBlockSize;
+      let idx = this._mrlDocId % config.numDocsPerStore;
       const { numDocsPerBlock } = config.indexingConfig;
-      if (numDocsPerBlock < config.fieldStoreBlockSize) {
+      if (numDocsPerBlock < config.numDocsPerStore) {
         idx %= numDocsPerBlock;
       }
 

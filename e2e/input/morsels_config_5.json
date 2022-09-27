@@ -13,7 +13,7 @@
       "morsels_config_*",
       "**/secondary_*"
     ],
-    "loader_configs": {
+    "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
           "script,style,#sidebar,#menu-bar"

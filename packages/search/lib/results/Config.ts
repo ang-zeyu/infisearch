@@ -13,7 +13,7 @@ export interface MorselsConfig {
   indexVer: string,
   lastDocId: number,
   indexingConfig: {
-    loaderConfigs: { [loader: string]: any },
+    loaders: { [loader: string]: any },
     plNamesToCache: number[],
     numDocsPerBlock: number,
     numPlsPerDir: number,
@@ -26,7 +26,7 @@ export interface MorselsConfig {
   cacheAllFieldStores: boolean,
   fieldInfos: FieldInfo[],
   numScoredFields: number,
-  fieldStoreBlockSize: number,
+  numDocsPerStore: number,
   numStoresPerDir: number,
   // Added in Searcher.ts
   searcherOptions: SearcherOptions

@@ -335,7 +335,7 @@ impl Indexer {
     }
 
     pub fn write_morsels_source_config(mut config: MorselsConfig, config_file_path: &Path) {
-        config.indexing_config.loader_configs = config
+        config.indexing_config.loaders = config
             .indexing_config
             .get_loaders_from_config()
             .into_iter()

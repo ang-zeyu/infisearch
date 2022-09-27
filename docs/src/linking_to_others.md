@@ -4,7 +4,7 @@ Morsels is extremely easy to get started with if the pages you link to are the s
 
 Linking to other pages is facilitated by the default [`link`](./indexer/fields.md#default-field-configuration) field, which lets you override the link used in the result preview. You will however need to let Morsels know where to find the content for this field.
 
-The section below covers only the common case for HTML files, which has some default configurations setup already. If you are using JSON, CSV, or other formats, you should already have the know how to map your file contents to this field.
+The section below covers only the common case for HTML files, which has some default configurations setup already. If you are using JSON, CSV, please refer to this [section](./indexer/indexing.md#indexing-multiple-files-under-one-document).
 
 ## Indexing HTML Files
 
@@ -16,19 +16,19 @@ For example,
 <span data-morsels-link="https://www.google.com"></span>
 ```
 
-Then, modify your indexer [loader configuration](./indexer/indexing.md#html-files-loader_configshtmlloader) to let Morsels know to extract the `data-morsels-link` attribute of the `span[data-morsels-link]` into the `link` field.
+Then, modify your indexer [loader configuration](./indexer/indexing.md#html-files-loadershtmlloader) to let Morsels know to extract the `data-morsels-link` attribute of the `span[data-morsels-link]` into the `link` field.
 
 This configuration is already implemented by default, and is attached here for reference.
 
 ```json
-"loader_configs": {
+"loaders": {
   "HtmlLoader": {
     "exclude_selectors": [
       "script,style,pre"
     ],
     "selectors": [
       // Add the following object to the default configuration
-      // If you've never configured loader_configs before, you will need to
+      // If you've never configured "selectors" before, you will need to
       // add this entire snippet into your indexer configuration file.
       {
         "attr_map": {

@@ -2,14 +2,14 @@
 
 The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
-All configurations are optional, except `loader_configs`. The CLI tool will do nothing if the `loader_configs` dictionary is empty.
+All configurations are optional, except `loaders`. The CLI tool will do nothing if the `loaders` dictionary is empty.
 
 ## Mapping File Data to Fields
 
 ```json
 {
   "indexing_config": {
-    "loader_configs": {
+    "loaders": {
       // Only HTML files are indexed by default
       "HtmlLoader": {}
     }
@@ -19,13 +19,13 @@ All configurations are optional, except `loader_configs`. The CLI tool will do n
 
 The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a file **"Loader"** abstraction.
 
-You may configure loaders by including them under the **`loader_configs` key**, with any applicable options.
+You may configure loaders by including them under the **`loaders` key**, with any applicable options.
 
 
-#### HTML Files: **`loader_configs.HtmlLoader`**
+#### HTML Files: **`loaders.HtmlLoader`**
 
 ```json
-"loader_configs": {
+"loaders": {
   "HtmlLoader": {
     // list of selectors to exclude from indexing
     "exclude_selectors": [
@@ -80,10 +80,10 @@ You may configure loaders by including them under the **`loader_configs` key**, 
 
 If needed, you can also index HTML fragments. To match the entire fragment, use the `body` selector.
 
-#### JSON Files: **`loader_configs.JsonLoader`**
+#### JSON Files: **`loaders.JsonLoader`**
 
 ```json
-"loader_configs": {
+"loaders": {
   "JsonLoader": {
     "field_map": {
       "chapter_text": "body",
@@ -108,10 +108,10 @@ The JSON file can be either:
 2. An array of objects following the schema set out in `field_map`
 
 
-#### CSV Files: **`loader_configs.CsvLoader`**
+#### CSV Files: **`loaders.CsvLoader`**
 
 ```json
-"loader_configs": {
+"loaders": {
   "CsvLoader": {
     // ---------------------
     // Map data using csv headers
@@ -150,10 +150,10 @@ Field mappings for CSV files can be configured using one of the `field_map / fie
 
 The `parse_options` key specifies options for parsing the csv file. In particular, note that the `has_headers` key is distinct from and does not influence the `use_headers` parameter.
 
-#### PDF Files: **`loader_configs.PdfLoader`**
+#### PDF Files: **`loaders.PdfLoader`**
 
 ```json
-"loader_configs": {
+"loaders": {
   "PdfLoader": {
     "field": "body",
   }
@@ -164,10 +164,10 @@ This loader indexes all content into a single field "body" by default.
 
 The search result title would appear as `<...PDF file path breadcrumb...> (PDF)`, and when clicked upon will open the PDF in the browser.
 
-#### Text Files: **`loader_configs.TxtLoader`**
+#### Text Files: **`loaders.TxtLoader`**
 
 ```json
-"loader_configs": {
+"loaders": {
   "TxtLoader": {
     "field": "field_name",
   }
@@ -282,7 +282,7 @@ This parameter roughly controls the memory usage of the indexer; You may think o
 
 If your documents are very small, increasing this *may* help improve indexing performance.
 
-⚠️ Also ensure [`field_store_block_size`](./fields.md#field-store-granularity-field_store_block_size-num_stores_per_dir) is a clean multiple or divisor of this parameter.
+⚠️ Also ensure [`num_docs_per_store`](./fields.md#field-store-granularity-num_docs_per_store-num_stores_per_dir) is a clean multiple or divisor of this parameter.
 
 ## Indexing and Search Scaling (advanced)
 

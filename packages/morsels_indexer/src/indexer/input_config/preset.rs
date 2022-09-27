@@ -17,7 +17,7 @@ fn set_all_content_fields_do_store(config: &mut MorselsConfig, do_store: bool) {
 pub fn apply_preset_override(
     config: &mut MorselsConfig,
     json_config: &Value,
-    field_store_block_size: u32,
+    num_docs_per_store: u32,
     cache_all_field_stores: bool,
     pl_limit: u32,
     pl_cache_threshold: u32,
@@ -26,8 +26,8 @@ pub fn apply_preset_override(
     ignore_stop_words: bool
 ) {
     if let Some(val) = json_config.get("fields_config") {
-        if val.get("field_store_block_size").is_none() {
-            config.fields_config.field_store_block_size = field_store_block_size;
+        if val.get("num_docs_per_store").is_none() {
+            config.fields_config.num_docs_per_store = num_docs_per_store;
         }
 
         if val.get("cache_all_field_stores").is_none() {
@@ -38,7 +38,7 @@ pub fn apply_preset_override(
             set_all_content_fields_do_store(config, do_store_fields);
         }
     } else {
-        config.fields_config.field_store_block_size = field_store_block_size;
+        config.fields_config.num_docs_per_store = num_docs_per_store;
         config.fields_config.cache_all_field_stores = cache_all_field_stores;
         set_all_content_fields_do_store(config, do_store_fields);
     };

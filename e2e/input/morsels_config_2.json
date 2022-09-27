@@ -1,6 +1,6 @@
 {
   "fields_config": {
-    "field_store_block_size": 100,
+    "num_docs_per_store": 100,
     "num_stores_per_dir": 1000,
     "fields": [
       {
@@ -56,7 +56,7 @@
       "morsels_config_*",
       "**/secondary_*"
     ],
-    "loader_configs": {
+    "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
           "script,style,#sidebar,#menu-bar"

@@ -82,7 +82,7 @@ See this [section](./indexing.md#indexing-multiple-files-under-one-document) und
 
 ### Mapping File Data to Fields
 
-Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings, which are setup for only HTML files, are insufficient. This is discussed later under [indexing](./indexing.md#mapping-file-data-to-fields-loader_configs).
+Defining fields is all good, but you may also need a way to map custom-formatted file data to each of these fields if the default mappings, which are setup for only HTML files, are insufficient. This is discussed later under [indexing](./indexing.md#mapping-file-data-to-fields).
 
 ### Adding Fields (advanced)
 
@@ -116,17 +116,17 @@ These are Okapi BM25 model parameters. The following [article](https://www.elast
 {
   "fields_config": {
     "cache_all_field_stores": true,
-    "field_store_block_size": 100000000,
+    "num_docs_per_store": 100000000,
     "num_stores_per_dir": 1000,
   }
 }
 ```
 
-#### Field Store Granularity: **`field_store_block_size`, `num_stores_per_dir`**
+#### Field Store Granularity: **`num_docs_per_store`, `num_stores_per_dir`**
 
-The `field_store_block_size` parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The `num_stores_per_dir` parameter controls how many json files should be stored together in one directory.
+The `num_docs_per_store` parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The `num_stores_per_dir` parameter controls how many json files should be stored together in one directory.
 
-> ⚠️ Ensure `field_store_block_size` is a clean multiple or divisor of the `num_docs_per_block` parameter under [indexing](./indexing.md).<br>
+> ⚠️ Ensure `num_docs_per_store` is a clean multiple or divisor of the `num_docs_per_block` parameter under [indexing](./indexing.md).<br>
 > This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
 > but should work well enough for most use cases.
 

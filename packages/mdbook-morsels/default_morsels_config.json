@@ -6,7 +6,7 @@
       "404.html",
       "morsels_config.json"
     ],
-    "loader_configs": {
+    "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
           "script,style,#sidebar,#menu-bar"

@@ -17,7 +17,7 @@ use serde::Serialize;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct MorselsIndexingOutputConfig {
-    loader_configs: FxHashMap<String, LoaderBoxed>,
+    loaders: FxHashMap<String, LoaderBoxed>,
     pl_names_to_cache: Vec<u32>,
     num_docs_per_block: u32,
     num_pls_per_dir: u32,
@@ -35,14 +35,14 @@ pub struct MorselsOutputConfig<'a> {
     cache_all_field_stores: bool,
     field_infos: Vec<FieldInfoOutput>,
     num_scored_fields: usize,
-    field_store_block_size: u32,
+    num_docs_per_store: u32,
     num_stores_per_dir: u32,
 }
 
 pub fn write_output_config(mut indexer: Indexer) {
     drop(indexer.doc_miner);
 
-    let loader_configs = if let Ok(loaders) = Arc::try_unwrap(std::mem::take(&mut indexer.loaders)) {
+    let loaders = if let Ok(loaders) = Arc::try_unwrap(std::mem::take(&mut indexer.loaders)) {
         loaders.into_iter()
             .map(|loader| (loader.get_name(), loader))
             .collect()
@@ -55,7 +55,7 @@ pub fn write_output_config(mut indexer: Indexer) {
         index_ver: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis().to_string(),
         last_doc_id: indexer.doc_id_counter,
         indexing_config: MorselsIndexingOutputConfig {
-            loader_configs,
+            loaders,
             pl_names_to_cache: indexer.incremental_info.pl_names_to_cache.clone(),
             num_docs_per_block: indexer.indexing_config.num_docs_per_block,
             num_pls_per_dir: indexer.indexing_config.num_pls_per_dir,
@@ -65,7 +65,7 @@ pub fn write_output_config(mut indexer: Indexer) {
         cache_all_field_stores: indexer.cache_all_field_stores,
         field_infos: indexer.field_infos.to_output(),
         num_scored_fields: indexer.field_infos.num_scored_fields,
-        field_store_block_size: indexer.field_infos.field_store_block_size,
+        num_docs_per_store: indexer.field_infos.num_docs_per_store,
         num_stores_per_dir: indexer.field_infos.num_stores_per_dir,
     })
     .unwrap();

@@ -5,9 +5,9 @@ export function getFieldUrl(
   docId: number,
   config: MorselsConfig,
 ): string {
-  const { fieldStoreBlockSize, numStoresPerDir, indexingConfig } = config;
+  const { numDocsPerStore, numStoresPerDir, indexingConfig } = config;
   const { numDocsPerBlock } = indexingConfig;
-  const fileNumber = Math.floor(docId / fieldStoreBlockSize);
+  const fileNumber = Math.floor(docId / numDocsPerStore);
   const blockNumber = Math.floor(docId / numDocsPerBlock);
   const dirNumber = Math.floor(fileNumber / numStoresPerDir);
 

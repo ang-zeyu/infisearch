@@ -44,7 +44,7 @@ fn get_default_exclude_patterns() -> Vec<String> {
     vec!["morsels_config.json".to_owned()]
 }
 
-fn get_default_loader_configs() -> FxHashMap<String, serde_json::Value> {
+fn get_default_loaders() -> FxHashMap<String, serde_json::Value> {
     let mut configs = FxHashMap::default();
 
     configs.insert("HtmlLoader".to_owned(), serde_json::json!({}));
@@ -86,8 +86,8 @@ pub struct MorselsIndexingConfig {
     #[serde(skip, default = "Vec::new")]
     pub include_patterns: Vec<Pattern>,
 
-    #[serde(default = "get_default_loader_configs")]
-    pub loader_configs: FxHashMap<String, serde_json::Value>,
+    #[serde(default = "get_default_loaders")]
+    pub loaders: FxHashMap<String, serde_json::Value>,
 
     #[serde(default = "get_default_num_pls_per_dir")]
     pub num_pls_per_dir: u32,
@@ -107,7 +107,7 @@ impl Default for MorselsIndexingConfig {
             include: Vec::new(),
             exclude_patterns: Vec::new(),
             include_patterns: Vec::new(),
-            loader_configs: get_default_loader_configs(),
+            loaders: get_default_loaders(),
             num_pls_per_dir: get_default_num_pls_per_dir(),
             with_positions: get_default_with_positions(),
         };
@@ -121,7 +121,7 @@ impl MorselsIndexingConfig {
     pub fn get_loaders_from_config(&self) -> Vec<LoaderBoxed> {
         let mut loaders: Vec<LoaderBoxed> = Vec::new();
 
-        for (key, value) in self.loader_configs.clone() {
+        for (key, value) in self.loaders.clone() {
             match key.as_str() {
                 "HtmlLoader" => loaders.push(HtmlLoader::get_new_html_loader(value)),
                 "CsvLoader" => loaders.push(CsvLoader::get_new_csv_loader(value)),

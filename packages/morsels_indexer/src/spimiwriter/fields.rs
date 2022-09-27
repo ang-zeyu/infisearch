@@ -20,14 +20,14 @@ pub fn store_fields(
     sorted_doc_infos: &mut [WorkerMinerDocInfo]
 ) {
     let mut file_number = if check_for_existing_field_store {
-        start_doc_id / field_infos.field_store_block_size
+        start_doc_id / field_infos.num_docs_per_store
     } else {
-        (doc_id_counter - spimi_counter) / field_infos.field_store_block_size
+        (doc_id_counter - spimi_counter) / field_infos.num_docs_per_store
     };
     let mut curr_block_count = if check_for_existing_field_store {
-        start_doc_id % field_infos.field_store_block_size
+        start_doc_id % field_infos.num_docs_per_store
     } else {
-        (doc_id_counter - spimi_counter) % field_infos.field_store_block_size
+        (doc_id_counter - spimi_counter) % field_infos.num_docs_per_store
     };
 
     let mut writer = ReusableWriter::new();
@@ -127,7 +127,7 @@ fn write_field_texts(
 ) {
     writer.write(&std::mem::take(&mut worker_miner_doc_info.field_texts));
     *curr_block_count += 1;
-    if *curr_block_count == field_infos.field_store_block_size {
+    if *curr_block_count == field_infos.num_docs_per_store {
         writer.write(b"]");
         writer.flush();
     

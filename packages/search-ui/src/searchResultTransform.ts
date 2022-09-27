@@ -26,7 +26,7 @@ async function singleResultRender(
   searchedTermsJSON: string,
   termRegexes: RegExp[],
 ) {
-  const { loaderConfigs } = configs.indexingConfig;
+  const { loaders } = configs.indexingConfig;
 
   const fields = result.getFields();
 
@@ -126,28 +126,28 @@ async function singleResultRender(
   } else if (!fullLink) {
     // Unable to retrieve and load from source file
     resultHeadingsAndTexts = [];
-  } else if (fullLink.endsWith('.html') && loaderConfigs.HtmlLoader) {
+  } else if (fullLink.endsWith('.html') && loaders.HtmlLoader) {
     const asText = await (await fetch(fullLink)).text();
     const doc = domParser.parseFromString(asText, 'text/html');
 
     const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
-      doc, loaderConfigs.HtmlLoader, termRegexes, linkToAttach, options,
+      doc, loaders.HtmlLoader, termRegexes, linkToAttach, options,
     );
     resultTitle = newTitle || resultTitle;
     resultHeadingsAndTexts = newHeadingsAndTexts;
-  } else if (fullLink.endsWith('.txt') && loaderConfigs.TxtLoader) {
+  } else if (fullLink.endsWith('.txt') && loaders.TxtLoader) {
     const asText = await (await fetch(fullLink)).text();
     resultHeadingsAndTexts = transformText(
       [['body', asText]], termRegexes, linkToAttach, options,
     );
   } else {
     const fullLinkUrl = parseURL(fullLink);
-    if (fullLinkUrl.pathname.endsWith('.json') && loaderConfigs.JsonLoader) {
+    if (fullLinkUrl.pathname.endsWith('.json') && loaders.JsonLoader) {
       const asJson = await (await fetch(fullLink)).json();
 
       const { title: newTitle, bodies: newBodies } = transformJson(
         fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
-        loaderConfigs.JsonLoader,
+        loaders.JsonLoader,
         termRegexes, linkToAttach, options,
       );
       resultTitle = newTitle || resultTitle;

@@ -127,8 +127,8 @@ class Searcher {
     }
 
     // These 2 parameters are "clean" multiples / divisors of each other
-    const { fieldStoreBlockSize, indexingConfig, lastDocId } = this.cfg;
-    const increment = Math.min(fieldStoreBlockSize, indexingConfig.numDocsPerBlock);
+    const { numDocsPerStore, indexingConfig, lastDocId } = this.cfg;
+    const increment = Math.min(numDocsPerStore, indexingConfig.numDocsPerBlock);
     for (let docId = 0; docId < lastDocId; docId += increment) {
       this._mrlCache._mrlCacheJson(getFieldUrl(this._mrlOptions.url, docId, this.cfg));
     }

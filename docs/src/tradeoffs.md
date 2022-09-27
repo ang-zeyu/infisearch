@@ -36,7 +36,7 @@ To achieve this result, you will need to ensure **everything** that is potential
 
 1. Set `pl_limit` to an arbitrarily large number. This compresses the inverted index into just one or a few files.
 1. Ensure `pl_cache_threshold` is set to a very low number (or, at least smaller than the generated inverted index file size), so that all postings lists are loaded up front and cached in memory.
-1. You would also want to set `field_store_block_size` to a fairly high number, and correspondingly set `cacheAllFieldStores` to `true`. This allows morsels to load the few field stores during initilisation and persistently cache them.
+1. You would also want to set `num_docs_per_store` to a fairly high number, and correspondingly set `cacheAllFieldStores` to `true`. This allows morsels to load the few field stores during initilisation and persistently cache them.
 
 > ⭐ This is what's being used by this documentation, since it is fairly small.<br><br>Nevertheless, `RTT=1/2` are still very acceptable settings under good network conditions. `RTT=3` may be slightly slow (`~600ms` assuming decent network conditions), but still quite acceptable depending on your use case since it reduces file bloat.<br><br>
 
@@ -54,7 +54,7 @@ However, it is also more feasible with this option to reduce a round of network 
 
 > For example, if each link takes an `~25` bytes to encode (counting JSON fluff), and `3MB` (ungzipped) is your comfort zone, you can store up to `120000` document links in a file.
 
-The relevant options here are `field_store_block_size` and `cacheAllFieldStores` (simply configure them similar to the earlier `RTT=0` case).
+The relevant options here are `num_docs_per_store` and `cacheAllFieldStores` (simply configure them similar to the earlier `RTT=0` case).
 
 #### 2.2. Generating Result Previews from Field Stores
 

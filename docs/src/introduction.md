@@ -44,5 +44,5 @@ The following is a quick high level breakdown of how Morsels works:
 
 1. **Wasm** is used -- that means no IE support =(
 
-1. **Browser Focused**: For now, the focus is static site search. That means no Node.js support and such.
+1. **Browser Focused**: The focus is static site search. That means no Node.js support and such.
 
