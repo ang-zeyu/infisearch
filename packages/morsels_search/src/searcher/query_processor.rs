@@ -88,7 +88,8 @@ impl Searcher {
         let proximity_scaling = PROXIMITY_BASE_SCALING
             + (total_proximity_ranking_pls as f32 * PROXIMITY_PER_TERM_SCALING);
 
-        let mut position_heap = BinaryHeap::with_capacity(
+        // For proximity_ranking::rank, to minimize allocations
+        let mut positions = Vec::with_capacity(
             total_proximity_ranking_pls * self.searcher_config.num_scored_fields,
         );
 
@@ -186,7 +187,7 @@ impl Searcher {
                     self.searcher_config.num_scored_fields,
                     &sorted_pl_its,
                     proximity_scaling,
-                    &mut position_heap,
+                    &mut positions,
                     doc_id,
                     total_proximity_ranking_pls,
                     min_proximity_ranking_pls,

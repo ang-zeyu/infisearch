@@ -1,6 +1,4 @@
-use std::{cmp::Ordering, collections::BinaryHeap};
-
-use crate::{postings_list::{PlIterator, Doc, Field}};
+use crate::{postings_list::{PlIterator, Doc, Field}, utils};
 
 pub struct Position {
     pos: u32,
@@ -10,26 +8,6 @@ pub struct Position {
     pl_it_field_positions: *const Vec<u32>,
 }
 
-impl Eq for Position {}
-
-impl PartialEq for Position {
-    fn eq(&self, other: &Self) -> bool {
-        self.pos == other.pos
-    }
-}
-
-impl Ord for Position {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.pos.cmp(&self.pos)
-    }
-}
-
-impl PartialOrd for Position {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
 #[inline]
 pub fn rank<'a>(
     is_phrase: bool,
@@ -37,7 +15,7 @@ pub fn rank<'a>(
     num_scored_fields: usize,
     pl_its: &[PlIterator<'a>],
     proximity_scaling: f32,
-    position_heap: &mut BinaryHeap<Position>,
+    positions: &mut Vec<Position>,
     curr_doc_id: u32,
     total_proximity_ranking_pls: usize,
     min_proximity_ranking_pls: usize,
@@ -49,7 +27,8 @@ pub fn rank<'a>(
     let mut min_window_len = std::u32::MAX;
     let mut phrase_query_res: Option<Doc> = None;
 
-    debug_assert!(position_heap.is_empty());
+    positions.clear();
+    debug_assert!(positions.is_empty());
 
     for (pl_it_idx, pl_it) in pl_its.iter().filter(|pl_it| {
         if let Some(prev_td) = pl_it.prev_td {
@@ -68,7 +47,7 @@ pub fn rank<'a>(
 
         for (j, curr_field) in curr_fields.iter().enumerate() {
             if let Some(&pos) = curr_field.field_positions.first() {
-                position_heap.push(Position {
+                positions.push(Position {
                     pos,
                     pl_it_idx,
                     pl_it_field_idx: j,
@@ -79,22 +58,40 @@ pub fn rank<'a>(
         }
     }
 
+    let num_positions = positions.len();
+    let positions: *mut Vec<Position> = positions;
+
     let mut next_expected = std::usize::MAX;
     let mut min_pos = std::u32::MAX;
     let mut min_pl_it_field_idx = std::usize::MAX;
     let mut min_terms_missed = total_proximity_ranking_pls - min_proximity_ranking_pls;
     let mut terms_missed = 0;
-    while let Some(mut top) = position_heap.pop() {
-        while let Some(t) = position_heap.peek() {
+    loop {
+        utils::insertion_sort(unsafe { &mut *positions }, |a, b| a.pos < b.pos);
+
+        let mut i = 0;
+        let mut top = unsafe { (*positions).get_unchecked_mut(i) };
+        if top.pl_it_field_position_idx >= unsafe { (&*top.pl_it_field_positions).len() } {
+            break;
+        }
+
+        i += 1;
+        while i < num_positions {
+            let mut t = unsafe { (*positions).get_unchecked_mut(i) };
             if top.pos == t.pos {
-                let mut t = unsafe { position_heap.pop().unwrap_unchecked() };
                 if t.pl_it_idx == next_expected {
                     // Use the one that is supposed to fall exactly next,
                     // if any, for phrase queries
                     std::mem::swap(&mut t, &mut top);
                 }
 
-                forward_pos(t, position_heap);
+                t.pl_it_field_position_idx += 1;
+                if t.pl_it_field_position_idx < unsafe { (&*t.pl_it_field_positions).len() } {
+                    t.pos = unsafe { *(&*t.pl_it_field_positions).get_unchecked(t.pl_it_field_position_idx) };
+                } else {
+                    t.pos = std::u32::MAX;
+                }
+                i += 1;
             } else {
                 break;
             }
@@ -144,7 +141,12 @@ pub fn rank<'a>(
             }
         }
 
-        forward_pos(top, position_heap);
+        top.pl_it_field_position_idx += 1;
+        if top.pl_it_field_position_idx < unsafe { (&*top.pl_it_field_positions).len() } {
+            top.pos = unsafe { *(&*top.pl_it_field_positions).get_unchecked(top.pl_it_field_position_idx) };
+        } else {
+            top.pos = std::u32::MAX;
+        }
     }
 
     if min_window_len <= max_window_len {
@@ -176,16 +178,4 @@ pub fn rank<'a>(
     }
 
     return phrase_query_res;
-}
-
-fn forward_pos(
-    mut top: Position,
-    position_heap: &mut BinaryHeap<Position>,
-) {
-    // Update Position iterator
-    top.pl_it_field_position_idx += 1;
-    if let Some(&pos) = unsafe { &*top.pl_it_field_positions }.get(top.pl_it_field_position_idx) {
-        top.pos = pos;
-        position_heap.push(top);
-    }
 }
