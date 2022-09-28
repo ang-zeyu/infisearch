@@ -1,0 +1,14 @@
+[
+	{
+		"title": "zzz今天 zzz 我x们",
+		"body": "Test that multilingual positions are encoded correctly"
+	},
+	{
+		"title": "今天我们",
+		"body": "Monolingual test"
+	},
+	{
+		"title": "今天",
+		"body": "我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我我㑇"
+	}
+]

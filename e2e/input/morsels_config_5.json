@@ -1,0 +1,88 @@
+{
+  "comment": "tests the chinese tokenizer, and default setting populations",
+  "lang_config": {
+    "lang": "chinese",
+    "options": {
+      "ignore_stop_words": false
+    }
+  },
+  "indexing_config": {
+    "exclude": [
+      "index.html",
+      "print.html",
+      "morsels_config_*",
+      "**/secondary_*"
+    ],
+    "loader_configs": {
+      "HtmlLoader": {
+        "exclude_selectors": [
+          "script,style,#sidebar,#menu-bar"
+        ],
+        "selectors": [
+          {
+            "attr_map": {},
+            "field_name": "title",
+            "selector": "title"
+          },
+          {
+            "attr_map": {},
+            "field_name": "body",
+            "selector": "body"
+          },
+          {
+            "attr_map": {
+              "id": "headingLink"
+            },
+            "field_name": "heading",
+            "selector": "h1,h2,h3,h4,h5,h6"
+          },
+          {
+            "attr_map": {
+              "also-index": "_add_files"
+            },
+            "selector": "div[also-index]"
+          }
+        ],
+        "type": "HtmlLoader"
+      },
+      "JsonLoader": {
+        "field_map": {
+          "body": "body",
+          "heading": "heading",
+          "title": "title"
+        },
+        "field_order": [
+          "title",
+          "heading",
+          "body"
+        ],
+        "type": "JsonLoader"
+      },
+      "CsvLoader": {
+        "header_field_map": {},
+        "header_field_order": [],
+        "index_field_map": {
+          "0": "title",
+          "1": "body",
+          "2": "_add_files"
+        },
+        "index_field_order": [
+          0,
+          1,
+          2
+        ],
+        "parse_options": {
+          "comment": null,
+          "delimiter": 44,
+          "double_quote": true,
+          "escape": null,
+          "has_headers": true,
+          "quote": 34
+        },
+        "type": "CsvLoader",
+        "use_headers": false
+      },
+      "PdfLoader": {}
+    }
+  }
+}

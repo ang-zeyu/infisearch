@@ -257,6 +257,21 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   // ------------------------------------------------------
 };
 
+async function testChinese() {
+  console.log('Starting chinese tests');
+  await reloadPage('chinese');
+
+  await typePhraseOrAnd('zzz今天 zzz 我x们', true);
+  await assertSingle('Test that multilingual positions are encoded correctly');
+
+  await typePhraseOrAnd('今天我们', true);
+  await assertSingle('Monolingual test');
+
+  // Test traditional - chinese conversion
+  await typeText('㑳');
+  await assertSingle('㑇');
+}
+
 async function testTokenizerOptions(configFile) {
   console.log('Starting stop words tests');
 
@@ -370,7 +385,9 @@ test('Test with different field and block size configs', async () => {
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
-  // No positions, uses source files to generate result previews
+  // Latin tokenizer
+  // No positions
+  // Uses source files to generate result previews
   cleanup(true);
   console.log('Starting morsels_config_4 tests');
   const config4 = 'e2e/input/morsels_config_4.json';
@@ -378,6 +395,17 @@ test('Test with different field and block size configs', async () => {
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
+
+  // Chinese tokenizer
+  cleanup(false);
+  console.log('Starting morsels_config_5 tests');
+  const config5 = 'e2e/input/morsels_config_5.json';
+  await testSuite(config5, false, true);
+
+  outputConfig = readOutputConfig();
+  expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(4);
+
+  await testChinese();
 
   // ignore_stop_words = true, max_term_len=70
   cleanup(false);
