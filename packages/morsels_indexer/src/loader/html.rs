@@ -2,6 +2,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use log::error;
 use path_slash::PathExt;
 use rustc_hash::FxHashMap;
 use scraper::ElementRef;
@@ -133,12 +134,16 @@ impl Loader for HtmlLoader {
             if extension == "html" {
                 let absolute_path_as_buf = PathBuf::from(absolute_path);
 
-                return Some(Box::new(std::iter::once(Box::new(HtmlLoaderResult {
-                    link: relative_path.to_slash().unwrap(),
-                    text: std::fs::read_to_string(absolute_path).expect("Failed to read file!"),
-                    options: self.options.clone(),
-                    absolute_path: absolute_path_as_buf,
-                }) as Box<dyn LoaderResult + Send>)));
+                if let Some(relative_path) = relative_path.to_slash() {
+                    return Some(Box::new(std::iter::once(Box::new(HtmlLoaderResult {
+                        link: relative_path.into_owned(),
+                        text: std::fs::read_to_string(absolute_path).expect("Failed to read file!"),
+                        options: self.options.clone(),
+                        absolute_path: absolute_path_as_buf,
+                    }) as Box<dyn LoaderResult + Send>)));
+                } else {
+                    error!("Unable to index {} containing non-unicode characters", relative_path.to_slash_lossy());
+                }
             }
         }
 

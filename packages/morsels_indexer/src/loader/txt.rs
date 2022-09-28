@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::path::PathBuf;
 
+use log::error;
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -57,7 +58,13 @@ impl Loader for TxtLoader {
                 let absolute_path_as_buf = PathBuf::from(absolute_path);
                 let text = std::fs::read_to_string(absolute_path)
                     .unwrap_or_else(|_| panic!("Failed to read .txt file {}", absolute_path.to_string_lossy().into_owned()));
-                let link = relative_path.to_slash().unwrap();
+                let link = relative_path.to_slash();
+                if link.is_none() {
+                    error!("Unable to index {} containing non-unicode characters", relative_path.to_slash_lossy());
+                    return None;
+                }
+
+                let link = unsafe { link.unwrap_unchecked().into_owned() };
                 return Some(Box::new(std::iter::once(
                     self.get_txt_loader_result(text, link, absolute_path_as_buf),
                 )));

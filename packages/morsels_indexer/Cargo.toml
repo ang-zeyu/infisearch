@@ -38,7 +38,7 @@ morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", ver
 num_cpus = "1"
 path-absolutize = { version = "3.0", features = ["lazy_static_cache"] }
 pathdiff = "0.2"
-path-slash = "0.1.4"
+path-slash = "0.2"
 pdf-extract = "0.6"
 regex = "1"
 rustc-hash = "1.1"

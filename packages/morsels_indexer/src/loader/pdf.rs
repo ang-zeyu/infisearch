@@ -58,7 +58,13 @@ impl Loader for PdfLoader {
     ) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
             if extension == "pdf" {
-                let link = relative_path.to_slash().unwrap();
+                let link = relative_path.to_slash();
+                if link.is_none() {
+                    error!("Unable to index {} containing non-unicode characters", relative_path.to_slash_lossy());
+                    return None;
+                }
+
+                let link = unsafe { link.unwrap_unchecked().into_owned() };
 
                 return Some(Box::new(std::iter::once(
                     self.get_pdf_loader_result(absolute_path, link),

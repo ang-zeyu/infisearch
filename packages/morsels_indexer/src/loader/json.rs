@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::path::PathBuf;
 
+use log::error;
 use path_slash::PathExt;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -80,8 +81,13 @@ impl Loader for JsonLoader {
                 )
                 .expect("Invalid json!");
 
-                let link = relative_path.to_slash().unwrap();
-                
+                let link = relative_path.to_slash();
+                if link.is_none() {
+                    error!("Unable to index {} containing non-unicode characters", relative_path.to_slash_lossy());
+                    return None;
+                }
+
+                let link = unsafe { link.unwrap_unchecked().into_owned() };
                 let absolute_path_as_buf = PathBuf::from(absolute_path);
 
                 if as_value.is_array() {
