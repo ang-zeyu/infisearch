@@ -346,7 +346,7 @@ function readOutputConfig() {
   );
 }
 
-test('Test with different field and block size configs', async () => {
+const mainTest = async () => {
   runFullIndex('e2e/input/morsels_config_empty.json');
 
   cleanup(false);
@@ -419,8 +419,17 @@ test('Test with different field and block size configs', async () => {
   console.log('Starting morsels_config_tokenizer tests');
   const configTokenizer = 'e2e/input/morsels_config_tokenizer.json';
   await testTokenizerOptions(configTokenizer);
+};
 
-  process.exit(0);
+test('Single test', async () => {
+  try {
+    await mainTest();
+
+    cleanup();
+    process.exit(0);
+  } catch (ex) {
+    console.error(ex);
+    cleanup();
+    process.exit(1);
+  }
 });
-
-afterAll(cleanup);

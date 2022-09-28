@@ -73,8 +73,15 @@ async function assertSingle(text) {
         text: document.getElementById('target-mode-el').textContent,
       };
     });
-    console.error('assertSingle failed, html in target:', output.html);
-    console.error('assertSingle failed, text in target:', output.text);
+    console.error(
+      'assertSingle failed,\n'
+        + '----------------\nHTML in target:\n'
+        + output.html
+        + '----------------\ntext in target:\n'
+        + output.text
+        + '----------------\nexpected text:\n'
+        + text,
+    );
     throw ex;
   }
 }
