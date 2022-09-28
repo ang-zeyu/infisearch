@@ -93,6 +93,13 @@ impl Searcher {
         );
 
         let do_run_proximity = self.searcher_config.searcher_options.use_query_term_proximity || is_phrase;
+
+        #[cfg(feature="perf")]
+        web_sys::console::log_1(
+            &format!("total_proximity_ranking_pls {} min_proximity_ranking_pls {}",
+            total_proximity_ranking_pls, min_proximity_ranking_pls,
+        ).into());
+
         // ------------------------------------------
 
         let do_accumulate = is_bracket || (is_phrase && total_proximity_ranking_pls == 1);

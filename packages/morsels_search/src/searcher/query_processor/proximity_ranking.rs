@@ -163,8 +163,14 @@ pub fn rank<'a>(
 
             /* #[cfg(feature="perf")]
             web_sys::console::log_1(
-                &format!("min_window_len {} terms_in_doc {} min_terms_missed {} scaling_factor {}",
-                min_window_len, num_pl_its_curr_doc, min_terms_missed, scaling_factor,
+                &format!("+ min_window_len {} min_terms_missed {} scaling_factor {}",
+                min_window_len, min_terms_missed, scaling_factor,
+            ).into()); */
+        } else {
+            /* #[cfg(feature="perf")]
+            web_sys::console::log_1(
+                &format!("- min_window_len {} min_terms_missed {} scaling_factor {}",
+                min_window_len, min_terms_missed, scaling_factor,
             ).into()); */
         }
     }

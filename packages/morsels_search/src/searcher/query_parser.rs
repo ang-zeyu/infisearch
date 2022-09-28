@@ -24,7 +24,6 @@ pub struct QueryPart {
     // --------------------------------
 
     pub is_corrected: bool,
-    pub is_stop_word_removed: bool,
     pub auto_suffix_wildcard: bool,
     pub is_suffixed: bool,
     pub original_term: Option<String>,
@@ -45,7 +44,6 @@ impl PartialEq for QueryPart {
             && self.is_subtracted == other.is_subtracted
             && self.is_inverted == other.is_inverted
             && self.is_corrected == other.is_corrected
-            && self.is_stop_word_removed == other.is_stop_word_removed
             && self.auto_suffix_wildcard == other.auto_suffix_wildcard
             && self.suffix_wildcard == other.suffix_wildcard
             && self.is_suffixed == other.is_suffixed
@@ -115,7 +113,6 @@ impl QueryPart {
         serialize_bool("isSubtracted", self.is_subtracted, &mut output);
         serialize_bool("isInverted", self.is_inverted, &mut output);
         serialize_bool("isCorrected", self.is_corrected, &mut output);
-        serialize_bool("isStopWordRemoved", self.is_stop_word_removed, &mut output);
         serialize_bool("autoSuffixWildcard", self.auto_suffix_wildcard, &mut output);
         serialize_bool("suffixWildcard", self.suffix_wildcard, &mut output);
         serialize_bool("isSuffixed", self.is_suffixed, &mut output);
@@ -172,7 +169,6 @@ impl QueryPart {
             is_subtracted: false,
             is_inverted: false,
             is_corrected: false,
-            is_stop_word_removed: false,
             auto_suffix_wildcard: false,
             suffix_wildcard: false,
             is_suffixed: false,
@@ -624,7 +620,6 @@ pub mod test {
             is_subtracted: false,
             is_inverted: false,
             is_corrected: false,
-            is_stop_word_removed: false,
             auto_suffix_wildcard: false,
             suffix_wildcard: false,
             is_suffixed: false,
@@ -644,7 +639,6 @@ pub mod test {
             is_subtracted: false,
             is_inverted: false,
             is_corrected: false,
-            is_stop_word_removed: false,
             auto_suffix_wildcard: true,
             suffix_wildcard: false,
             is_suffixed: false,
@@ -676,7 +670,6 @@ pub mod test {
             is_subtracted: false,
             is_inverted: false,
             is_corrected: false,
-            is_stop_word_removed: false,
             auto_suffix_wildcard: false,
             suffix_wildcard: false,
             is_suffixed: false,

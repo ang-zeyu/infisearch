@@ -29,7 +29,6 @@ use morsels_lang_chinese::chinese;
 
 use morsels_common::tokenize::SearchTokenizer;
 use morsels_common::MorselsLanguageConfig;
-use query_parser::{parse_query, QueryPartType};
 
 struct SearcherConfig {
     indexing_config: IndexingConfig,
@@ -252,7 +251,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     let start = performance.now();
 
     let searcher_val = unsafe { &mut *searcher };
-    let mut query_parts = parse_query(
+    let mut query_parts = query_parser::parse_query(
         query,
         &*searcher_val.tokenizer,
         &searcher_val.searcher_config.valid_fields,
@@ -263,25 +262,10 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("parse query took {}", performance.now() - start).into());
 
-    let is_free_text_query = query_parts.iter().all(|query_part| {
-        if let QueryPartType::Term = query_part.part_type {
-            query_part.field_name.is_none()
-                && !query_part.suffix_wildcard
-                && !query_part.is_mandatory
-                && !query_part.is_subtracted
-                && !query_part.is_inverted
-        } else {
-            false
-        }
-    });
-
-    if is_free_text_query {
-        searcher_val.remove_free_text_sw(&mut query_parts);
-    }
     searcher_val.expand_term_postings_lists(&mut query_parts);
 
     #[cfg(feature = "perf")]
-    web_sys::console::log_1(&format!("Preprocess took {}, is_free_text_query {}", performance.now() - start, is_free_text_query).into());
+    web_sys::console::log_1(&format!("Preprocess took {}", performance.now() - start).into());
 
     let term_pls = searcher_val.retrieve_term_pls(&mut query_parts).await;
 

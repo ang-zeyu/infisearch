@@ -1,5 +1,3 @@
-use morsels_common::utils::idf;
-
 use crate::dictionary::SearchDictionary;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
@@ -10,44 +8,6 @@ use super::query_parser::QueryPartType;
 const MAXIMUM_TERM_EXPANSION_WEIGHT: f32 = 0.5;
 
 impl Searcher {
-    pub fn remove_free_text_sw(&self, query_parts: &mut Vec<QueryPart>) {
-        let mut idf_sum = 0.0;
-        for query_part in query_parts.iter() {
-            if let Some(term) = &query_part.term {
-                if let Some(term_info) = self.dictionary.get_term_info(term) {
-                    idf_sum += idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
-                }
-            }
-        }
-
-        /*
-         Stop word removal strategy uses idf impact instead of removing all of them.
-         When multiplied by this, it should be larger than the idf sum.
-        */
-        let min_idf_proportion = if self.searcher_config.indexing_config.with_positions {
-            // Much higher if positions are indexed. (2%)
-            // As query term proximity ranking may change rankings significantly.
-            50.0
-        } else {
-            // 4%
-            25.0
-        };
-
-        for query_part in query_parts {
-            if let Some(term) = &mut query_part.term {
-                if self.tokenizer.is_stop_word(term) {
-                    if let Some(term_info) = self.dictionary.get_term_info(term) {
-                        let sw_idf = idf::get_idf(self.doc_info.num_docs as f32, term_info.doc_freq as f32);
-                        if sw_idf * min_idf_proportion < idf_sum {
-                            query_part.is_stop_word_removed = true;
-                            query_part.term = None;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     fn is_term_used(term: &str, query_parts: &Vec<QueryPart>) -> bool {
         for query_part in query_parts {
             if let Some(t) = &query_part.term {

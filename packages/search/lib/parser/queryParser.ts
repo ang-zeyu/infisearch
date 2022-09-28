@@ -9,7 +9,6 @@ export interface QueryPart {
   isSubtracted: boolean,
   isInverted: boolean,
   isCorrected?: boolean;
-  isStopWordRemoved?: boolean;
   autoSuffixWildcard: boolean;
   suffixWildcard: boolean;
   isSuffixed: boolean;
