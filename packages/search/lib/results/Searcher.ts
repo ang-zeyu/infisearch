@@ -138,7 +138,7 @@ class Searcher {
     const pls = this.cfg.indexingConfig.plNamesToCache;
     pls.forEach((pl) => {
       const folder = Math.floor(pl / this.cfg.indexingConfig.numPlsPerDir);
-      const url = `${this._mrlOptions.url}pl_${folder}/pl_${pl}.json`;
+      const url = `${this._mrlOptions.url}pl_${folder}/pl_${pl}.mls`;
       this._mrlCache._mrlCacheUrl(url);
     });
   }

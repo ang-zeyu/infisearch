@@ -12,7 +12,7 @@ pub mod utils;
 use dictionary::Dictionary;
 use utils::varint;
 
-pub static FILE_EXT: &str = "json";
+pub static FILE_EXT: &str = "mls";
 pub static METADATA_FILE: &str = "metadata.json";
 
 pub struct MetadataReader {
