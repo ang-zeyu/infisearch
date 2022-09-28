@@ -76,6 +76,8 @@ impl Searcher {
             MAX_WINDOW_LEN
         };
 
+        let total_pls = child_postings_lists.iter().filter(|pl| !pl.is_subtracted).count() as f32;
+
         let total_proximity_ranking_pls = child_postings_lists.iter()
             .filter(|pl_and_info| pl_and_info.include_in_proximity_ranking && (!is_phrase || pl_and_info.is_mandatory))
             .count();
@@ -136,6 +138,7 @@ impl Searcher {
             };
 
             let mut score = 0.0;
+            let mut num_pls_matched = 0;
             let mut num_mandatory_pls_matched = 0;
             let mut num_proximity_ranking_pls = 0;
             let mut is_subtracted = false;
@@ -153,6 +156,8 @@ impl Searcher {
                             } else {
                                 self.calc_doc_bm25_score(td, doc_id, pl_it.pl, pl_it.weight)
                             };
+
+                            num_pls_matched += 1;
 
                             if pl_it.is_mandatory {
                                 num_mandatory_pls_matched += 1;
@@ -205,7 +210,11 @@ impl Searcher {
             // ------------------------------------------
 
             if !is_subtracted && !(num_mandatory_pls > 0 && num_mandatory_pls_matched < num_mandatory_pls) {
-                acc.score = score * positional_scaling_factor;
+                let conjunctive_scaling_factor = num_pls_matched as f32 / total_pls;
+                acc.score = score
+                    * positional_scaling_factor
+                    * conjunctive_scaling_factor
+                    * conjunctive_scaling_factor;
                 new_pl.term_docs.push(acc);
             }
         }
