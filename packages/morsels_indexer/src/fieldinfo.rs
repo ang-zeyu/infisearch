@@ -22,6 +22,18 @@ fn get_default_cache_all_field_stores() -> bool {
     true
 }
 
+fn get_default_fields() -> Vec<FieldConfig> {
+    vec![
+        FieldConfig { name: "title".to_owned(), do_store: false, weight: 2.0, k: 1.2, b: 0.15 },
+        FieldConfig { name: "h1".to_owned(), do_store: false, weight: 2.0, k: 1.2, b: 0.15 },
+        FieldConfig { name: "heading".to_owned(), do_store: false, weight: 1.5, k: 1.2, b: 0.25 },
+        FieldConfig { name: "body".to_owned(), do_store: false, weight: 1.0, k: 1.2, b: 0.75 },
+        FieldConfig { name: "headingLink".to_owned(), do_store: false, weight: 0.0, k: 1.2, b: 0.75 },
+        FieldConfig { name: RELATIVE_FP_FIELD.to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
+        FieldConfig { name: "link".to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
+    ]
+}
+
 // Raw Json field configuration
 #[derive(Serialize, Deserialize)]
 pub struct FieldsConfig {
@@ -31,6 +43,7 @@ pub struct FieldsConfig {
     pub num_stores_per_dir: u32,
     #[serde(default="get_default_cache_all_field_stores")]
     pub cache_all_field_stores: bool,
+    #[serde(default="get_default_fields")]
     pub fields: Vec<FieldConfig>,
 }
 
@@ -38,18 +51,10 @@ impl Default for FieldsConfig {
     fn default() -> Self {
         // The default configuration required for @morsels/search-ui
         FieldsConfig {
-            num_docs_per_store: 10000,
+            num_docs_per_store: get_default_num_docs_per_store(),
             num_stores_per_dir: get_default_num_field_stores_per_dir(),
             cache_all_field_stores: get_default_cache_all_field_stores(),
-            fields: vec![
-                FieldConfig { name: "title".to_owned(), do_store: false, weight: 2.0, k: 1.2, b: 0.15 },
-                FieldConfig { name: "h1".to_owned(), do_store: false, weight: 2.0, k: 1.2, b: 0.15 },
-                FieldConfig { name: "heading".to_owned(), do_store: false, weight: 1.5, k: 1.2, b: 0.25 },
-                FieldConfig { name: "body".to_owned(), do_store: false, weight: 1.0, k: 1.2, b: 0.75 },
-                FieldConfig { name: "headingLink".to_owned(), do_store: false, weight: 0.0, k: 1.2, b: 0.75 },
-                FieldConfig { name: RELATIVE_FP_FIELD.to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
-                FieldConfig { name: "link".to_owned(), do_store: true, weight: 0.0, k: 1.2, b: 0.75 },
-            ],
+            fields: get_default_fields(),
         }
     }
 }
@@ -96,12 +101,22 @@ impl FieldsConfig {
     }
 }
 
+fn get_default_k() -> f32 {
+    1.2
+}
+
+fn get_default_b() -> f32 {
+    0.75
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct FieldConfig {
     pub name: String,
     pub do_store: bool,
     pub weight: f32,
+    #[serde(default = "get_default_k")]
     pub k: f32,
+    #[serde(default = "get_default_b")]
     pub b: f32,
 }
 
