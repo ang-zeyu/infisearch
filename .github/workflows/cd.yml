@@ -19,13 +19,18 @@ jobs:
             target_1: x86_64-pc-windows-msvc
           - os: macos-latest
             target_1: x86_64-apple-darwin
+          - os: macos-latest
+            target_1: aarch64-apple-darwin
 
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-          target: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin' || null }}
+          toolchain: nightly-2022-09-22
+          default: true
+          override: true
+          target: ${{ matrix.target_1 }}
+          components: rust-src
       - uses: Swatinem/rust-cache@v1
 
       - name: Build indexer x86_64
@@ -38,16 +43,6 @@ jobs:
       - name: Zip binaries
         run: tar -c -f target/indexer.${{ matrix.target_1 }}.zip --directory=target/${{ matrix.target_1 }}/release morsels.exe mdbook-morsels.exe
         if: matrix.os == 'windows-latest'
-
-      - name: Build indexer aarch64
-        run: cargo build --release --target aarch64-apple-darwin -p morsels_indexer
-        if: matrix.os == 'macos-latest'
-      - name: Build mdbook plugin aarch64
-        run: cargo build --release --target aarch64-apple-darwin -p mdbook-morsels
-        if: matrix.os == 'macos-latest'
-      - name: Zip binaries
-        run: zip -j target/indexer.aarch64-apple-darwin.zip target/aarch64-apple-darwin/release/morsels target/aarch64-apple-darwin/release/mdbook-morsels
-        if: matrix.os == 'macos-latest'
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
