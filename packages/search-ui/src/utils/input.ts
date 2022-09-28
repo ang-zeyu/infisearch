@@ -63,7 +63,7 @@ export async function runNewQuery(
     listContainer.scrollTo({ top: 0 });
   } catch (ex) {
     listContainer.innerHTML = '';
-    listContainer.appendChild(uiOptions.errorRender(createElement, options));
+    listContainer.appendChild(uiOptions.headerRender(createElement, options, true, false));
     throw ex;
   } finally {
     // Run the next queued query if there is one

@@ -291,13 +291,6 @@ table.morsels-tip-table .morsels-tip-item li {
     height: 10px;
 }
 
-.morsels-fs-blank {
-    text-align: center;
-    font-size: 0.9em;
-    color: var(--morsels-fine-print-fg);
-    padding: 1em;
-}
-
 @media screen and (min-width: 769px) {
     .morsels-fs-root {
         border-radius: 6px;
@@ -386,17 +379,27 @@ table.morsels-tip-table .morsels-tip-item li {
     background: var(--morsels-scrollbar-thumb-bg);
 }
 
-.morsels-error {
-    text-align: center;
-    color: var(--morsels-error-fg);
-    padding: 1em;
-}
-
 .morsels-header {
     color: var(--morsels-header-fg);
     padding: 9px 13px 7px 13px;
     font-weight: bold;
     font-size: 1.06em;
+}
+
+.morsels-error,
+.morsels-fs-blank {
+    text-align: center;
+    font-size: 0.9em;
+    font-weight: normal;
+    padding: 1em;
+}
+
+.morsels-error {
+    color: var(--morsels-error-fg);
+}
+
+.morsels-fs-blank {
+    color: var(--morsels-fine-print-fg);
 }
 
 .morsels-fs-root .morsels-header {
@@ -573,7 +576,7 @@ table.morsels-tip-table .morsels-tip-item li {
     display: flex;
     justify-content: center;
     width: 100%;
-    margin: 10px 0;
+    margin: 15px 0 10px 0;
 }
 .morsels-loading-indicator:after {
     content: " ";

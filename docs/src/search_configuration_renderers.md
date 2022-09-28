@@ -82,9 +82,12 @@ If you need to include some custom options (e.g. an API base url), you can use t
 
 The options here are intended for changing small, supporting elements, which can be especially useful for localizing the UI.
 
-#### `headerRender(h, opts, query: Query): HTMLElement`
+#### `headerRender(h, opts, err: boolean, blank: boolean, queryParts: Query): HTMLElement`
 
-This API renders the "10 results found" text by default.
+This method renders:
+- the "10 results found" text
+- the *Start searching above!* text when the search box is empty in the fullscreen UI. The dropdown UI is hidden in such a case.
+- a generic error message when an unexpected error occurs.
 
 This can also be used to render messages like "*Did you mean <u>spelling</u>?*", or any information that you'd like to place as a header.
 
@@ -105,14 +108,6 @@ This API renders the loading indicator.
 While the search library is doing initialising work, the `isSetup` parameter is set to `true`.
 
 The `isInitial` boolean is `true` when the user runs the first query, where there are no results yet. You may use this parameter to change the look of the indicator in subsequent queries. In the default design, subsequent queries move the spinning indicator to the top right.
-
-#### `fsBlankRender(h, opts): HTMLElement`
-
-This method renders the *Start searching above!* text when the search box is empty in the fullscreen UI. The dropdown UI which is hidden in such a case.
-
-#### `errorRender(h, opts): HTMLElement`
-
-Renders the element when an unexpected error occurs.
 
 ## Rendering Search Results
 

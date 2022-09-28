@@ -96,12 +96,6 @@ export function prepareOptions(options: Options) {
     uiOptions.fsScrollLock = true;
   }
   
-  uiOptions.errorRender = uiOptions.errorRender
-        || ((h) => h('div', { class: 'morsels-error' }, 'Oops! Something went wrong... 🙁'));
-  
-  uiOptions.fsBlankRender = uiOptions.fsBlankRender
-        || ((h) => h('div', { class: 'morsels-fs-blank' }, 'Start Searching Above!'));
-  
   if (!uiOptions.loadingIndicatorRender) {
     uiOptions.loadingIndicatorRender = ((
       h, opts, isInitialising, wasResultsBlank,
@@ -127,8 +121,14 @@ export function prepareOptions(options: Options) {
     return loadingIndicator;
   };
   
-  uiOptions.headerRender = uiOptions.headerRender || ((h, opts, query) => {
-    return h('div', { class: 'morsels-header' }, `${query.resultsTotal} results found`);
+  uiOptions.headerRender = uiOptions.headerRender || ((h, opts, err, blank, queryParts) => {
+    if (err) {
+      return h('div', { class: 'morsels-header morsels-error' }, 'Oops! Something went wrong... 🙁');
+    } else if (blank) {
+      return h('div', { class: 'morsels-header morsels-fs-blank' }, 'Start Searching Above!');
+    }
+
+    return h('div', { class: 'morsels-header' }, `${queryParts.resultsTotal} results found`);
   });
   
   uiOptions.resultsRender = uiOptions.resultsRender || resultsRender;

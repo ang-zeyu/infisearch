@@ -51,7 +51,7 @@ class InitState {
       })
       .catch(() => {
         listContainer.innerHTML = '';
-        listContainer.appendChild(uiOptions.errorRender(createElement, options));
+        listContainer.appendChild(uiOptions.headerRender(createElement, options, true, false));
         setupOk = false;
       });
   
@@ -110,7 +110,7 @@ class InitState {
             this._mrlHideDropdown();
           } else if (uiOptions.mode !== UiMode.Target) {
             // Fullscreen, render the initial element / text
-            listContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
+            listContainer.appendChild(uiOptions.headerRender(createElement, options, false, true));
           } /* else {
             // Target, no action needed other than clearing the HTML
           } */
@@ -178,7 +178,7 @@ function initMorsels(options: Options): {
   );
 
   // Initial state is blank
-  fsListContainer.appendChild(uiOptions.fsBlankRender(createElement, options));
+  fsListContainer.appendChild(uiOptions.headerRender(createElement, options, false, true));
 
   function showFullscreen() {
     if (!initState._mrlFsShown) {

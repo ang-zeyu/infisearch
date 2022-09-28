@@ -39,8 +39,6 @@ export interface UiOptions {
   // Renderers
 
   // Miscellaneous
-  errorRender?: (h: CreateElement, opts: Options) => HTMLElement,
-  fsBlankRender?: (h: CreateElement, opts: Options) => HTMLElement,
   loadingIndicatorRender?: (
     h: CreateElement,
     opts: Options,
@@ -50,7 +48,9 @@ export interface UiOptions {
   headerRender?: (
     h: CreateElement,
     opts: Options,
-    queryParts: Query,
+    error: boolean,
+    blank: boolean,
+    queryParts?: Query,
   ) => HTMLElement,
 
   // Rendering Results

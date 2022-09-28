@@ -265,7 +265,7 @@ export default async function loadQueryResults(
 
   const fragment = document.createDocumentFragment();
   if (isFirst) {
-    const miscInfo = headerRender(createElement, options, query);
+    const miscInfo = headerRender(createElement, options, false, false, query);
     miscInfo.setAttribute(MISC_INFO_ID, 'true');
     fragment.appendChild(miscInfo);
   }
