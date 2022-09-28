@@ -1,5 +1,5 @@
 use morsels_common::{
-    tokenize::{SearchTokenizer, SearchTokenizeTerm},
+    tokenize::{self, SearchTokenizer, SearchTokenizeTerm, PrefixResult},
     dictionary::Dictionary,
 };
 
@@ -8,24 +8,30 @@ pub enum QueryPartType {
     Term,
     Phrase,
     Bracket,
-    And,
-    Not,
 }
 
 #[cfg_attr(test, derive(Debug))]
 pub struct QueryPart {
+    // --------------------------------
+    // Operators
+    pub is_mandatory: bool,
+    pub is_subtracted: bool,
+    pub is_inverted: bool,
+
+    pub field_name: Option<String>,
+
+    pub suffix_wildcard: bool,
+    // --------------------------------
+
     pub is_corrected: bool,
     pub is_stop_word_removed: bool,
     pub auto_suffix_wildcard: bool,
-    pub suffix_wildcard: bool,
     pub is_suffixed: bool,
     pub original_terms: Option<Vec<String>>,
     pub terms: Option<Vec<String>>,
     pub terms_searched: Option<Vec<Vec<String>>>,
     pub part_type: QueryPartType,
-    pub field_name: Option<String>,
     pub children: Option<Vec<QueryPart>>,
-    pub include_in_proximity_ranking: bool,
     pub weight: f32,
 }
 
@@ -35,7 +41,10 @@ impl Eq for QueryPart {}
 #[cfg(test)]
 impl PartialEq for QueryPart {
     fn eq(&self, other: &Self) -> bool {
-        self.is_corrected == other.is_corrected
+        self.is_mandatory == other.is_mandatory
+            && self.is_subtracted == other.is_subtracted
+            && self.is_inverted == other.is_inverted
+            && self.is_corrected == other.is_corrected
             && self.is_stop_word_removed == other.is_stop_word_removed
             && self.auto_suffix_wildcard == other.auto_suffix_wildcard
             && self.suffix_wildcard == other.suffix_wildcard
@@ -46,7 +55,6 @@ impl PartialEq for QueryPart {
             && self.part_type == other.part_type
             && self.field_name == other.field_name
             && self.children == other.children
-            && self.include_in_proximity_ranking == other.include_in_proximity_ranking
             && (self.weight - other.weight).abs() < 0.001
     }
 }
@@ -113,6 +121,9 @@ impl QueryPart {
     fn serialize(&self) -> String {
         let mut output = "{".to_owned();
 
+        serialize_bool("isMandatory", self.is_mandatory, &mut output);
+        serialize_bool("isSubtracted", self.is_subtracted, &mut output);
+        serialize_bool("isInverted", self.is_inverted, &mut output);
         serialize_bool("isCorrected", self.is_corrected, &mut output);
         serialize_bool("isStopWordRemoved", self.is_stop_word_removed, &mut output);
         serialize_bool("autoSuffixWildcard", self.auto_suffix_wildcard, &mut output);
@@ -145,8 +156,6 @@ impl QueryPart {
             QueryPartType::Term => "\"TERM\"",
             QueryPartType::Phrase => "\"PHRASE\"",
             QueryPartType::Bracket => "\"BRACKET\"",
-            QueryPartType::And => "\"AND\"",
-            QueryPartType::Not => "\"NOT\"",
         });
 
         output.push_str(r#","fieldName":"#);
@@ -169,6 +178,9 @@ impl QueryPart {
 
     pub fn get_base(part_type: QueryPartType) -> Self {
         QueryPart {
+            is_mandatory: false,
+            is_subtracted: false,
+            is_inverted: false,
             is_corrected: false,
             is_stop_word_removed: false,
             auto_suffix_wildcard: false,
@@ -181,16 +193,16 @@ impl QueryPart {
             field_name: None,
             children: None,
             weight: 1.0,
-            include_in_proximity_ranking: true,
         }
     }
 }
 
 enum Operator {
-    Not,
-    And,
     OpenGroup,
-    Field(String),
+    Field {
+        field_name: String,
+        prefix_ops: PrefixResult,
+    },
 }
 
 enum QueryParseState {
@@ -203,29 +215,21 @@ enum QueryParseState {
 fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator>) {
     while let Some(op) = operator_stack.pop() {
         match op {
-            Operator::Not => {
-                let last_part = query_parts.pop().unwrap();
-                query_parts.push(QueryPart {
-                    children: Some(vec![last_part]),
-                    // NOT operators cannot produce any meaningful positional information
-                    include_in_proximity_ranking: false,
-                    ..QueryPart::get_base(QueryPartType::Not)
-                });
-            }
-            Operator::And => {
-                let last_part = query_parts.pop().unwrap();
-                query_parts.last_mut().unwrap().children.as_mut().unwrap().push(last_part);
-            }
             Operator::OpenGroup => {
                 // Serves as a guard to the rest of the stack.
                 // This will only be popped when ')' is encountered.
                 operator_stack.push(op);
                 return;
             }
-            Operator::Field(field_name) => {
-                let last = query_parts.last_mut().unwrap();
-                if last.field_name.is_none() {
-                    last.field_name = Some(field_name);
+            Operator::Field {
+                field_name,
+                prefix_ops,
+            } => {
+                if let Some(last) = query_parts.last_mut() {
+                    if last.field_name.is_none() {
+                        last.field_name = Some(field_name);
+                        set_prefix_ops(prefix_ops, last);
+                    }
                 }
             }
         }
@@ -233,13 +237,15 @@ fn handle_op(query_parts: &mut Vec<QueryPart>, operator_stack: &mut Vec<Operator
 }
 
 #[inline(never)]
-fn collect_slice(query_chars: &[char], i: usize, j: usize, escape_indices: &[usize]) -> String {
-    query_chars[i..j]
-        .iter()
-        .enumerate()
-        .filter(|(idx, _char)| !escape_indices.iter().any(|escape_idx| *escape_idx == (*idx + i)))
-        .map(|(_idx, c)| c)
-        .collect()
+fn set_prefix_ops(prefix_ops: PrefixResult, part: &mut QueryPart) {
+    if !part.is_mandatory && !part.is_subtracted {
+        part.is_mandatory = prefix_ops.is_mandatory;
+        part.is_subtracted = prefix_ops.is_subtracted;
+    }
+
+    if prefix_ops.is_inverted {
+        part.is_inverted = true;
+    }
 }
 
 #[allow(clippy::match_like_matches_macro)]
@@ -258,13 +264,6 @@ fn is_double_quote(c: char) -> bool {
         _ => false
     }
 }
-
-#[inline(never)]
-fn is_ascii_whitespace(c: char) -> bool {
-    matches!(c, '\t' | '\n' | '\x0C' | '\r' | ' ')
-}
-
-// TODO cleanup query parsing, hopefully reduce its size while at it. Currently ~7.5KB.
 
 /// Called when 1 of the operators: NOT, AND, (, ), ", :, is encountered
 /// or at the end of input
@@ -287,7 +286,13 @@ fn handle_terminator(
         return;
     }
 
-    let tokenize_result = tokenizer.search_tokenize(collect_slice(query_chars, i, j, escape_indices), dict);
+    let tokenize_result = tokenizer.search_tokenize(
+        &query_chars,
+        i,
+        j,
+        escape_indices,
+        dict,
+    );
     if tokenize_result.terms.is_empty() {
         return;
     }
@@ -299,8 +304,9 @@ fn handle_terminator(
         original_term,
         suffix_wildcard,
         is_corrected,
+        prefix_ops,
     } in tokenize_result.terms {
-        query_parts.push(QueryPart {
+        let mut part = QueryPart {
             auto_suffix_wildcard: tokenize_result.auto_suffix_wildcard,
             suffix_wildcard,
             is_corrected,
@@ -308,7 +314,9 @@ fn handle_terminator(
             original_terms: Some(vec![original_term]),
             terms_searched: Some(vec![term_inflections]),
             ..QueryPart::get_base(QueryPartType::Term)
-        });
+        };
+        set_prefix_ops(prefix_ops, &mut part);
+        query_parts.push(part);
 
         if is_first {
             is_first = false;
@@ -320,7 +328,7 @@ fn handle_terminator(
 pub fn parse_query(
     query: String,
     tokenizer: &dyn SearchTokenizer,
-    valid_fields: &Vec<&str>,
+    valid_fields: &Vec<String>,
     with_positions: bool,
     dict: &Dictionary,
 ) -> Vec<QueryPart> {
@@ -331,9 +339,9 @@ pub fn parse_query(
     let mut escape_indices: Vec<usize> = Vec::new();
     let mut op_stack: Vec<Operator> = Vec::new();
 
-    let mut i = 0;
-    let mut j = 0;
-    let mut last_possible_unaryop_idx = 0;
+    let mut i = 0; // start of current slice
+    let mut j = 0; // end of current slice
+    let mut k = 0;   // end of previous slice / last possible position of a prefix operator
 
     let query_chars: Vec<char> = query.chars().collect();
     let query_chars_len = query_chars.len();
@@ -344,10 +352,15 @@ pub fn parse_query(
         match query_parse_state {
             QueryParseState::Quote => {
                 if !did_encounter_escape && is_double_quote(c) {
-                    let content = collect_slice(&query_chars, i, j, &escape_indices);
                     query_parse_state = QueryParseState::None;
 
-                    let tokenize_result = tokenizer.search_tokenize(content, dict);
+                    let tokenize_result = tokenizer.search_tokenize(
+                        &query_chars,
+                        i,
+                        j,
+                        &escape_indices,
+                        dict,
+                    );
 
                     let mut terms = Vec::new();
                     let mut terms_searched = Vec::new();
@@ -357,9 +370,9 @@ pub fn parse_query(
                         term,
                         term_inflections,
                         original_term: _,
-                        // TODO unsupported for now
-                        suffix_wildcard: _,
+                        suffix_wildcard: _, // TODO unsupported for now
                         is_corrected: is_term_corrected,
+                        prefix_ops: _,
                     } in tokenize_result.terms {
                         is_corrected = is_corrected || is_term_corrected;
                         if let Some(term) = term {
@@ -369,20 +382,22 @@ pub fn parse_query(
                         terms_searched.push(term_inflections);
                     }
 
-                    query_parts.push(QueryPart {
+                    let mut phrase_part = QueryPart {
                         terms: Some(terms),
                         terms_searched: Some(terms_searched),
                         is_corrected,
                         ..QueryPart::get_base(QueryPartType::Phrase)
-                    });
+                    };
+                    let prefix_ops = tokenize::get_prefix_ops(
+                        i, 2, k, &query_chars, &escape_indices, tokenizer,
+                    );
+                    set_prefix_ops(prefix_ops, &mut phrase_part);
+
+                    query_parts.push(phrase_part);
                     handle_op(&mut query_parts, &mut op_stack);
 
                     i = j + 1;
-                    last_possible_unaryop_idx = i;
-                } else if c == '\\' {
-                    did_encounter_escape = true;
-                } else {
-                    did_encounter_escape = false;
+                    k = i;
                 }
             }
             QueryParseState::None => {
@@ -403,9 +418,14 @@ pub fn parse_query(
                     if is_double_quote(c) {
                         query_parse_state = QueryParseState::Quote;
                     } else if c == '(' {
-                        query_parts.push(QueryPart::get_base(QueryPartType::Bracket));
+                        let mut part = QueryPart::get_base(QueryPartType::Bracket);
+                        let prefix_ops = tokenize::get_prefix_ops(
+                            j, 1, k, &query_chars, &escape_indices, tokenizer,
+                        );
+                        set_prefix_ops(prefix_ops, &mut part);
+                        
+                        query_parts.push(part);
                         op_stack.push(Operator::OpenGroup);
-                        last_possible_unaryop_idx = i;
                     } else if c == ')' {
                         // Guard against ')' without a matching '(' (just treat it literally, almost)
                         if !op_stack.is_empty() && matches!(op_stack.last().unwrap(), Operator::OpenGroup)
@@ -431,120 +451,51 @@ pub fn parse_query(
 
                                 op_stack.pop(); // throw the OpenGroup
                                 handle_op(&mut query_parts, &mut op_stack);
+                                k = j + 1;
                             }
                         }
-                        last_possible_unaryop_idx = i;
                     }
-                } else if c == ':' && !did_encounter_escape && last_possible_unaryop_idx >= i && j > i {
-                    let field_name = collect_slice(
-                        &query_chars,
-                        last_possible_unaryop_idx,
-                        j,
-                        &escape_indices,
-                    );
-
-                    // Treat it literally otherwise
-                    if valid_fields.contains(&field_name.as_str()) {
-                        handle_terminator(
-                            tokenizer,
-                            &query_chars,
-                            i,
-                            last_possible_unaryop_idx,
-                            &escape_indices,
-                            &mut query_parts,
-                            &mut op_stack,
-                            dict,
-                        );
-
-                        op_stack.push(Operator::Field(field_name));
-                        i = j + 1;
-                        last_possible_unaryop_idx = i;
-                    }
-                } else if is_ascii_whitespace(c) {
-                    let initial_j = j;
-                    while j < query_chars_len && is_ascii_whitespace(query_chars[j]) {
-                        j += 1;
-                    }
-
-                    if !did_encounter_escape
-                        && query_chars_len > 6 // overflow
-                        &&  j < query_chars_len - 4
-                        && query_chars[j] == 'A' && query_chars[j + 1] == 'N' && query_chars[j + 2] == 'D'
-                        && is_ascii_whitespace(query_chars[j + 3])
-                    {
-                        handle_terminator(
-                            tokenizer,
-                            &query_chars,
-                            i,
-                            initial_j,
-                            &escape_indices,
-                            &mut query_parts,
-                            &mut op_stack,
-                            dict,
-                        );
-
-                        if query_parts.is_empty()
-                            || !matches!(query_parts.last().unwrap().part_type, QueryPartType::And)
-                        {
-                            let children = Some(if let Some(last_curr_query_part) = query_parts.pop() {
-                                vec![last_curr_query_part]
-                            } else {
-                                vec![]
-                            });
-
-                            query_parts.push(QueryPart {
-                                children,
-                                ..QueryPart::get_base(QueryPartType::And)
-                            });
+                } else if !did_encounter_escape && c == ':' {
+                    for field_name in valid_fields {
+                        if j >= field_name.len() {
+                            let field_name_start = j - field_name.len();
+                            let text = query_chars[field_name_start..j].iter().collect();
+    
+                            // Treat it literally otherwise
+                            if field_name == &text {
+                                handle_terminator(
+                                    tokenizer,
+                                    &query_chars,
+                                    i,
+                                    field_name_start,
+                                    &escape_indices,
+                                    &mut query_parts,
+                                    &mut op_stack,
+                                    dict,
+                                );
+    
+                                let prefix_ops = tokenize::get_prefix_ops(
+                                    field_name_start, 1, k, &query_chars, &escape_indices, tokenizer,
+                                );
+                                op_stack.push(Operator::Field {
+                                    field_name: text,
+                                    prefix_ops,
+                                });
+                                i = j + 1;
+                                k = i;
+                                break;
+                            }
                         }
-
-                        op_stack.push(Operator::And);
-
-                        j += 4;
-                        while j < query_chars_len && is_ascii_whitespace(query_chars[j]) {
-                            j += 1;
-                        }
-                        i = j;
                     }
-
-                    last_possible_unaryop_idx = j;
-                    j -= 1;
-                } else if j == last_possible_unaryop_idx
-                    && !did_encounter_escape
-                    && query_chars_len > 5 // overflow guard
-                    && j < query_chars_len - 4
-                    && query_chars[j] == 'N' && query_chars[j + 1] == 'O' && query_chars[j + 2] == 'T'
-                    && is_ascii_whitespace(query_chars[j + 3])
-                {
-                    handle_terminator(
-                        tokenizer,
-                        &query_chars,
-                        i,
-                        j,
-                        &escape_indices,
-                        &mut query_parts,
-                        &mut op_stack,
-                        dict,
-                    );
-
-                    op_stack.push(Operator::Not);
-
-                    j += 4;
-                    while j < query_chars_len && is_ascii_whitespace(query_chars[j]) {
-                        j += 1;
-                    }
-                    i = j;
-                    last_possible_unaryop_idx = i;
-                    j -= 1;
-                } else if c == '\\' {
-                    did_encounter_escape = !did_encounter_escape;
-                    if did_encounter_escape {
-                        escape_indices.push(j);
-                    }
-                } else {
-                    did_encounter_escape = false;
                 }
             }
+        }
+
+        if did_encounter_escape {
+            did_encounter_escape = false;
+        } else if c == '\\' {
+            escape_indices.push(j);
+            did_encounter_escape = true;
         }
 
         j += 1;
@@ -572,11 +523,27 @@ pub mod test {
     use pretty_assertions::assert_eq;
 
     use morsels_lang_ascii::ascii;
+    use morsels_lang_chinese::chinese;
     use smartstring::{SmartString, LazyCompact};
 
     use super::{QueryPart, QueryPartType};
 
     impl QueryPart {
+        fn mandatory(mut self) -> QueryPart {
+            self.is_mandatory = true;
+            self
+        }
+
+        fn subtracted(mut self) -> QueryPart {
+            self.is_subtracted = true;
+            self
+        }
+
+        fn negated(mut self) -> QueryPart {
+            self.is_inverted = true;
+            self
+        }
+
         fn no_expand(mut self) -> QueryPart {
             if let QueryPartType::Term = self.part_type {
                 self.auto_suffix_wildcard = false;
@@ -655,7 +622,7 @@ pub mod test {
 
         for term in vec![
             "lorem", "ipsum", "for", "by", "and", "notipsum", "http", "localhost",
-            "8080", "title", "body", "not", "invalidfield",
+            "8080", "title", "body", "not", "invalidfield", "我", "他"
         ] {
             term_infos.insert(
                 SmartString::from(term),
@@ -666,44 +633,11 @@ pub mod test {
         Dictionary { term_infos }
     }
 
-    fn wrap_in_not(query_part: QueryPart) -> QueryPart {
-        QueryPart {
-            is_corrected: false,
-            is_stop_word_removed: false,
-            auto_suffix_wildcard: false,
-            suffix_wildcard: false,
-            is_suffixed: false,
-            original_terms: None,
-            terms: None,
-            terms_searched: None,
-            part_type: QueryPartType::Not,
-            field_name: None,
-            children: Some(vec![query_part]),
-            weight: 1.0,
-            include_in_proximity_ranking: false,
-        }
-    }
-
-    fn wrap_in_and(query_parts: Vec<QueryPart>) -> QueryPart {
-        QueryPart {
-            is_corrected: false,
-            is_stop_word_removed: false,
-            auto_suffix_wildcard: false,
-            suffix_wildcard: false,
-            is_suffixed: false,
-            original_terms: None,
-            terms: None,
-            terms_searched: None,
-            part_type: QueryPartType::And,
-            field_name: None,
-            children: Some(query_parts),
-            weight: 1.0,
-            include_in_proximity_ranking: true,
-        }
-    }
-
     fn wrap_in_parentheses(query_parts: Vec<QueryPart>) -> QueryPart {
         QueryPart {
+            is_mandatory: false,
+            is_subtracted: false,
+            is_inverted: false,
             is_corrected: false,
             is_stop_word_removed: false,
             auto_suffix_wildcard: false,
@@ -716,12 +650,14 @@ pub mod test {
             field_name: None,
             children: Some(query_parts),
             weight: 1.0,
-            include_in_proximity_ranking: true,
         }
     }
 
     fn get_term(term: &str) -> QueryPart {
         QueryPart {
+            is_mandatory: false,
+            is_subtracted: false,
+            is_inverted: false,
             is_corrected: false,
             is_stop_word_removed: false,
             auto_suffix_wildcard: true,
@@ -734,7 +670,6 @@ pub mod test {
             field_name: None,
             children: None,
             weight: 1.0,
-            include_in_proximity_ranking: true,
         }
     }
 
@@ -748,6 +683,9 @@ pub mod test {
 
     fn get_phrase(terms: Vec<&str>) -> QueryPart {
         QueryPart {
+            is_mandatory: false,
+            is_subtracted: false,
+            is_inverted: false,
             is_corrected: false,
             is_stop_word_removed: false,
             auto_suffix_wildcard: false,
@@ -760,7 +698,6 @@ pub mod test {
             field_name: None,
             children: None,
             weight: 1.0,
-            include_in_proximity_ranking: true,
         }
     }
 
@@ -773,7 +710,7 @@ pub mod test {
         super::parse_query(
             query.to_owned(),
             &tokenizer,
-            &vec!["title", "body"],
+            &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
             true,
             &get_dictionary(),
         )
@@ -788,7 +725,22 @@ pub mod test {
         super::parse_query(
             query.to_owned(),
             &tokenizer,
-            &vec!["title", "body"],
+            &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
+            false,
+            &get_dictionary(),
+        )
+    }
+
+    pub fn parse_zn(query: &str) -> Vec<QueryPart> {
+        let tokenizer = chinese::new_with_options(&MorselsLanguageConfig {
+            lang: "chinese".to_owned(),
+            options: MorselsLanguageConfigOpts::default(),
+        });
+
+        super::parse_query(
+            query.to_owned(),
+            &tokenizer,
+            &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
             false,
             &get_dictionary(),
         )
@@ -809,7 +761,7 @@ pub mod test {
         super::parse_query(
             query.to_owned(),
             &tokenizer,
-            &vec!["title", "body"],
+            &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
             true,
             &get_dictionary(),
         )
@@ -849,39 +801,88 @@ pub mod test {
 
     #[test]
     fn boolean_test() {
-        assert_eq!(parse("NOT "), vec![get_term("not").no_expand()]);
-        assert_eq!(parse("NOT lorem"), vec![wrap_in_not(get_lorem())]);
-        assert_eq!(parse("NOT NOT lorem"), vec![wrap_in_not(wrap_in_not(get_lorem()))]);
-        assert_eq!(parse("NOT lorem ipsum"), vec![wrap_in_not(get_lorem()), get_ipsum()]);
-        assert_eq!(parse("lorem NOTipsum"), vec![get_lorem(), get_term("notipsum")]);
-        assert_eq!(parse("lorem NOT ipsum"), vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]);
-        assert_eq!(parse("lorem AND ipsum"), vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]);
+        assert_eq!(parse("-"), vec![]);
+        assert_eq!(parse(" -"), vec![]);
+        assert_eq!(parse("+"), vec![]);
+        assert_eq!(parse(" +"), vec![]);
+        assert_eq!(parse("~"), vec![]);
+        assert_eq!(parse(" ~"), vec![]);
+        assert_eq!(parse("-lorem"), vec![get_lorem().subtracted()]);
+        assert_eq!(parse(" -lorem"), vec![get_lorem().subtracted()]);
+        assert_eq!(parse("+lorem"), vec![get_lorem().mandatory()]);
+        assert_eq!(parse(" +lorem"), vec![get_lorem().mandatory()]);
+        assert_eq!(parse("~lorem"), vec![get_lorem().negated()]);
+        assert_eq!(parse(" ~lorem"), vec![get_lorem().negated()]);
+        assert_eq!(parse("--lorem"), vec![get_lorem().subtracted()]);
+        assert_eq!(parse(" --lorem"), vec![get_lorem().subtracted()]);
+        assert_eq!(parse("++lorem"), vec![get_lorem().mandatory()]);
+        assert_eq!(parse(" ++lorem"), vec![get_lorem().mandatory()]);
+        assert_eq!(parse("~~lorem"), vec![get_lorem().negated()]);
+        assert_eq!(parse(" ~~lorem"), vec![get_lorem().negated()]);
+
+        // Whitespace sensitivity after
+        assert_eq!(parse("- lorem"), vec![get_lorem()]);
+        assert_eq!(parse(" - lorem"), vec![get_lorem()]);
+        assert_eq!(parse("+ lorem"), vec![get_lorem()]);
+        assert_eq!(parse(" + lorem"), vec![get_lorem()]);
+        assert_eq!(parse("~ lorem"), vec![get_lorem()]);
+        assert_eq!(parse(" ~ lorem"), vec![get_lorem()]);
+
+        assert_eq!(parse(" +lorem ipsum"), vec![get_lorem().mandatory(), get_ipsum()]);
+        assert_eq!(parse(" lorem +ipsum"), vec![get_lorem(), get_ipsum().mandatory()]);
+        assert_eq!(parse("-lorem ipsum"), vec![get_lorem().subtracted(), get_ipsum()]);
+        assert_eq!(parse("lorem -ipsum"), vec![get_lorem(), get_ipsum().subtracted()]);
+        assert_eq!(parse(" ~lorem ipsum"), vec![get_lorem().negated(), get_ipsum()]);
+        assert_eq!(parse(" lorem ~ipsum"), vec![get_lorem(), get_ipsum().negated()]);
+
+        assert_eq!(parse("lorem-ipsum"), vec![get_lorem(), get_ipsum()]);
+        assert_eq!(parse("lorem+ipsum"), vec![get_lorem(), get_ipsum()]);
+        assert_eq!(parse("lorem~ipsum"), vec![get_lorem(), get_ipsum()]);
+        assert_eq!(parse("lorem -ipsum"), vec![get_lorem(), get_ipsum().subtracted()]);
+        assert_eq!(parse("lorem +ipsum"), vec![get_lorem(), get_ipsum().mandatory()]);
+        assert_eq!(parse("lorem ~ipsum"), vec![get_lorem(), get_ipsum().negated()]);
+
+        assert_eq!(parse("\"lorem\"-ipsum"), vec![get_phrase(vec![get_lorem().mandatory()]), get_ipsum().subtracted()]);
+        assert_eq!(parse("(lorem)-ipsum"), vec![wrap_in_parentheses(vec![get_lorem()]), get_ipsum().subtracted()]);
+        assert_eq!(parse("\"lorem\" -ipsum"), vec![get_phrase(vec![get_lorem().mandatory()]), get_ipsum().subtracted()]);
+        assert_eq!(parse("(lorem) -ipsum"), vec![wrap_in_parentheses(vec![get_lorem()]), get_ipsum().subtracted()]);
+        assert_eq!(parse("ipsum-\"lorem\""), vec![get_ipsum(), get_phrase(vec![get_lorem().mandatory()])]);
+        assert_eq!(parse("ipsum-(lorem)"), vec![get_ipsum(), wrap_in_parentheses(vec![get_lorem()])]);
+        assert_eq!(parse("ipsum -\"lorem\""), vec![get_ipsum(), get_phrase(vec![get_lorem().mandatory()]).subtracted()]);
+        assert_eq!(parse("ipsum -(lorem)"), vec![get_ipsum(), wrap_in_parentheses(vec![get_lorem()]).subtracted()]);
+
+        assert_eq!(parse(" +lorem +ipsum +lorem"), vec![
+            get_lorem().mandatory(),
+            get_ipsum().mandatory(),
+            get_lorem().mandatory(),
+        ]);
+        assert_eq!(parse(" -lorem -ipsum -lorem"), vec![
+            get_lorem().subtracted(),
+            get_ipsum().subtracted(),
+            get_lorem().subtracted(),
+        ]);
+
+        assert_eq!(parse(" +~lorem -ipsum -~lorem"), vec![
+            get_lorem().negated().mandatory(),
+            get_ipsum().subtracted(),
+            get_lorem().negated().subtracted(),
+        ]);
+
         assert_eq!(
-            parse("lorem AND ipsum AND lorem"),
-            vec![wrap_in_and(vec![get_lorem(), get_ipsum(), get_lorem()])]
-        );
-        assert_eq!(
-            parse("lorem AND NOT ipsum"),
-            vec![wrap_in_and(vec![get_lorem(), wrap_in_not(get_ipsum())])]
-        );
-        assert_eq!(
-            parse("NOT lorem AND NOT ipsum"),
-            vec![wrap_in_and(vec![wrap_in_not(get_lorem()), wrap_in_not(get_ipsum())])]
-        );
-        assert_eq!(
-            parse("NOT lorem AND NOT ipsum lorem NOT ipsum"),
+            parse("+lorem +lorem -ipsum"),
             vec![
-                wrap_in_and(vec![wrap_in_not(get_lorem()), wrap_in_not(get_ipsum().no_expand())]),
-                get_lorem().no_expand(),
-                wrap_in_not(get_ipsum())
+                get_lorem().mandatory(),
+                get_lorem().mandatory(),
+                get_ipsum().subtracted(),
             ]
         );
-        assert_eq!(parse_with_sw_removal("for AND by"), vec![wrap_in_and(vec![
-            get_term("for").no_term(), get_term("by").no_term(),
-        ])]);
-        assert_eq!(parse_with_sw_removal("for AND lorem"), vec![wrap_in_and(vec![
-            get_term("for").no_term(), get_lorem()
-        ])]);
+
+        assert_eq!(parse_with_sw_removal("~for +by"), vec![
+            get_term("for").no_term().negated(), get_term("by").no_term().mandatory(),
+        ]);
+        assert_eq!(parse_with_sw_removal("-for +lorem"), vec![
+            get_term("for").no_term().subtracted(), get_lorem().mandatory(),
+        ]);
     }
 
     #[test]
@@ -1002,24 +1003,35 @@ pub mod test {
                 .with_field("title")]
         );
         assert_eq!(
-            parse("title:lorem AND ipsum"),
-            vec![wrap_in_and(vec![get_lorem().with_field("title"), get_ipsum()])]
+            parse("title:+lorem +ipsum"),
+            vec![get_lorem().with_field("title").mandatory(), get_ipsum().mandatory()]
         );
         assert_eq!(
-            parse("title:(lorem AND ipsum)"),
-            vec![wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]).with_field("title")]
+            parse("title:(+lorem +ipsum)"),
+            vec![
+                wrap_in_parentheses(
+                    vec![get_lorem().mandatory(), get_ipsum().mandatory()],
+                ).with_field("title"),
+            ]
         );
         assert_eq!(
-            parse("title:NOT lorem ipsum)"),
-            vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]
+            parse("title:~ lorem ipsum)"),
+            vec![get_lorem().with_field("title"), get_ipsum()]
         );
         assert_eq!(
-            parse("title: NOT lorem ipsum)"),
-            vec![wrap_in_not(get_lorem()).with_field("title"), get_ipsum()]
+            parse("title:-lorem ipsum)"),
+            vec![
+                get_lorem().with_field("title").subtracted(),
+                get_ipsum(),
+            ]
         );
         assert_eq!(
-            parse("title: lorem NOT ipsum)"),
-            vec![get_lorem().with_field("title").no_expand(), wrap_in_not(get_ipsum())]
+            parse("title:~lorem ipsum)"),
+            vec![get_lorem().negated().with_field("title"), get_ipsum()]
+        );
+        assert_eq!(
+            parse("title: lorem ~ipsum)"),
+            vec![get_lorem().with_field("title"), get_ipsum().negated()]
         );
         assert_eq!(
             parse_with_sw_removal("title:for)"),
@@ -1042,11 +1054,11 @@ pub mod test {
 
         // Test invalid field names (should be parsed verbose / as-is)
         assert_eq!(
-            parse("invalidfield: lorem NOT ipsum)"),
+            parse("invalidfield: lorem ~ipsum)"),
             vec![
-                get_term("invalidfield").no_expand(),
-                get_lorem().no_expand(),
-                wrap_in_not(get_ipsum())
+                get_term("invalidfield"),
+                get_lorem(),
+                get_ipsum().negated()
             ]
         );
         assert_eq!(
@@ -1059,12 +1071,12 @@ pub mod test {
             ]
         );
         assert_eq!(
-            parse("http://localhost:8080 NOT lorem"),
+            parse("http://localhost:8080 +lorem"),
             vec![
-                get_term("http").no_expand(),
-                get_term("localhost").no_expand(),
-                get_term("8080").no_expand(),
-                wrap_in_not(get_lorem()),
+                get_term("http"),
+                get_term("localhost"),
+                get_term("8080"),
+                get_lorem().mandatory(),
             ]
         );
         assert_eq!(
@@ -1096,133 +1108,146 @@ pub mod test {
                 .with_original_terms(vec!["lore"])
                 .with_searched_terms(vec![vec!["lore", "lorem"]]),
         ]);
-        assert_eq!(parse("lore AND ipsum"), vec![wrap_in_and(vec![
+        assert_eq!(parse("+lore +ipsum"), vec![
             get_lorem()
                 .with_corrected()
                 .with_original_terms(vec!["lore"])
-                .with_searched_terms(vec![vec!["lore", "lorem"]]),
-            get_ipsum(),
-        ])]);
-        assert_eq!(parse("\"lore ipsum\" AND ipsum"), vec![wrap_in_and(vec![
+                .with_searched_terms(vec![vec!["lore", "lorem"]])
+                .mandatory(),
+            get_ipsum().mandatory(),
+        ]);
+        assert_eq!(parse("+\"lore ipsum\" +ipsum"), vec![
             get_phrase(vec!["lorem", "ipsum"])
                 .with_corrected()
-                .with_searched_terms(vec![vec!["lore", "lorem"], vec!["ipsum"]]),
-            get_ipsum(),
-        ])]);
+                .with_searched_terms(vec![vec!["lore", "lorem"], vec!["ipsum"]])
+                .mandatory(),
+            get_ipsum().mandatory(),
+        ]);
     }
 
     #[test]
     fn misc_test() {
         assert_eq!(
-            parse("title:(lorem AND ipsum) AND NOT (lorem ipsum) body:(lorem NOT ipsum)"),
+            parse("title: \"lorem ipsum\""),
             vec![
-                wrap_in_and(vec![
-                    wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])])
-                        .with_field("title"),
-                    wrap_in_not(wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]))
-                ]),
-                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())])
+                get_phrase(vec!["lorem", "ipsum"]).with_field("title")
+            ]
+        );
+
+        assert_eq!(
+            parse("title:+(+lorem +ipsum) -(lorem ipsum) body:(lorem ~ipsum)"),
+            vec![
+                wrap_in_parentheses(vec![get_lorem().mandatory(), get_ipsum().mandatory()])
+                    .mandatory()
+                    .with_field("title"),
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]).subtracted(),
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum().negated()])
                     .with_field("body")
             ]
         );
 
         assert_eq!(
-            parse("title:(lorem AND ipsum)NOT title:(lorem ipsum) body:(lorem NOT ipsum)"),
+            parse("title:(+lorem +ipsum) title:~(lorem ipsum) body:(lorem ~ipsum)"),
             vec![
-                wrap_in_parentheses(vec![wrap_in_and(vec![get_lorem(), get_ipsum()])]).with_field("title"),
-                wrap_in_not(wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]).with_field("title")),
-                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())])
+                wrap_in_parentheses(vec![get_lorem().mandatory(), get_ipsum().mandatory()]).with_field("title"),
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum(),]).negated().with_field("title"),
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum().negated()])
                     .with_field("body")
             ]
         );
 
         assert_eq!(
-            parse("body:ipsum AND http://localhost:8080 AND NOT (title:lorem)"),
+            parse("+body:ipsum +http://localhost:8080 -(title:lorem)"),
             vec![
-                wrap_in_and(vec![
-                    get_ipsum().with_field("body"),
-                    get_term("http"),
-                ]),
+                get_ipsum().with_field("body").mandatory(),
+                get_term("http").mandatory(),
                 get_term("localhost"),
-                wrap_in_and(vec![
-                    get_term("8080"),
-                    wrap_in_not(wrap_in_parentheses(vec![get_lorem().with_field("title")])),
-                ])
+                get_term("8080"),
+                wrap_in_parentheses(vec![get_lorem().with_field("title")]).subtracted(),
             ]
         );
 
         assert_eq!(
-            parse("title:\"lorem AND ipsum\"NOT title:(\"lorem ipsum\") body:(lorem NOT ipsum)"),
+            parse("title:\"+lorem +ipsum\" ~title:(\"lorem ipsum\") body:(lorem ~ipsum)"),
             vec![
-                get_phrase(vec!["lorem", "and", "ipsum"]).with_field("title"),
-                wrap_in_not(
-                    wrap_in_parentheses(vec![get_phrase(vec!["lorem", "ipsum"])]).with_field("title")
-                ),
-                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())])
-                    .with_field("body")
+                get_phrase(vec!["lorem", "ipsum"]).with_field("title"),
+                wrap_in_parentheses(vec![get_phrase(vec!["lorem", "ipsum"])]).with_field("title").negated(),
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum().negated()]).with_field("body")
             ]
         );
 
         assert_eq!(
-            parse("title:(lorem AND body:(lorem ipsum))NOT title:((body:\"lorem\") ipsum) body:(lorem NOT ipsum)"),
+            parse("title:(+lorem +body:(lorem ipsum)) -title:((body:\"lorem\") ipsum) body:(lorem ~ipsum)"),
             vec![
                 wrap_in_parentheses(vec![
-                    wrap_in_and(vec![
+                    get_lorem().mandatory(),
+                    wrap_in_parentheses(vec![
                         get_lorem(),
-                        wrap_in_parentheses(vec![
-                            get_lorem(),
-                            get_ipsum(),
-                        ]).with_field("body"),
-                    ])
+                        get_ipsum(),
+                    ]).with_field("body").mandatory(),
                 ]).with_field("title"),
-                wrap_in_not(wrap_in_parentheses(vec![
+                wrap_in_parentheses(vec![
                     wrap_in_parentheses(vec![
                         get_phrase(vec!["lorem"]).with_field("body"),
                     ]),
                     get_ipsum(),
-                ]).with_field("title")),
-                wrap_in_parentheses(vec![get_lorem().no_expand(), wrap_in_not(get_ipsum())]).with_field("body")
+                ]).with_field("title").subtracted(),
+                wrap_in_parentheses(vec![get_lorem(), get_ipsum().negated()]).with_field("body")
             ]
         );
 
         assert_eq!(
-            parse("title:lorem AND ipsum AND NOT lorem ipsum body:lorem NOT ipsum"),
+            parse("title:+lorem +ipsum -lorem ipsum body:lorem ~ipsum"),
             vec![
-                wrap_in_and(vec![
-                    get_lorem().with_field("title"),
-                    get_ipsum(),
-                    wrap_in_not(get_lorem().no_expand()),
-                ]),
+                get_lorem().no_expand().with_field("title").mandatory(),
+                get_ipsum().no_expand().mandatory(),
+                get_lorem().no_expand().subtracted(),
                 get_ipsum().no_expand(),
-                get_lorem().no_expand().with_field("body"),
-                wrap_in_not(get_ipsum()),
+                get_lorem().with_field("body"),
+                get_ipsum().negated(),
             ]
         );
 
         assert_eq!(
-            parse("title\\:lorem\\ AND ipsum\\ AND \\NOT lorem ipsum body\\:lorem \\NOT ipsum"),
+            parse("(~lorem ipsum)"),
             vec![
+                wrap_in_parentheses(vec![
+                    get_lorem().negated(),
+                    get_ipsum(),
+                ]),
+            ]
+        );
+
+        assert_eq!(
+            parse("title:(lorem) \\(-lorem ipsum) \\+title\\:lorem\\+ipsum \\(lorem) \\-lorem ipsum body\\:lorem \\~ipsum"),
+            vec![
+                wrap_in_parentheses(vec![get_term("lorem")]).with_field("title"),
+                get_term("lorem").subtracted(),
+                get_term("ipsum"),
                 get_term("title"),
                 get_term("lorem"),
-                get_term("and"),
                 get_term("ipsum"),
-                get_term("and"),
-                get_term("not"),
+                get_term("lorem"),
                 get_term("lorem"),
                 get_term("ipsum"),
                 get_term("body"),
                 get_term("lorem"),
-                get_term("not"),
                 get_term("ipsum"),
             ]
         );
 
         assert_eq!(
-            parse("((lorem ipsum) lorem) (lorem()NOT ipsum)"),
+            parse("((lorem +ipsum) lorem) (lorem()~ipsum)"),
             vec![
-                wrap_in_parentheses(vec![wrap_in_parentheses(vec![get_lorem(), get_ipsum()]), get_lorem(),]),
-                wrap_in_parentheses(vec![get_lorem(), wrap_in_parentheses(vec![]), wrap_in_not(get_ipsum())]),
+                wrap_in_parentheses(vec![wrap_in_parentheses(vec![get_lorem(), get_ipsum().mandatory()]), get_lorem(),]),
+                wrap_in_parentheses(vec![get_lorem(), wrap_in_parentheses(vec![]), get_ipsum().negated()]),
             ]
         );
+    }
+
+    #[test]
+    fn zn_test() {
+        assert_eq!(parse("我-(lorem)"), vec![wrap_in_parentheses(vec![get_lorem()])]);
+        assert_eq!(parse_zn("我-(lorem)"), vec![get_term("我"), wrap_in_parentheses(vec![get_lorem()]).subtracted()]);
     }
 }

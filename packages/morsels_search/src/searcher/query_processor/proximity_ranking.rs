@@ -48,9 +48,9 @@ pub fn rank<'a>(
         pl_its
             .iter()
             .filter_map(|pl_it| {
-                if let Some(td) = pl_it.td {
+                if let Some(prev_td) = pl_it.prev_td {
                     if pl_it.include_in_proximity_ranking
-                        && td.doc_id == curr_doc_id {
+                        && prev_td.doc_id == curr_doc_id {
                         return Some(pl_it as *const PlIterator);
                     }
                 }
@@ -69,7 +69,7 @@ pub fn rank<'a>(
 
         for (i, &pl_it) in pl_its_for_proximity_ranking.iter().enumerate() {
             let curr_fields = unsafe {
-                &(*pl_it).td.as_ref().unwrap().fields
+                &(*pl_it).prev_td.as_ref().unwrap().fields
             };
             for (j, curr_field) in curr_fields.iter().enumerate() {
                 if let Some(&pos) = curr_field.field_positions.first() {
@@ -117,7 +117,7 @@ pub fn rank<'a>(
 
             // Update Position iterator
             let doc_field = unsafe {
-                &(*pl_its_for_proximity_ranking[top.pl_it_idx]).td.as_ref().unwrap().fields[top.pl_it_field_idx]
+                &(*pl_its_for_proximity_ranking[top.pl_it_idx]).prev_td.as_ref().unwrap().fields[top.pl_it_field_idx]
             };
 
             top.pl_it_field_position_idx += 1;

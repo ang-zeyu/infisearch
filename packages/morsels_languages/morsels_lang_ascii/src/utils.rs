@@ -39,6 +39,7 @@ pub fn separating_filter(c: char) -> bool {
         '~' |
         '^' |
         '=' |
+        '-' |
         '+' |
         '*' |
         '/' |

@@ -18,6 +18,7 @@ use wasm_bindgen::JsValue;
 use crate::dictionary::Dictionary;
 use crate::docinfo::DocInfo;
 use crate::postings_list_cache::PostingsListCache;
+use crate::utils;
 
 #[cfg(feature = "lang_ascii")]
 use morsels_lang_ascii::ascii;
@@ -34,6 +35,7 @@ struct SearcherConfig {
     indexing_config: IndexingConfig,
     lang_config: MorselsLanguageConfig,
     field_infos: Vec<FieldInfo>,
+    valid_fields: Vec<String>,
     num_scored_fields: usize,
     searcher_options: SearcherOptions,
 }
@@ -117,6 +119,7 @@ pub fn get_new_searcher(
 
     let field_infos_raw = js_sys::Uint8Array::new(&field_infos_raw).to_vec();
     let mut field_infos = Vec::new();
+    let mut valid_fields = Vec::new();
     let mut field_infos_raw_pos = 0;
     while field_infos_raw_pos < field_infos_raw.len() {
         let name_len = field_infos_raw[field_infos_raw_pos] as usize;
@@ -136,8 +139,12 @@ pub fn get_new_searcher(
         let b = LittleEndian::read_f32(&field_infos_raw[field_infos_raw_pos..]);
         field_infos_raw_pos += 4;
 
-        field_infos.push(FieldInfo { name, weight, k, b })
+        if weight > 0.0 {
+            valid_fields.push(name.clone());
+        }
+        field_infos.push(FieldInfo { name, weight, k, b });
     }
+    utils::insertion_sort(&mut valid_fields, |a, b| a.len() > b.len());
 
     let stop_words = if stop_words.is_undefined() {
         None
@@ -173,6 +180,7 @@ pub fn get_new_searcher(
             },
         },
         field_infos,
+        valid_fields,
         num_scored_fields,
         searcher_options: SearcherOptions {
             url,
@@ -247,7 +255,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     let mut query_parts = parse_query(
         query,
         &*searcher_val.tokenizer,
-        &searcher_val.searcher_config.field_infos.iter().map(|fi| fi.name.as_str()).collect(),
+        &searcher_val.searcher_config.valid_fields,
         searcher_val.searcher_config.indexing_config.with_positions,
         &searcher_val.dictionary,
     );
@@ -257,7 +265,11 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
 
     let is_free_text_query = query_parts.iter().all(|query_part| {
         if let QueryPartType::Term = query_part.part_type {
-            query_part.field_name.is_none() && !query_part.suffix_wildcard
+            query_part.field_name.is_none()
+                && !query_part.suffix_wildcard
+                && !query_part.is_mandatory
+                && !query_part.is_subtracted
+                && !query_part.is_inverted
         } else {
             false
         }
@@ -299,11 +311,15 @@ pub mod test {
     use crate::docinfo::DocInfo;
     use crate::postings_list_cache::PostingsListCache;
 
-    pub fn create_searcher(num_docs: usize, num_fields: usize) -> Searcher {
+    pub fn create_searcher(num_docs: usize) -> Searcher {
+        let field_names = ["title", "body", "heading"];
+        let num_fields = field_names.len();
+        let mut valid_fields = Vec::new();
         let mut field_infos = Vec::new();
-        for i in 0..num_fields {
+        for field_name in field_names {
+            valid_fields.push(field_name.to_owned());
             field_infos.push(FieldInfo {
-                name: format!("field{}", i).to_owned(),
+                name: field_name.to_owned(),
                 weight: 0.3,
                 k: 1.2,
                 b: 0.75,
@@ -332,6 +348,7 @@ pub mod test {
                     options: MorselsLanguageConfigOpts::default(),
                 },
                 field_infos,
+                valid_fields,
                 num_scored_fields: num_fields,
                 searcher_options: SearcherOptions {
                     url: "/".to_owned(),

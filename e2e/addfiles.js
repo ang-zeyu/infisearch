@@ -28,9 +28,9 @@ async function addFilesTest(with_positions, configFile) {
   await assertSingle('main document');
   
   await typeText(
-    '"1st document in the recursive linkage"'
-      + ' AND "2nd document in the recursive linkage"'
-      + ' AND "3rd document in the recursive linkage"',
+    '+"1st document in the recursive linkage"'
+      + ' +"2nd document in the recursive linkage"'
+      + ' +"3rd document in the recursive linkage"',
   );
   await assertSingle('recursive linkage');
   

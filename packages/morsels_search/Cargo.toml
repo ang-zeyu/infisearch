@@ -40,3 +40,4 @@ optional = true
 [dev-dependencies]
 miniserde = "0.1"
 pretty_assertions = "0.7.2"
+morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", features = [] }

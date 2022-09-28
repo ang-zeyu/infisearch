@@ -83,27 +83,24 @@ impl Doc {
 /// Facilitates repeated access to the current value (td)
 /// and previous value (peek_prev).
 pub struct PlIterator<'a> {
+    pub prev_td: Option<&'a Doc>,
     pub td: Option<&'a Doc>,
     pub pl: &'a PostingsList,
     idx: usize,
     pub original_idx: u8,
     pub weight: f32,
     pub include_in_proximity_ranking: bool,
+    pub is_mandatory: bool,
+    pub is_subtracted: bool,
+    pub is_inverted: bool,
 }
 
 impl<'a> PlIterator<'a> {
     pub fn next(&mut self) -> Option<&'a Doc> {
         self.idx += 1;
+        self.prev_td = self.td;
         self.td = self.pl.term_docs.get(self.idx);
         self.td
-    }
-
-    pub fn peek_prev(&self) -> Option<&'a Doc> {
-        if self.idx == 0 {
-            None
-        } else {
-            self.pl.term_docs.get(self.idx - 1)
-        }
     }
 }
 
@@ -151,6 +148,9 @@ pub struct PlAndInfo {
     pub pl: Rc<PostingsList>,
     pub weight: f32,
     pub include_in_proximity_ranking: bool,
+    pub is_mandatory: bool,
+    pub is_subtracted: bool,
+    pub is_inverted: bool,
 }
 
 #[cfg(test)]
@@ -171,14 +171,26 @@ impl std::fmt::Debug for PostingsList {
 }
 
 impl PostingsList {
-    pub fn iter(&self, original_idx: u8, weight: f32, include_in_proximity_ranking: bool) -> PlIterator {
+    pub fn iter(
+        &self,
+        original_idx: u8,
+        weight: f32,
+        include_in_proximity_ranking: bool,
+        is_mandatory: bool,
+        is_subtracted: bool,
+        is_inverted: bool,
+    ) -> PlIterator {
         PlIterator {
+            prev_td: None,
             td: self.term_docs.get(0),
             pl: &self,
             idx: 0,
             original_idx,
             weight,
             include_in_proximity_ranking,
+            is_mandatory,
+            is_subtracted,
+            is_inverted,
         }
     }
 
@@ -340,8 +352,6 @@ impl PostingsList {
 
 #[cfg(test)]
 pub mod test {
-    use std::rc::Rc;
-
     use pretty_assertions::assert_eq;
 
     use super::{Field, PostingsList, Doc};
@@ -376,8 +386,8 @@ pub mod test {
         Doc { doc_id, fields, score: 0.0 }
     }
 
-    pub fn to_pl_rc(text: &str) -> Rc<PostingsList> {
-        Rc::new(to_pl(None, text))
+    pub fn to_pl_rc(text: &str) -> PostingsList {
+        to_pl(None, text)
     }
 
     fn to_term_doc(text: &str) -> Doc {

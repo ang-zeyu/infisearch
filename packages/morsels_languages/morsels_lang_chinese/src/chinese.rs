@@ -7,7 +7,7 @@ use regex::Regex;
 
 #[cfg(feature = "indexer")]
 use morsels_common::tokenize::{IndexerTokenizer, TermIter};
-use morsels_common::tokenize::{SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
+use morsels_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
 use morsels_common::MorselsLanguageConfig;
 use morsels_common::dictionary::Dictionary;
 use morsels_common::utils::split_incl::SplitIncl;
@@ -64,7 +64,7 @@ impl IndexerTokenizer for Tokenizer {
         let it = SENTENCE_SPLITTER.split(text)
             .flat_map(move |sent_slice| {
                 SplitIncl::split(sent_slice, |c| utils::split_terms(c) || utils::is_chinese_char(c))
-                    .map(|term_slice| ts::normalize(
+                    .map(|(_, term_slice)| ts::normalize(
                         utils::term_filter(ascii_folding_filter::to_ascii(term_slice)), None,
                     ))
                     .filter(move |term| {
@@ -111,7 +111,15 @@ fn ascii_and_nonword_filter<'a>(term_inflections: &mut Vec<String>, term_slice: 
 
 
 impl SearchTokenizer for Tokenizer {
-    fn search_tokenize(&self, mut text: String, dict: &Dictionary) -> SearchTokenizeResult {
+    fn search_tokenize(
+        &self,
+        query_chars: &[char],
+        query_chars_offset: usize,
+        query_chars_offset_end: usize,
+        escape_indices: &[usize],
+        dict: &Dictionary,
+    ) -> SearchTokenizeResult {
+        let mut text: String = query_chars[query_chars_offset..query_chars_offset_end].iter().collect();
         text.make_ascii_lowercase();
 
         let should_expand = !text.ends_with(' ');
@@ -122,12 +130,15 @@ impl SearchTokenizer for Tokenizer {
             |c| utils::split_terms(c) || utils::is_chinese_char(c),
         ).collect();
 
-        for (idx, s) in split.iter().enumerate() {
+        for (idx, (char_idx, s)) in split.iter().enumerate() {
             if s.is_empty() {
                 continue;
             }
 
-            let suffix_wildcard = (idx + 1 != split.len()) && split[idx + 1] == "*";
+            let suffix_wildcard = (idx + 1 != split.len()) && split[idx + 1].1 == "*";
+            let prefix_ops = tokenize::get_prefix_ops(
+                *char_idx + query_chars_offset, 1, query_chars_offset, query_chars, escape_indices, self,
+            );
 
             let mut term_inflections = Vec::new();
 
@@ -148,6 +159,7 @@ impl SearchTokenizer for Tokenizer {
                     original_term,
                     suffix_wildcard,
                     is_corrected,
+                    prefix_ops,
                 });
                 continue;
             }
@@ -172,6 +184,7 @@ impl SearchTokenizer for Tokenizer {
                 original_term,
                 suffix_wildcard,
                 is_corrected,
+                prefix_ops,
             })
         }
 
@@ -184,6 +197,10 @@ impl SearchTokenizer for Tokenizer {
     #[inline(never)]
     fn is_stop_word(&self, term: &str) -> bool {
         self.stop_words.iter().any(|t| t == term)
+    }
+
+    fn is_valid_prefix_op_terminator(&self, c: char) -> bool {
+        c.is_ascii_whitespace() || utils::is_chinese_char(c)
     }
 }
 

@@ -82,7 +82,12 @@ impl Searcher {
 
     fn expand_last_query_part(&self, query_parts: &mut Vec<QueryPart>) {
         let last_query_part = query_parts.last_mut().unwrap();
-        if !(is_expand_candidate(last_query_part) && last_query_part.auto_suffix_wildcard) {
+        if !(
+            is_expand_candidate(last_query_part)
+            && last_query_part.auto_suffix_wildcard
+            && !last_query_part.is_subtracted
+            && !last_query_part.is_inverted
+        ) {
             return;
         }
 
@@ -159,10 +164,17 @@ impl Searcher {
             }
         }
 
-        let old_query_part = std::mem::replace(
+        let mut old_query_part = std::mem::replace(
             query_part,
             QueryPart::get_base(QueryPartType::Bracket),
         );
+
+        query_part.is_mandatory = old_query_part.is_mandatory;
+        query_part.is_subtracted = old_query_part.is_subtracted;
+        query_part.is_inverted = old_query_part.is_inverted;
+        old_query_part.is_mandatory = false;
+        old_query_part.is_subtracted = false;
+        old_query_part.is_inverted = false;
 
         (expanded_terms, old_query_part)
     }
@@ -175,7 +187,6 @@ impl Searcher {
         query_parts: &Vec<QueryPart>,
     ) -> Vec<QueryPart> {
         let old_weight = old_query_part.weight;
-        let field_name = old_query_part.field_name.clone();
         let mut wrapper_part_children = Vec::with_capacity(expanded_terms.len() + 1);
         wrapper_part_children.push(old_query_part);
 
@@ -184,19 +195,11 @@ impl Searcher {
             // query_parts is an empty Vec::new() for manual suffix
             if !Self::is_term_used(&term, query_parts) {
                 wrapper_part_children.push(QueryPart {
-                    is_corrected: false,
-                    is_stop_word_removed: false,
-                    auto_suffix_wildcard: false,
-                    suffix_wildcard: false,
                     is_suffixed: true,
-                    original_terms: None,
                     terms: Some(vec![term.clone()]),
                     terms_searched: Some(vec![vec![term.clone()]]),
-                    part_type: QueryPartType::Term,
-                    field_name: field_name.clone(),
-                    children: None,
                     weight: if use_old_weight { old_weight } else { weight },
-                    include_in_proximity_ranking: false,
+                    ..QueryPart::get_base(QueryPartType::Term)
                 });
             }
         }

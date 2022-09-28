@@ -22,23 +22,27 @@ export default function createTipButton(
   const tipListBody = h(
     'tbody', {},
     createRow(
-      'Require all terms to match',
-      wrapInCode('weather AND forecast AND sunny'),
+      'Require a term',
+      wrapInCode('weather +sunny'),
+    ),
+    createRow(
+      'Exclude a term',
+      wrapInCode('sunny -cloudy'),
     ),
     createRow(
       'Flip search results',
-      wrapInCode('NOT rainy'),
+      wrapInCode('~rainy'),
     ),
     createRow(
       'Group terms together',
-      wrapInCode('forecast AND (sunny warm)'),
+      wrapInCode('~(sunny warm cloudy)'),
     ),
     createRow(
       'Search for prefixes',
       wrapInCode('run*'),
     ),
     createRow(
-      'Match specific areas',
+      'Search only specific sections',
       h('ul', {}, 
         h('li', {}, wrapInCode('title:forecast')),
         h('li', {}, wrapInCode('heading:sunny')),
@@ -60,7 +64,7 @@ export default function createTipButton(
   const tipPopup = h(
     'div', { class: 'morsels-tip-popup-root' },
     h('div', { class: 'morsels-tip-popup' },
-      h('div', { class: 'morsels-tip-popup-title' }, '🔎 Didn\'t find what you needed?'),
+      h('div', { class: 'morsels-tip-popup-title' }, '🔎 Advanced search tips'),
       tipList,
     ),
     h('div', { class: 'morsels-tip-popup-separator' }),

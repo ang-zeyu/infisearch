@@ -2,11 +2,12 @@ export enum QueryPartType {
   TERM = 'TERM',
   PHRASE = 'PHRASE',
   BRACKET = 'BRACKET',
-  AND = 'AND',
-  NOT = 'NOT',
 }
 
 export interface QueryPart {
+  isMandatory: boolean,
+  isSubtracted: boolean,
+  isInverted: boolean,
   isCorrected?: boolean;
   isStopWordRemoved?: boolean;
   autoSuffixWildcard: boolean;

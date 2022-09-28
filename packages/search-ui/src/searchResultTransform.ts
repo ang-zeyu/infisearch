@@ -7,7 +7,7 @@ import createElement, { CreateElement, createInvisibleLoadingIndicator, MISC_INF
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
 import { transformHtml, transformJson, transformText } from './searchResultTransform/transform';
-import { QueryPart, QueryPartType } from '@morsels/search-lib/lib/parser/queryParser';
+import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
 
 const domParser = new DOMParser();
 
@@ -170,8 +170,12 @@ async function singleResultRender(
 
 function getSearchedTerms(queryParts: QueryPart[], result: string[][], notContext: boolean) {
   for (const queryPart of queryParts) {
+    const currNotContext = (queryPart.isSubtracted || queryPart.isInverted)
+      ? !notContext
+      : notContext;
+
     if (queryPart.termsSearched) {
-      if (notContext) {
+      if (currNotContext) {
         for (const terms of queryPart.termsSearched) {
           result.push(terms);
         }
@@ -180,7 +184,7 @@ function getSearchedTerms(queryParts: QueryPart[], result: string[][], notContex
       getSearchedTerms(
         queryPart.children,
         result,
-        queryPart.partType === QueryPartType.NOT ? !notContext : notContext,
+        currNotContext,
       );
     }
   }

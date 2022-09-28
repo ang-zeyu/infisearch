@@ -22,8 +22,8 @@ async function typePhraseOrAnd(phrase, with_positions) {
     const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
     expect(inputVal).toBe(`"${phrase}"`);
   } else {
-    const query = phrase.split(/\s+/g).join(' AND ');
-    console.log(`Typing AND '${query}'`);
+    const query = phrase.split(/\s+/g).map((term) => `+${term}`).join(' ') + ' ';
+    console.log(`Falling back to AND '${query}'`);
     await page.type(INPUT_SELECTOR, query);
     const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
     expect(inputVal).toBe(query);

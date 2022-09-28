@@ -32,22 +32,27 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
 
   // ------------------------------------------------------
   // Various basic tests on docid=0
-  await typeText('npm AND run AND dev AND installmdbook');
+  await typeText('+npm +run +dev +installmdbook');
   await assertSingle('use the npm run dev script');
 
   if (with_positions) {
-    await typeText('"npm run dev" AND (installmdbook 8080)');
+    await typeText('+"npm run dev" +(installmdbook 8080)');
     await assertSingle('use the npm run dev script');
   }
 
-  await typeText('npm AND run AND dev AND nonexistentterm');
+  await typeText('(+npm +run +dev) +nonexistentterm');
   await waitNoResults();
 
-  await typeText('npm AND NOT run AND NOT packages');
+  await typeText('npm -run -packages');
   await waitNoResults();
 
-  await typeText('npm AND run AND setup');
+  await typeText('+npm +run +setup');
   await assertSingle('npm run setup');
+
+  for (const query of ['(+npm +run +setup) -npm', '(+npm +run +setup) -(+npm run +setup)']) {
+    await typeText(query);
+    await waitNoResults();
+  }
 
   if (with_positions) {
     await typeText('body:"Once you have you test files"');
@@ -114,7 +119,7 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
   await typeText('detec*');
   await assertMultiple(expectedPrefixResults, 2);
 
-  await typeText('detec* AND deleted AND changed AND added AND dynamic');
+  await typeText('+detec* +deleted +changed +added +dynamic');
   await assertSingle('detecting deleted, changed, or added');
   // ------------------------------------------------------
 
@@ -295,7 +300,7 @@ async function testTokenizerOptions(configFile) {
   }
 
   // Not a stop word
-  await typeText('npm AND run AND dev AND installmdbook');
+  await typeText('+npm +run +dev +installmdbook');
   await assertSingle('use the npm run dev script');
   // ------------------------------------------------------
 
