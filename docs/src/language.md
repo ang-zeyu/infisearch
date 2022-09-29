@@ -31,7 +31,7 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.4.1/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.5.0/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 ```
 
 ## Latin Tokenizer
@@ -60,12 +60,12 @@ If you do not need stemming, use the `ascii` tokenizer, which has a smaller wasm
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.4.1/packages/search-ui/dist/search-ui.latin.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.5.0/packages/search-ui/dist/search-ui.latin.bundle.js"></script>
 ```
 
 ## Chinese Tokenizer
 
-This is a lightweight and experimental character-wise tokenizer, **not** based on word-based tokenizers like jieba.
+This is a lightweight character-wise tokenizer, **not** based on word-based tokenizers like Jieba.
 
 You are highly recommended to keep positions indexed and query term proximity ranking turned on when using this tokenizer, in order to boost the relevance of documents with multi-character queries.
 
@@ -83,7 +83,7 @@ You are highly recommended to keep positions indexed and query term proximity ra
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.4.1/packages/search-ui/dist/search-ui.chinese.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.5.0/packages/search-ui/dist/search-ui.chinese.bundle.js"></script>
 ```
 
 ## Stop Words

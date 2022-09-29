@@ -4,13 +4,13 @@ Morsels is a client-side search solution made for static sites, including a sear
 
 ## Features
 
-- **Feature-rich, Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, persistent caching, ...
+- **Feature-rich, Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, persistent caching, and more.
 
-- **WebAssembly** & **WebWorker** powered, enabling efficient, non-blocking index decompression and query processing
+- **WebAssembly** & **WebWorker** powered, enabling efficient, non-blocking query processing
 
 - **Multi-threaded** 🏇 CLI indexer powered by Rust
 
-- **Semi-Scalable** 📈, achieved by (optionally) splitting the index into tiny morsels, complete with incremental indexing.
+- **Semi-Scalable**, achieved by optionally splitting the index into tiny morsels, and complete with incremental indexing.
 
 - A **customisable**, **accessible** [user interface](https://morsels-search.com/morsels/search_configuration_styling.html) 🖥️
 
