@@ -44,6 +44,26 @@ releaseOtherLanguages:
 	cd packages/morsels_languages/morsels_lang_chinese &&\
 	cargo publish
 
+# Extremely small iteratively releases
+releaseDependencies:
+	make preReleaseCommon
+	make releaseCommon
+	timeout 20
+	make releaseAsciiLanguage
+	timeout 20
+	make releaseOtherLanguages
+	timeout 10
+
+# git checkout -- . is to discard wasm-pack package.json changes
+buildSearch:
+	npm run setup
+	npx lerna version $(VERSION) --amend --no-push --yes
+	npm run buildSearch
+	git add packages/search-ui/dist/*
+	git commit --amend -m "Bump version"
+	git checkout -- .
+	git tag --force $(VERSION)
+
 # Indexer relies on all of the above
 preReleaseIndexer:
 	cd packages/morsels_indexer &&\
@@ -54,37 +74,7 @@ releaseIndexer:
 	cd packages/morsels_indexer &&\
 	cargo publish
 
-# Extremely small iteratively releases
-releaseTillIndexerWin:
-	make preReleaseCommon
-	make releaseCommon
-	timeout 20
-	make releaseAsciiLanguage
-	timeout 20
-	make releaseOtherLanguages
-	timeout 20
-	make releaseIndexer
-
-# git checkout -- . is to discard wasm-pack package.json changes
-preReleaseSearch:
-	npm run setup
-	npx lerna version $(VERSION) --amend --no-push --yes
-	npm run buildSearch
-	git add packages/search-ui/dist/*
-	git commit --amend -m "Bump version"
-	git checkout -- .
-	git tag --force $(VERSION)
-
-releaseSearch:
-	npx lerna publish from-git
-
 preReleaseMdbook:
-	npx rimraf ./packages/mdbook-morsels/search-ui-dist/*
-	npx cpy packages/search-ui/dist packages/mdbook-morsels/search-ui-dist
-	git add packages/mdbook-morsels/search-ui-dist/*
-	git commit --amend -m "Bump version"
-	git tag --force $(VERSION)
-	cargo clean --release -p mdbook-morsels
 	cd packages/mdbook-morsels &&\
 	cargo package &&\
 	cargo package --list
@@ -101,9 +91,10 @@ finalise:
 
 # Extremely small iteratively releases
 releaseAll:
-	make releaseTillIndexerWin
-	make preReleaseSearch
-	make preReleaseMdbook
+	make releaseDependencies
+	make buildSearch
+	make releaseIndexer
+	timeout 20
 	make releaseMdbook
 	make finalise
 

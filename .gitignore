@@ -1,7 +1,12 @@
 # test files
 test_files
 e2e/output/*
+
+# Temporary build files
 packages/search/worker-dist
+packages/morsels_indexer/search-ui-dist/*.js
+packages/morsels_indexer/search-ui-dist/*.css
+packages/morsels_indexer/search-ui-dist/*.wasm
 
 # docs build
 docs/book

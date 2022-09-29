@@ -6,6 +6,7 @@ use std::time::Instant;
 
 use morsels_indexer::indexer::Indexer;
 use morsels_indexer::indexer::input_config::MorselsConfig;
+use morsels_indexer::assets;
 use morsels_indexer::i_debug;
 
 use log::LevelFilter;
@@ -185,6 +186,8 @@ fn main() {
     info!("All documents indexed! Merging results...");
 
     indexer.finish_writing_docs(now);
+
+    assets::write_morsels_assets(&output_folder_path.join("assets"));
 
     info!("Done!");
 }

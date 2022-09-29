@@ -4,7 +4,7 @@
 
 ## Overview
 
-The possible tradeoffs are marked with ✔️. Those that are likely impossible are marked ❌ (or in other words, you likely need a search server / SaaS for these options). Options that are possible but are relatively undesirable (for which better equivalent options exist) are marked ⚪. The default tradeoff is marked ⭐. Some roughly equivalent / adjacent options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.
+The possible tradeoffs are marked ✔️. Those likely impossible are marked ❌ (in other words, you likely need a search server / SaaS). Options that are possible but have better equivalent options are marked ⚪. The default tradeoff is marked ⭐. Some roughly equivalent / adjacent options are marked ✔️ as it would depend on your collection, use case and some other factors elaborated below.
 
 Latency is labelled in terms of `RTT` (round trip time), the maximum of which is `3`. Also note that the labelled `RTT` times are **maximums**. (e.g. if files are served from cache instead)
 
@@ -21,7 +21,7 @@ Latency is labelled in terms of `RTT` (round trip time), the maximum of which is
 | Excellent Scalability,<br><span style="color: red">Heavy</span> File bloat        | ❌ | ❌ | ✔️ | ⚪
 | Beyond Excellent Scalability<br>(consider running a<br>search server / SaaS)      | ❌ | ❌ | ❌ | ❌
 
-> The last column, `RTT=3`, is included only for hypothetical discussion but not present in any of the presets!
+The last column, `RTT=3`, is included only for hypothetical discussion but not present in any of the presets!
 
 ### Monolithic Index
 

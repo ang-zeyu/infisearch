@@ -8,7 +8,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -16,6 +20,7 @@ jobs:
           toolchain: nightly-2022-09-22
           default: true
           override: true
+          target: ${{ matrix.target }}
           components: rust-src
       - uses: Swatinem/rust-cache@v1
       - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -27,23 +32,14 @@ jobs:
       - run: npm run test
   build-docs:
     needs: ci
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
       - uses: Swatinem/rust-cache@v1
-      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '14'
-      - run: npm i -g npm
-      - run: npm run setup
       - run: cargo install mdbook
-      - run: cargo clean --release -p morsels_indexer
-      - run: npm run installIndexer
-      - run: npm run buildSearch
-      - run: cargo clean --release -p mdbook-morsels
-      - run: npm run installMdbook
+      - run: cargo install mdbook-morsels
       - run: npm run buildDocs
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4

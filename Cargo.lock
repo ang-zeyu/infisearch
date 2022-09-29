@@ -1320,11 +1320,12 @@ version = "0.4.1"
 dependencies = [
  "anyhow",
  "clap 2.34.0",
- "include_dir",
  "mdbook",
+ "morsels_indexer",
  "serde",
  "serde_json",
  "toml",
+ "walkdir",
 ]
 
 [[package]]
@@ -1465,6 +1466,7 @@ dependencies = [
  "csv",
  "dashmap",
  "glob",
+ "include_dir",
  "lazy_static",
  "log",
  "log4rs",

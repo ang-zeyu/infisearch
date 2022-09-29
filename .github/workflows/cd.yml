@@ -14,14 +14,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            target_1: x86_64-unknown-linux-gnu
+            target: x86_64-unknown-linux-gnu
           - os: windows-latest
-            target_1: x86_64-pc-windows-msvc
+            target: x86_64-pc-windows-msvc
           - os: macos-latest
-            target_1: x86_64-apple-darwin
+            target: x86_64-apple-darwin
           - os: macos-latest
-            target_1: aarch64-apple-darwin
-
+            target: aarch64-apple-darwin
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
@@ -29,19 +28,26 @@ jobs:
           toolchain: nightly-2022-09-22
           default: true
           override: true
-          target: ${{ matrix.target_1 }}
+          target: ${{ matrix.target }}
           components: rust-src
       - uses: Swatinem/rust-cache@v1
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14'
+      - run: npm i -g npm
+      - run: npm run setup
+      - run: npm run buildSearch
 
       - name: Build indexer x86_64
-        run: cargo build --release --target ${{ matrix.target_1 }} -p morsels_indexer
+        run: cargo build --release --target ${{ matrix.target }} -p morsels_indexer
       - name: Build mdbook plugin x86_64
-        run: cargo build --release --target ${{ matrix.target_1 }} -p mdbook-morsels
+        run: cargo build --release --target ${{ matrix.target }} -p mdbook-morsels
       - name: Zip binaries
-        run: zip -j target/indexer.${{ matrix.target_1 }}.zip target/${{ matrix.target_1 }}/release/morsels target/${{ matrix.target_1 }}/release/mdbook-morsels
+        run: zip -j target/indexer.${{ matrix.target }}.zip target/${{ matrix.target }}/release/morsels target/${{ matrix.target }}/release/mdbook-morsels
         if: matrix.os != 'windows-latest'
       - name: Zip binaries
-        run: tar -c -f target/indexer.${{ matrix.target_1 }}.zip --directory=target/${{ matrix.target_1 }}/release morsels.exe mdbook-morsels.exe
+        run: tar -c -f target/indexer.${{ matrix.target }}.zip --directory=target/${{ matrix.target }}/release morsels.exe mdbook-morsels.exe
         if: matrix.os == 'windows-latest'
 
       - name: Upload binaries to release

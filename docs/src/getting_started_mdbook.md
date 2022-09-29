@@ -1,21 +1,27 @@
 # mdbook-morsels
 
-`mdbook-morsels` is a simple search plugin replacement / proof-of-concept for [mdbook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
+`mdbook-morsels` is a simple search plugin replacement for [mdbook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
+
+## What, why?
+
+MdBook already has its own built-in search function utilising elasticlunr, which works well enough for most cases. This plugin was mainly created as:
+1. A proof-of-concept to integrate morsels with other static site generators easily
+2. A personal means to set up document deployment workflows in CI scripts
+
+You may nonetheless want to use this plugin if you need Morsels' extra features. Some examples:
+- you require PDF file support, or JSON file support to link to out-of-domain pages.
+- spelling correction, automatic prefix search, term proximity ranking, etc.
+- you prefer the look of the UI here.
 
 ## Styling
 
 This plugin uses the css variables provided by the 5 main default themes in mdBook to style the search user interface. Switch the themes in this documentation to try out the different themes!
 
-Note: The "Morsels" theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without mdbook-morsels).
+**Note:** The "Morsels" theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without this plugin).
 
 ## Installation
 
-You will need to have installed the following command-line crates (`cargo install <crate-name>` or with the binaries in your `PATH`):
-- mdbook
-- mdbook-morsels
-- morsels_indexer
-
-> ⚠️ Ensure the mdbook-morsels and morsels_indexer versions are the same.
+Install the executable either using `cargo install mdbook-morsels`, or download and add the [binaries](https://github.com/ang-zeyu/morsels/releases) to your `PATH` manually.
 
 Then, minimally add the first two configuration sections below to your `book.toml` configuration file:
 
@@ -25,27 +31,15 @@ enable = false               # disable the default mdBook search feature impleme
 
 [preprocessor.morsels]
 command = "mdbook-morsels"
-renderer = ["html"]          # this should only be run for the HTML renderer
 
 # Plugin configuration options (optional)
 [output.morsels]
-
-# See search configuration page
+# See search configuration page, or use the buttons below
 mode = "target"
 
-# Relative path to the indexer configuration file from the root project directory
-# This will automatically be created if it dosen't exist.
+# Relative path to a Morsels indexer configuration file from the project directory.
+# The config file will also automatically be created here if it dosen't exist.
 config = "morsels_config.json"
-
-# Don't add the default stylesheet from morsels/search-ui,
-# nor the inline css variables for the default mdbook themes
-#
-# Only needed if you want to use some custom styling
-no-css = false
-
-# This scales some settings of the indexer according to your collection size
-# (see chapter on "Tradeoffs")
-scaling = true
 ```
 
 ## Preview
@@ -82,13 +76,3 @@ Use the following (non-canonical, documentation specific) buttons to try out the
 </div>
 
 You can also try out the different **themes** on this documentation using mdbook's paintbrush icon!
-
-<figure>
-
-![mdbook morsels plugin preview](./images/mdbook-preview.gif)
-
-<figcaption style="text-align: center;">
-
-*Gif of* `mode='fullscreen'` *across the different themes*
-</figcaption>
-</figure>
