@@ -107,15 +107,18 @@
         <script>
           (function setDarkTheme() {
             if (window.location.pathname.includes('dark')) {
-              document.getElementById('theme-toggle').classList.add('btn-outline-light');
-              document.getElementById('theme-toggle').classList.remove('btn-outline-dark');
+              const darkButtons = document.getElementsByClassName('btn-outline-dark');
+              for (const darkButton of [...darkButtons]) {
+                darkButton.classList.add('btn-outline-light');
+                darkButton.classList.remove('btn-outline-dark');
+              }
               document.getElementById('app').classList.add('dark');
             }
           })();
         </script>
       </div>
       <div class="morsels-root d-flex justify-content-center w-75">
-        <div id="target-mode-el"></div>
+        <ul id="target-mode-el"></ul>
       </div>
       <div class="px-5 mt-5 filler-text">
         <h2 class="mb-3">Filler Text for Scrolling</h2>

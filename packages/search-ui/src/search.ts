@@ -136,7 +136,7 @@ function initMorsels(options: Options): {
   hideFullscreen: () => void,
 } {
   const isMobileDevice: () => boolean = options.isMobileDevice
-      || (() => window.matchMedia('only screen and (max-width: 1024px)').matches);
+      || (() => window.matchMedia('only screen and (max-width: 768px)').matches);
 
   isMobileSizeGlobal = isMobileDevice();
   prepareOptions(options);

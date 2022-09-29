@@ -90,7 +90,7 @@ export function prepareOptions(options: Options) {
   uiOptions.label = uiOptions.label || 'Search this site';
   uiOptions.resultsLabel = uiOptions.resultsLabel || 'Site results';
   uiOptions.fsInputLabel = uiOptions.fsInputLabel || 'Search';
-  uiOptions.fsPlaceholder = uiOptions.fsPlaceholder || 'Search this site...';
+  uiOptions.fsPlaceholder = uiOptions.fsPlaceholder || 'Search this site';
   uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
   if (!('fsScrollLock' in uiOptions)) {
     uiOptions.fsScrollLock = true;
@@ -174,8 +174,7 @@ export function prepareOptions(options: Options) {
     ) => {
       const el = h('a', { class: 'morsels-heading-body' },
         h('div', { class: 'morsels-heading' }, ...headingHighlights),
-        h('div', { class: 'morsels-bodies' },
-          h('div', { class: 'morsels-body' }, ...bodyHighlights)));
+        h('div', { class: 'morsels-body' }, ...bodyHighlights));
       if (href) {
         el.setAttribute('href', href);
       }

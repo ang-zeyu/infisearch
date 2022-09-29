@@ -145,6 +145,20 @@ export function fsRootRender(
     },
   ) as HTMLInputElement;
   setInputAria(inputEl, 'morsels-fs-list');
+  inputEl.onkeydown = (ev) => {
+    if (ev.key === 'Escape' && inputEl.value) {
+      ev.stopPropagation();
+    }
+  };
+
+  const inputClearEl = h('span', { class: 'morsels-fs-input-clear' });
+  inputClearEl.onclick = () => {
+    if (inputEl.value) {
+      inputEl.value = '';
+      inputEl.dispatchEvent(new KeyboardEvent('input'));
+      inputEl.focus();
+    }
+  };
 
   const buttonEl = h('button', { class: 'morsels-input-close-fs' }, uiOptions.fsCloseText);
   
@@ -157,12 +171,15 @@ export function fsRootRender(
   const innerRoot = h('div',
     { class: 'morsels-root morsels-fs-root' },
     h('form',
-      { class: 'morsels-fs-input-button-wrapper' },
+      { class: 'morsels-fs-controls' },
       h('label',
         { id: 'morsels-fs-label', for: 'morsels-fs-input', style: 'display: none' },
         uiOptions.label,
       ),
-      inputEl,
+      h('div',
+        { class: 'morsels-fs-input-wrapper' },
+        inputEl, inputClearEl,
+      ),
       buttonEl,
     ),
     createTipButton(uiOptions, searcher),
@@ -181,7 +198,7 @@ export function fsRootRender(
   }
 
   rootBackdropEl.onmousedown = () => hideFullscreen(false);
-  rootBackdropEl.onkeyup = (ev) => {
+  rootBackdropEl.onkeydown = (ev) => {
     if (ev.code === 'Escape') {
       ev.stopPropagation();
       hideFullscreen(true);

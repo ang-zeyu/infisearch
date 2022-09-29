@@ -1,25 +1,22 @@
 @import url('./base.css');
 
 :root {
-    --morsels-box-shadow: 0 0 3px 0 #323232;
+    --morsels-shadow: 0 0 3px 0 #323232;
     --morsels-bg: #212121;
-    --morsels-triangle-bg: #212121;
-    --morsels-item-border: none;
     --morsels-item-border-radius: 4px;
     --morsels-item-box-shadow: 0 1px 3px -2px #434546, -2px 1px 3px -2px #434546, 2px 1px 3px -2px #434546;
     --morsels-title-fg: #e3e3e3;
     --morsels-title-bg: #313233;
     --morsels-title-hover-fg: #eef6f6;
     --morsels-title-hover-bg: #525354;
-    --morsels-title-border-bottom: 2px solid #333435;
+    --morsels-title-border-bottom: 2px solid #313233;
+    --morsels-title-border-bottom-hover: 2px solid #525354;
     --morsels-heading-fg: #e3e3e3;
-    --morsels-heading-bg: #292b2c;
     --morsels-heading-hover-fg: #eef6f6;
-    --morsels-heading-hover-bg: #525354;
     --morsels-body-fg: #e3e3e3;
-    --morsels-body-bg: #252728;
     --morsels-body-hover-fg: #eef6f6;
-    --morsels-body-hover-bg: var(--morsels-title-bg);
+    --morsels-sub-bg: #252728;
+    --morsels-sub-hover-bg: #313233;
     --morsels-highlight: #5B9EBF;
     --morsels-highlight-bg: none;
     --morsels-header-fg: #e3e3e3;
@@ -35,16 +32,15 @@
     --morsels-fs-button-input-fg: #fff;
     --morsels-fs-button-input-bg: #375a7f;
     --morsels-fs-button-input-shadow: 0 0 0 3px rgb(85 115 146 / 50%);
-    --morsels-fs-border: 3px solid #2f3030;
-    --morsels-fs-box-shadow: none;
-    --morsels-fs-header-bg: #292a2b;
-    --morsels-fs-header-border-bottom: 2px solid #2f3030;
+    --morsels-fs-border: none;
+    --morsels-fs-box-shadow: 0 1px 5px #2a2b2b;
     --morsels-fs-input-fg: #e3e3e3;
     --morsels-fs-input-bg: #212121;
     --morsels-fs-input-border: 2px solid #2f3030;
-    --morsels-fs-input-focus-border: 2px solid #03699c;
-    --morsels-fs-input-focus-box-shadow: none;
-    --morsels-fs-header-close-bg: #292a2b;
+    --morsels-fs-input-focus-border: 2px solid #404040;
+    --morsels-fs-input-focus-box-shadow: 0 1px 4px #363839;
+    --morsels-fs-header-bg: #292a2b;
+    --morsels-fs-header-box-shadow: 0 0 5px 3px #2f3030;
     --morsels-fs-header-close-fg: #e3e3e3;
     --morsels-fs-header-close-hover-bg: #363839;
     --morsels-fs-header-close-hover-fg: #f1f8f7;
@@ -63,4 +59,15 @@
 
 .morsels-fs-input::placeholder {
     color: #b6c1c0;
+}
+
+.morsels-fs-input-clear::after {
+    background-image: url("data:image/svg+xml;utf8,<svg fill=\"%232f3030\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 512\"><path d=\"M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z\"/></svg>");
+    filter: brightness(1.2);
+}
+
+@media (hover: hover) {
+    .morsels-fs-input-clear:hover::after {
+        filter: brightness(2);
+    }
 }

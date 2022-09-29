@@ -26,6 +26,7 @@ body {
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
+    min-height: 100vh;
 }
 
 .app-navbar {
@@ -58,13 +59,13 @@ body {
     box-sizing: border-box;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 768px) {
     .morsels-search {
         width: 100%;
     }
 }
 
-@media screen and (min-width: 1025px) {
+@media screen and (min-width: 769px) {
     .filler-text {
         width: 75%;
     }

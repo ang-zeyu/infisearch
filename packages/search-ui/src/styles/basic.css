@@ -2,47 +2,44 @@
 @import url('./light-base.css');
 
 :root {
-    --morsels-item-spacing: 14px;
-
-    --morsels-item-border-radius: 0;
+    --morsels-item-border-radius: 2px;
     --morsels-item-box-shadow: none;
-    --morsels-title-bg: none;
-    --morsels-title-border-bottom: 1px solid #b1b2b1;
-    --morsels-title-border-bottom-hover: 1px solid #b1b2b1;
-    --morsels-heading-bg: none;
-    --morsels-body-bg: none;
-    --morsels-item-sub-border: none;
-    --morsels-item-sub-border-hover: none;
+    --morsels-title-border-bottom: 1px solid #e5e5e5;
+    --morsels-title-border-bottom-hover: 1px solid #bce0fe;
+    --morsels-heading-fg: #505050;
+    --morsels-body-fg: #505050;
+}
 
-    --morsels-fs-header-bg: #fbfbfb;
-    --morsels-fs-header-close-bg: #fbfbfb;
-    --morsels-fs-header-border-bottom: 1px solid rgb(245, 245, 245);
-    --morsels-fs-input-focus-box-shadow: 0 0 3px -2px rgb(99, 186, 255);
+.morsels-list-item {
+    margin: 14px 9px 0 13px;
 }
 
 .morsels-fs-root .morsels-list-item {
-    margin: 14px 4px 0 5px;
+    margin: 14px 0 0 3px;
+}
+
+@media screen and (max-width: 768px) {
+    .morsels-fs-root .morsels-list-item {
+        margin: 15px 1px 0 4px;
+    }
 }
 
 .morsels-header + .morsels-list-item {
     margin-top: 0;
 }
 
-@media screen and (min-width: 1025px) {
-    .morsels-fs-root {
-        border-radius: 5px;
-    }
-}
-
 .morsels-title {
-    font-weight: 600;
-    padding: 5px 7px 2px;
+    padding: 5px 8px 2px;
 }
 
 .morsels-heading {
-    border-right: 1px solid #bbbcbb;
+    padding-left: 9px;
 }
 
-.morsels-input-close-fs {
-    font-weight: normal;
+.morsels-body {
+    padding-left: 9px;
+}
+
+.morsels-heading-body .morsels-body {
+    padding-left: 14px;
 }

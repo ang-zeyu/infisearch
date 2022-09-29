@@ -23,11 +23,11 @@ export default function createTipButton(
     'tbody', {},
     createRow(
       'Require a term',
-      wrapInCode('weather +sunny'),
+      wrapInCode('+sunny weather'),
     ),
     createRow(
       'Exclude a term',
-      wrapInCode('sunny -cloudy'),
+      wrapInCode('-cloudy sunny'),
     ),
     createRow(
       'Flip search results',

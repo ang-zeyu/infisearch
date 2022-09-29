@@ -90,7 +90,7 @@ There are also several options specific to each mode. Note that `dropdown` and `
 | `auto`      | `fsInputButtonText`        | `undefined`| Placeholder override for the `input` if the fullscreen UI is in use.<br><br>This is added for keyboard [accessibility](./search_configuration_styling.md#input-element-as-a-button).
 | `fullscreen` | `fsInputLabel`        | `'Search'` | Accessibility label for the original input element, when the fullscreen UI is in use.
 | `fullscreen` | `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
-| `fullscreen` | `fsPlaceholder`       | `'Search this site...'` | Placeholder of the input element in the fullscreen UI.
+| `fullscreen` | `fsPlaceholder`       | `'Search this site'` | Placeholder of the input element in the fullscreen UI.
 | `fullscreen` | `fsCloseText`         | `'Close'` | Text for the <kbd>Close</kbd> button.
 | `fullscreen` | `fsScrollLock`        | `true` | Whether to automatically scroll lock the body element when the fullscreen UI is opened.
 | all except `target`         | `tip`                 | `true`        | Whether to show the tip icon. When hovered over, this shows advanced usage information (e.g. how to perform phrase queries).
@@ -131,7 +131,7 @@ If the client is a "mobile device", the fullscreen version of the user interface
 This check is done through a simple media query, which may not be adequate for your use case.
 
 ```js
-window.matchMedia('only screen and (max-width: 1024px)').matches
+window.matchMedia('only screen and (max-width: 768px)').matches
 ```
 
 Use the `isMobileDevice` option to the override this check:
