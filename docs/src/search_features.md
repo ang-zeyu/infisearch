@@ -1,42 +1,51 @@
 # Search Features
 
-This page outlines the available search features.
+This page is mostly informational, and details some search features that may warrant more explanation:
 
-## Boolean Operators, Parentheses
+## Ranking Model
 
-`AND` and `NOT` operators are supported.
-`OR` operators are not supported, but its function is implicitly left to the tokenizer (see below for an example).
+Query expressions are ranked using the BM25 model. A soft disjunctive maximum of a document's field's scores is then calculated. By default, titles, `<h1>` headings, other headings, and the rest of the text are indexed into 4 separate fields.
+
+**Query term proximity ranking** is Morsels' highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving search relevance.
+
+## Advanced Search Syntax
+
+Morsels provides a few advanced search features that are made known to the user using the help icon on the bottom right of the search UI.
+
+### Boolean Operators, Parentheses
+
+`AND` and `NOT` and inversion operators are supported.
+`OR` is the default behaviour; Documents are ranked according to the BM25 model.
 Parentheses `(...)` can be used to group expressions together.
 
 ```
-lorem ipsum                 - documents containing either lorem OR ipsum
-lorem AND ipsum             - documents with both "lorem" and "ipsum"
-lorem AND NOT ipsum         - documents with "lorem" but not "ipsum"
-lorem AND NOT (ipsum dolor) - documents with "lorem" but not ("ipsum" OR "dolor")
+weather +sunny  - documents that may contain "weather" but must contain "sunny"
+weather -sunny  - documents containing "weather" and do not have "sunny"
+~cloudy         - all documents that do not contain "gloomy"
+~(ipsum dolor)  - all documents that do not contain "ipsum" and "dolor"
 ```
 
-## Phrase Queries
+### Phrase Queries
 
 Phrase queries are also supported by enclosing the relevant terms in `"..."`.
 
 ```
-"lorem ipsum" - documents containing "lorem" and "ipsum" appearing one after the other
+"sunny weather" - documents containing "sunny weather"
 ```
 
 The [`withPositions`](./indexer/indexing.md#miscellaneous-options) index feature needs to be enabled for this to work (by default it is).
 
-## Field Search
+### Field Search
 
-Field queries are supported via the following syntax `field_name:`, following the same syntax rules as the `NOT` operator.
+Field queries are supported via the following syntax `field_name:`:
 
 ```
-title:lorem             - documents containing "lorem" in the field "title"
-title:(lorem AND ipsum) - documents with both "lorem" and "ipsum" in the
-                          field "title" only
-lorem AND title:ipsum   - documents with "ipsum" in the title and "lorem" in any field
+title:sunny              - documents containing "sunny" in the title
+heading:(+sunny +cloudy) - documents with both "lorem" and "ipsum" in headings only
+body:gloomy              - documents with "gloomy" elsewhere
 ```
 
-## Wildcard Search
+### Wildcard Search
 
 You can also perform suffix searches on any term using the `*` character:
 
@@ -46,37 +55,20 @@ run* - searches for "run", "running"
 
 In most instances, an [*automatic*](./search_configuration.md#automatic-suffix-search) wildcard suffix search is also performed on the last query term that the user is still typing.
 
-## Escaping Search Operators
+### Escaping Search Operators
 
-All search operators can also be escaped using the `\` character like such:
+All search operators can also be escaped using `\`:
 
 ```
-lorem\ AND ipsum            - interpreted literally as "lorem AND ipsum"
-\NOT lorem                  - interpreted literally as "NOT lorem"
-\(not a parentheses group\)
-\"not a phrase query\"
-"phrase query with qu\"ote inside"
+\+sunny
+\-sunny
+\(sunny cloudy\)
+\"cloudy weather\"
+"phrase query with qu\"otes"
 title\:lorem
 ```
 
-## Non User-Facing Features
-
-### WebWorker Built-in
-
-Most of the search library operates on a WebWorker where it matters (e.g. setup, query ranking), so you don't have to worry about blocking the UI thread.
-
-<details>
-
-<summary>Exceptions</summary>
-
-Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.
-
-Search UI related functionalities, for example result preview generation, is also done on the main thread.
-The main rationale is that there is simply no way of parsing HTML faster than implementations provided by the browser. (the original HTML document can be used as an alternative to storing document fields for result preview generation)
-
-</details>
-
-### Low-Level Inverted Index Format
+## Low-Level Inverted Index Format
 
 Some efficient, high-return compression schemes are also employed, so you get all these features without much penalty.
 - Gap encoding for document ids, positions
@@ -84,8 +76,17 @@ Some efficient, high-return compression schemes are also employed, so you get al
 
 To facilitate decompression efficiency of such a low-level format, most of the search library is powered by WebAssembly (Rust) as such.
 
-### Ranking Specifics
+This documentation for example, which has all features enabled, generates a main index file of just 23KB, and a dictionary of 10KB.
 
-Most query expressions (e.g. free text queries like `lorem ipsum`) are ranked using the BM25 model, while `AND` and `()` operators sum the respective BM25 scores of their operands. A soft disjunctive maximum of document's field scores is calculated.
+## WebWorker Built-in
 
-**Query term proximity ranking** is also supported and enabled by default for top-level expressions, when the `with_positions` index [feature](./indexer/indexing.html#miscellaneous-options) is enabled. Results are scaled according to how close search expressions are to one another.
+Most of the search library also operates on a WebWorker, so you can deliver the best UX without blocking the UI thread.
+
+Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.
+
+Search UI related functionalities, for example result preview generation, is also done on the main thread.
+The main rationale is that there is simply no way of parsing HTML faster than implementations provided by the browser. (the original HTML document can be used as an alternative to storing document fields for result preview generation)
+
+## Persistent Caching
+
+Persistent caching is achieved through use of the [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) API, which backs service workers and has excellent support in modern browsers.

@@ -1,18 +1,6 @@
 # Language Configuration
 
-There are 3 language modules available. To configure these, you will need to serve the appropriate [language bundle](./getting_started.md#hosting-the-files) in your HTML (or edit the CDN link accordingly), and edit the indexer configuration file to include `lang_config`:
-
-```json
-{
-  "lang_config": {
-    // Specify the main module here
-    "lang": "ascii",
-    "options": {
-      // Language dependent
-    }
-  }
-}
-```
+There are 3 language modules available. To configure these, you will need to serve the appropriate [language bundle](./getting_started.md#hosting-the-files) in your HTML (or edit the CDN link accordingly), and edit the indexer configuration file.
 
 ## Ascii Tokenizer
 
@@ -20,7 +8,7 @@ There are 3 language modules available. To configure these, you will need to ser
 
 The default tokenizer splits on sentences, then whitespaces to obtain tokens.
 
-An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to these tokens, followed by punctuation and non-word boundary removal.
+An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to these tokens, followed by punctuation and non-word-character boundary removal.
 
 ```json
 {
@@ -32,7 +20,7 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
       "such", "that", "the", "their", "then", "there", "these",
       "they", "this", "to", "was", "will", "with"
     ],
-    "ignore_stop_words": true,
+    "ignore_stop_words": false,
 
     // Hard limit = 250
     "max_term_len": 80
@@ -77,16 +65,16 @@ If you do not need stemming, use the `ascii` tokenizer, which has a smaller wasm
 
 ## Chinese Tokenizer
 
-This is an extremely lightweight and **experimental** character-wise tokenizer, **not** based on word-based tokenizers like jieba.
+This is a lightweight and experimental character-wise tokenizer, **not** based on word-based tokenizers like jieba.
 
-You are highly recommended to keep positions indexed and query term proximity ranking turned on when using this tokenizer, in order to boost the ranking of documents with multi-character word matches.
+You are highly recommended to keep positions indexed and query term proximity ranking turned on when using this tokenizer, in order to boost the relevance of documents with multi-character queries.
 
 ```json
 {
   "lang": "chinese",
   "options": {
     "stop_words": [],
-    "ignore_stop_words": true,
+    "ignore_stop_words": false,
     "max_term_len": 80
   }
 }

@@ -6,13 +6,7 @@ Detecting **deleted, changed, or added files** is done by storing an **internal 
 
 To use it, simply pass the `--incremental` or `-i` option when running the indexer.
 
-> Again, you will most likely not need to dabble with incremental indexing, unless your collection is extremely large (e.g. > 200MB).
-
-## How it Works
-
-As the core idea of Morsels is to split up the index into many tiny parts, the incremental indexing feature works by "patching" only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.
-
-This is in contrast to a more traditional "segment" based approach you might find in search servers, whereby each incremental indexing run generates an entirely separate "segment", and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.
+> You will most likely not need to dabble with incremental indexing, unless your collection is extremely large (e.g. > 200MB).
 
 ## Content Based Hashing
 
@@ -34,7 +28,13 @@ Note also, that the following circumstances will forcibly trigger a **full** rei
 
 ## Caveats
 
-There are some additional caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising incremental indexing only when indexing speed is of concern -- for example, updating the index repeatedly when developing this documentation (although, the mdbook plugin this documentation is built on currently dosen't do that).
+There are some additional caveats to note when using this option. Whenever possible, try to run a full reindex of the documents, utilising incremental indexing only when indexing speed is of concern -- for example, updating the index repeatedly when developing this documentation (although, the mdBook plugin this documentation is built on currently dosen't do that).
+
+### How it Works
+
+As the core idea of Morsels is to split up the index into many tiny parts, the incremental indexing feature works by "patching" only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.
+
+This is in contrast to a more traditional "segment" based approach you might find in search servers, whereby each incremental indexing run generates an entirely separate "segment", and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.
 
 ### Collection Statistics
 

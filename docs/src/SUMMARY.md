@@ -4,16 +4,16 @@
 
 # User Guide
 
-- [Search Features](./search_features.md)
 - [Getting Started](./getting_started.md)
   - [mdBook](./getting_started_mdbook.md)
   - [Others](./getting_started_others.md)
 - [Search UI](./search_configuration.md)
   - [Styling](./search_configuration_styling.md)
+  - [Search Features](./search_features.md)
+- [Language](./language.md)
 - [Indexer](./indexer_configuration.md)
   - [Fields](./indexer/fields.md)
   - [Indexing](./indexer/indexing.md)
-- [Language](./language.md)
 - [Guides](./guides.md)
   - [Linking to other pages](./linking_to_others.md)
 

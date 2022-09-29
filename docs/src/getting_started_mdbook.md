@@ -1,6 +1,6 @@
 # mdbook-morsels
 
-`mdbook-morsels` is a simple search plugin replacement for [mdbook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
+`mdbook-morsels` is a simple search plugin replacement for [mdBook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
 
 ## What, why?
 
@@ -75,4 +75,4 @@ Use the following (non-canonical, documentation specific) buttons to try out the
     <a class="demo-btn" href="?mode=target">Target</a>
 </div>
 
-You can also try out the different **themes** on this documentation using mdbook's paintbrush icon!
+You can also try out the different **themes** on this documentation using mdBook's paintbrush icon!

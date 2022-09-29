@@ -2,42 +2,22 @@
 
 The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
-All configurations are optional, save for the `loader_configs` key. The cli tool will *do nothing* if the `loader_configs` dictionary is empty.
+All configurations are optional, except `loader_configs`. The CLI tool will do nothing if the `loader_configs` dictionary is empty.
 
-The snippet below shows the default values:
+## Mapping File Data to Fields
 
 ```json
 {
   "indexing_config": {
-    "num_threads": <number of physical cpus> - 1,
-
-    "num_docs_per_block": 1000,
-
-    "exclude": [
-      "morsels_config.json"
-    ],
-
-    "include": [],
-
     "loader_configs": {
+      // Only HTML files are indexed by default
       "HtmlLoader": {}
-    },
-    
-    "pl_limit": 4294967295,
-
-    "pl_cache_threshold": 0,
-
-    "num_pls_per_dir": 1000,
-
-    "with_positions": true
+    }
   }
 }
 ```
 
-
-## Mapping File Data to Fields
-
-The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a "Loader" abstraction.
+The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a file **"Loader"** abstraction.
 
 You may configure loaders by including them under the **`loader_configs` key**, with any applicable options.
 
@@ -90,15 +70,15 @@ You may configure loaders by including them under the **`loader_configs` key**, 
 }
 ```
 
-The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.
+1. The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.
 
-At each element, it checks if any of the selectors under the `selectors.selector` key matches the element. If so, all descendants (elements, text) of that element will then be indexed under the specified `field_name`, if any.
+2. At each element, it checks if any selectors under `selectors.selector` matches the element. If so, all descendants (elements, text) of that element will be indexed under the specified `field_name`, if any.
 
-This process repeats as the document is traversed — if another of the element's descendants matched a different selector, the field mapping is overwritten for that descendant's descendants.
+   - This process repeats as the document is traversed — if a descendant matched another different selector, the field mapping is overwritten for that descendant and its descendants.
 
-The `attr_map` option allows indexing attributes of specific elements under fields as well.
+   - The `attr_map` option allows indexing attributes of specific elements under fields as well.
 
-> If needed, you can also index HTML fragments. To match the entire fragment, use the `body` selector.
+If needed, you can also index HTML fragments. To match the entire fragment, use the `body` selector.
 
 #### JSON Files: **`loader_configs.JsonLoader`**
 
@@ -120,10 +100,10 @@ The `attr_map` option allows indexing attributes of specific elements under fiel
 }
 ```
 
-Json files can also be indexed. The `field_map` key must be specified, which contains a mapping of **json key -> field name**.
-The `field_order` array controls the order in which these fields are indexed, which can have a minor influence on [query term proximity ranking](../search_features.md#ranking-specifics), if positions are indexed.
+JSON files can also be indexed. The `field_map` must be specified, which contains a mapping of **JSON data key -> field name**.
+The `field_order` array controls the order in which these fields are indexed, which has a minor influence on [query term proximity ranking](../search_features.md#ranking-model).
 
-The json file can be either:
+The JSON file can be either:
 1. An object, following the schema set out in `field_map`
 2. An array of objects following the schema set out in `field_map`
 
@@ -182,7 +162,7 @@ The `parse_options` key specifies options for parsing the csv file. In particula
 
 This loader indexes all content into a single field "body" by default.
 
-The search result title would appear as `<...pdf file path breadcrumb...> (PDF)`, and when clicked upon will open the pdf in the browser.
+The search result title would appear as `<...PDF file path breadcrumb...> (PDF)`, and when clicked upon will open the PDF in the browser.
 
 #### Text Files: **`loader_configs.TxtLoader`**
 
@@ -198,6 +178,19 @@ This loader simply reads `.txt` files and indexes all its contents into a single
 
 ## Miscellaneous Options
 
+```json
+{
+  "indexing_config": {
+    "exclude": [
+      "morsels_config.json"
+    ],
+    "include": [],
+
+    "with_positions": true
+  }
+}
+```
+
 #### File Exclusions: **`exclude = ["morsels_config.json"]`**
 
 Global file exclusions can be specified in this parameter, which is simply an array of file globs.
@@ -206,7 +199,7 @@ Global file exclusions can be specified in this parameter, which is simply an ar
 
 Similarly, you can specify only specific files to index. This is an empty array by default, which indexes everything.
 
-If a file matches both an `exclude` and `include` pattern, the `exclude` pattern will take precedence.
+If a file matches both an `exclude` and `include` pattern, the `exclude` pattern will have priority.
 
 #### Adding Positions: **`with_positions = true`**
 
@@ -220,7 +213,9 @@ Turning this off for very large collections (~> 1GB) can increase the tool's sca
 
 You can index **multiple files** into **one document** using the reserved field [`_add_files`](./fields.md#reserved-fields). This can be particularly useful for overriding data on a case-by-case basis.
 
-For example, suppose you have the following files:
+#### Example: Overriding a Document's Title
+
+Suppose you have the following files:
 
 ```
 folder
@@ -228,7 +223,7 @@ folder
 |-- overrides.json
 ```
 
-To index `main.html`, but to override its title, you might have a configuration like so:
+To index `main.html` and override its title, you would have:
 
 Inside `overrides.json`,
 
@@ -243,12 +238,15 @@ And inside your configuration file:
 
 ```json
 {
-  "exclude": ["main.html"]
+  "indexing_config": {
+    "exclude": ["main.html"]
+  }
 }
 ```
 
-This avoids indexing `main.html` directly, but through a reference in `overrides.json`. As the user interface uses the first title it sees, the title is overwritten.
+This excludes indexing `main.html` directly, but does so through `overrides.json`. As the user interface uses the first title it sees, the title is overwritten.
 
+#### Example: Overriding a Document's Link
 Another example use case might be to redirect to another domain using the [`link` field](./fields.md#default-field-configuration):
 
 
@@ -259,9 +257,18 @@ Another example use case might be to redirect to another domain using the [`link
 }
 ```
 
-> Overrides can only be provided via JSON, CSV, or HTML files, since text and PDF files provide no reliable way of indicating the `_add_files` field. In addition, you will need to manually map the CSV and HTML file data to the `_add_files` field. This is automatically done for JSON files.
+> Overrides should be provided with JSON, CSV, or HTML files, as TXT and PDF files have no reliable way of supplying the `_add_files` field. In addition, you will need to manually map the CSV data to the `_add_files` field. This is automatically done for JSON and [HTML](../linking_to_others.md) files.
 
 ## Indexer Performance
+
+```json
+{
+  "indexing_config": {
+    "num_threads": <number of physical cpus> - 1,
+    "num_docs_per_block": 1000
+  }
+}
+```
 
 #### Number of Threads: **`num_threads`**
 
@@ -269,15 +276,25 @@ This is the number of threads to use, excluding the main thread. When unspecifie
 
 #### Memory Usage: **`num_docs_per_block`**
 
+> ⚠️ The parameters below this point allow you to adjust caching strategies, and the number of generated files. However, you should mostly be well-served by the preconfigured [scaling presets](./larger_collections.md) for such purposes.
+
 This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
 
 If your documents are very small, increasing this *may* help improve indexing performance.
 
-> ⚠️ Ensure [`field_store_block_size`](./fields.md#field-store-granularity-field_store_block_size-num_stores_per_dir) is a clean multiple or divisor of this parameter.
+⚠️ Also ensure [`field_store_block_size`](./fields.md#field-store-granularity-field_store_block_size-num_stores_per_dir) is a clean multiple or divisor of this parameter.
 
 ## Indexing and Search Scaling (advanced)
 
-Prefer the in-built [scaling presets](./larger_collections.md) option for configuring the tool's scalability. Where needed, the following options are available for finer control.
+```json
+{
+  "indexing_config": {
+    "pl_limit": 4294967295,
+    "pl_cache_threshold": 0,
+    "num_pls_per_dir": 1000
+  }
+}
+```
 
 #### Index Shard Size: **`pl_limit`**
 

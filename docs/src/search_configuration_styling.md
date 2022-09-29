@@ -3,32 +3,15 @@
 <style>
 .image-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    flex-wrap: wrap;
     justify-content: center;
 }
 
-@media screen and (max-width: 1129px) {
-    .image-container > img:first-child {
-        margin-bottom: 10px;
-        min-width: 300px;
-        max-width: 500px;
-    }
-
-    .image-container > img:last-child {
-        width: 300px;
-    }
-}
-
-@media screen and (min-width: 1130px) {
-    .image-container > img:first-child {
-        margin-right: 10px;
-        height: 440px;
-    }
-
-    .image-container > img:last-child {
-        height: 440px;
-    }
+.image-container > img {
+    margin-top: 10px;
+    width: 500px;
+    max-width: 100%;
 }
 </style>
 
@@ -88,24 +71,24 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 <img src="./images/dark-theme-fullscreen.png" alt="Preview of dark theme (fullscreen)">
 </div>
 
-## Input Element As a Button
+## Styling the Fullscreen UI Input Button
 
-Where the `input` option passed to `initMorsels` is concerned, Morsels adopts a minimally invasive approach to styling, preferring to leave this to your individual site's preferences.
+Morsels adopts a minimally invasive approach to styling your `<input>` element (except for the one that comes with the fullscreen UI), leaving this to your individual site's styling.
 
-For reasons of accessbility however, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button. This is limited to:
-- A `background` + `box-shadow` + `color` application on *focus* only
+For accessibility, however, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button (which opens the fullscreen UI). This is limited to:
+- A `background` & `box-shadow` & `color` application on *focus*
 
   These are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels' css variables.
-- `cursor: pointer` application on *hover* only
+- `cursor: pointer` application on *hover*
 
-You may override and addon to these styles as needed, to convey the intention of a button further.
+Accessibility labels and roles are also automatically set.
 
-If using the default [UI mode](./search_configuration.md#ui-mode) of auto, you can also set a different [placeholder](./search_configuration.md#ui-mode-specific-options), and use the `.morsels-button-input` selector to apply your styles only when the fullscreen UI is in use. For example,
+**Applying Input Button Styles under `mode='auto'`**
+
+If using the default [UI mode](./search_configuration.md#ui-mode) of `auto`, which switches between the dropdown and fullscreen UI dynamically, you can also set a different [placeholder](./search_configuration.md#ui-mode-specific-options), and/or use the `.morsels-button-input` selector to apply your styles only if the fullscreen UI is used. For example,
 
 ```css
 .morsels-button-input:focus:not(:hover) {
     background: #6c757d !important;
 }
 ```
-
-Accessibility labels and roles are automatically set however, so you needn't worry about those.
