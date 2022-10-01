@@ -113,86 +113,63 @@ The `isInitial` boolean is `true` when the user runs the first query, where ther
 
 The below 2 *mutually exclusive* sets of APIs render the results for all document matches. The first, simpler set of APIs are "building blocks" of the second. Reconfiguring the second API would also invalidate the first.
 
+The APIs under here are grouped under `uiOptions.resultsRenderOpts` (instead of `uiOptions.XXX`).
+
 ### 1. Rendering a Single Result
 
-The APIs under this key are grouped under `uiOptions.resultsRenderOpts` (instead of `uiOptions.XXX`).
+This APIs is suitable for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).
 
-These APIs are more suited for performing smaller modifications for the default use case, for example, displaying an additionally indexed field (e.g. an icon).
-
-<div style="height:1px"></div>
-
-`listItemRender(h, opts, fullLink, resultTitle, resultHeadingsAndTexts, fields): HTMLElement`
-
-This API renders the result for a single document match.
-
-| Parameter   | Description |
-| ----------- | ----------- |
-| `fullLink`                 | full resource link of the document |
-| `resultTitle`              | the first extracted `title` field of the document, if any |
-| `resultHeadingsAndTexts`   | An array of `string` or `HTMLElement` intended to be used as the last parameter of `h`.<br><br>This contains the highlighted heading-body pair matches, or body-only matches rendered from `headingBodyRender` and `bodyOnlyRender` further below. |
-| `fields`                   | All stored fields for the document, as positioned `[fieldName, fieldValue]` pairs. Useful if adding additional fields. |
-
-The following example shows the default implementation, and how to add an additional field, `subtitle`, to each result.
+It renders the result for a single document match.
 
 ```ts
-const subTitleField = fields.find(field => field[0] === 'subtitle');
-
-const linkEl = h(
-  'a', { class: 'morsels-link' },
-  h('div', { class: 'morsels-title' }, title,
-    h('div', { class: 'morsels-subtitle' }, (subTitleField && subTitleField[1]) || '')
-  ),
-  ...bodies
-);
-
-if (fullLink) {
-  linkEl.setAttribute('href', fullLink);
-}
-
-return h(
-  'li', { class: 'morsels-list-item' },
-  linkEl,
-);
+listItemRender: (
+  h: CreateElement,
+  opts: Options,
+  searchedTermsJSON: string,
+  fullLink: string,
+  resultTitle: string,
+  matches: Match[],
+  fields: [string, string][],
+) => HTMLElement,
 ```
 
-#### 1.1 `listItemRender` supporting APIs
+| Parameter   | Description |
+| -----------  | ----------- |
+| `fullLink`     | full resource link of the document |
+| `resultTitle`  | the first extracted `title` field of the document, if any |
+| `matches` | An array of `Match` objects |
+| `fields` |  All stored fields for the document, as sequential `[fieldName, fieldValue]` pairs. Useful if adding additional fields. |
 
-The remaining 3 APIs below are building blocks of `listItemRender`, responsible for generating its `resultTitle` and `resultHeadingsAndTexts` parameters.
+A `Match` object follows this interface:
+```ts
+interface HeadingMatch {
+  // Each array here is intended to be spread as the last parameter of the `h` helper
+
+  // A series of alternating highlighted elements and unhighlighted preview strings
+  bodyHighlights: (string | HTMLElement)[],
+
+  // Optional, present if this match is also under a heading
+  headingHighlights?: (string | HTMLElement)[],
+
+  // Identical to fullLink, but with an appended #anchor
+  href?: string,
+}
+```
+
+See the [source](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/search/options.ts) to get an idea of using this API.
+
+
+#### Changing the Highlight Output
+
+This API is a building block of `listItemRender`, and generates the highlights in the `matches` parameter.
 
 ```ts
-interface SearchUiRenderOptions {
-  // Renders a "heading" field,
-  // along with the highlighted "body" fields that follow it (in document order)
-  headingBodyRender?: (
-    h: CreateElement,
-
-    // The highlighted elements under .morsels-heading. Intended to be used with the 'h' function.
-    headingHighlights: (HTMLElement | string)[],    
-
-    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
-    bodyHighlights: (HTMLElement | string)[], 
-
-    // Url of the document + The matching heading's id, if any
-    href?: string                             
-  ) => HTMLElement,
-
-
-  // Renders highlighted "body" fields without a heading preceding it
-  bodyOnlyRender?: (
-    h: CreateElement,
-
-    // The highlighted elements under .morsels-body. Intended to be used with the 'h' function.
-    bodyHighlights: (HTMLElement | string)[], 
-  ) => HTMLElement,
-
-
   highlightRender?: (
     h: CreateElement,
 
     // matched term
     matchedPart: string,                      
   ) => HTMLElement,
-}
 ```
 
 ### 2. Rendering All Results

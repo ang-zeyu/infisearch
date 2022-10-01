@@ -2,8 +2,8 @@ import escapeStringRegexp from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
 import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { Options, UiMode } from './Options';
-import createElement, { CreateElement, createInvisibleLoadingIndicator, MISC_INFO_ID } from './utils/dom';
+import { Match, Options, UiMode } from './Options';
+import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
 import { transformHtml, transformJson, transformText } from './searchResultTransform/transform';
@@ -115,9 +115,9 @@ async function singleResultRender(
     linkToAttach = fullLinkUrl.toString();
   }
 
-  let resultHeadingsAndTexts: (string | HTMLElement)[] = [];
+  let docMatches: Match[] = [];
   if (hasStoredContentField) {
-    resultHeadingsAndTexts = transformText(
+    docMatches = transformText(
       fields,
       termRegexes,
       linkToAttach,
@@ -125,19 +125,18 @@ async function singleResultRender(
     );
   } else if (!fullLink) {
     // Unable to retrieve and load from source file
-    resultHeadingsAndTexts = [];
   } else if (fullLink.endsWith('.html') && loaders.HtmlLoader) {
     const asText = await (await fetch(fullLink)).text();
     const doc = domParser.parseFromString(asText, 'text/html');
 
-    const { title: newTitle, bodies: newHeadingsAndTexts } = transformHtml(
+    const { title: newTitle, matches } = transformHtml(
       doc, loaders.HtmlLoader, termRegexes, linkToAttach, options,
     );
     resultTitle = newTitle || resultTitle;
-    resultHeadingsAndTexts = newHeadingsAndTexts;
+    docMatches = matches;
   } else if (fullLink.endsWith('.txt') && loaders.TxtLoader) {
     const asText = await (await fetch(fullLink)).text();
-    resultHeadingsAndTexts = transformText(
+    docMatches = transformText(
       [['body', asText]], termRegexes, linkToAttach, options,
     );
   } else {
@@ -145,13 +144,13 @@ async function singleResultRender(
     if (fullLinkUrl.pathname.endsWith('.json') && loaders.JsonLoader) {
       const asJson = await (await fetch(fullLink)).json();
 
-      const { title: newTitle, bodies: newBodies } = transformJson(
+      const { title: newTitle, matches } = transformJson(
         fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
         loaders.JsonLoader,
         termRegexes, linkToAttach, options,
       );
       resultTitle = newTitle || resultTitle;
-      resultHeadingsAndTexts = newBodies;
+      docMatches = matches;
     } /* else {
       // CSV / PDF source file generation. Unsupported.
     } */
@@ -163,7 +162,7 @@ async function singleResultRender(
     searchedTermsJSON,
     fullLink,
     resultTitle,
-    resultHeadingsAndTexts,
+    docMatches,
     fields,
   );
 }
@@ -266,7 +265,6 @@ export default async function loadQueryResults(
   const fragment = document.createDocumentFragment();
   if (isFirst) {
     const miscInfo = headerRender(createElement, options, false, false, query);
-    miscInfo.setAttribute(MISC_INFO_ID, 'true');
     fragment.appendChild(miscInfo);
   }
 

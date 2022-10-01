@@ -1,12 +1,19 @@
 import { Searcher } from '@morsels/search-lib';
 import { Options, UiMode, UiOptions } from './Options';
-import createElement, { LOADING_INDICATOR_ID, MISC_INFO_ID } from './utils/dom';
+import createElement, { LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState, runNewQuery } from './utils/input';
 import { prepareOptions } from './search/options';
-import { setCombobox, setInputAria } from './utils/aria';
+import {
+  setActiveDescendant,
+  unsetActiveDescendant,
+  setExpanded,
+  setInputAria,
+  unsetExpanded,
+} from './utils/aria';
 import {
   openDropdown, closeDropdown,
-  dropdownRootRender, fsRootRender, setDropdownInputAria, unsetDropdownInputAria, setFsTriggerInput,
+  dropdownRootRender, fsRootRender, setFsTriggerInput,
+  setDropdownInputAria, unsetDropdownInputAria,
 } from './search/rootContainers';
 
 let isMobileSizeGlobal = false;
@@ -27,6 +34,7 @@ class InitState {
   _mrlFsShown = false;
 
   _mrlCreateInputListener(
+    input: HTMLElement,
     root: HTMLElement,
     listContainer: HTMLElement,
     searcher: Searcher,
@@ -56,7 +64,7 @@ class InitState {
       });
   
     let inputTimer: any = -1;
-    return (ev: InputEvent) => {
+    input.addEventListener('input', (ev: InputEvent) => {
       if (!setupOk) {
         return;
       }
@@ -85,11 +93,9 @@ class InitState {
             );
             inputState._mrlLoader = loader;
             listContainer.appendChild(loader);
-
-            if (useDropdown(uiOptions)) {
-              this._mrlShowDropdown();
-            }
           }
+
+          if (this._mrlShowDropdown) this._mrlShowDropdown();
 
           // Queue or immediately run the query
           const action = () => runNewQuery(query, inputState, searcher, root, listContainer, options);
@@ -98,6 +104,9 @@ class InitState {
           } else {
             action();
           }
+
+          unsetActiveDescendant(input);
+          setExpanded(input);
         }, uiOptions.inputDebounce);
       } else {
         // Resets should be instant
@@ -117,6 +126,8 @@ class InitState {
     
           inputState._mrlIsRunningQuery = false;
           inputState._mrlIsResultsBlank = true;
+          unsetActiveDescendant(input);
+          unsetExpanded(input);
         };
     
         if (inputState._mrlIsRunningQuery) {
@@ -125,7 +136,7 @@ class InitState {
           reset();
         }
       }
-    };
+    });
   }
 }
 
@@ -172,9 +183,8 @@ function initMorsels(options: Options): {
     },
   );
 
-  fsInput.addEventListener(
-    'input',
-    initState._mrlCreateInputListener(fsRoot, fsListContainer, searcher, options),
+  initState._mrlCreateInputListener(
+    fsInput, fsRoot, fsListContainer, searcher, options,
   );
 
   // Initial state is blank
@@ -239,17 +249,18 @@ function initMorsels(options: Options): {
     }
 
     initState._mrlShowDropdown = () => {
-      openDropdown(dropdownRoot, dropdownListContainer, dropdownAlignment);
-      initState._mrlDropdownShown = true;
+      if (!initState._mrlDropdownShown && useDropdown(uiOptions) && dropdownListContainer.childElementCount) {
+        openDropdown(dropdownRoot, dropdownListContainer, dropdownAlignment);
+        initState._mrlDropdownShown = true;
+      }
     };
     initState._mrlHideDropdown = () => {
       closeDropdown(dropdownRoot);
       initState._mrlDropdownShown = false;
     };
 
-    input.addEventListener(
-      'input',
-      initState._mrlCreateInputListener(dropdownRoot, dropdownListContainer, searcher, options),
+    initState._mrlCreateInputListener(
+      input, dropdownRoot, dropdownListContainer, searcher, options,
     );
 
     function refreshDropdown() {
@@ -264,10 +275,10 @@ function initMorsels(options: Options): {
         || !(isMobileSizeGlobal = isMobileDevice())) {
         hideFullscreen();
         refreshDropdown();
-        setDropdownInputAria(input, dropdownRoot, dropdownListContainer, label, originalPlaceholder);
+        setDropdownInputAria(input, dropdownListContainer, label, originalPlaceholder);
       } else {
         initState._mrlHideDropdown();
-        unsetDropdownInputAria(dropdownRoot, dropdownListContainer, input, fsInputLabel, fsInputButtonText);
+        unsetDropdownInputAria(input, dropdownListContainer, fsInputLabel, fsInputButtonText);
       }
     }
     toggleUiMode();
@@ -293,7 +304,7 @@ function initMorsels(options: Options): {
       }
     });
 
-    input.addEventListener('focus', () => useDropdown(uiOptions) && initState._mrlShowDropdown());
+    input.addEventListener('focus', initState._mrlShowDropdown);
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
@@ -304,10 +315,7 @@ function initMorsels(options: Options): {
 
     target.classList.add('morsels-root');
 
-    input.addEventListener(
-      'input',
-      initState._mrlCreateInputListener(target, target, searcher, options),
-    );
+    initState._mrlCreateInputListener(input, target, target, searcher, options);
 
     let ariaControlsId = target.getAttribute('id');
     if (!ariaControlsId) {
@@ -315,104 +323,106 @@ function initMorsels(options: Options): {
       ariaControlsId = 'morsels-target-list';
     }
 
-    setInputAria(input, ariaControlsId);
-    setCombobox(input, target, uiOptions.label);
+    setInputAria(input, target, uiOptions.label);
   }
   // --------------------------------------------------
 
   // --------------------------------------------------
   // Keyboard Events
 
-  function keydownListener(ev: KeyboardEvent) {
-    const { key } = ev;
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(key)) {
-      return;
-    }
-
-    let listContainer: HTMLElement;
-
-    let scrollListContainer = (targetEl: any) => {
-      const top = targetEl.offsetTop
-        - listContainer.offsetTop
-        - listContainer.clientHeight / 2
-        + targetEl.clientHeight / 2;
-      listContainer.scrollTo({ top });
-    };
-
-    const isDropdown = useDropdown(uiOptions);
-    if (isDropdown) {
-      if (!initState._mrlDropdownShown) {
+  function addKeyboardHandler(inputEl: HTMLInputElement) {
+    inputEl.addEventListener('keydown', (ev: KeyboardEvent) => {
+      const { key } = ev;
+      if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(key)) {
         return;
       }
 
-      listContainer = dropdownListContainer;
-    } else if (mode === UiMode.Target) {
-      listContainer = target;
-      scrollListContainer = (targetEl: HTMLElement) => {
-        targetEl.scrollIntoView({
-          block: 'center',
-        });
+      let listContainer: HTMLElement;
+
+      let scrollListContainer = (targetEl: any) => {
+        const top = targetEl.offsetTop
+          - listContainer.offsetTop
+          - listContainer.clientHeight / 2
+          + targetEl.clientHeight / 2;
+        listContainer.scrollTo({ top });
       };
-    } else {
-      if (!initState._mrlFsShown) {
-        return;
-      }
 
-      listContainer = fsListContainer;
-    }
-
-    const focusedItem = listContainer.querySelector('.focus');
-    function focusEl(el: Element) {
-      if (el && !el.getAttribute(MISC_INFO_ID) && !el.getAttribute(LOADING_INDICATOR_ID)) {
-        if (focusedItem) {
-          focusedItem.classList.remove('focus');
-          focusedItem.removeAttribute('aria-selected');
-          focusedItem.removeAttribute('id');
+      const isDropdown = useDropdown(uiOptions);
+      if (isDropdown) {
+        if (!initState._mrlDropdownShown) {
+          return;
         }
 
-        el.classList.add('focus');
-        el.setAttribute('aria-selected', 'true');
-        el.setAttribute('id', 'morsels-list-selected');
-        scrollListContainer(el);
-
-        return true;
-      }
-
-      return false;
-    }
-
-    const firstItem = listContainer.querySelector(`[${MISC_INFO_ID}]`)?.nextElementSibling;
-    const lastItem = listContainer.lastElementChild;
-    if (key === 'ArrowDown') {
-      if (focusedItem) {
-        focusEl(focusedItem.nextElementSibling);
+        listContainer = dropdownListContainer;
+      } else if (mode === UiMode.Target) {
+        listContainer = target;
+        scrollListContainer = (targetEl: HTMLElement) => {
+          targetEl.scrollIntoView({
+            block: 'center',
+          });
+        };
       } else {
-        focusEl(firstItem);
+        if (!initState._mrlFsShown) {
+          return;
+        }
+
+        listContainer = fsListContainer;
       }
-    } else if (key === 'ArrowUp') {
-      if (focusedItem) {
-        focusEl(focusedItem.previousElementSibling);
+
+      const focusedItem = listContainer.querySelector('#morsels-list-selected');
+      function focusEl(el: Element) {
+        if (el) {
+          if (focusedItem) {
+            focusedItem.classList.remove('focus');
+            focusedItem.removeAttribute('aria-selected');
+            focusedItem.removeAttribute('id');
+          }
+
+          el.classList.add('focus');
+          el.setAttribute('aria-selected', 'true');
+          el.setAttribute('id', 'morsels-list-selected');
+          scrollListContainer(el);
+          setActiveDescendant(inputEl);
+
+          return true;
+        }
+
+        return false;
       }
-    } else if (key === 'Home') {
-      focusEl(firstItem);
-    } else if (key === 'End') {
-      if (!focusEl(lastItem)) {
-        focusEl(lastItem?.previousElementSibling);
-      }
-    } else if (key === 'Enter') {
-      if (focusedItem) {
+
+      const opts = listContainer.querySelectorAll('[role="option"]');
+      const lastItem = opts[opts.length - 1];
+
+      let focusedItemIdx = -1;
+      opts.forEach((v, idx) => {
+        if (v === focusedItem) {
+          focusedItemIdx = idx;
+        }
+      });
+
+      if (key === 'ArrowDown') {
+        focusEl(opts[(focusedItemIdx + 1) % opts.length]);
+      } else if (key === 'ArrowUp') {
+        focusEl(focusedItemIdx > 0 ? opts[focusedItemIdx - 1] : lastItem);
+      } else if (key === 'Home') {
+        inputEl.focus();
+        inputEl.setSelectionRange(0, 0);
+      } else if (key === 'End') {
+        inputEl.focus();
+        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      } else if (key === 'Enter' && focusedItem) {
         const link = focusedItem.querySelector('a[href]');
         if (link) {
           window.location.href = link.getAttribute('href');
         }
       }
-    }
 
-    ev.preventDefault();
+      ev.preventDefault();
+    });
   }
 
-  input?.addEventListener('keydown', keydownListener);
-  fsInput.addEventListener('keydown', keydownListener);
+  if (input) addKeyboardHandler(input);
+  addKeyboardHandler(fsInput);
   
   // --------------------------------------------------
 

@@ -16,7 +16,7 @@
     --morsels-body-fg: #e3e3e3;
     --morsels-body-hover-fg: #eef6f6;
     --morsels-sub-bg: #252728;
-    --morsels-sub-hover-bg: #313233;
+    --morsels-sub-hover-bg: #464747;
     --morsels-highlight: #5B9EBF;
     --morsels-highlight-bg: none;
     --morsels-header-fg: #e3e3e3;
@@ -40,7 +40,7 @@
     --morsels-fs-input-focus-border: 2px solid #404040;
     --morsels-fs-input-focus-box-shadow: 0 1px 4px #363839;
     --morsels-fs-header-bg: #292a2b;
-    --morsels-fs-header-box-shadow: 0 0 5px 3px #2f3030;
+    --morsels-fs-header-box-shadow: 0 1px 5px 1px #2f3030;
     --morsels-fs-header-close-fg: #e3e3e3;
     --morsels-fs-header-close-hover-bg: #363839;
     --morsels-fs-header-close-hover-fg: #f1f8f7;

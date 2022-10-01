@@ -3,6 +3,19 @@ import { Options, UiMode } from '../Options';
 import { parseURL } from '../utils/url';
 import { LOADING_INDICATOR_ID } from '../utils/dom';
 
+// Undocumented option for mdBook
+function appendSearchedTerms(
+  opts: Options, fullLink: string, searchedTermsJSON: string,
+) {
+  const { addSearchedTerms } = opts.uiOptions.resultsRenderOpts;
+  if (addSearchedTerms) {
+    const fullLinkUrl = parseURL(fullLink);
+    fullLinkUrl.searchParams.append(addSearchedTerms, searchedTermsJSON);
+    return fullLinkUrl.toString();
+  }
+  return fullLink;
+}
+
 export function prepareOptions(options: Options) {
   // ------------------------------------------------------------
   // Search Lib Options
@@ -138,54 +151,38 @@ export function prepareOptions(options: Options) {
   const { resultsRenderOpts } = uiOptions;
   
   resultsRenderOpts.listItemRender = resultsRenderOpts.listItemRender || ((
-    h, opts, searchedTermsJSON, fullLink, title, resultHeadingsAndTexts,
+    h, opts, searchedTermsJSON, fullLink, title, matches,
   ) => {
-    const linkEl = h(
-      'a', { class: 'morsels-link' },
+    const bodies = matches.filter((r) => !r.headingMatches);
+    const headings = matches.filter((r) => r.headingMatches);
+
+    const mainLinkEl = h(
+      'a', { class: 'morsels-title-link', role: 'option' },
       h('div', { class: 'morsels-title' }, title),
-      ...resultHeadingsAndTexts,
+      ...bodies.map(({ bodyMatches }) => h(
+        'div', { class: 'morsels-body' }, ...bodyMatches,
+      )),
     );
-  
+
     if (fullLink) {
-      let linkToAttach = fullLink;
-
-      // ---------------------------------
-      // Undocumented option for mdBook
-      const { addSearchedTerms } = resultsRenderOpts;
-      if (addSearchedTerms) {
-        const fullLinkUrl = parseURL(fullLink);
-        fullLinkUrl.searchParams.append(addSearchedTerms, searchedTermsJSON);
-        linkToAttach = fullLinkUrl.toString();
-      }
-      // ---------------------------------
-
-      linkEl.setAttribute('href', linkToAttach);
+      mainLinkEl.setAttribute('href', appendSearchedTerms(opts, fullLink, searchedTermsJSON));
     }
-  
-    return h(
-      'li', { class: 'morsels-list-item', role: 'option' },
-      linkEl,
-    );
-  });
-  
-  resultsRenderOpts.headingBodyRender = resultsRenderOpts.headingBodyRender
-    || ((
-      h, opts, headingHighlights, bodyHighlights, href,
-    ) => {
-      const el = h('a', { class: 'morsels-heading-body' },
-        h('div', { class: 'morsels-heading' }, ...headingHighlights),
-        h('div', { class: 'morsels-body' }, ...bodyHighlights));
+
+    const subOptions = headings.map(({ href, bodyMatches, headingMatches }) => {
+      const el = h('a', { class: 'morsels-heading-link', role: 'option' },
+        h('div', { class: 'morsels-heading' }, ...headingMatches),
+        h('div', { class: 'morsels-body' }, ...bodyMatches));
       if (href) {
-        el.setAttribute('href', href);
+        el.setAttribute('href', appendSearchedTerms(opts, href, searchedTermsJSON));
       }
       return el;
     });
   
-  resultsRenderOpts.bodyOnlyRender = resultsRenderOpts.bodyOnlyRender || ((
-    h, opts, bodyHighlights,
-  ) => h(
-    'div', { class: 'morsels-body' }, ...bodyHighlights,
-  ));
+    return h(
+      'div', { class: 'morsels-list-item', role: 'group', 'aria-label': title },
+      mainLinkEl, ...subOptions,
+    );
+  });
   
   resultsRenderOpts.highlightRender = resultsRenderOpts.highlightRender || ((
     h, opts, matchedPart,

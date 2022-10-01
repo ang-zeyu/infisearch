@@ -2,7 +2,7 @@
 
 ![CI workflow](https://github.com/ang-zeyu/morsels/actions/workflows/ci.yml/badge.svg)
 
-Easy, precise, and efficient client-side search for static sites.
+Easy, relevant, and efficient client-side search for static sites.
 
 ## Description
 

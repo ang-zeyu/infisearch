@@ -20,7 +20,7 @@
 }
 
 .morsels-title:active::after,
-.morsels-list-item.focus .morsels-title::after {
+.morsels-title-link.focus .morsels-title::after {
     border-bottom: 1px solid var(--morsels-title-hover-bg);
 }
 

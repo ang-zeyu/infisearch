@@ -1,5 +1,4 @@
-import createElement from '../utils/dom';
-import { Options } from '../Options';
+import { Match, Options } from '../Options';
 import { getBestMatchResult, highlightMatchResult, MatchResult } from './highlight';
 
 enum MatchType {
@@ -24,12 +23,8 @@ export function transformText(
   termRegexes: RegExp[],
   baseUrl: string,
   options: Options,
-): (string | HTMLElement)[] {
-  const { maxSubMatches, resultsRenderOpts } = options.uiOptions;
-  const {
-    bodyOnlyRender,
-    headingBodyRender,
-  } = resultsRenderOpts;
+): Match[] {
+  const { maxSubMatches } = options.uiOptions;
   
   let lastHeadingMatch: ProcessedMatchResult = undefined;
   let lastHeadingLinkIdx = -2;
@@ -99,26 +94,29 @@ export function transformText(
     }
     matches.push(matchResults[i]);
   }
-  
+
   return matches.map((finalMatchResult) => {
-    const bodyHighlights = highlightMatchResult(finalMatchResult, true, options);
+    const result: Match = {
+      bodyMatches: highlightMatchResult(finalMatchResult, true, options),
+    };
+
     if (finalMatchResult._mrlHeadingMatch) {
       const highlightedHeadings = highlightMatchResult(finalMatchResult._mrlHeadingMatch, false, options);
-      const headingHighlights = highlightedHeadings.length
+      result.headingMatches = highlightedHeadings.length
         ? highlightedHeadings
         : [finalMatchResult._mrlHeadingMatch._mrlStr];
-      const href = finalMatchResult._mrlHeadingLink && `${baseUrl}#${finalMatchResult._mrlHeadingLink}`;
-      return headingBodyRender(
-        createElement,
-        options,
-        headingHighlights,
-        bodyHighlights,
-        href,
-      );
-    } else {
-      return bodyOnlyRender(createElement, options, bodyHighlights);
+      result.href = finalMatchResult._mrlHeadingLink
+        ? `${baseUrl}#${finalMatchResult._mrlHeadingLink}`
+        : baseUrl;
     }
+
+    return result;
   });
+}
+
+interface TransformReturn {
+  title: string,
+  matches: Match[],
 }
   
 export function transformJson(
@@ -127,7 +125,7 @@ export function transformJson(
   termRegexes: RegExp[],
   baseUrl: string,
   options: Options,
-) {
+): TransformReturn {
   const fields: [string, string][] = [];
   
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -144,10 +142,13 @@ export function transformJson(
       ]);
     }
   }
-  
+
+  const matches = transformText(
+    fields, termRegexes, baseUrl, options,
+  );
   return {
     title: titleKey && json[titleKey],
-    bodies: transformText(fields, termRegexes, baseUrl, options),
+    matches,
   };
 }
   
@@ -161,7 +162,7 @@ export function transformHtml(
   termRegexes: RegExp[],
   baseUrl: string,
   options: Options,
-): { title: string, bodies: (string | HTMLElement)[] } {
+): TransformReturn {
   const fields: [string, string][] = [];
   
   if (loaderConfig.exclude_selectors) {
@@ -232,11 +233,12 @@ export function transformHtml(
       break;
     }
   }
-  
+
+  const matches = transformText(
+    fields, termRegexes, baseUrl, options,
+  );
   return {
     title,
-    bodies: transformText(
-      fields, termRegexes, baseUrl, options,
-    ),
+    matches,
   };
 }

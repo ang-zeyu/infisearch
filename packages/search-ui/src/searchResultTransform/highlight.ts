@@ -95,7 +95,7 @@ export function getBestMatchResult(_mrlStr: string, termRegexes: RegExp[]): Matc
 }
   
 function createEllipses() {
-  return createElement('span', { class: 'morsels-ellipsis', 'aria-label': 'ellipses' }, ' ... ');
+  return createElement('span', { class: 'morsels-ellipsis' }, ' ... ');
 }
 
 // How far left and right from a match to include in the body

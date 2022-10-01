@@ -9,17 +9,14 @@
     --morsels-triangle-bg: var(--table-header-bg);
     --morsels-item-box-shadow: 0 1px 5px rgba(196, 192, 187, 0.8);
     --morsels-title-fg: var(--fg);
-    --morsels-title-bg: var(--table-header-bg);
     --morsels-title-hover-fg: var(--fg);
     --morsels-title-hover-bg: var(--table-header-bg);
-    --morsels-title-border-bottom: 2px solid var(--table-header-bg);
     --morsels-title-border-bottom-hover: 2px solid var(--table-header-bg);
     --morsels-heading-fg: var(--fg);
     --morsels-heading-hover-fg: var(--fg);
     --morsels-body-fg: var(--fg);
     --morsels-body-hover-fg: var(--fg);
     --morsels-sub-bg: var(--bg);
-    --morsels-sub-hover-bg: var(--table-alternate-bg);
     --morsels-highlight: var(--search-mark-bg);
     --morsels-highlight-bg: none;
     --morsels-header-fg: var(--fg);
@@ -83,22 +80,33 @@
 .navy .morsels-root,
 .ayu .morsels-root {
     --morsels-title-bg: var(--theme-hover);
+    --morsels-sub-hover-bg: var(--table-alternate-bg);
     --morsels-title-border-bottom: 2px solid var(--theme-hover);
 }
 
 .light .morsels-root {
-    --morsels-heading-highlight: #82a6c4;
+    --morsels-highlight: #82a6c4;
+    --morsels-sub-hover-bg: #ebebeb;
 }
 
 .rust .morsels-root {
-    --morsels-heading-highlight: #ebb285;
+    --morsels-highlight: #bc8e6a;
+
     --morsels-tip-table-alternate: var(--sidebar-bg);
+    --morsels-title-bg: var(--table-header-bg);
+    --morsels-title-border-bottom: 2px solid var(--table-header-bg);
+
+    --morsels-sub-hover-bg: #c6bbb1;
+    --morsels-title-hover-fg: #1e1e1e;
     --morsels-title-hover-bg: #c6bbb1;
     --morsels-title-border-bottom-hover: 2px solid #c6bbb1;
+    --morsels-body-hover-fg: #1e1e1e;
+    --morsels-heading-hover-fg: #1e1e1e;
 }
 
 .coal .morsels-root {
-    --morsels-heading-highlight: #496c8a;
+    --morsels-highlight: #496c8a;
+    --morsels-sub-hover-bg: #272a2b;
 }
 
 .morsels-theme .morsels-root .morsels-tip-item code,
@@ -128,14 +136,10 @@
     --morsels-fs-input-border: 2px solid #3e4144;
 }
 
-.coal .morsels-root {
-    --morsels-fs-input-bg: #1d1f21;
-    --morsels-fs-input-border: 2px solid #3e4144;
-}
-
 .navy .morsels-root {
     --morsels-fs-input-bg: #1e222f;
     --morsels-fs-input-border: 2px solid #3d4252;
+    --morsels-sub-hover-bg: #242734;
 }
 
 .ayu .morsels-root {
@@ -144,6 +148,7 @@
     --morsels-fs-input-border: 2px solid #43474c;
     --morsels-fs-input-focus-border: 2px solid #4f95cc;
     --morsels-fs-input-focus-box-shadow: 0 0 5px -1px #63baff;
+    --morsels-sub-hover-bg: #282e35;
 }
 
 #morsels-search {

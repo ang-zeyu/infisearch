@@ -12,6 +12,12 @@ export enum UiMode {
   Target = 'target',
 }
 
+export interface Match {
+  bodyMatches: (string | HTMLElement)[],
+  headingMatches?: (string | HTMLElement)[],
+  href?: string,
+}
+
 export interface UiOptions {
   input: HTMLInputElement,
   inputDebounce?: number,
@@ -69,20 +75,8 @@ export interface UiOptions {
       searchedTermsJSON: string,
       fullLink: string,
       resultTitle: string,
-      resultHeadingsAndTexts: (HTMLElement | string)[],
+      matches: Match[],
       fields: [string, string][],
-    ) => HTMLElement,
-    headingBodyRender?: (
-      h: CreateElement,
-      opts: Options,
-      headingHighlights: (HTMLElement | string)[],
-      bodyHighlights: (HTMLElement | string)[],
-      href?: string
-    ) => HTMLElement,
-    bodyOnlyRender?: (
-      h: CreateElement,
-      opts: Options,
-      bodyHighlights: (HTMLElement | string)[],
     ) => HTMLElement,
     highlightRender?: (
       h: CreateElement,

@@ -422,10 +422,13 @@ table.morsels-tip-table .morsels-tip-item li {
     margin-top: 2px;
 }
 
-.morsels-link,
-.morsels-heading-body {
+.morsels-title-link,
+.morsels-heading-link {
+    display: block;
     font-size: inherit;
     text-decoration: none !important;
+    outline-offset: -1px;
+    outline-color: var(--morsels-title-fg);
 }
 
 .morsels-title {
@@ -439,29 +442,19 @@ table.morsels-tip-table .morsels-tip-item li {
     font-weight: 600;
 }
 
-@media (hover: hover) {
-    .morsels-list-item:hover .morsels-title {
-        color: var(--morsels-title-hover-fg);
-        background: var(--morsels-title-hover-bg);
-        border-bottom: var(--morsels-title-border-bottom-hover);
-    }
-}
-
 .morsels-title:active,
-.morsels-list-item.focus .morsels-title {
+.morsels-title-link.focus .morsels-title {
     color: var(--morsels-title-hover-fg);
     background: var(--morsels-title-hover-bg);
     border-bottom: var(--morsels-title-border-bottom-hover);
 }
 
-.morsels-heading-body {
-    display: block;
+.morsels-heading-link {
     padding: 4px 0 2px 0;
-    text-decoration: none;
     background: var(--morsels-sub-bg);
 }
 
-.morsels-heading-body:last-child {
+.morsels-heading-link:last-child {
     padding-bottom: 7px;
 }
 
@@ -474,8 +467,8 @@ table.morsels-tip-table .morsels-tip-item li {
     font-weight: 600;
 }
 
-.morsels-heading-body:active .morsels-heading,
-.morsels-list-item.focus .morsels-heading {
+.morsels-heading-link:active .morsels-heading,
+.morsels-heading-link.focus .morsels-heading {
     color: var(--morsels-heading-hover-fg);
 }
 
@@ -487,45 +480,52 @@ table.morsels-tip-table .morsels-tip-item li {
     color: var(--morsels-body-fg);
 }
 
-.morsels-heading-body .morsels-body {
+.morsels-heading-link .morsels-body {
     padding: 1px 5px 0 16px;
 }
 
-.morsels-link > .morsels-body:active,
-.morsels-heading-body:active .morsels-body,
-.morsels-list-item.focus .morsels-body {
+.morsels-title-link > .morsels-body:active,
+.morsels-title-link.focus > .morsels-body,
+.morsels-heading-link:active .morsels-body,
+.morsels-heading-link.focus .morsels-body {
     color: var(--morsels-body-hover-fg);
 }
 
-.morsels-link > .morsels-body:active,
-.morsels-heading-body:active,
-.morsels-list-item.focus .morsels-heading-body,
-.morsels-list-item.focus .morsels-link > .morsels-body {
+.morsels-title-link > .morsels-body:active,
+.morsels-title-link.focus > .morsels-body,
+.morsels-heading-link:active,
+.morsels-heading-link.focus {
     background: var(--morsels-sub-hover-bg);
 }
 
 @media (hover: hover) {
-    .morsels-heading-body:not(:last-child):hover {
+    .morsels-list-item:hover .morsels-title {
+        color: var(--morsels-title-hover-fg);
+        background: var(--morsels-title-hover-bg);
+        border-bottom: var(--morsels-title-border-bottom-hover);
+    }
+
+    .morsels-heading-link:not(:last-child):hover {
         border-bottom: var(--morsels-item-sub-border-hover);
     }
 
-    .morsels-link > .morsels-body:hover,
-    .morsels-heading-body:hover {
+    .morsels-title-link > .morsels-body:hover,
+    .morsels-heading-link:hover {
         background: var(--morsels-sub-hover-bg);
     }
 
-    .morsels-heading-body:hover .morsels-heading {
+    .morsels-heading-link:hover .morsels-heading {
         color: var(--morsels-heading-hover-fg);
     }
 
     .morsels-body:hover,
-    .morsels-heading-body:hover .morsels-body {
+    .morsels-heading-link:hover .morsels-body {
         color: var(--morsels-body-hover-fg);
     }
 
-    /* Prevent transitions from kicking for keyboard navigation */
+    /* Prevent transitions from kicking in for keyboard navigation */
     .morsels-list-item:hover .morsels-title,
-    .morsels-list-item:hover .morsels-heading-body,
+    .morsels-list-item:hover .morsels-heading-link,
     .morsels-list-item:hover .morsels-body,
     .morsels-list-item:hover .morsels-heading {
         transition: background 0.1s ease-in, color 0.1s ease-in, border 0.1s ease-in;
@@ -535,7 +535,7 @@ table.morsels-tip-table .morsels-tip-item li {
 /* Prevent transitions from kicking for keyboard navigation */
 .morsels-body:active,
 .morsels-list-item:active .morsels-title,
-.morsels-list-item:active .morsels-heading-body,
+.morsels-list-item:active .morsels-heading-link,
 .morsels-list-item:active .morsels-body,
 .morsels-list-item:active .morsels-heading {
     transition: background 0.2s ease-in, color 0.2s ease-in, border 0.2s ease-in !important;
