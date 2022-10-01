@@ -4,7 +4,7 @@
 # Update the cargo.toml version numbers before running anything!
 
 # And this
-VERSION=v0.5.0
+VERSION=v0.6.0
 
 # Run in order
 # Check preReleaseXX outputs manually before running release
@@ -60,6 +60,7 @@ buildSearch:
 	npx lerna version $(VERSION) --amend --no-push --yes
 	npm run buildSearch
 	git add packages/search-ui/dist/*
+	git add packages/morsels_indexer/search-ui-dist/*
 	git commit --amend -m "Bump version"
 	git checkout -- .
 	git tag --force $(VERSION)

@@ -1,6 +1,6 @@
 [package]
 name = "morsels_common"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Internal library for other morsels packages."
