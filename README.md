@@ -24,7 +24,7 @@ Some similar tools in this space are [Stork](https://github.com/jameslittle230/s
 
 ## Getting Started
 
-Powering static site search with Morsels is extremely easy, and requires just a folder of your HTML files. Titles, headings, and the rest of the text are automatically sourced from your HTML files. Links to your pages are automatically generated based on how your site's pages are layed out, but it is also possible to override these.
+Powering static site search with Morsels is extremely easy, and requires just a folder of your HTML files — titles, headings, and other text are automatically extracted. Links to your pages are automatically generated based on your folder structure, but can also be manually specified.
 
 ### 1. Installing the indexer
 
@@ -60,12 +60,14 @@ Give any `<input>` element in your page an `id` of `morsels-search`, then call:
 ```js
 initMorsels({
   searcherOptions: {
-    // Output folder url specified as the second parameter in the cli command
-    // Urls like '/output/' will work as well
+    // Output folder URL specified as the second parameter in the cli command
+    // URLs like '/output/' will work as well
     url: 'http://<your-domain>/output/',
   },
   uiOptions: {
-    // Input / source folder url, specified as the first parameter in the cli command
+    // Input folder URL specified as the first parameter in the cli command
+    // This is where the generated result preview links will point to,
+    // and where you host your site.
     sourceFilesUrl: 'http://<your-domain>/source/',
   }
 });
