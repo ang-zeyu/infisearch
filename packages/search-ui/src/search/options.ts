@@ -97,7 +97,7 @@ export function prepareOptions(options: Options) {
   }
   uiOptions.fsContainer = uiOptions.fsContainer || document.getElementsByTagName('body')[0] as HTMLElement;
   
-  uiOptions.resultsPerPage = uiOptions.resultsPerPage || 8;
+  uiOptions.resultsPerPage = uiOptions.resultsPerPage || 10;
   uiOptions.maxSubMatches = uiOptions.maxSubMatches || 2;
   
   uiOptions.label = uiOptions.label || 'Search this site';
