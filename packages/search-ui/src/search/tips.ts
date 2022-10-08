@@ -8,7 +8,7 @@ export default function createTipButton(
   searcher: Searcher,
 ): HTMLElement | string {
   if (opts.tip === false) {
-    return;
+    return '';
   }
 
   function wrapInCode(example: string) {

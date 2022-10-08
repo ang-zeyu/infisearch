@@ -176,7 +176,7 @@
 .morsels-tip-popup-root {
     position: absolute;
     transform: scale(0);
-    transition: transform 0.25s ease-in-out, top 0.25s ease-in-out, left 0.25s ease-in-out;
+    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out, left 0.2s ease-in-out;
 }
 
 .morsels-tip-popup-root.shown {
@@ -476,7 +476,7 @@ table.morsels-tip-table .morsels-tip-item li {
     font-size: 0.93em;
     line-height: 1.15;
     word-break: break-word;
-    padding: 3px 5px 3px 11px;
+    padding: 3px 5px 7px 11px;
     color: var(--morsels-body-fg);
 }
 

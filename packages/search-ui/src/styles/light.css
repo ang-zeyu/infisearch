@@ -9,14 +9,14 @@
     --morsels-heading-fg: #565656;
     --morsels-body-fg: #5f5f5f;
 
-    --morsels-title-border-bottom-padded: 1px solid #f1f1f1;
+    --morsels-title-border-bottom-padded: 1px solid #eee;
 }
 
 .morsels-title::after {
     content: '';
     display: block;
     border-bottom: var(--morsels-title-border-bottom-padded);
-    transform: translateY(3px);
+    transform: translateY(4px);
 }
 
 .morsels-title:active::after,
