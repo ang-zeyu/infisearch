@@ -411,9 +411,10 @@ function initMorsels(options: Options): {
         inputEl.focus();
         inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
       } else if (key === 'Enter' && focusedItem) {
-        const link = focusedItem.querySelector('a[href]');
+        const link = focusedItem.getAttribute('href')
+          || focusedItem.querySelector('a[href]')?.getAttribute('href');
         if (link) {
-          window.location.href = link.getAttribute('href');
+          window.location.href = link;
         }
       }
 
