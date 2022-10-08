@@ -30,3 +30,32 @@ jobs:
       - run: npm i -g npm
       - run: npm run setup
       - run: npm run test
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2022-09-22
+          default: true
+          override: true
+          target: x86_64-unknown-linux-gnu
+          components: rust-src
+      - uses: Swatinem/rust-cache@v1
+      - run: cargo install mdbook
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14'
+      - run: npm i -g npm
+      - run: npm run setup
+      - run: npm run buildSearch
+      - run: npm run installMdbook
+      - run: npm run buildDocs
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: main
+          folder: docs/book/html
+          repository-name: ang-zeyu/morsels-website
+          target-folder: dev-docs
+          ssh-key: ${{ secrets.DOCS }}
