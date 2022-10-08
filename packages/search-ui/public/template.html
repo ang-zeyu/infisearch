@@ -178,7 +178,7 @@
     const params = new URLSearchParams(window.location.search);
     const mode = params.get('mode') || 'auto';
     const url = params.get('url') || `${getOrigin()}/2/output/`;
-    const resultsPerPage = Number(params.get('resultsPerPage')) || 8;
+    const resultsPerPage = Number(params.get('resultsPerPage')) || 10;
     const sourceFilesUrl = params.get('sourceFilesUrl') || `${getOrigin()}/2/source/`;
 
     const searcherOptions = { url };

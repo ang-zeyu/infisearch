@@ -4,7 +4,7 @@
 # Update the cargo.toml version numbers before running anything!
 
 # And this
-VERSION=v0.6.0
+VERSION=v0.6.1
 
 # Run in order
 # Check preReleaseXX outputs manually before running release
@@ -48,9 +48,9 @@ releaseOtherLanguages:
 releaseDependencies:
 	make preReleaseCommon
 	make releaseCommon
-	timeout 20
+	timeout 30
 	make releaseAsciiLanguage
-	timeout 20
+	timeout 30
 	make releaseOtherLanguages
 	timeout 10
 
@@ -95,7 +95,7 @@ releaseAll:
 	make releaseDependencies
 	make buildSearch
 	make releaseIndexer
-	timeout 20
+	timeout 30
 	make releaseMdbook
 	make finalise
 
