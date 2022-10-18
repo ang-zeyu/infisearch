@@ -65,6 +65,9 @@ export function prepareOptions(options: Options) {
   }
   
   uiOptions.mode = uiOptions.mode || UiMode.Auto;
+
+  uiOptions.isMobileDevice = uiOptions.isMobileDevice
+      || (() => window.matchMedia('only screen and (max-width: 768px)').matches);
   
   if (uiOptions.mode === UiMode.Target) {
     if (typeof uiOptions.target === 'string') {

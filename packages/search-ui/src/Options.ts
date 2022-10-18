@@ -23,6 +23,7 @@ export interface UiOptions {
   inputDebounce?: number,
   preprocessQuery: (input: string) => string,
   mode: UiMode,
+  isMobileDevice: () => boolean,
   dropdownAlignment?: 'bottom-start' | 'bottom-end',
   label: string,
   resultsLabel: string,
@@ -89,6 +90,5 @@ export interface UiOptions {
 export interface Options {
   searcherOptions?: SearcherOptions,
   uiOptions?: UiOptions,
-  isMobileDevice: () => boolean,
   otherOptions: ArbitraryOptions
 }

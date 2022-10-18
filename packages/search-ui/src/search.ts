@@ -1,5 +1,5 @@
 import { Searcher } from '@morsels/search-lib';
-import { Options, UiMode, UiOptions } from './Options';
+import { Options, UiMode } from './Options';
 import createElement, { LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState, runNewQuery } from './utils/input';
 import { prepareOptions } from './search/options';
@@ -16,13 +16,6 @@ import {
   setDropdownInputAria, unsetDropdownInputAria,
 } from './search/rootContainers';
 
-let isMobileSizeGlobal = false;
-
-function useDropdown(uiOptions: UiOptions): boolean {
-  return (uiOptions.mode === UiMode.Auto && !isMobileSizeGlobal)
-      || uiOptions.mode === UiMode.Dropdown;
-}
-
 // State / handlers for a single initMorsels() call
 class InitState {
   _mrlShowDropdown: () => void;
@@ -33,8 +26,16 @@ class InitState {
 
   _mrlFsShown = false;
 
+  constructor(private _mrlOpts: Options) {}
+
+  _mrlUseDropdown() {
+    const { mode, isMobileDevice } = this._mrlOpts.uiOptions;
+    return  (mode === UiMode.Auto && !isMobileDevice())
+      || mode === UiMode.Dropdown;
+  }
+
   _mrlCreateInputListener(
-    input: HTMLElement,
+    input: HTMLInputElement,
     root: HTMLElement,
     listContainer: HTMLElement,
     searcher: Searcher,
@@ -114,7 +115,7 @@ class InitState {
         const reset = () => {
           listContainer.innerHTML = '';
 
-          if (useDropdown(uiOptions)) {
+          if (this._mrlUseDropdown()) {
             // Dropdown, hide it
             this._mrlHideDropdown();
           } else if (uiOptions.mode !== UiMode.Target) {
@@ -146,10 +147,6 @@ function initMorsels(options: Options): {
   showFullscreen: () => void,
   hideFullscreen: () => void,
 } {
-  const isMobileDevice: () => boolean = options.isMobileDevice
-      || (() => window.matchMedia('only screen and (max-width: 768px)').matches);
-
-  isMobileSizeGlobal = isMobileDevice();
   prepareOptions(options);
 
   const { uiOptions, searcherOptions } = options;
@@ -167,7 +164,7 @@ function initMorsels(options: Options): {
   }
   const searcher = searchers[url];
 
-  const initState = new InitState();
+  const initState = new InitState(options);
 
 
   // --------------------------------------------------
@@ -209,7 +206,7 @@ function initMorsels(options: Options): {
 
   function addFsTriggerInputListeners() {
     function showFsIfNotDropdown() {
-      if (!useDropdown(uiOptions)) {
+      if (!initState._mrlUseDropdown()) {
         showFullscreen();
       }
     }
@@ -249,7 +246,7 @@ function initMorsels(options: Options): {
     }
 
     initState._mrlShowDropdown = () => {
-      if (!initState._mrlDropdownShown && useDropdown(uiOptions) && dropdownListContainer.childElementCount) {
+      if (dropdownListContainer.childElementCount) {
         openDropdown(dropdownRoot, dropdownListContainer, dropdownAlignment);
         initState._mrlDropdownShown = true;
       }
@@ -263,18 +260,14 @@ function initMorsels(options: Options): {
       input, dropdownRoot, dropdownListContainer, searcher, options,
     );
 
-    function refreshDropdown() {
-      initState._mrlHideDropdown();
-      if (document.activeElement === input) {
-        initState._mrlShowDropdown();
-      }
-    }
-
     function toggleUiMode() {
-      if ((mode === UiMode.Dropdown)
-        || !(isMobileSizeGlobal = isMobileDevice())) {
+      if (initState._mrlUseDropdown()) {
         hideFullscreen();
-        refreshDropdown();
+        if (initState._mrlDropdownShown || document.activeElement === input) {
+          // If it is already shown, trigger a resize.
+          // Otherwise, the input should be focused
+          initState._mrlShowDropdown();
+        }
         setDropdownInputAria(input, dropdownListContainer, label, originalPlaceholder);
       } else {
         initState._mrlHideDropdown();
@@ -283,6 +276,7 @@ function initMorsels(options: Options): {
     }
     toggleUiMode();
 
+    // Note: on mobile, keyboard show/hides also trigger this
     let resizeDebounce;
     window.addEventListener('resize', () => {
       clearTimeout(resizeDebounce);
@@ -290,7 +284,7 @@ function initMorsels(options: Options): {
     });
 
     dropdownRoot.addEventListener('focusout', () => {
-      if (useDropdown(uiOptions)) {
+      if (initState._mrlUseDropdown()) {
         setTimeout(() => {
           let activeEl = document.activeElement;
           while (activeEl) {
@@ -304,7 +298,11 @@ function initMorsels(options: Options): {
       }
     });
 
-    input.addEventListener('focus', initState._mrlShowDropdown);
+    input.addEventListener('focus', () => {
+      if (!initState._mrlDropdownShown && initState._mrlUseDropdown()) {
+        initState._mrlShowDropdown();
+      }
+    });
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Fullscreen) {
     // Fullscreen-only mode

@@ -60,6 +60,7 @@ export function dropdownRootRender(
   const listContainer = h('div', {
     id: `morsels-dropdown-list-${dropdownId++}`,
     class: 'morsels-list',
+    // Prevent dropdown from being dismissed when clicking anywhere else inside
     tabindex: '-1',
   });
   const innerRoot = h('div',
