@@ -341,6 +341,7 @@ table.morsels-tip-table .morsels-tip-item li {
     width: 100vw;
     max-width: var(--morsels-dropdown-max-width);
     overflow-y: auto;
+    overflow-y: overlay;
     list-style: none;
     background-color: var(--morsels-bg);
     font-size: inherit;
@@ -355,7 +356,7 @@ table.morsels-tip-table .morsels-tip-item li {
     max-width: none;
     border: none;
     box-shadow: none;
-    padding: 0 9px 60px;
+    padding: 0 9px;
     background-color: transparent;
     position: static;
 }
@@ -482,19 +483,19 @@ table.morsels-tip-table .morsels-tip-item li {
 }
 
 .morsels-fs-root .morsels-header {
-    padding-left: 3px;
+    padding: 9px 7px 9px 3px;
 }
 
 .morsels-list-item {
     font-size: inherit;
     border-radius: var(--morsels-item-border-radius);
     box-shadow: var(--morsels-item-box-shadow);
-    margin: 18px 9px 18px 13px;
+    margin: 18px 13px;
     overflow: hidden;
 }
 
 .morsels-fs-root .morsels-list-item {
-    margin: var(--morsels-fs-item-spacing) 6px 0 8px;
+    margin: var(--morsels-fs-item-spacing) 8px;
 }
 
 .morsels-header + .morsels-list-item {
@@ -513,9 +514,9 @@ table.morsels-tip-table .morsels-tip-item li {
 .morsels-title {
     border-bottom: var(--morsels-title-border-bottom);
     color: var(--morsels-title-fg);
-    line-height: 1.25;
+    line-height: 1.22;
     word-break: break-word;
-    padding: 9px 11px 4px;
+    padding: 9px 11px 5px;
     background: var(--morsels-title-bg);
     font-size: 1.04em;
     font-weight: 600;
@@ -636,18 +637,9 @@ table.morsels-tip-table .morsels-tip-item li {
 }
 
 .morsels-initialising-text {
-    padding-top: 20px;
+    color: var(--morsels-fine-print-fg);
+    padding-top: 15px;
     text-align: center;
-    animation-name: morsels-initialising-text;
-    animation-duration: 1.5s;
-    animation-iteration-count: infinite;
-    animation-timing-function: ease-in-out;
-}
-
-@keyframes morsels-initialising-text {
-    50% {
-        transform: translateY(-3px);
-    }
 }
 
 /* https://loading.io/css/ */
@@ -655,8 +647,9 @@ table.morsels-tip-table .morsels-tip-item li {
     display: flex;
     justify-content: center;
     width: 100%;
-    margin: 15px 0 10px 0;
+    margin: 15px 0;
 }
+
 .morsels-loading-indicator:after {
     content: " ";
     display: block;
@@ -667,6 +660,10 @@ table.morsels-tip-table .morsels-tip-item li {
     border: 6px solid;
     border-color: var(--morsels-loading-bg) transparent var(--morsels-loading-bg) transparent;
     animation: morsels-loading-indicator 1.2s linear infinite;
+}
+
+.morsels-initialising-text + .morsels-loading-indicator {
+    margin: 10px 0 15px 0;
 }
 
 @keyframes morsels-loading-indicator {

@@ -11,21 +11,29 @@
 }
 
 .morsels-list-item {
-    margin: 14px 9px 14px 13px;
+    margin: 11px 13px;
 }
 
 .morsels-fs-root .morsels-list-item {
-    margin: 14px 0 14px 3px;
+    margin: 13px 3px;
 }
 
 @media screen and (max-width: 768px) {
     .morsels-fs-root .morsels-list-item {
-        margin: 15px 1px 15px 4px;
+        margin: 14px 3px;
     }
 }
 
 .morsels-header + .morsels-list-item {
-    margin-top: 0;
+    margin-top: 1px;
+}
+
+.morsels-heading-link + .morsels-heading-link {
+    padding-top: 3px;
+}
+
+.morsels-heading-link:last-child {
+    padding-bottom: 5px;
 }
 
 .morsels-title {

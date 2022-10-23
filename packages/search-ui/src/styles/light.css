@@ -16,7 +16,7 @@
     content: '';
     display: block;
     border-bottom: var(--morsels-title-border-bottom-padded);
-    transform: translateY(4px);
+    transform: translateY(5px);
 }
 
 .morsels-title:active::after,
