@@ -386,6 +386,55 @@ table.morsels-tip-table .morsels-tip-item li {
     font-size: 1.06em;
 }
 
+.morsels-footer {
+    display: flex;
+    justify-content: center;
+}
+
+.morsels-footer:last-child {
+    margin-bottom: 15px;
+}
+
+.morsels-footer:focus-visible {
+    outline: none;
+}
+
+.morsels-load-more,
+.morsels-footer-so-far {
+    font-weight: bold;
+    color: var(--morsels-load-more-fg);
+}
+
+.morsels-load-more {
+    padding: 5px 15px;
+    margin: 5px 0;
+    text-decoration: none;
+    user-select: none;
+    border-radius: 20px;
+    background: var(--morsels-load-more-bg);
+    border: none;
+    cursor: pointer;
+}
+
+.morsels-load-more:active {
+    transition: color 0.2s ease-in-out, background 0.2s ease-in-out;
+}
+
+.morsels-load-more:active,
+.morsels-load-more-opt.focus > .morsels-load-more {
+    color: var(--morsels-load-more-hover-fg);
+    background: var(--morsels-load-more-hover-bg);
+}
+
+@media (hover: hover) {
+    .morsels-load-more:hover,
+    .morsels-load-more:focus {
+        transition: color 0.2s ease-in-out, background 0.2s ease-in-out;
+        color: var(--morsels-load-more-hover-fg);
+        background: var(--morsels-load-more-hover-bg);
+    }
+}
+
 .morsels-error,
 .morsels-fs-blank {
     text-align: center;
@@ -648,5 +697,12 @@ table.morsels-tip-table .morsels-tip-item li {
     .morsels-heading,
     .morsels-body {
         padding-left: 9px;
+    }
+    .morsels-load-more {
+        padding: 6px 15px;
+    }
+
+    .morsels-footer:last-child {
+        margin-bottom: 20px;
     }
 }

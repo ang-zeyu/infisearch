@@ -16,6 +16,10 @@
     --morsels-fine-print-fg: #575757;
     --morsels-loading-bg: rgba(99, 186, 255, 0.4);
     --morsels-loading-secondary-bg: rgba(99, 186, 255, 0.7);
+    --morsels-load-more-fg: #707070;
+    --morsels-load-more-bg: #f8f9f8;
+    --morsels-load-more-hover-fg: #565656;
+    --morsels-load-more-hover-bg: #bce0fe;
     --morsels-scrollbar-bg: #fff;
     --morsels-scrollbar-thumb-bg: #d9d9d9;
     /* 

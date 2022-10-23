@@ -1,13 +1,15 @@
 import escapeStringRegexp from 'escape-string-regexp';
-import { Query } from '@morsels/search-lib';
+import { Query, Searcher } from '@morsels/search-lib';
 import { MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { Options, UiMode } from './Options';
+import { Options } from './Options';
 import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
 import { transformText } from './searchResultTransform/transform';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
+import { resultSeparator } from './searchResultTransform/repeatedFooter';
+import { focusEl } from './utils/keyboard';
 
 const RELATIVE_LINK_FIELD_NAME = '_relative_fp';
 
@@ -147,6 +149,9 @@ export function resultsRender(
   config: MorselsConfig,
   results: Result[],
   query: Query,
+  numResultsSoFar: number,
+  loadMore: (nResults: number) => Promise<HTMLElement[] | undefined>,
+  focusOption: (el: HTMLElement) => void,
 ): Promise<HTMLElement[]> {
   const termRegexes: RegExp[] = [];
 
@@ -163,7 +168,6 @@ export function resultsRender(
       .sort((a, b) => b.length - a.length)
       .join('|');
 
-    // A little hardcoded, not so pretty but gets the job done for now
     if (config.langConfig.lang === 'latin') {
       const nonEndBoundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})(\\w*?)(?=\\W|$)`, 'gi');
       termRegexes.push(nonEndBoundariedRegex);
@@ -177,97 +181,83 @@ export function resultsRender(
     (result) => singleResultRender(
       result, options, JSON.stringify(searchedTermsFlat), termRegexes,
     ),
-  ));
+  )).then((resultEls) => {
+    resultEls.push(resultSeparator(
+      options,
+      numResultsSoFar + results.length,
+      results.length < options.uiOptions.resultsPerPage,
+      loadMore, focusOption, query,
+    ));
+
+    return resultEls;
+  });
 }
 
 /**
- * @returns Whether the results were computed and displayed, or pre-emptively disrupted by a new query
+ * @returns The rendered result elements, or undefined if pre-emptively disrupted by a new query
  */
 export default async function loadQueryResults(
+  searcher: Searcher,
   inputState: InputState,
   query: Query,
-  config: MorselsConfig,
-  isFirst: boolean,
-  container: HTMLElement,
+  resultsToLoad: number,
+  numResultsSoFar: number,
   options: Options,
-): Promise<boolean> {
-  if (inputState._mrlNextAction) {
-    // If a new query interrupts the current one
-    return false;
-  }
+): Promise<HTMLElement[] | undefined> {
+  // If a new query interrupts the current one
+  if (inputState._mrlNextAction) return;
 
   const {
-    loadingIndicatorRender,
     headerRender,
-    resultsPerPage,
     resultsRender: renderResults,
-    mode,
   } = options.uiOptions;
 
-  const bottomLoader = loadingIndicatorRender(createElement, options, false, true);
-  if (!isFirst) {
-    container.appendChild(bottomLoader);
-  }
+  // let now = performance.now();
 
-  if (inputState._mrlLastElObserver) {
-    inputState._mrlLastElObserver.disconnect();
-  }
+  const results = await query.getNextN(resultsToLoad);
 
-  const fragment = document.createDocumentFragment();
-  if (isFirst) {
-    const miscInfo = headerRender(createElement, options, false, false, query);
-    fragment.appendChild(miscInfo);
-  }
+  // console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
 
-  //let now = performance.now();
+  if (inputState._mrlNextAction) return;
 
-  const results = await query.getNextN(resultsPerPage);
+  // now = performance.now();
 
-  //console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
-  //now = performance.now();
-
-  if (inputState._mrlNextAction) {
-    // If a new query interrupts the current one
-    return false;
-  }
-
+  const inputEl = inputState._mrlInputEl;
+  const listContainer = inputState._mrlListContainer;
   const resultsEls = await renderResults(
-    createElement, options, config, results, query,
+    createElement,
+    options,
+    searcher.cfg,
+    results,
+    query,
+    numResultsSoFar,
+    (nResults: number) => {
+      // inputEl.focus(); -- this wont work. causes keyboard to reshow on mobile
+      return loadQueryResults(
+        searcher, inputState, query, 
+        nResults, numResultsSoFar + results.length, options,
+      );
+    },
+    (el: HTMLElement) => focusEl(
+      el, listContainer.querySelector('#morsels-list-selected'), inputEl, listContainer, false,
+    ),
   );
 
-  if (inputState._mrlNextAction) {
-    // If a new query interrupts the current one
-    return false;
-  }
+  // console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
-  resultsEls.forEach((el) => fragment.appendChild(el));
-  const sentinel = fragment.lastElementChild;
+  if (inputState._mrlNextAction) return;
 
-  if (isFirst) {
-    container.innerHTML = '';
-    inputState._mrlLoader = createInvisibleLoadingIndicator();
-    container.append(inputState._mrlLoader);
-    container.append(fragment);
+  if (numResultsSoFar) {
+    listContainer.append(...resultsEls);
   } else {
-    bottomLoader.replaceWith(fragment);
+    listContainer.innerHTML = '';
+    inputState._mrlLoader = createInvisibleLoadingIndicator();
+    listContainer.append(
+      inputState._mrlLoader,
+      headerRender(createElement, options, false, false, query),
+      ...resultsEls,
+    );
   }
 
-  //console.log(`Result transformation took ${performance.now() - now} milliseconds`);
-
-  if (resultsEls.length) {
-    const root = mode === UiMode.Target ? null : container;
-
-    inputState._mrlLastElObserver = new IntersectionObserver(async ([entry], observer) => {
-      if (!entry.isIntersecting) {
-        return;
-      }
-  
-      observer.unobserve(sentinel);
-      await loadQueryResults(inputState, query, config, false, container, options);
-    }, { root, rootMargin: '150px 0px' });
-
-    inputState._mrlLastElObserver.observe(sentinel);
-  }
-
-  return true;
+  return resultsEls;
 }

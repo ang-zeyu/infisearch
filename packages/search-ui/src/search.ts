@@ -4,7 +4,6 @@ import createElement, { LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState, runNewQuery } from './utils/input';
 import { prepareOptions } from './search/options';
 import {
-  setActiveDescendant,
   unsetActiveDescendant,
   setExpanded,
   setInputAria,
@@ -48,7 +47,7 @@ class InitState {
      - Wait for the **first** run of the previous active query to finish before running a new one.
      - Do not wait for subsequent runs however -- should be able to "change queries" quickly
      */
-    const inputState = new InputState();
+    const inputState = new InputState(input, listContainer);
   
     let setupOk = true;
     searcher.setupPromise
@@ -323,106 +322,6 @@ function initMorsels(options: Options): {
 
     setInputAria(input, target, uiOptions.label);
   }
-  // --------------------------------------------------
-
-  // --------------------------------------------------
-  // Keyboard Events
-
-  function addKeyboardHandler(inputEl: HTMLInputElement) {
-    inputEl.addEventListener('keydown', (ev: KeyboardEvent) => {
-      const { key } = ev;
-      if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(key)) {
-        return;
-      }
-
-      let listContainer: HTMLElement;
-
-      let scrollListContainer = (targetEl: any) => {
-        const top = targetEl.offsetTop
-          - listContainer.offsetTop
-          - listContainer.clientHeight / 2
-          + targetEl.clientHeight / 2;
-        listContainer.scrollTo({ top });
-      };
-
-      const isDropdown = useDropdown(uiOptions);
-      if (isDropdown) {
-        if (!initState._mrlDropdownShown) {
-          return;
-        }
-
-        listContainer = dropdownListContainer;
-      } else if (mode === UiMode.Target) {
-        listContainer = target;
-        scrollListContainer = (targetEl: HTMLElement) => {
-          targetEl.scrollIntoView({
-            block: 'center',
-          });
-        };
-      } else {
-        if (!initState._mrlFsShown) {
-          return;
-        }
-
-        listContainer = fsListContainer;
-      }
-
-      const focusedItem = listContainer.querySelector('#morsels-list-selected');
-      function focusEl(el: Element) {
-        if (el) {
-          if (focusedItem) {
-            focusedItem.classList.remove('focus');
-            focusedItem.removeAttribute('aria-selected');
-            focusedItem.removeAttribute('id');
-          }
-
-          el.classList.add('focus');
-          el.setAttribute('aria-selected', 'true');
-          el.setAttribute('id', 'morsels-list-selected');
-          scrollListContainer(el);
-          setActiveDescendant(inputEl);
-
-          return true;
-        }
-
-        return false;
-      }
-
-      const opts = listContainer.querySelectorAll('[role="option"]');
-      const lastItem = opts[opts.length - 1];
-
-      let focusedItemIdx = -1;
-      opts.forEach((v, idx) => {
-        if (v === focusedItem) {
-          focusedItemIdx = idx;
-        }
-      });
-
-      if (key === 'ArrowDown') {
-        focusEl(opts[(focusedItemIdx + 1) % opts.length]);
-      } else if (key === 'ArrowUp') {
-        focusEl(focusedItemIdx > 0 ? opts[focusedItemIdx - 1] : lastItem);
-      } else if (key === 'Home') {
-        inputEl.focus();
-        inputEl.setSelectionRange(0, 0);
-      } else if (key === 'End') {
-        inputEl.focus();
-        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
-      } else if (key === 'Enter' && focusedItem) {
-        const link = focusedItem.getAttribute('href')
-          || focusedItem.querySelector('a[href]')?.getAttribute('href');
-        if (link) {
-          window.location.href = link;
-        }
-      }
-
-      ev.preventDefault();
-    });
-  }
-
-  if (input) addKeyboardHandler(input);
-  addKeyboardHandler(fsInput);
-  
   // --------------------------------------------------
 
   return {

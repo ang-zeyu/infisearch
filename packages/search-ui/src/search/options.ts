@@ -160,7 +160,7 @@ export function prepareOptions(options: Options) {
     const headings = matches.filter((r) => r.headingMatches);
 
     const mainLinkEl = h(
-      'a', { class: 'morsels-title-link', role: 'option' },
+      'a', { class: 'morsels-title-link', role: 'option', tabindex: '-1' },
       h('div', { class: 'morsels-title' }, title),
       ...bodies.map(({ bodyMatches }) => h(
         'div', { class: 'morsels-body' }, ...bodyMatches,
@@ -172,7 +172,7 @@ export function prepareOptions(options: Options) {
     }
 
     const subOptions = headings.map(({ href, bodyMatches, headingMatches }) => {
-      const el = h('a', { class: 'morsels-heading-link', role: 'option' },
+      const el = h('a', { class: 'morsels-heading-link', role: 'option', tabindex: '-1' },
         h('div', { class: 'morsels-heading' }, ...headingMatches),
         h('div', { class: 'morsels-body' }, ...bodyMatches));
       if (href) {

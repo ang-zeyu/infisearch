@@ -57,7 +57,7 @@ export interface UiOptions {
     opts: Options,
     error: boolean,
     blank: boolean,
-    queryParts?: Query,
+    query?: Query,
   ) => HTMLElement,
 
   // Rendering Results
@@ -67,6 +67,9 @@ export interface UiOptions {
     config: MorselsConfig,
     results: Result[],
     query: Query,
+    numResultsSoFar: number,
+    loadMore: (nResults: number) => Promise<HTMLElement[] | undefined>,
+    focusOption: (el: HTMLElement) => void,
   ) => Promise<HTMLElement[]>,
   resultsRenderOpts?: {
     addSearchedTerms?: string,

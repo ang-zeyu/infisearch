@@ -101,10 +101,10 @@ There are also several options specific to each mode. Note that `dropdown` and `
 | Option                | Default                 | Description |
 | -----------           | -----------             | ----------- |
 | `label`               | `'Search this site'`    | Placeholder for the fullscreen UI input.
-| `resultsLabel`        | `'Site results'`        | Accessibility label for result [`listbox`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/listbox_role).
+| `resultsLabel`        | `'Site results'`        | Accessibility label for the result [`listbox`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/listbox_role).
 | `useBreadcrumb`       | `false`                 | Prefer the file path of the indexed file for the result preview's title. This is formatted into a breadcrumb, with its components transformed to Title Case.<br><br>For example, `documentation/userGuide/my_file.html` is displayed as `Documentation » User Guide » My File`.
 | `maxSubMatches`       | `2`                     | Maximum number of heading-body pairs to show for a document.
-| `resultsPerPage`      | `10`                     | An infinite scroll intersection observer is attached to the last search result. When triggered, the next few result previews are fetched and generated .
+| `resultsPerPage`      | `10`                    | The number of results to load when the load more button is clicked.
 
 #### Manually Showing / Hiding the Fullscreen UI
 

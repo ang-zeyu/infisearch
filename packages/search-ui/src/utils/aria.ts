@@ -1,5 +1,7 @@
+import { SELECTED_OPTION_ID } from './keyboard';
+
 export function setActiveDescendant(input: HTMLElement) {
-  input.setAttribute('aria-activedescendant', 'morsels-list-selected');
+  input.setAttribute('aria-activedescendant', SELECTED_OPTION_ID);
 }
 
 export function setExpanded(combobox: HTMLElement) {
@@ -23,5 +25,4 @@ export function setInputAria(input: HTMLElement, listbox: HTMLElement, label: st
   unsetExpanded(input);
   listbox.setAttribute('role', 'listbox');
   listbox.setAttribute('aria-label', label);
-  listbox.setAttribute('aria-live', 'polite');
 }

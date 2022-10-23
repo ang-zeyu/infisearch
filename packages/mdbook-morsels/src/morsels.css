@@ -24,6 +24,10 @@
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
     --morsels-loading-secondary-bg: var(--fg);
+    --morsels-load-more-fg: var(--morsels-title-fg);
+    --morsels-load-more-bg: var(--morsels-title-bg);
+    --morsels-load-more-hover-fg: var(--morsels-title-hover-fg);
+    --morsels-load-more-hover-bg: var(--morsels-title-hover-bg);
     --morsels-scrollbar-bg: none;
     --morsels-scrollbar-thumb-bg: var(--sidebar-non-existant);
     --morsels-fs-button-input-fg: var(--searchbar-shadow-color);
@@ -97,9 +101,11 @@
     --morsels-title-border-bottom: 2px solid var(--table-header-bg);
 
     --morsels-sub-hover-bg: #c6bbb1;
-    --morsels-title-hover-fg: #1e1e1e;
-    --morsels-title-hover-bg: #c6bbb1;
-    --morsels-title-border-bottom-hover: 2px solid #c6bbb1;
+    --morsels-title-bg: #bbada1;
+    --morsels-title-border-bottom: 2px solid #bbada1;
+    --morsels-title-hover-fg: #000;
+    --morsels-title-hover-bg: #a19488;
+    --morsels-title-border-bottom-hover: 2px solid #a19488;
     --morsels-body-hover-fg: #1e1e1e;
     --morsels-heading-hover-fg: #1e1e1e;
 }
@@ -205,4 +211,8 @@
 .ayu .morsels-root .morsels-title::after {
     content: none;
     display: none;
+}
+
+.morsels-load-more {
+    padding: 7px 15px;
 }

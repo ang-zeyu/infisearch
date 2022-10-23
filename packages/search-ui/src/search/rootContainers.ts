@@ -2,7 +2,7 @@ import { computePosition, size, flip, arrow, Placement } from '@floating-ui/dom'
 import { Searcher } from '@morsels/search-lib';
 
 import { Options, UiOptions } from '../Options';
-import { setInputAria, unsetActiveDescendant, unsetExpanded } from '../utils/aria';
+import { setInputAria, unsetActiveDescendant } from '../utils/aria';
 import h from '../utils/dom';
 import createTipButton from './tips';
 
@@ -119,9 +119,8 @@ export function unsetDropdownInputAria(
 ) {
   listbox.removeAttribute('role');
   listbox.removeAttribute('aria-label');
-  listbox.removeAttribute('aria-live');
   input.removeAttribute('role');
-  unsetExpanded(input);
+  input.removeAttribute('aria-expanded');
   input.removeAttribute('aria-autocomplete');
   input.removeAttribute('aria-controls');
   unsetActiveDescendant(input);

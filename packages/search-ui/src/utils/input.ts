@@ -2,9 +2,10 @@ import { Query, Searcher } from '@morsels/search-lib';
 import { Options } from '../Options';
 import loadQueryResults from '../searchResultTransform';
 import createElement, { createInvisibleLoadingIndicator } from './dom';
+import { addKeyboardHandler } from './keyboard';
 
 export class InputState {
-  currQuery: Query;
+  _mrlCurrQuery: Query;
 
   /**
    * Are there any results in the list container currently?
@@ -21,7 +22,12 @@ export class InputState {
 
   _mrlLoader: HTMLElement = createInvisibleLoadingIndicator();
 
-  _mrlLastElObserver: IntersectionObserver;
+  constructor(
+    public readonly _mrlInputEl: HTMLInputElement,
+    public readonly _mrlListContainer: HTMLElement,
+  ) {
+    addKeyboardHandler(_mrlInputEl, _mrlListContainer);
+  }
 }
 
 export async function runNewQuery(
@@ -32,10 +38,10 @@ export async function runNewQuery(
   listContainer: HTMLElement,
   options: Options,
 ): Promise<void> {
-  const { uiOptions } = options;
+  const { loadingIndicatorRender, headerRender, resultsPerPage } = options.uiOptions;
   inputState._mrlIsRunningQuery = true;
 
-  const newIndicatorElement = uiOptions.loadingIndicatorRender(
+  const newIndicatorElement = loadingIndicatorRender(
     createElement, options, false, inputState._mrlIsResultsBlank,
   );
   inputState._mrlLoader.replaceWith(newIndicatorElement);
@@ -44,15 +50,16 @@ export async function runNewQuery(
   try {
     // const now = performance.now();
 
-    inputState.currQuery?.free();
-    inputState.currQuery = await searcher.getQuery(queryString);
+    inputState._mrlCurrQuery?.free();
+    inputState._mrlCurrQuery = await searcher.getQuery(queryString);
 
     // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
     const resultsDisplayed = await loadQueryResults(
-      inputState, inputState.currQuery, searcher.cfg,
-      true,
-      listContainer,
+      searcher,
+      inputState, inputState._mrlCurrQuery,
+      resultsPerPage,
+      0,
       options,
     );
     if (resultsDisplayed) {
@@ -63,7 +70,7 @@ export async function runNewQuery(
     listContainer.scrollTo({ top: 0 });
   } catch (ex) {
     listContainer.innerHTML = '';
-    listContainer.appendChild(uiOptions.headerRender(createElement, options, true, false));
+    listContainer.appendChild(headerRender(createElement, options, true, false));
     throw ex;
   } finally {
     // Run the next queued query if there is one
