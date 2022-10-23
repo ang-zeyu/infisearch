@@ -56,7 +56,7 @@ class Searcher {
 
     this.setupPromise = Promise.all([
       configSetupPromise,
-      new Promise<void>((resolve) => {
+      new Promise<void>((resolve, reject) => {
         const objectUrl = URL.createObjectURL(new Blob([
           `const __morsWrkrUrl="${scriptUrl}";${workerScript.s}`,
         ], { type: 'text/javascript' }));
@@ -94,7 +94,8 @@ class Searcher {
         };
 
         this._mrlWorker.onmessageerror = (ev) => {
-          console.log(ev);
+          console.error(ev);
+          if (!this.isSetupDone) reject();
         };
       }),
     ]);

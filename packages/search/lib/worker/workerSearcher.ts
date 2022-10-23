@@ -56,6 +56,7 @@ async function setupMetadata(baseUrl: string): Promise<ArrayBuffer> {
       ? cache.match(metadataUrl)
         .then((resp) => !resp && cache.add(metadataUrl))
         .then(() => cache.match(metadataUrl))
+        .catch(() => fetch(metadataUrl))
       : fetch(metadataUrl)
   ).then((resp) => resp.arrayBuffer());
 }
