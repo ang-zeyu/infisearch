@@ -1,5 +1,5 @@
 import Query, { getRegexes } from './Query';
-import { SearcherOptions, MorselsConfig } from './Config';
+import { SearcherOptions, MorselsConfig, prepareSearcherOptions } from './Config';
 import { Result } from './Result';
 import { QueryPart } from '../parser/queryParser';
 import PersistentCache from './Cache';
@@ -48,6 +48,8 @@ class Searcher {
       this.setupPromise = Promise.reject('WA unsupported');
       return;
     }
+
+    prepareSearcherOptions(this._mrlOptions);
 
     const configSetupPromise = this._mrlRetrieveConfig()
       .then(() => this._mrlSetupCache(`morsels:${_mrlOptions.url}`));

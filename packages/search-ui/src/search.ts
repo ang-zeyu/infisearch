@@ -141,15 +141,13 @@ class InitState {
   }
 }
 
-const searchers: { [url: string]: Searcher } = {};
-
 function initMorsels(options: Options): {
   showFullscreen: () => void,
   hideFullscreen: () => void,
 } {
   prepareOptions(options);
 
-  const { uiOptions, searcherOptions } = options;
+  const { uiOptions } = options;
   const {
     input, mode,
     dropdownAlignment,
@@ -157,12 +155,8 @@ function initMorsels(options: Options): {
     fsInputButtonText, fsInputLabel, fsScrollLock,
     target,
   } = uiOptions;
-  const { url } = searcherOptions;
 
-  if (!searchers[url]) {
-    searchers[url] = new Searcher(options.searcherOptions);
-  }
-  const searcher = searchers[url];
+  const searcher = new Searcher(options.searcherOptions);
 
   const initState = new InitState(options);
 

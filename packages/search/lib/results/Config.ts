@@ -8,6 +8,38 @@ export interface SearcherOptions {
   resultLimit?: number,
 }
 
+export function prepareSearcherOptions(searcherOptions: SearcherOptions) {
+  if (!('url' in searcherOptions)) {
+    throw new Error('Mandatory url parameter not specified');
+  } else if (!searcherOptions.url.endsWith('/')) {
+    searcherOptions.url += '/';
+  }
+
+  if (searcherOptions.url.startsWith('/')) {
+    searcherOptions.url = window.location.origin + searcherOptions.url;
+  }
+
+  if (!('maxAutoSuffixSearchTerms' in searcherOptions)) {
+    searcherOptions.maxAutoSuffixSearchTerms = 3;
+  }
+
+  if (!('maxSuffixSearchTerms' in searcherOptions)) {
+    searcherOptions.maxSuffixSearchTerms = 5;
+  }
+
+  if (!('useQueryTermProximity' in searcherOptions)) {
+    searcherOptions.useQueryTermProximity = true;
+  }
+
+  if (!('plLazyCacheThreshold' in searcherOptions)) {
+    searcherOptions.plLazyCacheThreshold = 0;
+  }
+
+  if (!('resultLimit' in searcherOptions)) {
+    searcherOptions.resultLimit = null;
+  }
+}
+
 export interface MorselsConfig {
   ver: string,
   indexVer: string,

@@ -3,42 +3,7 @@ import { LOADING_INDICATOR_ID } from '../utils/dom';
 import { listItemRender } from '../searchResultTransform/listItemRender';
 
 export function prepareOptions(options: Options) {
-  // ------------------------------------------------------------
-  // Search Lib Options
-  
   options.searcherOptions = options.searcherOptions || ({} as any);
-
-  const { searcherOptions } = options;
-  
-  if (!('url' in searcherOptions)) {
-    throw new Error('Mandatory url parameter not specified');
-  } else if (!searcherOptions.url.endsWith('/')) {
-    searcherOptions.url += '/';
-  }
-  
-  if (searcherOptions.url.startsWith('/')) {
-    searcherOptions.url = window.location.origin + searcherOptions.url;
-  }
-
-  if (!('maxAutoSuffixSearchTerms' in searcherOptions)) {
-    searcherOptions.maxAutoSuffixSearchTerms = 3;
-  }
-
-  if (!('maxSuffixSearchTerms' in searcherOptions)) {
-    searcherOptions.maxSuffixSearchTerms = 5;
-  }
-  
-  if (!('useQueryTermProximity' in searcherOptions)) {
-    searcherOptions.useQueryTermProximity = true;
-  }
-
-  if (!('plLazyCacheThreshold' in searcherOptions)) {
-    searcherOptions.plLazyCacheThreshold = 0;
-  }
-  
-  if (!('resultLimit' in searcherOptions)) {
-    searcherOptions.resultLimit = null; // unlimited
-  }
   
   // ------------------------------------------------------------
   // Ui Options
