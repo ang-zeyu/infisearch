@@ -28,9 +28,14 @@ async function addFilesTest(with_positions, configFile) {
   await assertSingle('main document');
   
   await typeText(
-    '+"1st document in the recursive linkage"'
-      + ' +"2nd document in the recursive linkage"'
-      + ' +"3rd document in the recursive linkage"',
+    with_positions
+      ? (
+        '+"1st document in the recursive linkage"'
+        + ' +"2nd document in the recursive linkage"'
+        + ' +"3rd document in the recursive linkage"'
+      )
+      : '+1st +2nd +3rd +document +in +the +recursive +linkage '
+    ,
   );
   await assertSingle('recursive linkage');
   
@@ -77,7 +82,7 @@ async function addFilesTest(with_positions, configFile) {
   expectNumDeletedDocs(2); // update
   
   await reloadPage(lang);
-  await typePhraseOrAnd('last document in the recursive linkage', with_positions);
+  await typeText('+last -updated +document +in +the +recursive +linkage', with_positions);
   await waitNoResults();
   
   await typePhraseOrAnd('last updated document in the recursive linkage', with_positions);
@@ -97,7 +102,7 @@ async function addFilesTest(with_positions, configFile) {
   expectNumDeletedDocs(3); // update
   
   await reloadPage(lang);
-  await typePhraseOrAnd('main document in the recursive linkage', with_positions);
+  await typeText('+main -updated +document +in +the +recursive +linkage', with_positions);
   await waitNoResults();
   
   await typePhraseOrAnd('main updated document in the recursive linkage', with_positions);

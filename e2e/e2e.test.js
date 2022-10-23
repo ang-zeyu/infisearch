@@ -21,7 +21,7 @@ beforeAll(async () => {
   await reloadPage();
 });
 
-const testSuite = async (configFile, usesSourceFiles, with_positions) => {
+const testSuite = async (configFile, with_positions) => {
   runFullIndex(configFile);
 
   const lang = JSON.parse(
@@ -134,32 +134,19 @@ const testSuite = async (configFile, usesSourceFiles, with_positions) => {
 
   // ------------------------------------------------------
   // CsvLoader tests
-  // For now, the only with_positions = false test also uses source files to generate result previews,
-  // and csvs aren't supported with this.
-  if (!usesSourceFiles) {
-    await typePhraseOrAnd('this is the second csv document', with_positions);
-    await assertSingle('this is the second csv document');
-  }
+  await typePhraseOrAnd('this is the second csv document verylongrandomtermabcdefg', with_positions);
+  await assertSingle('this is the second csv document verylongrandomtermabcdefg');
   // ------------------------------------------------------
 
   // ------------------------------------------------------
   // PdfLoader tests
-  // Likewise
-  if (!usesSourceFiles) {
-    await typePhraseOrAnd('this is a pdf document', with_positions);
-    await assertSingle('this is a pdf document');
-  }
+  await typePhraseOrAnd('this is a pdf document', with_positions);
+  await assertSingle('this is a pdf document');
   // ------------------------------------------------------
 
   // ------------------------------------------------------
   // _add_files tests
-  // Likewise
-  if (!usesSourceFiles) {
-    // Basic tests
-    await addFilesTest(with_positions, configFile);
-    // ------------------------------------------------------
-  }
-
+  await addFilesTest(with_positions, configFile);
   // ------------------------------------------------------
 
   // ------------------------------------------------------
@@ -324,7 +311,7 @@ async function testTokenizerOptions(configFile) {
   // ------------------------------------------------------
 }
 
-const cleanup = (usesSourceFiles) => {
+const cleanup = () => {
   const notFoundFile = path.join(__dirname, 'input/404.html');
   if (fs.existsSync(notFoundFile)) {
     fs.rmSync(notFoundFile);
@@ -335,9 +322,7 @@ const cleanup = (usesSourceFiles) => {
     fs.rmSync(contributingFile);
   }
 
-  if (!usesSourceFiles) {
-    cleanupAddFilesTests();
-  }
+  cleanupAddFilesTests();
 };
 
 function readOutputConfig() {
@@ -349,10 +334,10 @@ function readOutputConfig() {
 const mainTest = async () => {
   runFullIndex('e2e/input/morsels_config_empty.json');
 
-  cleanup(false);
+  cleanup();
   console.log('Starting morsels_config_0 tests');
   const config0 = 'e2e/input/morsels_config_0.json';
-  await testSuite(config0, false, true);
+  await testSuite(config0, true);
 
   // Assert what's cached
   // Slightly different pl_cache_thresholds for the 4 tests
@@ -363,10 +348,10 @@ const mainTest = async () => {
   // ignore_stop_words=false + "stop_words": ["typesetting"] = results still show
   await testTokenizerOptions(config0);
 
-  cleanup(false);
+  cleanup();
   console.log('Starting morsels_config_1 tests');
   const config1 = 'e2e/input/morsels_config_1.json';
-  await testSuite(config1, false, true);
+  await testSuite(config1, true);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
@@ -375,39 +360,38 @@ const mainTest = async () => {
   // ignore_stop_words=false + default stop words = results still show
   await testTokenizerOptions(config1);
 
-  cleanup(false);
+  cleanup();
   console.log('Starting morsels_config_2 tests');
   const config2 = 'e2e/input/morsels_config_2.json';
-  await testSuite(config2, false, true);
+  await testSuite(config2, true);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
   expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1]);
 
-  cleanup(false);
+  cleanup();
   console.log('Starting morsels_config_3 tests');
   const config3 = 'e2e/input/morsels_config_3.json';
-  await testSuite(config3, false, true);
+  await testSuite(config3, true);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
   // Latin tokenizer
   // No positions
-  // Uses source files to generate result previews
-  cleanup(true);
+  cleanup();
   console.log('Starting morsels_config_4 tests');
   const config4 = 'e2e/input/morsels_config_4.json';
-  await testSuite(config4, true, false);
+  await testSuite(config4, false);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
   // Chinese tokenizer
-  cleanup(false);
+  cleanup();
   console.log('Starting morsels_config_5 tests');
   const config5 = 'e2e/input/morsels_config_5.json';
-  await testSuite(config5, false, true);
+  await testSuite(config5, true);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(4);
@@ -415,7 +399,7 @@ const mainTest = async () => {
   await testChinese();
 
   // ignore_stop_words = true, max_term_len=70
-  cleanup(false);
+  cleanup();
   console.log('Starting morsels_config_tokenizer tests');
   const configTokenizer = 'e2e/input/morsels_config_tokenizer.json';
   await testTokenizerOptions(configTokenizer);

@@ -1,33 +1,23 @@
 import escapeStringRegexp from 'escape-string-regexp';
 import { Query } from '@morsels/search-lib';
-import { FieldInfo, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
+import { MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import Result from '@morsels/search-lib/lib/results/Result';
-import { Match, Options, UiMode } from './Options';
+import { Options, UiMode } from './Options';
 import createElement, { CreateElement, createInvisibleLoadingIndicator } from './utils/dom';
 import { parseURL } from './utils/url';
 import { InputState } from './utils/input';
-import { transformHtml, transformJson, transformText } from './searchResultTransform/transform';
+import { transformText } from './searchResultTransform/transform';
 import { QueryPart } from '@morsels/search-lib/lib/parser/queryParser';
-
-const domParser = new DOMParser();
 
 const RELATIVE_LINK_FIELD_NAME = '_relative_fp';
 
-
-/**
- * Determines from where (source files / field stores) to retrieve the document's fields.
- * Then calls one of the transformXx variants above.
- */
 async function singleResultRender(
   result: Result,
   options: Options,
-  configs: MorselsConfig,
-  hasStoredContentField: FieldInfo,
   searchedTermsJSON: string,
   termRegexes: RegExp[],
 ) {
-  const { loaders } = configs.indexingConfig;
-
+  // Contains [field name, field text] pairs in the order they were indexed
   const fields = result.getFields();
 
   let link: string;
@@ -115,54 +105,18 @@ async function singleResultRender(
     linkToAttach = fullLinkUrl.toString();
   }
 
-  let docMatches: Match[] = [];
-  if (hasStoredContentField) {
-    docMatches = transformText(
-      fields,
-      termRegexes,
-      linkToAttach,
-      options,
-    );
-  } else if (!fullLink) {
-    // Unable to retrieve and load from source file
-  } else if (fullLink.endsWith('.html') && loaders.HtmlLoader) {
-    const asText = await (await fetch(fullLink)).text();
-    const doc = domParser.parseFromString(asText, 'text/html');
-
-    const { title: newTitle, matches } = transformHtml(
-      doc, loaders.HtmlLoader, termRegexes, linkToAttach, options,
-    );
-    resultTitle = newTitle || resultTitle;
-    docMatches = matches;
-  } else if (fullLink.endsWith('.txt') && loaders.TxtLoader) {
-    const asText = await (await fetch(fullLink)).text();
-    docMatches = transformText(
-      [['body', asText]], termRegexes, linkToAttach, options,
-    );
-  } else {
-    const fullLinkUrl = parseURL(fullLink);
-    if (fullLinkUrl.pathname.endsWith('.json') && loaders.JsonLoader) {
-      const asJson = await (await fetch(fullLink)).json();
-
-      const { title: newTitle, matches } = transformJson(
-        fullLinkUrl.hash ? asJson[fullLinkUrl.hash.substring(1)] : asJson,
-        loaders.JsonLoader,
-        termRegexes, linkToAttach, options,
-      );
-      resultTitle = newTitle || resultTitle;
-      docMatches = matches;
-    } /* else {
-      // CSV / PDF source file generation. Unsupported.
-    } */
-  }
-
   return listItemRender(
     createElement,
     options,
     searchedTermsJSON,
     fullLink,
     resultTitle,
-    docMatches,
+    transformText(
+      fields,
+      termRegexes,
+      linkToAttach,
+      options,
+    ),
     fields,
   );
 }
@@ -219,12 +173,9 @@ export function resultsRender(
     }
   }
 
-  const hasStoredContentField = config.fieldInfos.find((info) => info.do_store
-      && (info.name === 'body' || info.name === 'title' || info.name === 'heading'));
-
   return Promise.all(results.map(
     (result) => singleResultRender(
-      result, options, config, hasStoredContentField, JSON.stringify(searchedTermsFlat), termRegexes,
+      result, options, JSON.stringify(searchedTermsFlat), termRegexes,
     ),
   ));
 }

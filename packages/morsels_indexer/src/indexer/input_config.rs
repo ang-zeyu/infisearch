@@ -185,14 +185,8 @@ impl MorselsConfig {
             "medium" => {
                 preset_medium::apply_config(&mut config, &json_config);
             },
-            "medium_source" => {
-                preset_medium::apply_source_file_config(&mut config, &json_config);
-            },
             "large" => {
                 preset_large::apply_config(&mut config, &json_config);
-            },
-            "large_source" => {
-                preset_large::apply_source_file_config(&mut config, &json_config);
             },
             _ => {
                 // ignore invalid presets

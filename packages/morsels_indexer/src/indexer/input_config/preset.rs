@@ -2,17 +2,6 @@ use super::MorselsConfig;
 
 use serde_json::Value;
 
-fn set_all_content_fields_do_store(config: &mut MorselsConfig, do_store: bool) {
-    if !do_store {
-        // Default value is already "false"
-        return;
-    }
-
-    for field in config.fields_config.fields.iter_mut() {
-        field.do_store = true;
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 pub fn apply_preset_override(
     config: &mut MorselsConfig,
@@ -22,7 +11,6 @@ pub fn apply_preset_override(
     pl_limit: u32,
     pl_cache_threshold: u32,
     with_positions: bool,
-    do_store_fields: bool,
     ignore_stop_words: bool
 ) {
     if let Some(val) = json_config.get("fields_config") {
@@ -33,14 +21,9 @@ pub fn apply_preset_override(
         if val.get("cache_all_field_stores").is_none() {
             config.fields_config.cache_all_field_stores = cache_all_field_stores;
         }
-
-        if val.get("fields").is_none() {
-            set_all_content_fields_do_store(config, do_store_fields);
-        }
     } else {
         config.fields_config.num_docs_per_store = num_docs_per_store;
         config.fields_config.cache_all_field_stores = cache_all_field_stores;
-        set_all_content_fields_do_store(config, do_store_fields);
     };
 
     if config.lang_config.options.ignore_stop_words.is_none() {

@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Each preset primarily makes a tradeoff between the **document collection size** it can support, the number of rounds of **network requests** (`RTT`) and the **number of files** generated (if file bloat is of concern). Morsels also supports generating result previews from [source files](../search_configuration.md#1-from-source-documents), if it is preferable to reduce file bloat from additional field stores.
+Each preset primarily makes a tradeoff between the **document collection size** it can support and the number of rounds of **network requests** (`RTT`).
 
 The default preset is `small`, which generates a monolithic index and field store, much like other client side indexing tools.
 
@@ -12,7 +12,7 @@ Specify the `preset` key in your configuration file to change this.
 
 ```json
 {
-    "preset": "small" | "medium" | "large" | "medium_source" | "large_source"
+    "preset": "small" | "medium" | "large"
 }
 ```
 
@@ -26,8 +26,6 @@ Specify the `preset` key in your configuration file to change this.
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
 | `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only required field stores are retrieved for generating result previews. Positions are not indexed, and stop words are removed.
 | `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](../language.md#stop-words). This is the preset used in the demo [here](https://morsels-search.com)!
-| `medium_source`     | Generates a monolithic index and field store of source document links. Uses the links to retrieve source documents for result preview generation. Positions are not indexed.
-| `large_source`      | Generates a sharded index and monolithic field store of source document links. Uses the links to retrieve source documents for result preview generation. Keeps [stop words](../language.md#stop-words).
 
 #### Notes
 

@@ -62,7 +62,7 @@ The default fields are used for:
 
   - **`headingLink`**: these are the corresponding `id` attributes of the heading tags. If available, an `#anchor` is appended to the document's link.
 
-- **`_relative_fp`**: ised with the provided `sourceFilesUrl` option, this field is key for generating the link to the source document and (optionally) for generating result [previews](../search_configuration.md#default-rendering-output--purpose).
+- **`_relative_fp`**: together with the provided `sourceFilesUrl` option, this field is for generating the link to the source document and (optionally).
 
 - **`link`**: serves to support custom data requirements (e.g. linking to another page, indexing a json document), providing a means to override the default link of `sourceFilesUrl + _relative_fp`.
 

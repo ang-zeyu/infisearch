@@ -82,10 +82,7 @@ This documentation for example, which has all features enabled, generates a main
 
 Most of the search library also operates on a WebWorker, so you can deliver the best UX without blocking the UI thread.
 
-Retrieval of stored document fields (the raw document text for generating result previews and highlighting) is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.
-
-Search UI related functionalities, for example result preview generation, is also done on the main thread.
-The main rationale is that there is simply no way of parsing HTML faster than implementations provided by the browser. (the original HTML document can be used as an alternative to storing document fields for result preview generation)
+Retrieval of stored document fields (the raw document text for generating result previews and highlighting) and result preview generation is however done on the main thread, as copying many large documents to-and-fro WebWorker interfaces incurs substantial overhead.
 
 ## Persistent Caching
 
