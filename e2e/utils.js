@@ -44,7 +44,7 @@ async function waitNoResults() {
     await page.waitForSelector('.morsels-header', { timeout: 10000 });
     const headerText = await page.evaluate(() =>
       document.getElementsByClassName('morsels-header')[0].textContent);
-    expect(headerText.trim()).toBe('0 results found');
+    expect(headerText.trim().startsWith('0 results found')).toBe(true);
   } catch (ex) {
     const output = await page.evaluate(() => document.getElementById('target-mode-el').innerHTML);
     console.error('waitNoResults failed, output in target:', output);

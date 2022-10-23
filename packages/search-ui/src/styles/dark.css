@@ -20,6 +20,8 @@
     --morsels-highlight: #5B9EBF;
     --morsels-highlight-bg: none;
     --morsels-header-fg: #e3e3e3;
+    --morsels-key-fg: #fff;
+    --morsels-key-bg: #7d7d7d;
     --morsels-error-fg: #e3e3e3;
     --morsels-fine-print-fg: #d5e2e1;
     --morsels-loading-bg: #03699c;
