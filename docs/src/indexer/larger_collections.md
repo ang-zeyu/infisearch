@@ -24,14 +24,13 @@ Specify the `preset` key in your configuration file to change this.
 | Preset              | Description |
 | -----------         | ----------- |
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
-| `medium`            | Generates a monolithic index but sharded (on a per document basis) field store. Only required field stores are retrieved for generating result previews. Positions are not indexed, and stop words are removed.
+| `medium`            | Generates an almost-monolithic index but sharded field store. Only required field stores are retrieved for generating result previews.
 | `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](../language.md#stop-words). This is the preset used in the demo [here](https://morsels-search.com)!
 
 #### Notes
 
-- The 2 `large` presets do not remove stop words by default. This is because these options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
-- The 2 `medium` presets do not index positions and stop words by default. These take up a considerable proportion of the index size and a *sizeable* (at least, more so than `small`) monolithic index is assumed to be generated. The downside is that term proximity ranking and phrase queries will not be available.
-- Note that scaling this tool for larger collections dosen't come freely, and necessitates fragmenting the index and/or field stores, **retrieving only what's needed**. This means extra network requests, but to a reasonable degree.
+- None of the presets remove stop words by default. Some options split up the index, which means that such commonly occuring words are likely to be separately placed into one file. (and never requested until necessary)
+- In summary, scaling this tool for larger collections dosen't come freely, and necessitates fragmenting the index and/or field stores, **retrieving only what's needed**. This means extra network requests, but to a reasonable degree.
 
   This tool should be able to handle `800MB` (not counting things like HTML tags) collections with the full set of features enabled in the `large` preset.
 
@@ -63,3 +62,6 @@ There are a few other options especially worth highlighting that can help reduce
 - [`ignore_stop_words=false`](../language.md#stop-words)
 
   This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size.
+- [`with_positions=true`](../indexer/indexing.md#adding-positions-with_positions--true)
+
+  Positions take up a considerable (~3/4) portion of the index size but produces useful information for proximity ranking, and enables performing phrase queries.

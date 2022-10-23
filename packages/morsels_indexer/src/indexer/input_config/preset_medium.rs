@@ -10,7 +10,7 @@ pub fn apply_config(config: &mut MorselsConfig, json_config: &Value) {
         false,
         4096000,
         0,
-        false,
-        true
+        true,
+        false
     );
 }
