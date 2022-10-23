@@ -25,6 +25,9 @@
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
+  "dependencies": {
+    "escape-string-regexp": "^5.0.0"
+  },
   "devDependencies": {
     "@morsels/lang-ascii": "^0.6.2",
     "@morsels/lang-chinese": "^0.6.2",

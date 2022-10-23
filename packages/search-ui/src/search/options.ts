@@ -1,20 +1,6 @@
-import { resultsRender } from '../searchResultTransform';
 import { Options, UiMode } from '../Options';
-import { parseURL } from '../utils/url';
 import { LOADING_INDICATOR_ID } from '../utils/dom';
-
-// Undocumented option for mdBook
-function appendSearchedTerms(
-  opts: Options, fullLink: string, searchedTermsJSON: string,
-) {
-  const { addSearchedTerms } = opts.uiOptions.resultsRenderOpts;
-  if (addSearchedTerms) {
-    const fullLinkUrl = parseURL(fullLink);
-    fullLinkUrl.searchParams.append(addSearchedTerms, searchedTermsJSON);
-    return fullLinkUrl.toString();
-  }
-  return fullLink;
-}
+import { listItemRender } from '../searchResultTransform/listItemRender';
 
 export function prepareOptions(options: Options) {
   // ------------------------------------------------------------
@@ -161,52 +147,8 @@ export function prepareOptions(options: Options) {
       + '<svg class="morsels-key-return" viewBox="0 0 24 24"><path fill="none" stroke-width="4" d="M9,4 L4,9 L9,14 M18,19 L18,9 L5,9" transform="matrix(1 0 0 -1 0 23)"/></svg>';
     return h('div', { class: 'morsels-header' }, `${queryParts.resultsTotal} results found`, instructions);
   });
-  
-  uiOptions.resultsRender = uiOptions.resultsRender || resultsRender;
-  
-  uiOptions.resultsRenderOpts = uiOptions.resultsRenderOpts || {};
 
-  const { resultsRenderOpts } = uiOptions;
-  
-  resultsRenderOpts.listItemRender = resultsRenderOpts.listItemRender || ((
-    h, opts, searchedTermsJSON, fullLink, title, matches,
-  ) => {
-    const bodies = matches.filter((r) => !r.headingMatches);
-    const headings = matches.filter((r) => r.headingMatches);
-
-    const mainLinkEl = h(
-      'a', { class: 'morsels-title-link', role: 'option', tabindex: '-1' },
-      h('div', { class: 'morsels-title' }, title),
-      ...bodies.map(({ bodyMatches }) => h(
-        'div', { class: 'morsels-body' }, ...bodyMatches,
-      )),
-    );
-
-    if (fullLink) {
-      mainLinkEl.setAttribute('href', appendSearchedTerms(opts, fullLink, searchedTermsJSON));
-    }
-
-    const subOptions = headings.map(({ href, bodyMatches, headingMatches }) => {
-      const el = h('a', { class: 'morsels-heading-link', role: 'option', tabindex: '-1' },
-        h('div', { class: 'morsels-heading' }, ...headingMatches),
-        h('div', { class: 'morsels-body' }, ...bodyMatches));
-      if (href) {
-        el.setAttribute('href', appendSearchedTerms(opts, href, searchedTermsJSON));
-      }
-      return el;
-    });
-  
-    return h(
-      'div', { class: 'morsels-list-item', role: 'group', 'aria-label': title },
-      mainLinkEl, ...subOptions,
-    );
-  });
-  
-  resultsRenderOpts.highlightRender = resultsRenderOpts.highlightRender || ((
-    h, opts, matchedPart,
-  ) => h(
-    'span', { class: 'morsels-highlight' }, matchedPart,
-  ));
+  uiOptions.listItemRender = uiOptions.listItemRender || listItemRender;
   
   options.otherOptions = options.otherOptions || {};
 }

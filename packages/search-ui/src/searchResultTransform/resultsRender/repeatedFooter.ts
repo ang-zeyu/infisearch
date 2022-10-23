@@ -1,6 +1,6 @@
 import { Query } from '@morsels/search-lib';
-import { Options } from '../Options';
-import h from '../utils/dom';
+import h from '@morsels/search-lib/lib/utils/dom';
+import { Options } from '../../Options';
 
 export function resultSeparator(
   options: Options,

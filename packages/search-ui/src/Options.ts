@@ -1,7 +1,7 @@
-import { SearcherOptions, MorselsConfig } from '@morsels/search-lib/lib/results/Config';
-import Result from '@morsels/search-lib/lib/results/Result';
+import { SearcherOptions } from '@morsels/search-lib/lib/results/Config';
+import { Result } from '@morsels/search-lib/lib/results/Result';
 import { Query } from '@morsels/search-lib';
-import { CreateElement } from './utils/dom';
+import { CreateElement } from '@morsels/search-lib/lib/utils/dom';
 
 export type ArbitraryOptions = any;
 
@@ -10,12 +10,6 @@ export enum UiMode {
   Dropdown = 'dropdown',
   Fullscreen = 'fullscreen',
   Target = 'target',
-}
-
-export interface Match {
-  bodyMatches: (string | HTMLElement)[],
-  headingMatches?: (string | HTMLElement)[],
-  href?: string,
 }
 
 export interface UiOptions {
@@ -36,8 +30,6 @@ export interface UiOptions {
   target?: HTMLElement,
   tip: boolean,
   resultsPerPage?: number,
-  maxSubMatches?: number,
-  useBreadcrumb?: boolean,
   // This is specific to the default resultsRender implementation,
   // pulling it up as its a common option
   sourceFilesUrl?: string,
@@ -61,34 +53,18 @@ export interface UiOptions {
   ) => HTMLElement,
 
   // Rendering Results
-  resultsRender?: (
-    h: CreateElement,
-    opts: Options,
-    config: MorselsConfig,
-    results: Result[],
-    query: Query,
-    numResultsSoFar: number,
-    loadMore: (nResults: number) => Promise<HTMLElement[] | undefined>,
-    focusOption: (el: HTMLElement) => void,
-  ) => Promise<HTMLElement[]>,
-  resultsRenderOpts?: {
-    addSearchedTerms?: string,
-    listItemRender?: (
-      h: CreateElement,
-      opts: Options,
-      searchedTermsJSON: string,
-      fullLink: string,
-      resultTitle: string,
-      matches: Match[],
-      fields: [string, string][],
-    ) => HTMLElement,
-    highlightRender?: (
-      h: CreateElement,
-      opts: Options,
-      matchedPart: string,
-    ) => HTMLElement,
-  },
+  listItemRender?: ListItemRender,
+  addSearchedTerms?: string,
+  useBreadcrumb?: boolean,
+  maxSubMatches?: number,
 }
+
+export type ListItemRender = (
+  h: CreateElement,
+  opts: Options,
+  result: Result,
+  query: Query,
+) => Promise<HTMLElement>;
 
 export interface Options {
   searcherOptions?: SearcherOptions,

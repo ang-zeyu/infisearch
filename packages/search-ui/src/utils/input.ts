@@ -1,7 +1,8 @@
 import { Query, Searcher } from '@morsels/search-lib';
+import h from '@morsels/search-lib/lib/utils/dom';
 import { Options } from '../Options';
 import loadQueryResults from '../searchResultTransform';
-import createElement, { createInvisibleLoadingIndicator } from './dom';
+import { createInvisibleLoadingIndicator } from './dom';
 import { addKeyboardHandler } from './keyboard';
 
 export class InputState {
@@ -42,7 +43,7 @@ export async function runNewQuery(
   inputState._mrlIsRunningQuery = true;
 
   const newIndicatorElement = loadingIndicatorRender(
-    createElement, options, false, inputState._mrlIsResultsBlank,
+    h, options, false, inputState._mrlIsResultsBlank,
   );
   inputState._mrlLoader.replaceWith(newIndicatorElement);
   inputState._mrlLoader = newIndicatorElement;
@@ -51,9 +52,9 @@ export async function runNewQuery(
     // const now = performance.now();
 
     inputState._mrlCurrQuery?.free();
-    inputState._mrlCurrQuery = await searcher.getQuery(queryString);
+    inputState._mrlCurrQuery = await searcher.runQuery(queryString);
 
-    // console.log(`getQuery "${queryString}" took ${performance.now() - now} milliseconds`);
+    // console.log(`runQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 
     const resultsDisplayed = await loadQueryResults(
       searcher,
@@ -70,7 +71,7 @@ export async function runNewQuery(
     listContainer.scrollTo({ top: 0 });
   } catch (ex) {
     listContainer.innerHTML = '';
-    listContainer.appendChild(headerRender(createElement, options, true, false));
+    listContainer.appendChild(headerRender(h, options, true, false));
     throw ex;
   } finally {
     // Run the next queued query if there is one

@@ -14,13 +14,13 @@
 - [Indexer](./indexer_configuration.md)
   - [Fields](./indexer/fields.md)
   - [Indexing](./indexer/indexing.md)
+- [Search API](./search_api.md)
 - [Guides](./guides.md)
   - [Linking to other pages](./linking_to_others.md)
 
 # Advanced
 
-- [Search UI](./search_configuration_advanced.md)
-  - [Altering HTML outputs](./search_configuration_renderers.md)
+- [Altering HTML outputs](./search_configuration_renderers.md)
 - [Larger Collections](./indexer/larger_collections.md)
   - [Incremental Indexing](./incremental_indexing.md)
   - [Tradeoffs](./tradeoffs.md)

@@ -1,6 +1,7 @@
 import { Searcher } from '@morsels/search-lib';
+import createElement from '@morsels/search-lib/lib/utils/dom';
 import { Options, UiMode } from './Options';
-import createElement, { LOADING_INDICATOR_ID } from './utils/dom';
+import { LOADING_INDICATOR_ID } from './utils/dom';
 import { InputState, runNewQuery } from './utils/input';
 import { prepareOptions } from './search/options';
 import {
@@ -15,7 +16,7 @@ import {
   setDropdownInputAria, unsetDropdownInputAria,
 } from './search/rootContainers';
 
-// State / handlers for a single initMorsels() call
+// State / handlers for a single morsels.initMorsels() call
 class InitState {
   _mrlShowDropdown: () => void;
 

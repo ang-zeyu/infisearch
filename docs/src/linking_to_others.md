@@ -18,7 +18,7 @@ For example,
 
 Then, modify your indexer [loader configuration](./indexer/indexing.md#html-files-loadershtmlloader) to let Morsels know to extract the `data-morsels-link` attribute of the `span[data-morsels-link]` into the `link` field.
 
-This configuration is already implemented by default, and is attached here for reference.
+This configuration is **already** implemented by default, and is attached here for reference.
 
 ```json
 "loaders": {

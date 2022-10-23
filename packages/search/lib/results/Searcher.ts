@@ -1,6 +1,6 @@
-import Query from './Query';
+import Query, { getRegexes } from './Query';
 import { SearcherOptions, MorselsConfig } from './Config';
-import Result from './Result';
+import { Result } from './Result';
 import { QueryPart } from '../parser/queryParser';
 import PersistentCache from './Cache';
 import { getFieldUrl } from '../utils/FieldStore';
@@ -10,7 +10,6 @@ declare const MORSELS_VERSION;
 // Code from
 /* webpack/runtime/publicPath */
 // manually handled since the WebWorker url is dynamic (based on language)
-// TODO maybe require the worker URL be specified instead
 let scriptUrl: string;
 if (document.currentScript) {
   scriptUrl = (document.currentScript as HTMLScriptElement).src;
@@ -161,7 +160,7 @@ class Searcher {
     this.cfg.searcherOptions = searcherOpts;
   }
 
-  async getQuery(query: string): Promise<Query> {
+  async runQuery(query: string): Promise<Query> {
     await this.setupPromise;
 
     const queryId = this.id;
@@ -185,6 +184,8 @@ class Searcher {
       resultsTotal: number,
       queryParts: QueryPart[],
     } = await queries[queryId].promise;
+
+    const [termRegexes, searchedTermsFlat] = getRegexes(result.queryParts, this.cfg);
 
     const getNextN = async (n: number) => {
       if (!queries[queryId]) {
@@ -214,7 +215,7 @@ class Searcher {
 
       // Simple transform into Result objects
       const retrievedResults: Result[] = getNextNResult.nextResults.map((docId) => new Result(
-        docId, this.cfg.fieldInfos,
+        docId, this.cfg.fieldInfos, termRegexes as RegExp[],
       ));
 
       // Retrieve field stores
@@ -238,7 +239,12 @@ class Searcher {
       result.queryParts,
       getNextN,
       free,
+      searchedTermsFlat as string,
     );
+  }
+
+  free() {
+    this._mrlWorker.terminate();
   }
 }
 

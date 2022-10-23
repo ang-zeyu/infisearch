@@ -1,4 +1,4 @@
-initMorsels({
+morsels.initMorsels({
   searcherOptions: {
     url: base_url + 'morsels_output/',
   },

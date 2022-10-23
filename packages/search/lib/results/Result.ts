@@ -1,13 +1,15 @@
 import { FieldInfo, MorselsConfig } from './Config';
 import PersistentCache from './Cache';
 import { getFieldUrl } from '../utils/FieldStore';
+import { Segment, linkHeadings } from './Result/linker';
 
-class Result {
-  private _mrlStorage: [number, string][] = Object.create(null);
+export class Result {
+  public fields: [string, string][] = [];
 
   constructor(
     private _mrlDocId: number,
     private _mrlFieldInfos: FieldInfo[],
+    private _mrlRegexes: RegExp[],
   ) {}
 
   async _mrlPopulate(
@@ -25,15 +27,31 @@ class Result {
         idx %= numDocsPerBlock;
       }
 
-      this._mrlStorage = rawJson[idx];
+      this.fields = rawJson[idx]
+        .map(([fieldId, content]) => [this._mrlFieldInfos[fieldId].name, content]);
     } catch (ex) {
       console.log(ex);
     }
   }
 
-  getFields(): [string, string][] {
-    return this._mrlStorage.map(([fieldId, content]) => [this._mrlFieldInfos[fieldId].name, content]);
+  getHeadingBodyExcerpts(): Segment[] {
+    return linkHeadings(this.fields, this._mrlRegexes);
+  }
+  
+  getKVFields(fieldsToPopulate: { [fieldName: string]: null | string }) {
+    const numFields = Object.keys(fieldsToPopulate).length;
+    let numFieldsEncountered = 0;
+
+    for (const fieldNameAndField of this.fields) {
+      const [fieldName, fieldText] = fieldNameAndField;
+      if (fieldName in fieldsToPopulate && fieldsToPopulate[fieldName] === null) {
+        fieldsToPopulate[fieldName] = fieldText;
+        numFieldsEncountered += 1;
+      }
+
+      if (numFieldsEncountered === numFields) {
+        break;
+      }
+    }
   }
 }
-
-export default Result;

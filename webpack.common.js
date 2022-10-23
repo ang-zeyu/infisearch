@@ -10,7 +10,7 @@ function getLangConfig(lang) {
     import: path.resolve(__dirname, `packages/search-ui/src/entries/${lang}.ts`),
     filename: `search-ui.${lang}.bundle.js`,
     library: {
-      name: 'initMorsels',
+      name: 'morsels',
       type: 'umd',
       export: 'default',
     },

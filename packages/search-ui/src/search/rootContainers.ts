@@ -1,9 +1,9 @@
 import { computePosition, size, flip, arrow, Placement } from '@floating-ui/dom';
 import { Searcher } from '@morsels/search-lib';
+import h from '@morsels/search-lib/lib/utils/dom';
 
 import { Options, UiOptions } from '../Options';
 import { setInputAria, unsetActiveDescendant } from '../utils/aria';
-import h from '../utils/dom';
 import createTipButton from './tips';
 
 

@@ -84,7 +84,7 @@ You may also need a way to map custom-formatted file data to each of these field
 
 ### Adding Fields (advanced)
 
-You can add your own fields to index as well, which will be factored into Morsels' search algorithms. Note however, that the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, for example a link to an icon, you will need to [alter](../search_configuration_renderers.md#1-rendering-a-single-result) the HTML outputs.
+You can add your own fields to index as well, which will be factored into Morsels' search algorithms. Note however, that the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, for example a link to an icon, you will need to [alter](../search_configuration_renderers.md#rendering-search-results) the HTML outputs.
 
 ## Field Specific Parameters
 
@@ -131,7 +131,7 @@ The `num_docs_per_store` parameter controls how many documents to store in one j
 #### Field Store Caching: **`cache_all_field_stores`**
 
 This is the same option as the one under [search functionality options](../search_configuration.md#search-functionality-options).
-If both are specified, the value specified in the `initMorsels` call will take priority.
+If both are specified, the value specified in the `morsels.initMorsels` call will take priority.
 
 All fields specified with `do_store=true` would be cached up front on initialisation of the search library.
 
