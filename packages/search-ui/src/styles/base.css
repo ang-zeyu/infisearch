@@ -166,11 +166,12 @@
     background: var(--morsels-tip-icon-bg);
     text-align: center;
     opacity: 0.5;
-    transition: opacity 0.2s linear;
+    transition: opacity 0.2s linear, font-weight 0.2s linear;
 }
 
 .morsels-tip-icon:hover {
     opacity: 1;
+    font-weight: 600;
 }
 
 .morsels-tip-popup-root {
