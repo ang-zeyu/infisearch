@@ -1,6 +1,6 @@
 {
   "name": "@morsels/search-lib",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Internal search library module for @morsels/search-ui",
   "keywords": [
     "search"
@@ -29,8 +29,8 @@
     "escape-string-regexp": "^5.0.0"
   },
   "devDependencies": {
-    "@morsels/lang-ascii": "^0.7.0",
-    "@morsels/lang-chinese": "^0.7.0",
-    "@morsels/lang-latin": "^0.7.0"
+    "@morsels/lang-ascii": "^0.7.1",
+    "@morsels/lang-chinese": "^0.7.1",
+    "@morsels/lang-latin": "^0.7.1"
   }
 }

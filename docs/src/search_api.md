@@ -129,13 +129,13 @@ interface Segment {
   highlight: () => (string | HTMLElement)[],
 
   // Use these 2 properties for manual highlighting.
-  bestMatches: { pos: number, len: number }[],  // Character position and length
-  text: string,                                 // Original string
+  window: { pos: number, len: number }[],  // Character position and length
+  text: string,                            // Original string
   // -------------------------------------------------
 }
 ```
 
-To perform text **highlighting**, you could implement it manually using the original `text` and the closest window of term matches (`bestMatches`).
+To perform text **highlighting**, you could implement it manually using the original `text` and the closest `window` of term matches.
 
 Alternatively, calling `highlight` returns Morsels' default formatting, which wraps matches in a `<mark>` element, truncates surrounding text, and adds leading and trailing ellipses elements. An example output is as follows:
 
