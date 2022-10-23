@@ -4,7 +4,7 @@ export const SELECTED_OPTION_ID = 'morsels-list-selected';
 
 function scrollListContainer(targetEl: any, listContainer: HTMLElement) {
   const computedStyles = getComputedStyle(listContainer);
-  if (['scroll', 'auto'].includes(computedStyles.overflowY)) {
+  if (['scroll', 'auto', 'overlay'].includes(computedStyles.overflowY)) {
     const top = targetEl.offsetTop
       - listContainer.offsetTop
       - listContainer.clientHeight / 2
