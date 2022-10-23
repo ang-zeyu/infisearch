@@ -68,7 +68,10 @@ export function addKeyboardHandler(inputEl: HTMLInputElement, listContainer: HTM
         focusedItemIdx > 0 ? opts[focusedItemIdx - 1] : lastItem, focusedItem, inputEl, listContainer, true,
       );
     } else if (key === 'Enter') {
-      if (focusedItem) focusedItem.click();
+      if (focusedItem)
+        focusedItem.dispatchEvent(new MouseEvent('click', {
+          ctrlKey: ev.ctrlKey,
+        }));
     } else {
       const pos = key === 'Home' ? 0 : inputEl.value.length;
       inputEl.focus();
