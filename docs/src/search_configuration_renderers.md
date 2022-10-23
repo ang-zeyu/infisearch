@@ -125,6 +125,14 @@ type ListItemRender = async (
 
 See the [source](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform/listItemRender.ts) to get an idea of using this API.
 
+**Accessibility and User Interaction**
+
+To ensure that [combobox](https://www.w3.org/WAI/ARIA/apg/example-index/combobox/combobox-autocomplete-list.html) controls work as expected, you should also ensure that the appropriate elements are labelled with `role='option'` (and optionally `role='group'`).
+
+Elements with `role='option'` will also have the `.focus` class applied to them once they are visually focused. You can use this class to style the option.
+
+**Granularity**
+
 At the current, this API is moderately lengthy, performing things such as limiting the number of sub matches (heading-body pairs) per document, formatting the relative file path of documents into a breadcrumb form, etc.
 
 There may be room for breaking this API down further as such, please help to bring up a feature request if you have any suggestions!.
