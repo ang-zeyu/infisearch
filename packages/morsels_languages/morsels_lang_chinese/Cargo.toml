@@ -1,6 +1,6 @@
 [package]
 name = "morsels_lang_chinese"
-version = "0.7.1"
+version = "0.7.2"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Chinese tokenizer for morsels."
@@ -13,8 +13,8 @@ license = "MIT"
 indexer = ["regex"]
 
 [dependencies]
-morsels_common = { path = "../../morsels_common", version="=0.7.1" }
-morsels_lang_ascii = { path = "../morsels_lang_ascii", version="=0.7.1" }
+morsels_common = { path = "../../morsels_common", version="=0.7.2" }
+morsels_lang_ascii = { path = "../morsels_lang_ascii", version="=0.7.2" }
 lazy_static = { version = "1.4" }
 regex = { version = "1", optional = true }
 smartstring = "0.2.7"

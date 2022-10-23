@@ -29,8 +29,8 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 #### CDN link
 
 ```html
-<!-- Replace "v0.7.1" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.1/packages/search-ui/dist/search-ui-light.css" />
+<!-- Replace "v0.7.2" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.2/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 #### Preview
@@ -46,8 +46,8 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 #### CDN link
 
 ```html
-<!-- Replace "v0.7.1" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.1/packages/search-ui/dist/search-ui-basic.css" />
+<!-- Replace "v0.7.2" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.2/packages/search-ui/dist/search-ui-basic.css" />
 ```
 
 <div class="image-container">
@@ -60,8 +60,8 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 #### CDN link
 
 ```html
-<!-- Replace "v0.7.1" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.1/packages/search-ui/dist/search-ui-dark.css" />
+<!-- Replace "v0.7.2" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.2/packages/search-ui/dist/search-ui-dark.css" />
 ```
 
 #### Preview
