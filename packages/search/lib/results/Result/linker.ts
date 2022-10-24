@@ -1,28 +1,8 @@
-import { getBestMatchResult } from './highlight';
-import { BaseSegment } from './MatchResult';
+import { MatchType, Segment } from './MatchResult';
 
 /*
  Contains the procedure to link 'heading' and 'headingLink' fields to 'body' fields.
 */
-
-export enum MatchType {
-  HEADING_BODY = 'heading-body',
-  BODY_ONLY = 'body',
-  HEADING_ONLY = 'heading',
-}
-
-export class Segment extends BaseSegment {
-  constructor(
-    text: string,
-    window: { pos: number, len: number }[],
-    numTerms: number,
-    public heading: Segment,
-    public headingLink: string,
-    public type: MatchType,
-  ) {
-    super(text, window, numTerms);
-  }
-}
 
 // Links the default 'heading', 'headingLink' fields to other texts in the document
 export function linkHeadings(
@@ -32,7 +12,7 @@ export function linkHeadings(
   let lastHeadingMatch: Segment = undefined;
   let lastHeadingLinkIdx = -2;
   let lastHeadingLinkText = '';
-  let matchResults: Segment[] = [];
+  let segments: Segment[] = [];
 
   for (let pairIdx = 0; pairIdx < texts.length; pairIdx += 1) {
     const [fieldName, fieldText] = texts[pairIdx];
@@ -43,34 +23,31 @@ export function linkHeadings(
         break;
       }
       case 'heading': {
-        lastHeadingMatch = getBestMatchResult(fieldText, termRegexes) as Segment;
-        lastHeadingMatch.headingLink = lastHeadingLinkIdx === pairIdx - 1
-          ? lastHeadingLinkText
-          : '';
-            
+        lastHeadingMatch = new Segment(
+          MatchType.HEADING_ONLY, fieldText, termRegexes,
+          lastHeadingLinkIdx === pairIdx - 1 ? lastHeadingLinkText : undefined,
+        );
+
         // Push a heading-only match in case there are no other matches (unlikely).
-        matchResults.push(new Segment(
-          '', [], 0,
-          lastHeadingMatch, lastHeadingMatch.headingLink, MatchType.HEADING_ONLY,
-        ));
+        segments.push(lastHeadingMatch);
         break;
       }
       case 'body': {
-        const finalMatchResult = getBestMatchResult(fieldText, termRegexes) as Segment;
+        const finalMatchResult = new Segment(
+          lastHeadingMatch ? MatchType.HEADING_BODY : MatchType.BODY_ONLY,
+          fieldText, termRegexes,
+          lastHeadingMatch?.headingLink, lastHeadingMatch,
+        );
+
         if (lastHeadingMatch) {
-          // Link up body matches with headings, headingLinks if any
-          finalMatchResult.heading = lastHeadingMatch;
-          finalMatchResult.headingLink = lastHeadingMatch.headingLink;
           finalMatchResult.numTerms += lastHeadingMatch.numTerms;
-          finalMatchResult.type = MatchType.HEADING_BODY;
-        } else {
-          finalMatchResult.type = MatchType.BODY_ONLY;
         }
-        matchResults.push(finalMatchResult);
+
+        segments.push(finalMatchResult);
         break;
       }
     }
   }
 
-  return matchResults;
+  return segments;
 }

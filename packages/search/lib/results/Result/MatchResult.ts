@@ -13,20 +13,110 @@ const BODY_SERP_BOUND = 40;
 // Maximum preview length for items with no highlights found
 const PREVIEW_LENGTH = 80;
 
-// Internal use only
-export class BaseSegment {
+export enum MatchType {
+  HEADING_BODY = 'heading-body',
+  BODY_ONLY = 'body',
+  HEADING_ONLY = 'heading',
+}
+
+/**
+ * A Segment is simply a chunk of text,
+ * with the closest window of term positions stored in the window field.
+ */
+export class Segment {
+  /**
+   * Position of the match in the string,
+   * and length the match produced by the respective regex
+   */
+  readonly window: { pos: number, len: number }[] = [];
+
+  numTerms: number = 0;
+
   constructor(
+    public readonly type: MatchType,
     public readonly text: string,
+    termRegexes: RegExp[],
     /**
-     * Position of the match in the string,
-     * and length the match produced by the respective regex
-     * 
-     * window.length gives the number of terms matched
+     * id of the heading element, if any. Only applicable for HEADING_ONLY | HEADING_BODY.
      */
-    public readonly window: { pos: number, len: number }[],
-    public numTerms: number,
-  ) {}
+    public readonly headingLink?: string,
+    public readonly heading?: Segment,
+  ) {
+    // Get all matches first
+    const matches = termRegexes.map(r => Array.from(text.matchAll(r)));
+    if (!matches.some(innerMatches => innerMatches.length)) {
+      return;
+    }
+    
+    let lastClosestRegexPositions = termRegexes.map(() => -1);
+    let lastClosestWindowLen = 10000000;
+    let lastClosestRegexLengths = termRegexes.map(() => 0);
+    
+    // Next match index of each RegExp's array inside matches
+    const matchIndices = matches.map(() => 0);
+    const hasFinished =  matches.map((innerMatches) => !innerMatches.length);
+    
+    // Local to the while (true) loop; To avoid .map and reallocating
+    const matchPositions = matches.map(() => -1);
+    
+    while (true) {
+      let lowestMatchPos = 10000000;
+      let lowestMatchPosExclFinished = 10000000;
+      let lowestMatchIndex = -1;
+      let highestMatchPos = 0;
   
+      for (let regexIdx = 0; regexIdx < matchIndices.length; regexIdx++) {
+        const match = matches[regexIdx][matchIndices[regexIdx]];
+        if (!match) {
+          // No matches at all for this regex in this str
+          continue;
+        }
+    
+        const pos = match.index + match[1].length;
+        if (!hasFinished[regexIdx] && pos < lowestMatchPosExclFinished) {
+          lowestMatchPosExclFinished = pos;
+          // Find the match with the smallest position for forwarding later
+          lowestMatchIndex = regexIdx;
+        }
+        lowestMatchPos = Math.min(lowestMatchPos, pos);
+        highestMatchPos = Math.max(highestMatchPos, pos);
+    
+        matchPositions[regexIdx] = pos;
+      }
+    
+      if (lowestMatchIndex === -1) {
+        // hasFinished is all true
+        break;
+      }
+    
+      const windowLen = highestMatchPos - lowestMatchPos;
+      if (windowLen < lastClosestWindowLen) {
+        lastClosestWindowLen = windowLen;
+        lastClosestRegexPositions = [...matchPositions];
+        lastClosestRegexLengths = matchIndices.map((i, idx) => matches[idx][i] && (
+          matches[idx][i][2].length + matches[idx][i][3].length
+        ));
+      }
+    
+      // Forward the match with the smallest position
+      matchIndices[lowestMatchIndex] += 1;
+      if (matchIndices[lowestMatchIndex] >= matches[lowestMatchIndex].length) {
+        hasFinished[lowestMatchIndex] = true;
+        matchIndices[lowestMatchIndex] -= 1;
+        if (hasFinished.every(finished => finished)) {
+          break;
+        }
+      }
+    }
+    
+    const win = lastClosestRegexPositions
+      .map((pos, idx) => ({ pos, len: lastClosestRegexLengths[idx] }))
+      .filter((pair) => pair.pos >= 0)
+      .sort((a, b) => a.pos - b.pos);
+    this.window = win;
+    this.numTerms = win.length;
+  }
+
   /**
    * Generates the HTML preview of the match result given.
    */

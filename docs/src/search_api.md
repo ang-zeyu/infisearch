@@ -114,9 +114,12 @@ This returns an array of *Segments*.
 interface Segment {
   type: 'heading' | 'body' | 'heading-body',
 
-  // These 2 properties will only be present if type === 'heading-body'.
-  // The heading property points to another Segment with type === 'heading'.
+  // This will only be present if type === 'heading-body',
+  // and points to another Segment with type === 'heading'.
   heading?: Segment,
+
+  // This will only be present if type === 'heading' | 'heading-body',
+  // and points to the heading's id, if any.
   headingLink?: string,
 
   // How many terms were matched in this segment

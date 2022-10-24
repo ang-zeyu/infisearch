@@ -51,10 +51,10 @@ export const listItemRender: ListItemRender = (
   // Limit the number of sub matches
   sortAndLimitResults(matchResults, maxSubMatches);
 
-  const bodies = matchResults.filter((res) => !res.heading).map((res) =>
+  const bodies = matchResults.filter(({ type }) => type === 'body').map((res) =>
     res.highlight(),
   );
-  const headings = matchResults.filter((res) => res.heading).map((res) => ({
+  const headings = matchResults.filter(({ type }) => type.startsWith('heading')).map((res) => ({
     body: res.highlight(),
     heading: res.heading.highlight(false),
     href: res.headingLink

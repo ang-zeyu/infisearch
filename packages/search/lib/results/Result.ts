@@ -1,7 +1,8 @@
 import { FieldInfo, MorselsConfig } from './Config';
 import PersistentCache from './Cache';
 import { getFieldUrl } from '../utils/FieldStore';
-import { Segment, linkHeadings } from './Result/linker';
+import { linkHeadings } from './Result/linker';
+import { Segment } from './Result/MatchResult';
 
 export class Result {
   public fields: [string, string][] = [];
