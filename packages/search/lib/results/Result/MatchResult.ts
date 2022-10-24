@@ -118,7 +118,8 @@ export class Segment {
   }
 
   /**
-   * Generates the HTML preview of the match result given.
+   * Generates the HTML preview of the match result given using
+   * a lower level but more efficient (string | HTMLElement)[] format.
    */
   highlight(addEllipses: boolean = true): (string | HTMLElement)[] {
     const { text, window } = this;
@@ -181,5 +182,15 @@ export class Segment {
     }
     
     return result;
+  }
+
+  /**
+   * Generates the HTML preview of the match result
+   * that can be used via innerHTML directly.
+   */
+  highlightHTML(addEllipses: boolean = true): string {
+    const highlighted = this.highlight(addEllipses);
+    // The h function escapes the strings
+    return h('div', {}, ...highlighted).innerHTML;
   }
 }

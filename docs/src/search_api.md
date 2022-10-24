@@ -12,9 +12,11 @@ const searcher = new morsels.Searcher({
 });
 ```
 
-The constructor parameter uses the same options as `morsels.initMorsels`, see this [page](./search_configuration.md#search-functionality-options) for the other available options.
+The constructor parameter uses the same options as `morsels.initMorsels`, you can refer to this [page](./search_configuration.md#search-functionality-options) for the other available options.
 
-Setup is also async and and mostly proceeds in the WebWorker. You can  use the `setupPromise` and `isSetupDone` interfaces to show UI initialising states for example.
+**Initialising States**
+
+Setup is also async and and mostly proceeds in the WebWorker. You can  use the `setupPromise` and `isSetupDone` interfaces to optionally show UI initialising states.
 
 ```ts
 searcher.setupPromise.then(() => {
@@ -24,14 +26,13 @@ searcher.setupPromise.then(() => {
 
 ## Querying
 
-Next, you can run a query like so: 
+Next, you can create a `Query` object, which obtains and ranks the result set. 
 
 ```ts
-// Create a Query object, which obtains and ranks the result set.
 const query: Query = await searcher.runQuery('sunny weather');
 ```
 
-This returns a `Query` object.
+The `Query` object follows this interface.
 
 ```ts
 interface Query {
@@ -44,7 +45,7 @@ interface Query {
      */
     public readonly resultsTotal: number,
     /**
-     * Returns the next N results.
+     * Returns the next top N results.
      */
     public readonly getNextN: (n: number) => Promise<Result[]>,
     /**
@@ -62,13 +63,11 @@ Running a query alone probably isn't very useful. You can get a `Result` object 
 const results: Result[] = await query.getNextN(10);
 ```
 
-A `Result` object stores the fields of the indexed document. The fields are stored as an array of field name, field text pairs in the order they were seen.
+A `Result` object stores the fields of the indexed document. The fields are stored as an array of `[fieldName, fieldText]` pairs in the order they were seen.
 
 ```ts
 const documentText: [string, string][] = results[0].fields;
 
-// Under the default setup for fields,
-// indexing a HTML document would net you something like this:
 [
   ['_relative_fp', 'relative_file_path/of_the_file/from_the_folder/you_indexed'],
   ['title', 'README'],
@@ -84,63 +83,81 @@ This ordered model is more complex than a regular key-value store, but enables t
 
 A `Result` object also exposes 2 other convenience functions that may be useful to help deal with this format.
 
-### Retrieving Fields as KV Stores
+### 1. Retrieving Singular Fields as KV Stores
 
-Certain fields will only occur once in every document (e.g. titles, `<h1>` tags). To retrieve these easily, you can use the `getKVFields` function like so:
+Certain fields will only occur once in every document (e.g. titles, `<h1>` tags). To retrieve these easily, you can use the `getKVFields` method:
 
 ```ts
-// Assign the fields you want populated as null, then pass it into the function
+// Assign the fields you want populated as null, then pass it into the method
 const fields = { link: null, _relative_fp: null, title: null, h1: null };
 result.getKVFields(fields);
 ```
 
-Only the first `[fieldName, fieldText]` field seen will be populated into the `fields` object.
+Only the first `[fieldName, fieldText]` pair for each field will be populated into the `fields` object.
 
 **Tip: Constructing a Document Link**
 
-If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one. Any links added via the [`data-morsels-link`](./linking_to_others.md) attribute are available under the `link` field.
+If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-morsels-link`](./linking_to_others.md) attribute are also available under the `link` field.
 
-### Highlighting and Linking 'Heading' and 'Body' Excerpts
+### 2. Highlighting and Linking 'Heading' and 'Body' Excerpts
 
-To establish the relationship between adjacent *heading* and *body* fields in particular, you can call the `getHeadingBodyExcerpts` method.
+To establish the relationship between adjacent *heading*, *body* and *headingLink* fields in particular, you can call the `getHeadingBodyExcerpts` method.
 
 ```ts
 const bodyHeadingMatchResults: Segment[] = result.getHeadingBodyExcerpts();
 ```
 
-This returns an array of *Segments*.
+This returns an array of *Segments*. Each *Segment* represents a chunk of `fieldText`.
+
+**Sorting and Choosing Segments**
 
 ```ts
 interface Segment {
+  /**
+   * 'heading' types come from 'heading' fields,
+   * while 'body' and 'heading-body' types come from 'body' fields.
+   */
   type: 'heading' | 'body' | 'heading-body',
 
-  // This will only be present if type === 'heading-body',
-  // and points to another Segment with type === 'heading'.
+  /**
+   * This will only be present if type === 'heading-body',
+   * and points to another Segment with type === 'heading'.
+   */
   heading?: Segment,
 
-  // This will only be present if type === 'heading' | 'heading-body',
-  // and points to the heading's id, if any.
+  /**
+   * This will only be present if type === 'heading' | 'heading-body',
+   * and points to the heading's id, if any.
+   */
   headingLink?: string,
 
-  // How many terms were matched in this segment
+  /**
+   * How many terms were matched in this segment.
+   */
   numTerms: number,
-
-  // -------------------------------------------------
-  // Properties for text highlighting
-
-  // Automatically highlight this segment
-  highlight: () => (string | HTMLElement)[],
-
-  // Use these 2 properties for manual highlighting.
-  window: { pos: number, len: number }[],  // Character position and length
-  text: string,                            // Original string
-  // -------------------------------------------------
 }
 ```
 
-To perform text **highlighting**, you could implement it manually using the original `text` and the closest `window` of term matches.
+You would select and display a **few best segments** only. To rank them, you could for example first priortise segments with a greater `numTerms` matched, then tie-break by the `type` of the segment. This is up to your UI!
 
-Alternatively, calling `highlight` returns Morsels' default formatting, which wraps matches in a `<mark>` element, truncates surrounding text, and adds leading and trailing ellipses elements. An example output is as follows:
+**Text Highlighting**
+
+```ts
+interface Segment {
+  ...
+
+  highlight: (addEllipses: boolean = true) => (string | HTMLElement)[],
+  highlightHTML: (addEllipses: boolean = true) => string,
+
+  window: { pos: number, len: number }[],   // Character position and length
+  text: string,                             // original string
+}
+
+```
+
+You can perform text highlighting manually using the original `text` and the closest `window` of term matches, or automatically using the `highlight()` and `highlightHTML()` methods.
+
+The `highlight()` method wraps term matches in a `<mark>` element, truncates surrounding text, and adds leading and trailing ellipses elements. An example output is as follows:
 
 ```ts
 [
@@ -152,7 +169,9 @@ Alternatively, calling `highlight` returns Morsels' default formatting, which wr
 ]
 ```
 
-You would also likely want to display the **best few segments** only. To rank them, you could for example first priortise segments with a greater `numTerms` matched, then tie-break by the `type` of the segment. 
+To interact with the `(string | HTMLElement)[]` output safely (strings are unescaped) and efficiently, you could use the DOM APIs `.append(...)` and `.textContent = ...` in particular.
+
+You can also call `highlightHTML()` which returns a single escaped HTML string. This is less efficient, but more convenient to use directly via `.innerHTML = '...'`.
 
 ## Memory Management
 
