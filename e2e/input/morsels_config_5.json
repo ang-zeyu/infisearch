@@ -16,7 +16,7 @@
     "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
-          "script,style,#sidebar,#menu-bar"
+          "script,style,#sidebar,#menu-bar,[data-morsels-ignore]"
         ],
         "selectors": [
           {

@@ -23,13 +23,10 @@ This configuration is **already** implemented by default, and is attached here f
 ```json
 "loaders": {
   "HtmlLoader": {
-    "exclude_selectors": [
-      "script,style,pre"
-    ],
     "selectors": [
       // Add the following object to the default configuration
-      // If you've never configured "selectors" before, you will need to
-      // add this entire snippet into your indexer configuration file.
+      // If you've never configured "selectors" before,
+      // add the entire into your indexer configuration file.
       {
         "attr_map": {
           "data-morsels-link": "link"

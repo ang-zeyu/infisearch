@@ -27,9 +27,9 @@ You may configure loaders by including them under the **`loaders` key**, with an
 ```json
 "loaders": {
   "HtmlLoader": {
-    // list of selectors to exclude from indexing
     "exclude_selectors": [
-      "script,style,pre"
+      // Selectors to exclude from indexing
+      "script,style,form,nav,[data-morsels-ignore]"
     ],
     "selectors": [
       {
@@ -38,7 +38,7 @@ You may configure loaders by including them under the **`loaders` key**, with an
         "selector": "title"
       },
       // <h1> tags are indexed into a separate field,
-      // and takes overwrites the title in the generated SERP if found
+      // and has priority over the title in the generated SERP.
       {
         "attr_map": {},
         "field_name": "h1",
@@ -78,7 +78,9 @@ You may configure loaders by including them under the **`loaders` key**, with an
 
    - The `attr_map` option allows indexing attributes of specific elements under fields as well.
 
-If needed, you can also index HTML fragments. To match the entire fragment, use the `body` selector.
+To **exclude elements** from indexing, you can use the `exclude_selectors` option, or add the in-built `data-morsels-ignore` attribute to your HTML.
+
+If needed, you can also index **HTML fragments** that are incomplete documents. To match the entire fragment, use the `body` selector.
 
 #### JSON Files: **`loaders.JsonLoader`**
 

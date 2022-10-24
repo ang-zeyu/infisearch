@@ -76,6 +76,12 @@ const testSuite = async (configFile, with_positions) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
+  // data-morsels-ignore test
+  await typePhraseOrAnd('I should be ignored through this randomuniquewordnkashdcfd', with_positions);
+  await waitNoResults();
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
   // Spelling correction tests
   await typeText('fornote');
   await assertMultiple([
