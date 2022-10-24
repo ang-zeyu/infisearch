@@ -736,7 +736,8 @@ table.morsels-tip-table .morsels-tip-item li {
     }
 
     .morsels-load-more {
-        padding: 6px 15px;
+        font-size: 1.01em;
+        padding: 7px 15px;
     }
 
     .morsels-footer:last-child {
