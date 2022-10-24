@@ -630,6 +630,8 @@ table.morsels-tip-table .morsels-tip-item li {
     color: var(--morsels-highlight);
     background-color: var(--morsels-highlight-bg);
     font-weight: bold;
+    padding: 0;
+    margin: 0;
 }
 
 .morsels-heading .morsels-highlight {
