@@ -45,7 +45,7 @@ export class Result {
 
     for (const fieldNameAndField of this.fields) {
       const [fieldName, fieldText] = fieldNameAndField;
-      if (fieldName in fieldsToPopulate && fieldsToPopulate[fieldName] === null) {
+      if (fieldsToPopulate[fieldName] === null) {
         fieldsToPopulate[fieldName] = fieldText;
         numFieldsEncountered += 1;
       }
