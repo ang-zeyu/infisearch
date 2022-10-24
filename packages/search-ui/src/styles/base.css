@@ -515,7 +515,7 @@ table.morsels-tip-table .morsels-tip-item li {
 .morsels-title {
     border-bottom: var(--morsels-title-border-bottom);
     color: var(--morsels-title-fg);
-    line-height: 1.22;
+    line-height: 1.2;
     word-break: break-word;
     padding: 9px 11px 5px;
     background: var(--morsels-title-bg);
@@ -531,8 +531,12 @@ table.morsels-tip-table .morsels-tip-item li {
 }
 
 .morsels-heading-link {
-    padding: 4px 0 2px 0;
+    padding: 3px 0 2px 0;
     background: var(--morsels-sub-bg);
+}
+
+.morsels-title-link + .morsels-heading-link {
+    padding-top: 4px;
 }
 
 .morsels-heading-link:last-child {

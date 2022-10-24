@@ -28,10 +28,6 @@
     margin-top: 1px;
 }
 
-.morsels-heading-link + .morsels-heading-link {
-    padding-top: 3px;
-}
-
 .morsels-heading-link:last-child {
     padding-bottom: 5px;
 }
