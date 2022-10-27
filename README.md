@@ -10,8 +10,7 @@ Morsels is a client-side search solution made for static sites, depending on a p
 
 Some similar tools in this space are [Stork](https://github.com/jameslittle230/stork) and [TinySearch](https://github.com/tinysearch/tinysearch). Morsels does the same, with a focus on providing a more feature rich and relevant search experience, while remaining easy to get started with for common use cases (e.g. single domain static sites).
 
-
-<img src="./docs/src/images/light-theme-fullscreen.png" width=500 />
+![preview of Morsels' UI](https://user-images.githubusercontent.com/3306138/198333852-c6200bd4-ab4b-42aa-a1ad-f6b423af9147.png)
 
 ## Features
 
