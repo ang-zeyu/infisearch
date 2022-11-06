@@ -1,6 +1,6 @@
 # Search Features
 
-This page is mostly informational, and details some search features that may warrant more explanation:
+This page is mostly *informational*, and explains some search features in more detail:
 
 ## Ranking Model
 

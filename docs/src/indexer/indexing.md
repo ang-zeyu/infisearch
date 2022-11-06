@@ -2,7 +2,7 @@
 
 The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
-All configurations are optional, except `loaders`. The CLI tool will do nothing if the `loaders` dictionary is empty.
+Morsels' defaults should be sufficient to index most HTML files, but if not, you can configure how it is done. Enabling support for other file formats (e.g. JSON, CSV, PDF) files is also done here.
 
 ## Mapping File Data to Fields
 
@@ -10,16 +10,16 @@ All configurations are optional, except `loaders`. The CLI tool will do nothing 
 {
   "indexing_config": {
     "loaders": {
-      // Only HTML files are indexed by default
+      // Default: Only HTML files are indexed
       "HtmlLoader": {}
     }
   }
 }
 ```
 
-The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a file **"Loader"** abstraction.
+The indexer is able to handle data from HTML, JSON, CSV, TXT, or PDF files. Support for each file type is provided by a file *Loader* abstraction.
 
-You may configure loaders by including them under the **`loaders` key**, with any applicable options.
+You may configure loaders by including them under the `loaders`, with any applicable options.
 
 
 #### HTML Files: **`loaders.HtmlLoader`**
@@ -62,7 +62,6 @@ You may configure loaders by including them under the **`loaders` key**, with an
         "attr_map": {
           "data-morsels-link": "link"
         },
-        "field_name": null,
         "selector": "span[data-morsels-link]"
       },
     ]
@@ -70,9 +69,11 @@ You may configure loaders by including them under the **`loaders` key**, with an
 }
 ```
 
-1. The HTML loader traverses the document depth-first, in the order text nodes and attributes appear.
+The HTML loader indexes a document as such:
 
-2. At each element, it checks if any selectors under `selectors.selector` matches the element. If so, all descendants (elements, text) of that element will be indexed under the specified `field_name`, if any.
+1. It traverses the document depth-first, in the order text naturally appears.
+
+2. At each element, it checks if any selectors under `selectors.selector` is satisfied. If so, all descendants (elements, text) of that element are indexed under the new specified `field_name`, if any.
 
    - This process repeats as the document is traversed — if a descendant matched another different selector, the field mapping is overwritten for that descendant and its descendants.
 
@@ -213,7 +214,7 @@ Turning this off for very large collections (~> 1GB) can increase the tool's sca
 
 ## Indexing Multiple Files Under One Document
 
-You can index **multiple files** into **one document** using the reserved field [`_add_files`](./fields.md#reserved-fields). This can be particularly useful for overriding data on a case-by-case basis.
+You can index **multiple files** into **one document** using the reserved field [`_add_files`](./fields.md#reserved-fields). This can be useful if you need to override or add data but can't modify the source document easily.
 
 #### Example: Overriding a Document's Title
 
@@ -278,15 +279,15 @@ This is the number of threads to use, excluding the main thread. When unspecifie
 
 #### Memory Usage: **`num_docs_per_block`**
 
-> ⚠️ The parameters below this point allow you to adjust caching strategies, and the number of generated files. However, you should mostly be well-served by the preconfigured [scaling presets](./larger_collections.md) for such purposes.
-
 This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
 
 If your documents are very small, increasing this *may* help improve indexing performance.
 
 ⚠️ Also ensure [`num_docs_per_store`](./fields.md#field-store-granularity-num_docs_per_store-num_stores_per_dir) is a clean multiple or divisor of this parameter.
 
-## Indexing and Search Scaling (advanced)
+## Larger Collections
+
+> ⚠️ The parameters below this point allow you to adjust caching strategies, and the number of generated files. However, you should mostly be well-served by the preconfigured [scaling presets](./larger_collections.md) for such purposes.
 
 ```json
 {

@@ -45,8 +45,8 @@ Presets modify the following properties:
 - Indexing Configuration:
   - What [fields](./fields.md) are stored (`do_store`). Not set if `fields_config.fields` is present.
   - [`num_docs_per_store`](./fields.md)
-  - [`pl_limit`](./indexing.md#indexing-and-search-scaling-advanced)
-  - [`pl_cache_threshold`](./indexing.md#indexing-and-search-scaling-advanced)
+  - [`pl_limit`](./indexing.md#larger-collections)
+  - [`pl_cache_threshold`](./indexing.md#larger-collections)
   - [`with_positions`](indexing.md#miscellaneous-options)
 
 Any of these values specified in the configuration file will override that of the preset's.

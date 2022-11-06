@@ -15,13 +15,13 @@
     }
 </style>
 
-This page covers some APIs that allow you to customise some small parts of the HTML output structure.
+This page covers customising the result preview HTML output structure.
 
 Some use cases for this include:
 - The default HTML structure is not sufficient for your styling needs
 - You need to attach additional event listeners to elements
-- You want to override or insert additional content sourced from custom fields / static content (e.g. a footer)
-- You want to change the [default use case](#1-rendering-a-single-result) of linking to a web page entirely
+- You want to override or insert additional content sourced from your own fields (e.g. an image)
+- You want to change the [default use case](#1-rendering-a-single-result) of linking to a web page entirely (e.g. use client side routing)
 
 > 💡 If you only need to style the dropdown or search popup, you can include your own css file to do so [and / or override the variables](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css) exposed by the default css bundle.
 

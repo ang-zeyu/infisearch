@@ -81,7 +81,25 @@ const documentText: [string, string][] = results[0].fields;
 
 This ordered model is more complex than a regular key-value store, but enables the content hierarchy you see in Morsels' UI: *Title > Heading > Text under heading*
 
-A `Result` object also exposes 2 other convenience functions that may be useful to help deal with this format.
+## Memory Management
+
+As Morsels uses a WebWorker to run things, you would also need to perform some memory management.
+
+Once you are done with a `Query` (e.g. if a new query was run), call `free()` on the `query` object.
+
+```ts
+query.free();
+```
+
+Search interfaces usually live for the entire lifetime of the application. If you need to do so however, you should also free the `Searcher` instance:
+
+```ts
+searcher.free();
+```
+
+## Convenience Methods
+
+A `Result` object also exposes 2 other convenience functions that may be useful to help deal with the positional format of the field stores.
 
 ### 1. Retrieving Singular Fields as KV Stores
 
@@ -172,19 +190,3 @@ The `highlight()` method wraps term matches in a `<mark>` element, truncates sur
 To interact with the `(string | HTMLElement)[]` output safely (strings are unescaped) and efficiently, you could use the DOM APIs `.append(...)` and `.textContent = ...` in particular.
 
 You can also call `highlightHTML()` which returns a single escaped HTML string. This is less efficient, but more convenient to use directly via `.innerHTML = '...'`.
-
-## Memory Management
-
-As Morsels uses a WebWorker to run things, you would also need to perform some memory management.
-
-Once you are done with a `Query` (e.g. if a new query was run), call `free()` on the `query` object.
-
-```ts
-query.free();
-```
-
-Search interfaces usually live for the entire lifetime of the application. If you need to do so however, you should also free the `Searcher` instance:
-
-```ts
-searcher.free();
-```
