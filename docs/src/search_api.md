@@ -136,16 +136,21 @@ searcher.free();
 
 ## Convenience Methods
 
-A `Result` object also exposes 2 other convenience functions that may be useful to help deal with the positional format of the field stores.
+A `Result` object also exposes 2 other convenience functions that may be useful to help deal with the positional format of the `text` type field stores.
 
 ### 1. Retrieving Singular Fields as KV Stores
 
 Certain fields will only occur once in every document (e.g. titles, `<h1>` tags). To retrieve these easily, you can use the `getKVFields` method:
 
 ```ts
-// Assign the fields you want populated as null, then pass it into the method
-const fields = { link: null, _relative_fp: null, title: null, h1: null };
-result.getKVFields(fields);
+const kvFields = result.getKVFields('link', '_relative_fp', 'title', 'h1');
+
+> console.log(kvFields)
+{
+  "_relative_fp": "...",
+  "title": "..."
+  // Missing fields will not be populated
+}
 ```
 
 Only the first `[fieldName, fieldText]` pair for each field will be populated into the `fields` object.

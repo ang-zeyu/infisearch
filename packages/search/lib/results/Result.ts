@@ -60,21 +60,24 @@ export class Result {
   getHeadingBodyExcerpts(): Segment[] {
     return linkHeadings(this.fields.texts, this._mrlRegexes);
   }
-  
-  getKVFields(fieldsToPopulate: { [fieldName: string]: null | string }) {
-    const numFields = Object.keys(fieldsToPopulate).length;
+
+  getKVFields(...fieldNames: string[]): { [fieldName: string]: string } {
+    const numFields = fieldNames.length;
+    const fieldsToPopulate = Object.create(null);
     let numFieldsEncountered = 0;
 
     for (const fieldNameAndField of this.fields.texts) {
       const [fieldName, fieldText] = fieldNameAndField;
-      if (fieldsToPopulate[fieldName] === null) {
+      if (!(fieldName in fieldsToPopulate)) {
         fieldsToPopulate[fieldName] = fieldText;
         numFieldsEncountered += 1;
-      }
 
-      if (numFieldsEncountered === numFields) {
-        break;
+        if (numFieldsEncountered === numFields) {
+          break;
+        }
       }
     }
+
+    return fieldsToPopulate;
   }
 }
