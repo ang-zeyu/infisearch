@@ -1,13 +1,10 @@
-use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::io::Write;
 use std::path::{PathBuf, Path};
-use std::str;
 use std::sync::Arc;
 
 use log::warn;
 use path_absolutize::Absolutize;
-use regex::Regex;
 use rustc_hash::FxHashMap;
 
 use morsels_common::tokenize::IndexerTokenizer;
@@ -15,6 +12,7 @@ use morsels_common::tokenize::IndexerTokenizer;
 use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos, EnumKind, EnumInfo};
 use crate::loader::LoaderBoxed;
 use crate::i_debug;
+use crate::utils::escape_json;
 
 pub const DEFAULT_ZONE_SEPARATION: u32 = 10;
 
@@ -122,45 +120,16 @@ impl PartialEq for DocIdAndFieldLengthsComparator {
     }
 }
 
-// Adapted from https://lise-henry.github.io/articles/optimising_strings.html
-fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
-    lazy_static! {
-        static ref REGEX: Regex = Regex::new(r#"[\n\r\t"\\\x08\x0c]"#).unwrap();
-    }
-    let input = input.into();
-    let first = REGEX.find(&input);
-    if let Some(first) = first {
-        let start = first.start();
-        let len = input.len();
-        let mut output: Vec<u8> = Vec::with_capacity(len + len / 2);
-        output.extend_from_slice(input[0..start].as_bytes());
-        let rest = input[start..].bytes();
-        for c in rest {
-            match c {
-                8 => output.extend_from_slice(b"\\b"),
-                12 => output.extend_from_slice(b"\\f"),
-                b'\n' => output.extend_from_slice(b"\\n"),
-                b'\r' => output.extend_from_slice(b"\\r"),
-                b'\t' => output.extend_from_slice(b"\\t"),
-                b'"' => output.extend_from_slice(b"\\\""),
-                b'\\' => output.extend_from_slice(b"\\\\"),
-                // All other control characters should use unicode escape sequences
-                0..=31 => output.extend_from_slice(format!("\\u00{:02X?}", c).as_bytes()),
-                _ => output.push(c),
-            }
-        }
-        Cow::Owned(unsafe { String::from_utf8_unchecked(output) })
-    } else {
-        input
-    }
+lazy_static! {
+    static ref NULL_FIELD: FieldInfo = FieldInfo {
+        name: "".to_owned(),
+        escaped_name: "".to_owned(),
+        id: 0,
+        enum_info: None,
+        store_text: false,
+        weight: 0.0, k: 0.0, b: 0.0
+    };
 }
-
-const NULL_FIELD: FieldInfo = FieldInfo {
-    id: 0,
-    enum_info: None,
-    store_text: false,
-    weight: 0.0, k: 0.0, b: 0.0
-};
 
 impl WorkerMiner {
     pub fn new(
@@ -333,8 +302,7 @@ impl WorkerMiner {
                 continue;
             }
 
-            let field_info = self.field_infos.field_infos_map.get(&field_name).unwrap_or(&NULL_FIELD);
-            let field_id = field_info.id;
+            let field_info = self.field_infos.field_infos_by_name.get(&field_name).unwrap_or(&NULL_FIELD);
 
             // ----------------------------------------------
             // Json field stores
@@ -344,11 +312,11 @@ impl WorkerMiner {
                 } else {
                     *is_first_stored_field = false;
                 }
-                field_store_buffered_writer.write_all(b"[").unwrap();
-                field_store_buffered_writer.write_all(field_id.to_string().as_bytes()).unwrap();
-                field_store_buffered_writer.write_all(b",\"").unwrap();
+                field_store_buffered_writer.write_all(b"[\"").unwrap();
+                field_store_buffered_writer.write_all(field_info.escaped_name.as_bytes()).unwrap();
+                field_store_buffered_writer.write_all(b"\",\"").unwrap();
                 field_store_buffered_writer
-                    .write_all(find_u8_unsafe_morecap(&field_text).as_bytes())
+                    .write_all(escape_json::escape(&field_text).as_bytes())
                     .unwrap();
                 field_store_buffered_writer.write_all(b"\"]").unwrap();
             }
@@ -374,7 +342,8 @@ impl WorkerMiner {
             }
 
             let terms = self.tokenizer.tokenize(&mut field_text);
-            let field_lengths = field_lengths.get_mut(field_id as usize).unwrap();
+            let field_id = field_info.id as usize;
+            let field_lengths = field_lengths.get_mut(field_id).unwrap();
 
             for term in terms {
                 if let Some(term) = term {
@@ -403,7 +372,7 @@ impl WorkerMiner {
                         term_doc = term_docs.last_mut().unwrap();
                     }
 
-                    let doc_field = term_doc.doc_fields.get_mut(field_id as usize).unwrap();
+                    let doc_field = term_doc.doc_fields.get_mut(field_id).unwrap();
                     doc_field.field_tf += 1;
                     if self.with_positions {
                         doc_field.positions.push(*pos);

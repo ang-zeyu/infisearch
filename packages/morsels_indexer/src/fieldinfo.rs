@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -8,6 +7,7 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::indexer::output_config::MorselsOutputConfig;
+use crate::utils::escape_json;
 
 pub static RELATIVE_FP_FIELD: &str = "_relative_fp";
 pub static ADD_FILES_FIELD: &str = "_add_files";
@@ -94,6 +94,7 @@ impl Default for FieldsConfig {
 impl FieldsConfig {
     pub fn get_field_infos(&self, output_folder_path: &Path, is_incremental: bool) -> Arc<FieldInfos> {
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
+        let mut field_infos_by_id: Vec<FieldInfo> = Vec::with_capacity(self.fields.len());
 
         let old_config = if is_incremental {
             let old_output_conf_str = std::fs::read_to_string(output_folder_path.join("morsels_config.json")).unwrap();
@@ -103,69 +104,79 @@ impl FieldsConfig {
             Vec::new()
         };
 
+        let mut num_scored_fields = 0;
         let mut num_enum_fields = 0;
         for field_config in self.fields.iter() {
-            field_infos_by_name.insert(
-                field_config.name.to_owned(),
-                FieldInfo {
-                    id: 0,
-                    enum_info: if field_config.storage.iter().any(|s| s == "enum") {
-                        let enum_id = num_enum_fields;
-                        num_enum_fields += 1;
+            if field_config.weight != 0.0 {
+                num_scored_fields += 1;
+            }
 
-                        let enum_values = old_config.iter()
-                            .find_map(|field_info_output| if let Some(EnumInfo {
-                                enum_id: curr_enum_id, enum_values
-                            }) = &field_info_output.enum_info {
-                                if *curr_enum_id == enum_id {
-                                    Some(enum_values.clone())
-                                } else {
-                                    None
-                                }
+            field_infos_by_id.push(FieldInfo {
+                name: field_config.name.to_owned(),
+                escaped_name: escape_json::escape(&field_config.name).into_owned(),
+                id: 0,
+                enum_info: if field_config.storage.iter().any(|s| s == "enum") {
+                    let enum_id = num_enum_fields;
+                    num_enum_fields += 1;
+
+                    let enum_values = old_config.iter()
+                        .find_map(|field_info_output| if let Some(EnumInfo {
+                            enum_id: curr_enum_id, enum_values
+                        }) = &field_info_output.enum_info {
+                            if *curr_enum_id == enum_id {
+                                Some(enum_values.clone())
                             } else {
                                 None
-                            })
-                            .unwrap_or_else(Vec::new);
-
-                        Some(EnumInfo {
-                            enum_id,
-                            enum_values,
+                            }
+                        } else {
+                            None
                         })
-                    } else {
-                        None
-                    },
-                    store_text: field_config.storage.iter().any(|s| s == "text"),
-                    weight: field_config.weight,
-                    k: field_config.k,
-                    b: field_config.b,
+                        .unwrap_or_else(Vec::new);
+
+                    Some(EnumInfo {
+                        enum_id,
+                        enum_values,
+                    })
+                } else {
+                    None
                 },
-            );
+                store_text: field_config.storage.iter().any(|s| s == "text"),
+                weight: field_config.weight,
+                k: field_config.k,
+                b: field_config.b,
+            });
         }
 
+        // ------------------------------------------------------
+        // Assign field ids
         // Larger-weight fields are assigned lower ids
         // Stable sort to preserve incremental indexing field order
-        let mut field_entries: Vec<(&String, &mut FieldInfo)> = field_infos_by_name.iter_mut().collect();
-        field_entries.sort_by(|a, b| {
-            if a.1.weight < b.1.weight {
-                Ordering::Greater
-            } else if a.1.weight > b.1.weight {
-                Ordering::Less
-            } else {
-                Ordering::Equal
-            }
+
+        field_infos_by_id.sort_by(|a, b| {
+            b.weight.partial_cmp(&a.weight).unwrap_or(a.name.cmp(&b.name))
         });
 
-        for (field_id, (_, field_info)) in field_entries.into_iter().enumerate() {
+        for (field_id, field_info) in field_infos_by_id.iter_mut().enumerate() {
             field_info.id = field_id as u8;
+            field_infos_by_name.insert(field_info.name.to_owned(), field_info.clone());
         }
 
-        Arc::new(FieldInfos::init(
+        // ------------------------------------------------------
+
+        let field_output_folder_path = output_folder_path.join("field_store");
+
+        std::fs::create_dir_all(&field_output_folder_path)
+            .expect("Failed to create field store output folder in output directory");
+
+        Arc::new(FieldInfos {
             field_infos_by_name,
-            self.num_docs_per_store,
+            field_infos_by_id,
+            num_scored_fields,
             num_enum_fields,
-            self.num_stores_per_dir,
-            output_folder_path,
-        ))
+            num_docs_per_store: self.num_docs_per_store,
+            num_stores_per_dir: self.num_stores_per_dir,
+            field_output_folder_path,
+        })
     }
 }
 
@@ -202,6 +213,8 @@ pub struct FieldConfig {
 
 #[derive(Debug, Clone)]
 pub struct FieldInfo {
+    pub name: String,
+    pub escaped_name: String,
     pub id: u8,
     pub weight: f32,
     pub k: f32,
@@ -212,7 +225,7 @@ pub struct FieldInfo {
 
 // Initialised json field configuration
 pub struct FieldInfos {
-    pub field_infos_map: FxHashMap<String, FieldInfo>,
+    pub field_infos_by_name: FxHashMap<String, FieldInfo>,
 
     pub field_infos_by_id: Vec<FieldInfo>,
 
@@ -241,41 +254,10 @@ pub struct FieldInfoOutput {
 }
 
 impl FieldInfos {
-    pub fn init(
-        field_infos_map: FxHashMap<String, FieldInfo>,
-        num_docs_per_store: u32,
-        num_enum_fields: usize,
-        num_stores_per_dir: u32,
-        output_folder_path: &Path,
-    ) -> FieldInfos {
-        let num_scored_fields = field_infos_map
-            .values()
-            .filter(|&field_info| field_info.weight != 0.0)
-            .count();
-
-        let mut field_infos_by_id: Vec<FieldInfo> = field_infos_map.values().cloned().collect();
-        field_infos_by_id.sort_by_key(|fi| fi.id);
-
-        let field_output_folder_path = output_folder_path.join("field_store");
-
-        std::fs::create_dir_all(&field_output_folder_path)
-            .expect("Failed to create field store output folder in output directory");
-
-        FieldInfos {
-            field_infos_map,
-            field_infos_by_id,
-            num_scored_fields,
-            num_enum_fields,
-            num_docs_per_store,
-            num_stores_per_dir,
-            field_output_folder_path,
-        }
-    }
-
     pub fn to_output(&self) -> Vec<FieldInfoOutput> {
-        let mut field_infos: Vec<FieldInfoOutput> = Vec::with_capacity(self.field_infos_map.len());
+        let mut field_infos: Vec<FieldInfoOutput> = Vec::with_capacity(self.field_infos_by_name.len());
 
-        for (field_name, field_info) in self.field_infos_map.iter() {
+        for (field_name, field_info) in self.field_infos_by_name.iter() {
             field_infos.push(FieldInfoOutput {
                 id: field_info.id,
                 enum_info: field_info.enum_info.clone(),

@@ -200,7 +200,7 @@ impl DocInfos {
             .map(|(enum_id, &last_ev_id)| {
                 if last_ev_id == EnumMax::MAX {
                     // Warn if enum values > EnumMax::MAX
-                    let field_name = field_infos.field_infos_map.iter()
+                    let field_name = field_infos.field_infos_by_name.iter()
                         .find_map(|(field_name, field_info)| {
                             if let Some(EnumInfo { enum_id: curr_enum_id, enum_values: _ }) = &field_info.enum_info {
                                 if *curr_enum_id == enum_id {

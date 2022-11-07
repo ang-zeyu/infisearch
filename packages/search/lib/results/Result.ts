@@ -31,7 +31,7 @@ export class Result {
     // -------------------------------------
     // Retrieve and populate textual fields
     const fileUrl = getFieldUrl(baseUrl, docId, cfg);
-    const rawJson = await cache.getJson(fileUrl);
+    const rawJson: [string, string][][] = await cache.getJson(fileUrl);
 
     let idx = docId % cfg.numDocsPerStore;
     const { numDocsPerBlock } = cfg.indexingConfig;
@@ -39,8 +39,7 @@ export class Result {
       idx %= numDocsPerBlock;
     }
 
-    const texts = rawJson[idx]
-      .map(([fieldId, content]) => [cfg.fieldInfos[fieldId].name, content]);
+    const texts = rawJson[idx];
     // -------------------------------------
 
     // -------------------------------------
