@@ -271,6 +271,13 @@ const testSuite = async (configFile, with_positions, with_enums) => {
 
   await typeText('+detec* +deleted +changed +added +dynamic');
   await assertSingle('detecting deleted, changed, or added');
+
+  /*
+  Integration test with field filters.
+  */
+  await typeText('title:star');
+  await assertSingle('started');
+
   // ------------------------------------------------------
 
   // ------------------------------------------------------

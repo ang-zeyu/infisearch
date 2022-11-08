@@ -126,9 +126,11 @@ impl Searcher {
         query_part.is_mandatory = old_query_part.is_mandatory;
         query_part.is_subtracted = old_query_part.is_subtracted;
         query_part.is_inverted = old_query_part.is_inverted;
+        query_part.field_name = old_query_part.field_name;
         old_query_part.is_mandatory = false;
         old_query_part.is_subtracted = false;
         old_query_part.is_inverted = false;
+        old_query_part.field_name = None;
 
         (expanded_terms, old_query_part)
     }
