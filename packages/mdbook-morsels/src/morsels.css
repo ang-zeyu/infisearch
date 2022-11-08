@@ -167,14 +167,16 @@
 
 #morsels-search {
     width: 100%;
-    border-radius: 6px;
+    border-radius: 3px;
     box-sizing: border-box;
-    font-size: 15px;
-    padding: 0.5em 0.75em;
-    outline: 2px solid var(--searchbar-border-color);
-    border: none;
+    padding: 10px 16px;
+    border: 1px solid var(--searchbar-border-color);
     background: var(--searchbar-bg);
     color: var(--searchbar-fg);
+}
+
+#morsels-search:focus:not(.morsels-button-input) {
+    box-shadow: 0 0 3px var(--searchbar-shadow-color);
 }
 
 #morsels-search.morsels-button-input {

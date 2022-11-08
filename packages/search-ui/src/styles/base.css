@@ -815,7 +815,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     font-size: 0.93em;
     line-height: 1.15;
     word-break: break-word;
-    padding: 4px 5px 4px 11px;
+    padding: 4px 5px 5px 11px;
     color: var(--morsels-body-fg);
 }
 

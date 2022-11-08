@@ -11,11 +11,11 @@
 }
 
 .morsels-list-item {
-    margin: 11px 13px;
+    margin: 10px 13px;
 }
 
 .morsels-fs-root .morsels-list-item {
-    margin: 13px 3px;
+    margin: 12px 3px;
 }
 
 @media screen and (max-width: 768px) {
