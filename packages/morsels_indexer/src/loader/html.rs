@@ -169,7 +169,7 @@ impl<'de> Deserialize<'de> for HtmlLoader {
     where
         D: Deserializer<'de>,
     {
-        panic!("Called deserialize for CsvLoader")
+        panic!("Called deserialize for HtmlLoader")
     }
 }
 

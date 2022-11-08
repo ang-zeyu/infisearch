@@ -1,24 +1,19 @@
 use std::fs::File;
 use std::io::Write;
-use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use morsels_common::MorselsLanguageConfig;
 
 use crate::MORSELS_VERSION;
 use crate::fieldinfo::{FieldInfoOutput, EnumInfo};
-use crate::loader::LoaderBoxed;
 use super::Indexer;
 
-use rustc_hash::FxHashMap;
 use serde::{Serialize, Deserialize};
 
 // Separate struct to support serializing for --config-init option but not output config
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct MorselsIndexingOutputConfig {
-    #[serde(skip_deserializing)]
-    loaders: FxHashMap<String, LoaderBoxed>,
     pl_names_to_cache: Vec<u32>,
     num_docs_per_block: u32,
     num_pls_per_dir: u32,
@@ -40,16 +35,8 @@ pub struct MorselsOutputConfig {
     num_stores_per_dir: u32,
 }
 
-pub fn write_output_config(mut indexer: Indexer, mut enums_ev_strs: Vec<Vec<String>>) {
+pub fn write_output_config(indexer: Indexer, mut enums_ev_strs: Vec<Vec<String>>) {
     drop(indexer.doc_miner);
-
-    let loaders = if let Ok(loaders) = Arc::try_unwrap(std::mem::take(&mut indexer.loaders)) {
-        loaders.into_iter()
-            .map(|loader| (loader.get_name(), loader))
-            .collect()
-    } else {
-        panic!("No other thread should be holding onto loaders when writing output config");
-    };
 
     // Add in the enum string values sorted according to their enum_id and ev_ids
     let mut field_infos = indexer.field_infos.to_output();
@@ -64,7 +51,6 @@ pub fn write_output_config(mut indexer: Indexer, mut enums_ev_strs: Vec<Vec<Stri
         index_ver: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis().to_string(),
         last_doc_id: indexer.doc_id_counter,
         indexing_config: MorselsIndexingOutputConfig {
-            loaders,
             pl_names_to_cache: indexer.incremental_info.pl_names_to_cache.clone(),
             num_docs_per_block: indexer.indexing_config.num_docs_per_block,
             num_pls_per_dir: indexer.indexing_config.num_pls_per_dir,

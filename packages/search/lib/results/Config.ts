@@ -45,7 +45,6 @@ export interface MorselsConfig {
   indexVer: string,
   lastDocId: number,
   indexingConfig: {
-    loaders: { [loader: string]: any },
     plNamesToCache: number[],
     numDocsPerBlock: number,
     numPlsPerDir: number,

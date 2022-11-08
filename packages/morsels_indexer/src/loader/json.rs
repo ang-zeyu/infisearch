@@ -144,6 +144,6 @@ impl<'de> Deserialize<'de> for JsonLoader {
     where
         D: Deserializer<'de>,
     {
-        panic!("Called deserialize for CsvLoader")
+        panic!("Called deserialize for JsonLoader")
     }
 }
