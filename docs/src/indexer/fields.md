@@ -9,17 +9,16 @@ It may be helpful to first understand what the default fields are in Morsels, an
 ```json
 {
   "fields_config": {
-    "fields": [
-      { "name": "title",       "weight": 2.0, "k": 1.2, "b": 0.15 },
-      { "name": "h1",          "weight": 2.0, "k": 1.2, "b": 0.15 },
-      { "name": "heading",     "weight": 1.5, "k": 1.2, "b": 0.25 },
-      { "name": "body",        "weight": 1.0 },
-      { "name": "headingLink", "weight": 0.0 },
-      { "name": "link",        "weight": 0.0 },
-
-      // An internal, hardcoded field (see "Reserved Fields")
-      { "name": "_relative_fp", "weight": 0.0 }
-    ]
+    "fields": {
+      "title":        { "weight": 2.0, "k": 1.2, "b": 0.15 },
+      "h1":           { "weight": 2.0, "k": 1.2, "b": 0.15 },
+      "heading":      { "weight": 1.5, "k": 1.2, "b": 0.25 },
+      "body":         { "weight": 1.0 },
+      // The default weight is 0.0. These fields are stored, but not searchable.
+      "headingLink":  {},
+      "link":         {},
+      "_relative_fp": {} // An internal, reserved field (see "Reserved Fields")
+    }
   }
 }
 ```
@@ -42,6 +41,18 @@ It may be helpful to first understand what the default fields are in Morsels, an
 You can add your own fields to index as well, which will be factored into Morsels' search algorithms.
 
 As explained in the default field configurations however, the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, for example a link to an icon, you will need to [alter](../search_configuration_renderers.md#rendering-search-results) the HTML outputs, or use the [search API](../search_api.md).
+
+If don't need any of Morsels' default fields, you can also assign the field name a value of `null` to remove it completely.
+
+```json
+{
+  "fields_config": {
+    "fields": {
+      "h1": null
+    }
+  }
+}
+```
 
 ## Reserved Fields
 
@@ -81,7 +92,7 @@ You can also use Morsels' regular inverted index and flexible [boolean syntaxes]
 
 #### Field Scoring Parameters
 
-**`weight`**
+**`weight=0.0`**
 
 This parameter is a boost / penalty multiplied to a individual field's score.
 

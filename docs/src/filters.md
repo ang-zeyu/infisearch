@@ -10,25 +10,11 @@ First, we should setup a custom [field](./indexer/fields.md) inside your indexer
 
 ```json
 "fields_config": {
-  "fields": [
-    // Copy in the default fields,
-    { "name": "title",        "weight": 2.0, "k": 1.2, "b": 0.15 },
-    { "name": "h1",           "weight": 2.0, "k": 1.2, "b": 0.15 },
-    { "name": "heading",      "weight": 1.5, "k": 1.2, "b": 0.25 },
-    { "name": "body",         "weight": 1.0 },
-    { "name": "headingLink",  "weight": 0.0 },
-    { "name": "link",         "weight": 0.0 },
-    { "name": "_relative_fp", "weight": 0.0 },
-
-    // ----------------------------
-    // Then add this field
-    {
-      "name": "weatherField",
-      "storage": ["enum"],
-      "weight": 0.0
+  "fields": {
+    "weatherField": {
+      "storage": ["enum"]
     }
-    // ----------------------------
-  ]
+  }
 }
 ```
 

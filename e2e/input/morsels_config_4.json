@@ -3,38 +3,7 @@
     "num_docs_per_store": 1000,
     "cache_all_field_stores": true,
     "num_stores_per_dir": 1000,
-    "fields": [
-      {
-        "name": "title",
-        "weight": 2.0,
-        "k": 1.2,
-        "b": 0.15
-      },
-      {
-        "name": "heading",
-        "weight": 1.5,
-        "k": 1.2,
-        "b": 0.25
-      },
-      {
-        "name": "body",
-        "weight": 1.0,
-        "k": 1.2,
-        "b": 0.75
-      },
-      {
-        "name": "headingLink",
-        "weight": 0.0,
-        "k": 1.2,
-        "b": 0.75
-      },
-      {
-        "name": "_relative_fp",
-        "weight": 0.0,
-        "k": 1.2,
-        "b": 0.75
-      }
-    ]
+    "fields": {}
   },
   "lang_config": {
     "lang": "ascii",

@@ -2,48 +2,41 @@
   "fields_config": {
     "num_docs_per_store": 200,
     "num_stores_per_dir": 1000,
-    "fields": [
-      {
-        "name": "title",
+    "fields": {
+      "title": {
         "weight": 2.0,
         "k": 1.2,
         "b": 0.15
       },
-      {
-        "name": "heading",
+      "h1": null,
+      "heading": {
         "weight": 1.5,
         "k": 1.2,
-        "b": 0.25
+        "b": 0.15
       },
-      {
-        "name": "body",
+      "body": {
         "weight": 1.0,
         "k": 1.2,
         "b": 0.75
       },
-      {
-        "name": "headingLink",
+      "headingLink": {
         "weight": 0.0,
         "k": 1.2,
         "b": 0.75
       },
-      {
-        "name": "_relative_fp",
+      "_relative_fp": {
         "weight": 0.0,
         "k": 1.2,
         "b": 0.75
       },
-      {
-        "name": "weatherField",
+      "weatherField": {
         "storage": ["enum"],
         "weight": 0.0
       },
-      {
-        "name": "moodField",
-        "storage": ["enum"],
-        "weight": 0.0
+      "moodField": {
+        "storage": ["enum"]
       }
-    ]
+    }
   },
   "lang_config": {
     "lang": "ascii",

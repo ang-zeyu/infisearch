@@ -178,6 +178,8 @@ impl MorselsConfig {
         let json_config: Value = serde_json::from_str(&raw_config)
             .expect("morsels_config.json does not match schema!");
 
+        config.fields_config.merge_default_fields();
+
         match config.preset.as_str() {
             "small" => {
                 preset_small::apply_config(&mut config, &json_config);

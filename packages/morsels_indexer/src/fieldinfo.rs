@@ -1,3 +1,4 @@
+use std::iter::FromIterator;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -26,44 +27,37 @@ fn get_default_cache_all_field_stores() -> bool {
     true
 }
 
-fn get_default_fields() -> Vec<FieldConfig> {
-    vec![
-        FieldConfig {
-            name: "title".to_owned(),
+fn get_default_fields() -> FxHashMap<String, Option<FieldConfig>> {
+    FxHashMap::from_iter(vec![
+        ("title".to_owned(), Some(FieldConfig {
             storage: get_default_storage(),
             weight: 2.0, k: 1.2, b: 0.15
-        },
-        FieldConfig {
-            name: "h1".to_owned(),
+        })),
+        ("h1".to_owned(), Some(FieldConfig {
             storage: get_default_storage(),
             weight: 2.0, k: 1.2, b: 0.15
-        },
-        FieldConfig {
-            name: "heading".to_owned(),
+        })),
+        ("heading".to_owned(), Some(FieldConfig {
             storage: get_default_storage(),
             weight: 1.5, k: 1.2, b: 0.25
-        },
-        FieldConfig {
-            name: "body".to_owned(),
+        })),
+        ("body".to_owned(), Some(FieldConfig {
             storage: get_default_storage(),
             weight: 1.0, k: 1.2, b: 0.75
-        },
-        FieldConfig {
-            name: "headingLink".to_owned(),
+        })),
+        ("headingLink".to_owned(), Some(FieldConfig {
             storage: get_default_storage(),
             weight: 0.0, k: 1.2, b: 0.75
-        },
-        FieldConfig {
-            name: RELATIVE_FP_FIELD.to_owned(),
+        })),
+        (RELATIVE_FP_FIELD.to_owned(), Some(FieldConfig {
             storage: get_default_storage(),
             weight: 0.0, k: 1.2, b: 0.75
-        },
-        FieldConfig {
-            name: "link".to_owned(),
+        })),
+        ("link".to_owned(), Some(FieldConfig {
             storage: get_default_storage(),
             weight: 0.0, k: 1.2, b: 0.75
-        },
-    ]
+        })),
+    ])
 }
 
 // Raw Json field configuration
@@ -75,8 +69,8 @@ pub struct FieldsConfig {
     pub num_stores_per_dir: u32,
     #[serde(default="get_default_cache_all_field_stores")]
     pub cache_all_field_stores: bool,
-    #[serde(default="get_default_fields")]
-    pub fields: Vec<FieldConfig>,
+    #[serde(default="FxHashMap::default")]
+    pub fields: FxHashMap<String, Option<FieldConfig>>,
 }
 
 impl Default for FieldsConfig {
@@ -86,12 +80,18 @@ impl Default for FieldsConfig {
             num_docs_per_store: get_default_num_docs_per_store(),
             num_stores_per_dir: get_default_num_field_stores_per_dir(),
             cache_all_field_stores: get_default_cache_all_field_stores(),
-            fields: get_default_fields(),
+            fields: FxHashMap::default(),
         }
     }
 }
 
 impl FieldsConfig {
+    pub fn merge_default_fields(&mut self) {
+        let mut fields = get_default_fields();
+        std::mem::swap(&mut fields, &mut self.fields);
+        self.fields.extend(fields)
+    }
+
     pub fn get_field_infos(&self, output_folder_path: &Path, is_incremental: bool) -> Arc<FieldInfos> {
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
         let mut field_infos_by_id: Vec<FieldInfo> = Vec::with_capacity(self.fields.len());
@@ -106,14 +106,19 @@ impl FieldsConfig {
 
         let mut num_scored_fields = 0;
         let mut num_enum_fields = 0;
-        for field_config in self.fields.iter() {
+        for (field_name, field_config) in self.fields.iter() {
+            if field_config.is_none() {
+                continue;
+            }
+
+            let field_config = unsafe { field_config.as_ref().unwrap_unchecked() };
             if field_config.weight != 0.0 {
                 num_scored_fields += 1;
             }
 
             field_infos_by_id.push(FieldInfo {
-                name: field_config.name.to_owned(),
-                escaped_name: escape_json::escape(&field_config.name).into_owned(),
+                name: field_name.to_owned(),
+                escaped_name: escape_json::escape(field_name).into_owned(),
                 id: 0,
                 enum_info: if field_config.storage.iter().any(|s| s == "enum") {
                     let enum_id = num_enum_fields;
@@ -187,6 +192,10 @@ pub struct EnumInfo {
     pub enum_values: Vec<String>,
 }
 
+fn get_default_weight() -> f32 {
+    0.0
+}
+
 fn get_default_k() -> f32 {
     1.2
 }
@@ -201,9 +210,9 @@ fn get_default_storage() -> Vec<String> {
 
 #[derive(Serialize, Deserialize)]
 pub struct FieldConfig {
-    pub name: String,
     #[serde(default = "get_default_storage")]
     pub storage: Vec<String>,
+    #[serde(default = "get_default_weight")]
     pub weight: f32,
     #[serde(default = "get_default_k")]
     pub k: f32,
