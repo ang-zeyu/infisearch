@@ -6,7 +6,7 @@ To set these up, you will need to first consider your search domain. For example
 
 For this guide, let's suppose we have a bunch of weather forecast articles and want to support filtering them by the weather (sunny, warm, cloudy).
 
-First, we should setup a custom [field](./indexer/fields.md) inside your indexer configuration file.
+First, we should setup a custom [field](./indexer/fields.md) inside the indexer configuration file.
 
 ```json
 "fields_config": {
@@ -26,49 +26,16 @@ For this guide, let's assume we're dealing with a bunch of HTML weather forecast
 
 ```json
 "indexing_config": {
-    "loaders": {
-        "HtmlLoader": {
-            "selectors": [
-                // Copy in the default selectors,
-                {
-                    "attr_map": {},
-                    "field_name": "title",
-                    "selector": "title"
-                },
-                {
-                    "attr_map": {},
-                    "field_name": "h1",
-                    "selector": "h1"
-                },
-                {
-                    "attr_map": {},
-                    "field_name": "body",
-                    "selector": "body"
-                },
-                {
-                    "attr_map": {
-                        "id": "headingLink"
-                    },
-                    "field_name": "heading",
-                    "selector": "h2,h3,h4,h5,h6"
-                },
-                {
-                    "attr_map": {
-                        "data-morsels-link": "link"
-                    },
-                    "selector": "span[data-morsels-link]"
-                },
-                // ----------------------------
-                // Then add this field
-                {
-                    "attr_map": {},
-                    "selector": "#weather",
-                    "field_name": "weatherField" // matching our earlier defined field
-                }
-                // ----------------------------
-            ]
+  "loaders": {
+    "HtmlLoader": {
+      "selectors": {
+        "#weather": {
+          // matching our earlier defined field
+          "field_name": "weatherField"
         }
+      }
     }
+  }
 }
 ```
 

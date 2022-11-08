@@ -42,7 +42,7 @@ You can add your own fields to index as well, which will be factored into Morsel
 
 As explained in the default field configurations however, the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, for example a link to an icon, you will need to [alter](../search_configuration_renderers.md#rendering-search-results) the HTML outputs, or use the [search API](../search_api.md).
 
-If don't need any of Morsels' default fields, you can also assign the field name a value of `null` to remove it completely.
+If don't need any of Morsels' default fields, you can also assign a value of `null` to remove it completely.
 
 ```json
 {

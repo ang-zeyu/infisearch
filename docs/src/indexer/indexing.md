@@ -31,40 +31,37 @@ You may configure loaders by including them under the `loaders`, with any applic
       // Selectors to exclude from indexing
       "script,style,form,nav,[data-morsels-ignore]"
     ],
-    "selectors": [
-      {
-        "attr_map": {},
-        "field_name": "title",
-        "selector": "title"
+    "selectors": {
+      "title": {
+        "field_name": "title"
       },
-      // <h1> tags are indexed into a separate field,
-      // and has priority over the title in the generated SERP.
-      {
-        "attr_map": {},
-        "field_name": "h1",
-        "selector": "h1"
+
+      "h1": {
+        // <h1> tags are indexed into a separate field,
+        // and is used in the result preview over the title when available.
+        "field_name": "h1"
       },
-      {
-        "attr_map": {},
-        "field_name": "body",
-        "selector": "body"
-      },
-      {
+
+      "h2,h3,h4,h5,h6": {
         "attr_map": {
-          "id": "headingLink" // "store the id attribute under headingLink"
+          // "store the id attribute under headingLink"
+          "id": "headingLink"
         },
-        "field_name": "heading",
-        "selector": "h2,h3,h4,h5,h6"
+        "field_name": "heading"
       },
+
+      "body": {
+        "field_name": "body"
+      },
+
       // Provides a means to override the link used in the result preview
       // See "Linking to other pages" for more information
-      {
+      "span[data-morsels-link]": {
         "attr_map": {
           "data-morsels-link": "link"
-        },
-        "selector": "span[data-morsels-link]"
-      },
-    ]
+        }
+      }
+    }
   }
 }
 ```
@@ -73,15 +70,19 @@ The HTML loader indexes a document as such:
 
 1. It traverses the document depth-first, in the order text naturally appears.
 
-2. At each element, it checks if any selectors under `selectors.selector` is satisfied. If so, all descendants (elements, text) of that element are indexed under the new specified `field_name`, if any.
+2. At each element, it checks if any selectors specified as keys under `HtmlLoader.selectors` is satisfied. If so, all descendants (elements, text) of that element are indexed under the newly specified `field_name`, if any.
 
    - This process repeats as the document is traversed — if a descendant matched another different selector, the field mapping is overwritten for that descendant and its descendants.
 
    - The `attr_map` option allows indexing attributes of specific elements under fields as well.
 
+   - All selectors are matched in arbitrary order by default. To **specify an order**, add the `priority: n` key to your selector definition, where `n` is any integer.
+
 To **exclude elements** from indexing, you can use the `exclude_selectors` option, or add the in-built `data-morsels-ignore` attribute to your HTML.
 
 If needed, you can also index **HTML fragments** that are incomplete documents. To match the entire fragment, use the `body` selector.
+
+Lastly, if you need to remove a default selector, simply replace its definition with `null`. For example, `"h2,h3,h4,h5,h6": null`.
 
 #### JSON Files: **`loaders.JsonLoader`**
 

@@ -18,32 +18,21 @@
         "exclude_selectors": [
           "script,style,#sidebar,#menu-bar,[data-morsels-ignore]"
         ],
-        "selectors": [
-          {
-            "attr_map": {},
-            "field_name": "title",
-            "selector": "title"
-          },
-          {
-            "attr_map": {},
-            "field_name": "body",
-            "selector": "body"
-          },
-          {
+        "selectors": {
+          "h1": null,
+          "h2,h3,h4,h5,h6": null,
+          "h1,h2,h3,h4,h5,h6": {
             "attr_map": {
               "id": "headingLink"
             },
-            "field_name": "heading",
-            "selector": "h1,h2,h3,h4,h5,h6"
+            "field_name": "heading"
           },
-          {
+          "div[also-index]": {
             "attr_map": {
               "also-index": "_add_files"
-            },
-            "selector": "div[also-index]"
+            }
           }
-        ],
-        "type": "HtmlLoader"
+        }
       },
       "JsonLoader": {
         "field_map": {

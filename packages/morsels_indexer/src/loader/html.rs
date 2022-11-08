@@ -1,3 +1,4 @@
+use std::iter::FromIterator;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -26,46 +27,60 @@ pub struct HtmlLoaderSelector {
 
 #[derive(Serialize, Deserialize)]
 pub struct HtmlLoaderSelectorRaw {
-    selector: String,
+    #[serde(default)]
+    priority: u32,
     field_name: Option<String>,
+    #[serde(default)]
     attr_map: FxHashMap<String, String>,
 }
 
-fn get_default_html_loader_selectors() -> Vec<HtmlLoaderSelectorRaw> {
-    let mut heading_selector = HtmlLoaderSelectorRaw {
-        selector: "h2,h3,h4,h5,h6".to_owned(),
-        field_name: Some("heading".to_owned()),
-        attr_map: FxHashMap::default(),
-    };
-    heading_selector.attr_map.insert("id".to_owned(), "headingLink".to_owned());
-
-    vec![
-        HtmlLoaderSelectorRaw {
-            selector: "span[data-morsels-link]".to_owned(),
-            field_name: None,
-            attr_map: {
-                let mut map = FxHashMap::default();
-                map.insert("data-morsels-link".to_owned(), "link".to_owned());
-                map
-            },
-        },
-        HtmlLoaderSelectorRaw {
-            selector: "title".to_owned(),
-            field_name: Some("title".to_owned()),
-            attr_map: FxHashMap::default(),
-        },
-        HtmlLoaderSelectorRaw {
-            selector: "h1".to_owned(),
-            field_name: Some("h1".to_owned()),
-            attr_map: FxHashMap::default(),
-        },
-        HtmlLoaderSelectorRaw {
-            selector: "body".to_owned(),
-            field_name: Some("body".to_owned()),
-            attr_map: FxHashMap::default(),
-        },
-        heading_selector,
-    ]
+fn get_default_html_loader_selectors() -> FxHashMap<String, Option<HtmlLoaderSelectorRaw>> {
+    FxHashMap::from_iter(vec![
+        (
+            "span[data-morsels-link]".to_owned(),
+            Some(HtmlLoaderSelectorRaw {
+                priority: 0,
+                field_name: None,
+                attr_map: FxHashMap::from_iter(vec![
+                    ("data-morsels-link".to_owned(), "link".to_owned())
+                ]),
+            })
+        ),
+        (
+            "title".to_owned(),
+            Some(HtmlLoaderSelectorRaw {
+                priority: 0,
+                field_name: Some("title".to_owned()),
+                attr_map: FxHashMap::default(),
+            })
+        ),
+        (
+            "h1".to_owned(),
+            Some(HtmlLoaderSelectorRaw {
+                priority: 0,
+                field_name: Some("h1".to_owned()),
+                attr_map: FxHashMap::default(),
+            })
+        ),
+        (
+            "body".to_owned(),
+            Some(HtmlLoaderSelectorRaw {
+                priority: 0,
+                field_name: Some("body".to_owned()),
+                attr_map: FxHashMap::default(),
+            })
+        ),
+        (
+            "h2,h3,h4,h5,h6".to_owned(),
+            Some(HtmlLoaderSelectorRaw {
+                priority: 0,
+                field_name: Some("heading".to_owned()),
+                attr_map: FxHashMap::from_iter(vec![
+                    ("id".to_owned(), "headingLink".to_owned())
+                ]),
+            })
+        ),
+    ])
 }
 
 fn get_default_exclude_selectors() -> Vec<String> {
@@ -74,8 +89,8 @@ fn get_default_exclude_selectors() -> Vec<String> {
 
 #[derive(Serialize, Deserialize)]
 pub struct HtmlLoaderOptionsRaw {
-    #[serde(default = "get_default_html_loader_selectors")]
-    selectors: Vec<HtmlLoaderSelectorRaw>,
+    #[serde(default)]
+    selectors: FxHashMap<String, Option<HtmlLoaderSelectorRaw>>,
     #[serde(default = "get_default_exclude_selectors")]
     exclude_selectors: Vec<String>,
 }
@@ -99,15 +114,27 @@ struct HtmlLoaderResult {
 
 impl HtmlLoader {
     pub fn get_new_html_loader(config: serde_json::Value) -> Box<Self> {
-        let html_loader_options_raw: HtmlLoaderOptionsRaw =
+        let mut html_loader_options_raw: HtmlLoaderOptionsRaw =
             serde_json::from_value(config).expect("HtmlLoader options did not match schema!");
 
+        // --------------------------------------------------------------
+        // Merge/update the default selectors
+        let mut selectors = get_default_html_loader_selectors();
+        std::mem::swap(&mut selectors, &mut html_loader_options_raw.selectors);
+        html_loader_options_raw.selectors.extend(selectors);
+        // --------------------------------------------------------------
+        
+        let mut selectors: Vec<_> = html_loader_options_raw.selectors.iter()
+            .filter_map(|(selector, opt)| opt.as_ref().map(|opt| (selector, opt)))    
+            .collect();
+        selectors.sort_by_key(|(_selector, opt)| opt.priority);
+        selectors.reverse();
+
         let options = Arc::new(HtmlLoaderOptions {
-            selectors: html_loader_options_raw
-                .selectors
-                .iter()
-                .map(|opt| HtmlLoaderSelector {
-                    selector: Selector::parse(&opt.selector).expect("Invalid selector!"),
+            selectors: selectors
+                .into_iter()
+                .map(|(selector, opt)| HtmlLoaderSelector {
+                    selector: Selector::parse(selector).expect("Invalid selector!"),
                     field_name: opt.field_name.clone(),
                     attr_map: opt.attr_map.clone(),
                 })

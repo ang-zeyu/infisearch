@@ -23,40 +23,13 @@ This configuration is **already** implemented by default, and is attached here f
 ```json
 "loaders": {
   "HtmlLoader": {
-    "selectors": [
-      // Add the following object to the default configuration
-      // If you've never configured "selectors" before,
-      // add the entire into your indexer configuration file.
-      {
+    "selectors": {
+      "span[data-morsels-link]": {
         "attr_map": {
           "data-morsels-link": "link"
-        },
-        "field_name": null,
-        "selector": "span[data-morsels-link]"
-      },
-      {
-        "attr_map": {},
-        "field_name": "title",
-        "selector": "title"
-      },
-      {
-        "attr_map": {},
-        "field_name": "h1",
-        "selector": "h1"
-      },
-      {
-        "attr_map": {},
-        "field_name": "body",
-        "selector": "body"
-      },
-      {
-        "attr_map": {
-          "id": "headingLink"
-        },
-        "field_name": "heading",
-        "selector": "h2,h3,h4,h5,h6"
+        }
       }
-    ]
+    }
   }
 }
 ```
