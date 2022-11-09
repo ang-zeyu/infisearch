@@ -92,17 +92,19 @@ impl FieldsConfig {
         self.fields.extend(fields)
     }
 
-    pub fn get_field_infos(&self, output_folder_path: &Path, is_incremental: bool) -> Arc<FieldInfos> {
+    pub fn get_field_infos(
+        &self,
+        output_folder_path_inner: &Path,
+        incremental_output_config: Option<&MorselsOutputConfig>,
+    ) -> Arc<FieldInfos> {
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
         let mut field_infos_by_id: Vec<FieldInfo> = Vec::with_capacity(self.fields.len());
 
-        let old_config = if is_incremental {
-            let old_output_conf_str = std::fs::read_to_string(output_folder_path.join("morsels_config.json")).unwrap();
-            let old_output_conf: MorselsOutputConfig = serde_json::from_str(&old_output_conf_str).unwrap();
-            old_output_conf.field_infos
-        } else {
-            Vec::new()
-        };
+        let empty_vec = Vec::new();
+        let old_config = incremental_output_config.map_or(
+            &empty_vec,
+            |old_output_conf| &old_output_conf.field_infos,
+        );
 
         let mut num_scored_fields = 0;
         let mut num_enum_fields = 0;
@@ -168,7 +170,7 @@ impl FieldsConfig {
 
         // ------------------------------------------------------
 
-        let field_output_folder_path = output_folder_path.join("field_store");
+        let field_output_folder_path = output_folder_path_inner.join("field_store");
 
         std::fs::create_dir_all(&field_output_folder_path)
             .expect("Failed to create field store output folder in output directory");

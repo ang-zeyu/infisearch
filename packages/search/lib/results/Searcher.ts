@@ -142,14 +142,17 @@ class Searcher {
     const pls = this.cfg.indexingConfig.plNamesToCache;
     pls.forEach((pl) => {
       const folder = Math.floor(pl / this.cfg.indexingConfig.numPlsPerDir);
-      const url = `${this._mrlOptions.url}pl_${folder}/pl_${pl}.mls`;
-      this._mrlCache._mrlCacheUrl(url);
+      this._mrlCache._mrlCacheUrl(
+        `${this._mrlOptions.url}${this.cfg.indexVer}/pl_${folder}/pl_${pl}.mls`,
+      );
     });
   }
 
   private async _mrlRetrieveConfig(): Promise<void> {
     const searcherOpts = this._mrlOptions;
-    this.cfg = await (await fetch(`${searcherOpts.url}morsels_config.json`)).json();
+    this.cfg = await (await fetch(`${searcherOpts.url}morsels_config.json`, {
+      cache: 'no-store',
+    })).json();
 
     if (this.cfg.ver !== MORSELS_VERSION) {
       throw new Error('Morsels search !== indexer version!');

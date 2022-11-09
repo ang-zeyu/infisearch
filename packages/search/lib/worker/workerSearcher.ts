@@ -84,7 +84,7 @@ export function freeQuery(queryId: number) {
 }
 
 
-async function setupMetadata(baseUrl: string): Promise<ArrayBuffer> {
+async function setupMetadata(baseUrl: string, innerUrl: string): Promise<ArrayBuffer> {
   let cache: Cache;
   try {
     cache = await caches.open(`morsels:${baseUrl}`);
@@ -92,7 +92,7 @@ async function setupMetadata(baseUrl: string): Promise<ArrayBuffer> {
     // Cache API blocked / unsupported (e.g. firefox private)
   }
 
-  const metadataUrl = `${baseUrl}metadata.json`;
+  const metadataUrl = `${innerUrl}/metadata.json`;
 
   return (
     cache
@@ -111,6 +111,7 @@ export async function setupWasm(
   config = cfg;
 
   const {
+    indexVer,
     indexingConfig,
     langConfig: { lang, options },
     fieldInfos,
@@ -118,7 +119,8 @@ export async function setupWasm(
     searcherOptions,
   } = config;
 
-  const metadataPromise = setupMetadata(searcherOptions.url);
+  const innerUrl = `${searcherOptions.url}${indexVer}/`;
+  const metadataPromise = setupMetadata(searcherOptions.url, innerUrl);
 
   const encoder = new TextEncoder();
 
@@ -188,7 +190,7 @@ export async function setupWasm(
     options.max_term_len,
     fieldInfosSerialized,
     numScoredFields,
-    searcherOptions.url,
+    innerUrl,
     searcherOptions.maxAutoSuffixSearchTerms,
     searcherOptions.maxSuffixSearchTerms,
     searcherOptions.useQueryTermProximity,

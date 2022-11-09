@@ -10,8 +10,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use morsels_common::dictionary::Dictionary;
-use morsels_common::{bitmap, MetadataReader};
+use morsels_common::{bitmap, MetadataReader, METADATA_FILE};
 
+use crate::indexer::output_config::MorselsOutputConfig;
+use crate::utils::fs_utils;
 use crate::{MORSELS_VERSION, i_debug, OLD_MORSELS_CONFIG};
 
 lazy_static! {
@@ -38,8 +40,6 @@ struct DocIdsAndFileHash(
 
 #[derive(Serialize, Deserialize)]
 pub struct IncrementalIndexInfo {
-    pub ver: String,
-
     pub use_content_hash: bool,
 
     // Mapping of external doc identifier -> internal doc id(s) / hashes / secondary files
@@ -67,44 +67,84 @@ pub struct IncrementalIndexInfo {
 }
 
 impl IncrementalIndexInfo {
-    pub fn empty(use_content_hash: bool) -> IncrementalIndexInfo {
-        IncrementalIndexInfo {
-            ver: MORSELS_VERSION.to_owned(),
-            use_content_hash,
-            mappings: FxHashMap::default(),
-            inv_mappings: FxHashMap::default(),
-            inv_mappings_secondary: Vec::new(),
-            last_pl_number: 0,
-            num_deleted_docs: 0,
-            pl_names_to_cache: Vec::new(),
-            invalidation_vector: Vec::new(),
-            dictionary: get_default_dictionary(),
-        }
+    pub fn empty(
+        use_content_hash: bool,
+        is_incremental: &mut bool,
+    ) -> (Option<MorselsOutputConfig>, Option<MetadataReader>, IncrementalIndexInfo) {
+        *is_incremental = false;
+
+        (
+            None,
+            None,
+            IncrementalIndexInfo {
+                use_content_hash,
+                mappings: FxHashMap::default(),
+                inv_mappings: FxHashMap::default(),
+                inv_mappings_secondary: Vec::new(),
+                last_pl_number: 0,
+                num_deleted_docs: 0,
+                pl_names_to_cache: Vec::new(),
+                invalidation_vector: Vec::new(),
+                dictionary: get_default_dictionary(),
+            },
+        )
     }
 
     pub fn new_from_output_folder(
+        output_folder_path_inner: &Path,
         output_folder_path: &Path,
         json_config: &Value,
         is_incremental: &mut bool,
         use_content_hash: bool,
-        metadata_rdr: Option<&mut MetadataReader>,
-    ) -> IncrementalIndexInfo {
+    ) -> (Option<MorselsOutputConfig>, Option<MetadataReader>, IncrementalIndexInfo) {
+        // --------------------------------------------------------
+        // Full index
         if !*is_incremental {
-            return IncrementalIndexInfo::empty(use_content_hash);
+            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
         }
+        // --------------------------------------------------------
 
+        // --------------------------------------------------------
+        // Check for old incremental index info file as a first start
+        // to whether there was any previous index runs.
         if let Ok(meta) = std::fs::metadata(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME)) {
             if !meta.is_file() {
-                warn!("Old incremental index info missing. Running a full reindex.");
-                *is_incremental = false;
-                return IncrementalIndexInfo::empty(use_content_hash);
+                info!("Old incremental index info missing. Running a full reindex.");
+                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
             }
         } else {
-            warn!("Old incremental index info missing. Running a full reindex.");
-            *is_incremental = false;
-            return IncrementalIndexInfo::empty(use_content_hash);
+            info!("Old incremental index info missing. Running a full reindex.");
+            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
         }
+        // --------------------------------------------------------
 
+        // --------------------------------------------------------
+        // Check for the old output config file, which should be here at this point.
+        // The Morsels version used might however be different.
+        let old_output_config = output_folder_path.join("morsels_config.json");
+        let old_output_config = if old_output_config.exists() {
+            let old_output_conf_str = std::fs::read_to_string(&old_output_config).unwrap();
+            let deserialized: Result<MorselsOutputConfig, _> = serde_json::from_str(&old_output_conf_str);
+
+            if let Ok(old_output_conf) = deserialized {
+                if old_output_conf.ver != MORSELS_VERSION {
+                    info!("Morsels version changed. Running a full reindex.");
+                    return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+                }
+
+                old_output_conf
+            } else {
+                info!("Morsels version changed. Running a full reindex.");
+                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+            }
+        } else {
+            warn!("Old output config missing. Running a full reindex.");
+            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+        };
+        // --------------------------------------------------------
+
+        // --------------------------------------------------------
+        // Next, verify the user config hasn't changed.
         if let Ok(mut file) = File::open(output_folder_path.join(OLD_MORSELS_CONFIG)) {
             let mut old_config = "".to_owned();
             file.read_to_string(&mut old_config).expect("Unable to read old config file");
@@ -112,37 +152,66 @@ impl IncrementalIndexInfo {
                 .expect(&(OLD_MORSELS_CONFIG.to_owned() + " does not match schema!"));
             if *json_config != old_json_config {
                 info!("Configuration file changed. Running a full reindex.");
-                *is_incremental = false;
-                return IncrementalIndexInfo::empty(use_content_hash);
+                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
             }
         } else {
             warn!("Old configuration file missing. Running a full reindex.");
-            *is_incremental = false;
-            return IncrementalIndexInfo::empty(use_content_hash);
+            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
         }
+        // --------------------------------------------------------
 
+        // --------------------------------------------------------
+        // Check the type of content hash used is the same
         let info_file = File::open(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME))
             .expect("Failed to obtain incremental index info file handle.");
 
         let mut info: IncrementalIndexInfo = serde_json::from_reader(BufReader::new(info_file))
             .expect("incremental index info deserialization failed!");
 
-        if info.ver.as_str() != MORSELS_VERSION {
-            info!("Indexer version changed. Running a full reindex.");
-            *is_incremental = false;
-            return IncrementalIndexInfo::empty(use_content_hash);
-        } else if info.use_content_hash != use_content_hash {
+        if info.use_content_hash != use_content_hash {
             info!("Content hash option changed. Running a full reindex.");
-            *is_incremental = false;
-            return IncrementalIndexInfo::empty(use_content_hash);
+            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
         }
+        // --------------------------------------------------------
 
-        // Invalidation vector
-        metadata_rdr
-            .expect("dynamic_index_info.json exists but metadata.json does not")
-            .get_invalidation_vec(&mut info.invalidation_vector);
+        // --------------------------------------------------------
+        // Move the old postings lists, field stores etc. over
+        let old_output_folder_inner = output_folder_path.join(&old_output_config.index_ver); 
+        if let Err(e) = std::fs::rename(&old_output_folder_inner, &output_folder_path_inner) {
+            // Sometimes fragile due to antivirus
+            // Retry with copy-paste then remove
+            info!("Failed to rename old output folder, trying copy-paste & removal.");
+            if let Ok(_) = dircpy::copy_dir(&old_output_folder_inner, &output_folder_path_inner) {
+                fs_utils::clean_dir(&old_output_folder_inner);
+            } else {
+                warn!(
+                    "Failed to rename old output folder, performing a full index.\n  Old: {}\n  New: {}\n  Cause: {}",
+                    old_output_folder_inner.to_string_lossy(),
+                    output_folder_path_inner.to_string_lossy(),
+                    e,
+                );
+                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+            }
+        }
+        // --------------------------------------------------------
 
-        info
+        // --------------------------------------------------------
+        // Initialise metadata, read in the invalidation vector
+
+        let metadata_rdr = if let Ok(mut file) = File::open(output_folder_path_inner.join(METADATA_FILE)) {
+            let mut buf = Vec::new();
+            file.read_to_end(&mut buf).unwrap();
+            MetadataReader::new(buf)
+        } else {
+            warn!("metadata file missing. Running a full reindex.");
+            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+        };
+
+        metadata_rdr.get_invalidation_vec(&mut info.invalidation_vector);
+
+        // --------------------------------------------------------
+
+        (Some(old_output_config), Some(metadata_rdr), info)
     }
 
     pub fn setup_dictionary(&mut self, metadata_rdr: &MetadataReader) {

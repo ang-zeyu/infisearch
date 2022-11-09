@@ -4,22 +4,23 @@ mod spimiwriter;
 mod worker;
 
 use std::fs::{self, File};
-use std::io::{Read, Write, BufWriter};
+use std::io::{Write, BufWriter};
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::time::{Instant, UNIX_EPOCH, SystemTime};
 
 use morsels_common::tokenize::IndexerTokenizer;
-use morsels_common::{MorselsLanguageConfig, METADATA_FILE, MetadataReader};
+use morsels_common::{MorselsLanguageConfig, METADATA_FILE};
 use morsels_lang_ascii::ascii;
 use morsels_lang_latin::latin;
 use morsels_lang_chinese::chinese;
 
 use crate::dictionary_writer::DictWriter;
 use crate::docinfo::DocInfos;
-use crate::{i_debug, spimireader};
+use crate::utils::fs_utils;
+use crate::{i_debug, spimireader, OLD_MORSELS_CONFIG};
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::fieldinfo::FieldInfos;
 use crate::indexer::input_config::{MorselsConfig, MorselsIndexingConfig};
@@ -28,7 +29,7 @@ use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
-use log::{info, warn};
+use log::info;
 
 pub struct Indexer {
     indexing_config: Arc<MorselsIndexingConfig>,
@@ -36,8 +37,10 @@ pub struct Indexer {
     spimi_counter: u32,
     cache_all_field_stores: bool,
     field_infos: Arc<FieldInfos>,
+    index_ver: String,
     input_folder_path: PathBuf,
     output_folder_path: PathBuf,
+    output_folder_path_inner: PathBuf,
     doc_miner: WorkerMiner,
     workers: Vec<Worker>,
     loaders: Arc<Vec<LoaderBoxed>>,
@@ -63,60 +66,40 @@ impl Indexer {
         use_content_hash: bool,
         preserve_output_folder: bool,
     ) -> Indexer {
-        fs::create_dir_all(output_folder_path).expect("could not create output directory!");
+        // -----------------------------------------------------------
+
+        fs::create_dir_all(&output_folder_path).expect("could not create output directory!");
+
+        let index_ver = (SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() / 100).to_string();
+        let output_folder_path_inner = output_folder_path.join(&index_ver); // For cache-busting
+
+        // -----------------------------------------------------------
 
         // -----------------------------------------------------------
         // Initialise the previously indexed metadata, if any
 
-        let metadata_path = output_folder_path.join(METADATA_FILE);
-        let mut metadata_rdr = if let Ok(mut file) = File::open(metadata_path) {
-            let mut buf = Vec::new();
-            file.read_to_end(&mut buf).unwrap();
-            Some(MetadataReader::new(buf))
-        } else {
-            None
-        };
-
-        let mut incremental_info = IncrementalIndexInfo::new_from_output_folder(
+        let (
+            incremental_output_config,
+            mut metadata_rdr,
+            mut incremental_info,
+        ) = IncrementalIndexInfo::new_from_output_folder(
+            &output_folder_path_inner,
             output_folder_path,
             &config.json_config,
             &mut is_incremental,
             use_content_hash,
-            metadata_rdr.as_mut(),
         );
+
+        if !output_folder_path_inner.exists() {
+            fs::create_dir(&output_folder_path_inner).expect("could not create inner output directory!");
+        }
+        
         // -----------------------------------------------------------
 
         // -----------------------------------------------------------
         // Clean the output folder if running a full index
         if !is_incremental && !preserve_output_folder {
-            if let Ok(read_dir) = fs::read_dir(output_folder_path) {
-                for dir_entry in read_dir {
-                    if let Err(err) = dir_entry {
-                        warn!("Failed to clean {}, continuing.", err);
-                        continue;
-                    }
-
-                    let dir_entry = dir_entry.unwrap();
-                    let file_type = dir_entry.file_type();
-                    if let Err(err) = file_type {
-                        warn!("Failed to get file type when cleaning output dir {}, continuing.", err);
-                        continue;
-                    }
-
-                    let file_type = file_type.unwrap();
-                    if file_type.is_file() {
-                        if let Err(err) = fs::remove_file(dir_entry.path()) {
-                            warn!("{}\nFailed to clean {}, continuing.", err, dir_entry.path().to_string_lossy());
-                        }
-                    } else if file_type.is_dir() {
-                        if let Err(err) = fs::remove_dir_all(dir_entry.path()) {
-                            warn!("{}\nFailed to clean directory {}, continuing.", err, dir_entry.path().to_string_lossy());
-                        }
-                    }
-                }
-            } else {
-                warn!("Failed to read output dir for cleaning, continuing.");
-            }
+            fs_utils::clean_dir(output_folder_path);
         }
         // -----------------------------------------------------------
 
@@ -138,7 +121,7 @@ impl Indexer {
         let loaders: Arc<Vec<LoaderBoxed>> = Arc::new(config.indexing_config.get_loaders_from_config());
 
         let field_infos = config.fields_config.get_field_infos(
-            output_folder_path, is_incremental,
+            &output_folder_path_inner, incremental_output_config.as_ref(),
         );
 
         // ------------------------------
@@ -193,7 +176,7 @@ impl Indexer {
             let indexing_config_clone = Arc::clone(&indexing_config);
             let num_workers_writing_blocks_clone = Arc::clone(&num_workers_writing_blocks);
             let input_folder_path_clone = input_folder_path.to_path_buf();
-            let output_folder_path_clone = output_folder_path.to_path_buf();
+            let output_folder_path_inner_clone = output_folder_path_inner.to_path_buf();
             let loaders_clone = Arc::clone(&loaders);
 
             workers.push(Worker {
@@ -209,7 +192,7 @@ impl Indexer {
                         expected_num_docs_per_thread,
                         num_workers_writing_blocks_clone,
                         input_folder_path_clone,
-                        output_folder_path_clone,
+                        output_folder_path_inner_clone,
                         loaders_clone,
                     )
                 }),
@@ -234,8 +217,10 @@ impl Indexer {
             spimi_counter,
             cache_all_field_stores: config.fields_config.cache_all_field_stores,
             field_infos,
+            index_ver,
             input_folder_path: input_folder_path.to_path_buf(),
             output_folder_path: output_folder_path.to_path_buf(),
+            output_folder_path_inner,
             doc_miner,
             workers,
             loaders,
@@ -392,7 +377,7 @@ impl Indexer {
 
         self.incremental_info.write_info(&self.input_folder_path, &self.output_folder_path);
 
-        spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path);
+        spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path_inner);
 
         print_time_elapsed(&instant, "Blocks merged!");
 
@@ -430,7 +415,7 @@ impl Indexer {
         dict_writer: DictWriter,
         log_sizes: bool,
     ) {
-        let metadata_file = self.output_folder_path.join(METADATA_FILE);
+        let metadata_file = self.output_folder_path_inner.join(METADATA_FILE);
         let mut metadata_writer = BufWriter::new(
             File::create(metadata_file).unwrap()
         );
@@ -491,7 +476,7 @@ impl Indexer {
                 &self.indexing_config,
                 &self.field_infos,
                 &self.tx_main,
-                &self.output_folder_path,
+                &self.output_folder_path_inner,
                 &mut self.incremental_info,
             );
             
@@ -515,7 +500,7 @@ impl Indexer {
                 &self.indexing_config,
                 &self.field_infos,
                 &self.tx_main,
-                &self.output_folder_path,
+                &self.output_folder_path_inner,
                 &mut self.incremental_info,
             );
 

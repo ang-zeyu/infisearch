@@ -46,6 +46,7 @@ module.exports = (env) => merge(common, {
       {
         directory: path.join(__dirname, 'e2e'),
         publicPath: '/e2e',
+        watch: false,
       },
       {
         directory: path.join(__dirname, 'packages/search-ui/public/static'),

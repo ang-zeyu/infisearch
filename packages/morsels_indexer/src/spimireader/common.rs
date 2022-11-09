@@ -182,11 +182,11 @@ pub fn write_new_term_postings(
     start_pl_offset
 }
 
-pub fn cleanup_blocks(first_block: u32, last_block: u32, output_folder_path: &Path) {
+pub fn cleanup_blocks(first_block: u32, last_block: u32, output_folder_path_inner: &Path) {
     // Remove temporary spimi files
     for idx in first_block..(last_block + 1) {
-        let block_file_path = Path::new(output_folder_path).join(format!("bsbi_block_{}", idx));
-        let block_dict_file_path = Path::new(output_folder_path).join(format!("bsbi_block_dict_{}", idx));
+        let block_file_path = Path::new(output_folder_path_inner).join(format!("bsbi_block_{}", idx));
+        let block_dict_file_path = Path::new(output_folder_path_inner).join(format!("bsbi_block_dict_{}", idx));
         std::fs::remove_file(&block_file_path).unwrap_or(());
         std::fs::remove_file(&block_dict_file_path).unwrap_or(());
     }

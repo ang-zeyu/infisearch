@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::Write;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use morsels_common::MorselsLanguageConfig;
 
@@ -23,8 +22,8 @@ struct MorselsIndexingOutputConfig {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MorselsOutputConfig {
-    ver: String,
-    index_ver: String,
+    pub ver: String,
+    pub index_ver: String,
     last_doc_id: u32,
     indexing_config: MorselsIndexingOutputConfig,
     lang_config: MorselsLanguageConfig,
@@ -48,7 +47,7 @@ pub fn write_output_config(indexer: Indexer, mut enums_ev_strs: Vec<Vec<String>>
 
     let serialized = serde_json::to_string(&MorselsOutputConfig {
         ver: MORSELS_VERSION.to_owned(),
-        index_ver: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis().to_string(),
+        index_ver: indexer.index_ver,
         last_doc_id: indexer.doc_id_counter,
         indexing_config: MorselsIndexingOutputConfig {
             pl_names_to_cache: indexer.incremental_info.pl_names_to_cache.clone(),

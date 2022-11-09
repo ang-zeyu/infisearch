@@ -54,13 +54,13 @@ impl Indexer {
 
         drop(num_workers_writing_blocks);
 
-        let output_folder_path = PathBuf::from(&self.output_folder_path);
+        let output_folder_path_inner = PathBuf::from(&self.output_folder_path_inner);
         let check_for_existing_field_store = self.is_incremental && block_number == self.start_block_number;
         if is_last_block {
             spimiwriter::combine_worker_results_and_write_block(
                 worker_index_results,
                 Arc::clone(&self.doc_infos),
-                output_folder_path,
+                output_folder_path_inner,
                 &self.field_infos,
                 block_number,
                 self.start_doc_id,

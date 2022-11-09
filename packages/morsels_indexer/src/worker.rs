@@ -65,7 +65,7 @@ pub fn create_worker(
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
     input_folder_path: PathBuf,
-    output_folder_path: PathBuf,
+    output_folder_path_inner_clone: PathBuf,
     loaders: Arc<Vec<LoaderBoxed>>,
 ) {
     let mut doc_miner = WorkerMiner::new(
@@ -101,7 +101,7 @@ pub fn create_worker(
                 spimiwriter::combine_worker_results_and_write_block(
                     worker_index_results,
                     doc_infos,
-                    output_folder_path.to_path_buf(),
+                    output_folder_path_inner_clone.to_path_buf(),
                     &field_infos,
                     block_number,
                     start_doc_id,
