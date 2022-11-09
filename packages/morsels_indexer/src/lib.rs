@@ -13,5 +13,6 @@ mod worker;
 extern crate lazy_static;
 
 pub const MORSELS_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub static OLD_MORSELS_CONFIG: &str = "_old_config.json";
 
 pub use utils::assets;

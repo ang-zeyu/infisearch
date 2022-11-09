@@ -12,7 +12,7 @@ use serde_json::Value;
 use morsels_common::dictionary::Dictionary;
 use morsels_common::{bitmap, MetadataReader};
 
-use crate::{MORSELS_VERSION, i_debug};
+use crate::{MORSELS_VERSION, i_debug, OLD_MORSELS_CONFIG};
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH)
@@ -105,11 +105,11 @@ impl IncrementalIndexInfo {
             return IncrementalIndexInfo::empty(use_content_hash);
         }
 
-        if let Ok(mut file) = File::open(output_folder_path.join("old_morsels_config.json")) {
+        if let Ok(mut file) = File::open(output_folder_path.join(OLD_MORSELS_CONFIG)) {
             let mut old_config = "".to_owned();
             file.read_to_string(&mut old_config).expect("Unable to read old config file");
             let old_json_config: Value = serde_json::from_str(&old_config)
-                .expect("old_morsels_config.json does not match schema!");
+                .expect(&(OLD_MORSELS_CONFIG.to_owned() + " does not match schema!"));
             if *json_config != old_json_config {
                 info!("Configuration file changed. Running a full reindex.");
                 *is_incremental = false;

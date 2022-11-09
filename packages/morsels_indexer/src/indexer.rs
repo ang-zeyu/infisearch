@@ -124,11 +124,11 @@ impl Indexer {
         // Store the current raw json configuration file, for checking if it changed in the next run
 
         fs::write(
-            output_folder_path.join("old_morsels_config.json"),
+            output_folder_path.join(OLD_MORSELS_CONFIG),
             serde_json::to_string_pretty(&config.json_config)
                 .expect("Failed to serialize current configuration file"),
         )
-        .expect("Failed to write old_morsels_config.json");
+        .expect(&("Failed to write ".to_owned() + OLD_MORSELS_CONFIG));
 
         // -----------------------------------------------------------
 
