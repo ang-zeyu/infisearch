@@ -100,12 +100,6 @@ impl FieldsConfig {
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
         let mut field_infos_by_id: Vec<FieldInfo> = Vec::with_capacity(self.fields.len());
 
-        let empty_vec = Vec::new();
-        let old_config = incremental_output_config.map_or(
-            &empty_vec,
-            |old_output_conf| &old_output_conf.field_infos,
-        );
-
         let mut num_scored_fields = 0;
         let mut num_enum_fields = 0;
         for (field_name, field_config) in self.fields.iter() {
@@ -123,22 +117,21 @@ impl FieldsConfig {
                 escaped_name: escape_json::escape(field_name).into_owned(),
                 id: 0,
                 enum_info: if field_config.storage.iter().any(|s| s == "enum") {
-                    let enum_id = num_enum_fields;
-                    num_enum_fields += 1;
-
-                    let enum_values = old_config.iter()
-                        .find_map(|field_info_output| if let Some(EnumInfo {
-                            enum_id: curr_enum_id, enum_values
-                        }) = &field_info_output.enum_info {
-                            if *curr_enum_id == enum_id {
-                                Some(enum_values.clone())
+                    let (enum_id, enum_values) = if let Some(incremental_output_config) = incremental_output_config {
+                        let old_enum_info = incremental_output_config.field_infos
+                            .iter()
+                            .find_map(|fi| if fi.name.as_str() == field_name {
+                                fi.enum_info.as_ref()
                             } else {
                                 None
-                            }
-                        } else {
-                            None
-                        })
-                        .unwrap_or_else(Vec::new);
+                            })
+                            .unwrap();
+                        (old_enum_info.enum_id, old_enum_info.enum_values.clone())
+                    } else {
+                        (num_enum_fields, Vec::new())
+                    };
+
+                    num_enum_fields += 1;
 
                     Some(EnumInfo {
                         enum_id,
