@@ -39,40 +39,53 @@ pub enum PostingsStreamDecoder {
 
 pub struct PlWriter {
     writer: ReusableWriter,
-    pl: u32,
+    pub pl: u32,
+    pub pl_offset: u32,
+    pub prev_pl_offset: u32,
 }
 
 impl PlWriter {
-    fn change_file(&mut self, file: File, pl: u32) {
-        self.writer.change_file(file);
-        self.pl = pl;
+    pub fn new(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> Self {
+        let mut pl_writer = PlWriter {
+            writer: ReusableWriter::new(),
+            pl: curr_pl,
+            pl_offset: 0,
+            prev_pl_offset: 0,
+        };
+    
+        pl_writer.change_file(output_folder_path, curr_pl, num_pls_per_dir);
+    
+        pl_writer
     }
 
-    pub fn flush(&mut self, pl_offset: u32, pl_cache_threshold: u32, pl_names_to_cache: &mut Vec<u32>) {
+    fn change_file(&mut self, output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) {
+        let dir_output_folder_path = output_folder_path.join(format!("pl_{}", curr_pl / num_pls_per_dir));
+        if (curr_pl % num_pls_per_dir == 0)
+            && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
+        {
+            std::fs::create_dir(&dir_output_folder_path).expect("Failed to create pl output dir!");
+        }
+    
+        let file = File::create(dir_output_folder_path.join(Path::new(&format!("pl_{}.{}", curr_pl, FILE_EXT))))
+            .expect("Failed to open postings list for writing.");
+
+        self.writer.change_file(file);
+        self.pl = curr_pl;
+        self.pl_offset = 0;
+        self.prev_pl_offset = 0;
+    }
+
+    pub fn flush(&mut self, pl_cache_threshold: u32, pl_names_to_cache: &mut Vec<u32>) {
         self.writer.flush();
-        if pl_offset > pl_cache_threshold {
+        if self.pl_offset > pl_cache_threshold {
             pl_names_to_cache.push(self.pl);
         }
     }
-}
 
-#[inline(always)]
-pub fn get_pl_file(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> File {
-    let dir_output_folder_path = output_folder_path.join(format!("pl_{}", curr_pl / num_pls_per_dir));
-    if (curr_pl % num_pls_per_dir == 0)
-        && !(dir_output_folder_path.exists() && dir_output_folder_path.is_dir())
-    {
-        std::fs::create_dir(&dir_output_folder_path).expect("Failed to create pl output dir!");
+    fn write(&mut self, bytes: &[u8]) {
+        self.writer.write(bytes);
+        self.pl_offset += bytes.len() as u32;
     }
-
-    File::create(dir_output_folder_path.join(Path::new(&format!("pl_{}.{}", curr_pl, FILE_EXT))))
-        .expect("Failed to open postings list for writing.")
-}
-
-pub fn get_pl_writer(output_folder_path: &Path, curr_pl: u32, num_pls_per_dir: u32) -> PlWriter {
-    let mut writer = ReusableWriter::new();
-    writer.change_file(get_pl_file(output_folder_path, curr_pl, num_pls_per_dir));
-    PlWriter { writer, pl: curr_pl }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -127,10 +140,7 @@ pub fn write_new_term_postings(
     curr_combined_term_docs: &mut [TermDocsForMerge],
     varint_buf: &mut [u8],
     dict_writer: Option<&mut DictWriter>,
-    curr_pl: &mut u32,
     pl_writer: &mut PlWriter,
-    pl_offset: &mut u32,
-    prev_pl_start_offset: &mut u32,
     pl_names_to_cache: &mut Vec<u32>,
     indexing_config: &MorselsIndexingConfig,
     output_folder_path: &Path,
@@ -141,9 +151,8 @@ pub fn write_new_term_postings(
     // 16 is maximum varint size for the block_doc_id_gap_varint
     let curr_postings_max_size =
         curr_combined_term_docs.iter().fold(0, |acc, next| acc + next.combined_var_ints.len() as u32 + 16);
-    let end = *pl_offset + curr_postings_max_size;
 
-    if end > indexing_config.pl_limit {
+    if (pl_writer.pl_offset + curr_postings_max_size) > indexing_config.pl_limit {
         // --------------------------------
         // Dictionary table writing
         // (1 byte varint = 0 in place of the docFreq varint, delimiting a new postings list)
@@ -153,30 +162,23 @@ pub fn write_new_term_postings(
         }
         // --------------------------------
 
-        pl_writer.flush(*pl_offset, indexing_config.pl_cache_threshold, pl_names_to_cache);
-
-        *curr_pl += 1;
-        *pl_offset = 0;
-        *prev_pl_start_offset = 0;
-
-        let new_pl_file = get_pl_file(output_folder_path, *curr_pl, indexing_config.num_pls_per_dir);
-        pl_writer.change_file(new_pl_file, *curr_pl);
+        pl_writer.flush(indexing_config.pl_cache_threshold, pl_names_to_cache);
+        pl_writer.change_file(output_folder_path, pl_writer.pl + 1, indexing_config.num_pls_per_dir);
     }
     // ---------------------------------------------
 
-    let start_pl_offset = *pl_offset;
+    // Store the start pl offset of this term for the dictionary
+    let start_pl_offset = pl_writer.pl_offset;
 
     let mut prev_block_last_doc_id = 0;
     for term_docs in curr_combined_term_docs.iter_mut() {
         // Link up the gap between the first doc id of the current block and the previous block
         let block_doc_id_gap_varint = varint::get_var_int(term_docs.first_doc_id - prev_block_last_doc_id, varint_buf);
-        pl_writer.writer.write(block_doc_id_gap_varint);
-        *pl_offset += block_doc_id_gap_varint.len() as u32;
+        pl_writer.write(block_doc_id_gap_varint);
 
         prev_block_last_doc_id = term_docs.last_doc_id;
 
-        pl_writer.writer.write(&term_docs.combined_var_ints);
-        *pl_offset += term_docs.combined_var_ints.len() as u32;
+        pl_writer.write(&term_docs.combined_var_ints);
     }
 
     start_pl_offset

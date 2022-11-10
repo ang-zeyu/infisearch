@@ -53,12 +53,12 @@ pub struct DocInfos {
 
 impl DocInfos {
     pub fn init_doc_infos(
-        is_incremental: bool,
         field_infos: &Arc<FieldInfos>,
         metadata_rdr: Option<&mut MetadataReader>,
     ) -> DocInfos {
         let num_scored_fields = field_infos.num_scored_fields;
-        if !is_incremental {
+        if metadata_rdr.is_none() {
+            // Full index
             return DocInfos {
                 doc_infos: Vec::new(),
                 all_block_doc_lengths: Vec::new(),
@@ -68,10 +68,9 @@ impl DocInfos {
             };
         }
 
+        let metadata_rdr = unsafe { metadata_rdr.unwrap_unchecked() };
         let mut doc_id_counter = 0;
         let mut average_lengths: Vec<f64> = Vec::new();
-        let metadata_rdr = metadata_rdr
-            .expect("dynamic_index_info.json exists but metadata.json does not");
         let docs_enum_values = metadata_rdr.read_docinfo_inital_metadata(
             &mut 0, &mut doc_id_counter, &mut average_lengths,
             &mut 0, num_scored_fields,

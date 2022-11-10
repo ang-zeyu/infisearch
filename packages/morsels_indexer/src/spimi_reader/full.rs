@@ -10,6 +10,7 @@ use crate::field_info::FieldInfos;
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::i_debug;
+use crate::spimi_reader::common::PlWriter;
 use crate::spimi_reader::common::{
     self, postings_stream::PostingsStream, PostingsStreamDecoder, TermDocsForMerge,
 };
@@ -65,18 +66,13 @@ pub fn merge_blocks(
     */
 
     let mut dict_writer = DictWriter::new();
-    let mut pl_writer = common::get_pl_writer(output_folder_path, 0, indexing_config.num_pls_per_dir);
+    let mut pl_writer = PlWriter::new(output_folder_path, 0, indexing_config.num_pls_per_dir);
 
     // Preallocate some things
     let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);
 
     // Dictionary front coding tracker
     let mut prev_term = "".to_owned();
-
-    // Dictionary table / Postings list trackers
-    let mut curr_pl = 0;
-    let mut curr_pl_offset: u32 = 0;
-    let mut prev_pl_start_offset: u32 = 0;
 
     // Varint buffer
     let mut varint_buf: [u8; 16] = [0; 16];
@@ -105,10 +101,7 @@ pub fn merge_blocks(
             &mut curr_combined_term_docs,
             &mut varint_buf,
             Some(&mut dict_writer),
-            &mut curr_pl,
             &mut pl_writer,
-            &mut curr_pl_offset,
-            &mut prev_pl_start_offset,
             &mut incremental_info.pl_names_to_cache,
             indexing_config,
             output_folder_path,
@@ -124,7 +117,7 @@ pub fn merge_blocks(
         );
 
         dict_writer.write_dict_table_entry(
-            doc_freq, start_pl_offset, &mut prev_pl_start_offset,
+            doc_freq, start_pl_offset, &mut pl_writer.prev_pl_offset,
             prefix_len, remaining_len,
         );
 
@@ -133,12 +126,12 @@ pub fn merge_blocks(
         // ---------------------------------------------
     }
 
-    pl_writer.flush(curr_pl_offset, indexing_config.pl_cache_threshold, &mut incremental_info.pl_names_to_cache);
+    pl_writer.flush(indexing_config.pl_cache_threshold, &mut incremental_info.pl_names_to_cache);
 
-    incremental_info.last_pl_number = if curr_pl_offset != 0 || curr_pl == 0 {
-        curr_pl
+    incremental_info.last_pl_number = if pl_writer.pl_offset != 0 || pl_writer.pl == 0 {
+        pl_writer.pl
     } else {
-        curr_pl - 1
+        pl_writer.pl - 1
     };
 
     dict_writer

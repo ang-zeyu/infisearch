@@ -67,12 +67,11 @@ pub struct IncrementalIndexInfo {
 }
 
 impl IncrementalIndexInfo {
-    pub fn empty(
-        use_content_hash: bool,
-        is_incremental: &mut bool,
-    ) -> (Option<MorselsOutputConfig>, Option<MetadataReader>, IncrementalIndexInfo) {
-        *is_incremental = false;
-
+    pub fn empty(use_content_hash: bool) -> (
+        Option<MorselsOutputConfig>,
+        Option<MetadataReader>,
+        IncrementalIndexInfo,
+    ) {
         (
             None,
             None,
@@ -94,13 +93,13 @@ impl IncrementalIndexInfo {
         output_folder_path_inner: &Path,
         output_folder_path: &Path,
         json_config: &Value,
-        is_incremental: &mut bool,
+        is_incremental: bool,
         use_content_hash: bool,
     ) -> (Option<MorselsOutputConfig>, Option<MetadataReader>, IncrementalIndexInfo) {
         // --------------------------------------------------------
         // Full index
-        if !*is_incremental {
-            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+        if !is_incremental {
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
         // --------------------------------------------------------
 
@@ -110,11 +109,11 @@ impl IncrementalIndexInfo {
         if let Ok(meta) = std::fs::metadata(output_folder_path.join(INCREMENTAL_INFO_FILE_NAME)) {
             if !meta.is_file() {
                 info!("Old incremental index info missing. Running a full reindex.");
-                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+                return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
             info!("Old incremental index info missing. Running a full reindex.");
-            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
         // --------------------------------------------------------
 
@@ -129,17 +128,17 @@ impl IncrementalIndexInfo {
             if let Ok(old_output_conf) = deserialized {
                 if old_output_conf.ver != MORSELS_VERSION {
                     info!("Morsels version changed. Running a full reindex.");
-                    return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+                    return IncrementalIndexInfo::empty(use_content_hash);
                 }
 
                 old_output_conf
             } else {
                 info!("Morsels version changed. Running a full reindex.");
-                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+                return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
             warn!("Old output config missing. Running a full reindex.");
-            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+            return IncrementalIndexInfo::empty(use_content_hash);
         };
         // --------------------------------------------------------
 
@@ -152,11 +151,11 @@ impl IncrementalIndexInfo {
                 .expect(&(OLD_MORSELS_CONFIG.to_owned() + " does not match schema!"));
             if *json_config != old_json_config {
                 info!("Configuration file changed. Running a full reindex.");
-                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+                return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
             warn!("Old configuration file missing. Running a full reindex.");
-            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
         // --------------------------------------------------------
 
@@ -170,7 +169,7 @@ impl IncrementalIndexInfo {
 
         if info.use_content_hash != use_content_hash {
             info!("Content hash option changed. Running a full reindex.");
-            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+            return IncrementalIndexInfo::empty(use_content_hash);
         }
         // --------------------------------------------------------
 
@@ -190,7 +189,7 @@ impl IncrementalIndexInfo {
                     output_folder_path_inner.to_string_lossy(),
                     e,
                 );
-                return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+                return IncrementalIndexInfo::empty(use_content_hash);
             }
         }
         // --------------------------------------------------------
@@ -204,7 +203,7 @@ impl IncrementalIndexInfo {
             MetadataReader::new(buf)
         } else {
             warn!("metadata file missing. Running a full reindex.");
-            return IncrementalIndexInfo::empty(use_content_hash, is_incremental);
+            return IncrementalIndexInfo::empty(use_content_hash);
         };
 
         metadata_rdr.get_invalidation_vec(&mut info.invalidation_vector);

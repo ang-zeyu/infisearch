@@ -62,7 +62,7 @@ impl Indexer {
         input_folder_path: &Path,
         output_folder_path: &Path,
         config: MorselsConfig,
-        mut is_incremental: bool,
+        is_incremental: bool,
         use_content_hash: bool,
         preserve_output_folder: bool,
     ) -> Indexer {
@@ -86,9 +86,10 @@ impl Indexer {
             &output_folder_path_inner,
             output_folder_path,
             &config.json_config,
-            &mut is_incremental,
+            is_incremental,
             use_content_hash,
         );
+        let is_incremental = incremental_output_config.is_some();
 
         if !output_folder_path_inner.exists() {
             fs::create_dir(&output_folder_path_inner).expect("could not create inner output directory!");
@@ -127,7 +128,6 @@ impl Indexer {
         // ------------------------------
         // Previous index info
         let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(
-            is_incremental,
             &field_infos,
             metadata_rdr.as_mut(),
         )));

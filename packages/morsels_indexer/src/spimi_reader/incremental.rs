@@ -24,6 +24,7 @@ use crate::dictionary_writer::DictWriter;
 use crate::field_info::FieldInfos;
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::indexer::input_config::MorselsIndexingConfig;
+use crate::spimi_reader::common::PlWriter;
 use crate::spimi_reader::common::{
     self, postings_stream::PostingsStream, PostingsStreamDecoder, TermDocsForMerge,
 };
@@ -201,18 +202,14 @@ pub fn modify_blocks(
     }
 
     let mut dict_writer = DictWriter::new();
-
-    // Preallocate some things
-    let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);
-
-    // Dictionary table / Postings list trackers
-    let mut new_pl_writer = common::get_pl_writer(
+    let mut new_pl_writer = PlWriter::new(
         output_folder_path,
         incremental_info.last_pl_number + 1,
         indexing_config.num_pls_per_dir,
     );
-    let mut new_pl = incremental_info.last_pl_number + 1;
-    let mut new_pls_offset: u32 = 0;
+    
+    // Preallocate some things
+    let mut curr_combined_term_docs: Vec<TermDocsForMerge> = Vec::with_capacity(num_blocks as usize);
 
     let mut existing_pl_writers: FxHashMap<u32, ExistingPlWriter> = FxHashMap::default();
     let mut term_info_updates: FxHashMap<String, TermInfo> = FxHashMap::default();
@@ -272,10 +269,7 @@ pub fn modify_blocks(
                 &mut curr_combined_term_docs,
                 &mut varint_buf,
                 None,
-                &mut new_pl,
                 &mut new_pl_writer,
-                &mut new_pls_offset,
-                &mut 0,
                 &mut incremental_info.pl_names_to_cache,
                 indexing_config,
                 output_folder_path,
@@ -286,7 +280,7 @@ pub fn modify_blocks(
                 curr_term,
                 TermInfo {
                     doc_freq,
-                    postings_file_name: new_pl,
+                    postings_file_name: new_pl_writer.pl,
                     postings_file_offset: start_pl_offset,
                 },
             ));
@@ -298,7 +292,7 @@ pub fn modify_blocks(
         pl_writer.commit(&mut pl_file_length_differences);
     }
 
-    new_pl_writer.flush(new_pls_offset, indexing_config.pl_cache_threshold, &mut incremental_info.pl_names_to_cache);
+    new_pl_writer.flush(indexing_config.pl_cache_threshold, &mut incremental_info.pl_names_to_cache);
 
     // ---------------------------------------------
     // Dictionary
@@ -413,10 +407,10 @@ pub fn modify_blocks(
         );
     }
 
-    incremental_info.last_pl_number = if new_pls_offset != 0 || new_pl == 0 {
-        new_pl
+    incremental_info.last_pl_number = if new_pl_writer.pl_offset != 0 || new_pl_writer.pl == 0 {
+        new_pl_writer.pl
     } else {
-        new_pl - 1
+        new_pl_writer.pl - 1
     };
 
     dict_writer
