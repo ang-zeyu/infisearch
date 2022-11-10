@@ -1,5 +1,5 @@
 import { computePosition, size, flip, arrow, Placement } from '@floating-ui/dom';
-import h from '@morsels/search-lib/lib/utils/dom';
+import h from '@infisearch/search-lib/lib/utils/dom';
 
 import { Options } from '../Options';
 import { setInputAria, unsetActiveDescendant } from '../utils/aria';

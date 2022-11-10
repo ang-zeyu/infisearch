@@ -1,4 +1,4 @@
-import { Query, Searcher } from '@morsels/search-lib';
+import { Query, Searcher } from '@infisearch/search-lib';
 import { Options } from './Options';
 import { MultiSelectState, filtersRender } from './search/multiSelectFilters';
 import createTipButton from './search/tips';

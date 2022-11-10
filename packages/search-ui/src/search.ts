@@ -1,4 +1,4 @@
-import { Searcher } from '@morsels/search-lib';
+import { Searcher } from '@infisearch/search-lib';
 import { Options, UiMode } from './Options';
 import { IManager } from './InputManager';
 import { prepareOptions } from './search/options';

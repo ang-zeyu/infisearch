@@ -5,5 +5,5 @@ import setupWithWasmModule from '../worker';
 setupWithWasmModule(import(
   /* webpackMode: "eager" */
   /* webpackExports: ["get_new_searcher", "get_query"] */
-  '@morsels/lang-latin'
+  '@infisearch/lang-latin'
 ));

@@ -1,6 +1,6 @@
-import h from '@morsels/search-lib/lib/utils/dom';
+import h from '@infisearch/search-lib/lib/utils/dom';
 
-import { MorselsConfig } from '@morsels/search-lib/lib/results/Config';
+import { MorselsConfig } from '@infisearch/search-lib/lib/results/Config';
 import { Options } from '../Options';
 import { IManager } from '../InputManager';
 import { unsetActiveDescendant } from '../utils/aria';

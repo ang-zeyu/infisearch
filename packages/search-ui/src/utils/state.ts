@@ -1,4 +1,4 @@
-import h from '@morsels/search-lib/lib/utils/dom';
+import h from '@infisearch/search-lib/lib/utils/dom';
 
 /**
  * Renders setup, loading, error, idle, blank (input is empty) states

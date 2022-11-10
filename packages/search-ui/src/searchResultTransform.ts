@@ -1,4 +1,4 @@
-import { Query, Searcher } from '@morsels/search-lib';
+import { Query, Searcher } from '@infisearch/search-lib';
 import { Options } from './Options';
 import { resultsRender } from './searchResultTransform/resultsRender';
 import { IManager } from './InputManager';

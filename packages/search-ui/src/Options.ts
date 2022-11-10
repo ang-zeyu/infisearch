@@ -1,7 +1,7 @@
-import { SearcherOptions } from '@morsels/search-lib/lib/results/Config';
-import { Result } from '@morsels/search-lib/lib/results/Result';
-import { Query } from '@morsels/search-lib';
-import { CreateElement } from '@morsels/search-lib/lib/utils/dom';
+import { SearcherOptions } from '@infisearch/search-lib/lib/results/Config';
+import { Result } from '@infisearch/search-lib/lib/results/Result';
+import { Query } from '@infisearch/search-lib';
+import { CreateElement } from '@infisearch/search-lib/lib/utils/dom';
 
 export type ArbitraryOptions = any;
 

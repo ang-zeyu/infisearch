@@ -75,7 +75,7 @@ pub struct FieldsConfig {
 
 impl Default for FieldsConfig {
     fn default() -> Self {
-        // The default configuration required for @morsels/search-ui
+        // The default configuration required for @infisearch/search-ui
         FieldsConfig {
             num_docs_per_store: get_default_num_docs_per_store(),
             num_stores_per_dir: get_default_num_field_stores_per_dir(),

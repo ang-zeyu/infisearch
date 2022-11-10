@@ -1,4 +1,4 @@
-import { Segment } from '@morsels/search-lib/lib/results/Result/MatchResult';
+import { Segment } from '@infisearch/search-lib/lib/results/Result/MatchResult';
   
 /**
  * Sorts the results according to some opinionated preferences,

@@ -1,5 +1,5 @@
 {
-  "name": "@morsels/search-ui",
+  "name": "@infisearch/search-ui",
   "version": "0.7.3",
   "description": "A complete and more scalable pre-built index approach to client-side search.",
   "keywords": [
@@ -26,6 +26,6 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.0",
-    "@morsels/search-lib": "^0.7.3"
+    "@infisearch/search-lib": "^0.7.3"
   }
 }

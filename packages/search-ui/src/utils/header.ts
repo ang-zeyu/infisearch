@@ -1,5 +1,5 @@
-import { Query } from '@morsels/search-lib';
-import h from '@morsels/search-lib/lib/utils/dom';
+import { Query } from '@infisearch/search-lib';
+import h from '@infisearch/search-lib/lib/utils/dom';
 
 function getArrow(invert: boolean) {
   // https://www.svgrepo.com/svg/49189/up-arrow (CC0 License)
