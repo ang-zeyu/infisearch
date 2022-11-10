@@ -1049,6 +1049,102 @@ dependencies = [
 ]
 
 [[package]]
+name = "infisearch"
+version = "0.7.3"
+dependencies = [
+ "bitvec",
+ "byteorder",
+ "crc32fast",
+ "crossbeam",
+ "csv",
+ "dashmap",
+ "dircpy",
+ "glob",
+ "include_dir",
+ "infisearch_common",
+ "infisearch_lang_ascii",
+ "infisearch_lang_chinese",
+ "infisearch_lang_latin",
+ "lazy_static",
+ "log",
+ "log4rs",
+ "num_cpus",
+ "path-absolutize",
+ "path-slash",
+ "pathdiff",
+ "pdf-extract",
+ "pretty_assertions",
+ "regex",
+ "rustc-hash",
+ "scraper",
+ "serde",
+ "serde_json",
+ "smartstring",
+ "structopt",
+ "typetag",
+ "walkdir",
+]
+
+[[package]]
+name = "infisearch_common"
+version = "0.7.3"
+dependencies = [
+ "byteorder",
+ "pretty_assertions",
+ "serde",
+ "smartstring",
+]
+
+[[package]]
+name = "infisearch_lang_ascii"
+version = "0.7.3"
+dependencies = [
+ "infisearch_common",
+ "lazy_static",
+ "regex",
+ "smartstring",
+]
+
+[[package]]
+name = "infisearch_lang_chinese"
+version = "0.7.3"
+dependencies = [
+ "infisearch_common",
+ "infisearch_lang_ascii",
+ "lazy_static",
+ "regex",
+ "smartstring",
+]
+
+[[package]]
+name = "infisearch_lang_latin"
+version = "0.7.3"
+dependencies = [
+ "infisearch_common",
+ "infisearch_lang_ascii",
+ "rust-stemmers",
+ "smartstring",
+]
+
+[[package]]
+name = "infisearch_search"
+version = "0.7.3"
+dependencies = [
+ "byteorder",
+ "infisearch_common",
+ "infisearch_lang_ascii",
+ "infisearch_lang_chinese",
+ "infisearch_lang_latin",
+ "js-sys",
+ "miniserde",
+ "pretty_assertions",
+ "smartstring",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "inotify"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1307,8 +1403,8 @@ version = "0.7.3"
 dependencies = [
  "anyhow",
  "clap 2.34.0",
- "mdbook",
  "infisearch",
+ "mdbook",
  "serde",
  "serde_json",
  "toml",
@@ -1430,102 +1526,6 @@ dependencies = [
  "net2",
  "winapi 0.2.8",
  "ws2_32-sys",
-]
-
-[[package]]
-name = "infisearch_common"
-version = "0.7.3"
-dependencies = [
- "byteorder",
- "pretty_assertions",
- "serde",
- "smartstring",
-]
-
-[[package]]
-name = "infisearch"
-version = "0.7.3"
-dependencies = [
- "bitvec",
- "byteorder",
- "crc32fast",
- "crossbeam",
- "csv",
- "dashmap",
- "dircpy",
- "glob",
- "include_dir",
- "lazy_static",
- "log",
- "log4rs",
- "infisearch_common",
- "infisearch_lang_ascii",
- "infisearch_lang_chinese",
- "infisearch_lang_latin",
- "num_cpus",
- "path-absolutize",
- "path-slash",
- "pathdiff",
- "pdf-extract",
- "pretty_assertions",
- "regex",
- "rustc-hash",
- "scraper",
- "serde",
- "serde_json",
- "smartstring",
- "structopt",
- "typetag",
- "walkdir",
-]
-
-[[package]]
-name = "infisearch_lang_ascii"
-version = "0.7.3"
-dependencies = [
- "lazy_static",
- "infisearch_common",
- "regex",
- "smartstring",
-]
-
-[[package]]
-name = "infisearch_lang_chinese"
-version = "0.7.3"
-dependencies = [
- "lazy_static",
- "infisearch_common",
- "infisearch_lang_ascii",
- "regex",
- "smartstring",
-]
-
-[[package]]
-name = "infisearch_lang_latin"
-version = "0.7.3"
-dependencies = [
- "infisearch_common",
- "infisearch_lang_ascii",
- "rust-stemmers",
- "smartstring",
-]
-
-[[package]]
-name = "infisearch_search"
-version = "0.7.3"
-dependencies = [
- "byteorder",
- "js-sys",
- "miniserde",
- "infisearch_common",
- "infisearch_lang_ascii",
- "infisearch_lang_chinese",
- "infisearch_lang_latin",
- "pretty_assertions",
- "smartstring",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]
