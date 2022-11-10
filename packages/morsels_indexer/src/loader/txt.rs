@@ -5,7 +5,7 @@ use log::error;
 use path_slash::PathExt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::fieldinfo::RELATIVE_FP_FIELD;
+use crate::field_info::RELATIVE_FP_FIELD;
 use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;

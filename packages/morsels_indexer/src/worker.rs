@@ -12,12 +12,12 @@ use crossbeam::channel::{Receiver, Sender};
 use morsels_common::tokenize::IndexerTokenizer;
 
 use crate::i_debug;
-use crate::docinfo::DocInfos;
-use crate::fieldinfo::FieldInfos;
+use crate::doc_info::DocInfos;
+use crate::field_info::FieldInfos;
 use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::loader::{LoaderBoxed, LoaderResult};
-use crate::spimireader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
-use crate::spimiwriter;
+use crate::spimi_reader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
+use crate::spimi_writer;
 use crate::worker::miner::WorkerBlockIndexResults;
 use miner::WorkerMiner;
 
@@ -98,7 +98,7 @@ pub fn create_worker(
 
                 i_debug!("Worker {} writing spimi block {}!", id, block_number);
 
-                spimiwriter::combine_worker_results_and_write_block(
+                spimi_writer::combine_worker_results_and_write_block(
                     worker_index_results,
                     doc_infos,
                     output_folder_path_inner_clone.to_path_buf(),

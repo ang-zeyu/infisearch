@@ -21,10 +21,10 @@ use morsels_common::postings_list::{
 use morsels_common::utils::varint::decode_var_int;
 
 use crate::dictionary_writer::DictWriter;
-use crate::fieldinfo::FieldInfos;
+use crate::field_info::FieldInfos;
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::indexer::input_config::MorselsIndexingConfig;
-use crate::spimireader::common::{
+use crate::spimi_reader::common::{
     self, postings_stream::PostingsStream, PostingsStreamDecoder, TermDocsForMerge,
 };
 use crate::utils::varint;

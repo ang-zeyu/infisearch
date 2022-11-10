@@ -6,11 +6,11 @@ use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 
 use crate::dictionary_writer::DictWriter;
-use crate::fieldinfo::FieldInfos;
+use crate::field_info::FieldInfos;
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::indexer::input_config::MorselsIndexingConfig;
 use crate::i_debug;
-use crate::spimireader::common::{
+use crate::spimi_reader::common::{
     self, postings_stream::PostingsStream, PostingsStreamDecoder, TermDocsForMerge,
 };
 use crate::worker::MainToWorkerMessage;

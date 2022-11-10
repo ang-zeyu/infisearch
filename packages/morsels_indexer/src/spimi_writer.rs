@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::docinfo::DocInfos;
-use crate::docinfo::BlockDocLengths;
-use crate::fieldinfo::FieldInfos;
+use crate::doc_info::DocInfos;
+use crate::doc_info::BlockDocLengths;
+use crate::field_info::FieldInfos;
 use crate::i_debug;
 use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;

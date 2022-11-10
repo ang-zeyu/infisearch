@@ -7,7 +7,7 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::value::Value;
 
-use crate::fieldinfo::{ADD_FILES_FIELD, RELATIVE_FP_FIELD};
+use crate::field_info::{ADD_FILES_FIELD, RELATIVE_FP_FIELD};
 use crate::loader::BasicLoaderResult;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;

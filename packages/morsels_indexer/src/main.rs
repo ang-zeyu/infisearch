@@ -4,6 +4,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use morsels_indexer::SOURCE_CONFIG_FILE;
 use morsels_indexer::indexer::Indexer;
 use morsels_indexer::indexer::input_config::MorselsConfig;
 use morsels_indexer::assets;
@@ -79,7 +80,7 @@ fn resolve_folder_paths(
             let config_return = if let Some(config_raw_file_path) = config_file_path {
                 get_relative_or_absolute_path(&cwd, config_raw_file_path)
             } else {
-                source_return.join("morsels_config.json")
+                source_return.join(SOURCE_CONFIG_FILE)
             };
             let config_return = config_return.absolutize().unwrap().to_path_buf();
 

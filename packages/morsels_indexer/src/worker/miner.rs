@@ -9,7 +9,7 @@ use rustc_hash::FxHashMap;
 
 use morsels_common::tokenize::IndexerTokenizer;
 
-use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos, EnumKind, EnumInfo};
+use crate::field_info::{ADD_FILES_FIELD, FieldInfo, FieldInfos, EnumKind, EnumInfo};
 use crate::loader::LoaderBoxed;
 use crate::i_debug;
 use crate::utils::escape_json;

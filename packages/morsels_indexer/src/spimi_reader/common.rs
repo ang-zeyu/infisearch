@@ -18,7 +18,7 @@ use self::postings_stream_reader::PostingsStreamReader;
 
 use crate::dictionary_writer::DictWriter;
 use crate::indexer::input_config::MorselsIndexingConfig;
-use crate::utils::bufwriter::ReusableWriter;
+use crate::utils::reusable_writer::ReusableWriter;
 use crate::utils::varint;
 use crate::worker::MainToWorkerMessage;
 

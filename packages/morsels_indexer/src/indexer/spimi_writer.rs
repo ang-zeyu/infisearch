@@ -4,7 +4,7 @@ use std::sync::{Arc, Barrier};
 
 use rustc_hash::FxHashMap;
 
-use crate::{i_debug, spimiwriter};
+use crate::{i_debug, spimi_writer};
 use crate::worker::MainToWorkerMessage;
 use crate::worker::miner::WorkerBlockIndexResults;
 use super::Indexer;
@@ -57,7 +57,7 @@ impl Indexer {
         let output_folder_path_inner = PathBuf::from(&self.output_folder_path_inner);
         let check_for_existing_field_store = self.is_incremental && block_number == self.start_block_number;
         if is_last_block {
-            spimiwriter::combine_worker_results_and_write_block(
+            spimi_writer::combine_worker_results_and_write_block(
                 worker_index_results,
                 Arc::clone(&self.doc_infos),
                 output_folder_path_inner,

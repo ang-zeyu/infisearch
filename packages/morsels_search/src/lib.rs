@@ -1,5 +1,5 @@
 mod dictionary;
-mod docinfo;
+mod doc_info;
 mod postings_list;
 mod postings_list_cache;
 mod searcher;

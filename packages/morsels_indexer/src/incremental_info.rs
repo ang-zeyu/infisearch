@@ -14,7 +14,7 @@ use morsels_common::{bitmap, MetadataReader, METADATA_FILE};
 
 use crate::indexer::output_config::MorselsOutputConfig;
 use crate::utils::fs_utils;
-use crate::{MORSELS_VERSION, i_debug, OLD_MORSELS_CONFIG};
+use crate::{MORSELS_VERSION, i_debug, OLD_MORSELS_CONFIG, OUTPUT_CONFIG_FILE};
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH)
@@ -121,7 +121,7 @@ impl IncrementalIndexInfo {
         // --------------------------------------------------------
         // Check for the old output config file, which should be here at this point.
         // The Morsels version used might however be different.
-        let old_output_config = output_folder_path.join("morsels_config.json");
+        let old_output_config = output_folder_path.join(OUTPUT_CONFIG_FILE);
         let old_output_config = if old_output_config.exists() {
             let old_output_conf_str = std::fs::read_to_string(&old_output_config).unwrap();
             let deserialized: Result<MorselsOutputConfig, _> = serde_json::from_str(&old_output_conf_str);

@@ -1,6 +1,6 @@
 pub mod input_config;
 pub mod output_config;
-mod spimiwriter;
+mod spimi_writer;
 mod worker;
 
 use std::fs::{self, File};
@@ -18,11 +18,11 @@ use morsels_lang_latin::latin;
 use morsels_lang_chinese::chinese;
 
 use crate::dictionary_writer::DictWriter;
-use crate::docinfo::DocInfos;
+use crate::doc_info::DocInfos;
 use crate::utils::fs_utils;
-use crate::{i_debug, spimireader, OLD_MORSELS_CONFIG};
+use crate::{i_debug, spimi_reader, OLD_MORSELS_CONFIG};
 use crate::incremental_info::IncrementalIndexInfo;
-use crate::fieldinfo::FieldInfos;
+use crate::field_info::FieldInfos;
 use crate::indexer::input_config::{MorselsConfig, MorselsIndexingConfig};
 use crate::loader::LoaderBoxed;
 use crate::worker::miner::WorkerMiner;
@@ -377,7 +377,7 @@ impl Indexer {
 
         self.incremental_info.write_info(&self.input_folder_path, &self.output_folder_path);
 
-        spimireader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path_inner);
+        spimi_reader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path_inner);
 
         print_time_elapsed(&instant, "Blocks merged!");
 
@@ -468,7 +468,7 @@ impl Indexer {
                 (self.doc_id_counter - self.incremental_info.num_deleted_docs) as f64,
             );
 
-            let dict_writer = spimireader::incremental::modify_blocks(
+            let dict_writer = spimi_reader::incremental::modify_blocks(
                 self.has_docs_added(),
                 num_blocks,
                 first_block,
@@ -492,7 +492,7 @@ impl Indexer {
             let invalidation_vec_ser = self.incremental_info.write_invalidation_vec(self.doc_id_counter);
             let (doc_infos_ser, enums_ev_strs) = self.flush_doc_infos(self.doc_id_counter as f64);
 
-            let dict_writer = spimireader::full::merge_blocks(
+            let dict_writer = spimi_reader::full::merge_blocks(
                 self.has_docs_added(),
                 num_blocks,
                 first_block,

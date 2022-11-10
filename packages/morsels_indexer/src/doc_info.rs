@@ -2,8 +2,8 @@ use std::cmp::Ordering;
 use std::iter::FromIterator;
 use std::sync::Arc;
 
-use crate::fieldinfo::EnumInfo;
-use crate::fieldinfo::FieldInfos;
+use crate::field_info::EnumInfo;
+use crate::field_info::FieldInfos;
 use crate::i_debug;
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::utils::varint;

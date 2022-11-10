@@ -3,7 +3,7 @@ use std::collections::BinaryHeap;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::docinfo::DocInfo;
+use crate::doc_info::DocInfo;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
 

@@ -11,7 +11,7 @@ use scraper::Html;
 use scraper::Selector;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::fieldinfo::RELATIVE_FP_FIELD;
+use crate::field_info::RELATIVE_FP_FIELD;
 use crate::loader::Loader;
 use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;

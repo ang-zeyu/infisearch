@@ -7,7 +7,7 @@ use std::path::Path;
 
 use morsels_common::MorselsLanguageConfig;
 
-use crate::fieldinfo::FieldsConfig;
+use crate::{field_info::FieldsConfig, SOURCE_CONFIG_FILE};
 use crate::loader::LoaderBoxed;
 use crate::loader::csv::CsvLoader;
 use crate::loader::html::HtmlLoader;
@@ -41,7 +41,7 @@ fn get_default_pl_cache_threshold() -> u32 {
 }
 
 fn get_default_exclude_patterns() -> Vec<String> {
-    vec!["morsels_config.json".to_owned()]
+    vec![SOURCE_CONFIG_FILE.to_owned()]
 }
 
 fn get_default_loaders() -> FxHashMap<String, serde_json::Value> {

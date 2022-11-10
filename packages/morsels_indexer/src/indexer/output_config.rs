@@ -3,8 +3,8 @@ use std::io::Write;
 
 use morsels_common::MorselsLanguageConfig;
 
-use crate::MORSELS_VERSION;
-use crate::fieldinfo::{FieldInfoOutput, EnumInfo};
+use crate::{MORSELS_VERSION, OUTPUT_CONFIG_FILE};
+use crate::field_info::{FieldInfoOutput, EnumInfo};
 use super::Indexer;
 
 use serde::{Serialize, Deserialize};
@@ -64,7 +64,7 @@ pub fn write_output_config(indexer: Indexer, mut enums_ev_strs: Vec<Vec<String>>
     })
     .unwrap();
 
-    File::create(indexer.output_folder_path.join("morsels_config.json"))
+    File::create(indexer.output_folder_path.join(OUTPUT_CONFIG_FILE))
         .unwrap()
         .write_all(serialized.as_bytes())
         .unwrap();

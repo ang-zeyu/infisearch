@@ -17,7 +17,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 
 use crate::dictionary::Dictionary;
-use crate::docinfo::DocInfo;
+use crate::doc_info::DocInfo;
 use crate::postings_list_cache::PostingsListCache;
 use crate::utils;
 
@@ -331,7 +331,7 @@ pub mod test {
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
     use crate::dictionary::Dictionary;
-    use crate::docinfo::DocInfo;
+    use crate::doc_info::DocInfo;
     use crate::postings_list_cache::PostingsListCache;
 
     pub fn create_searcher(num_docs: usize) -> Searcher {
