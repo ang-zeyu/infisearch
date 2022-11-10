@@ -7,8 +7,11 @@ const INPUT_SELECTOR = '#morsels-search';
 async function clearInput() {
   await page.click(INPUT_SELECTOR, { clickCount: 3 });
   await page.keyboard.press('Backspace');
+  await page.waitForSelector('#target-mode-el .morsels-blank');
+  await page.waitForSelector('#target-mode-el > [role="listbox"]');
   const numChildren = await page.evaluate(() => {
-    return document.getElementById('target-mode-el').childNodes.length;
+    const listbox = document.querySelector('#target-mode-el > [role="listbox"]');
+    return listbox && listbox.childNodes.length;
   });
   expect(numChildren).toBe(0);
 }
@@ -41,9 +44,12 @@ async function typeText(text) {
 
 async function waitNoResults() {
   try {
-    await page.waitForSelector('.morsels-header', { timeout: 10000 });
-    const headerText = await page.evaluate(() =>
-      document.getElementsByClassName('morsels-header')[0].textContent);
+    await page.waitForSelector('#target-mode-el .morsels-header .morsels-results-found', { timeout: 10000 });
+    const headerText = await page.evaluate(() => {
+      const header = document.querySelector('#target-mode-el .morsels-header');
+      return header && header.textContent;
+    });
+    expect(typeof headerText).toBe('string');
     expect(headerText.trim().startsWith('0 results found')).toBe(true);
   } catch (ex) {
     const output = await page.evaluate(() => document.getElementById('target-mode-el').innerHTML);
@@ -57,10 +63,10 @@ async function waitNoResults() {
 
 async function assertSingle(text) {
   try {
-    await page.waitForSelector('.morsels-list-item', { timeout: 60000 });
+    await page.waitForSelector('#target-mode-el .morsels-list-item', { timeout: 60000 });
 
     const result = await page.evaluate(() => {
-      const queryResult = document.getElementsByClassName('morsels-list-item');
+      const queryResult = document.querySelectorAll('#target-mode-el .morsels-list-item');
       return { text: queryResult.length && queryResult[0].textContent, resultCount: queryResult.length };
     });
 
@@ -88,10 +94,10 @@ async function assertSingle(text) {
 
 async function assertMultiple(texts, count) {
   try {
-    await page.waitForSelector('.morsels-list-item', { timeout: 60000 });
+    await page.waitForSelector('#target-mode-el .morsels-list-item', { timeout: 60000 });
 
     const result = await page.evaluate(() => {
-      const queryResult = document.getElementsByClassName('morsels-list-item');
+      const queryResult = document.querySelectorAll('#target-mode-el .morsels-list-item');
       return {
         texts: Array.from(queryResult).map((el) => el.textContent),
         resultCount: queryResult.length,
@@ -125,7 +131,75 @@ function expectNumDeletedDocs(n) {
   );
   expect(incrementalIndexInfo.num_deleted_docs).toBe(n);
 }
-  
+
+async function setActiveClass(selector) {
+  await page.waitForSelector(selector);
+
+  const activeSelector = `${selector}.active`;
+  const isDropdownExpanded = await page.evaluate((s) => !!document.querySelector(s), activeSelector);
+
+  if (!isDropdownExpanded) {
+    await page.evaluate((s) => document.querySelector(s).click(), selector);
+    await page.waitForSelector(activeSelector);
+  }
+}
+
+async function clickCheckbox(selector, active) {
+  await page.waitForSelector(selector);
+
+  const activeSelector = `${selector}${active ? ':checked' : ':not(:checked)'}`;
+  const inActiveState = await page.evaluate((s) => !!document.querySelector(s), activeSelector);
+
+  if (!inActiveState) {
+    await page.evaluate((s) => document.querySelector(s).click(), selector);
+    await page.waitForSelector(activeSelector);
+  }
+}
+
+async function selectFilters(enumsToValues, unspecifiedIsChecked = true) {
+  // Expand the filters
+  await setActiveClass('#target-mode-el button.morsels-filters');
+
+  const allHeaders = await page.evaluate(() => {
+    const options = document.querySelectorAll('#target-mode-el .morsels-filter-header');
+    return Array.from(options).map((el) => el.textContent);
+  });
+
+  // Expand all headers
+  for (let headerIdx = 1; headerIdx <= allHeaders.length; headerIdx += 1) {
+    await setActiveClass(
+      `#target-mode-el .morsels-filter:nth-child(${headerIdx}) .morsels-filter-header`,
+    );
+  }
+
+  // Click the options
+  for (let headerIdx = 1; headerIdx <= allHeaders.length; headerIdx += 1) {
+    const headerText = allHeaders[headerIdx - 1];
+    const specifiedValues = enumsToValues[headerText];
+
+    const optionsContainer =
+      `#target-mode-el .morsels-filter:nth-child(${headerIdx}) [role="listbox"]`;
+
+    const uiValues = await page.evaluate((optionsContainerSelector) => {
+      const options = document.querySelectorAll(optionsContainerSelector + ' .morsels-filter-opt');
+      return Array.from(options).map((el) => el.textContent.trim());
+    }, optionsContainer);
+
+    for (let optionIdx = 1; optionIdx <= uiValues.length; optionIdx += 1) {
+      // Select all options in unspecified headers
+      // and specified options in specified headers
+      const active = (!specifiedValues && unspecifiedIsChecked)
+        || specifiedValues.includes(uiValues[optionIdx - 1]);
+
+      await clickCheckbox(
+        optionsContainer
+        + ` .morsels-filter-opt:nth-child(${optionIdx}) input[type="checkbox"]`,
+        active,
+      );
+    }
+  }
+}
+
 async function reloadPage(lang = 'ascii') {
   await jestPuppeteer.resetPage();
   await jestPuppeteer.resetBrowser();
@@ -175,4 +249,5 @@ module.exports = {
   reloadPage,
   runFullIndex,
   runIncrementalIndex,
+  selectFilters,
 };

@@ -1,10 +1,8 @@
 import { Query, Searcher } from '@morsels/search-lib';
-import h from '@morsels/search-lib/lib/utils/dom';
 import { Options } from './Options';
 import { resultsRender } from './searchResultTransform/resultsRender';
-import { createInvisibleLoadingIndicator } from './utils/dom';
-import { InputState } from './utils/input';
-import { focusEl } from './utils/keyboard';
+import { IManager } from './InputManager';
+import { focusEl, SELECTED_OPTION_ID } from './utils/keyboard';
 
 
 /**
@@ -12,27 +10,23 @@ import { focusEl } from './utils/keyboard';
  */
 export default async function loadQueryResults(
   searcher: Searcher,
-  inputState: InputState,
+  iManager: IManager,
   query: Query,
   resultsToLoad: number,
   numResultsSoFar: number,
   options: Options,
 ): Promise<HTMLElement[] | undefined> {
   // If a new query interrupts the current one
-  if (inputState._mrlNextAction) return;
-
-  // let now = performance.now();
+  if (iManager._mrlHasQueuedAction()) return;
 
   const results = await query.getNextN(resultsToLoad);
 
-  // console.log(`Search Result Retrieval took ${performance.now() - now} milliseconds`);
+  if (iManager._mrlHasQueuedAction()) return;
 
-  if (inputState._mrlNextAction) return;
+  // const now = performance.now();
 
-  // now = performance.now();
-
-  const inputEl = inputState._mrlInputEl;
-  const listContainer = inputState._mrlListContainer;
+  const inputEl = iManager._mrlInputEl;
+  const resultContainer = iManager._mrlScroller.children[3] as HTMLElement;
   const resultsEls = await resultsRender(
     options,
     results,
@@ -41,30 +35,31 @@ export default async function loadQueryResults(
     (nResults: number) => {
       // inputEl.focus(); -- this wont work. causes keyboard to reshow on mobile
       return loadQueryResults(
-        searcher, inputState, query, 
+        searcher, iManager, query, 
         nResults, numResultsSoFar + results.length, options,
       );
     },
     (el: HTMLElement) => focusEl(
-      el, listContainer.querySelector('#morsels-list-selected'), inputEl, listContainer, false,
+      el,
+      resultContainer.querySelector(`#${SELECTED_OPTION_ID}`),
+      inputEl,
+      resultContainer,
+      false,
     ),
   );
 
   // console.log(`Result transformation took ${performance.now() - now} milliseconds`);
 
-  if (inputState._mrlNextAction) return;
+  // We could pre-empt at this stage too, but it is likely not beneficial
+  // since it takes very less time to complete...
+  // if (iManager._mrlHasQueuedAction()) return;
 
-  if (numResultsSoFar) {
-    listContainer.append(...resultsEls);
-  } else {
-    listContainer.innerHTML = '';
-    inputState._mrlLoader = createInvisibleLoadingIndicator();
-    listContainer.append(
-      inputState._mrlLoader,
-      options.uiOptions.headerRender(h, options, false, false, query),
-      ...resultsEls,
-    );
+  if (!numResultsSoFar) {
+    iManager._mrlRefreshLoader();
+    iManager._mrlRefreshHeader(query);
+    resultContainer.innerHTML = '';
   }
+  resultContainer.append(...resultsEls);
 
   return resultsEls;
 }

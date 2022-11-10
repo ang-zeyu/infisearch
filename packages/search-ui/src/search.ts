@@ -1,19 +1,11 @@
 import { Searcher } from '@morsels/search-lib';
-import createElement from '@morsels/search-lib/lib/utils/dom';
 import { Options, UiMode } from './Options';
-import { LOADING_INDICATOR_ID } from './utils/dom';
-import { InputState, runNewQuery } from './utils/input';
+import { IManager } from './InputManager';
 import { prepareOptions } from './search/options';
-import {
-  unsetActiveDescendant,
-  setExpanded,
-  setInputAria,
-  unsetExpanded,
-} from './utils/aria';
 import {
   openDropdown, closeDropdown,
   dropdownRootRender, fsRootRender, setFsTriggerInput,
-  setDropdownInputAria, unsetDropdownInputAria,
+  setDropdownInputAria, unsetDropdownInputAria, targetRender,
 } from './search/rootContainers';
 
 // State / handlers for a single morsels.initMorsels() call
@@ -36,8 +28,7 @@ class InitState {
 
   _mrlCreateInputListener(
     input: HTMLInputElement,
-    root: HTMLElement,
-    listContainer: HTMLElement,
+    scrollContainer: HTMLElement,
     searcher: Searcher,
     options: Options,
   ) {
@@ -48,22 +39,11 @@ class InitState {
      - Wait for the **first** run of the previous active query to finish before running a new one.
      - Do not wait for subsequent runs however -- should be able to "change queries" quickly
      */
-    const inputState = new InputState(input, listContainer);
-  
+    const iManager = new IManager(input, searcher, scrollContainer, options);
+
     let setupOk = true;
-    searcher.setupPromise
-      .then(() => {
-        if (inputState._mrlNextAction) {
-          inputState._mrlNextAction();
-          inputState._mrlNextAction = undefined;
-        }
-      })
-      .catch(() => {
-        listContainer.innerHTML = '';
-        listContainer.appendChild(uiOptions.headerRender(createElement, options, true, false));
-        setupOk = false;
-      });
-  
+    searcher.setupPromise.catch(() => setupOk = false);
+
     let inputTimer: any = -1;
     input.addEventListener('input', (ev: InputEvent) => {
       if (!setupOk) {
@@ -74,67 +54,19 @@ class InitState {
     
       clearTimeout(inputTimer);
       if (query.length) {
-        // Only debounce queries
-
+        // Debounce queries
         inputTimer = setTimeout(() => {
-          if (
-            inputState._mrlIsResultsBlank
-            && !listContainer.firstElementChild?.getAttribute(LOADING_INDICATOR_ID)
-          ) {
-            /*
-             The first ever query for this input.
-             Add the setup loading indicator (if not done)
-             or the normal query loading indicator.
-            */
-
-            listContainer.innerHTML = '';
-
-            const loader = uiOptions.loadingIndicatorRender(
-              createElement, options, !searcher.isSetupDone, true,
-            );
-            inputState._mrlLoader = loader;
-            listContainer.appendChild(loader);
-          }
-
           if (this._mrlShowDropdown) this._mrlShowDropdown();
-
-          // Queue or immediately run the query
-          const action = () => runNewQuery(query, inputState, searcher, root, listContainer, options);
-          if (inputState._mrlIsRunningQuery || !searcher.isSetupDone) {
-            inputState._mrlNextAction = action;
-          } else {
-            action();
-          }
-
-          unsetActiveDescendant(input);
-          setExpanded(input);
+          iManager._mrlQueueNewQuery(query);
         }, uiOptions.inputDebounce);
       } else {
-        // Resets should be instant
+        // But resets should be instant
 
-        const reset = () => {
-          listContainer.innerHTML = '';
+        iManager._mrlReset();
 
-          if (this._mrlUseDropdown()) {
-            // Dropdown, hide it
-            this._mrlHideDropdown();
-          } else if (uiOptions.mode !== UiMode.Target) {
-            // Fullscreen, render the initial element / text
-            listContainer.appendChild(uiOptions.headerRender(createElement, options, false, true));
-          } /* else {
-            // Target, no action needed other than clearing the HTML
-          } */
-    
-          inputState._mrlIsRunningQuery = false;
-          inputState._mrlIsResultsBlank = true;
-          unsetActiveDescendant(input);
-          unsetExpanded(input);
-        };
-    
-        if (inputState._mrlIsRunningQuery) {
-          inputState._mrlNextAction = reset;
-        } else {
-          reset();
+        if (this._mrlUseDropdown()) {
+          // Dropdown, hide it
+          this._mrlHideDropdown();
         }
       }
     });
@@ -163,8 +95,8 @@ function initMorsels(options: Options): {
 
   // --------------------------------------------------
   // Fullscreen version
-  const [fsRoot, fsListContainer, fsInput, openFullscreen, closeFullscreen] = fsRootRender(
-    options, searcher,
+  const [fsScrollContainer, fsInput, openFullscreen, closeFullscreen] = fsRootRender(
+    options,
     (isKeyboardClose) => {
       if (isKeyboardClose && input) input.focus();
       initState._mrlFsShown = false;
@@ -175,11 +107,8 @@ function initMorsels(options: Options): {
   );
 
   initState._mrlCreateInputListener(
-    fsInput, fsRoot, fsListContainer, searcher, options,
+    fsInput, fsScrollContainer, searcher, options,
   );
-
-  // Initial state is blank
-  fsListContainer.appendChild(uiOptions.headerRender(createElement, options, false, true));
 
   function showFullscreen() {
     if (!initState._mrlFsShown) {
@@ -216,7 +145,7 @@ function initMorsels(options: Options): {
 
   // --------------------------------------------------
   // Input element option handling
-  let dropdownListContainer: HTMLElement;
+
   if (input && (mode === UiMode.Auto || mode === UiMode.Dropdown)) {
     // Auto / Dropdown
 
@@ -229,10 +158,10 @@ function initMorsels(options: Options): {
     for (; inputIdx < parentChildNodes.length && parentChildNodes[inputIdx] !== input; inputIdx += 1);
 
     input.remove();
-    const [dropdownRoot, d] = dropdownRootRender(uiOptions, searcher, input, () => {
+    const [dropdownRoot, dropdownScroller] = dropdownRootRender(options, input, () => {
       initState._mrlHideDropdown();
     });
-    dropdownListContainer = d;
+    
     if (inputIdx < parentChildNodes.length) {
       parent.insertBefore(dropdownRoot, parentChildNodes[inputIdx]);
     } else {
@@ -240,8 +169,9 @@ function initMorsels(options: Options): {
     }
 
     initState._mrlShowDropdown = () => {
-      if (dropdownListContainer.childElementCount) {
-        openDropdown(dropdownRoot, dropdownListContainer, dropdownAlignment);
+      if (input.value) {
+        // Show the dropdown only if it is not empty
+        openDropdown(dropdownRoot, dropdownScroller, dropdownAlignment);
         initState._mrlDropdownShown = true;
       }
     };
@@ -251,9 +181,10 @@ function initMorsels(options: Options): {
     };
 
     initState._mrlCreateInputListener(
-      input, dropdownRoot, dropdownListContainer, searcher, options,
+      input, dropdownScroller, searcher, options,
     );
 
+    const resultContainer = dropdownScroller.children[3] as HTMLElement;
     function toggleUiMode() {
       if (initState._mrlUseDropdown()) {
         hideFullscreen();
@@ -262,10 +193,10 @@ function initMorsels(options: Options): {
           // Otherwise, the input should be focused
           initState._mrlShowDropdown();
         }
-        setDropdownInputAria(input, dropdownListContainer, label, originalPlaceholder);
+        setDropdownInputAria(input, resultContainer, label, originalPlaceholder);
       } else {
         initState._mrlHideDropdown();
-        unsetDropdownInputAria(input, dropdownListContainer, fsInputLabel, fsInputButtonText);
+        unsetDropdownInputAria(input, resultContainer, fsInputLabel, fsInputButtonText);
       }
     }
     toggleUiMode();
@@ -304,18 +235,9 @@ function initMorsels(options: Options): {
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Target) {
     // Target
+    targetRender(options, input, target);
 
-    target.classList.add('morsels-root');
-
-    initState._mrlCreateInputListener(input, target, target, searcher, options);
-
-    let ariaControlsId = target.getAttribute('id');
-    if (!ariaControlsId) {
-      target.setAttribute('id', 'morsels-target-list');
-      ariaControlsId = 'morsels-target-list';
-    }
-
-    setInputAria(input, target, uiOptions.label);
+    initState._mrlCreateInputListener(input, target, searcher, options);
   }
   // --------------------------------------------------
 

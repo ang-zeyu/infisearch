@@ -10,7 +10,7 @@ export default function setupWithWasmModule(wasmModule: Promise<any>) {
       postMessage({ isSetupDone: true });
     } else if (data.query) {
       const {
-        query, queryId, n, isFree, isGetNextN,
+        query, opts, queryId, n, isFree, isGetNextN,
       } = data;
       if (isFree) {
         freeQuery(queryId);
@@ -20,9 +20,9 @@ export default function setupWithWasmModule(wasmModule: Promise<any>) {
           query,
           queryId,
           nextResults,
-        });
+        }, [nextResults]);
       } else {
-        const workerQuery = await processQuery(query, queryId);
+        const workerQuery = await processQuery(query, opts, queryId);
         postMessage({
           query,
           queryId,

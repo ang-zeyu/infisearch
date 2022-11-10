@@ -137,13 +137,15 @@ impl Indexer {
 
         let loaders: Arc<Vec<LoaderBoxed>> = Arc::new(config.indexing_config.get_loaders_from_config());
 
-        let field_infos = config.fields_config.get_field_infos(output_folder_path);
+        let field_infos = config.fields_config.get_field_infos(
+            output_folder_path, is_incremental,
+        );
 
         // ------------------------------
         // Previous index info
         let doc_infos = Arc::from(Mutex::from(DocInfos::init_doc_infos(
             is_incremental,
-            field_infos.num_scored_fields,
+            &field_infos,
             metadata_rdr.as_mut(),
         )));
 
@@ -156,7 +158,7 @@ impl Indexer {
 
         let doc_id_counter = doc_infos.lock()
             .expect("Unexpected concurrent holding of doc_infos mutex")
-            .doc_lengths.len() as u32;
+            .doc_infos.len() as u32;
 
         i_debug!("Previous number of docs {}", doc_id_counter);
 
@@ -386,7 +388,7 @@ impl Indexer {
         print_time_elapsed(&instant, "Block indexing done!");
 
         // N-way merge of spimi blocks
-        self.merge_blocks(first_block, last_block, instant.is_some());
+        let enums_ev_strs = self.merge_blocks(first_block, last_block, instant.is_some());
 
         self.incremental_info.write_info(&self.input_folder_path, &self.output_folder_path);
 
@@ -401,21 +403,22 @@ impl Indexer {
         );
 
         // Config needs to be written after workers are joined, as it calls Arc::try_unwrap.
-        output_config::write_output_config(self);
+        output_config::write_output_config(self, enums_ev_strs);
     }
 
     fn has_docs_added(&self) -> bool {
         self.doc_id_counter == self.start_doc_id
     }
 
-    fn flush_doc_infos(&mut self, num_docs: f64) -> Vec<u8> {
+    fn flush_doc_infos(&mut self, num_docs: f64) -> (Vec<u8>, Vec<Vec<String>>) {
         let mut doc_infos_unwrapped_inner = Arc::try_unwrap(std::mem::take(&mut self.doc_infos))
             .expect("No thread should be holding doc infos arc when merging blocks")
             .into_inner()
             .expect("No thread should be holding doc infos mutex when merging blocks");
 
         doc_infos_unwrapped_inner.finalize_and_flush(
-            num_docs as u32, self.field_infos.num_scored_fields,
+            num_docs as u32,
+            &self.field_infos,
             &mut self.incremental_info,
         )
     }
@@ -470,13 +473,13 @@ impl Indexer {
         metadata_writer.flush().expect("Failed to flush metadata.json");
     }
 
-    fn merge_blocks(&mut self, first_block: u32, last_block: u32, log_metadata_sizes: bool) {
+    fn merge_blocks(&mut self, first_block: u32, last_block: u32, log_metadata_sizes: bool) -> Vec<Vec<String>> {
         let num_blocks = last_block - first_block + 1;
 
         if self.is_incremental {
             self.incremental_info.delete_unencountered_external_ids();
             let invalidation_vec_ser = self.incremental_info.write_invalidation_vec(self.doc_id_counter);
-            let doc_infos_ser = self.flush_doc_infos(
+            let (doc_infos_ser, enums_ev_strs) = self.flush_doc_infos(
                 (self.doc_id_counter - self.incremental_info.num_deleted_docs) as f64,
             );
 
@@ -498,9 +501,11 @@ impl Indexer {
                 dict_writer,
                 log_metadata_sizes,
             );
+
+            enums_ev_strs
         } else {
             let invalidation_vec_ser = self.incremental_info.write_invalidation_vec(self.doc_id_counter);
-            let doc_infos_ser = self.flush_doc_infos(self.doc_id_counter as f64);
+            let (doc_infos_ser, enums_ev_strs) = self.flush_doc_infos(self.doc_id_counter as f64);
 
             let dict_writer = spimireader::full::merge_blocks(
                 self.has_docs_added(),
@@ -520,6 +525,8 @@ impl Indexer {
                 dict_writer,
                 log_metadata_sizes,
             );
+
+            enums_ev_strs
         }
     }
 }

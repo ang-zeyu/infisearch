@@ -1,10 +1,8 @@
 import { computePosition, size, flip, arrow, Placement } from '@floating-ui/dom';
-import { Searcher } from '@morsels/search-lib';
 import h from '@morsels/search-lib/lib/utils/dom';
 
-import { Options, UiOptions } from '../Options';
+import { Options } from '../Options';
 import { setInputAria, unsetActiveDescendant } from '../utils/aria';
-import createTipButton from './tips';
 
 
 export function openDropdown(root: HTMLElement, listContainer: HTMLElement, placement: Placement) {
@@ -48,32 +46,45 @@ export function closeDropdown(root: HTMLElement) {
   (root.children[1] as HTMLElement).style.display = 'none';
 }
 
+function getTemporaryElements() {
+  // Placeholders, swapped in later in InputManager
+  return [
+    h('div', {}),
+    h('div', { class: 'morsels-filters' }),
+    h('div', {}),
+  ];
+}
+
 // Incremental Id for pages with multiple UIs, for aria attributes.
-let dropdownId = 0;
+let resultContainerId = 0;
 
 export function dropdownRootRender(
-  uiOptions: UiOptions,
-  searcher: Searcher,
+  opts: Options,
   inputEl: HTMLInputElement,
   hideDropdown: () => void,
 ) {
-  const listContainer = h('div', {
-    id: `morsels-dropdown-list-${dropdownId++}`,
-    class: 'morsels-list',
-    // Prevent dropdown from being dismissed when clicking anywhere else inside
-    tabindex: '-1',
+  const resultContainer = h('div', {
+    id: `morsels-dropdown-list-${resultContainerId++}`,
   });
+  const scrollContainer = h('div',
+    {
+      class: 'morsels-list',
+      // Prevent dropdown from being dismissed when clicking anywhere else inside
+      tabindex: '-1',
+    },
+    ...getTemporaryElements(),
+    resultContainer,
+  );
   const innerRoot = h('div',
     { class: 'morsels-inner-root', style: 'display: none;' },
     h('div', { class: 'morsels-input-dropdown-separator' }),
-    createTipButton(uiOptions, searcher),
-    listContainer,
+    scrollContainer,
   );
   
   const root = h('div', { class: 'morsels-root morsels-dropdown-root' },
     inputEl, innerRoot,
   );
-  innerRoot.onkeyup = (ev) => {
+  innerRoot.onkeydown = (ev) => {
     if (ev.code === 'Escape') {
       ev.stopPropagation();
       inputEl.focus();
@@ -81,7 +92,7 @@ export function dropdownRootRender(
     }
   };
 
-  return [root, listContainer];
+  return [root, scrollContainer];
 }
 
 export function setFsTriggerInput(input: HTMLElement, fsInputButtonText: string, fsInputLabel: string) {
@@ -103,22 +114,22 @@ function unsetFsTriggerInput(input: HTMLElement, originalPlaceholder: string) {
 
 export function setDropdownInputAria(
   input: HTMLElement,
-  listContainer: HTMLElement,
+  resultContainer: HTMLElement,
   label: string,
   originalPlaceholder: string,
 ) {
   unsetFsTriggerInput(input, originalPlaceholder);
-  setInputAria(input, listContainer, label);
+  setInputAria(input, resultContainer, label);
 }
 
 export function unsetDropdownInputAria(
   input: HTMLElement,
-  listbox: HTMLElement,
+  resultContainer: HTMLElement,
   fsInputLabel: string,
   fsInputButtonText: string,
 ) {
-  listbox.removeAttribute('role');
-  listbox.removeAttribute('aria-label');
+  resultContainer.removeAttribute('role');
+  resultContainer.removeAttribute('aria-label');
   input.removeAttribute('role');
   input.removeAttribute('aria-expanded');
   input.removeAttribute('aria-autocomplete');
@@ -132,17 +143,21 @@ let fsId = 0;
 
 export function fsRootRender(
   opts: Options,
-  searcher: Searcher,
   onClose: (isKeyboardClose: boolean) => void,
-): [HTMLElement, HTMLElement, HTMLInputElement, () => void, (isKeyboardClose: boolean) => void] {
-  const { uiOptions } = opts;
+): [HTMLElement, HTMLInputElement, () => void, (isKeyboardClose: boolean) => void] {
+  const {
+    fsPlaceholder,
+    fsCloseText,
+    fsContainer,
+    label,
+  } = opts.uiOptions;
 
   const labelId = `morsels-fs-label-${fsId}`;
   const inputEl = h(
     'input', {
       class: 'morsels-fs-input',
       type: 'search',
-      placeholder: uiOptions.fsPlaceholder,
+      placeholder: fsPlaceholder,
       'aria-labelledby': labelId,
       'enterkeyhint': 'search',
     },
@@ -162,21 +177,25 @@ export function fsRootRender(
     }
   };
 
-  const buttonEl = h('button', { class: 'morsels-input-close-fs' }, uiOptions.fsCloseText);
+  const buttonEl = h('button', { class: 'morsels-input-close-fs' }, fsCloseText);
   
-  const listContainer = h('div', {
+  const resultContainer = h('div', {
     id: `morsels-fs-list-${fsId++}`,
-    class: 'morsels-list',
     'aria-labelledby': labelId,
   });
+  const scrollContainer = h('div',
+    { class: 'morsels-list', tabindex: '-1' },
+    ...getTemporaryElements(),
+    resultContainer,
+  );
 
   const innerRoot = h('div',
     { class: 'morsels-root morsels-fs-root' },
-    h('form',
+    h('div',
       { class: 'morsels-fs-controls' },
       h('label',
         { id: labelId, for: 'morsels-fs-input', style: 'display: none' },
-        uiOptions.label,
+        label,
       ),
       h('div',
         { class: 'morsels-fs-input-wrapper' },
@@ -184,13 +203,12 @@ export function fsRootRender(
       ),
       buttonEl,
     ),
-    createTipButton(uiOptions, searcher),
-    listContainer,
+    scrollContainer,
   );
   innerRoot.onclick = (ev) => ev.stopPropagation();
   innerRoot.onmousedown = (ev) => ev.stopPropagation();
   
-  setInputAria(inputEl, listContainer, uiOptions.label);
+  setInputAria(inputEl, resultContainer, label);
   
   const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
 
@@ -213,23 +231,35 @@ export function fsRootRender(
   };
 
   function openFullscreen() {
-    uiOptions.fsContainer.appendChild(rootBackdropEl);
-    const input: HTMLInputElement = rootBackdropEl.querySelector('input.morsels-fs-input');
-    if (input) {
-      input.focus();
-    }
+    fsContainer.appendChild(rootBackdropEl);
+    inputEl.focus();
   
-    const currentFocusedResult = listContainer.querySelector('.focus') as HTMLElement;
+    const currentFocusedResult = resultContainer.querySelector('.focus') as HTMLElement;
     if (currentFocusedResult) {
-      listContainer.scrollTo({ top: currentFocusedResult.offsetTop - listContainer.offsetTop - 30 });
+      scrollContainer.scrollTo({ top: currentFocusedResult.offsetTop - scrollContainer.offsetTop - 30 });
     }
   }
   
   return [
-    rootBackdropEl,
-    listContainer,
+    scrollContainer,
     inputEl,
     openFullscreen,
     hideFullscreen,
   ];
+}
+
+export function targetRender(
+  opts: Options,
+  input: HTMLInputElement,
+  target: HTMLElement,
+) {
+  target.classList.add('morsels-root');
+
+  const resultContainer = h('div', { id: `morsels-target-list-${resultContainerId++}` });
+  target.append(
+    ...getTemporaryElements(),
+    resultContainer,
+  );
+
+  setInputAria(input, resultContainer, opts.uiOptions.label);
 }

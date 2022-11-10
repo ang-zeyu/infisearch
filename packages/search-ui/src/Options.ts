@@ -12,6 +12,12 @@ export enum UiMode {
   Target = 'target',
 }
 
+export interface MultiSelectFilterBinding {
+  fieldName: string,
+  displayName: string,
+  defaultOptName: string,
+}
+
 export interface UiOptions {
   input: HTMLInputElement,
   inputDebounce?: number,
@@ -30,27 +36,13 @@ export interface UiOptions {
   target?: HTMLElement,
   tip: boolean,
   resultsPerPage?: number,
+  multiSelectFilters: MultiSelectFilterBinding[],
   // This is specific to the default resultsRender implementation,
   // pulling it up as its a common option
   sourceFilesUrl?: string,
 
   // -----------------------------------------------------
   // Renderers
-
-  // Miscellaneous
-  loadingIndicatorRender?: (
-    h: CreateElement,
-    opts: Options,
-    isInitialising: boolean,
-    wasResultsBlank: boolean,
-  ) => HTMLElement,
-  headerRender?: (
-    h: CreateElement,
-    opts: Options,
-    error: boolean,
-    blank: boolean,
-    query?: Query,
-  ) => HTMLElement,
 
   // Rendering Results
   listItemRender?: ListItemRender,

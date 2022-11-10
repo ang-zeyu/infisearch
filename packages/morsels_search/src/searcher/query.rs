@@ -3,6 +3,7 @@ use std::collections::BinaryHeap;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 
+use crate::docinfo::DocInfo;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
 
@@ -45,21 +46,43 @@ pub struct Query {
     results_retrieved: u32,
     pub results_total: usize,
     result_limit: Option<u32>,
+    doc_infos: *const DocInfo,
 }
 
 #[wasm_bindgen]
 impl Query {
+    /// Returns the internal doc ids of the next n top ranked documents.
+    /// 
+    /// Fields are populated on the JS side to avoid significant (de)serialization overheads.
+    /// Enum values, if any, are also returned sorted according to enum ids.
+    /// 
+    /// Format:
+    /// doc id 1
+    /// enum value for enum_id=0
+    /// enum value for enum_id=1
+    /// ...
+    /// doc id 2
     pub fn get_next_n(&mut self, n: usize) -> Vec<u32> {
-        let mut doc_ids: Vec<u32> = Vec::with_capacity(n);
+        let doc_infos = unsafe { &*self.doc_infos };
+
+        let mut raw: Vec<u32> = Vec::with_capacity(n * (1 + doc_infos.num_enum_fields));
+        let mut docs_added = 0;
+
         while !self.result_heap.is_empty()
-            && doc_ids.len() < n
+            && docs_added < n
             && (self.result_limit.is_none() || self.results_retrieved < unsafe { self.result_limit.unwrap_unchecked() })
         {
-            doc_ids.push(unsafe { self.result_heap.pop().unwrap_unchecked().doc_id });
+            let doc_id = unsafe { self.result_heap.pop().unwrap_unchecked().doc_id };
+            raw.push(doc_id);
+            for enum_id in 0..doc_infos.num_enum_fields {
+                raw.push(doc_infos.get_enum_val(doc_id as usize, enum_id) as u32);
+            }
+
+            docs_added += 1;
             self.results_retrieved += 1;
         }
 
-        doc_ids
+        raw
     }
 
     pub fn get_query_parts(&self) -> String {
@@ -81,6 +104,7 @@ impl Searcher {
             results_retrieved: 0,
             results_total,
             result_limit,
+            doc_infos: (&self.doc_info) as *const DocInfo
         }
     }
 }

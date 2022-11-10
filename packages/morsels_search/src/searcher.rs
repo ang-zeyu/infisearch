@@ -7,6 +7,7 @@ mod futures;
 
 use byteorder::ByteOrder;
 use byteorder::LittleEndian;
+use morsels_common::EnumMax;
 use morsels_common::MetadataReader;
 use morsels_common::MorselsLanguageConfigOpts;
 
@@ -240,15 +241,53 @@ impl Searcher {
     }
 }
 
+/// Format:
+/// num enums (1 byte)
+///   enum id (1 byte)
+///   number of enum values for this enum (1 byte)
+///   enum value's internal ids (times number of enum values) (1 byte each)
+fn read_enum_filters_param(enum_filters_raw: Vec<u32>) -> Vec<(usize, [bool; EnumMax::MAX as usize])> {
+    // Unsafe gets are guaranteed since it is serialized in from JS interface
+
+    let num_enums = unsafe { *enum_filters_raw.get_unchecked(0) } as usize;
+
+    let mut pos = 1;
+    let mut enum_filters = Vec::with_capacity(num_enums);
+    for _i in 0..num_enums {
+        let enum_id = unsafe { *enum_filters_raw.get_unchecked(pos) } as usize;
+        pos += 1;
+        let num_ev_ids = unsafe { *enum_filters_raw.get_unchecked(pos) };
+        pos += 1;
+
+        let mut ev_ids = [false; EnumMax::MAX as usize];
+        for _j in 0..num_ev_ids {
+            unsafe {
+                *ev_ids.get_unchecked_mut(*enum_filters_raw.get_unchecked(pos) as usize) = true;
+            }
+            pos += 1;
+        }
+
+        enum_filters.push((enum_id, ev_ids));
+    }
+
+    enum_filters
+}
+
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::Query, JsValue> {
+pub async fn get_query(
+    searcher: *mut Searcher,
+    query: String,
+    enum_filters_raw: Vec<u32>,
+) -> Result<query::Query, JsValue> {
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
     #[cfg(feature = "perf")]
     let performance = window.performance().unwrap();
     #[cfg(feature = "perf")]
     let start = performance.now();
+
+    let enum_filters = read_enum_filters_param(enum_filters_raw);
 
     let searcher_val = unsafe { &mut *searcher };
     let mut query_parts = query_parser::parse_query(
@@ -272,7 +311,7 @@ pub async fn get_query(searcher: *mut Searcher, query: String) -> Result<query::
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
-    let result_heap = searcher_val.process_and_rank(&mut query_parts, &term_pls);
+    let result_heap = searcher_val.process_and_rank(&mut query_parts, &term_pls, enum_filters);
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
@@ -319,8 +358,10 @@ pub mod test {
             doc_info: DocInfo {
                 doc_length_factors: vec![1.0; num_docs * num_fields],
                 doc_length_factors_len: num_docs as u32,
+                doc_enum_vals: Vec::new(),
                 num_docs: num_docs as u32,
                 num_fields,
+                num_enum_fields: 0,
             },
             searcher_config: SearcherConfig {
                 indexing_config: IndexingConfig {

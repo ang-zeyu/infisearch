@@ -2,7 +2,7 @@
 
 The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
-Morsels' defaults should be sufficient to index most HTML files, but if not, you can configure how it is done. Enabling support for other file formats (e.g. JSON, CSV, PDF) files is also done here.
+Morsels' defaults should be sufficient to index most HTML files, but if not, you can also configure how the content mapping is done. Enabling support for other file formats (e.g. JSON, CSV, PDF) files is also done here.
 
 ## Mapping File Data to Fields
 

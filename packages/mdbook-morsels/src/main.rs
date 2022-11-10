@@ -137,10 +137,10 @@ pub struct Morsels;
 static INPUT_EL: &str = "\n<input
     type=\"search\"
     id=\"morsels-search\"
-    placeholder=\"Search\"
+    placeholder=\"Search this book ...\"
 />\n\n
 <span style=\"font-weight: 600;\"><!--preload weight 600--></span>\n\n
-<ul id=\"morsels-mdbook-target\"></ul>\n\n";
+<div id=\"morsels-mdbook-target\"></div>\n\n";
 
 static STYLES: &str = include_str!("morsels.css");
 
@@ -206,6 +206,11 @@ const mode = {};
     )
 }
 
+fn get_part_title_el(part_title: &str) -> String {
+    format!("\n\n<span data-morsels-part-title=\"{}\"></span>\n", part_title)
+}
+
+
 impl Preprocessor for Morsels {
     fn name(&self) -> &str {
         "morsels"
@@ -228,13 +233,24 @@ impl Preprocessor for Morsels {
 
         let mut total_len: u64 = 0;
 
+        let mut current_part_title: Option<String> = None;
         book.for_each_mut(|item: &mut BookItem| {
             if let BookItem::Chapter(ch) = item {
                 total_len += ch.content.len() as u64;
+
+                let part_title = if let Some(current_part_title) = &current_part_title {
+                    get_part_title_el(current_part_title)
+                } else {
+                    "".to_owned()
+                };
+
                 ch.content = get_css_el(site_url)
                     + INPUT_EL
                     + ch.content.as_str()
-                    + init_morsels_el.as_str();
+                    + init_morsels_el.as_str()
+                    + part_title.as_str();
+            } else if let BookItem::PartTitle(part_title) = item {
+                current_part_title = Some(part_title.to_owned());
             }
         });
 

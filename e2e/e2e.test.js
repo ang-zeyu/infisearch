@@ -12,6 +12,7 @@ const {
   reloadPage,
   runFullIndex,
   runIncrementalIndex,
+  selectFilters,
 } = require('./utils');
 
 jest.setTimeout(3000000);
@@ -21,7 +22,20 @@ beforeAll(async () => {
   await reloadPage();
 });
 
-const testSuite = async (configFile, with_positions) => {
+
+function replaceIntroductionMood(mood) {
+  const introductionHTML = fs.readFileSync(
+    path.join(__dirname, './input/introduction.html'), { encoding: 'utf-8' },
+  );
+  const moodMatcher = new RegExp('data-morsels-mood="[a-z]*"');
+  const replacedHTML = introductionHTML.replace(moodMatcher, `data-morsels-mood="${mood}"`);
+  fs.writeFileSync(
+    path.join(__dirname, 'input/introduction.html'), replacedHTML,
+  );
+}
+
+
+const testSuite = async (configFile, with_positions, with_enums) => {
   runFullIndex(configFile);
 
   const lang = JSON.parse(
@@ -79,6 +93,136 @@ const testSuite = async (configFile, with_positions) => {
   // data-morsels-ignore test
   await typePhraseOrAnd('I should be ignored through this randomuniquewordnkashdcfd', with_positions);
   await waitNoResults();
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
+  // Multi-select tests
+  if (with_enums) {
+    /*
+     enumtestvalidationstringone - sunny delightful
+     enumtestvalidationstringtwo - gloomy sad
+     enumtestvalidationstringthree - sunny None
+     enumtestvalidationstringfour - None sad
+     enumtestvalidationstringfive - None delightful
+    */
+
+    for (const introductionMood of ['delightful', 'ecstatic', 'None']) {
+      await selectFilters({ Weather: [] });
+      await typeText('~returnalldocs');
+      await waitNoResults();
+
+      await selectFilters({ Mood: [] });
+      await typeText('~returnalldocs');
+      await waitNoResults();
+
+      await selectFilters({ Weather: ['gloomy'] });
+      await typeText('~returnalldocs');
+      await assertSingle('Other Use Cases');
+  
+      await selectFilters({ Weather: ['sunny'] });
+      await typeText('enumteststring ');
+      await assertMultiple(['enumtestvalidationstringone', 'enumtestvalidationstringthree'], 2); 
+  
+      await selectFilters({ Weather: ['sunny'], Mood: [] });
+      await typeText('enumteststring ');
+      await waitNoResults();
+  
+      await selectFilters({ Weather: [], Mood: ['None'] });
+      await typeText('enumteststring ');
+      await waitNoResults();
+  
+      await selectFilters({ Mood: ['None'] });
+      await typeText('enumteststring ');
+      if (introductionMood === 'None') {
+        await assertMultiple([
+          'enumtestvalidationstringthree',
+          'enumtestvalidationstringfive',
+        ], 2);
+      } else {
+        await assertSingle('enumtestvalidationstringthree');
+      }
+  
+      await selectFilters({ Mood: ['sad', 'delightful'] });
+      await typeText('enumteststring ');
+      if (introductionMood === 'delightful') {
+        await assertMultiple([
+          'enumtestvalidationstringone',
+          'enumtestvalidationstringtwo',
+          'enumtestvalidationstringfour',
+          'enumtestvalidationstringfive',
+        ], 4);
+      } else {
+        await assertMultiple([
+          'enumtestvalidationstringone',
+          'enumtestvalidationstringtwo',
+          'enumtestvalidationstringfour',
+        ], 3);
+      }
+  
+      await selectFilters({ Weather: ['sunny'], Mood: ['delightful'] });
+      await typeText('enumteststring ');
+      await assertSingle('enumtestvalidationstringone');
+  
+      await selectFilters({ Weather: ['None'], Mood: [ introductionMood ] });
+      await typeText('enumteststring ');
+      await assertSingle('enumtestvalidationstringfive');
+  
+      await selectFilters({ Weather: ['gloomy'], Mood: ['sad'] });
+      await typeText('enumteststring ');
+      await assertSingle('enumtestvalidationstringtwo');
+  
+      await selectFilters({ Weather: ['sunny', 'gloomy'], Mood: ['sad'] });
+      await typeText('enumteststring ');
+      await assertSingle('enumtestvalidationstringtwo');
+  
+      await selectFilters({ Weather: ['sunny', 'gloomy'], Mood: ['None'] });
+      await typeText('enumteststring ');
+      await assertSingle('enumtestvalidationstringthree');
+  
+      await selectFilters({ Weather: ['None'], Mood: ['None'] });
+      await typeText('enumteststring ');
+      if (introductionMood === 'None') {
+        await assertSingle('enumtestvalidationstringfive');
+      } else {
+        await waitNoResults();
+      }
+  
+      await selectFilters({ Weather: ['sunny'], Mood: ['sad'] });
+      await typeText('enumteststring ');
+      await waitNoResults();
+  
+      await selectFilters({ Weather: ['sunny', 'None'], Mood: ['sad', 'delightful'] });
+      await typeText('enumteststring ');
+      if (introductionMood === 'delightful') {
+        await assertMultiple([
+          'enumtestvalidationstringone',
+          'enumtestvalidationstringfour',
+          'enumtestvalidationstringfive',
+        ], 3);
+      } else {
+        await assertMultiple([
+          'enumtestvalidationstringone',
+          'enumtestvalidationstringfour',
+        ], 2);
+      }
+
+
+      if (introductionMood === 'delightful') {
+        replaceIntroductionMood('ecstatic');
+        runIncrementalIndex(configFile);
+        await reloadPage(lang);
+      } else if (introductionMood === 'ecstatic') {
+        // Empty strings are discarded
+        // So this doc should be assigned the default enum value
+        replaceIntroductionMood('');
+        runIncrementalIndex(configFile);
+        await reloadPage(lang);
+      }
+    }
+
+    runFullIndex(configFile);
+    await reloadPage(lang);
+  }
   // ------------------------------------------------------
 
   // ------------------------------------------------------
@@ -329,6 +473,8 @@ const cleanup = () => {
   }
 
   cleanupAddFilesTests();
+
+  replaceIntroductionMood('delightful');
 };
 
 function readOutputConfig() {
@@ -343,7 +489,7 @@ const mainTest = async () => {
   cleanup();
   console.log('Starting morsels_config_0 tests');
   const config0 = 'e2e/input/morsels_config_0.json';
-  await testSuite(config0, true);
+  await testSuite(config0, true, true);
 
   // Assert what's cached
   // Slightly different pl_cache_thresholds for the 4 tests
@@ -357,7 +503,7 @@ const mainTest = async () => {
   cleanup();
   console.log('Starting morsels_config_1 tests');
   const config1 = 'e2e/input/morsels_config_1.json';
-  await testSuite(config1, true);
+  await testSuite(config1, true, false);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
@@ -369,7 +515,7 @@ const mainTest = async () => {
   cleanup();
   console.log('Starting morsels_config_2 tests');
   const config2 = 'e2e/input/morsels_config_2.json';
-  await testSuite(config2, true);
+  await testSuite(config2, true, false);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(2);
@@ -378,7 +524,7 @@ const mainTest = async () => {
   cleanup();
   console.log('Starting morsels_config_3 tests');
   const config3 = 'e2e/input/morsels_config_3.json';
-  await testSuite(config3, true);
+  await testSuite(config3, true, false);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
@@ -388,7 +534,7 @@ const mainTest = async () => {
   cleanup();
   console.log('Starting morsels_config_4 tests');
   const config4 = 'e2e/input/morsels_config_4.json';
-  await testSuite(config4, false);
+  await testSuite(config4, false, false);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
@@ -397,7 +543,7 @@ const mainTest = async () => {
   cleanup();
   console.log('Starting morsels_config_5 tests');
   const config5 = 'e2e/input/morsels_config_5.json';
-  await testSuite(config5, true);
+  await testSuite(config5, true, false);
 
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(4);

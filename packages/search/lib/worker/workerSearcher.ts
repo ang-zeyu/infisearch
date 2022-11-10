@@ -9,8 +9,51 @@ let wasmModule: any;
 
 let wasmSearcher: any;
 
-export async function processQuery(query: string, queryId: number): Promise<WorkerQuery> {
-  const wasmQuery: any = await wasmModule.get_query(wasmSearcher.get_ptr(), query);
+let config: MorselsConfig;
+
+// Format in read_enum_filters_param@searcher.rs
+function constructEnumFilterParam(enumFilters: { [enumFieldName: string]: (string | null)[]; }) {
+  let enumCount = 0;
+  const enumParam = [];
+  Object.entries(enumFilters).forEach(([enumFieldName, allowedEnumValues]) => {
+    const fieldInfo = config.fieldInfos.find((fi) => fi.name === enumFieldName);
+    if (fieldInfo) {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { enumId, enumValues } = fieldInfo.enumInfo;
+
+      enumParam.push(enumId);
+
+      const enumValuesFiltered = allowedEnumValues
+        .filter((s) => s === null || enumValues.includes(s))
+        .map((s) => s === null
+          ? 0
+          // +1 as 0 is the "default" enum value
+          : enumValues.findIndex((ev) => ev === s) + 1,
+        );
+
+      enumParam.push(enumValuesFiltered.length);
+      enumParam.push(...enumValuesFiltered);
+
+      enumCount += 1;
+    }
+  });
+
+  enumParam.splice(0, 0, enumCount);
+  return enumParam;
+}
+
+export async function processQuery(
+  query: string,
+  opts: { enumFilters: { [enumFieldName: string]: string[] } },
+  queryId: number,
+): Promise<WorkerQuery> {
+  const { enumFilters } = opts;
+
+  const enumParam = constructEnumFilterParam(enumFilters);
+
+  const wasmQuery: any = await wasmModule.get_query(
+    wasmSearcher.get_ptr(), query, enumParam,
+  );
 
   const queryPartsRaw = wasmQuery.get_query_parts() as string;
   let queryParts = [];
@@ -29,8 +72,8 @@ export async function processQuery(query: string, queryId: number): Promise<Work
   return workerQueries[queryId];
 }
 
-export function getQueryNextN(queryId: number, n: number): number[] {
-  return (workerQueries[queryId]?._mrlGetNextN(n)) || [];
+export function getQueryNextN(queryId: number, n: number): ArrayBuffer {
+  return (workerQueries[queryId]?._mrlGetNextN(n)) || new ArrayBuffer(0);
 }
 
 export function freeQuery(queryId: number) {
@@ -62,9 +105,11 @@ async function setupMetadata(baseUrl: string): Promise<ArrayBuffer> {
 }
 
 export async function setupWasm(
-  config: MorselsConfig,
+  cfg: MorselsConfig,
   wasmModulePromise: Promise<any>,
 ) {
+  config = cfg;
+
   const {
     indexingConfig,
     langConfig: { lang, options },

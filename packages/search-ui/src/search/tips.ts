@@ -1,11 +1,11 @@
 import { computePosition, flip } from '@floating-ui/dom';
-import { Searcher } from '@morsels/search-lib';
+import { MorselsConfig } from '@morsels/search-lib/lib/results/Config';
 import h from '@morsels/search-lib/lib/utils/dom';
 import { UiOptions } from '../Options';
 
 export default function createTipButton(
   opts: UiOptions,
-  searcher: Searcher,
+  cfg: MorselsConfig,
 ): HTMLElement | string {
   if (opts.tip === false) {
     return '';
@@ -19,8 +19,16 @@ export default function createTipButton(
     return h('tr', { class: 'morsels-tip-item' }, ...contents.map((el) => h('td', {}, h('div', {}, el))));
   }
 
-  const tipListBody = h(
-    'tbody', {},
+  const tipListBody = h('tbody', {});
+
+  if (cfg.indexingConfig.withPositions) {
+    tipListBody.append(createRow(
+      'Search for phrases',
+      wrapInCode('"for tomorrow"'),
+    ));
+  }
+
+  tipListBody.append(
     createRow(
       'Require a term',
       wrapInCode('+sunny weather'),
@@ -67,14 +75,9 @@ export default function createTipButton(
       h('div', { class: 'morsels-tip-popup-title' }, '🔎 Advanced search tips'),
       tipList,
     ),
-    h('div', { class: 'morsels-tip-popup-separator' }),
   );
 
   function resetPopupStyle() {
-    Object.assign(tipPopup.style, {
-      left: 'calc(var(--morsels-tip-icon-size) - 150px)',
-      top: '-160px',
-    });
     tipPopup.classList.remove('shown');
   }
   resetPopupStyle();
@@ -91,8 +94,9 @@ export default function createTipButton(
       middleware: [
         flip({
           crossAxis: false,
-          flipAlignment: false,
+          flipAlignment: true,
           padding: 10,
+          boundary: document.body,
         }),
       ],
     }).then(({ x, y }) => {
@@ -108,15 +112,6 @@ export default function createTipButton(
   tipContainer.onfocus = onIconFocus;
   tipContainer.onmouseleave = resetPopupStyle;
   tipContainer.onblur = resetPopupStyle;
-
-  searcher.setupPromise.then(() => {
-    if (searcher.cfg.indexingConfig.withPositions) {
-      tipListBody.prepend(createRow(
-        'Search for phrases',
-        wrapInCode('"for tomorrow"'),
-      ));
-    }
-  });
 
   return tipContainer;
 }

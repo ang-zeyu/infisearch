@@ -68,6 +68,7 @@ pub fn read_bits_from(bit_pos: &mut usize, mut bit_len: usize, buf: &[u8]) -> u3
         let bits_this_byte = bit_offset_from_end.min(bit_len);
 
         debug_assert!(bits_this_byte <= bit_offset_from_end);
+        debug_assert!(bits_this_byte <= bit_len);
 
         let shift = (bit_len - bits_this_byte) as u32;
 
@@ -86,6 +87,8 @@ pub fn read_bits_from(bit_pos: &mut usize, mut bit_len: usize, buf: &[u8]) -> u3
         if bit_len <= bits_this_byte {
             break;
         }
+
+        debug_assert!(bits_this_byte <= bit_len);
 
         bit_len -= bits_this_byte;
     }

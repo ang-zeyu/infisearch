@@ -24,7 +24,7 @@
     }
 }
 
-.morsels-header + .morsels-list-item {
+.morsels-list-item:first-child {
     margin-top: 1px;
 }
 

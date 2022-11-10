@@ -15,6 +15,8 @@ use utils::varint;
 pub static FILE_EXT: &str = "mls";
 pub static METADATA_FILE: &str = "metadata.json";
 
+pub type EnumMax = u8;
+
 pub struct MetadataReader {
     buf: Vec<u8>,
     dict_table_offset: usize,
@@ -46,10 +48,12 @@ impl MetadataReader {
 
     pub fn read_docinfo_inital_metadata(
         &mut self,
-        num_docs: &mut u32, doc_id_counter: &mut u32,
+        num_docs: &mut u32,
+        doc_id_counter: &mut u32,
         average_lengths: &mut Vec<f64>,
+        num_enum_fields: &mut usize,
         num_fields: usize,
-    ) {
+    ) -> Vec<EnumMax> {
         self.doc_infos_pos = self.doc_infos_offset;
 
         *num_docs = LittleEndian::read_u32(&self.buf[self.doc_infos_pos..]);
@@ -61,6 +65,38 @@ impl MetadataReader {
             average_lengths.push(LittleEndian::read_f64(&self.buf[self.doc_infos_pos..]));
             self.doc_infos_pos += 8;
         }
+
+        let mut doc_infos_enum_pos = self.doc_infos_pos
+            + LittleEndian::read_u32(&self.buf[self.doc_infos_pos..]) as usize;
+        self.doc_infos_pos += 4;
+
+        debug_assert!(doc_infos_enum_pos <= self.buf.len());
+        *num_enum_fields = LittleEndian::read_u32(unsafe { self.buf.get_unchecked(doc_infos_enum_pos..) }) as usize;
+        doc_infos_enum_pos += 4;
+
+        debug_assert!(doc_infos_enum_pos <= self.buf.len());
+        let doc_infos_enum_bit_lens = unsafe { self.buf.get_unchecked(doc_infos_enum_pos..) };
+        doc_infos_enum_pos += *num_enum_fields;
+
+        debug_assert!(doc_infos_enum_pos <= self.buf.len());
+        let doc_infos_enum_ev_ids = unsafe { self.buf.get_unchecked(doc_infos_enum_pos..) };
+
+        let mut doc_enum_vals: Vec<EnumMax> = Vec::with_capacity(*num_enum_fields * *doc_id_counter as usize);
+        let mut doc_infos_enum_bit_r_pos = 0;
+        for _doc_id in 0..*doc_id_counter {
+            for enum_id in 0..*num_enum_fields {
+                debug_assert!(enum_id < doc_infos_enum_bit_lens.len());
+        
+                let bits_used = unsafe { *doc_infos_enum_bit_lens.get_unchecked(enum_id) } as usize;
+                let ev_id = packed_var_int::read_bits_from(
+                    &mut doc_infos_enum_bit_r_pos, bits_used,
+                    doc_infos_enum_ev_ids,
+                ) as EnumMax;
+                doc_enum_vals.push(ev_id);
+            }
+        }
+
+        doc_enum_vals
     }
 
     #[inline(always)]
@@ -81,7 +117,7 @@ fn get_default_language() -> String {
     "ascii".to_owned()
 }
 
-#[cfg_attr(feature = "indexer", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "indexer", derive(Serialize, Deserialize, Clone))]
 pub struct MorselsLanguageConfigOpts {
     pub stop_words: Option<Vec<String>>,
     pub ignore_stop_words: Option<bool>,
@@ -101,7 +137,7 @@ impl Default for MorselsLanguageConfigOpts {
     }
 }
 
-#[cfg_attr(feature = "indexer", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "indexer", derive(Serialize, Deserialize, Clone))]
 pub struct MorselsLanguageConfig {
     #[cfg_attr(feature = "indexer", serde(default = "get_default_language"))]
     pub lang: String,

@@ -67,7 +67,8 @@ export interface MorselsConfig {
 export interface FieldInfo {
   id: number
   name: string,
-  do_store: boolean,
+  enumInfo?: { enumId: number, enumValues: string[] }
+  storeText: boolean,
   weight: number,
   k: number,
   b: number,

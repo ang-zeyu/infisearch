@@ -1,5 +1,4 @@
 import { Options, UiMode } from '../Options';
-import { LOADING_INDICATOR_ID } from '../utils/dom';
 import { listItemRender } from '../searchResultTransform/listItemRender';
 
 export function prepareOptions(options: Options) {
@@ -62,56 +61,7 @@ export function prepareOptions(options: Options) {
   if (!('fsScrollLock' in uiOptions)) {
     uiOptions.fsScrollLock = true;
   }
-  
-  if (!uiOptions.loadingIndicatorRender) {
-    uiOptions.loadingIndicatorRender = ((
-      h, opts, isInitialising, wasResultsBlank,
-    ) => {
-      const loadingSpinner = h('span', { class: 'morsels-loading-indicator' });
-      if (isInitialising) {
-        const initialisingText = h('div', { class: 'morsels-initialising-text' }, '... Initialising ...');
-        return h('div', { class: 'morsels-initialising' }, initialisingText, loadingSpinner);
-      }
-    
-      if (!wasResultsBlank) {
-        loadingSpinner.classList.add('morsels-loading-indicator-subsequent');
-      }
-    
-      return loadingSpinner;
-    });
-  }
-  const loadingIndicatorRenderer = uiOptions.loadingIndicatorRender;
-  uiOptions.loadingIndicatorRender = (...args) => {
-    const loadingIndicator = loadingIndicatorRenderer(...args);
-    // Add an identifier for keyboard events (up / down / home / end)
-    loadingIndicator.setAttribute(LOADING_INDICATOR_ID, 'true');
-    return loadingIndicator;
-  };
-  
-  uiOptions.headerRender = uiOptions.headerRender || ((h, opts, err, blank, queryParts) => {
-    if (err) {
-      return h('div', { class: 'morsels-header morsels-error' }, 'Oops! Something went wrong... 🙁');
-    } else if (blank) {
-      return h('div', { class: 'morsels-header morsels-fs-blank' }, 'Start Searching Above!');
-    }
-
-    function getArrow(invert: boolean) {
-      // https://www.svgrepo.com/svg/49189/up-arrow (CC0 License)
-      return '<svg class="morsels-key-arrow'
-        + (invert ? ' morsels-key-arrow-down' : '')
-        // eslint-disable-next-line max-len
-        + '"x="0" y="0" viewBox="0 0 490 490" style="enable-background:new 0 0 490 490" xml:space="preserve"><polygon points="8.081,242.227 82.05,314.593 199.145,194.882 199.145,490 306.14,490 306.14,210.504 407.949,314.593 481.919,242.227 245.004,0"/></svg>';
-    }
-
-    const instructions = h('div', { class: 'morsels-instructions' });
-    instructions.innerHTML = 'Navigation:'
-      + getArrow(false)
-      + getArrow(true)
-      // https://www.svgrepo.com/svg/355201/return (Apache license)
-      // eslint-disable-next-line max-len
-      + '<svg class="morsels-key-return" viewBox="0 0 24 24"><path fill="none" stroke-width="4" d="M9,4 L4,9 L9,14 M18,19 L18,9 L5,9" transform="matrix(1 0 0 -1 0 23)"/></svg>';
-    return h('div', { class: 'morsels-header' }, `${queryParts.resultsTotal} results found`, instructions);
-  });
+  uiOptions.multiSelectFilters = uiOptions.multiSelectFilters || [];
 
   uiOptions.listItemRender = uiOptions.listItemRender || listItemRender;
   

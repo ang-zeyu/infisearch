@@ -1,5 +1,5 @@
 import Query, { getRegexes } from './Query';
-import { SearcherOptions, MorselsConfig, prepareSearcherOptions } from './Config';
+import { SearcherOptions, MorselsConfig, prepareSearcherOptions, FieldInfo } from './Config';
 import { Result } from './Result';
 import { QueryPart } from '../parser/queryParser';
 import PersistentCache from './Cache';
@@ -27,6 +27,8 @@ class Searcher {
   isSetupDone: boolean = false;
 
   readonly setupPromise: Promise<any>;
+
+  private _mrlEnumFieldInfos: FieldInfo[];
 
   private _mrlWorker: Worker;
 
@@ -161,10 +163,35 @@ class Searcher {
         && this.cfg.indexingConfig.withPositions;
 
     this.cfg.searcherOptions = searcherOpts;
+
+    this._mrlEnumFieldInfos = this.cfg.fieldInfos
+      .filter((fi) => fi.enumInfo)
+      .sort((a, b) => a.enumInfo.enumId - b.enumInfo.enumId);
   }
 
-  async runQuery(query: string): Promise<Query> {
+  async getEnumValues(enumFieldName: string): Promise<string[] | null> {
     await this.setupPromise;
+
+    const fieldInfo = this.cfg.fieldInfos.find((fi) => fi.name === enumFieldName);
+    const enumInfo = fieldInfo?.enumInfo;
+    if (!enumInfo) {
+      return null;
+    }
+
+    return enumInfo.enumValues;
+  }
+
+  async runQuery(
+    query: string,
+    opts: {
+      enumFilters: { [enumFieldName: string]: (string | null)[] },
+    } = {
+      enumFilters: {},
+    },
+  ): Promise<Query> {
+    await this.setupPromise;
+
+    opts.enumFilters = opts.enumFilters || {};
 
     const queryId = this.id;
     this.id += 1;
@@ -180,7 +207,7 @@ class Searcher {
       queries[queryId].resolve = resolve;
 
       // Resolved when the worker replies
-      this._mrlWorker.postMessage({ query, queryId });
+      this._mrlWorker.postMessage({ query, queryId, opts });
     });
 
     const result: {
@@ -212,23 +239,26 @@ class Searcher {
       }
 
       // Wait for worker to finish
-      const getNextNResult: {
-        nextResults: number[]
+      const { nextResults }: {
+        nextResults: ArrayBuffer,
       } = await queries[queryId].promise;
+      const docIdsAndEnums = new Uint32Array(nextResults);
+      
+      const promises: Promise<Result>[] = [];
+      const groupSize = 1 + this._mrlEnumFieldInfos.length;
+      for (let i = 0; i < docIdsAndEnums.length; i += groupSize) {
+        promises.push(Result._mrlPopulate(
+          i,
+          docIdsAndEnums,
+          termRegexes as RegExp[],
+          this._mrlOptions.url,
+          this._mrlCache,
+          this.cfg,
+          this._mrlEnumFieldInfos,
+        ));
+      }
 
-      // Simple transform into Result objects
-      const retrievedResults: Result[] = getNextNResult.nextResults.map((docId) => new Result(
-        docId, this.cfg.fieldInfos, termRegexes as RegExp[],
-      ));
-
-      // Retrieve field stores
-      await Promise.all(retrievedResults.map((res) => res._mrlPopulate(
-        this._mrlOptions.url,
-        this._mrlCache,
-        this.cfg,
-      )));
-
-      return retrievedResults;
+      return Promise.all(promises);
     };
 
     const free = () => {

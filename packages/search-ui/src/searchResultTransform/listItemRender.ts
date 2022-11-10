@@ -31,7 +31,7 @@ export const listItemRender: ListItemRender = (
   result.getKVFields(fields);
 
   const title = formatTitle(
-    fields.h1 || fields.title,
+    fields.h1 || fields.title || ' ',
     useBreadcrumb,
     fields._relative_fp,
   );
@@ -80,7 +80,12 @@ export const listItemRender: ListItemRender = (
   }
 
   const subOptions = headings.map(({ body, heading, href }) => {
-    const el = h('a', { class: 'morsels-heading-link', role: 'option', tabindex: '-1' },
+    const el = h('a',
+      {
+        class: 'morsels-heading-link',
+        role: 'option',
+        tabindex: '-1',
+      },
       h('div', { class: 'morsels-heading' }, ...heading),
       h('div', { class: 'morsels-body' }, ...body));
     if (href) {

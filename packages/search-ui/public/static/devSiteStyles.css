@@ -37,6 +37,7 @@ body {
     display: flex;
     justify-content: flex-end;
     box-sizing: border-box;
+    z-index: 99;
 }
 
 .app-heading {
@@ -71,5 +72,6 @@ body {
 }
 
 #target-mode-el {
-    list-style: none;
+    width: 800px;
+    max-width: 96vw;
 }

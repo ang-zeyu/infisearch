@@ -7,7 +7,7 @@
     "setup": "npm install && lerna bootstrap",
     "watchWorker": "webpack watch --config ./webpack.worker.js",
     "watchPerfWorker": "webpack watch --config ./webpack.worker.js --env perf",
-    "serveE2E": "webpack serve --no-hot --no-live-reload --config ./webpack.dev.js --env e2e",
+    "serveE2E": "webpack serve --no-hot --no-live-reload --no-static-watch --config ./webpack.dev.js --env e2e",
     "serve": "webpack serve --config ./webpack.dev.js",
     "devDocs": "cd docs && mdbook serve -p 8000",
     "devDocsHalf": "npm run installMdbook && npm run devDocs",

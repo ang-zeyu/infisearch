@@ -43,7 +43,7 @@ Presets modify the following properties:
 - Language Configuration:
   - [`ignore_stop_words`](../language.md#stop-words)
 - Indexing Configuration:
-  - What [fields](./fields.md) are stored (`do_store`). Not set if `fields_config.fields` is present.
+  - What [fields](./fields.md) are stored as text (`storage=["text"]`).<br>This is not set if `fields_config.fields` is present.
   - [`num_docs_per_store`](./fields.md)
   - [`pl_limit`](./indexing.md#larger-collections)
   - [`pl_cache_threshold`](./indexing.md#larger-collections)

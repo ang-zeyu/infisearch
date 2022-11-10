@@ -42,16 +42,16 @@ export function focusEl(
   }
 }
 
-export function addKeyboardHandler(inputEl: HTMLInputElement, listContainer: HTMLElement) {
+export function addKeyboardHandler(inputEl: HTMLInputElement, resultContainer: HTMLElement) {
   inputEl.addEventListener('keydown', (ev: KeyboardEvent) => {
     const { key } = ev;
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(key)) {
       return;
     }
 
-    const focusedItem = listContainer.querySelector('#morsels-list-selected') as HTMLElement;
+    const focusedItem = resultContainer.querySelector(`#${SELECTED_OPTION_ID}`) as HTMLElement;
 
-    const opts = listContainer.querySelectorAll('[role="option"]');
+    const opts = resultContainer.querySelectorAll('[role="option"]');
     const lastItem = opts[opts.length - 1];
 
     let focusedItemIdx = -1;
@@ -62,10 +62,10 @@ export function addKeyboardHandler(inputEl: HTMLInputElement, listContainer: HTM
     });
 
     if (key === 'ArrowDown') {
-      focusEl(opts[(focusedItemIdx + 1) % opts.length], focusedItem, inputEl, listContainer, true);
+      focusEl(opts[(focusedItemIdx + 1) % opts.length], focusedItem, inputEl, resultContainer, true);
     } else if (key === 'ArrowUp') {
       focusEl(
-        focusedItemIdx > 0 ? opts[focusedItemIdx - 1] : lastItem, focusedItem, inputEl, listContainer, true,
+        focusedItemIdx > 0 ? opts[focusedItemIdx - 1] : lastItem, focusedItem, inputEl, resultContainer, true,
       );
     } else if (key === 'Enter') {
       if (focusedItem)
@@ -76,7 +76,7 @@ export function addKeyboardHandler(inputEl: HTMLInputElement, listContainer: HTM
       const pos = key === 'Home' ? 0 : inputEl.value.length;
       inputEl.focus();
       inputEl.setSelectionRange(pos, pos);
-      focusEl(undefined, focusedItem, inputEl, listContainer, true);
+      focusEl(undefined, focusedItem, inputEl, resultContainer, true);
     }
 
     ev.preventDefault();

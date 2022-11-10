@@ -4,7 +4,7 @@ mod proximity_ranking;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
-use morsels_common::bitmap;
+use morsels_common::{bitmap, EnumMax};
 
 use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc, PlAndInfo};
 use crate::searcher::query_parser::QueryPart;
@@ -369,14 +369,27 @@ impl Searcher {
         &self,
         query_parts: &mut Vec<QueryPart>,
         term_postings_lists: &Vec<Rc<PostingsList>>,
+        enum_filters: Vec<(usize, [bool; EnumMax::MAX as usize])>,
     ) -> BinaryHeap<DocResult> {
         let root_pl = self.populate_conjunctive_postings_lists(
             false, false, query_parts, term_postings_lists, 1.0,
         );
 
-        root_pl.term_docs.into_iter()
-            .map(|td| DocResult { doc_id: td.doc_id, score: td.score })
-            .collect()
+        let mut doc_results = Vec::with_capacity(root_pl.term_docs.len());
+        for td in root_pl.term_docs {
+            let passes_enum_filters = enum_filters
+                .iter()
+                .all(|(enum_id, ev_ids)| {
+                    let ev_id = self.doc_info.get_enum_val(td.doc_id as usize, *enum_id) as usize;
+                    debug_assert!(ev_id < ev_ids.len());
+                    unsafe { *ev_ids.get_unchecked(ev_id) }
+                });
+            if passes_enum_filters {
+                doc_results.push(DocResult { doc_id: td.doc_id, score: td.score });
+            }
+        }
+
+        BinaryHeap::from(doc_results)
     }
 }
 

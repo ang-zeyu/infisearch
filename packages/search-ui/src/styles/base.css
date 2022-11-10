@@ -21,6 +21,7 @@
 }
 
 /*
+ -----------------------------------------------------
  Fullscreen version
  */
 
@@ -84,7 +85,7 @@
     color: var(--morsels-fs-input-fg);
     background: var(--morsels-fs-input-bg);
     border: var(--morsels-fs-input-border);
-    border-radius: 30px;
+    border-radius: 10px;
     font-size: inherit;
 }
 
@@ -94,6 +95,7 @@
 }
 
 .morsels-fs-input::-webkit-search-cancel-button {
+    appearance: none;
     -webkit-appearance: none;
 }
 
@@ -145,6 +147,11 @@
     background: var(--morsels-fs-header-close-active-bg);
 }
 
+/*
+ -----------------------------------------------------
+ Tip icon
+ */
+
 .morsels-tip-root {
     position: absolute;
     bottom: 15px;
@@ -176,12 +183,13 @@
 
 .morsels-tip-popup-root {
     position: absolute;
-    transform: scale(0);
-    transition: transform 0.2s ease-in-out, top 0.2s ease-in-out, left 0.2s ease-in-out;
+    opacity: 0;
+    transition: opacity 0.25s ease-in-out;
+    padding: 10px 0;
 }
 
 .morsels-tip-popup-root.shown {
-    transform: scale(1);
+    opacity: 1;
     display: block;
 }
 
@@ -266,7 +274,7 @@ table.morsels-tip-table .morsels-tip-item > td > div {
     line-height: 1.2;
 }
 
-table.morsels-tip-table .morsels-tip-item > td span {
+table.morsels-tip-table .morsels-tip-item > td {
     font-size: 0.9em;
 }
 
@@ -288,10 +296,6 @@ table.morsels-tip-table .morsels-tip-item li {
     margin: 0;
 }
 
-.morsels-tip-popup-separator {
-    height: 10px;
-}
-
 @media screen and (min-width: 769px) {
     .morsels-fs-root {
         border-radius: 6px;
@@ -305,6 +309,7 @@ table.morsels-tip-table .morsels-tip-item li {
 }
 
 /*
+ -----------------------------------------------------
  Dropdown version
  */
 
@@ -323,7 +328,8 @@ table.morsels-tip-table .morsels-tip-item li {
 }
 
 /*
- Both versions
+ -----------------------------------------------------
+ All 3 versions. TODO see if this can be on the top.
  */
 
 .morsels-inner-root {
@@ -381,18 +387,36 @@ table.morsels-tip-table .morsels-tip-item li {
     background: var(--morsels-scrollbar-thumb-bg);
 }
 
+/*
+ -----------------------------------------------------
+ Header
+ */
+
 .morsels-header {
     display: flex;
     justify-content: space-between;
     color: var(--morsels-header-fg);
-    padding: 9px 13px 7px 13px;
+    padding: 9px 13px 0 13px;
+    margin-bottom: 7px;
     font-weight: bold;
     font-size: 1.06em;
+}
+
+.morsels-fs-root .morsels-header {
+    padding: 9px 7px 9px 3px;
+}
+
+.morsels-results-found {
+    padding-right: 5px;
 }
 
 .morsels-instructions {
     display: flex;
     align-items: center;
+}
+
+.morsels-instructions:first-child {
+    display: none;
 }
 
 .morsels-key-arrow,
@@ -417,6 +441,171 @@ table.morsels-tip-table .morsels-tip-item li {
 .morsels-key-return {
     width: 20px;
 }
+
+button.morsels-filters {
+    display: flex;
+    align-items: center;
+    border: none;
+    border-radius: 0;
+    font: inherit;
+    font-weight: bold;
+    color: inherit;
+    background: inherit;
+    box-shadow: none;
+    padding: 0 5px 0 0;
+    margin: 0 5px 0 0;
+    text-transform: none;
+    text-shadow: none;
+    cursor: pointer;
+}
+
+button.morsels-filters::after {
+    content: '';
+    display: inline-block;
+    margin-left: 0.2em;
+    width: 0.8em;
+    height: 0.4em;
+    box-shadow: inset 1em 1em currentColor;
+    clip-path: polygon(0 0, 50% 100%, 100% 0, 75% 0, 50% 50%, 25% 0, 0 0);
+    transform: translateY(1px);
+}
+
+button.morsels-filters.active::after {
+    transform: translateY(0) rotateZ(180deg);
+}
+
+.morsels-results-found + .morsels-filters {
+    margin-left: auto;
+    border-right: 2px solid var(--morsels-key-bg);
+}
+
+/*
+ -----------------------------------------------------
+ Filters
+ */
+
+.morsels-filters.shown {
+    padding: 0 13px 10px 13px;
+}
+
+.morsels-fs-root .morsels-filters.shown {
+    padding: 0 7px 12px 3px;
+}
+
+.morsels-filter-header {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    font-weight: 600;
+    font-size: 1.01em;
+    cursor: pointer;
+    user-select: none;
+    margin: 0 5px 1px 0;
+    color: var(--morsels-header-fg);
+}
+
+.morsels-filter-header:focus-visible {
+    outline: 2px solid var(--morsels-header-fg);
+    color: var(--morsels-header-fg);
+}
+
+.morsels-filter-header::before {
+    content: '';
+    display: inline-block;
+    margin-right: 0.2em;
+    width: 0.8em;
+    height: 0.4em;
+    box-shadow: inset 1em 1em currentColor;
+    clip-path: polygon(0 0, 50% 100%, 100% 0, 75% 0, 50% 50%, 25% 0, 0 0);
+    transform: rotateZ(-90deg);
+}
+
+.morsels-filter-header.active::before {
+    transform: rotateZ(180deg);
+}
+
+.morsels-filter-opt {
+    width: fit-content;
+    padding: 3px 3px 3px 0.5em;
+    user-select: none;
+}
+
+.morsels-filter-opt:last-child {
+    margin: 0 0 2px 0;
+}
+
+label.morsels-checkbox-label {
+    font-size: 1em;
+    line-height: 1;
+    display: grid;
+    grid-template-columns: 1em auto;
+    gap: 0.5em;
+    align-items:baseline;
+    color: var(--morsels-header-fg);
+    cursor: pointer;
+}
+
+/*
+ Checkbox styles from https://moderncss.dev/pure-css-custom-checkbox-style/,
+ with some small tweaks
+*/
+input[type="checkbox"].morsels-checkbox {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--morsels-checkbox-bg);
+    margin: 0;
+
+    font: inherit;
+    width: 1.06em;
+    height: 1.06em;
+    border: 0.14em solid var( --morsels-checkbox-border);
+    border-radius: 0.14em;
+    transform: translateY(-0.07em);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+input[type="checkbox"].morsels-checkbox:checked {
+    background: var(--morsels-checkbox-checked-bg);
+}
+
+input[type="checkbox"].morsels-checkbox:focus,
+input[type="checkbox"].morsels-checkbox.focus {
+    outline: max(2px, 0.15em) solid var(--morsels-highlight);
+    outline-offset: max(2px, 0.15em);
+}
+
+input[type="checkbox"].morsels-checkbox:focus {
+    outline-color: var(--morsels-header-fg);
+}
+
+input[type="checkbox"].morsels-checkbox::before {
+    content: "";
+    width: 0.53em;
+    height: 0.53em;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em var(--morsels-highlight);
+
+    transform-origin: center;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+
+    /* Windows High Contrast Mode */
+    background-color: CanvasText;
+}
+
+input[type="checkbox"].morsels-checkbox:checked::before {
+    transform: scale(1);
+}
+
+
+/*
+ -----------------------------------------------------
+ Result footer
+ */
 
 .morsels-footer {
     display: flex;
@@ -467,25 +656,90 @@ table.morsels-tip-table .morsels-tip-item li {
     }
 }
 
+/*
+ -----------------------------------------------------
+ States (error, blank, loading)
+ */
+
 .morsels-error,
-.morsels-fs-blank {
+.morsels-blank {
     justify-content: center;
+    text-align: center;
     font-size: 0.9em;
     font-weight: normal;
-    padding: 1em;
+    margin: 1.2em 0;
 }
 
 .morsels-error {
     color: var(--morsels-error-fg);
 }
 
-.morsels-fs-blank {
+.morsels-blank {
     color: var(--morsels-fine-print-fg);
 }
 
-.morsels-fs-root .morsels-header {
-    padding: 9px 7px 9px 3px;
+/* https://loading.io/css/ */
+.morsels-loading-indicator {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 1.2em 0;
 }
+
+.morsels-loading-indicator:after {
+    content: " ";
+    display: block;
+    width: 40px;
+    height: 40px;
+    margin: 4px;
+    border-radius: 50%;
+    border: 6px solid;
+    border-color: var(--morsels-loading-bg) transparent var(--morsels-loading-bg) transparent;
+    animation: morsels-loading-indicator 1.2s linear infinite;
+}
+
+@keyframes morsels-loading-indicator {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.morsels-loading-indicator-subsequent {
+    position: sticky;
+    top: 10px;
+    padding-left: calc(100% - 40px);
+    margin: 0;
+    height: 0;
+    overflow: visible;
+}
+
+.morsels-loading-indicator-subsequent::after {
+    width: 25px;
+    height: 25px;
+    border-width: 4px;
+    border-color: var(--morsels-loading-secondary-bg) transparent var(--morsels-loading-secondary-bg) transparent;
+    animation: morsels-loading-indicator 1.2s linear infinite, morsels-loading-indicator-subsequent 1s linear 1;
+}
+
+@keyframes morsels-loading-indicator-subsequent {
+    0% {
+        opacity: 0.0;
+    }
+    15% {
+        opacity: 0.0;
+    }
+    100% {
+        opacity: 0.8;
+    }
+}
+
+/*
+ -----------------------------------------------------
+ Results
+ */
 
 .morsels-list-item {
     font-size: inherit;
@@ -499,7 +753,7 @@ table.morsels-tip-table .morsels-tip-item li {
     margin: var(--morsels-fs-item-spacing) 8px;
 }
 
-.morsels-header + .morsels-list-item {
+.morsels-list-item:first-child {
     margin-top: 2px;
 }
 
@@ -644,72 +898,17 @@ table.morsels-tip-table .morsels-tip-item li {
 }
 
 .morsels-initialising-text {
+    font-size: 0.9em;
     color: var(--morsels-fine-print-fg);
-    padding-top: 15px;
+    margin-top: -5px;
+    padding-bottom: 15px;
     text-align: center;
 }
 
-/* https://loading.io/css/ */
-.morsels-loading-indicator {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin: 15px 0;
-}
-
-.morsels-loading-indicator:after {
-    content: " ";
-    display: block;
-    width: 40px;
-    height: 40px;
-    margin: 4px;
-    border-radius: 50%;
-    border: 6px solid;
-    border-color: var(--morsels-loading-bg) transparent var(--morsels-loading-bg) transparent;
-    animation: morsels-loading-indicator 1.2s linear infinite;
-}
-
-.morsels-initialising-text + .morsels-loading-indicator {
-    margin: 10px 0 15px 0;
-}
-
-@keyframes morsels-loading-indicator {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.morsels-loading-indicator-subsequent {
-    position: sticky;
-    top: 10px;
-    padding-left: calc(100% - 40px);
-    margin: 0;
-    height: 0;
-    overflow: visible;
-}
-
-.morsels-loading-indicator-subsequent::after {
-    width: 25px;
-    height: 25px;
-    border-width: 4px;
-    border-color: var(--morsels-loading-secondary-bg) transparent var(--morsels-loading-secondary-bg) transparent;
-    animation: morsels-loading-indicator 1.2s linear infinite, morsels-loading-indicator-subsequent 1s linear 1;
-}
-
-@keyframes morsels-loading-indicator-subsequent {
-    0% {
-        opacity: 0.0;
-    }
-    15% {
-        opacity: 0.0;
-    }
-    100% {
-        opacity: 0.8;
-    }
-}
+/*
+ -----------------------------------------------------
+ Mobile overrides
+ */
 
 @media screen and (max-width: 768px) {
     :root {
@@ -733,8 +932,25 @@ table.morsels-tip-table .morsels-tip-item li {
         padding-left: 9px;
     }
 
+    .morsels-filter-header {
+        margin-bottom: 3px;
+    }
+
+    .morsels-filter:not(:first-child) .morsels-filter-header {
+        margin-top: 4px;
+    }
+
+    .morsels-filter-opt {
+        width: auto;
+        padding: 7px 5px 7px 0.5em;
+    }
+
     .morsels-instructions {
         display: none;
+    }
+
+    .morsels-results-found + .morsels-filters {
+        border-right: none;
     }
 
     .morsels-load-more {

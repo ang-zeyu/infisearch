@@ -10,6 +10,9 @@ morsels.initMorsels({
     resultsRenderOpts: {
       addSearchedTerms: 'search',
     },
+    multiSelectFilters: [
+      { fieldName: 'partTitle', displayName: 'Section', defaultOptName: 'None' },
+    ],
   },
 });
 

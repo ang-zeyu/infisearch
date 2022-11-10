@@ -76,38 +76,6 @@ opts = export interface Options {
 
 If you need to include some custom options (e.g. an API base url), you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
 
-
-## Changing Supporting Parts of the UI
-
-The options here are intended for changing small, supporting elements, which can be especially useful for localizing the UI.
-
-#### `headerRender(h, opts, err: boolean, blank: boolean, queryParts: Query): HTMLElement`
-
-This method renders:
-- the "10 results found" text
-- the *Start searching above!* text when the search box is empty in the fullscreen UI. The dropdown UI is hidden in such a case.
-- a generic error message when an unexpected error occurs.
-
-This can also be used to render messages like "*Did you mean <u>spelling</u>?*", or any information that you'd like to place as a header.
-
-**`query.resultsTotal`**
-
-This property of the `query` parameter gives the total number of results.
-
-**`query.queryParts`**
-
-This parameter passed to the `headerRender` function is the parsed structure of the input query string.
-
-The structure is fairly detailed, `console.log` it out to see what it looks like, our check out the [source](https://github.com/ang-zeyu/morsels/blob/main/packages/search/lib/parser/queryParser.ts)!
-
-#### `loadingIndicatorRender(h, opts, isSetup: boolean, isInitial: boolean)`
-
-This API renders the loading indicator.
-
-While the search library is doing initialising work, the `isSetup` parameter is set to `true`.
-
-The `isInitial` boolean is `true` when the user runs the first query, where there are no results yet. You may use this parameter to change the look of the indicator in subsequent queries. In the default design, subsequent queries move the spinning indicator to the top right.
-
 ## Rendering Search Results
 
 If you haven't, you should read through the [Search API](./search_api.md) documentation on the `Result` and `Query` parameters.

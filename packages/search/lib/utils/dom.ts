@@ -8,16 +8,8 @@ function h(
   Object.entries(attrs).forEach(([key, value]) => {
     el.setAttribute(key, value);
   });
-  
-  children.forEach((child) => {
-    if (typeof child === 'string') {
-      const span = document.createElement('span');
-      span.textContent = child;
-      el.appendChild(span);
-    } else {
-      el.appendChild(child);
-    }
-  });
+
+  el.append(...children);
   
   return el;
 }

@@ -16,7 +16,8 @@
   - [Indexing](./indexer/indexing.md)
 - [Search API](./search_api.md)
 - [Guides](./guides.md)
-  - [Linking to other pages](./linking_to_others.md)
+  - [Linking to Other Pages](./linking_to_others.md)
+  - [Creating Multi-Select Filters](./filters.md)
 
 # Advanced
 

@@ -19,6 +19,9 @@
     --morsels-sub-hover-bg: #464747;
     --morsels-highlight: #5B9EBF;
     --morsels-highlight-bg: none;
+    --morsels-checkbox-bg: #313233;
+    --morsels-checkbox-checked-bg: #424243;
+    --morsels-checkbox-border: #525354;
     --morsels-header-fg: #e3e3e3;
     --morsels-key-fg: #fff;
     --morsels-key-bg: #7d7d7d;

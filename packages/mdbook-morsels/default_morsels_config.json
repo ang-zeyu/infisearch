@@ -1,4 +1,37 @@
 {
+  "fields_config": {
+    "fields": [
+      {
+        "name": "title",
+        "weight": 2.0, "k": 1.2, "b": 0.15
+      },
+      {
+        "name": "h1",
+        "weight": 2.0, "k": 1.2, "b": 0.15
+      },
+      {
+        "name": "heading",
+        "weight": 1.5, "k": 1.2, "b": 0.25
+      },
+      {
+        "name": "body",
+        "weight": 1.0
+      },
+      {
+        "name": "headingLink",
+        "weight": 0.0
+      },
+      {
+        "name": "_relative_fp",
+        "weight": 0.0
+      },
+      {
+        "name": "partTitle",
+        "storage": ["enum"],
+        "weight": 0.0
+      }
+    ]
+  },
   "indexing_config": {
     "exclude": [
       "index.html",
@@ -33,6 +66,12 @@
             },
             "field_name": "heading",
             "selector": "h1,h2,h3,h4,h5,h6"
+          },
+          {
+            "attr_map": {
+              "data-morsels-part-title": "partTitle"
+            },
+            "selector": "span[data-morsels-part-title]"
           }
         ],
         "type": "HtmlLoader"

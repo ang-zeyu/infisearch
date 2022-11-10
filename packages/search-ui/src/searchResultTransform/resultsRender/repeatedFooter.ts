@@ -1,6 +1,7 @@
 import { Query } from '@morsels/search-lib';
 import h from '@morsels/search-lib/lib/utils/dom';
 import { Options } from '../../Options';
+import { stateRender } from '../../utils/state';
 
 export function resultSeparator(
   options: Options,
@@ -10,7 +11,7 @@ export function resultSeparator(
   focusOption: (el: HTMLElement) => void,
   query: Query,
 ) {
-  const { loadingIndicatorRender, resultsPerPage } = options.uiOptions;
+  const { resultsPerPage } = options.uiOptions;
   const footer = h('div', { class: 'morsels-footer', tabindex: '-1' });
   if (!query.resultsTotal) {
     return footer;
@@ -40,7 +41,7 @@ export function resultSeparator(
     const isDomFocused = document.activeElement === loadMoreButton;
 
     loadMoreButtonWrapped.remove();
-    footer.append(loadingIndicatorRender(h, options, false, true));
+    footer.append(stateRender(false, true, false, false, false));
     // Announce footer information
     if (isDomFocused) footer.focus({ preventScroll: true });
 

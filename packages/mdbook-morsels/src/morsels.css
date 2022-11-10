@@ -20,6 +20,9 @@
     --morsels-highlight: var(--search-mark-bg);
     --morsels-highlight-bg: none;
     --morsels-header-fg: var(--fg);
+    --morsels-checkbox-bg: #f8f8f8;
+    --morsels-checkbox-checked-bg: #fff;
+    --morsels-checkbox-border: #414141;
     --morsels-error-fg: var(--fg);
     --morsels-fine-print-fg: var(--fg);
     --morsels-loading-bg: var(--fg);
@@ -129,6 +132,9 @@
     --morsels-fs-input-focus-box-shadow: 0 0 5px -1px #63baff;
     --morsels-key-fg: #fff;
     --morsels-key-bg: #7d7d7d;
+    --morsels-checkbox-bg: #313233;
+    --morsels-checkbox-checked-bg: #424243;
+    --morsels-checkbox-border: #525354;
 }
 
 .rust .morsels-root {
@@ -197,9 +203,14 @@
 }
 
 #morsels-mdbook-target {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    position: relative;
+}
+
+/*
+ * For this plugin, don't show the controls until there is a query.
+ */
+#morsels-mdbook-target.morsels-empty-input > * {
+    display: none;
 }
 
 .morsels-root:not(.morsels-fs-root) {

@@ -12,7 +12,7 @@ use rustc_hash::FxHashMap;
 
 use morsels_common::tokenize::IndexerTokenizer;
 
-use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos};
+use crate::fieldinfo::{ADD_FILES_FIELD, FieldInfo, FieldInfos, EnumKind, EnumInfo};
 use crate::loader::LoaderBoxed;
 use crate::i_debug;
 
@@ -44,6 +44,7 @@ pub struct TermDoc {
 #[derive(Debug)]
 pub struct WorkerMinerDocInfo {
     pub doc_id: u32,
+    pub doc_enums: Vec<EnumKind>,
     pub field_lengths: Vec<u32>,
     pub field_texts: Vec<u8>,
 }
@@ -154,7 +155,12 @@ fn find_u8_unsafe_morecap<'a, S: Into<Cow<'a, str>>>(input: S) -> Cow<'a, str> {
     }
 }
 
-const NULL_FIELD: FieldInfo = FieldInfo { id: 0, do_store: false, weight: 0.0, k: 0.0, b: 0.0 };
+const NULL_FIELD: FieldInfo = FieldInfo {
+    id: 0,
+    enum_info: None,
+    store_text: false,
+    weight: 0.0, k: 0.0, b: 0.0
+};
 
 impl WorkerMiner {
     pub fn new(
@@ -222,6 +228,7 @@ impl WorkerMiner {
         original_absolute_path: &Path,
         is_first_stored_field: &mut bool,
         field_store_buffered_writer: &mut Vec<u8>,
+        doc_enums: &mut Vec<EnumKind>,
         field_lengths: &mut Vec<u32>,
         doc_id: u32,
         num_scored_fields: usize,
@@ -284,6 +291,7 @@ impl WorkerMiner {
                         path,
                         is_first_stored_field,
                         field_store_buffered_writer,
+                        doc_enums,
                         field_lengths,
                         doc_id,
                         num_scored_fields,
@@ -303,6 +311,7 @@ impl WorkerMiner {
         original_absolute_path: PathBuf,
         is_first_stored_field: &mut bool,
         field_store_buffered_writer: &mut Vec<u8>,
+        doc_enums: &mut Vec<EnumKind>,
         field_lengths: &mut Vec<u32>,
         doc_id: u32,
         num_scored_fields: usize,
@@ -315,6 +324,7 @@ impl WorkerMiner {
                     &original_absolute_path,
                     is_first_stored_field,
                     field_store_buffered_writer,
+                    doc_enums,
                     field_lengths,
                     doc_id,
                     num_scored_fields,
@@ -328,7 +338,7 @@ impl WorkerMiner {
 
             // ----------------------------------------------
             // Json field stores
-            if field_info.do_store {
+            if field_info.store_text {
                 if !(*is_first_stored_field) {
                     field_store_buffered_writer.write_all(b",").unwrap();
                 } else {
@@ -341,6 +351,16 @@ impl WorkerMiner {
                     .write_all(find_u8_unsafe_morecap(&field_text).as_bytes())
                     .unwrap();
                 field_store_buffered_writer.write_all(b"\"]").unwrap();
+            }
+            // ----------------------------------------------
+
+            // ----------------------------------------------
+            // Enums
+            if let Some(EnumInfo { enum_id, enum_values: _ }) = &field_info.enum_info {
+                let existing = unsafe { doc_enums.get_unchecked_mut(*enum_id) };
+                if existing.is_empty() {
+                    *existing = field_text.clone();
+                }
             }
             // ----------------------------------------------
 
@@ -405,6 +425,7 @@ impl WorkerMiner {
         let mut pos = 0;
 
         let num_scored_fields = self.field_infos.num_scored_fields;
+        let mut doc_enums = vec![String::new(); self.field_infos.num_enum_fields];
         let mut field_lengths = vec![0; num_scored_fields];
         let mut field_store_buffered_writer = Vec::with_capacity(
             ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.field_text.len())) as f32 * 1.1) as usize,
@@ -416,6 +437,7 @@ impl WorkerMiner {
             original_absolute_path,
             &mut is_first_stored_field,
             &mut field_store_buffered_writer,
+            &mut doc_enums,
             &mut field_lengths,
             doc_id,
             num_scored_fields,
@@ -431,6 +453,7 @@ impl WorkerMiner {
         field_store_buffered_writer.flush().unwrap();
         self.doc_infos.push(WorkerMinerDocInfo {
             doc_id,
+            doc_enums,
             field_lengths,
             field_texts: field_store_buffered_writer,
         });

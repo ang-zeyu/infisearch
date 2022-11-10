@@ -106,6 +106,26 @@ There are also several options specific to each mode. Note that `dropdown` and `
 | `maxSubMatches`       | `2`                     | Maximum number of heading-body pairs to show for a document.
 | `resultsPerPage`      | `10`                    | The number of results to load when the load more button is clicked.
 
+#### Setting Up Enum Filters ∀
+
+Enum [fields](./indexer/fields.md) you index can be mapped into UI multi-select dropdowns. In this documentation for example, Mdbook's section titles ("User Guide", "Advanced") are mapped (try doing a search).
+
+Setup your bindings in the `uiOptions` like this:
+
+```json
+multiSelectFilters: [
+    {
+        fieldName: 'partTitle',
+        displayName: 'Section',
+        defaultOptName: 'None'
+    },
+]
+```
+
+The `fieldName` corresponds to the `name` of your [field](./indexer/fields.md) definition, while `displayName` controls the text to show to the user for the field.
+
+Some indexed documents may also not have an enum value, and are assigned an internal default enum value. The name of this enum value to show to searchers is specified by `defaultOptName`.
+
 #### Manually Showing / Hiding the Fullscreen UI
 
 ```ts
@@ -160,8 +180,8 @@ morsels.initMorsels({
 
         // ---------------------------------------------------------------
         // Caching Options
-        // Whether to cache **all** field stores on initialisation
-        // defaults to the same setting in the indexer configuration file
+        // Whether to cache **all** the texts storage=["text"] fields on initialisation
+        // See the chapter on Fields for more information.
         cacheAllFieldStores: undefined,
 
         // Any index file >= this size requested before will be persistently cached
