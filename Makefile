@@ -86,7 +86,7 @@ releaseMdbook:
 
 finalise:
 	git push
-	git push morsels $(VERSION)
+	git push origin $(VERSION)
 	git stash pop
 	npm run updateDemo
 
