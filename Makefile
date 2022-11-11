@@ -108,6 +108,6 @@ buildLinuxBinaries:
 	cargo build --release --target x86_64-unknown-linux-gnu -p mdbook-infisearch
 
 zipBinaries:
-	zip -j target/search.morsels.zip packages/search-ui/dist/*
-	zip -j target/indexer.x86_64-pc-windows-msvc.zip target/x86_64-pc-windows-msvc/release/morsels.exe target/x86_64-pc-windows-msvc/release/mdbook-infisearch.exe
-	zip -j target/indexer.x86_64-unknown-linux-gnu.zip target/x86_64-unknown-linux-gnu/release/morsels target/x86_64-unknown-linux-gnu/release/mdbook-infisearch
+	zip -j target/search.infi.zip packages/search-ui/dist/*
+	zip -j target/indexer.x86_64-pc-windows-msvc.zip target/x86_64-pc-windows-msvc/release/infisearch.exe target/x86_64-pc-windows-msvc/release/mdbook-infisearch.exe
+	zip -j target/indexer.x86_64-unknown-linux-gnu.zip target/x86_64-unknown-linux-gnu/release/infisearch target/x86_64-unknown-linux-gnu/release/mdbook-infisearch

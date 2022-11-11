@@ -38,10 +38,10 @@ jobs:
       - name: Build mdbook plugin x86_64
         run: cargo build --release --target ${{ matrix.target }} -p mdbook-infisearch
       - name: Zip binaries
-        run: zip -j target/indexer.${{ matrix.target }}.zip target/${{ matrix.target }}/release/morsels target/${{ matrix.target }}/release/mdbook-infisearch
+        run: zip -j target/indexer.${{ matrix.target }}.zip target/${{ matrix.target }}/release/infisearch target/${{ matrix.target }}/release/mdbook-infisearch
         if: matrix.os != 'windows-latest'
       - name: Zip binaries
-        run: tar -c -f target/indexer.${{ matrix.target }}.zip --directory=target/${{ matrix.target }}/release morsels.exe mdbook-infisearch.exe
+        run: tar -c -f target/indexer.${{ matrix.target }}.zip --directory=target/${{ matrix.target }}/release infisearch.exe mdbook-infisearch.exe
         if: matrix.os == 'windows-latest'
 
       - name: Build indexer aarch-64
@@ -51,7 +51,7 @@ jobs:
         run: cargo build --release --target ${{ matrix.extra_target }} -p mdbook-infisearch
         if: matrix.os == 'macos-latest'
       - name: Zip binaries
-        run: zip -j target/indexer.${{ matrix.extra_target }}.zip target/${{ matrix.extra_target }}/release/morsels target/${{ matrix.extra_target }}/release/mdbook-infisearch
+        run: zip -j target/indexer.${{ matrix.extra_target }}.zip target/${{ matrix.extra_target }}/release/infisearch target/${{ matrix.extra_target }}/release/mdbook-infisearch
         if: matrix.os == 'macos-latest'
 
       - name: Upload binaries to release
@@ -63,15 +63,15 @@ jobs:
           tag: ${{ github.ref }}
 
       - name: Zip Search Package
-        run: zip -j search.morsels.zip packages/search-ui/dist/*
+        run: zip -j search.infi.zip packages/search-ui/dist/*
         if: matrix.os == 'ubuntu-latest'
 
       - name: Upload search package to release
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: search.morsels.zip
-          asset_name: search.morsels.zip
+          file: search.infi.zip
+          asset_name: search.infi.zip
           tag: ${{ github.ref }}
         if: matrix.os == 'ubuntu-latest'
   build-docs:
@@ -91,5 +91,5 @@ jobs:
           branch: main
           folder: docs/book/html
           repository-name: ang-zeyu/infisearch-website
-          target-folder: morsels
+          target-folder: infisearch
           ssh-key: ${{ secrets.DOCS }}

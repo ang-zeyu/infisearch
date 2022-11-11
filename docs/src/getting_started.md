@@ -58,7 +58,7 @@ The folder contains:
   - An accompanying WebAssembly binary
 - A stylesheet: `search-ui-basic/light/dark.css`
 
-The same files are also in the release packages [here](https://github.com/ang-zeyu/infisearch/releases), inside `search.morsels.zip`.
+The same files are also in the release packages [here](https://github.com/ang-zeyu/infisearch/releases), inside `search.infi.zip`.
 
 ### UI Initialisation
 
