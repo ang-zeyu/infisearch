@@ -22,7 +22,7 @@ use toml::value::Value::{self, String as TomlString};
 use serde_json::Value as JsonValue;
 use walkdir::WalkDir;
 
-const DEFAULT_CONFIG: &'static str = include_str!("../default_morsels_config.json");
+const DEFAULT_CONFIG: &'static str = include_str!("../default_infi_search.json");
 
 const CONFIG_KEY: &'static str = "output.morsels.config";
 
@@ -112,20 +112,20 @@ fn main() {
 
 
 fn setup_config_file(root: &Path, config: Option<&Value>) -> String {
-    if let Some(morsels_config_path) = get_config_file_path(root, config) {
-        if !morsels_config_path.exists() || !morsels_config_path.is_file() {
-            fs::write(&morsels_config_path, DEFAULT_CONFIG).expect("Failed to write default morsels configuration");
+    if let Some(config_path) = get_config_file_path(root, config) {
+        if !config_path.exists() || !config_path.is_file() {
+            fs::write(&config_path, DEFAULT_CONFIG).expect("Failed to write default morsels configuration");
         }
 
-        std::fs::read_to_string(&morsels_config_path).expect("invalid morsels configuration file")
+        std::fs::read_to_string(&config_path).expect("invalid morsels configuration file")
     } else {
         String::from(DEFAULT_CONFIG)
     }
 }
 
 fn get_config_file_path(root: &Path, config: Option<&Value>) -> Option<PathBuf> {
-    if let Some(TomlString(morsels_config_file_path)) = config {
-        Some(root.join(morsels_config_file_path))
+    if let Some(TomlString(config_file_path)) = config {
+        Some(root.join(config_file_path))
     } else {
         None
     }

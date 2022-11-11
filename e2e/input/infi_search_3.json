@@ -1,24 +1,7 @@
 {
   "fields_config": {
-    "num_docs_per_store": 100,
-    "num_stores_per_dir": 1000,
-    "fields": {
-      "title": {
-        "weight": 2.0,
-        "k": 1.2,
-        "b": 0.15
-      },
-      "heading": {
-        "weight": 1.5,
-        "k": 1.2,
-        "b": 0.25
-      },
-      "body": {
-        "weight": 1.0,
-        "k": 1.2,
-        "b": 0.75
-      }
-    }
+    "num_docs_per_store": 2,
+    "num_stores_per_dir": 1000
   },
   "lang_config": {
     "lang": "ascii",
@@ -29,11 +12,11 @@
   "indexing_config": {
     "num_docs_per_block": 200,
     "pl_limit": 16383,
-    "pl_cache_threshold": 4000,
+    "pl_cache_threshold": 1048576,
     "exclude": [
       "index.html",
       "print.html",
-      "morsels_config_*",
+      "infi_search_*",
       "**/secondary_*"
     ],
     "loaders": {

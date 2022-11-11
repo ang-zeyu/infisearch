@@ -14,7 +14,7 @@ use infisearch_common::{bitmap, MetadataReader, METADATA_FILE};
 
 use crate::indexer::output_config::MorselsOutputConfig;
 use crate::utils::fs_utils;
-use crate::{MORSELS_VERSION, i_debug, OLD_MORSELS_CONFIG, OUTPUT_CONFIG_FILE};
+use crate::{MORSELS_VERSION, i_debug, OLD_SOURCE_CONFIG, OUTPUT_CONFIG_FILE};
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH)
@@ -144,11 +144,11 @@ impl IncrementalIndexInfo {
 
         // --------------------------------------------------------
         // Next, verify the user config hasn't changed.
-        if let Ok(mut file) = File::open(output_folder_path.join(OLD_MORSELS_CONFIG)) {
+        if let Ok(mut file) = File::open(output_folder_path.join(OLD_SOURCE_CONFIG)) {
             let mut old_config = "".to_owned();
             file.read_to_string(&mut old_config).expect("Unable to read old config file");
             let old_json_config: Value = serde_json::from_str(&old_config)
-                .expect(&(OLD_MORSELS_CONFIG.to_owned() + " does not match schema!"));
+                .expect(&(OLD_SOURCE_CONFIG.to_owned() + " does not match schema!"));
             if *json_config != old_json_config {
                 info!("Configuration file changed. Running a full reindex.");
                 return IncrementalIndexInfo::empty(use_content_hash);

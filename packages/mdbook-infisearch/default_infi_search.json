@@ -11,7 +11,7 @@
       "index.html",
       "print.html",
       "404.html",
-      "morsels_config.json"
+      "infi_search.json"
     ],
     "loaders": {
       "HtmlLoader": {

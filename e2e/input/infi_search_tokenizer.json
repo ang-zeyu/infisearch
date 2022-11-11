@@ -1,12 +1,42 @@
 {
   "fields_config": {
-    "num_docs_per_store": 2,
-    "num_stores_per_dir": 1000
+    "num_docs_per_store": 1000,
+    "cache_all_field_stores": true,
+    "num_stores_per_dir": 1000,
+    "fields": {
+      "title": {
+        "weight": 2.0,
+        "k": 1.2,
+        "b": 0.15
+      },
+      "heading": {
+        "weight": 1.5,
+        "k": 1.2,
+        "b": 0.25
+      },
+      "body": {
+        "weight": 1.0,
+        "k": 1.2,
+        "b": 0.75
+      },
+      "headingLink": {
+        "weight": 0.0,
+        "k": 1.2,
+        "b": 0.75
+      },
+      "_relative_fp": {
+        "weight": 0.0,
+        "k": 1.2,
+        "b": 0.75
+      }
+    }
   },
   "lang_config": {
     "lang": "ascii",
     "options": {
-      "ignore_stop_words": false
+      "stop_words": ["typesetting"],
+      "ignore_stop_words": true,
+      "max_term_len": 70
     }
   },
   "indexing_config": {
@@ -16,13 +46,12 @@
     "exclude": [
       "index.html",
       "print.html",
-      "morsels_config_*",
-      "**/secondary_*"
+      "infi_search_*"
     ],
     "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
-          "script,style,#sidebar,#menu-bar,[data-morsels-ignore]"
+          "script,style,#sidebar,#menu-bar"
         ],
         "selectors": {
           "h1": null,
@@ -58,13 +87,11 @@
         "header_field_order": [],
         "index_field_map": {
           "0": "title",
-          "1": "body",
-          "2": "_add_files"
+          "1": "body"
         },
         "index_field_order": [
           0,
-          1,
-          2
+          1
         ],
         "parse_options": {
           "comment": null,
@@ -76,10 +103,9 @@
         },
         "type": "CsvLoader",
         "use_headers": false
-      },
-      "PdfLoader": {}
+      }
     },
     "num_pls_per_dir": 1000,
-    "with_positions": true
+    "with_positions": false
   }
 }

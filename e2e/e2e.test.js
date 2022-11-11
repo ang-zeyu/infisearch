@@ -491,11 +491,11 @@ function readOutputConfig() {
 }
 
 const mainTest = async () => {
-  runFullIndex('e2e/input/morsels_config_empty.json');
+  runFullIndex('e2e/input/infi_search_empty.json');
 
   cleanup();
-  console.log('Starting morsels_config_0 tests');
-  const config0 = 'e2e/input/morsels_config_0.json';
+  console.log('Starting infi_search_0 tests');
+  const config0 = 'e2e/input/infi_search_0.json';
   await testSuite(config0, true, true);
 
   // Assert what's cached
@@ -508,8 +508,8 @@ const mainTest = async () => {
   await testTokenizerOptions(config0);
 
   cleanup();
-  console.log('Starting morsels_config_1 tests');
-  const config1 = 'e2e/input/morsels_config_1.json';
+  console.log('Starting infi_search_1 tests');
+  const config1 = 'e2e/input/infi_search_1.json';
   await testSuite(config1, true, false);
 
   outputConfig = readOutputConfig();
@@ -520,8 +520,8 @@ const mainTest = async () => {
   await testTokenizerOptions(config1);
 
   cleanup();
-  console.log('Starting morsels_config_2 tests');
-  const config2 = 'e2e/input/morsels_config_2.json';
+  console.log('Starting infi_search_2 tests');
+  const config2 = 'e2e/input/infi_search_2.json';
   await testSuite(config2, true, false);
 
   outputConfig = readOutputConfig();
@@ -529,8 +529,8 @@ const mainTest = async () => {
   expect(outputConfig.indexingConfig.plNamesToCache).toEqual([0, 1]);
 
   cleanup();
-  console.log('Starting morsels_config_3 tests');
-  const config3 = 'e2e/input/morsels_config_3.json';
+  console.log('Starting infi_search_3 tests');
+  const config3 = 'e2e/input/infi_search_3.json';
   await testSuite(config3, true, false);
 
   outputConfig = readOutputConfig();
@@ -539,8 +539,8 @@ const mainTest = async () => {
   // Latin tokenizer
   // No positions
   cleanup();
-  console.log('Starting morsels_config_4 tests');
-  const config4 = 'e2e/input/morsels_config_4.json';
+  console.log('Starting infi_search_4 tests');
+  const config4 = 'e2e/input/infi_search_4.json';
   await testSuite(config4, false, false);
 
   outputConfig = readOutputConfig();
@@ -548,8 +548,8 @@ const mainTest = async () => {
 
   // Chinese tokenizer
   cleanup();
-  console.log('Starting morsels_config_5 tests');
-  const config5 = 'e2e/input/morsels_config_5.json';
+  console.log('Starting infi_search_5 tests');
+  const config5 = 'e2e/input/infi_search_5.json';
   await testSuite(config5, true, false);
 
   outputConfig = readOutputConfig();
@@ -559,8 +559,8 @@ const mainTest = async () => {
 
   // ignore_stop_words = true, max_term_len=70
   cleanup();
-  console.log('Starting morsels_config_tokenizer tests');
-  const configTokenizer = 'e2e/input/morsels_config_tokenizer.json';
+  console.log('Starting infi_search_tokenizer tests');
+  const configTokenizer = 'e2e/input/infi_search_tokenizer.json';
   await testTokenizerOptions(configTokenizer);
 };
 

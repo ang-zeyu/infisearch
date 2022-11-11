@@ -1,7 +1,6 @@
 {
   "fields_config": {
-    "num_docs_per_store": 1000,
-    "cache_all_field_stores": true,
+    "num_docs_per_store": 200,
     "num_stores_per_dir": 1000,
     "fields": {
       "title": {
@@ -9,10 +8,11 @@
         "k": 1.2,
         "b": 0.15
       },
+      "h1": null,
       "heading": {
         "weight": 1.5,
         "k": 1.2,
-        "b": 0.25
+        "b": 0.15
       },
       "body": {
         "weight": 1.0,
@@ -28,6 +28,13 @@
         "weight": 0.0,
         "k": 1.2,
         "b": 0.75
+      },
+      "weatherField": {
+        "storage": ["enum"],
+        "weight": 0.0
+      },
+      "moodField": {
+        "storage": ["enum"]
       }
     }
   },
@@ -35,25 +42,28 @@
     "lang": "ascii",
     "options": {
       "stop_words": ["typesetting"],
-      "ignore_stop_words": true,
-      "max_term_len": 70
+      "ignore_stop_words": false
     }
   },
   "indexing_config": {
-    "num_docs_per_block": 200,
+    "num_docs_per_block": 2,
     "pl_limit": 16383,
-    "pl_cache_threshold": 1048576,
+    "pl_cache_threshold": 0,
     "exclude": [
       "index.html",
       "print.html",
-      "morsels_config_*"
+      "infi_search_*",
+      "**/secondary_*"
     ],
     "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
-          "script,style,#sidebar,#menu-bar"
+          "script,style,#sidebar,#menu-bar,[data-morsels-ignore]"
         ],
         "selectors": {
+          "title": {
+            "field_name": "title"
+          },
           "h1": null,
           "h2,h3,h4,h5,h6": null,
           "h1,h2,h3,h4,h5,h6": {
@@ -62,9 +72,22 @@
             },
             "field_name": "heading"
           },
+          "body": {
+            "field_name": "body"
+          },
           "div[also-index]": {
             "attr_map": {
               "also-index": "_add_files"
+            }
+          },
+          "[data-morsels-weather]": {
+            "attr_map": {
+              "data-morsels-weather": "weatherField"
+            }
+          },
+          "[data-morsels-mood]": {
+            "attr_map": {
+              "data-morsels-mood": "moodField"
             }
           }
         }
@@ -87,11 +110,13 @@
         "header_field_order": [],
         "index_field_map": {
           "0": "title",
-          "1": "body"
+          "1": "body",
+          "2": "_add_files"
         },
         "index_field_order": [
           0,
-          1
+          1,
+          2
         ],
         "parse_options": {
           "comment": null,
@@ -103,9 +128,10 @@
         },
         "type": "CsvLoader",
         "use_headers": false
-      }
+      },
+      "PdfLoader": {}
     },
     "num_pls_per_dir": 1000,
-    "with_positions": false
+    "with_positions": true
   }
 }

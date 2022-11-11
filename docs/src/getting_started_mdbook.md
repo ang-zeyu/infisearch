@@ -39,7 +39,7 @@ mode = "target"
 
 # Relative path to a Morsels indexer configuration file from the project directory.
 # The config file will also automatically be created here if it dosen't exist.
-config = "morsels_config.json"
+config = "infi_search.json"
 ```
 
 ## Preview

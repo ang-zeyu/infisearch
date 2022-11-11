@@ -186,7 +186,7 @@ This loader simply reads `.txt` files and indexes all its contents into a single
 {
   "indexing_config": {
     "exclude": [
-      "morsels_config.json"
+      "infi_search.json"
     ],
     "include": [],
 
@@ -195,7 +195,7 @@ This loader simply reads `.txt` files and indexes all its contents into a single
 }
 ```
 
-#### File Exclusions: **`exclude = ["morsels_config.json"]`**
+#### File Exclusions: **`exclude = ["infi_search.json"]`**
 
 Global file exclusions can be specified in this parameter, which is simply an array of file globs.
 

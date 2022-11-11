@@ -174,9 +174,9 @@ pub struct MorselsConfig {
 impl MorselsConfig {
     pub fn new(raw_config: String) -> Self {
         let mut config: MorselsConfig = serde_json::from_str(&raw_config)
-            .expect("morsels_config.json does not match schema!");
+            .expect("infi_search.json does not match schema!");
         let json_config: Value = serde_json::from_str(&raw_config)
-            .expect("morsels_config.json does not match schema!");
+            .expect("infi_search.json does not match schema!");
 
         config.fields_config.merge_default_fields();
 

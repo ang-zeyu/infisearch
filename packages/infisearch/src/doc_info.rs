@@ -279,7 +279,7 @@ impl DocInfos {
         // -----------------------------------------------------
 
         // Sort the ev_str_and_ids by the id portion, return just the strings
-        // for serialization into the output morsels_config.json
+        // for serialization into the output infi_search.json
         enums_ev_str_and_ids.into_iter()
             .map(|enum_ev_str_and_ids| {
                 let mut as_vec: Vec<_> =  enum_ev_str_and_ids.into_iter().collect();
@@ -298,7 +298,7 @@ impl DocInfos {
     /// 
     /// Returns:
     /// - Serialized document infos
-    /// - Enum String to id mappings, for storing in the output morsels_config.json
+    /// - Enum String to id mappings, for storing in the output infi_search.json
     pub fn finalize_and_flush(
         &mut self,
         num_docs: u32,

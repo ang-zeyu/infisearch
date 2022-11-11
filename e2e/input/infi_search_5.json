@@ -10,7 +10,7 @@
     "exclude": [
       "index.html",
       "print.html",
-      "morsels_config_*",
+      "infi_search_*",
       "**/secondary_*"
     ],
     "loaders": {

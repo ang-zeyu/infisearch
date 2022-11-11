@@ -23,7 +23,7 @@ It should only be marginally more expensive for the majority of cases, and may b
 Note also, that the following circumstances will forcibly trigger a **full** reindex:
 - If the output folder path does not contain any files indexed by morsels
 - It contains files indexed by a different version of morsels
-- The configuration file (`morsels_config.json`) was changed in any way
+- The configuration file (`infi_search.json`) was changed in any way
 - Usage of the `--incremental-content-hash` option changed
 
 ## Caveats

@@ -20,7 +20,7 @@ use infisearch_lang_chinese::chinese;
 use crate::dictionary_writer::DictWriter;
 use crate::doc_info::DocInfos;
 use crate::utils::fs_utils;
-use crate::{i_debug, spimi_reader, OLD_MORSELS_CONFIG};
+use crate::{i_debug, spimi_reader, OLD_SOURCE_CONFIG};
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::field_info::FieldInfos;
 use crate::indexer::input_config::{MorselsConfig, MorselsIndexingConfig};
@@ -108,11 +108,11 @@ impl Indexer {
         // Store the current raw json configuration file, for checking if it changed in the next run
 
         fs::write(
-            output_folder_path.join(OLD_MORSELS_CONFIG),
+            output_folder_path.join(OLD_SOURCE_CONFIG),
             serde_json::to_string_pretty(&config.json_config)
                 .expect("Failed to serialize current configuration file"),
         )
-        .expect(&("Failed to write ".to_owned() + OLD_MORSELS_CONFIG));
+        .expect(&("Failed to write ".to_owned() + OLD_SOURCE_CONFIG));
 
         // -----------------------------------------------------------
 
