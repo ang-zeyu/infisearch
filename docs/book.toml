@@ -6,10 +6,10 @@ src = "src"
 title = "Morsels Documentation"
 
 [output.html]
-default-theme = "morsels-theme"
+default-theme = "infi-theme"
 curly-quotes = true
-additional-css = ["src/morsels-theme.css"]
-additional-js = ["src/morsels-theme.js"]
+additional-css = ["src/infi-theme.css"]
+additional-js = ["src/infi-theme.js"]
 git-repository-url = "https://github.com/ang-zeyu/infisearch"
 site-url = "/infisearch/"
 

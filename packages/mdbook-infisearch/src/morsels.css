@@ -118,7 +118,7 @@
     --infi-sub-hover-bg: #272a2b;
 }
 
-.morsels-theme .morsels-root .morsels-tip-item code,
+.infi-theme .morsels-root .morsels-tip-item code,
 .rust .morsels-root .morsels-tip-item code {
     color: var(--infi-tip-code-fg) !important;;
 }
