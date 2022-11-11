@@ -136,7 +136,7 @@ pub struct Morsels;
 
 static INPUT_EL: &str = "\n<input
     type=\"search\"
-    id=\"morsels-search\"
+    id=\"infi-search\"
     placeholder=\"Search this book ...\"
 />\n\n
 <span style=\"font-weight: 600;\"><!--preload weight 600--></span>\n\n

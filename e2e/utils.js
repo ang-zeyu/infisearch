@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const INPUT_SELECTOR = '#morsels-search';
+const INPUT_SELECTOR = '#infi-search';
 
 async function clearInput() {
   await page.click(INPUT_SELECTOR, { clickCount: 3 });
@@ -22,13 +22,13 @@ async function typePhraseOrAnd(phrase, with_positions) {
   if (with_positions) {
     console.log(`Typing phrase '${phrase}'`);
     await page.type(INPUT_SELECTOR, `"${phrase}"`);
-    const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
+    const inputVal = await page.evaluate(() => document.getElementById('infi-search').value);
     expect(inputVal).toBe(`"${phrase}"`);
   } else {
     const query = phrase.split(/\s+/g).map((term) => `+${term}`).join(' ') + ' ';
     console.log(`Falling back to AND '${query}'`);
     await page.type(INPUT_SELECTOR, query);
-    const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
+    const inputVal = await page.evaluate(() => document.getElementById('infi-search').value);
     expect(inputVal).toBe(query);
   }
 }
@@ -38,7 +38,7 @@ async function typeText(text) {
 
   console.log(`Typing text '${text}'`);
   await page.type(INPUT_SELECTOR, text);
-  const inputVal = await page.evaluate(() => document.getElementById('morsels-search').value);
+  const inputVal = await page.evaluate(() => document.getElementById('infi-search').value);
   expect(inputVal).toBe(text);
 }
 
@@ -55,7 +55,7 @@ async function waitNoResults() {
     const output = await page.evaluate(() => document.getElementById('target-mode-el').innerHTML);
     console.error('waitNoResults failed, output in target:', output);
     console.error('input element text:');
-    const inputElText = await page.evaluate(() => document.getElementById('morsels-search').value);
+    const inputElText = await page.evaluate(() => document.getElementById('infi-search').value);
     console.error(inputElText);
     throw ex;
   }

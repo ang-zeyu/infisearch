@@ -16,7 +16,7 @@ infisearch.init({
   },
 });
 
-document.getElementById('morsels-search').addEventListener('keydown', (ev) => {
+document.getElementById('infi-search').addEventListener('keydown', (ev) => {
   if (['ArrowLeft', 'ArrowRight'].includes(ev.key)) {
     ev.stopPropagation(); // used in global listener to change pages
     return;

@@ -51,7 +51,7 @@ If you wish to host the files, you can find them in the `<output-folder-path>/as
 
 ### 4. UI Initialisation
 
-Give any `<input>` element in your page an `id` of `morsels-search`, then call:
+Give any `<input>` element in your page an `id` of `infi-search`, then call:
 
 ```js
 infisearch.init({

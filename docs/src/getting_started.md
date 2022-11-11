@@ -64,7 +64,7 @@ The same files are also in the release packages [here](https://github.com/ang-ze
 
 Once you have loaded the bundles, simply call the `infisearch.init` function in your page.
 
-This requires an input element with an `id=morsels-search` to be present in the page by default. The `id` can be configured via `uiOptions.input`.
+This requires an input element with an `id=infi-search` to be present in the page by default. The `id` can be configured via `uiOptions.input`.
 
 ```ts
 infisearch.init({
@@ -76,7 +76,7 @@ infisearch.init({
   uiOptions: {
     // Input / source folder url, specified as the first parameter in the cli command
     sourceFilesUrl: 'http://<your-domain>/source/',
-    input: 'morsels-search',
+    input: 'infi-search',
   }
 });
 ```

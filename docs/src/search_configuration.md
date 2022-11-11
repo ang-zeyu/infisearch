@@ -29,7 +29,7 @@ Unless you are providing all links manually (see [Linking to other pages](./link
 
 | Option      | Default Value | Description |
 | ----------- | ----------- | ----------- |
-| `input`     | `'morsels-search'` | `id` of the input element or a HTML element reference |
+| `input`     | `'infi-search'` | `id` of the input element or a HTML element reference |
 | `inputDebounce`     | `100` | debounce time of keystrokes to the input element |
 | `preprocessQuery`   | `(q) => q` | any function for preprocessing the query. Can be used to add a [field filter](./search_features.md#field-search) for example. |
 
