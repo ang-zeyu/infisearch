@@ -2,12 +2,12 @@
 @import url('./light-base.css');
 
 :root {
-    --morsels-item-border-radius: 2px;
-    --morsels-item-box-shadow: none;
-    --morsels-title-border-bottom: 1px solid #e5e5e5;
-    --morsels-title-border-bottom-hover: 1px solid #bce0fe;
-    --morsels-heading-fg: #505050;
-    --morsels-body-fg: #505050;
+    --infi-item-border-radius: 2px;
+    --infi-item-box-shadow: none;
+    --infi-title-border-bottom: 1px solid #e5e5e5;
+    --infi-title-border-bottom-hover: 1px solid #bce0fe;
+    --infi-heading-fg: #505050;
+    --infi-body-fg: #505050;
 }
 
 .morsels-list-item {

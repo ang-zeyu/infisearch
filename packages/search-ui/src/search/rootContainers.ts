@@ -19,8 +19,8 @@ export function openDropdown(root: HTMLElement, listContainer: HTMLElement, plac
       size({
         apply({ availableWidth, availableHeight }) {
           Object.assign(listContainer.style, {
-            maxWidth: `min(${availableWidth}px, var(--morsels-dropdown-max-width))`,
-            maxHeight: `min(${availableHeight}px, var(--morsels-dropdown-max-height))`,
+            maxWidth: `min(${availableWidth}px, var(--infi-dropdown-max-width))`,
+            maxHeight: `min(${availableHeight}px, var(--infi-dropdown-max-height))`,
           });
         },
         padding: 10,

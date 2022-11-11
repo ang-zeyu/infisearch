@@ -1,19 +1,19 @@
 :root {
-    --morsels-dropdown-max-width: 525px;
-    --morsels-dropdown-max-height: 32em;
-    --morsels-dropdown-z-index: 9999;
-    --morsels-font-size: 14px;
-    --morsels-border: none;
-    --morsels-fs-item-spacing: 18px;
-    --morsels-fs-desktop-width: 650px;
-    --morsels-fs-desktop-height: 70vh;
-    --morsels-tip-icon-size: 21px;
-    --morsels-triangle-bg: var(--morsels-bg);
-    --morsels-fs-header-close-bg: var(--morsels-fs-header-bg);
+    --infi-dropdown-max-width: 525px;
+    --infi-dropdown-max-height: 32em;
+    --infi-dropdown-z-index: 9999;
+    --infi-font-size: 14px;
+    --infi-border: none;
+    --infi-fs-item-spacing: 18px;
+    --infi-fs-desktop-width: 650px;
+    --infi-fs-desktop-height: 70vh;
+    --infi-tip-icon-size: 21px;
+    --infi-triangle-bg: var(--infi-bg);
+    --infi-fs-header-close-bg: var(--infi-fs-header-bg);
 }
 
 .morsels-root {
-    font-size: var(--morsels-font-size);
+    font-size: var(--infi-font-size);
 }
 
 .morsels-root * {
@@ -31,22 +31,22 @@
 
 .morsels-button-input:focus:not(:hover) {
     transition: 0.3s ease-out;
-    background: var(--morsels-fs-button-input-bg) !important;
-    box-shadow: var(--morsels-fs-button-input-shadow) !important;
+    background: var(--infi-fs-button-input-bg) !important;
+    box-shadow: var(--infi-fs-button-input-shadow) !important;
 }
 
 .morsels-button-input:focus:not(:hover)::placeholder {
-    color: var(--morsels-fs-button-input-fg) !important;
+    color: var(--infi-fs-button-input-fg) !important;
 }
 
 .morsels-fs-backdrop {
-    --morsels-fs-backdrop-bg: rgba(0, 0, 0, 0.1);
+    --infi-fs-backdrop-bg: rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--morsels-fs-backdrop-bg);
+    background: var(--infi-fs-backdrop-bg);
     z-index: 1000;
 }
 
@@ -54,7 +54,7 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background: var(--morsels-bg);
+    background: var(--infi-bg);
     overflow: hidden;
     z-index: 1000;
 }
@@ -66,8 +66,8 @@
     justify-content: space-between;
     padding: 9px 10px 9px 12px;
     font-size: 1.1em;
-    background: var(--morsels-fs-header-bg);
-    box-shadow: var(--morsels-fs-header-box-shadow);
+    background: var(--infi-fs-header-bg);
+    box-shadow: var(--infi-fs-header-box-shadow);
     z-index: 1000;
 }
 
@@ -82,16 +82,16 @@
     padding: 0 30px 0 13px;
     height: 2.1em;
     outline: none;
-    color: var(--morsels-fs-input-fg);
-    background: var(--morsels-fs-input-bg);
-    border: var(--morsels-fs-input-border);
+    color: var(--infi-fs-input-fg);
+    background: var(--infi-fs-input-bg);
+    border: var(--infi-fs-input-border);
     border-radius: 10px;
     font-size: inherit;
 }
 
 .morsels-fs-input:focus {
-    border: var(--morsels-fs-input-focus-border);
-    box-shadow: var(--morsels-fs-input-focus-box-shadow);
+    border: var(--infi-fs-input-focus-border);
+    box-shadow: var(--infi-fs-input-focus-box-shadow);
 }
 
 .morsels-fs-input::-webkit-search-cancel-button {
@@ -128,8 +128,8 @@
     font-size: inherit;
     font-weight: 600;
     cursor: pointer;
-    color: var(--morsels-fs-header-close-fg);
-    background: var(--morsels-fs-header-close-bg);
+    color: var(--infi-fs-header-close-fg);
+    background: var(--infi-fs-header-close-bg);
     transition: background 0.2s linear, color 0.2s linear;
     user-select: none;
 }
@@ -137,14 +137,14 @@
 @media (hover: hover) {
     .morsels-input-close-fs:hover,
     .morsels-input-close-fs:focus {
-        color: var(--morsels-fs-header-close-hover-fg);
-        background: var(--morsels-fs-header-close-hover-bg);
+        color: var(--infi-fs-header-close-hover-fg);
+        background: var(--infi-fs-header-close-hover-bg);
     }
 }
 
 .morsels-input-close-fs:active {
-    color: var(--morsels-fs-header-close-active-fg);
-    background: var(--morsels-fs-header-close-active-bg);
+    color: var(--infi-fs-header-close-active-fg);
+    background: var(--infi-fs-header-close-active-bg);
 }
 
 /*
@@ -156,21 +156,21 @@
     position: absolute;
     bottom: 15px;
     right: 15px;
-    width: var(--morsels-tip-icon-size);
-    height: var(--morsels-tip-icon-size);
+    width: var(--infi-tip-icon-size);
+    height: var(--infi-tip-icon-size);
     z-index: 1;
 }
 
 .morsels-tip-icon {
     cursor: default;
     display: inline-block;
-    line-height: var(--morsels-tip-icon-size);
+    line-height: var(--infi-tip-icon-size);
     width: 100%;
     height: 100%;
     border-width: 0;
     border-radius: 50%;
-    color: var(--morsels-tip-icon-fg);
-    background: var(--morsels-tip-icon-bg);
+    color: var(--infi-tip-icon-fg);
+    background: var(--infi-tip-icon-bg);
     text-align: center;
     opacity: 0.5;
     transition: opacity 0.2s linear, font-weight 0.2s linear;
@@ -196,13 +196,13 @@
 .morsels-tip-popup {
     padding: 14px;
     font-size: 14px;
-    box-shadow: var(--morsels-shadow);
+    box-shadow: var(--infi-shadow);
     width: 300px;
-    background: var(--morsels-tip-bg);
+    background: var(--infi-tip-bg);
 }
 
 .morsels-tip-popup-title {
-    color: var(--morsels-tip-fg);
+    color: var(--infi-tip-fg);
     font-weight: bold;
 }
 
@@ -229,22 +229,22 @@ table.morsels-tip-table td {
     text-align: left;
     vertical-align: text-top;
     box-shadow: none;
-    color: var(--morsels-tip-fg);
+    color: var(--infi-tip-fg);
 }
 
 table.morsels-tip-table th {
     border-bottom: 3px solid;
-    border-bottom-color: var(--morsels-tip-table-header-border, var(--morsels-tip-table-border)) !important;
+    border-bottom-color: var(--infi-tip-table-header-border, var(--infi-tip-table-border)) !important;
     font-weight: bold;
 }
 
 table.morsels-tip-table td {
     border-bottom: 1px solid;
-    border-bottom-color: var(--morsels-tip-table-border) !important;
+    border-bottom-color: var(--infi-tip-table-border) !important;
 }
 
 table.morsels-tip-table > tbody > tr:nth-child(2n) > td {
-    background: var(--morsels-tip-table-alternate);
+    background: var(--infi-tip-table-alternate);
 }
 
 table.morsels-tip-table > tbody > tr:last-child > td {
@@ -280,8 +280,8 @@ table.morsels-tip-table .morsels-tip-item > td {
 
 table.morsels-tip-table .morsels-tip-item code {
     font-size: 0.9em;
-    color: var(--morsels-tip-code-fg);
-    background: var(--morsels-tip-code-bg);
+    color: var(--infi-tip-code-fg);
+    background: var(--infi-tip-code-bg);
     word-wrap: break-word;
 }
 
@@ -299,12 +299,12 @@ table.morsels-tip-table .morsels-tip-item li {
 @media screen and (min-width: 769px) {
     .morsels-fs-root {
         border-radius: 6px;
-        border: var(--morsels-fs-border);
-        box-shadow: var(--morsels-fs-box-shadow);
+        border: var(--infi-fs-border);
+        box-shadow: var(--infi-fs-box-shadow);
         top: 15%;
-        left: calc(50% - (var(--morsels-fs-desktop-width) / 2));
-        width: var(--morsels-fs-desktop-width);
-        height: var(--morsels-fs-desktop-height);
+        left: calc(50% - (var(--infi-fs-desktop-width) / 2));
+        width: var(--infi-fs-desktop-width);
+        height: var(--infi-fs-desktop-height);
     }
 }
 
@@ -324,7 +324,7 @@ table.morsels-tip-table .morsels-tip-item li {
     height: 0;
     border-left: 9px solid transparent;
     border-right: 9px solid transparent;
-    border-bottom: 9px solid var(--morsels-triangle-bg);
+    border-bottom: 9px solid var(--infi-triangle-bg);
 }
 
 /*
@@ -336,24 +336,24 @@ table.morsels-tip-table .morsels-tip-item li {
     position: absolute;
     top: 0;
     left: 100vw;
-    z-index: var(--morsels-dropdown-z-index);
+    z-index: var(--infi-dropdown-z-index);
 }
 
 .morsels-list {
     padding: 0;
-    border: var(--morsels-border);
+    border: var(--infi-border);
     border-radius: 5px;
-    box-shadow: var(--morsels-shadow);
+    box-shadow: var(--infi-shadow);
     margin: 0;
     width: 100vw;
-    max-width: var(--morsels-dropdown-max-width);
+    max-width: var(--infi-dropdown-max-width);
     overflow-y: auto;
     overflow-y: overlay;
     list-style: none;
-    background-color: var(--morsels-bg);
+    background-color: var(--infi-bg);
     font-size: inherit;
     z-index: 1000;
-    scrollbar-color: var(--morsels-scrollbar-thumb-bg) var(--morsels-scrollbar-bg);
+    scrollbar-color: var(--infi-scrollbar-thumb-bg) var(--infi-scrollbar-bg);
     scrollbar-width: thin;
 }
 
@@ -370,7 +370,7 @@ table.morsels-tip-table .morsels-tip-item li {
 
 .morsels-list::-webkit-scrollbar-track {
     border-radius: 5px;
-    background: var(--morsels-scrollbar-bg);
+    background: var(--infi-scrollbar-bg);
 }
 
 .morsels-list::-webkit-scrollbar {
@@ -384,7 +384,7 @@ table.morsels-tip-table .morsels-tip-item li {
 
 .morsels-list::-webkit-scrollbar-thumb {
     border-radius: 5px;
-    background: var(--morsels-scrollbar-thumb-bg);
+    background: var(--infi-scrollbar-thumb-bg);
 }
 
 /*
@@ -395,7 +395,7 @@ table.morsels-tip-table .morsels-tip-item li {
 .morsels-header {
     display: flex;
     justify-content: space-between;
-    color: var(--morsels-header-fg);
+    color: var(--infi-header-fg);
     padding: 9px 13px 0 13px;
     margin-bottom: 7px;
     font-weight: bold;
@@ -421,9 +421,9 @@ table.morsels-tip-table .morsels-tip-item li {
 
 .morsels-key-arrow,
 .morsels-key-return {
-    fill: var(--morsels-key-fg);
-    stroke: var(--morsels-key-fg);
-    background: var(--morsels-key-bg);
+    fill: var(--infi-key-fg);
+    stroke: var(--infi-key-fg);
+    background: var(--infi-key-bg);
     height: 18px;
     border-radius: 4px;
     padding: 3px;
@@ -476,7 +476,7 @@ button.morsels-filters.active::after {
 
 .morsels-results-found + .morsels-filters {
     margin-left: auto;
-    border-right: 2px solid var(--morsels-key-bg);
+    border-right: 2px solid var(--infi-key-bg);
 }
 
 /*
@@ -501,12 +501,12 @@ button.morsels-filters.active::after {
     cursor: pointer;
     user-select: none;
     margin: 0 5px 1px 0;
-    color: var(--morsels-header-fg);
+    color: var(--infi-header-fg);
 }
 
 .morsels-filter-header:focus-visible {
-    outline: 2px solid var(--morsels-header-fg);
-    color: var(--morsels-header-fg);
+    outline: 2px solid var(--infi-header-fg);
+    color: var(--infi-header-fg);
 }
 
 .morsels-filter-header::before {
@@ -541,7 +541,7 @@ label.morsels-checkbox-label {
     grid-template-columns: 1em auto;
     gap: 0.5em;
     align-items:baseline;
-    color: var(--morsels-header-fg);
+    color: var(--infi-header-fg);
     cursor: pointer;
 }
 
@@ -552,13 +552,13 @@ label.morsels-checkbox-label {
 input[type="checkbox"].morsels-checkbox {
     -webkit-appearance: none;
     appearance: none;
-    background: var(--morsels-checkbox-bg);
+    background: var(--infi-checkbox-bg);
     margin: 0;
 
     font: inherit;
     width: 1.06em;
     height: 1.06em;
-    border: 0.14em solid var( --morsels-checkbox-border);
+    border: 0.14em solid var( --infi-checkbox-border);
     border-radius: 0.14em;
     transform: translateY(-0.07em);
 
@@ -569,17 +569,17 @@ input[type="checkbox"].morsels-checkbox {
 }
 
 input[type="checkbox"].morsels-checkbox:checked {
-    background: var(--morsels-checkbox-checked-bg);
+    background: var(--infi-checkbox-checked-bg);
 }
 
 input[type="checkbox"].morsels-checkbox:focus,
 input[type="checkbox"].morsels-checkbox.focus {
-    outline: max(2px, 0.15em) solid var(--morsels-highlight);
+    outline: max(2px, 0.15em) solid var(--infi-highlight);
     outline-offset: max(2px, 0.15em);
 }
 
 input[type="checkbox"].morsels-checkbox:focus {
-    outline-color: var(--morsels-header-fg);
+    outline-color: var(--infi-header-fg);
 }
 
 input[type="checkbox"].morsels-checkbox::before {
@@ -588,7 +588,7 @@ input[type="checkbox"].morsels-checkbox::before {
     height: 0.53em;
     transform: scale(0);
     transition: 120ms transform ease-in-out;
-    box-shadow: inset 1em 1em var(--morsels-highlight);
+    box-shadow: inset 1em 1em var(--infi-highlight);
 
     transform-origin: center;
     clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
@@ -623,7 +623,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 .morsels-load-more,
 .morsels-footer-so-far {
     font-weight: bold;
-    color: var(--morsels-load-more-fg);
+    color: var(--infi-load-more-fg);
 }
 
 .morsels-load-more {
@@ -632,7 +632,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     text-decoration: none;
     user-select: none;
     border-radius: 20px;
-    background: var(--morsels-load-more-bg);
+    background: var(--infi-load-more-bg);
     border: none;
     cursor: pointer;
 }
@@ -643,16 +643,16 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 
 .morsels-load-more:active,
 .morsels-load-more-opt.focus > .morsels-load-more {
-    color: var(--morsels-load-more-hover-fg);
-    background: var(--morsels-load-more-hover-bg);
+    color: var(--infi-load-more-hover-fg);
+    background: var(--infi-load-more-hover-bg);
 }
 
 @media (hover: hover) {
     .morsels-load-more:hover,
     .morsels-load-more:focus {
         transition: color 0.2s ease-in-out, background 0.2s ease-in-out;
-        color: var(--morsels-load-more-hover-fg);
-        background: var(--morsels-load-more-hover-bg);
+        color: var(--infi-load-more-hover-fg);
+        background: var(--infi-load-more-hover-bg);
     }
 }
 
@@ -671,11 +671,11 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 }
 
 .morsels-error {
-    color: var(--morsels-error-fg);
+    color: var(--infi-error-fg);
 }
 
 .morsels-blank {
-    color: var(--morsels-fine-print-fg);
+    color: var(--infi-fine-print-fg);
 }
 
 /* https://loading.io/css/ */
@@ -694,7 +694,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     margin: 4px;
     border-radius: 50%;
     border: 6px solid;
-    border-color: var(--morsels-loading-bg) transparent var(--morsels-loading-bg) transparent;
+    border-color: var(--infi-loading-bg) transparent var(--infi-loading-bg) transparent;
     animation: morsels-loading-indicator 1.2s linear infinite;
 }
 
@@ -720,7 +720,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     width: 25px;
     height: 25px;
     border-width: 4px;
-    border-color: var(--morsels-loading-secondary-bg) transparent var(--morsels-loading-secondary-bg) transparent;
+    border-color: var(--infi-loading-secondary-bg) transparent var(--infi-loading-secondary-bg) transparent;
     animation: morsels-loading-indicator 1.2s linear infinite, morsels-loading-indicator-subsequent 1s linear 1;
 }
 
@@ -743,14 +743,14 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 
 .morsels-list-item {
     font-size: inherit;
-    border-radius: var(--morsels-item-border-radius);
-    box-shadow: var(--morsels-item-box-shadow);
+    border-radius: var(--infi-item-border-radius);
+    box-shadow: var(--infi-item-box-shadow);
     margin: 18px 13px;
     overflow: hidden;
 }
 
 .morsels-fs-root .morsels-list-item {
-    margin: var(--morsels-fs-item-spacing) 8px;
+    margin: var(--infi-fs-item-spacing) 8px;
 }
 
 .morsels-list-item:first-child {
@@ -763,30 +763,30 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     font-size: inherit;
     text-decoration: none !important;
     outline-offset: -1px;
-    outline-color: var(--morsels-title-fg);
+    outline-color: var(--infi-title-fg);
 }
 
 .morsels-title {
-    border-bottom: var(--morsels-title-border-bottom);
-    color: var(--morsels-title-fg);
+    border-bottom: var(--infi-title-border-bottom);
+    color: var(--infi-title-fg);
     line-height: 1.2;
     word-break: break-word;
     padding: 9px 11px 5px;
-    background: var(--morsels-title-bg);
+    background: var(--infi-title-bg);
     font-size: 1.04em;
     font-weight: 600;
 }
 
 .morsels-title:active,
 .morsels-title-link.focus .morsels-title {
-    color: var(--morsels-title-hover-fg);
-    background: var(--morsels-title-hover-bg);
-    border-bottom: var(--morsels-title-border-bottom-hover);
+    color: var(--infi-title-hover-fg);
+    background: var(--infi-title-hover-bg);
+    border-bottom: var(--infi-title-border-bottom-hover);
 }
 
 .morsels-heading-link {
     padding: 3px 0 2px 0;
-    background: var(--morsels-sub-bg);
+    background: var(--infi-sub-bg);
 }
 
 .morsels-title-link + .morsels-heading-link {
@@ -802,13 +802,13 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     word-break: break-word;
     padding: 0 5px 0 11px;
     line-height: 1.2;
-    color: var(--morsels-heading-fg);
+    color: var(--infi-heading-fg);
     font-weight: 600;
 }
 
 .morsels-heading-link:active .morsels-heading,
 .morsels-heading-link.focus .morsels-heading {
-    color: var(--morsels-heading-hover-fg);
+    color: var(--infi-heading-hover-fg);
 }
 
 .morsels-body {
@@ -816,7 +816,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     line-height: 1.15;
     word-break: break-word;
     padding: 4px 5px 5px 11px;
-    color: var(--morsels-body-fg);
+    color: var(--infi-body-fg);
 }
 
 .morsels-heading-link .morsels-body {
@@ -827,39 +827,39 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 .morsels-title-link.focus > .morsels-body,
 .morsels-heading-link:active .morsels-body,
 .morsels-heading-link.focus .morsels-body {
-    color: var(--morsels-body-hover-fg);
+    color: var(--infi-body-hover-fg);
 }
 
 .morsels-title-link > .morsels-body:active,
 .morsels-title-link.focus > .morsels-body,
 .morsels-heading-link:active,
 .morsels-heading-link.focus {
-    background: var(--morsels-sub-hover-bg);
+    background: var(--infi-sub-hover-bg);
 }
 
 @media (hover: hover) {
     .morsels-list-item:hover .morsels-title {
-        color: var(--morsels-title-hover-fg);
-        background: var(--morsels-title-hover-bg);
-        border-bottom: var(--morsels-title-border-bottom-hover);
+        color: var(--infi-title-hover-fg);
+        background: var(--infi-title-hover-bg);
+        border-bottom: var(--infi-title-border-bottom-hover);
     }
 
     .morsels-heading-link:not(:last-child):hover {
-        border-bottom: var(--morsels-item-sub-border-hover);
+        border-bottom: var(--infi-item-sub-border-hover);
     }
 
     .morsels-title-link > .morsels-body:hover,
     .morsels-heading-link:hover {
-        background: var(--morsels-sub-hover-bg);
+        background: var(--infi-sub-hover-bg);
     }
 
     .morsels-heading-link:hover .morsels-heading {
-        color: var(--morsels-heading-hover-fg);
+        color: var(--infi-heading-hover-fg);
     }
 
     .morsels-body:hover,
     .morsels-heading-link:hover .morsels-body {
-        color: var(--morsels-body-hover-fg);
+        color: var(--infi-body-hover-fg);
     }
 
     /* Prevent transitions from kicking in for keyboard navigation */
@@ -881,15 +881,15 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 }
 
 .morsels-highlight {
-    color: var(--morsels-highlight);
-    background-color: var(--morsels-highlight-bg);
+    color: var(--infi-highlight);
+    background-color: var(--infi-highlight-bg);
     font-weight: bold;
     padding: 0;
     margin: 0;
 }
 
 .morsels-heading .morsels-highlight {
-    color: var(--morsels-heading-highlight, var(--morsels-highlight));
+    color: var(--infi-heading-highlight, var(--infi-highlight));
 }
 
 .morsels-ellipsis {
@@ -899,7 +899,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 
 .morsels-initialising-text {
     font-size: 0.9em;
-    color: var(--morsels-fine-print-fg);
+    color: var(--infi-fine-print-fg);
     margin-top: -5px;
     padding-bottom: 15px;
     text-align: center;
@@ -912,9 +912,9 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 
 @media screen and (max-width: 768px) {
     :root {
-        --morsels-dropdown-max-width: 100vw;
-        --morsels-dropdown-max-height: 75vh;
-        --morsels-tip-icon-size: 26px;
+        --infi-dropdown-max-width: 100vw;
+        --infi-dropdown-max-height: 75vh;
+        --infi-tip-icon-size: 26px;
     }
 
     .morsels-fs-input {
