@@ -74,7 +74,7 @@ opts = export interface Options {
 }
 ```
 
-If you need to include some custom options (e.g. an API base url), you can use the `otherOptions` key, which is guaranteed to be untouched by morsels.
+If you need to include some custom options (e.g. an API base url), you can use the `otherOptions` key, which is guaranteed to be untouched by InfiSearch.
 
 ## Rendering Search Results
 

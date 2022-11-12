@@ -1,10 +1,10 @@
 # Field Configuration
 
-Every document you index contains multiple fields. By default, Morsels comes baked in with the configurations needed for supporting static site search.
+Every document you index contains multiple fields. By default, InfiSearch comes baked in with the configurations needed for supporting static site search.
 
 ## Default Field Configuration
 
-It may be helpful to first understand what the default fields are in Morsels, and how they are used in the user interface:
+It may be helpful to first understand what the default fields are in InfiSearch, and how they are used in the user interface:
 
 ```json
 {
@@ -38,11 +38,11 @@ It may be helpful to first understand what the default fields are in Morsels, an
 
 ## Adding Fields
 
-You can add your own fields to index as well, which will be factored into Morsels' search algorithms.
+You can add your own fields to index as well, which will be factored into InfiSearch' search algorithms.
 
 As explained in the default field configurations however, the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, for example a link to an icon, you will need to [alter](../search_configuration_renderers.md#rendering-search-results) the HTML outputs, or use the [search API](../search_api.md).
 
-If don't need any of Morsels' default fields, you can also assign a value of `null` to remove it completely.
+If don't need any of InfiSearch' default fields, you can also assign a value of `null` to remove it completely.
 
 ```json
 {
@@ -68,17 +68,17 @@ Reserved fields are prefixed with an underscore `_`, and are hardcoded into the 
 
 #### Field Storage: **`storage=["text"]`**
 
-As with most information retrieval tools, Morsels performs full-text search using an [inverted index](https://en.wikipedia.org/wiki/Inverted_index) mapping terms to source documents.
+As with most information retrieval tools, InfiSearch performs full-text search using an [inverted index](https://en.wikipedia.org/wiki/Inverted_index) mapping terms to source documents.
 
 Once the result set is obtained however, each result document's data could be useful for performing several operations. For example, a document's original **title** is essential for generating a human-readable result preview.
 
-Morsels currently provides 2 storage formats, which can be used simultaneously in a single field:
+InfiSearch currently provides 2 storage formats, which can be used simultaneously in a single field:
 
 **1. `text`**
 
 In this format, raw texts of fields are stored into a JSON file as a series of `[fieldName, fieldText]` pairs as seen in the order in the document.
 
-This "positioned" model is slightly more complex than a regular key-value store but enables the detailed content hierarchy you see in Morsels' UI currently: *Title > Heading > Text under Heading*
+This "positioned" model is slightly more complex than a regular key-value store but enables the detailed content hierarchy you see in InfiSearch' UI currently: *Title > Heading > Text under Heading*
 
 **2. `enum`**
 
@@ -86,7 +86,7 @@ This storage format stores a **single** value for each indexed document. Only th
 
 This storage type should therefore be used for values that are "categorical" and finite in nature, and is useful for filtering documents by said categories.
 
-You can also use Morsels' regular inverted index and flexible [boolean syntaxes](../search_features.md) to filter documents. Using this option instead however allows a simplifying assumption to store these values far more compactly. These values can then be queried using the [search API](../search_api.md#filtering-enum-values) or used in the search UI to create [multi-select](../search_configuration.md#general-options) filters.
+You can also use InfiSearch' regular inverted index and flexible [boolean syntaxes](../search_features.md) to filter documents. Using this option instead however allows a simplifying assumption to store these values far more compactly. These values can then be queried using the [search API](../search_api.md#filtering-enum-values) or used in the search UI to create [multi-select](../search_configuration.md#general-options) filters.
 
  Documents that don't have any enum values will internally be assigned a default enum value that can also be queried. While it is highly unlikely that you will need more, note that there is also a hard limit of 255 possible values for your entire document collection. Values found in excess of this will be ignored, and the CLI indexer tool will print a warning.
 
@@ -96,7 +96,7 @@ You can also use Morsels' regular inverted index and flexible [boolean syntaxes]
 
 This parameter is a boost / penalty multiplied to a individual field's score.
 
-Specifying `0.0` will also result in the field not being indexed into Morsels' inverted index at all. Searching for any terms in this field will not show up any results. The use case may be to create a field that is only stored for UI purposes (for example the `_relative_fp` field), when used in combination with the `storage` parameter.
+Specifying `0.0` will also result in the field not being indexed into InfiSearch' inverted index at all. Searching for any terms in this field will not show up any results. The use case may be to create a field that is only stored for UI purposes (for example the `_relative_fp` field), when used in combination with the `storage` parameter.
 
 **`k=1.2` & `b=0.75`**
 

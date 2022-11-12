@@ -2,7 +2,7 @@
 
 The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
-Morsels' defaults should be sufficient to index most HTML files, but if not, you can also configure how the content mapping is done. Enabling support for other file formats (e.g. JSON, CSV, PDF) files is also done here.
+InfiSearch' defaults should be sufficient to index most HTML files, but if not, you can also configure how the content mapping is done. Enabling support for other file formats (e.g. JSON, CSV, PDF) files is also done here.
 
 ## Mapping File Data to Fields
 
@@ -314,7 +314,7 @@ Increasing the value may also be useful for caching when used in conjunction wit
 
 Index files that exceed this number will be cached by the search library at initilisation.
 
-It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./larger_collections.md).
+It can be used to configure InfiSearch for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./larger_collections.md).
 
 #### Index Shards per Directory: **`num_pls_per_dir`**
 

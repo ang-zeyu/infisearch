@@ -21,7 +21,7 @@ infisearch.init({
 `sourceFilesUrl`
 - Example: `'/'` or `'https://www.infi-search.com'`
 
-This option allows Morsels to construct the default link used in search result previews by appending the relative file path of the indexed files.
+This option allows InfiSearch to construct the default link used in search result previews by appending the relative file path of the indexed files.
 
 Unless you are providing all links manually (see [Linking to other pages](./linking_to_others.md)), this URL must be provided.
 

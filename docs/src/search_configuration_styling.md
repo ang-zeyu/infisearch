@@ -17,7 +17,7 @@
 
 ## Themes
 
-Morsels provides 3 built-in themes by default, which correspond to the 3 stylesheets in the [releases](https://github.com/ang-zeyu/infisearch/releases).
+InfiSearch provides 3 built-in themes by default, which correspond to the 3 stylesheets in the [releases](https://github.com/ang-zeyu/infisearch/releases).
 
 These 3 stylesheets also expose a wide range of css variables which you can alter as needed.
 
@@ -73,12 +73,12 @@ Head on over to the demo site [here](https://infi-search.com) to try them out!
 
 ## Styling the Fullscreen UI Input Button
 
-Morsels adopts a minimally invasive approach to styling your `<input>` element (except for the one that comes with the fullscreen UI), leaving this to your individual site's styling.
+InfiSearch adopts a minimally invasive approach to styling your `<input>` element (except for the one that comes with the fullscreen UI), leaving this to your individual site's styling.
 
 For accessibility, however, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button (which opens the fullscreen UI). This is limited to:
 - A `background` & `box-shadow` & `color` application on *focus*
 
-  These are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with Morsels' css variables.
+  These are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with InfiSearch' css variables.
 - `cursor: pointer` application on *hover*
 
 Accessibility labels and roles are also automatically set.

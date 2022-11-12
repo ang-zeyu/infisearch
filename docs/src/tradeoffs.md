@@ -61,7 +61,7 @@ This section discusses some other numbers regarding scaling, and is a *really* o
 
 ### Gzip
 
-Gzip can work hand in hand with the morsels' own compression schemes.
+Gzip can work hand in hand with the InfiSearch' own compression schemes.
 
 With a monolithic index, expect about 3-4x compression ratios **without positions** indexed.
 

@@ -6,11 +6,11 @@ This page is mostly *informational*, and explains some search features in more d
 
 Query expressions are ranked using the BM25 model. A soft disjunctive maximum of a document's field's scores is then calculated. By default, titles, `<h1>` headings, other headings, and the rest of the text are indexed into 4 separate fields.
 
-**Query term proximity ranking** is Morsels' highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving search relevance.
+**Query term proximity ranking** is InfiSearch' highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving search relevance.
 
 ## Advanced Search Syntax
 
-Morsels provides a few advanced search features that are made known to the user using the help icon on the bottom right of the search UI.
+InfiSearch provides a few advanced search features that are made known to the user using the help icon on the bottom right of the search UI.
 
 ### Boolean Operators, Parentheses
 

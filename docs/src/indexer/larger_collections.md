@@ -1,6 +1,6 @@
 # Larger Collections
 
-*Five* configuration presets are available for scaling this tool to larger collections. They are designed primarily for Morsels' main intended use case of supporting static site search.
+*Five* configuration presets are available for scaling this tool to larger collections. They are designed primarily for InfiSearch' main intended use case of supporting static site search.
 
 ## Introduction
 
@@ -58,7 +58,7 @@ There are a few other options especially worth highlighting that can help reduce
 
 - [`plLazyCacheThreshold`](../search_configuration.md#caching-options-advanced)
 
-  In addition to **upfront** caching of index files with the `pl_cache_threshold` indexing parameter, Morsels also persistently caches any index shard that was requested before, but fell short of the `pl_cache_threshold`.
+  In addition to **upfront** caching of index files with the `pl_cache_threshold` indexing parameter, InfiSearch also persistently caches any index shard that was requested before, but fell short of the `pl_cache_threshold`.
 - [`ignore_stop_words=false`](../language.md#stop-words)
 
   This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size.
