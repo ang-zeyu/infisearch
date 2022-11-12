@@ -219,7 +219,7 @@ async function reloadPage(lang = 'ascii') {
     url,
     { waitUntil: ['domcontentloaded', 'networkidle0'], timeout: 180000 },
   );
-  await expect(page.title()).resolves.toMatch('Morsels');
+  await expect(page.title()).resolves.toMatch('InfiSearch');
 }
 
 function runIndexer(command) {
