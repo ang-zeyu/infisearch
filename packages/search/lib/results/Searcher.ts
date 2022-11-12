@@ -1,11 +1,11 @@
 import Query, { getRegexes } from './Query';
-import { SearcherOptions, MorselsConfig, prepareSearcherOptions, FieldInfo } from './Config';
+import { SearcherOptions, InfiConfig, prepareSearcherOptions, FieldInfo } from './Config';
 import { Result } from './Result';
 import { QueryPart } from '../parser/queryParser';
 import PersistentCache from './Cache';
 import { getFieldUrl } from '../utils/FieldStore';
 
-declare const MORSELS_VERSION;
+declare const INFISEARCH_VER;
 
 // Code from
 /* webpack/runtime/publicPath */
@@ -22,7 +22,7 @@ scriptUrl = scriptUrl.replace(/#.*$/, '').replace(/\?.*$/, '').replace(/\/[^\/]+
 export const workerScript = { s: '' };
 
 class Searcher {
-  cfg: MorselsConfig;
+  cfg: InfiConfig;
 
   isSetupDone: boolean = false;
 
@@ -54,7 +54,7 @@ class Searcher {
     prepareSearcherOptions(this._mrlOptions);
 
     const configSetupPromise = this._mrlRetrieveConfig()
-      .then(() => this._mrlSetupCache(`morsels:${_mrlOptions.url}`));
+      .then(() => this._mrlSetupCache(`infi:${_mrlOptions.url}`));
 
     this.setupPromise = Promise.all([
       configSetupPromise,
@@ -154,8 +154,8 @@ class Searcher {
       cache: 'no-store',
     })).json();
 
-    if (this.cfg.ver !== MORSELS_VERSION) {
-      throw new Error('Morsels search !== indexer version!');
+    if (this.cfg.ver !== INFISEARCH_VER) {
+      throw new Error('InfiSearch: search !== indexer version!');
     }
 
     if (!('cacheAllFieldStores' in searcherOpts)) {

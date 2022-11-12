@@ -1,6 +1,6 @@
 import h from '@infisearch/search-lib/lib/utils/dom';
 
-import { MorselsConfig } from '@infisearch/search-lib/lib/results/Config';
+import { InfiConfig } from '@infisearch/search-lib/lib/results/Config';
 import { Options } from '../Options';
 import { IManager } from '../InputManager';
 import { unsetActiveDescendant } from '../utils/aria';
@@ -18,7 +18,7 @@ export interface MultiSelectState {
 }
 
 function getMultiSelectStates(
-  opts: Options, cfg: MorselsConfig,
+  opts: Options, cfg: InfiConfig,
 ): MultiSelectState[] {
   const multiSelectBindings = opts.uiOptions.multiSelectFilters;
   const fieldInfos = cfg.fieldInfos;
@@ -226,7 +226,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
 
 export function filtersRender(
   opts: Options,
-  cfg: MorselsConfig,
+  cfg: InfiConfig,
   iManager: IManager,
 ): [HTMLElement, MultiSelectState[], (setValue?: boolean) => boolean] {
   const states = getMultiSelectStates(opts, cfg);

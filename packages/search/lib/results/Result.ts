@@ -1,4 +1,4 @@
-import { FieldInfo, MorselsConfig } from './Config';
+import { FieldInfo, InfiConfig } from './Config';
 import PersistentCache from './Cache';
 import { getFieldUrl } from '../utils/FieldStore';
 import { linkHeadings } from './Result/linker';
@@ -23,7 +23,7 @@ export class Result {
     regexes: RegExp[],
     baseUrl: string,
     cache: PersistentCache,
-    cfg: MorselsConfig,
+    cfg: InfiConfig,
     enumFieldInfos: FieldInfo[],
   ): Promise<Result> {
     const docId = raw[offset];

@@ -1,6 +1,6 @@
 export async function fetchPl(plName, numPlsPerDir, baseUrl, plLazyCacheThreshold) {
   const plUrl = `${baseUrl}pl_${Math.floor(plName / numPlsPerDir)}/pl_${plName}.mls`;
-  const cacheName = `morsels:${baseUrl}`;
+  const cacheName = `infi:${baseUrl}`;
 
   function fetchUrl(url) {
     return fetch(url).then((resp) => resp.arrayBuffer());

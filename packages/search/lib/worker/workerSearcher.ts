@@ -1,4 +1,4 @@
-import { MorselsConfig } from '../results/Config';
+import { InfiConfig } from '../results/Config';
 import WorkerQuery from './workerQuery';
 
 const workerQueries: {
@@ -9,7 +9,7 @@ let wasmModule: any;
 
 let wasmSearcher: any;
 
-let config: MorselsConfig;
+let config: InfiConfig;
 
 // Format in read_enum_filters_param@searcher.rs
 function constructEnumFilterParam(enumFilters: { [enumFieldName: string]: (string | null)[]; }) {
@@ -87,7 +87,7 @@ export function freeQuery(queryId: number) {
 async function setupMetadata(baseUrl: string, innerUrl: string): Promise<ArrayBuffer> {
   let cache: Cache;
   try {
-    cache = await caches.open(`morsels:${baseUrl}`);
+    cache = await caches.open(`infi:${baseUrl}`);
   } catch {
     // Cache API blocked / unsupported (e.g. firefox private)
   }
@@ -105,7 +105,7 @@ async function setupMetadata(baseUrl: string, innerUrl: string): Promise<ArrayBu
 }
 
 export async function setupWasm(
-  cfg: MorselsConfig,
+  cfg: InfiConfig,
   wasmModulePromise: Promise<any>,
 ) {
   config = cfg;

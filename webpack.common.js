@@ -65,7 +65,7 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin(),
     new DefinePlugin({
-      MORSELS_VERSION: `'${version}'`,
+      INFISEARCH_VER: `'${version}'`,
     }),
   ],
 };

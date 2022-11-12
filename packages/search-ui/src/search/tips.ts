@@ -1,11 +1,11 @@
 import { computePosition, flip } from '@floating-ui/dom';
-import { MorselsConfig } from '@infisearch/search-lib/lib/results/Config';
+import { InfiConfig } from '@infisearch/search-lib/lib/results/Config';
 import h from '@infisearch/search-lib/lib/utils/dom';
 import { UiOptions } from '../Options';
 
 export default function createTipButton(
   opts: UiOptions,
-  cfg: MorselsConfig,
+  cfg: InfiConfig,
 ): HTMLElement | string {
   if (opts.tip === false) {
     return '';

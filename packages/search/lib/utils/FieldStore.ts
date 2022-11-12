@@ -1,9 +1,9 @@
-import { MorselsConfig } from '../results/Config';
+import { InfiConfig } from '../results/Config';
 
 export function getFieldUrl(
   baseUrl: string,
   docId: number,
-  config: MorselsConfig,
+  config: InfiConfig,
 ): string {
   const { numDocsPerStore, numStoresPerDir, indexingConfig, indexVer } = config;
   const { numDocsPerBlock } = indexingConfig;

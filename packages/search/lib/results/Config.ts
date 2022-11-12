@@ -40,7 +40,7 @@ export function prepareSearcherOptions(searcherOptions: SearcherOptions) {
   }
 }
 
-export interface MorselsConfig {
+export interface InfiConfig {
   ver: string,
   indexVer: string,
   lastDocId: number,
