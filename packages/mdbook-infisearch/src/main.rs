@@ -207,7 +207,7 @@ const mode = {};
 }
 
 fn get_part_title_el(part_title: &str) -> String {
-    format!("\n\n<span data-infi-part-title=\"{}\"></span>\n", part_title)
+    format!("\n\n<span data-infisearch-part-title=\"{}\"></span>\n", part_title)
 }
 
 

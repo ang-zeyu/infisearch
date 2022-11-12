@@ -29,7 +29,7 @@ You may configure loaders by including them under the `loaders`, with any applic
   "HtmlLoader": {
     "exclude_selectors": [
       // Selectors to exclude from indexing
-      "script,style,form,nav,[data-morsels-ignore]"
+      "script,style,form,nav,[data-infisearch-ignore]"
     ],
     "selectors": {
       "title": {
@@ -56,9 +56,9 @@ You may configure loaders by including them under the `loaders`, with any applic
 
       // Provides a means to override the link used in the result preview
       // See "Linking to other pages" for more information
-      "span[data-morsels-link]": {
+      "span[data-infisearch-link]": {
         "attr_map": {
-          "data-morsels-link": "link"
+          "data-infisearch-link": "link"
         }
       }
     }
@@ -78,7 +78,7 @@ The HTML loader indexes a document as such:
 
    - All selectors are matched in arbitrary order by default. To **specify an order**, add the `priority: n` key to your selector definition, where `n` is any integer.
 
-To **exclude elements** from indexing, you can use the `exclude_selectors` option, or add the in-built `data-morsels-ignore` attribute to your HTML.
+To **exclude elements** from indexing, you can use the `exclude_selectors` option, or add the in-built `data-infisearch-ignore` attribute to your HTML.
 
 If needed, you can also index **HTML fragments** that are incomplete documents. To match the entire fragment, use the `body` selector.
 

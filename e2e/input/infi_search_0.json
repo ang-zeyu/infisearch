@@ -58,7 +58,7 @@
     "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
-          "script,style,#sidebar,#menu-bar,[data-morsels-ignore]"
+          "script,style,#sidebar,#menu-bar,[data-infisearch-ignore]"
         ],
         "selectors": {
           "title": {
@@ -80,14 +80,14 @@
               "also-index": "_add_files"
             }
           },
-          "[data-morsels-weather]": {
+          "[data-infisearch-weather]": {
             "attr_map": {
-              "data-morsels-weather": "weatherField"
+              "data-infisearch-weather": "weatherField"
             }
           },
-          "[data-morsels-mood]": {
+          "[data-infisearch-mood]": {
             "attr_map": {
-              "data-morsels-mood": "moodField"
+              "data-infisearch-mood": "moodField"
             }
           }
         }

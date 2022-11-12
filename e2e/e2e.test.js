@@ -27,8 +27,8 @@ function replaceIntroductionMood(mood) {
   const introductionHTML = fs.readFileSync(
     path.join(__dirname, './input/introduction.html'), { encoding: 'utf-8' },
   );
-  const moodMatcher = new RegExp('data-morsels-mood="[a-z]*"');
-  const replacedHTML = introductionHTML.replace(moodMatcher, `data-morsels-mood="${mood}"`);
+  const moodMatcher = new RegExp('data-infisearch-mood="[a-z]*"');
+  const replacedHTML = introductionHTML.replace(moodMatcher, `data-infisearch-mood="${mood}"`);
   fs.writeFileSync(
     path.join(__dirname, 'input/introduction.html'), replacedHTML,
   );
@@ -90,7 +90,7 @@ const testSuite = async (configFile, with_positions, with_enums) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
-  // data-morsels-ignore test
+  // data-infisearch-ignore test
   await typePhraseOrAnd('I should be ignored through this randomuniquewordnkashdcfd', with_positions);
   await waitNoResults();
   // ------------------------------------------------------

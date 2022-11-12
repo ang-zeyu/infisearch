@@ -22,7 +22,7 @@
     "loaders": {
       "HtmlLoader": {
         "exclude_selectors": [
-          "script,style,#sidebar,#menu-bar,[data-morsels-ignore]"
+          "script,style,#sidebar,#menu-bar,[data-infisearch-ignore]"
         ],
         "selectors": {
           "h1": null,

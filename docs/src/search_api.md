@@ -157,7 +157,7 @@ Only the first `[fieldName, fieldText]` pair for each field will be populated in
 
 **Tip: Constructing a Document Link**
 
-If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-morsels-link`](./linking_to_others.md) attribute are also available under the `link` field.
+If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-infisearch-link`](./linking_to_others.md) attribute are also available under the `link` field.
 
 ### 2. Highlighting and Linking 'Heading' and 'Body' Excerpts
 

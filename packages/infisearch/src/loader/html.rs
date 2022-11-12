@@ -37,12 +37,12 @@ pub struct HtmlLoaderSelectorRaw {
 fn get_default_html_loader_selectors() -> FxHashMap<String, Option<HtmlLoaderSelectorRaw>> {
     FxHashMap::from_iter(vec![
         (
-            "span[data-morsels-link]".to_owned(),
+            "span[data-infisearch-link]".to_owned(),
             Some(HtmlLoaderSelectorRaw {
                 priority: 0,
                 field_name: None,
                 attr_map: FxHashMap::from_iter(vec![
-                    ("data-morsels-link".to_owned(), "link".to_owned())
+                    ("data-infisearch-link".to_owned(), "link".to_owned())
                 ]),
             })
         ),
@@ -84,7 +84,7 @@ fn get_default_html_loader_selectors() -> FxHashMap<String, Option<HtmlLoaderSel
 }
 
 fn get_default_exclude_selectors() -> Vec<String> {
-    vec!["script,style,form,nav,[data-morsels-ignore]".to_owned()]
+    vec!["script,style,form,nav,[data-infisearch-ignore]".to_owned()]
 }
 
 #[derive(Serialize, Deserialize)]

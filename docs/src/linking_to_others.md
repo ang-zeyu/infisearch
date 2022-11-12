@@ -13,10 +13,10 @@ If you are still indexing HTML files, you can simply add this link directly to s
 For example,
 
 ```html
-<span data-morsels-link="https://www.google.com"></span>
+<span data-infisearch-link="https://www.google.com"></span>
 ```
 
-Then, modify your indexer [loader configuration](./indexer/indexing.md#html-files-loadershtmlloader) to let InfiSearch know to extract the `data-morsels-link` attribute of the `span[data-morsels-link]` into the `link` field.
+Then, modify your indexer [loader configuration](./indexer/indexing.md#html-files-loadershtmlloader) to let InfiSearch know to extract the `data-infisearch-link` attribute of the `span[data-infisearch-link]` into the `link` field.
 
 This configuration is **already** implemented by default, and is attached here for reference.
 
@@ -24,9 +24,9 @@ This configuration is **already** implemented by default, and is attached here f
 "loaders": {
   "HtmlLoader": {
     "selectors": {
-      "span[data-morsels-link]": {
+      "span[data-infisearch-link]": {
         "attr_map": {
-          "data-morsels-link": "link"
+          "data-infisearch-link": "link"
         }
       }
     }

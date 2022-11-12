@@ -19,9 +19,9 @@
           "script,style,#sidebar,#menu-bar"
         ],
         "selectors": {
-          "span[data-infi-part-title]": {
+          "span[data-infisearch-part-title]": {
             "attr_map": {
-              "data-infi-part-title": "partTitle"
+              "data-infisearch-part-title": "partTitle"
             }
           }
         }
