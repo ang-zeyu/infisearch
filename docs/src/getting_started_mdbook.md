@@ -21,7 +21,7 @@ This plugin uses the css variables provided by the 5 main default themes in mdBo
 
 ## Installation
 
-Install the executable either using `cargo install mdbook-infisearch`, or download and add the [binaries](https://github.com/ang-zeyu/morsels/releases) to your `PATH` manually.
+Install the executable either using `cargo install mdbook-infisearch`, or download and add the [binaries](https://github.com/ang-zeyu/infisearch/releases) to your `PATH` manually.
 
 Then, minimally add the first two configuration sections below to your `book.toml` configuration file:
 

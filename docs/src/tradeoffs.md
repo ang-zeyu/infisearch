@@ -77,4 +77,4 @@ This impacts:
 - The total size of index chunks retrieved for caching during **initialisation**, that exceed the defined `pl_cache_threshold`.
 - The total size of the index chunks that need to be retrieved **for a particular query**, which is relevant when `pl_cache_threshold` is fairly high (such that no files are cached).
 
-As a rough estimate from testing, this library should be able to handle text collections &lt; `800MB` with positional indexing and stop words kept. Some data and estimations are available [here](https://github.com/ang-zeyu/morsels/blob/main/docs/src/numbers.md).
+As a rough estimate from testing, this library should be able to handle text collections &lt; `800MB` with positional indexing and stop words kept. Some data and estimations are available [here](https://github.com/ang-zeyu/infisearch/blob/main/docs/src/numbers.md).

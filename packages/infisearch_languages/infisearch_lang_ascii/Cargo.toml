@@ -4,8 +4,8 @@ version = "0.7.3"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Basic ascii tokenizer for morsels."
-documentation = "https://morsels-search.com/morsels/"
-repository = "https://github.com/ang-zeyu/morsels"
+documentation = "https://infi-search.com/infisearch/"
+repository = "https://github.com/ang-zeyu/infisearch"
 readme = "../README.md"
 license = "MIT"
 

@@ -16,7 +16,7 @@ This page assumes the use case of a **static site**, that is:
 
 If you have the rust / cargo toolchains setup, simply run `cargo install infisearch --vers 0.7.3`.
 
-Alternatively, download the cli binaries [here](https://github.com/ang-zeyu/morsels/releases).
+Alternatively, download the cli binaries [here](https://github.com/ang-zeyu/infisearch/releases).
 
 ## Running the indexer
 
@@ -41,9 +41,9 @@ If you are using the binaries, replace `infisearch` with the appropriate executa
 <!-- Replace "v0.7.3" as appropriate -->
 
 <!--  Search UI script -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.3/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.7.3/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.3/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.7.3/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 > ⚠️ Ensure the versions here **match the indexer version** used exactly.
@@ -58,7 +58,7 @@ The folder contains:
   - An accompanying WebAssembly binary
 - A stylesheet: `search-ui-basic/light/dark.css`
 
-The same files are also in the release packages [here](https://github.com/ang-zeyu/morsels/releases), inside `search.morsels.zip`.
+The same files are also in the release packages [here](https://github.com/ang-zeyu/infisearch/releases), inside `search.morsels.zip`.
 
 ### UI Initialisation
 

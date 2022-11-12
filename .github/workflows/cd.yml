@@ -90,6 +90,6 @@ jobs:
         with:
           branch: main
           folder: docs/book/html
-          repository-name: ang-zeyu/morsels-website
+          repository-name: ang-zeyu/infisearch-website
           target-folder: morsels
           ssh-key: ${{ secrets.DOCS }}

@@ -23,7 +23,7 @@ Some use cases for this include:
 - You want to override or insert additional content sourced from your own fields (e.g. an image)
 - You want to change the [default use case](#1-rendering-a-single-result) of linking to a web page entirely (e.g. use client side routing)
 
-> 💡 If you only need to style the dropdown or search popup, you can include your own css file to do so [and / or override the variables](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/styles/search.css) exposed by the default css bundle.
+> 💡 If you only need to style the dropdown or search popup, you can include your own css file to do so [and / or override the variables](https://github.com/ang-zeyu/infisearch/blob/main/packages/search-ui/src/styles/search.css) exposed by the default css bundle.
 
 These API options are similarly specified under the `uiOptions` key of the root configuration object.
 
@@ -91,7 +91,7 @@ type ListItemRender = async (
 ) => Promise<HTMLElement>;
 ```
 
-See the [source](https://github.com/ang-zeyu/morsels/blob/main/packages/search-ui/src/searchResultTransform/listItemRender.ts) to get an idea of using this API.
+See the [source](https://github.com/ang-zeyu/infisearch/blob/main/packages/search-ui/src/searchResultTransform/listItemRender.ts) to get an idea of using this API.
 
 **Accessibility and User Interaction**
 

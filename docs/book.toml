@@ -10,8 +10,8 @@ default-theme = "morsels-theme"
 curly-quotes = true
 additional-css = ["src/morsels-theme.css"]
 additional-js = ["src/morsels-theme.js"]
-git-repository-url = "https://github.com/ang-zeyu/morsels"
-site-url = "/morsels/"
+git-repository-url = "https://github.com/ang-zeyu/infisearch"
+site-url = "/infisearch/"
 
 [output.html.search]
 enable = false

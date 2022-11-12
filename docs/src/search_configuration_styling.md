@@ -17,11 +17,11 @@
 
 ## Themes
 
-Morsels provides 3 built-in themes by default, which correspond to the 3 stylesheets in the [releases](https://github.com/ang-zeyu/morsels/releases).
+Morsels provides 3 built-in themes by default, which correspond to the 3 stylesheets in the [releases](https://github.com/ang-zeyu/infisearch/releases).
 
 These 3 stylesheets also expose a wide range of css variables which you can alter as needed.
 
-Head on over to the demo site [here](https://morsels-search.com) to try them out!
+Head on over to the demo site [here](https://infi-search.com) to try them out!
 
 
 ### Light
@@ -30,7 +30,7 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 
 ```html
 <!-- Replace "v0.7.3" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.3/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.7.3/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 #### Preview
@@ -47,7 +47,7 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 
 ```html
 <!-- Replace "v0.7.3" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.3/packages/search-ui/dist/search-ui-basic.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.7.3/packages/search-ui/dist/search-ui-basic.css" />
 ```
 
 <div class="image-container">
@@ -61,7 +61,7 @@ Head on over to the demo site [here](https://morsels-search.com) to try them out
 
 ```html
 <!-- Replace "v0.7.3" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.3/packages/search-ui/dist/search-ui-dark.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.7.3/packages/search-ui/dist/search-ui-dark.css" />
 ```
 
 #### Preview

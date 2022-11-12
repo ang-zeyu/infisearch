@@ -256,7 +256,7 @@ Another example use case might be to redirect to another domain using the [`link
 
 ```json
 {
-  "link": "https://morsels-search.com",
+  "link": "https://infi-search.com",
   "_add_files": "./main.html"
 }
 ```
