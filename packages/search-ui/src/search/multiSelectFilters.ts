@@ -5,7 +5,7 @@ import { Options } from '../Options';
 import { IManager } from '../InputManager';
 import { unsetActiveDescendant } from '../utils/aria';
 
-const OPTION_ENTER_EV = 'morsels-filter-opt-enter';
+const OPTION_ENTER_EV = 'infi-filter-opt-enter';
 
 let tieBreaker = 0;
 
@@ -42,7 +42,7 @@ function getMultiSelectStates(
 
 function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   const headerIdTieBreaker = tieBreaker++;
-  const id = 'morsels-filter-opts-' + headerIdTieBreaker;
+  const id = 'infi-filter-opts-' + headerIdTieBreaker;
 
   const filterOptions = h('div', {
     id,
@@ -101,7 +101,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
       checked: 'true',
       role: 'option',
       'aria-selected': 'true',
-      id: `morsels-filter-opt-${headerIdTieBreaker}-${idx}`,
+      id: `infi-filter-opt-${headerIdTieBreaker}-${idx}`,
     }) as HTMLInputElement;
   
     const opt = h('div',

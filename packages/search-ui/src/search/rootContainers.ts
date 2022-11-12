@@ -64,7 +64,7 @@ export function dropdownRootRender(
   hideDropdown: () => void,
 ) {
   const resultContainer = h('div', {
-    id: `morsels-dropdown-list-${resultContainerId++}`,
+    id: `infi-dropdown-list-${resultContainerId++}`,
   });
   const scrollContainer = h('div',
     {
@@ -152,7 +152,7 @@ export function fsRootRender(
     label,
   } = opts.uiOptions;
 
-  const labelId = `morsels-fs-label-${fsId}`;
+  const labelId = `infi-fs-label-${fsId}`;
   const inputEl = h(
     'input', {
       class: 'infi-fs-input',
@@ -180,7 +180,7 @@ export function fsRootRender(
   const buttonEl = h('button', { class: 'infi-input-close-fs' }, fsCloseText);
   
   const resultContainer = h('div', {
-    id: `morsels-fs-list-${fsId++}`,
+    id: `infi-fs-list-${fsId++}`,
     'aria-labelledby': labelId,
   });
   const scrollContainer = h('div',
@@ -251,7 +251,7 @@ export function targetRender(
 ) {
   target.classList.add('infi-root');
 
-  const resultContainer = h('div', { id: `morsels-target-list-${resultContainerId++}` });
+  const resultContainer = h('div', { id: `infi-target-list-${resultContainerId++}` });
   target.append(
     ...getTemporaryElements(),
     resultContainer,
