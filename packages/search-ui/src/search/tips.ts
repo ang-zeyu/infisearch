@@ -16,7 +16,7 @@ export default function createTipButton(
   }
 
   function createRow(...contents: (string | HTMLElement)[]) {
-    return h('tr', { class: 'morsels-tip-item' }, ...contents.map((el) => h('td', {}, h('div', {}, el))));
+    return h('tr', { class: 'infi-tip-item' }, ...contents.map((el) => h('td', {}, h('div', {}, el))));
   }
 
   const tipListBody = h('tbody', {});
@@ -61,18 +61,18 @@ export default function createTipButton(
 
   const tipList = h(
     'table',
-    { class: 'morsels-tip-table' },
+    { class: 'infi-tip-table' },
     h(
       'thead',
-      { class: 'morsels-tip-table-header' },
+      { class: 'infi-tip-table-header' },
       h('tr', {}, h('th', { scope: 'col' }, 'Tip'), h('th', {}, 'Example')),
     ),
     tipListBody,
   );
   const tipPopup = h(
-    'div', { class: 'morsels-tip-popup-root' },
-    h('div', { class: 'morsels-tip-popup' },
-      h('div', { class: 'morsels-tip-popup-title' }, '🔎 Advanced search tips'),
+    'div', { class: 'infi-tip-popup-root' },
+    h('div', { class: 'infi-tip-popup' },
+      h('div', { class: 'infi-tip-popup-title' }, '🔎 Advanced search tips'),
       tipList,
     ),
   );
@@ -83,8 +83,8 @@ export default function createTipButton(
   resetPopupStyle();
 
   const tipContainer = h(
-    'div', { class: 'morsels-tip-root', tabindex: '0' },
-    h('span', { class: 'morsels-tip-icon' }, '?'),
+    'div', { class: 'infi-tip-root', tabindex: '0' },
+    h('span', { class: 'infi-tip-icon' }, '?'),
     tipPopup,
   );
 

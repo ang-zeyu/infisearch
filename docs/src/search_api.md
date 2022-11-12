@@ -221,11 +221,11 @@ The `highlight()` method wraps term matches in a `<mark>` element, truncates sur
 
 ```ts
 [
-  <span class="morsels-ellipses"> ... </span>,
+  <span class="infi-ellipses"> ... </span>,
   ' ... text before ... ',
-  <mark class="morsels-highlight">highlighted</mark>,
+  <mark class="infi-highlight">highlighted</mark>,
   ' ... text after ... ',
-  <span class="morsels-ellipses"> ... </span>,
+  <span class="infi-ellipses"> ... </span>,
 ]
 ```
 

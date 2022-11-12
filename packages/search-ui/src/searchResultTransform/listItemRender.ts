@@ -67,10 +67,10 @@ export const listItemRender: ListItemRender = (
   // Construct the HTML output, linking everything together.
 
   const mainLinkEl = h(
-    'a', { class: 'morsels-title-link', role: 'option', tabindex: '-1' },
-    h('div', { class: 'morsels-title' }, title),
+    'a', { class: 'infi-title-link', role: 'option', tabindex: '-1' },
+    h('div', { class: 'infi-title' }, title),
     ...bodies.map((bodyMatches) => h(
-      'div', { class: 'morsels-body' }, ...bodyMatches,
+      'div', { class: 'infi-body' }, ...bodyMatches,
     )),
   );
 
@@ -81,12 +81,12 @@ export const listItemRender: ListItemRender = (
   const subOptions = headings.map(({ body, heading, href }) => {
     const el = h('a',
       {
-        class: 'morsels-heading-link',
+        class: 'infi-heading-link',
         role: 'option',
         tabindex: '-1',
       },
-      h('div', { class: 'morsels-heading' }, ...heading),
-      h('div', { class: 'morsels-body' }, ...body));
+      h('div', { class: 'infi-heading' }, ...heading),
+      h('div', { class: 'infi-body' }, ...body));
     if (href) {
       el.setAttribute('href', appendSearchedTerms(opts, href, query._mrlTermsFlattened));
     }
@@ -94,7 +94,7 @@ export const listItemRender: ListItemRender = (
   });
 
   return Promise.resolve(h(
-    'div', { class: 'morsels-list-item', role: 'group', 'aria-label': title },
+    'div', { class: 'infi-list-item', role: 'group', 'aria-label': title },
     mainLinkEl, ...subOptions,
   ));
 

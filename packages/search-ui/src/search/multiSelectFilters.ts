@@ -52,7 +52,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   });
 
   const filterHeader = h('div', {
-    class: 'morsels-filter-header',
+    class: 'infi-filter-header',
     tabindex: '0',
     role: 'combobox',
     'aria-expanded': 'false',
@@ -60,7 +60,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   }, state._mrlDisplayName);
 
   const container = h('div',
-    { class: 'morsels-filter' },
+    { class: 'infi-filter' },
     filterHeader,
     filterOptions,
   );
@@ -97,7 +97,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   ) {
     const input = h('input', {
       type: 'checkbox',
-      class: 'morsels-checkbox',
+      class: 'infi-checkbox',
       checked: 'true',
       role: 'option',
       'aria-selected': 'true',
@@ -105,8 +105,8 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
     }) as HTMLInputElement;
   
     const opt = h('div',
-      { class: 'morsels-filter-opt' },
-      h('label', { class: 'morsels-checkbox-label' }, input, enumName),
+      { class: 'infi-filter-opt' },
+      h('label', { class: 'infi-checkbox-label' }, input, enumName),
     );
 
     function focusOption(addVisualFocus: boolean) {
@@ -235,7 +235,7 @@ export function filtersRender(
     ...states.map((state) => renderFilterHeader(iManager, state)),
   );
 
-  const filtersContainer = h('div', { class: 'morsels-filters' });
+  const filtersContainer = h('div', { class: 'infi-filters' });
 
   let shown = false;
   const getOrSetFiltersShown = states.length ? (setValue?: boolean) => {

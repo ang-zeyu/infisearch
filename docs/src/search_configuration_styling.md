@@ -85,10 +85,10 @@ Accessibility labels and roles are also automatically set.
 
 **Applying Input Button Styles under `mode='auto'`**
 
-If using the default [UI mode](./search_configuration.md#ui-mode) of `auto`, which switches between the dropdown and fullscreen UI dynamically, you can also set a different [placeholder](./search_configuration.md#ui-mode-specific-options), and/or use the `.morsels-button-input` selector to apply your styles only if the fullscreen UI is used. For example,
+If using the default [UI mode](./search_configuration.md#ui-mode) of `auto`, which switches between the dropdown and fullscreen UI dynamically, you can also set a different [placeholder](./search_configuration.md#ui-mode-specific-options), and/or use the `.infi-button-input` selector to apply your styles only if the fullscreen UI is used. For example,
 
 ```css
-.morsels-button-input:focus:not(:hover) {
+.infi-button-input:focus:not(:hover) {
     background: #6c757d !important;
 }
 ```

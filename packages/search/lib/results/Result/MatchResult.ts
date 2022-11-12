@@ -1,11 +1,11 @@
 import h from '../../utils/dom';
 
 function createEllipses() {
-  return h('span', { class: 'morsels-ellipses' }, ' ... ');
+  return h('span', { class: 'infi-ellipses' }, ' ... ');
 }
 
 function highlightRender(text: string) {
-  return h('mark', { class: 'morsels-highlight' }, text);
+  return h('mark', { class: 'infi-highlight' }, text);
 }
   
 // How far left and right from a match to include in the body

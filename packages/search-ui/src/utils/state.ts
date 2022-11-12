@@ -11,21 +11,21 @@ export function stateRender(
   isError: boolean,
 ) {
   if (isError) {
-    return h('div', { class: 'morsels-error' }, 'Oops! Something went wrong... 🙁');
+    return h('div', { class: 'infi-error' }, 'Oops! Something went wrong... 🙁');
   } else if (blank) {
-    return h('div', { class: 'morsels-blank' }, 'Start Searching Above!');
+    return h('div', { class: 'infi-blank' }, 'Start Searching Above!');
   }
 
-  const loadingSpinner = h('span', { class: 'morsels-loading-indicator' });
+  const loadingSpinner = h('span', { class: 'infi-loading-indicator' });
   if (isInitialising) {
-    const initialisingText = h('div', { class: 'morsels-initialising-text' }, '... Starting Up ...');
+    const initialisingText = h('div', { class: 'infi-initialising-text' }, '... Starting Up ...');
     return h('div', {}, loadingSpinner, initialisingText);
   } else if (isDone) {
     return h('div', {});
   }
 
   if (!wasResultsBlank) {
-    loadingSpinner.classList.add('morsels-loading-indicator-subsequent');
+    loadingSpinner.classList.add('infi-loading-indicator-subsequent');
   }
   
   return loadingSpinner;

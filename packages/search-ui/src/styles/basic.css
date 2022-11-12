@@ -10,40 +10,40 @@
     --infi-body-fg: #505050;
 }
 
-.morsels-list-item {
+.infi-list-item {
     margin: 10px 13px;
 }
 
-.morsels-fs-root .morsels-list-item {
+.infi-fs-root .infi-list-item {
     margin: 12px 3px;
 }
 
 @media screen and (max-width: 768px) {
-    .morsels-fs-root .morsels-list-item {
+    .infi-fs-root .infi-list-item {
         margin: 14px 3px;
     }
 }
 
-.morsels-list-item:first-child {
+.infi-list-item:first-child {
     margin-top: 1px;
 }
 
-.morsels-heading-link:last-child {
+.infi-heading-link:last-child {
     padding-bottom: 5px;
 }
 
-.morsels-title {
+.infi-title {
     padding: 5px 8px 2px;
 }
 
-.morsels-heading {
+.infi-heading {
     padding-left: 9px;
 }
 
-.morsels-body {
+.infi-body {
     padding-left: 9px;
 }
 
-.morsels-heading-link .morsels-body {
+.infi-heading-link .infi-body {
     padding-left: 14px;
 }

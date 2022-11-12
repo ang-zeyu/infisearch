@@ -12,11 +12,11 @@
     --infi-fs-header-close-bg: var(--infi-fs-header-bg);
 }
 
-.morsels-root {
+.infi-root {
     font-size: var(--infi-font-size);
 }
 
-.morsels-root * {
+.infi-root * {
     box-sizing: border-box;
 }
 
@@ -25,21 +25,21 @@
  Fullscreen version
  */
 
-.morsels-button-input:hover {
+.infi-button-input:hover {
     cursor: pointer;
 }
 
-.morsels-button-input:focus:not(:hover) {
+.infi-button-input:focus:not(:hover) {
     transition: 0.3s ease-out;
     background: var(--infi-fs-button-input-bg) !important;
     box-shadow: var(--infi-fs-button-input-shadow) !important;
 }
 
-.morsels-button-input:focus:not(:hover)::placeholder {
+.infi-button-input:focus:not(:hover)::placeholder {
     color: var(--infi-fs-button-input-fg) !important;
 }
 
-.morsels-fs-backdrop {
+.infi-fs-backdrop {
     --infi-fs-backdrop-bg: rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
@@ -50,7 +50,7 @@
     z-index: 1000;
 }
 
-.morsels-fs-root {
+.infi-fs-root {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -59,7 +59,7 @@
     z-index: 1000;
 }
 
-.morsels-fs-controls {
+.infi-fs-controls {
     position: relative;
     display: flex;
     align-items: stretch;
@@ -71,13 +71,13 @@
     z-index: 1000;
 }
 
-.morsels-fs-input-wrapper {
+.infi-fs-input-wrapper {
     display: flex;
     align-items: center;
     flex: 1 0 0;
 }
 
-.morsels-fs-input {
+.infi-fs-input {
     width: 100%;
     padding: 0 30px 0 13px;
     height: 2.1em;
@@ -89,22 +89,22 @@
     font-size: inherit;
 }
 
-.morsels-fs-input:focus {
+.infi-fs-input:focus {
     border: var(--infi-fs-input-focus-border);
     box-shadow: var(--infi-fs-input-focus-box-shadow);
 }
 
-.morsels-fs-input::-webkit-search-cancel-button {
+.infi-fs-input::-webkit-search-cancel-button {
     appearance: none;
     -webkit-appearance: none;
 }
 
-.morsels-fs-input-clear {
+.infi-fs-input-clear {
     width: 0;
     height: 0;
 }
 
-.morsels-fs-input:not(:placeholder-shown) + .morsels-fs-input-clear::after {
+.infi-fs-input:not(:placeholder-shown) + .infi-fs-input-clear::after {
     content: '';
     position: relative;
     right: 30px;
@@ -119,7 +119,7 @@
     transition: filter 0.15s ease-in-out;
 }
 
-.morsels-input-close-fs {
+.infi-input-close-fs {
     position: relative;
     border: none;
     padding: 0 13px;
@@ -135,14 +135,14 @@
 }
 
 @media (hover: hover) {
-    .morsels-input-close-fs:hover,
-    .morsels-input-close-fs:focus {
+    .infi-input-close-fs:hover,
+    .infi-input-close-fs:focus {
         color: var(--infi-fs-header-close-hover-fg);
         background: var(--infi-fs-header-close-hover-bg);
     }
 }
 
-.morsels-input-close-fs:active {
+.infi-input-close-fs:active {
     color: var(--infi-fs-header-close-active-fg);
     background: var(--infi-fs-header-close-active-bg);
 }
@@ -152,7 +152,7 @@
  Tip icon
  */
 
-.morsels-tip-root {
+.infi-tip-root {
     position: absolute;
     bottom: 15px;
     right: 15px;
@@ -161,7 +161,7 @@
     z-index: 1;
 }
 
-.morsels-tip-icon {
+.infi-tip-icon {
     cursor: default;
     display: inline-block;
     line-height: var(--infi-tip-icon-size);
@@ -176,24 +176,24 @@
     transition: opacity 0.2s linear, font-weight 0.2s linear;
 }
 
-.morsels-tip-icon:hover {
+.infi-tip-icon:hover {
     opacity: 1;
     font-weight: 600;
 }
 
-.morsels-tip-popup-root {
+.infi-tip-popup-root {
     position: absolute;
     opacity: 0;
     transition: opacity 0.25s ease-in-out;
     padding: 10px 0;
 }
 
-.morsels-tip-popup-root.shown {
+.infi-tip-popup-root.shown {
     opacity: 1;
     display: block;
 }
 
-.morsels-tip-popup {
+.infi-tip-popup {
     padding: 14px;
     font-size: 14px;
     box-shadow: var(--infi-shadow);
@@ -201,29 +201,29 @@
     background: var(--infi-tip-bg);
 }
 
-.morsels-tip-popup-title {
+.infi-tip-popup-title {
     color: var(--infi-tip-fg);
     font-weight: bold;
 }
 
-table.morsels-tip-table {
+table.infi-tip-table {
     font-size: 14px;
     margin: 7px 0 0 20px;
     width: auto;
 }
 
 /* Reset styles */
-table.morsels-tip-table,
-table.morsels-tip-table thead.morsels-tip-table-header,
-table.morsels-tip-table thead.morsels-tip-table-header tr,
-table.morsels-tip-table tbody,
-table.morsels-tip-table tbody tr.morsels-tip-item {
+table.infi-tip-table,
+table.infi-tip-table thead.infi-tip-table-header,
+table.infi-tip-table thead.infi-tip-table-header tr,
+table.infi-tip-table tbody,
+table.infi-tip-table tbody tr.infi-tip-item {
     background: none;
     border: none;
 }
 
-table.morsels-tip-table th,
-table.morsels-tip-table td {
+table.infi-tip-table th,
+table.infi-tip-table td {
     background: none;
     border: none;
     text-align: left;
@@ -232,72 +232,72 @@ table.morsels-tip-table td {
     color: var(--infi-tip-fg);
 }
 
-table.morsels-tip-table th {
+table.infi-tip-table th {
     border-bottom: 3px solid;
     border-bottom-color: var(--infi-tip-table-header-border, var(--infi-tip-table-border)) !important;
     font-weight: bold;
 }
 
-table.morsels-tip-table td {
+table.infi-tip-table td {
     border-bottom: 1px solid;
     border-bottom-color: var(--infi-tip-table-border) !important;
 }
 
-table.morsels-tip-table > tbody > tr:nth-child(2n) > td {
+table.infi-tip-table > tbody > tr:nth-child(2n) > td {
     background: var(--infi-tip-table-alternate);
 }
 
-table.morsels-tip-table > tbody > tr:last-child > td {
+table.infi-tip-table > tbody > tr:last-child > td {
     border: none;
 }
 
-table.morsels-tip-table td:first-child,
-table.morsels-tip-table th:first-child {
+table.infi-tip-table td:first-child,
+table.infi-tip-table th:first-child {
     width: 45%;
     padding: 3px 5px 5px 4px;
 }
 
-table.morsels-tip-table td:last-child,
-table.morsels-tip-table th:last-child {
+table.infi-tip-table td:last-child,
+table.infi-tip-table th:last-child {
     width: 55%;
     padding: 3px 0 5px 7px;
 }
 
-table.morsels-tip-table th:first-child,
-table.morsels-tip-table th:last-child {
+table.infi-tip-table th:first-child,
+table.infi-tip-table th:last-child {
     padding-bottom: 1px;
 }
 
-table.morsels-tip-table .morsels-tip-item > td > div {
+table.infi-tip-table .infi-tip-item > td > div {
     padding: 0;
     margin: 0;
     line-height: 1.2;
 }
 
-table.morsels-tip-table .morsels-tip-item > td {
+table.infi-tip-table .infi-tip-item > td {
     font-size: 0.9em;
 }
 
-table.morsels-tip-table .morsels-tip-item code {
+table.infi-tip-table .infi-tip-item code {
     font-size: 0.9em;
     color: var(--infi-tip-code-fg);
     background: var(--infi-tip-code-bg);
     word-wrap: break-word;
 }
 
-table.morsels-tip-table .morsels-tip-item ul {
+table.infi-tip-table .infi-tip-item ul {
     padding: 0;
     margin: 0;
 }
 
-table.morsels-tip-table .morsels-tip-item li {
+table.infi-tip-table .infi-tip-item li {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
 @media screen and (min-width: 769px) {
-    .morsels-fs-root {
+    .infi-fs-root {
         border-radius: 6px;
         border: var(--infi-fs-border);
         box-shadow: var(--infi-fs-box-shadow);
@@ -313,12 +313,12 @@ table.morsels-tip-table .morsels-tip-item li {
  Dropdown version
  */
 
-.morsels-dropdown-root {
+.infi-dropdown-root {
     display: inline-block;
     position: relative;
 }
 
-.morsels-input-dropdown-separator {
+.infi-input-dropdown-separator {
     position: relative;
     width: 0;
     height: 0;
@@ -332,14 +332,14 @@ table.morsels-tip-table .morsels-tip-item li {
  All 3 versions. TODO see if this can be on the top.
  */
 
-.morsels-inner-root {
+.infi-inner-root {
     position: absolute;
     top: 0;
     left: 100vw;
     z-index: var(--infi-dropdown-z-index);
 }
 
-.morsels-list {
+.infi-list {
     padding: 0;
     border: var(--infi-border);
     border-radius: 5px;
@@ -357,7 +357,7 @@ table.morsels-tip-table .morsels-tip-item li {
     scrollbar-width: thin;
 }
 
-.morsels-fs-root .morsels-list {
+.infi-fs-root .infi-list {
     width: auto;
     max-height: calc(100% - 20px - 2.7em);
     max-width: none;
@@ -368,21 +368,21 @@ table.morsels-tip-table .morsels-tip-item li {
     position: static;
 }
 
-.morsels-list::-webkit-scrollbar-track {
+.infi-list::-webkit-scrollbar-track {
     border-radius: 5px;
     background: var(--infi-scrollbar-bg);
 }
 
-.morsels-list::-webkit-scrollbar {
+.infi-list::-webkit-scrollbar {
     width: 6px;
     background-color: transparent;
 }
 
-.morsels-fs-root .morsels-list::-webkit-scrollbar {
+.infi-fs-root .infi-list::-webkit-scrollbar {
     width: 7px;
 }
 
-.morsels-list::-webkit-scrollbar-thumb {
+.infi-list::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background: var(--infi-scrollbar-thumb-bg);
 }
@@ -392,7 +392,7 @@ table.morsels-tip-table .morsels-tip-item li {
  Header
  */
 
-.morsels-header {
+.infi-header {
     display: flex;
     justify-content: space-between;
     color: var(--infi-header-fg);
@@ -402,25 +402,25 @@ table.morsels-tip-table .morsels-tip-item li {
     font-size: 1.06em;
 }
 
-.morsels-fs-root .morsels-header {
+.infi-fs-root .infi-header {
     padding: 9px 7px 9px 3px;
 }
 
-.morsels-results-found {
+.infi-results-found {
     padding-right: 5px;
 }
 
-.morsels-instructions {
+.infi-instructions {
     display: flex;
     align-items: center;
 }
 
-.morsels-instructions:first-child {
+.infi-instructions:first-child {
     display: none;
 }
 
-.morsels-key-arrow,
-.morsels-key-return {
+.infi-key-arrow,
+.infi-key-return {
     fill: var(--infi-key-fg);
     stroke: var(--infi-key-fg);
     background: var(--infi-key-bg);
@@ -430,19 +430,19 @@ table.morsels-tip-table .morsels-tip-item li {
     margin: 0 0 0 2px;
 }
 
-.morsels-key-arrow {
+.infi-key-arrow {
     width: 16px;
 }
 
-.morsels-key-arrow-down {
+.infi-key-arrow-down {
     transform: rotateX(180deg);
 }
 
-.morsels-key-return {
+.infi-key-return {
     width: 20px;
 }
 
-button.morsels-filters {
+button.infi-filters {
     display: flex;
     align-items: center;
     border: none;
@@ -459,7 +459,7 @@ button.morsels-filters {
     cursor: pointer;
 }
 
-button.morsels-filters::after {
+button.infi-filters::after {
     content: '';
     display: inline-block;
     margin-left: 0.2em;
@@ -470,11 +470,11 @@ button.morsels-filters::after {
     transform: translateY(1px);
 }
 
-button.morsels-filters.active::after {
+button.infi-filters.active::after {
     transform: translateY(0) rotateZ(180deg);
 }
 
-.morsels-results-found + .morsels-filters {
+.infi-results-found + .infi-filters {
     margin-left: auto;
     border-right: 2px solid var(--infi-key-bg);
 }
@@ -484,15 +484,15 @@ button.morsels-filters.active::after {
  Filters
  */
 
-.morsels-filters.shown {
+.infi-filters.shown {
     padding: 0 13px 10px 13px;
 }
 
-.morsels-fs-root .morsels-filters.shown {
+.infi-fs-root .infi-filters.shown {
     padding: 0 7px 12px 3px;
 }
 
-.morsels-filter-header {
+.infi-filter-header {
     display: flex;
     align-items: center;
     padding: 0;
@@ -504,12 +504,12 @@ button.morsels-filters.active::after {
     color: var(--infi-header-fg);
 }
 
-.morsels-filter-header:focus-visible {
+.infi-filter-header:focus-visible {
     outline: 2px solid var(--infi-header-fg);
     color: var(--infi-header-fg);
 }
 
-.morsels-filter-header::before {
+.infi-filter-header::before {
     content: '';
     display: inline-block;
     margin-right: 0.2em;
@@ -520,21 +520,21 @@ button.morsels-filters.active::after {
     transform: rotateZ(-90deg);
 }
 
-.morsels-filter-header.active::before {
+.infi-filter-header.active::before {
     transform: rotateZ(180deg);
 }
 
-.morsels-filter-opt {
+.infi-filter-opt {
     width: fit-content;
     padding: 3px 3px 3px 0.5em;
     user-select: none;
 }
 
-.morsels-filter-opt:last-child {
+.infi-filter-opt:last-child {
     margin: 0 0 2px 0;
 }
 
-label.morsels-checkbox-label {
+label.infi-checkbox-label {
     font-size: 1em;
     line-height: 1;
     display: grid;
@@ -549,7 +549,7 @@ label.morsels-checkbox-label {
  Checkbox styles from https://moderncss.dev/pure-css-custom-checkbox-style/,
  with some small tweaks
 */
-input[type="checkbox"].morsels-checkbox {
+input[type="checkbox"].infi-checkbox {
     -webkit-appearance: none;
     appearance: none;
     background: var(--infi-checkbox-bg);
@@ -568,21 +568,21 @@ input[type="checkbox"].morsels-checkbox {
     cursor: pointer;
 }
 
-input[type="checkbox"].morsels-checkbox:checked {
+input[type="checkbox"].infi-checkbox:checked {
     background: var(--infi-checkbox-checked-bg);
 }
 
-input[type="checkbox"].morsels-checkbox:focus,
-input[type="checkbox"].morsels-checkbox.focus {
+input[type="checkbox"].infi-checkbox:focus,
+input[type="checkbox"].infi-checkbox.focus {
     outline: max(2px, 0.15em) solid var(--infi-highlight);
     outline-offset: max(2px, 0.15em);
 }
 
-input[type="checkbox"].morsels-checkbox:focus {
+input[type="checkbox"].infi-checkbox:focus {
     outline-color: var(--infi-header-fg);
 }
 
-input[type="checkbox"].morsels-checkbox::before {
+input[type="checkbox"].infi-checkbox::before {
     content: "";
     width: 0.53em;
     height: 0.53em;
@@ -597,7 +597,7 @@ input[type="checkbox"].morsels-checkbox::before {
     background-color: CanvasText;
 }
 
-input[type="checkbox"].morsels-checkbox:checked::before {
+input[type="checkbox"].infi-checkbox:checked::before {
     transform: scale(1);
 }
 
@@ -607,26 +607,26 @@ input[type="checkbox"].morsels-checkbox:checked::before {
  Result footer
  */
 
-.morsels-footer {
+.infi-footer {
     display: flex;
     justify-content: center;
 }
 
-.morsels-footer:last-child {
+.infi-footer:last-child {
     margin-bottom: 15px;
 }
 
-.morsels-footer:focus-visible {
+.infi-footer:focus-visible {
     outline: none;
 }
 
-.morsels-load-more,
-.morsels-footer-so-far {
+.infi-load-more,
+.infi-footer-so-far {
     font-weight: bold;
     color: var(--infi-load-more-fg);
 }
 
-.morsels-load-more {
+.infi-load-more {
     padding: 5px 15px;
     margin: 5px 0;
     text-decoration: none;
@@ -637,19 +637,19 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     cursor: pointer;
 }
 
-.morsels-load-more:active {
+.infi-load-more:active {
     transition: color 0.2s ease-in-out, background 0.2s ease-in-out;
 }
 
-.morsels-load-more:active,
-.morsels-load-more-opt.focus > .morsels-load-more {
+.infi-load-more:active,
+.infi-load-more-opt.focus > .infi-load-more {
     color: var(--infi-load-more-hover-fg);
     background: var(--infi-load-more-hover-bg);
 }
 
 @media (hover: hover) {
-    .morsels-load-more:hover,
-    .morsels-load-more:focus {
+    .infi-load-more:hover,
+    .infi-load-more:focus {
         transition: color 0.2s ease-in-out, background 0.2s ease-in-out;
         color: var(--infi-load-more-hover-fg);
         background: var(--infi-load-more-hover-bg);
@@ -661,8 +661,8 @@ input[type="checkbox"].morsels-checkbox:checked::before {
  States (error, blank, loading)
  */
 
-.morsels-error,
-.morsels-blank {
+.infi-error,
+.infi-blank {
     justify-content: center;
     text-align: center;
     font-size: 0.9em;
@@ -670,23 +670,23 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     margin: 1.2em 0;
 }
 
-.morsels-error {
+.infi-error {
     color: var(--infi-error-fg);
 }
 
-.morsels-blank {
+.infi-blank {
     color: var(--infi-fine-print-fg);
 }
 
 /* https://loading.io/css/ */
-.morsels-loading-indicator {
+.infi-loading-indicator {
     display: flex;
     justify-content: center;
     width: 100%;
     margin: 1.2em 0;
 }
 
-.morsels-loading-indicator:after {
+.infi-loading-indicator:after {
     content: " ";
     display: block;
     width: 40px;
@@ -695,10 +695,10 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     border-radius: 50%;
     border: 6px solid;
     border-color: var(--infi-loading-bg) transparent var(--infi-loading-bg) transparent;
-    animation: morsels-loading-indicator 1.2s linear infinite;
+    animation: infi-loading-indicator 1.2s linear infinite;
 }
 
-@keyframes morsels-loading-indicator {
+@keyframes infi-loading-indicator {
     0% {
         transform: rotate(0deg);
     }
@@ -707,7 +707,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     }
 }
 
-.morsels-loading-indicator-subsequent {
+.infi-loading-indicator-subsequent {
     position: sticky;
     top: 10px;
     padding-left: calc(100% - 40px);
@@ -716,15 +716,15 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     overflow: visible;
 }
 
-.morsels-loading-indicator-subsequent::after {
+.infi-loading-indicator-subsequent::after {
     width: 25px;
     height: 25px;
     border-width: 4px;
     border-color: var(--infi-loading-secondary-bg) transparent var(--infi-loading-secondary-bg) transparent;
-    animation: morsels-loading-indicator 1.2s linear infinite, morsels-loading-indicator-subsequent 1s linear 1;
+    animation: infi-loading-indicator 1.2s linear infinite, infi-loading-indicator-subsequent 1s linear 1;
 }
 
-@keyframes morsels-loading-indicator-subsequent {
+@keyframes infi-loading-indicator-subsequent {
     0% {
         opacity: 0.0;
     }
@@ -741,7 +741,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
  Results
  */
 
-.morsels-list-item {
+.infi-list-item {
     font-size: inherit;
     border-radius: var(--infi-item-border-radius);
     box-shadow: var(--infi-item-box-shadow);
@@ -749,16 +749,16 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     overflow: hidden;
 }
 
-.morsels-fs-root .morsels-list-item {
+.infi-fs-root .infi-list-item {
     margin: var(--infi-fs-item-spacing) 8px;
 }
 
-.morsels-list-item:first-child {
+.infi-list-item:first-child {
     margin-top: 2px;
 }
 
-.morsels-title-link,
-.morsels-heading-link {
+.infi-title-link,
+.infi-heading-link {
     display: block;
     font-size: inherit;
     text-decoration: none !important;
@@ -766,7 +766,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     outline-color: var(--infi-title-fg);
 }
 
-.morsels-title {
+.infi-title {
     border-bottom: var(--infi-title-border-bottom);
     color: var(--infi-title-fg);
     line-height: 1.2;
@@ -777,27 +777,27 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     font-weight: 600;
 }
 
-.morsels-title:active,
-.morsels-title-link.focus .morsels-title {
+.infi-title:active,
+.infi-title-link.focus .infi-title {
     color: var(--infi-title-hover-fg);
     background: var(--infi-title-hover-bg);
     border-bottom: var(--infi-title-border-bottom-hover);
 }
 
-.morsels-heading-link {
+.infi-heading-link {
     padding: 3px 0 2px 0;
     background: var(--infi-sub-bg);
 }
 
-.morsels-title-link + .morsels-heading-link {
+.infi-title-link + .infi-heading-link {
     padding-top: 4px;
 }
 
-.morsels-heading-link:last-child {
+.infi-heading-link:last-child {
     padding-bottom: 7px;
 }
 
-.morsels-heading {
+.infi-heading {
     font-size: 0.94em;
     word-break: break-word;
     padding: 0 5px 0 11px;
@@ -806,12 +806,12 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     font-weight: 600;
 }
 
-.morsels-heading-link:active .morsels-heading,
-.morsels-heading-link.focus .morsels-heading {
+.infi-heading-link:active .infi-heading,
+.infi-heading-link.focus .infi-heading {
     color: var(--infi-heading-hover-fg);
 }
 
-.morsels-body {
+.infi-body {
     font-size: 0.93em;
     line-height: 1.15;
     word-break: break-word;
@@ -819,68 +819,68 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     color: var(--infi-body-fg);
 }
 
-.morsels-heading-link .morsels-body {
+.infi-heading-link .infi-body {
     padding: 1px 5px 0 16px;
 }
 
-.morsels-title-link > .morsels-body:active,
-.morsels-title-link.focus > .morsels-body,
-.morsels-heading-link:active .morsels-body,
-.morsels-heading-link.focus .morsels-body {
+.infi-title-link > .infi-body:active,
+.infi-title-link.focus > .infi-body,
+.infi-heading-link:active .infi-body,
+.infi-heading-link.focus .infi-body {
     color: var(--infi-body-hover-fg);
 }
 
-.morsels-title-link > .morsels-body:active,
-.morsels-title-link.focus > .morsels-body,
-.morsels-heading-link:active,
-.morsels-heading-link.focus {
+.infi-title-link > .infi-body:active,
+.infi-title-link.focus > .infi-body,
+.infi-heading-link:active,
+.infi-heading-link.focus {
     background: var(--infi-sub-hover-bg);
 }
 
 @media (hover: hover) {
-    .morsels-list-item:hover .morsels-title {
+    .infi-list-item:hover .infi-title {
         color: var(--infi-title-hover-fg);
         background: var(--infi-title-hover-bg);
         border-bottom: var(--infi-title-border-bottom-hover);
     }
 
-    .morsels-heading-link:not(:last-child):hover {
+    .infi-heading-link:not(:last-child):hover {
         border-bottom: var(--infi-item-sub-border-hover);
     }
 
-    .morsels-title-link > .morsels-body:hover,
-    .morsels-heading-link:hover {
+    .infi-title-link > .infi-body:hover,
+    .infi-heading-link:hover {
         background: var(--infi-sub-hover-bg);
     }
 
-    .morsels-heading-link:hover .morsels-heading {
+    .infi-heading-link:hover .infi-heading {
         color: var(--infi-heading-hover-fg);
     }
 
-    .morsels-body:hover,
-    .morsels-heading-link:hover .morsels-body {
+    .infi-body:hover,
+    .infi-heading-link:hover .infi-body {
         color: var(--infi-body-hover-fg);
     }
 
     /* Prevent transitions from kicking in for keyboard navigation */
-    .morsels-list-item:hover .morsels-title,
-    .morsels-list-item:hover .morsels-heading-link,
-    .morsels-list-item:hover .morsels-body,
-    .morsels-list-item:hover .morsels-heading {
+    .infi-list-item:hover .infi-title,
+    .infi-list-item:hover .infi-heading-link,
+    .infi-list-item:hover .infi-body,
+    .infi-list-item:hover .infi-heading {
         transition: background 0.1s ease-in, color 0.1s ease-in, border 0.1s ease-in;
     }
 }
 
 /* Prevent transitions from kicking for keyboard navigation */
-.morsels-body:active,
-.morsels-list-item:active .morsels-title,
-.morsels-list-item:active .morsels-heading-link,
-.morsels-list-item:active .morsels-body,
-.morsels-list-item:active .morsels-heading {
+.infi-body:active,
+.infi-list-item:active .infi-title,
+.infi-list-item:active .infi-heading-link,
+.infi-list-item:active .infi-body,
+.infi-list-item:active .infi-heading {
     transition: background 0.2s ease-in, color 0.2s ease-in, border 0.2s ease-in !important;
 }
 
-.morsels-highlight {
+.infi-highlight {
     color: var(--infi-highlight);
     background-color: var(--infi-highlight-bg);
     font-weight: bold;
@@ -888,16 +888,16 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     margin: 0;
 }
 
-.morsels-heading .morsels-highlight {
+.infi-heading .infi-highlight {
     color: var(--infi-heading-highlight, var(--infi-highlight));
 }
 
-.morsels-ellipsis {
+.infi-ellipsis {
     letter-spacing: 0.3mm;
     opacity: 0.85;
 }
 
-.morsels-initialising-text {
+.infi-initialising-text {
     font-size: 0.9em;
     color: var(--infi-fine-print-fg);
     margin-top: -5px;
@@ -917,48 +917,48 @@ input[type="checkbox"].morsels-checkbox:checked::before {
         --infi-tip-icon-size: 26px;
     }
 
-    .morsels-fs-input {
+    .infi-fs-input {
         height: 2.25em;
     }
 
-    .morsels-fs-root .morsels-tip-root {
+    .infi-fs-root .infi-tip-root {
         bottom: 19px;
         right: 19px;
     }
 
-    .morsels-title,
-    .morsels-heading,
-    .morsels-body {
+    .infi-title,
+    .infi-heading,
+    .infi-body {
         padding-left: 9px;
     }
 
-    .morsels-filter-header {
+    .infi-filter-header {
         margin-bottom: 3px;
     }
 
-    .morsels-filter:not(:first-child) .morsels-filter-header {
+    .infi-filter:not(:first-child) .infi-filter-header {
         margin-top: 4px;
     }
 
-    .morsels-filter-opt {
+    .infi-filter-opt {
         width: auto;
         padding: 7px 5px 7px 0.5em;
     }
 
-    .morsels-instructions {
+    .infi-instructions {
         display: none;
     }
 
-    .morsels-results-found + .morsels-filters {
+    .infi-results-found + .infi-filters {
         border-right: none;
     }
 
-    .morsels-load-more {
+    .infi-load-more {
         font-size: 1.01em;
         padding: 7px 15px;
     }
 
-    .morsels-footer:last-child {
+    .infi-footer:last-child {
         margin-bottom: 20px;
     }
 }

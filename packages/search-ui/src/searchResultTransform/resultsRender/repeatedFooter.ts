@@ -12,22 +12,22 @@ export function resultSeparator(
   query: Query,
 ) {
   const { resultsPerPage } = options.uiOptions;
-  const footer = h('div', { class: 'morsels-footer', tabindex: '-1' });
+  const footer = h('div', { class: 'infi-footer', tabindex: '-1' });
   if (!query.resultsTotal) {
     return footer;
   }
 
   const resultsSoFar = h('div',
-    { class: 'morsels-footer-so-far' },
+    { class: 'infi-footer-so-far' },
     `${numResultsSoFar} of ${query.resultsTotal}`,
   ).outerHTML;
 
   const loadMoreButton = h('button', {
-    class: 'morsels-load-more',
+    class: 'infi-load-more',
     tabindex: '-1',
   }, 'Load more results');
   const loadMoreButtonWrapped = h('div', {
-    class: 'morsels-load-more-opt',
+    class: 'infi-load-more-opt',
     role: 'option',
   }, loadMoreButton);
 
@@ -47,7 +47,7 @@ export function resultSeparator(
 
     loadMore(resultsPerPage).then((newResultEls) => {
       footer.innerHTML = resultsSoFar;
-      footer.classList.add('morsels-footer-loaded');
+      footer.classList.add('infi-footer-loaded');
 
       if (newResultEls && newResultEls.length && !isDomFocused) {
         const firstEl = newResultEls[0];

@@ -1,8 +1,8 @@
-.light .morsels-root,
-.rust .morsels-root,
-.coal .morsels-root,
-.navy .morsels-root,
-.ayu .morsels-root {
+.light .infi-root,
+.rust .infi-root,
+.coal .infi-root,
+.navy .infi-root,
+.ayu .infi-root {
     --infi-shadow: none;
     --infi-border: 3px solid var(--table-header-bg);
     --infi-bg: var(--bg);
@@ -55,16 +55,16 @@
     --infi-tip-icon-fg: rgb(80, 80, 80);
 }
 
-.light .morsels-root .morsels-title,
-.rust .morsels-root .morsels-title,
-.coal .morsels-root .morsels-title,
-.navy .morsels-root .morsels-title,
-.ayu .morsels-root .morsels-title {
+.light .infi-root .infi-title,
+.rust .infi-root .infi-title,
+.coal .infi-root .infi-title,
+.navy .infi-root .infi-title,
+.ayu .infi-root .infi-title {
     font-weight: 600;
 }
 
-.ayu .morsels-root,
-.rust .morsels-root {
+.ayu .infi-root,
+.rust .infi-root {
     --infi-fs-header-close-hover-bg: var(--sidebar-bg);
     --infi-fs-header-close-hover-fg: white;
     --infi-fs-header-close-active-bg: var(--sidebar-bg);
@@ -74,29 +74,29 @@
     --infi-tip-icon-fg: rgb(50, 50, 50);
 }
 
-.light .morsels-root .morsels-list-item.focus,
-.rust .morsels-root .morsels-list-item.focus,
-.coal .morsels-root .morsels-list-item.focus,
-.navy .morsels-root .morsels-list-item.focus,
-.ayu .morsels-root .morsels-list-item.focus {
+.light .infi-root .infi-list-item.focus,
+.rust .infi-root .infi-list-item.focus,
+.coal .infi-root .infi-list-item.focus,
+.navy .infi-root .infi-list-item.focus,
+.ayu .infi-root .infi-list-item.focus {
     outline: 2px solid grey;
 }
 
-.light .morsels-root,
-.coal .morsels-root,
-.navy .morsels-root,
-.ayu .morsels-root {
+.light .infi-root,
+.coal .infi-root,
+.navy .infi-root,
+.ayu .infi-root {
     --infi-title-bg: var(--theme-hover);
     --infi-sub-hover-bg: var(--table-alternate-bg);
     --infi-title-border-bottom: 2px solid var(--theme-hover);
 }
 
-.light .morsels-root {
+.light .infi-root {
     --infi-highlight: #82a6c4;
     --infi-sub-hover-bg: #ebebeb;
 }
 
-.rust .morsels-root {
+.rust .infi-root {
     --infi-highlight: #bc8e6a;
 
     --infi-tip-table-alternate: var(--sidebar-bg);
@@ -113,19 +113,19 @@
     --infi-heading-hover-fg: #1e1e1e;
 }
 
-.coal .morsels-root {
+.coal .infi-root {
     --infi-highlight: #496c8a;
     --infi-sub-hover-bg: #272a2b;
 }
 
-.infi-theme .morsels-root .morsels-tip-item code,
-.rust .morsels-root .morsels-tip-item code {
+.infi-theme .infi-root .infi-tip-item code,
+.rust .infi-root .infi-tip-item code {
     color: var(--infi-tip-code-fg) !important;;
 }
 
-.coal .morsels-root,
-.navy .morsels-root,
-.ayu .morsels-root {
+.coal .infi-root,
+.navy .infi-root,
+.ayu .infi-root {
     --infi-item-box-shadow: 0 1px 5px rgb(50, 50, 50);
     --infi-fs-input-fg: var(--fg);
     --infi-fs-input-focus-border: 2px solid #4f95cc;
@@ -137,7 +137,7 @@
     --infi-checkbox-border: #525354;
 }
 
-.rust .morsels-root {
+.rust .infi-root {
     --infi-fs-input-fg: var(--sidebar-fg);
     --infi-fs-input-bg: #29201d;
     --infi-fs-input-border: 2px solid #584d4a;
@@ -145,18 +145,18 @@
     --infi-fs-input-focus-box-shadow: 0 0 5px -1px #63baff;
 }
 
-.coal .morsels-root {
+.coal .infi-root {
     --infi-fs-input-bg: #1d1f21;
     --infi-fs-input-border: 2px solid #3e4144;
 }
 
-.navy .morsels-root {
+.navy .infi-root {
     --infi-fs-input-bg: #1e222f;
     --infi-fs-input-border: 2px solid #3d4252;
     --infi-sub-hover-bg: #242734;
 }
 
-.ayu .morsels-root {
+.ayu .infi-root {
     --infi-fs-input-fg: var(--fg);
     --infi-fs-input-bg: #2b3035;
     --infi-fs-input-border: 2px solid #43474c;
@@ -175,26 +175,26 @@
     color: var(--searchbar-fg);
 }
 
-#infi-search:focus:not(.morsels-button-input) {
+#infi-search:focus:not(.infi-button-input) {
     box-shadow: 0 0 3px var(--searchbar-shadow-color);
 }
 
-#infi-search.morsels-button-input {
+#infi-search.infi-button-input {
     width: 100px;
 }
 
-#infi-search.morsels-button-input::placeholder {
+#infi-search.infi-button-input::placeholder {
     position: relative;
     left: 14px;
 }
 
-#infi-search.morsels-button-input:hover {
+#infi-search.infi-button-input:hover {
     transition: 0.3s ease-out;
     background: var(--infi-fs-button-input-bg) !important;
     outline: 2px solid var(--infi-fs-button-input-bg);
 }
 
-#infi-search.morsels-button-input:hover::placeholder {
+#infi-search.infi-button-input:hover::placeholder {
     color: var(--infi-fs-button-input-fg) !important;
 }
 
@@ -211,23 +211,23 @@
 /*
  * For this plugin, don't show the controls until there is a query.
  */
-#morsels-mdbook-target.morsels-empty-input > * {
+#morsels-mdbook-target.infi-empty-input > * {
     display: none;
 }
 
-.morsels-root:not(.morsels-fs-root) {
+.infi-root:not(.infi-fs-root) {
     display: block;
 }
 
-.light .morsels-root .morsels-title::after,
-.rust .morsels-root .morsels-title::after,
-.coal .morsels-root .morsels-title::after,
-.navy .morsels-root .morsels-title::after,
-.ayu .morsels-root .morsels-title::after {
+.light .infi-root .infi-title::after,
+.rust .infi-root .infi-title::after,
+.coal .infi-root .infi-title::after,
+.navy .infi-root .infi-title::after,
+.ayu .infi-root .infi-title::after {
     content: none;
     display: none;
 }
 
-.morsels-load-more {
+.infi-load-more {
     padding: 7px 15px;
 }

@@ -12,24 +12,24 @@
     --infi-title-border-bottom-padded: 1px solid #eee;
 }
 
-.morsels-title::after {
+.infi-title::after {
     content: '';
     display: block;
     border-bottom: var(--infi-title-border-bottom-padded);
     transform: translateY(5px);
 }
 
-.morsels-title:active::after,
-.morsels-title-link.focus .morsels-title::after {
+.infi-title:active::after,
+.infi-title-link.focus .infi-title::after {
     border-bottom: 1px solid var(--infi-title-hover-bg);
 }
 
-.morsels-title:active::after {
+.infi-title:active::after {
     transition: background 0.2s ease-in, color 0.2s ease-in, border 0.2s ease-in !important;
 }
 
 @media (hover: hover) {
-    .morsels-list-item:hover .morsels-title::after {
+    .infi-list-item:hover .infi-title::after {
         border-bottom: 1px solid #bce0fe;
         transition: background 0.1s ease-in, color 0.1s ease-in, border 0.1s ease-in;
     }

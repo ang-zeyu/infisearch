@@ -7,7 +7,7 @@ const INPUT_SELECTOR = '#infi-search';
 async function clearInput() {
   await page.click(INPUT_SELECTOR, { clickCount: 3 });
   await page.keyboard.press('Backspace');
-  await page.waitForSelector('#target-mode-el .morsels-blank');
+  await page.waitForSelector('#target-mode-el .infi-blank');
   await page.waitForSelector('#target-mode-el > [role="listbox"]');
   const numChildren = await page.evaluate(() => {
     const listbox = document.querySelector('#target-mode-el > [role="listbox"]');
@@ -44,9 +44,9 @@ async function typeText(text) {
 
 async function waitNoResults() {
   try {
-    await page.waitForSelector('#target-mode-el .morsels-header .morsels-results-found', { timeout: 10000 });
+    await page.waitForSelector('#target-mode-el .infi-header .infi-results-found', { timeout: 10000 });
     const headerText = await page.evaluate(() => {
-      const header = document.querySelector('#target-mode-el .morsels-header');
+      const header = document.querySelector('#target-mode-el .infi-header');
       return header && header.textContent;
     });
     expect(typeof headerText).toBe('string');
@@ -63,10 +63,10 @@ async function waitNoResults() {
 
 async function assertSingle(text) {
   try {
-    await page.waitForSelector('#target-mode-el .morsels-list-item', { timeout: 60000 });
+    await page.waitForSelector('#target-mode-el .infi-list-item', { timeout: 60000 });
 
     const result = await page.evaluate(() => {
-      const queryResult = document.querySelectorAll('#target-mode-el .morsels-list-item');
+      const queryResult = document.querySelectorAll('#target-mode-el .infi-list-item');
       return { text: queryResult.length && queryResult[0].textContent, resultCount: queryResult.length };
     });
 
@@ -94,10 +94,10 @@ async function assertSingle(text) {
 
 async function assertMultiple(texts, count) {
   try {
-    await page.waitForSelector('#target-mode-el .morsels-list-item', { timeout: 60000 });
+    await page.waitForSelector('#target-mode-el .infi-list-item', { timeout: 60000 });
 
     const result = await page.evaluate(() => {
-      const queryResult = document.querySelectorAll('#target-mode-el .morsels-list-item');
+      const queryResult = document.querySelectorAll('#target-mode-el .infi-list-item');
       return {
         texts: Array.from(queryResult).map((el) => el.textContent),
         resultCount: queryResult.length,
@@ -158,17 +158,17 @@ async function clickCheckbox(selector, active) {
 
 async function selectFilters(enumsToValues, unspecifiedIsChecked = true) {
   // Expand the filters
-  await setActiveClass('#target-mode-el button.morsels-filters');
+  await setActiveClass('#target-mode-el button.infi-filters');
 
   const allHeaders = await page.evaluate(() => {
-    const options = document.querySelectorAll('#target-mode-el .morsels-filter-header');
+    const options = document.querySelectorAll('#target-mode-el .infi-filter-header');
     return Array.from(options).map((el) => el.textContent);
   });
 
   // Expand all headers
   for (let headerIdx = 1; headerIdx <= allHeaders.length; headerIdx += 1) {
     await setActiveClass(
-      `#target-mode-el .morsels-filter:nth-child(${headerIdx}) .morsels-filter-header`,
+      `#target-mode-el .infi-filter:nth-child(${headerIdx}) .infi-filter-header`,
     );
   }
 
@@ -178,10 +178,10 @@ async function selectFilters(enumsToValues, unspecifiedIsChecked = true) {
     const specifiedValues = enumsToValues[headerText];
 
     const optionsContainer =
-      `#target-mode-el .morsels-filter:nth-child(${headerIdx}) [role="listbox"]`;
+      `#target-mode-el .infi-filter:nth-child(${headerIdx}) [role="listbox"]`;
 
     const uiValues = await page.evaluate((optionsContainerSelector) => {
-      const options = document.querySelectorAll(optionsContainerSelector + ' .morsels-filter-opt');
+      const options = document.querySelectorAll(optionsContainerSelector + ' .infi-filter-opt');
       return Array.from(options).map((el) => el.textContent.trim());
     }, optionsContainer);
 
@@ -193,7 +193,7 @@ async function selectFilters(enumsToValues, unspecifiedIsChecked = true) {
 
       await clickCheckbox(
         optionsContainer
-        + ` .morsels-filter-opt:nth-child(${optionIdx}) input[type="checkbox"]`,
+        + ` .infi-filter-opt:nth-child(${optionIdx}) input[type="checkbox"]`,
         active,
       );
     }

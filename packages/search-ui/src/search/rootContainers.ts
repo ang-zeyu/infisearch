@@ -50,7 +50,7 @@ function getTemporaryElements() {
   // Placeholders, swapped in later in InputManager
   return [
     h('div', {}),
-    h('div', { class: 'morsels-filters' }),
+    h('div', { class: 'infi-filters' }),
     h('div', {}),
   ];
 }
@@ -68,7 +68,7 @@ export function dropdownRootRender(
   });
   const scrollContainer = h('div',
     {
-      class: 'morsels-list',
+      class: 'infi-list',
       // Prevent dropdown from being dismissed when clicking anywhere else inside
       tabindex: '-1',
     },
@@ -76,12 +76,12 @@ export function dropdownRootRender(
     resultContainer,
   );
   const innerRoot = h('div',
-    { class: 'morsels-inner-root', style: 'display: none;' },
-    h('div', { class: 'morsels-input-dropdown-separator' }),
+    { class: 'infi-inner-root', style: 'display: none;' },
+    h('div', { class: 'infi-input-dropdown-separator' }),
     scrollContainer,
   );
   
-  const root = h('div', { class: 'morsels-root morsels-dropdown-root' },
+  const root = h('div', { class: 'infi-root infi-dropdown-root' },
     inputEl, innerRoot,
   );
   innerRoot.onkeydown = (ev) => {
@@ -101,7 +101,7 @@ export function setFsTriggerInput(input: HTMLElement, fsInputButtonText: string,
   input.setAttribute('role', 'button');
   input.setAttribute('aria-label', fsInputLabel);
   if (fsInputButtonText) input.setAttribute('placeholder', fsInputButtonText);
-  input.classList.add('morsels-button-input');
+  input.classList.add('infi-button-input');
 }
 
 function unsetFsTriggerInput(input: HTMLElement, originalPlaceholder: string) {
@@ -109,7 +109,7 @@ function unsetFsTriggerInput(input: HTMLElement, originalPlaceholder: string) {
   input.removeAttribute('role');
   input.removeAttribute('aria-label');
   input.setAttribute('placeholder', originalPlaceholder);
-  input.classList.remove('morsels-button-input');
+  input.classList.remove('infi-button-input');
 }
 
 export function setDropdownInputAria(
@@ -155,7 +155,7 @@ export function fsRootRender(
   const labelId = `morsels-fs-label-${fsId}`;
   const inputEl = h(
     'input', {
-      class: 'morsels-fs-input',
+      class: 'infi-fs-input',
       type: 'search',
       placeholder: fsPlaceholder,
       'aria-labelledby': labelId,
@@ -168,7 +168,7 @@ export function fsRootRender(
     }
   };
 
-  const inputClearEl = h('span', { class: 'morsels-fs-input-clear' });
+  const inputClearEl = h('span', { class: 'infi-fs-input-clear' });
   inputClearEl.onclick = () => {
     if (inputEl.value) {
       inputEl.value = '';
@@ -177,24 +177,24 @@ export function fsRootRender(
     }
   };
 
-  const buttonEl = h('button', { class: 'morsels-input-close-fs' }, fsCloseText);
+  const buttonEl = h('button', { class: 'infi-input-close-fs' }, fsCloseText);
   
   const resultContainer = h('div', {
     id: `morsels-fs-list-${fsId++}`,
     'aria-labelledby': labelId,
   });
   const scrollContainer = h('div',
-    { class: 'morsels-list', tabindex: '-1' },
+    { class: 'infi-list', tabindex: '-1' },
     ...getTemporaryElements(),
     resultContainer,
   );
 
   const innerRoot = h('div',
-    { class: 'morsels-root morsels-fs-root' },
+    { class: 'infi-root infi-fs-root' },
     h('div',
-      { class: 'morsels-fs-controls' },
+      { class: 'infi-fs-controls' },
       h('div',
-        { class: 'morsels-fs-input-wrapper' },
+        { class: 'infi-fs-input-wrapper' },
         inputEl, inputClearEl,
       ),
       buttonEl,
@@ -206,7 +206,7 @@ export function fsRootRender(
   
   setInputAria(inputEl, resultContainer, label);
   
-  const rootBackdropEl = h('div', { class: 'morsels-fs-backdrop' }, innerRoot);
+  const rootBackdropEl = h('div', { class: 'infi-fs-backdrop' }, innerRoot);
 
   function hideFullscreen(isKeyboardClose: boolean) {
     onClose(isKeyboardClose);
@@ -249,7 +249,7 @@ export function targetRender(
   input: HTMLInputElement,
   target: HTMLElement,
 ) {
-  target.classList.add('morsels-root');
+  target.classList.add('infi-root');
 
   const resultContainer = h('div', { id: `morsels-target-list-${resultContainerId++}` });
   target.append(

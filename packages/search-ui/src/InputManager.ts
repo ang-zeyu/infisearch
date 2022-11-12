@@ -8,7 +8,7 @@ import { setExpanded, unsetActiveDescendant, unsetExpanded } from './utils/aria'
 import { addKeyboardHandler as addKeyboardHandlers } from './utils/keyboard';
 import { stateRender } from './utils/state';
 
-const INPUT_HAS_STRING_CLASS = 'morsels-empty-input';
+const INPUT_HAS_STRING_CLASS = 'infi-empty-input';
 
 /**
  * An IManager can be running one action, and queueing only one at a time.
