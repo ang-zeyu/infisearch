@@ -24,12 +24,12 @@ use walkdir::WalkDir;
 
 const DEFAULT_CONFIG: &'static str = include_str!("../default_infi_search.json");
 
-const CONFIG_KEY: &'static str = "output.morsels.config";
+const CONFIG_KEY: &'static str = "output.infisearch.config";
 
 const MARK_MIN_JS: &[u8] = include_bytes!("../mark.min.js");
 
 pub fn make_app() -> App<'static, 'static> {
-    App::new("morsels").about("Morsels preprocessor + renderer for mdbook").subcommand(
+    App::new("InfiSearch").about("InfiSearch preprocessor + renderer for mdbook").subcommand(
         SubCommand::with_name("supports")
             .arg(Arg::with_name("renderer").required(true))
             .about("Check whether a renderer is supported by this preprocessor"),
@@ -56,7 +56,7 @@ fn main() {
         // ---------------------------------
 
         let input_folder_path = html_renderer_path.clone();
-        let output_folder_path = input_folder_path.join("morsels_output");
+        let output_folder_path = input_folder_path.join("infisearch_output");
         let is_incremental = ctx.config.get("output.html.livereload-url").is_some();
 
         let config = setup_config_file(&ctx.root, ctx.config.get(CONFIG_KEY));
@@ -92,7 +92,7 @@ fn main() {
 
         assets::write_morsels_assets(&assets_output_dir);
     } else {
-        let morsels_preprocessor = Morsels;
+        let infisearch_preprocessor = InfiSearch;
 
         if let Some(sub_args) = matches.subcommand_matches("supports") {
             let renderer = sub_args.value_of("renderer").expect("Required argument");
@@ -102,7 +102,7 @@ fn main() {
             }
         } else {
             let (ctx, book) = CmdPreprocessor::parse_input(&*buf).expect("mdbook-infisearch: Preprocess JSON parsing failed");
-            let processed_book = morsels_preprocessor.run(&ctx, book).expect("mdbook-infisearch: Preprocess processing failed");
+            let processed_book = infisearch_preprocessor.run(&ctx, book).expect("mdbook-infisearch: Preprocess processing failed");
             serde_json::to_writer(io::stdout(), &processed_book).unwrap();
         }
 
@@ -114,10 +114,10 @@ fn main() {
 fn setup_config_file(root: &Path, config: Option<&Value>) -> String {
     if let Some(config_path) = get_config_file_path(root, config) {
         if !config_path.exists() || !config_path.is_file() {
-            fs::write(&config_path, DEFAULT_CONFIG).expect("Failed to write default morsels configuration");
+            fs::write(&config_path, DEFAULT_CONFIG).expect("Failed to write default InfiSearch configuration");
         }
 
-        std::fs::read_to_string(&config_path).expect("invalid morsels configuration file")
+        std::fs::read_to_string(&config_path).expect("invalid InfiSearch configuration file")
     } else {
         String::from(DEFAULT_CONFIG)
     }
@@ -132,7 +132,7 @@ fn get_config_file_path(root: &Path, config: Option<&Value>) -> Option<PathBuf> 
 }
 
 // Preprocessor for adding input search box
-pub struct Morsels;
+pub struct InfiSearch;
 
 static INPUT_EL: &str = "\n<input
     type=\"search\"
@@ -140,9 +140,9 @@ static INPUT_EL: &str = "\n<input
     placeholder=\"Search this book ...\"
 />\n\n
 <span style=\"font-weight: 600;\"><!--preload weight 600--></span>\n\n
-<div id=\"morsels-mdbook-target\"></div>\n\n";
+<div id=\"infisearch-mdbook-target\"></div>\n\n";
 
-static STYLES: &str = include_str!("morsels.css");
+static STYLES: &str = include_str!("infisearch.css");
 
 fn get_css_el(base_url: &str) -> String {
     format!(
@@ -153,7 +153,7 @@ fn get_css_el(base_url: &str) -> String {
 }
 
 fn get_script_els(ctx: &PreprocessorContext, base_url: &str) -> String {
-    let mode = if let Some(TomlString(mode)) = ctx.config.get("output.morsels.mode") {
+    let mode = if let Some(TomlString(mode)) = ctx.config.get("output.infisearch.mode") {
         if mode == "query_param" {
             // Documentation specific, do not use!
             // For demoing the different modes only
@@ -188,7 +188,7 @@ fn get_script_els(ctx: &PreprocessorContext, base_url: &str) -> String {
         "ascii"
     };
 
-    let morsels_js = include_str!("morsels.js");
+    let infisearch_js = include_str!("infisearch.js");
     format!(
 "\n
 <script src=\"{}morsels_assets/search-ui.{}.bundle.js\" type=\"text/javascript\" charset=\"utf-8\"></script>
@@ -202,22 +202,22 @@ const mode = {};
         base_url,
         base_url,
         mode,
-        morsels_js,
+        infisearch_js,
     )
 }
 
 fn get_part_title_el(part_title: &str) -> String {
-    format!("\n\n<span data-morsels-part-title=\"{}\"></span>\n", part_title)
+    format!("\n\n<span data-infi-part-title=\"{}\"></span>\n", part_title)
 }
 
 
-impl Preprocessor for Morsels {
+impl Preprocessor for InfiSearch {
     fn name(&self) -> &str {
-        "morsels"
+        "infisearch"
     }
 
     fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
-        if let Some(nop_cfg) = ctx.config.get_preprocessor("morsels") {
+        if let Some(nop_cfg) = ctx.config.get_preprocessor("infisearch") {
             if nop_cfg.contains_key("blow-up") {
                 anyhow::bail!("Boom!!1!");
             }
@@ -229,7 +229,7 @@ impl Preprocessor for Morsels {
             "/"
         };
 
-        let init_morsels_el = get_script_els(ctx, site_url);
+        let init_infisearch_el = get_script_els(ctx, site_url);
 
         let mut total_len: u64 = 0;
 
@@ -247,7 +247,7 @@ impl Preprocessor for Morsels {
                 ch.content = get_css_el(site_url)
                     + INPUT_EL
                     + ch.content.as_str()
-                    + init_morsels_el.as_str()
+                    + init_infisearch_el.as_str()
                     + part_title.as_str();
             } else if let BookItem::PartTitle(part_title) = item {
                 current_part_title = Some(part_title.to_owned());

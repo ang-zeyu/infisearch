@@ -204,14 +204,14 @@
     }
 }
 
-#morsels-mdbook-target {
+#infisearch-mdbook-target {
     position: relative;
 }
 
 /*
  * For this plugin, don't show the controls until there is a query.
  */
-#morsels-mdbook-target.infi-empty-input > * {
+#infisearch-mdbook-target.infi-empty-input > * {
     display: none;
 }
 

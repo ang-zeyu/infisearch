@@ -1,11 +1,11 @@
 infisearch.init({
   searcherOptions: {
-    url: base_url + 'morsels_output/',
+    url: base_url + 'infisearch_output/',
   },
   uiOptions: {
     mode,
     dropdownAlignment: 'bottom-start',
-    target: document.getElementById('morsels-mdbook-target'),
+    target: document.getElementById('infisearch-mdbook-target'),
     sourceFilesUrl: base_url,
     resultsRenderOpts: {
       addSearchedTerms: 'search',

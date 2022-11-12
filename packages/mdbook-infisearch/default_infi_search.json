@@ -19,9 +19,9 @@
           "script,style,#sidebar,#menu-bar"
         ],
         "selectors": {
-          "span[data-morsels-part-title]": {
+          "span[data-infi-part-title]": {
             "attr_map": {
-              "data-morsels-part-title": "partTitle"
+              "data-infi-part-title": "partTitle"
             }
           }
         }

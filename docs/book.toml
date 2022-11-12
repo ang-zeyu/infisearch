@@ -16,10 +16,10 @@ site-url = "/infisearch/"
 [output.html.search]
 enable = false
 
-[preprocessor.morsels]
+[preprocessor.infisearch]
 command = "mdbook-infisearch"
 
-[output.morsels]
+[output.infisearch]
 # Note
 # "query_param" is documentation specific, for demo-ing the different modes with the buttons
 # the only valid modes that should be used are "auto", "dropdown", "fullscreen", "target"

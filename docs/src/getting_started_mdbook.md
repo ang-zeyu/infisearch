@@ -29,11 +29,11 @@ Then, minimally add the first two configuration sections below to your `book.tom
 [output.html.search]
 enable = false               # disable the default mdBook search feature implementation
 
-[preprocessor.morsels]
+[preprocessor.infisearch]
 command = "mdbook-infisearch"
 
 # Plugin configuration options (optional)
-[output.morsels]
+[output.infisearch]
 # See search configuration page, or use the buttons below
 mode = "target"
 
