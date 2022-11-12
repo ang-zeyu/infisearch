@@ -44,7 +44,7 @@ fn main() {
 
     if let Ok(ctx) = RenderContext::from_json(&*buf) {
         let html_renderer_path = ctx.destination.join("../html");
-        let assets_output_dir = html_renderer_path.join("morsels_assets");
+        let assets_output_dir = html_renderer_path.join("infisearch_assets");
         fs::create_dir_all(&assets_output_dir)
             .expect("mdbook-infisearch: Failed to create assets directory.");
 
@@ -90,7 +90,7 @@ fn main() {
 
         indexer.finish_writing_docs(None);
 
-        assets::write_morsels_assets(&assets_output_dir);
+        assets::write_infisearch_assets(&assets_output_dir);
     } else {
         let infisearch_preprocessor = InfiSearch;
 
@@ -146,7 +146,7 @@ static STYLES: &str = include_str!("infisearch.css");
 
 fn get_css_el(base_url: &str) -> String {
     format!(
-        "<link rel=\"stylesheet\" href=\"{}morsels_assets/search-ui-light.css\">\n\n<style>{}</style>\n",
+        "<link rel=\"stylesheet\" href=\"{}infisearch_assets/search-ui-light.css\">\n\n<style>{}</style>\n",
         base_url,
         STYLES,
     )
@@ -191,8 +191,8 @@ fn get_script_els(ctx: &PreprocessorContext, base_url: &str) -> String {
     let infisearch_js = include_str!("infisearch.js");
     format!(
 "\n
-<script src=\"{}morsels_assets/search-ui.{}.bundle.js\" type=\"text/javascript\" charset=\"utf-8\"></script>
-<script src=\"{}morsels_assets/mark.min.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n
+<script src=\"{}infisearch_assets/search-ui.{}.bundle.js\" type=\"text/javascript\" charset=\"utf-8\"></script>
+<script src=\"{}infisearch_assets/mark.min.js\" type=\"text/javascript\" charset=\"utf-8\"></script>\n
 <script>
 const base_url = '{}';
 const mode = {};

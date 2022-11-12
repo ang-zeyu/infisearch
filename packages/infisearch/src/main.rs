@@ -188,7 +188,7 @@ fn main() {
 
     indexer.finish_writing_docs(now);
 
-    assets::write_morsels_assets(&output_folder_path.join("assets"));
+    assets::write_infisearch_assets(&output_folder_path.join("assets"));
 
     info!("Done!");
 }

@@ -6,7 +6,7 @@ use include_dir::{include_dir, Dir};
 
 const SEARCH_UI_DIST: Dir = include_dir!("$CARGO_MANIFEST_DIR/search-ui-dist");
 
-pub fn write_morsels_assets(assets_output_dir: &Path) {
+pub fn write_infisearch_assets(assets_output_dir: &Path) {
     std::fs::create_dir_all(assets_output_dir)
         .expect("Failed to create assets output directory");
     for file in SEARCH_UI_DIST.files() {
