@@ -3,7 +3,7 @@
 To get your development environment setup, you'll need to have installed the following:
 - [cargo](https://crates.io/), the package manager for Rust
 - [wasm-pack](https://github.com/rustwasm/wasm-pack), for working with rust generated WebAssembly
-- [mdbook](https://rust-lang.github.io/mdBook/), if working on mdbook-morsels plugin
+- [mdbook](https://rust-lang.github.io/mdBook/), if working on mdbook-infisearch plugin
 
 ## Commands
 

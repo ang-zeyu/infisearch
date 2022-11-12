@@ -1,70 +1,70 @@
 :root {
-    --morsels-shadow: 0 0 5px #dcdcdc;
-    --morsels-bg: white;
-    --morsels-title-fg: #424242;
-    --morsels-title-bg: #fff;
-    --morsels-title-hover-fg: #444;
-    --morsels-title-hover-bg: #bce0fe;
-    --morsels-heading-hover-fg: #444;
-    --morsels-body-hover-fg: #565656;
-    --morsels-sub-bg: #fff;
-    --morsels-sub-hover-bg: #bce0fe;
-    --morsels-highlight: #1e94f4;
-    --morsels-highlight-bg: none;
-    --morsels-checkbox-bg: #f8f8f8;
-    --morsels-checkbox-checked-bg: #fff;
-    --morsels-checkbox-border: #414141;
-    --morsels-header-fg: #3a3a3a;
-    --morsels-key-fg: #fff;
-    --morsels-key-bg: #ccc;
-    --morsels-error-fg: #444;
-    --morsels-fine-print-fg: #575757;
-    --morsels-loading-bg: #b0dafb;
-    --morsels-loading-secondary-bg: #78bff8;
-    --morsels-load-more-fg: #707070;
-    --morsels-load-more-bg: #f8f9f8;
-    --morsels-load-more-hover-fg: #565656;
-    --morsels-load-more-hover-bg: #bce0fe;
-    --morsels-scrollbar-bg: #fff;
-    --morsels-scrollbar-thumb-bg: #d9d9d9;
+    --infi-shadow: 0 0 5px #dcdcdc;
+    --infi-bg: white;
+    --infi-title-fg: #424242;
+    --infi-title-bg: #fff;
+    --infi-title-hover-fg: #444;
+    --infi-title-hover-bg: #bce0fe;
+    --infi-heading-hover-fg: #444;
+    --infi-body-hover-fg: #565656;
+    --infi-sub-bg: #fff;
+    --infi-sub-hover-bg: #bce0fe;
+    --infi-highlight: #1e94f4;
+    --infi-highlight-bg: none;
+    --infi-checkbox-bg: #f8f8f8;
+    --infi-checkbox-checked-bg: #fff;
+    --infi-checkbox-border: #414141;
+    --infi-header-fg: #3a3a3a;
+    --infi-key-fg: #fff;
+    --infi-key-bg: #ccc;
+    --infi-error-fg: #444;
+    --infi-fine-print-fg: #575757;
+    --infi-loading-bg: #b0dafb;
+    --infi-loading-secondary-bg: #78bff8;
+    --infi-load-more-fg: #707070;
+    --infi-load-more-bg: #f8f9f8;
+    --infi-load-more-hover-fg: #565656;
+    --infi-load-more-hover-bg: #bce0fe;
+    --infi-scrollbar-bg: #fff;
+    --infi-scrollbar-thumb-bg: #d9d9d9;
     /* 
      Below 3 values from https://bootswatch.com/darkly/'s info-themed button.
     */
-    --morsels-fs-button-input-fg: #fff;
-    --morsels-fs-button-input-bg: #3498db;
-    --morsels-fs-button-input-shadow: 0 0 0 3px rgb(82 167 224 / 40%);
-    --morsels-fs-border: none;
-    --morsels-fs-box-shadow: 0 1px 5px #9c9c9c;
-    --morsels-fs-input-fg: #000;
-    --morsels-fs-input-bg: #fdfdfd;
-    --morsels-fs-input-border: 2px solid #e5e5e5;
-    --morsels-fs-input-focus-border: 2px solid #d4d4d4;
-    --morsels-fs-input-focus-box-shadow: 0 0 11px -7px #c0c0c0;
-    --morsels-fs-header-bg: #fdfdfd;
-    --morsels-fs-header-box-shadow: 0 0 5px 3px #f0f0f0;
-    --morsels-fs-header-close-fg: #707070;
-    --morsels-fs-header-close-hover-bg: #7d7d7d;
-    --morsels-fs-header-close-hover-fg: #fff;
-    --morsels-fs-header-close-active-bg: #666666;
-    --morsels-fs-header-close-active-fg: #fff;
-    --morsels-tip-bg: #fff;
-    --morsels-tip-fg: #444;
-    --morsels-tip-table-header-border: hsl(0, 0%, 93%);
+    --infi-fs-button-input-fg: #fff;
+    --infi-fs-button-input-bg: #3498db;
+    --infi-fs-button-input-shadow: 0 0 0 3px rgb(82 167 224 / 40%);
+    --infi-fs-border: none;
+    --infi-fs-box-shadow: 0 1px 5px #9c9c9c;
+    --infi-fs-input-fg: #000;
+    --infi-fs-input-bg: #fdfdfd;
+    --infi-fs-input-border: 2px solid #e5e5e5;
+    --infi-fs-input-focus-border: 2px solid #d4d4d4;
+    --infi-fs-input-focus-box-shadow: 0 0 11px -7px #c0c0c0;
+    --infi-fs-header-bg: #fdfdfd;
+    --infi-fs-header-box-shadow: 0 0 5px 3px #f0f0f0;
+    --infi-fs-header-close-fg: #707070;
+    --infi-fs-header-close-hover-bg: #7d7d7d;
+    --infi-fs-header-close-hover-fg: #fff;
+    --infi-fs-header-close-active-bg: #666666;
+    --infi-fs-header-close-active-fg: #fff;
+    --infi-tip-bg: #fff;
+    --infi-tip-fg: #444;
+    --infi-tip-table-header-border: hsl(0, 0%, 93%);
     /* Following 2 colours from mdbook's light theme */
-    --morsels-tip-table-border: hsl(0, 0%, 95%);
-    --morsels-tip-table-alternate: hsl(0, 0%, 97%);
-    --morsels-tip-code-fg: #1876c3;
-    --morsels-tip-code-bg: transparent;
-    --morsels-tip-icon-bg: #e6e6e6;
-    --morsels-tip-icon-fg: #464646;
+    --infi-tip-table-border: hsl(0, 0%, 95%);
+    --infi-tip-table-alternate: hsl(0, 0%, 97%);
+    --infi-tip-code-fg: #1876c3;
+    --infi-tip-code-bg: transparent;
+    --infi-tip-icon-bg: #e6e6e6;
+    --infi-tip-icon-fg: #464646;
 }
 
-.morsels-fs-input-clear::after {
+.infi-fs-input-clear::after {
     background-image: url("data:image/svg+xml;utf8,<svg fill=\"%23cacaca\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 512\"><path d=\"M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z\"/></svg>");
 }
 
 @media (hover: hover) {
-    .morsels-fs-input-clear:hover::after {
+    .infi-fs-input-clear:hover::after {
         filter: brightness(0.5);
     }
 }

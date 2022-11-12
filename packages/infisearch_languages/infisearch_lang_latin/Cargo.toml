@@ -1,0 +1,19 @@
+[package]
+name = "infisearch_lang_latin"
+version = "0.7.3"
+authors = ["Ze Yu <angzeyu@gmail.com>"]
+edition = "2018"
+description = "Ascii tokenizer with stemmers for InfiSearch."
+documentation = "https://infi-search.com/infisearch/"
+repository = "https://github.com/ang-zeyu/infisearch"
+readme = "../README.md"
+license = "MIT"
+
+[features]
+indexer = []
+
+[dependencies]
+infisearch_common = { path = "../../infisearch_common", version="=0.7.3" }
+infisearch_lang_ascii = { path = "../infisearch_lang_ascii", version="=0.7.3" }
+rust-stemmers = "^1.0"
+smartstring = "0.2.7"

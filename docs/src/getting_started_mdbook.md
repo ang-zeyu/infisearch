@@ -1,14 +1,14 @@
-# mdbook-morsels
+# mdbook-infisearch
 
-`mdbook-morsels` is a simple search plugin replacement for [mdBook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
+`mdbook-infisearch` is a simple search plugin replacement for [mdBook](https://github.com/rust-lang/mdBook) to use InfiSearch' search interface and library instead of elasticlunr.js.
 
 ## What, why?
 
 MdBook already has its own built-in search function utilising elasticlunr, which works well enough for most cases. This plugin was mainly created as:
-1. A proof-of-concept to integrate morsels with other static site generators easily
+1. A proof-of-concept to integrate InfiSearch with other static site generators easily
 2. A personal means to set up document deployment workflows in CI scripts
 
-You may nonetheless want to use this plugin if you need Morsels' extra features. Some examples:
+You may nonetheless want to use this plugin if you need InfiSearch's extra features. Some examples:
 - you require PDF file support, or JSON file support to link to out-of-domain pages.
 - spelling correction, automatic prefix search, term proximity ranking, etc.
 - you prefer the look of the UI here.
@@ -17,11 +17,11 @@ You may nonetheless want to use this plugin if you need Morsels' extra features.
 
 This plugin uses the css variables provided by the 5 main default themes in mdBook to style the search user interface. Switch the themes in this documentation to try out the different themes!
 
-**Note:** The "Morsels" theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without this plugin).
+**Note:** The "InfiSearch" theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without this plugin).
 
 ## Installation
 
-Install the executable either using `cargo install mdbook-morsels`, or download and add the [binaries](https://github.com/ang-zeyu/morsels/releases) to your `PATH` manually.
+Install the executable either using `cargo install mdbook-infisearch`, or download and add the [binaries](https://github.com/ang-zeyu/infisearch/releases) to your `PATH` manually.
 
 Then, minimally add the first two configuration sections below to your `book.toml` configuration file:
 
@@ -29,17 +29,17 @@ Then, minimally add the first two configuration sections below to your `book.tom
 [output.html.search]
 enable = false               # disable the default mdBook search feature implementation
 
-[preprocessor.morsels]
-command = "mdbook-morsels"
+[preprocessor.infisearch]
+command = "mdbook-infisearch"
 
 # Plugin configuration options (optional)
-[output.morsels]
+[output.infisearch]
 # See search configuration page, or use the buttons below
 mode = "target"
 
-# Relative path to a Morsels indexer configuration file from the project directory.
+# Relative path to a InfiSearch indexer configuration file from the project directory.
 # The config file will also automatically be created here if it dosen't exist.
-config = "morsels_config.json"
+config = "infi_search.json"
 ```
 
 ## Preview

@@ -1,0 +1,87 @@
+{
+  "fields_config": {
+    "num_docs_per_store": 1000,
+    "cache_all_field_stores": true,
+    "num_stores_per_dir": 1000,
+    "fields": {}
+  },
+  "lang_config": {
+    "lang": "ascii",
+    "options": {
+      "ignore_stop_words": false
+    }
+  },
+  "indexing_config": {
+    "num_docs_per_block": 200,
+    "pl_limit": 16383,
+    "pl_cache_threshold": 1048576,
+    "exclude": [
+      "index.html",
+      "print.html",
+      "infi_search_*",
+      "**/secondary_*"
+    ],
+    "loaders": {
+      "HtmlLoader": {
+        "exclude_selectors": [
+          "script,style,#sidebar,#menu-bar,[data-infisearch-ignore]"
+        ],
+        "selectors": {
+          "h1": null,
+          "h2,h3,h4,h5,h6": null,
+          "h1,h2,h3,h4,h5,h6": {
+            "attr_map": {
+              "id": "headingLink"
+            },
+            "field_name": "heading"
+          },
+          "div[also-index]": {
+            "attr_map": {
+              "also-index": "_add_files"
+            }
+          }
+        }
+      },
+      "JsonLoader": {
+        "field_map": {
+          "body": "body",
+          "heading": "heading",
+          "title": "title"
+        },
+        "field_order": [
+          "title",
+          "heading",
+          "body"
+        ],
+        "type": "JsonLoader"
+      },
+      "CsvLoader": {
+        "header_field_map": {},
+        "header_field_order": [],
+        "index_field_map": {
+          "0": "title",
+          "1": "body",
+          "2": "_add_files"
+        },
+        "index_field_order": [
+          0,
+          1,
+          2
+        ],
+        "parse_options": {
+          "comment": null,
+          "delimiter": 44,
+          "double_quote": true,
+          "escape": null,
+          "has_headers": true,
+          "quote": 34
+        },
+        "type": "CsvLoader",
+        "use_headers": false
+      },
+      "PdfLoader": {}
+    },
+    "num_pls_per_dir": 1000,
+    "with_positions": false
+  }
+}

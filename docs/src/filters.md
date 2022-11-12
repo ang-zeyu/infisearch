@@ -18,9 +18,9 @@ First, we should setup a custom [field](./indexer/fields.md) inside the indexer 
 }
 ```
 
-The `is_enum: true` option tells Morsels that each document can only possibly contain one such value, allowing it to store these values far more efficiently than using a regular field. If there are multiple occurences, only the first seen value will be stored.
+The `is_enum: true` option tells InfiSearch that each document can only possibly contain one such value, allowing it to store these values far more efficiently than using a regular field. If there are multiple occurences, only the first seen value will be stored.
 
-Next, we'll need to tell Morsels where the data for this field comes from.
+Next, we'll need to tell InfiSearch where the data for this field comes from.
 
 For this guide, let's assume we're dealing with a bunch of HTML weather forecast articles in particular, which uses the [`HTMLLoader`](./indexer/indexing.md#html-files-loadershtmlloader). Our HTML files also store the weather inside a specific element with an `id="weather"`.
 
@@ -39,10 +39,10 @@ For this guide, let's assume we're dealing with a bunch of HTML weather forecast
 }
 ```
 
-Lastly, we need to tell Morsels' UI to setup a [multi-select](./search_configuration.md#general-options) filter using this field. To do so, add the following to your `initMorsels` call.
+Lastly, we need to tell InfiSearch' UI to setup a [multi-select](./search_configuration.md#general-options) filter using this field. To do so, add the following to your `init` call.
 
 ```ts
-morsels.initMorsels({
+infisearch.init({
     ...
     uiOptions: {
         multiSelectFilters: [
@@ -59,4 +59,4 @@ morsels.initMorsels({
 
 The `displayName` option tells the UI how to display the multi-select's header. We simply use an uppercased "Weather" in this case for readability.
 
-Some of the weather forecast articles indexed may also be missing the `id="weather"` element, for example due to a bug in generating the article, and therefore lacks an enum value. Morsels internally assigns such documents a default enum value by default. The `defaultOptName` option specifies the name of this default enum value as seen in the UI.
+Some of the weather forecast articles indexed may also be missing the `id="weather"` element, for example due to a bug in generating the article, and therefore lacks an enum value. InfiSearch internally assigns such documents a default enum value by default. The `defaultOptName` option specifies the name of this default enum value as seen in the UI.

@@ -14,19 +14,19 @@ This page assumes the use case of a **static site**, that is:
 
 ## Installing the indexer
 
-If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.7.3`.
+If you have the rust / cargo toolchains setup, simply run `cargo install infisearch --vers 0.7.3`.
 
-Alternatively, download the cli binaries [here](https://github.com/ang-zeyu/morsels/releases).
+Alternatively, download the cli binaries [here](https://github.com/ang-zeyu/infisearch/releases).
 
 ## Running the indexer
 
 Run the executable as such, replacing `<source-folder-path>` with the relative or absolute folder path of your source html files, and `<output-folder-path>` with your desired index output folder.
 
 ```
-morsels <source-folder-path> <output-folder-path>
+infisearch <source-folder-path> <output-folder-path>
 ```
 
-If you are using the binaries, replace `morsels` with the appropriate executable name.
+If you are using the binaries, replace `infisearch` with the appropriate executable name.
 
 ### Other Cli Options
 
@@ -41,9 +41,9 @@ If you are using the binaries, replace `morsels` with the appropriate executable
 <!-- Replace "v0.7.3" as appropriate -->
 
 <!--  Search UI script -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.3/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.7.3/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/morsels@v0.7.3/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.7.3/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 > ⚠️ Ensure the versions here **match the indexer version** used exactly.
@@ -58,16 +58,16 @@ The folder contains:
   - An accompanying WebAssembly binary
 - A stylesheet: `search-ui-basic/light/dark.css`
 
-The same files are also in the release packages [here](https://github.com/ang-zeyu/morsels/releases), inside `search.morsels.zip`.
+The same files are also in the release packages [here](https://github.com/ang-zeyu/infisearch/releases), inside `search.infi.zip`.
 
 ### UI Initialisation
 
-Once you have loaded the bundles, simply call the `morsels.initMorsels` function in your page.
+Once you have loaded the bundles, simply call the `infisearch.init` function in your page.
 
-This requires an input element with an `id=morsels-search` to be present in the page by default. The `id` can be configured via `uiOptions.input`.
+This requires an input element with an `id=infi-search` to be present in the page by default. The `id` can be configured via `uiOptions.input`.
 
 ```ts
-morsels.initMorsels({
+infisearch.init({
   searcherOptions: {
     // Output folder url specified as the second parameter in the cli command
     // Urls like '/output/' will work as well
@@ -76,7 +76,7 @@ morsels.initMorsels({
   uiOptions: {
     // Input / source folder url, specified as the first parameter in the cli command
     sourceFilesUrl: 'http://<your-domain>/source/',
-    input: 'morsels-search',
+    input: 'infi-search',
   }
 });
 ```

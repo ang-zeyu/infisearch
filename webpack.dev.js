@@ -65,7 +65,7 @@ module.exports = (env) => merge(common, {
   },
   plugins: (() => {
     const baseHtmlConfig = {
-      title: 'Morsels Dev Site',
+      title: 'InfiSearch Dev Site',
       scriptLoading: 'blocking',
       favicon: path.join(__dirname, 'packages/search-ui/public/favicon.ico'),
       template: './packages/search-ui/public/template.html',

@@ -30,7 +30,7 @@ export function prepareOptions(options: Options) {
   }
   
   if (!('input' in uiOptions) || typeof uiOptions.input === 'string') {
-    uiOptions.input = document.getElementById(uiOptions.input as any || 'morsels-search') as HTMLInputElement;
+    uiOptions.input = document.getElementById(uiOptions.input as any || 'infi-search') as HTMLInputElement;
   }
   
   if ([UiMode.Dropdown, UiMode.Target].includes(uiOptions.mode) && !uiOptions.input) {

@@ -48,7 +48,7 @@ body {
     box-sizing: border-box;
 }
 
-.morsels-search {
+.infi-search {
     padding: 0 1em;
     outline: none;
     width: 200px;
@@ -60,7 +60,7 @@ body {
 }
 
 @media screen and (max-width: 768px) {
-    .morsels-search {
+    .infi-search {
         width: 100%;
     }
 }

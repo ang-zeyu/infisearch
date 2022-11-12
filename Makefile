@@ -12,36 +12,36 @@ VERSION=v0.7.3
 preReleaseCommon:
 	git stash
 	cargo clean
-	cd packages/morsels_common &&\
+	cd packages/infisearch_common &&\
 	cargo package &&\
 	cargo package --list
 
 releaseCommon:
-	cd packages/morsels_common &&\
+	cd packages/infisearch_common &&\
 	cargo publish
 
 preReleaseAsciiLanguage:
-	cd packages/morsels_languages/morsels_lang_ascii &&\
+	cd packages/infisearch_languages/infisearch_lang_ascii &&\
 	cargo package &&\
 	cargo package --list
 
 releaseAsciiLanguage:
-	cd packages/morsels_languages/morsels_lang_ascii &&\
+	cd packages/infisearch_languages/infisearch_lang_ascii &&\
 	cargo publish
 
 # These 2 are separate as the prior needs to be published first
 preReleaseOtherLanguages:
-	cd packages/morsels_languages/morsels_lang_latin &&\
+	cd packages/infisearch_languages/infisearch_lang_latin &&\
 	cargo package &&\
 	cargo package --list
-	cd packages/morsels_languages/morsels_lang_chinese &&\
+	cd packages/infisearch_languages/infisearch_lang_chinese &&\
 	cargo package &&\
 	cargo package --list
 
 releaseOtherLanguages:
-	cd packages/morsels_languages/morsels_lang_latin &&\
+	cd packages/infisearch_languages/infisearch_lang_latin &&\
 	cargo publish
-	cd packages/morsels_languages/morsels_lang_chinese &&\
+	cd packages/infisearch_languages/infisearch_lang_chinese &&\
 	cargo publish
 
 # Extremely small iteratively releases
@@ -60,33 +60,33 @@ buildSearch:
 	npx lerna version $(VERSION) --amend --no-push --yes
 	npm run buildSearch
 	git add packages/search-ui/dist/*
-	git add packages/morsels_indexer/search-ui-dist/*
+	git add packages/infisearch/search-ui-dist/*
 	git commit --amend -m "Bump version"
 	git checkout -- .
 	git tag --force $(VERSION)
 
 # Indexer relies on all of the above
 preReleaseIndexer:
-	cd packages/morsels_indexer &&\
+	cd packages/infisearch &&\
 	cargo package &&\
 	cargo package --list
 
 releaseIndexer:
-	cd packages/morsels_indexer &&\
+	cd packages/infisearch &&\
 	cargo publish
 
 preReleaseMdbook:
-	cd packages/mdbook-morsels &&\
+	cd packages/mdbook-infisearch &&\
 	cargo package &&\
 	cargo package --list
 
 releaseMdbook:
-	cd packages/mdbook-morsels &&\
+	cd packages/mdbook-infisearch &&\
 	cargo publish
 
 finalise:
 	git push
-	git push morsels $(VERSION)
+	git push origin $(VERSION)
 	git stash pop
 	npm run updateDemo
 
@@ -100,14 +100,14 @@ releaseAll:
 	make finalise
 
 buildWinBinaries:
-	cargo build --release --target x86_64-pc-windows-msvc -p morsels_indexer
-	cargo build --release --target x86_64-pc-windows-msvc -p mdbook-morsels
+	cargo build --release --target x86_64-pc-windows-msvc -p infisearch
+	cargo build --release --target x86_64-pc-windows-msvc -p mdbook-infisearch
 
 buildLinuxBinaries:
-	cargo build --release --target x86_64-unknown-linux-gnu -p morsels_indexer
-	cargo build --release --target x86_64-unknown-linux-gnu -p mdbook-morsels
+	cargo build --release --target x86_64-unknown-linux-gnu -p infisearch
+	cargo build --release --target x86_64-unknown-linux-gnu -p mdbook-infisearch
 
 zipBinaries:
-	zip -j target/search.morsels.zip packages/search-ui/dist/*
-	zip -j target/indexer.x86_64-pc-windows-msvc.zip target/x86_64-pc-windows-msvc/release/morsels.exe target/x86_64-pc-windows-msvc/release/mdbook-morsels.exe
-	zip -j target/indexer.x86_64-unknown-linux-gnu.zip target/x86_64-unknown-linux-gnu/release/morsels target/x86_64-unknown-linux-gnu/release/mdbook-morsels
+	zip -j target/search.infi.zip packages/search-ui/dist/*
+	zip -j target/indexer.x86_64-pc-windows-msvc.zip target/x86_64-pc-windows-msvc/release/infisearch.exe target/x86_64-pc-windows-msvc/release/mdbook-infisearch.exe
+	zip -j target/indexer.x86_64-unknown-linux-gnu.zip target/x86_64-unknown-linux-gnu/release/infisearch target/x86_64-unknown-linux-gnu/release/mdbook-infisearch

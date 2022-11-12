@@ -2,7 +2,7 @@
 
 The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
-Morsels' defaults should be sufficient to index most HTML files, but if not, you can also configure how the content mapping is done. Enabling support for other file formats (e.g. JSON, CSV, PDF) files is also done here.
+InfiSearch' defaults should be sufficient to index most HTML files, but if not, you can also configure how the content mapping is done. Enabling support for other file formats (e.g. JSON, CSV, PDF) files is also done here.
 
 ## Mapping File Data to Fields
 
@@ -29,7 +29,7 @@ You may configure loaders by including them under the `loaders`, with any applic
   "HtmlLoader": {
     "exclude_selectors": [
       // Selectors to exclude from indexing
-      "script,style,form,nav,[data-morsels-ignore]"
+      "script,style,form,nav,[data-infisearch-ignore]"
     ],
     "selectors": {
       "title": {
@@ -56,9 +56,9 @@ You may configure loaders by including them under the `loaders`, with any applic
 
       // Provides a means to override the link used in the result preview
       // See "Linking to other pages" for more information
-      "span[data-morsels-link]": {
+      "span[data-infisearch-link]": {
         "attr_map": {
-          "data-morsels-link": "link"
+          "data-infisearch-link": "link"
         }
       }
     }
@@ -78,7 +78,7 @@ The HTML loader indexes a document as such:
 
    - All selectors are matched in arbitrary order by default. To **specify an order**, add the `priority: n` key to your selector definition, where `n` is any integer.
 
-To **exclude elements** from indexing, you can use the `exclude_selectors` option, or add the in-built `data-morsels-ignore` attribute to your HTML.
+To **exclude elements** from indexing, you can use the `exclude_selectors` option, or add the in-built `data-infisearch-ignore` attribute to your HTML.
 
 If needed, you can also index **HTML fragments** that are incomplete documents. To match the entire fragment, use the `body` selector.
 
@@ -186,7 +186,7 @@ This loader simply reads `.txt` files and indexes all its contents into a single
 {
   "indexing_config": {
     "exclude": [
-      "morsels_config.json"
+      "infi_search.json"
     ],
     "include": [],
 
@@ -195,7 +195,7 @@ This loader simply reads `.txt` files and indexes all its contents into a single
 }
 ```
 
-#### File Exclusions: **`exclude = ["morsels_config.json"]`**
+#### File Exclusions: **`exclude = ["infi_search.json"]`**
 
 Global file exclusions can be specified in this parameter, which is simply an array of file globs.
 
@@ -256,7 +256,7 @@ Another example use case might be to redirect to another domain using the [`link
 
 ```json
 {
-  "link": "https://morsels-search.com",
+  "link": "https://infi-search.com",
   "_add_files": "./main.html"
 }
 ```
@@ -314,7 +314,7 @@ Increasing the value may also be useful for caching when used in conjunction wit
 
 Index files that exceed this number will be cached by the search library at initilisation.
 
-It can be used to configure morsels for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./larger_collections.md).
+It can be used to configure InfiSearch for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./larger_collections.md).
 
 #### Index Shards per Directory: **`num_pls_per_dir`**
 

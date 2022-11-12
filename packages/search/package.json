@@ -1,13 +1,13 @@
 {
-  "name": "@morsels/search-lib",
+  "name": "@infisearch/search-lib",
   "version": "0.7.3",
-  "description": "Internal search library module for @morsels/search-ui",
+  "description": "Internal search library module for @infisearch/search-ui",
   "keywords": [
     "search"
   ],
-  "homepage": "https://github.com/ang-zeyu/morsels",
+  "homepage": "https://github.com/ang-zeyu/infisearch",
   "bugs": {
-    "url": "https://github.com/ang-zeyu/morsels/issues"
+    "url": "https://github.com/ang-zeyu/infisearch/issues"
   },
   "license": "MIT",
   "author": "Ze Yu <angzeyu@gmail.com>",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ang-zeyu/morsels.git"
+    "url": "git+https://github.com/ang-zeyu/infisearch.git"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
@@ -29,8 +29,8 @@
     "escape-string-regexp": "^5.0.0"
   },
   "devDependencies": {
-    "@morsels/lang-ascii": "^0.7.3",
-    "@morsels/lang-chinese": "^0.7.3",
-    "@morsels/lang-latin": "^0.7.3"
+    "@infisearch/lang-ascii": "^0.7.3",
+    "@infisearch/lang-chinese": "^0.7.3",
+    "@infisearch/lang-latin": "^0.7.3"
   }
 }

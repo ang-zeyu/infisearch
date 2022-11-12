@@ -2,7 +2,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 
 import { Result } from './Result';
 import { QueryPart } from '../parser/queryParser';
-import { MorselsConfig } from './Config';
+import { InfiConfig } from './Config';
 
 
 function getSearchedTerms(queryParts: QueryPart[], result: string[][], notContext: boolean) {
@@ -25,7 +25,7 @@ function getSearchedTerms(queryParts: QueryPart[], result: string[][], notContex
   }
 }
 
-export function getRegexes(queryParts: QueryPart[], config: MorselsConfig) {
+export function getRegexes(queryParts: QueryPart[], config: InfiConfig) {
   const termRegexes: RegExp[] = [];
 
   const searchedTerms: string[][] = [];
@@ -66,7 +66,7 @@ export default class Query {
      */
     public readonly resultsTotal: number,
     /**
-     * Syntactic tree of query parsed by Morsels.
+     * Syntactic tree of query parsed by InfiSearch.
      */
     public readonly queryParts: QueryPart[],
     /**

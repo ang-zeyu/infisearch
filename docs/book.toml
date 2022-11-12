@@ -3,23 +3,23 @@ authors = ["Ang Ze Yu"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Morsels Documentation"
+title = "InfiSearch Documentation"
 
 [output.html]
-default-theme = "morsels-theme"
+default-theme = "infi-theme"
 curly-quotes = true
-additional-css = ["src/morsels-theme.css"]
-additional-js = ["src/morsels-theme.js"]
-git-repository-url = "https://github.com/ang-zeyu/morsels"
-site-url = "/morsels/"
+additional-css = ["src/infi-theme.css"]
+additional-js = ["src/infi-theme.js"]
+git-repository-url = "https://github.com/ang-zeyu/infisearch"
+site-url = "/infisearch/"
 
 [output.html.search]
 enable = false
 
-[preprocessor.morsels]
-command = "mdbook-morsels"
+[preprocessor.infisearch]
+command = "mdbook-infisearch"
 
-[output.morsels]
+[output.infisearch]
 # Note
 # "query_param" is documentation specific, for demo-ing the different modes with the buttons
 # the only valid modes that should be used are "auto", "dropdown", "fullscreen", "target"

@@ -1,4 +1,4 @@
-import { Query, Searcher } from '@morsels/search-lib';
+import { Query, Searcher } from '@infisearch/search-lib';
 import { Options } from './Options';
 import { MultiSelectState, filtersRender } from './search/multiSelectFilters';
 import createTipButton from './search/tips';
@@ -8,7 +8,7 @@ import { setExpanded, unsetActiveDescendant, unsetExpanded } from './utils/aria'
 import { addKeyboardHandler as addKeyboardHandlers } from './utils/keyboard';
 import { stateRender } from './utils/state';
 
-const INPUT_HAS_STRING_CLASS = 'morsels-empty-input';
+const INPUT_HAS_STRING_CLASS = 'infi-empty-input';
 
 /**
  * An IManager can be running one action, and queueing only one at a time.

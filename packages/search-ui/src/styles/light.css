@@ -2,34 +2,34 @@
 @import url('./light-base.css');
 
 :root {
-    --morsels-item-border-radius: 8px;
-    --morsels-item-box-shadow: 0 0 8px #ebebeb;
-    --morsels-title-border-bottom: none;
-    --morsels-title-border-bottom-hover: none;
-    --morsels-heading-fg: #565656;
-    --morsels-body-fg: #5f5f5f;
+    --infi-item-border-radius: 8px;
+    --infi-item-box-shadow: 0 0 8px #ebebeb;
+    --infi-title-border-bottom: none;
+    --infi-title-border-bottom-hover: none;
+    --infi-heading-fg: #565656;
+    --infi-body-fg: #5f5f5f;
 
-    --morsels-title-border-bottom-padded: 1px solid #eee;
+    --infi-title-border-bottom-padded: 1px solid #eee;
 }
 
-.morsels-title::after {
+.infi-title::after {
     content: '';
     display: block;
-    border-bottom: var(--morsels-title-border-bottom-padded);
+    border-bottom: var(--infi-title-border-bottom-padded);
     transform: translateY(5px);
 }
 
-.morsels-title:active::after,
-.morsels-title-link.focus .morsels-title::after {
-    border-bottom: 1px solid var(--morsels-title-hover-bg);
+.infi-title:active::after,
+.infi-title-link.focus .infi-title::after {
+    border-bottom: 1px solid var(--infi-title-hover-bg);
 }
 
-.morsels-title:active::after {
+.infi-title:active::after {
     transition: background 0.2s ease-in, color 0.2s ease-in, border 0.2s ease-in !important;
 }
 
 @media (hover: hover) {
-    .morsels-list-item:hover .morsels-title::after {
+    .infi-list-item:hover .infi-title::after {
         border-bottom: 1px solid #bce0fe;
         transition: background 0.1s ease-in, color 0.1s ease-in, border 0.1s ease-in;
     }

@@ -1,6 +1,6 @@
 import { setActiveDescendant, unsetActiveDescendant } from './aria';
 
-export const SELECTED_OPTION_ID = 'morsels-list-selected';
+export const SELECTED_OPTION_ID = 'infi-list-selected';
 
 function scrollListContainer(targetEl: any, listContainer: HTMLElement) {
   const computedStyles = getComputedStyle(listContainer);

@@ -1,18 +1,18 @@
 # Search API
 
-You can also interface with Morsels through its API.
+You can also interface with InfiSearch through its API.
 
 ## Setup
 
-Under the global `morsels` variable, you can instantiate an instance of the `Searcher` class.
+Under the global `infisearch` variable, you can instantiate an instance of the `Searcher` class.
 
 ```ts
-const searcher = new morsels.Searcher({
+const searcher = new infisearch.Searcher({
     url: 'https://... the index output directory ...'
 });
 ```
 
-The constructor parameter uses the same options as `morsels.initMorsels`, refer to this [page](./search_configuration.md#search-functionality-options) for the other available options.
+The constructor parameter uses the same options as `infisearch.init`, refer to this [page](./search_configuration.md#search-functionality-options) for the other available options.
 
 **Initialising States**
 
@@ -103,7 +103,7 @@ const fields = results[0].fields;
     ['h1', 'README'],
     ['headingLink', 'description'],
     ['heading', 'Description'],
-    ['body', 'Morsels is a client-side search solution made for static sites, .....'],
+    ['body', 'InfiSearch is a client-side search solution made for static sites, .....'],
     // ... more headingLink, heading, body fields ...
   ],
   enums: {
@@ -115,12 +115,12 @@ const fields = results[0].fields;
 
 - `texts`: fields are stored as an array of `[fieldName, fieldText]` pairs in the order they were seen.
 
-   This ordered model is more complex than a regular key-value store, but enables the detailed content hierarchy you see in Morsels' UI: *Title > Heading > Text under heading*
+   This ordered model is more complex than a regular key-value store, but enables the detailed content hierarchy you see in InfiSearch' UI: *Title > Heading > Text under heading*
 - `enums`: This stores the enum values of the document. Documents missing specific enum values will be assigned `null`.
 
 ## Memory Management
 
-As Morsels uses a WebWorker to run things, you would also need to perform some memory management.
+As InfiSearch uses a WebWorker to run things, you would also need to perform some memory management.
 
 Once you are done with a `Query` (e.g. if a new query was run), call `free()` on the `query` object.
 
@@ -157,7 +157,7 @@ Only the first `[fieldName, fieldText]` pair for each field will be populated in
 
 **Tip: Constructing a Document Link**
 
-If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-morsels-link`](./linking_to_others.md) attribute are also available under the `link` field.
+If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-infisearch-link`](./linking_to_others.md) attribute are also available under the `link` field.
 
 ### 2. Highlighting and Linking 'Heading' and 'Body' Excerpts
 
@@ -221,11 +221,11 @@ The `highlight()` method wraps term matches in a `<mark>` element, truncates sur
 
 ```ts
 [
-  <span class="morsels-ellipses"> ... </span>,
+  <span class="infi-ellipses"> ... </span>,
   ' ... text before ... ',
-  <mark class="morsels-highlight">highlighted</mark>,
+  <mark class="infi-highlight">highlighted</mark>,
   ' ... text after ... ',
-  <span class="morsels-ellipses"> ... </span>,
+  <span class="infi-ellipses"> ... </span>,
 ]
 ```
 

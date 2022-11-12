@@ -1,22 +1,22 @@
 :root {
-    --morsels-dropdown-max-width: 525px;
-    --morsels-dropdown-max-height: 32em;
-    --morsels-dropdown-z-index: 9999;
-    --morsels-font-size: 14px;
-    --morsels-border: none;
-    --morsels-fs-item-spacing: 18px;
-    --morsels-fs-desktop-width: 650px;
-    --morsels-fs-desktop-height: 70vh;
-    --morsels-tip-icon-size: 21px;
-    --morsels-triangle-bg: var(--morsels-bg);
-    --morsels-fs-header-close-bg: var(--morsels-fs-header-bg);
+    --infi-dropdown-max-width: 525px;
+    --infi-dropdown-max-height: 32em;
+    --infi-dropdown-z-index: 9999;
+    --infi-font-size: 14px;
+    --infi-border: none;
+    --infi-fs-item-spacing: 18px;
+    --infi-fs-desktop-width: 650px;
+    --infi-fs-desktop-height: 70vh;
+    --infi-tip-icon-size: 21px;
+    --infi-triangle-bg: var(--infi-bg);
+    --infi-fs-header-close-bg: var(--infi-fs-header-bg);
 }
 
-.morsels-root {
-    font-size: var(--morsels-font-size);
+.infi-root {
+    font-size: var(--infi-font-size);
 }
 
-.morsels-root * {
+.infi-root * {
     box-sizing: border-box;
 }
 
@@ -25,86 +25,86 @@
  Fullscreen version
  */
 
-.morsels-button-input:hover {
+.infi-button-input:hover {
     cursor: pointer;
 }
 
-.morsels-button-input:focus:not(:hover) {
+.infi-button-input:focus:not(:hover) {
     transition: 0.3s ease-out;
-    background: var(--morsels-fs-button-input-bg) !important;
-    box-shadow: var(--morsels-fs-button-input-shadow) !important;
+    background: var(--infi-fs-button-input-bg) !important;
+    box-shadow: var(--infi-fs-button-input-shadow) !important;
 }
 
-.morsels-button-input:focus:not(:hover)::placeholder {
-    color: var(--morsels-fs-button-input-fg) !important;
+.infi-button-input:focus:not(:hover)::placeholder {
+    color: var(--infi-fs-button-input-fg) !important;
 }
 
-.morsels-fs-backdrop {
-    --morsels-fs-backdrop-bg: rgba(0, 0, 0, 0.1);
+.infi-fs-backdrop {
+    --infi-fs-backdrop-bg: rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--morsels-fs-backdrop-bg);
+    background: var(--infi-fs-backdrop-bg);
     z-index: 1000;
 }
 
-.morsels-fs-root {
+.infi-fs-root {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: var(--morsels-bg);
+    background: var(--infi-bg);
     overflow: hidden;
     z-index: 1000;
 }
 
-.morsels-fs-controls {
+.infi-fs-controls {
     position: relative;
     display: flex;
     align-items: stretch;
     justify-content: space-between;
     padding: 9px 10px 9px 12px;
     font-size: 1.1em;
-    background: var(--morsels-fs-header-bg);
-    box-shadow: var(--morsels-fs-header-box-shadow);
+    background: var(--infi-fs-header-bg);
+    box-shadow: var(--infi-fs-header-box-shadow);
     z-index: 1000;
 }
 
-.morsels-fs-input-wrapper {
+.infi-fs-input-wrapper {
     display: flex;
     align-items: center;
     flex: 1 0 0;
 }
 
-.morsels-fs-input {
+.infi-fs-input {
     width: 100%;
     padding: 0 30px 0 13px;
     height: 2.1em;
     outline: none;
-    color: var(--morsels-fs-input-fg);
-    background: var(--morsels-fs-input-bg);
-    border: var(--morsels-fs-input-border);
+    color: var(--infi-fs-input-fg);
+    background: var(--infi-fs-input-bg);
+    border: var(--infi-fs-input-border);
     border-radius: 10px;
     font-size: inherit;
 }
 
-.morsels-fs-input:focus {
-    border: var(--morsels-fs-input-focus-border);
-    box-shadow: var(--morsels-fs-input-focus-box-shadow);
+.infi-fs-input:focus {
+    border: var(--infi-fs-input-focus-border);
+    box-shadow: var(--infi-fs-input-focus-box-shadow);
 }
 
-.morsels-fs-input::-webkit-search-cancel-button {
+.infi-fs-input::-webkit-search-cancel-button {
     appearance: none;
     -webkit-appearance: none;
 }
 
-.morsels-fs-input-clear {
+.infi-fs-input-clear {
     width: 0;
     height: 0;
 }
 
-.morsels-fs-input:not(:placeholder-shown) + .morsels-fs-input-clear::after {
+.infi-fs-input:not(:placeholder-shown) + .infi-fs-input-clear::after {
     content: '';
     position: relative;
     right: 30px;
@@ -119,7 +119,7 @@
     transition: filter 0.15s ease-in-out;
 }
 
-.morsels-input-close-fs {
+.infi-input-close-fs {
     position: relative;
     border: none;
     padding: 0 13px;
@@ -128,23 +128,23 @@
     font-size: inherit;
     font-weight: 600;
     cursor: pointer;
-    color: var(--morsels-fs-header-close-fg);
-    background: var(--morsels-fs-header-close-bg);
+    color: var(--infi-fs-header-close-fg);
+    background: var(--infi-fs-header-close-bg);
     transition: background 0.2s linear, color 0.2s linear;
     user-select: none;
 }
 
 @media (hover: hover) {
-    .morsels-input-close-fs:hover,
-    .morsels-input-close-fs:focus {
-        color: var(--morsels-fs-header-close-hover-fg);
-        background: var(--morsels-fs-header-close-hover-bg);
+    .infi-input-close-fs:hover,
+    .infi-input-close-fs:focus {
+        color: var(--infi-fs-header-close-hover-fg);
+        background: var(--infi-fs-header-close-hover-bg);
     }
 }
 
-.morsels-input-close-fs:active {
-    color: var(--morsels-fs-header-close-active-fg);
-    background: var(--morsels-fs-header-close-active-bg);
+.infi-input-close-fs:active {
+    color: var(--infi-fs-header-close-active-fg);
+    background: var(--infi-fs-header-close-active-bg);
 }
 
 /*
@@ -152,159 +152,159 @@
  Tip icon
  */
 
-.morsels-tip-root {
+.infi-tip-root {
     position: absolute;
     bottom: 15px;
     right: 15px;
-    width: var(--morsels-tip-icon-size);
-    height: var(--morsels-tip-icon-size);
+    width: var(--infi-tip-icon-size);
+    height: var(--infi-tip-icon-size);
     z-index: 1;
 }
 
-.morsels-tip-icon {
+.infi-tip-icon {
     cursor: default;
     display: inline-block;
-    line-height: var(--morsels-tip-icon-size);
+    line-height: var(--infi-tip-icon-size);
     width: 100%;
     height: 100%;
     border-width: 0;
     border-radius: 50%;
-    color: var(--morsels-tip-icon-fg);
-    background: var(--morsels-tip-icon-bg);
+    color: var(--infi-tip-icon-fg);
+    background: var(--infi-tip-icon-bg);
     text-align: center;
     opacity: 0.5;
     transition: opacity 0.2s linear, font-weight 0.2s linear;
 }
 
-.morsels-tip-icon:hover {
+.infi-tip-icon:hover {
     opacity: 1;
     font-weight: 600;
 }
 
-.morsels-tip-popup-root {
+.infi-tip-popup-root {
     position: absolute;
     opacity: 0;
     transition: opacity 0.25s ease-in-out;
     padding: 10px 0;
 }
 
-.morsels-tip-popup-root.shown {
+.infi-tip-popup-root.shown {
     opacity: 1;
     display: block;
 }
 
-.morsels-tip-popup {
+.infi-tip-popup {
     padding: 14px;
     font-size: 14px;
-    box-shadow: var(--morsels-shadow);
+    box-shadow: var(--infi-shadow);
     width: 300px;
-    background: var(--morsels-tip-bg);
+    background: var(--infi-tip-bg);
 }
 
-.morsels-tip-popup-title {
-    color: var(--morsels-tip-fg);
+.infi-tip-popup-title {
+    color: var(--infi-tip-fg);
     font-weight: bold;
 }
 
-table.morsels-tip-table {
+table.infi-tip-table {
     font-size: 14px;
     margin: 7px 0 0 20px;
     width: auto;
 }
 
 /* Reset styles */
-table.morsels-tip-table,
-table.morsels-tip-table thead.morsels-tip-table-header,
-table.morsels-tip-table thead.morsels-tip-table-header tr,
-table.morsels-tip-table tbody,
-table.morsels-tip-table tbody tr.morsels-tip-item {
+table.infi-tip-table,
+table.infi-tip-table thead.infi-tip-table-header,
+table.infi-tip-table thead.infi-tip-table-header tr,
+table.infi-tip-table tbody,
+table.infi-tip-table tbody tr.infi-tip-item {
     background: none;
     border: none;
 }
 
-table.morsels-tip-table th,
-table.morsels-tip-table td {
+table.infi-tip-table th,
+table.infi-tip-table td {
     background: none;
     border: none;
     text-align: left;
     vertical-align: text-top;
     box-shadow: none;
-    color: var(--morsels-tip-fg);
+    color: var(--infi-tip-fg);
 }
 
-table.morsels-tip-table th {
+table.infi-tip-table th {
     border-bottom: 3px solid;
-    border-bottom-color: var(--morsels-tip-table-header-border, var(--morsels-tip-table-border)) !important;
+    border-bottom-color: var(--infi-tip-table-header-border, var(--infi-tip-table-border)) !important;
     font-weight: bold;
 }
 
-table.morsels-tip-table td {
+table.infi-tip-table td {
     border-bottom: 1px solid;
-    border-bottom-color: var(--morsels-tip-table-border) !important;
+    border-bottom-color: var(--infi-tip-table-border) !important;
 }
 
-table.morsels-tip-table > tbody > tr:nth-child(2n) > td {
-    background: var(--morsels-tip-table-alternate);
+table.infi-tip-table > tbody > tr:nth-child(2n) > td {
+    background: var(--infi-tip-table-alternate);
 }
 
-table.morsels-tip-table > tbody > tr:last-child > td {
+table.infi-tip-table > tbody > tr:last-child > td {
     border: none;
 }
 
-table.morsels-tip-table td:first-child,
-table.morsels-tip-table th:first-child {
+table.infi-tip-table td:first-child,
+table.infi-tip-table th:first-child {
     width: 45%;
     padding: 3px 5px 5px 4px;
 }
 
-table.morsels-tip-table td:last-child,
-table.morsels-tip-table th:last-child {
+table.infi-tip-table td:last-child,
+table.infi-tip-table th:last-child {
     width: 55%;
     padding: 3px 0 5px 7px;
 }
 
-table.morsels-tip-table th:first-child,
-table.morsels-tip-table th:last-child {
+table.infi-tip-table th:first-child,
+table.infi-tip-table th:last-child {
     padding-bottom: 1px;
 }
 
-table.morsels-tip-table .morsels-tip-item > td > div {
+table.infi-tip-table .infi-tip-item > td > div {
     padding: 0;
     margin: 0;
     line-height: 1.2;
 }
 
-table.morsels-tip-table .morsels-tip-item > td {
+table.infi-tip-table .infi-tip-item > td {
     font-size: 0.9em;
 }
 
-table.morsels-tip-table .morsels-tip-item code {
+table.infi-tip-table .infi-tip-item code {
     font-size: 0.9em;
-    color: var(--morsels-tip-code-fg);
-    background: var(--morsels-tip-code-bg);
+    color: var(--infi-tip-code-fg);
+    background: var(--infi-tip-code-bg);
     word-wrap: break-word;
 }
 
-table.morsels-tip-table .morsels-tip-item ul {
+table.infi-tip-table .infi-tip-item ul {
     padding: 0;
     margin: 0;
 }
 
-table.morsels-tip-table .morsels-tip-item li {
+table.infi-tip-table .infi-tip-item li {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
 @media screen and (min-width: 769px) {
-    .morsels-fs-root {
+    .infi-fs-root {
         border-radius: 6px;
-        border: var(--morsels-fs-border);
-        box-shadow: var(--morsels-fs-box-shadow);
+        border: var(--infi-fs-border);
+        box-shadow: var(--infi-fs-box-shadow);
         top: 15%;
-        left: calc(50% - (var(--morsels-fs-desktop-width) / 2));
-        width: var(--morsels-fs-desktop-width);
-        height: var(--morsels-fs-desktop-height);
+        left: calc(50% - (var(--infi-fs-desktop-width) / 2));
+        width: var(--infi-fs-desktop-width);
+        height: var(--infi-fs-desktop-height);
     }
 }
 
@@ -313,18 +313,18 @@ table.morsels-tip-table .morsels-tip-item li {
  Dropdown version
  */
 
-.morsels-dropdown-root {
+.infi-dropdown-root {
     display: inline-block;
     position: relative;
 }
 
-.morsels-input-dropdown-separator {
+.infi-input-dropdown-separator {
     position: relative;
     width: 0;
     height: 0;
     border-left: 9px solid transparent;
     border-right: 9px solid transparent;
-    border-bottom: 9px solid var(--morsels-triangle-bg);
+    border-bottom: 9px solid var(--infi-triangle-bg);
 }
 
 /*
@@ -332,32 +332,32 @@ table.morsels-tip-table .morsels-tip-item li {
  All 3 versions. TODO see if this can be on the top.
  */
 
-.morsels-inner-root {
+.infi-inner-root {
     position: absolute;
     top: 0;
     left: 100vw;
-    z-index: var(--morsels-dropdown-z-index);
+    z-index: var(--infi-dropdown-z-index);
 }
 
-.morsels-list {
+.infi-list {
     padding: 0;
-    border: var(--morsels-border);
+    border: var(--infi-border);
     border-radius: 5px;
-    box-shadow: var(--morsels-shadow);
+    box-shadow: var(--infi-shadow);
     margin: 0;
     width: 100vw;
-    max-width: var(--morsels-dropdown-max-width);
+    max-width: var(--infi-dropdown-max-width);
     overflow-y: auto;
     overflow-y: overlay;
     list-style: none;
-    background-color: var(--morsels-bg);
+    background-color: var(--infi-bg);
     font-size: inherit;
     z-index: 1000;
-    scrollbar-color: var(--morsels-scrollbar-thumb-bg) var(--morsels-scrollbar-bg);
+    scrollbar-color: var(--infi-scrollbar-thumb-bg) var(--infi-scrollbar-bg);
     scrollbar-width: thin;
 }
 
-.morsels-fs-root .morsels-list {
+.infi-fs-root .infi-list {
     width: auto;
     max-height: calc(100% - 20px - 2.7em);
     max-width: none;
@@ -368,23 +368,23 @@ table.morsels-tip-table .morsels-tip-item li {
     position: static;
 }
 
-.morsels-list::-webkit-scrollbar-track {
+.infi-list::-webkit-scrollbar-track {
     border-radius: 5px;
-    background: var(--morsels-scrollbar-bg);
+    background: var(--infi-scrollbar-bg);
 }
 
-.morsels-list::-webkit-scrollbar {
+.infi-list::-webkit-scrollbar {
     width: 6px;
     background-color: transparent;
 }
 
-.morsels-fs-root .morsels-list::-webkit-scrollbar {
+.infi-fs-root .infi-list::-webkit-scrollbar {
     width: 7px;
 }
 
-.morsels-list::-webkit-scrollbar-thumb {
+.infi-list::-webkit-scrollbar-thumb {
     border-radius: 5px;
-    background: var(--morsels-scrollbar-thumb-bg);
+    background: var(--infi-scrollbar-thumb-bg);
 }
 
 /*
@@ -392,57 +392,57 @@ table.morsels-tip-table .morsels-tip-item li {
  Header
  */
 
-.morsels-header {
+.infi-header {
     display: flex;
     justify-content: space-between;
-    color: var(--morsels-header-fg);
+    color: var(--infi-header-fg);
     padding: 9px 13px 0 13px;
     margin-bottom: 7px;
     font-weight: bold;
     font-size: 1.06em;
 }
 
-.morsels-fs-root .morsels-header {
+.infi-fs-root .infi-header {
     padding: 9px 7px 9px 3px;
 }
 
-.morsels-results-found {
+.infi-results-found {
     padding-right: 5px;
 }
 
-.morsels-instructions {
+.infi-instructions {
     display: flex;
     align-items: center;
 }
 
-.morsels-instructions:first-child {
+.infi-instructions:first-child {
     display: none;
 }
 
-.morsels-key-arrow,
-.morsels-key-return {
-    fill: var(--morsels-key-fg);
-    stroke: var(--morsels-key-fg);
-    background: var(--morsels-key-bg);
+.infi-key-arrow,
+.infi-key-return {
+    fill: var(--infi-key-fg);
+    stroke: var(--infi-key-fg);
+    background: var(--infi-key-bg);
     height: 18px;
     border-radius: 4px;
     padding: 3px;
     margin: 0 0 0 2px;
 }
 
-.morsels-key-arrow {
+.infi-key-arrow {
     width: 16px;
 }
 
-.morsels-key-arrow-down {
+.infi-key-arrow-down {
     transform: rotateX(180deg);
 }
 
-.morsels-key-return {
+.infi-key-return {
     width: 20px;
 }
 
-button.morsels-filters {
+button.infi-filters {
     display: flex;
     align-items: center;
     border: none;
@@ -459,7 +459,7 @@ button.morsels-filters {
     cursor: pointer;
 }
 
-button.morsels-filters::after {
+button.infi-filters::after {
     content: '';
     display: inline-block;
     margin-left: 0.2em;
@@ -470,13 +470,13 @@ button.morsels-filters::after {
     transform: translateY(1px);
 }
 
-button.morsels-filters.active::after {
+button.infi-filters.active::after {
     transform: translateY(0) rotateZ(180deg);
 }
 
-.morsels-results-found + .morsels-filters {
+.infi-results-found + .infi-filters {
     margin-left: auto;
-    border-right: 2px solid var(--morsels-key-bg);
+    border-right: 2px solid var(--infi-key-bg);
 }
 
 /*
@@ -484,15 +484,15 @@ button.morsels-filters.active::after {
  Filters
  */
 
-.morsels-filters.shown {
+.infi-filters.shown {
     padding: 0 13px 10px 13px;
 }
 
-.morsels-fs-root .morsels-filters.shown {
+.infi-fs-root .infi-filters.shown {
     padding: 0 7px 12px 3px;
 }
 
-.morsels-filter-header {
+.infi-filter-header {
     display: flex;
     align-items: center;
     padding: 0;
@@ -501,15 +501,15 @@ button.morsels-filters.active::after {
     cursor: pointer;
     user-select: none;
     margin: 0 5px 1px 0;
-    color: var(--morsels-header-fg);
+    color: var(--infi-header-fg);
 }
 
-.morsels-filter-header:focus-visible {
-    outline: 2px solid var(--morsels-header-fg);
-    color: var(--morsels-header-fg);
+.infi-filter-header:focus-visible {
+    outline: 2px solid var(--infi-header-fg);
+    color: var(--infi-header-fg);
 }
 
-.morsels-filter-header::before {
+.infi-filter-header::before {
     content: '';
     display: inline-block;
     margin-right: 0.2em;
@@ -520,28 +520,28 @@ button.morsels-filters.active::after {
     transform: rotateZ(-90deg);
 }
 
-.morsels-filter-header.active::before {
+.infi-filter-header.active::before {
     transform: rotateZ(180deg);
 }
 
-.morsels-filter-opt {
+.infi-filter-opt {
     width: fit-content;
     padding: 3px 3px 3px 0.5em;
     user-select: none;
 }
 
-.morsels-filter-opt:last-child {
+.infi-filter-opt:last-child {
     margin: 0 0 2px 0;
 }
 
-label.morsels-checkbox-label {
+label.infi-checkbox-label {
     font-size: 1em;
     line-height: 1;
     display: grid;
     grid-template-columns: 1em auto;
     gap: 0.5em;
     align-items:baseline;
-    color: var(--morsels-header-fg);
+    color: var(--infi-header-fg);
     cursor: pointer;
 }
 
@@ -549,16 +549,16 @@ label.morsels-checkbox-label {
  Checkbox styles from https://moderncss.dev/pure-css-custom-checkbox-style/,
  with some small tweaks
 */
-input[type="checkbox"].morsels-checkbox {
+input[type="checkbox"].infi-checkbox {
     -webkit-appearance: none;
     appearance: none;
-    background: var(--morsels-checkbox-bg);
+    background: var(--infi-checkbox-bg);
     margin: 0;
 
     font: inherit;
     width: 1.06em;
     height: 1.06em;
-    border: 0.14em solid var( --morsels-checkbox-border);
+    border: 0.14em solid var( --infi-checkbox-border);
     border-radius: 0.14em;
     transform: translateY(-0.07em);
 
@@ -568,27 +568,27 @@ input[type="checkbox"].morsels-checkbox {
     cursor: pointer;
 }
 
-input[type="checkbox"].morsels-checkbox:checked {
-    background: var(--morsels-checkbox-checked-bg);
+input[type="checkbox"].infi-checkbox:checked {
+    background: var(--infi-checkbox-checked-bg);
 }
 
-input[type="checkbox"].morsels-checkbox:focus,
-input[type="checkbox"].morsels-checkbox.focus {
-    outline: max(2px, 0.15em) solid var(--morsels-highlight);
+input[type="checkbox"].infi-checkbox:focus,
+input[type="checkbox"].infi-checkbox.focus {
+    outline: max(2px, 0.15em) solid var(--infi-highlight);
     outline-offset: max(2px, 0.15em);
 }
 
-input[type="checkbox"].morsels-checkbox:focus {
-    outline-color: var(--morsels-header-fg);
+input[type="checkbox"].infi-checkbox:focus {
+    outline-color: var(--infi-header-fg);
 }
 
-input[type="checkbox"].morsels-checkbox::before {
+input[type="checkbox"].infi-checkbox::before {
     content: "";
     width: 0.53em;
     height: 0.53em;
     transform: scale(0);
     transition: 120ms transform ease-in-out;
-    box-shadow: inset 1em 1em var(--morsels-highlight);
+    box-shadow: inset 1em 1em var(--infi-highlight);
 
     transform-origin: center;
     clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
@@ -597,7 +597,7 @@ input[type="checkbox"].morsels-checkbox::before {
     background-color: CanvasText;
 }
 
-input[type="checkbox"].morsels-checkbox:checked::before {
+input[type="checkbox"].infi-checkbox:checked::before {
     transform: scale(1);
 }
 
@@ -607,52 +607,52 @@ input[type="checkbox"].morsels-checkbox:checked::before {
  Result footer
  */
 
-.morsels-footer {
+.infi-footer {
     display: flex;
     justify-content: center;
 }
 
-.morsels-footer:last-child {
+.infi-footer:last-child {
     margin-bottom: 15px;
 }
 
-.morsels-footer:focus-visible {
+.infi-footer:focus-visible {
     outline: none;
 }
 
-.morsels-load-more,
-.morsels-footer-so-far {
+.infi-load-more,
+.infi-footer-so-far {
     font-weight: bold;
-    color: var(--morsels-load-more-fg);
+    color: var(--infi-load-more-fg);
 }
 
-.morsels-load-more {
+.infi-load-more {
     padding: 5px 15px;
     margin: 5px 0;
     text-decoration: none;
     user-select: none;
     border-radius: 20px;
-    background: var(--morsels-load-more-bg);
+    background: var(--infi-load-more-bg);
     border: none;
     cursor: pointer;
 }
 
-.morsels-load-more:active {
+.infi-load-more:active {
     transition: color 0.2s ease-in-out, background 0.2s ease-in-out;
 }
 
-.morsels-load-more:active,
-.morsels-load-more-opt.focus > .morsels-load-more {
-    color: var(--morsels-load-more-hover-fg);
-    background: var(--morsels-load-more-hover-bg);
+.infi-load-more:active,
+.infi-load-more-opt.focus > .infi-load-more {
+    color: var(--infi-load-more-hover-fg);
+    background: var(--infi-load-more-hover-bg);
 }
 
 @media (hover: hover) {
-    .morsels-load-more:hover,
-    .morsels-load-more:focus {
+    .infi-load-more:hover,
+    .infi-load-more:focus {
         transition: color 0.2s ease-in-out, background 0.2s ease-in-out;
-        color: var(--morsels-load-more-hover-fg);
-        background: var(--morsels-load-more-hover-bg);
+        color: var(--infi-load-more-hover-fg);
+        background: var(--infi-load-more-hover-bg);
     }
 }
 
@@ -661,8 +661,8 @@ input[type="checkbox"].morsels-checkbox:checked::before {
  States (error, blank, loading)
  */
 
-.morsels-error,
-.morsels-blank {
+.infi-error,
+.infi-blank {
     justify-content: center;
     text-align: center;
     font-size: 0.9em;
@@ -670,23 +670,23 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     margin: 1.2em 0;
 }
 
-.morsels-error {
-    color: var(--morsels-error-fg);
+.infi-error {
+    color: var(--infi-error-fg);
 }
 
-.morsels-blank {
-    color: var(--morsels-fine-print-fg);
+.infi-blank {
+    color: var(--infi-fine-print-fg);
 }
 
 /* https://loading.io/css/ */
-.morsels-loading-indicator {
+.infi-loading-indicator {
     display: flex;
     justify-content: center;
     width: 100%;
     margin: 1.2em 0;
 }
 
-.morsels-loading-indicator:after {
+.infi-loading-indicator:after {
     content: " ";
     display: block;
     width: 40px;
@@ -694,11 +694,11 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     margin: 4px;
     border-radius: 50%;
     border: 6px solid;
-    border-color: var(--morsels-loading-bg) transparent var(--morsels-loading-bg) transparent;
-    animation: morsels-loading-indicator 1.2s linear infinite;
+    border-color: var(--infi-loading-bg) transparent var(--infi-loading-bg) transparent;
+    animation: infi-loading-indicator 1.2s linear infinite;
 }
 
-@keyframes morsels-loading-indicator {
+@keyframes infi-loading-indicator {
     0% {
         transform: rotate(0deg);
     }
@@ -707,7 +707,7 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     }
 }
 
-.morsels-loading-indicator-subsequent {
+.infi-loading-indicator-subsequent {
     position: sticky;
     top: 10px;
     padding-left: calc(100% - 40px);
@@ -716,15 +716,15 @@ input[type="checkbox"].morsels-checkbox:checked::before {
     overflow: visible;
 }
 
-.morsels-loading-indicator-subsequent::after {
+.infi-loading-indicator-subsequent::after {
     width: 25px;
     height: 25px;
     border-width: 4px;
-    border-color: var(--morsels-loading-secondary-bg) transparent var(--morsels-loading-secondary-bg) transparent;
-    animation: morsels-loading-indicator 1.2s linear infinite, morsels-loading-indicator-subsequent 1s linear 1;
+    border-color: var(--infi-loading-secondary-bg) transparent var(--infi-loading-secondary-bg) transparent;
+    animation: infi-loading-indicator 1.2s linear infinite, infi-loading-indicator-subsequent 1s linear 1;
 }
 
-@keyframes morsels-loading-indicator-subsequent {
+@keyframes infi-loading-indicator-subsequent {
     0% {
         opacity: 0.0;
     }
@@ -741,165 +741,165 @@ input[type="checkbox"].morsels-checkbox:checked::before {
  Results
  */
 
-.morsels-list-item {
+.infi-list-item {
     font-size: inherit;
-    border-radius: var(--morsels-item-border-radius);
-    box-shadow: var(--morsels-item-box-shadow);
+    border-radius: var(--infi-item-border-radius);
+    box-shadow: var(--infi-item-box-shadow);
     margin: 18px 13px;
     overflow: hidden;
 }
 
-.morsels-fs-root .morsels-list-item {
-    margin: var(--morsels-fs-item-spacing) 8px;
+.infi-fs-root .infi-list-item {
+    margin: var(--infi-fs-item-spacing) 8px;
 }
 
-.morsels-list-item:first-child {
+.infi-list-item:first-child {
     margin-top: 2px;
 }
 
-.morsels-title-link,
-.morsels-heading-link {
+.infi-title-link,
+.infi-heading-link {
     display: block;
     font-size: inherit;
     text-decoration: none !important;
     outline-offset: -1px;
-    outline-color: var(--morsels-title-fg);
+    outline-color: var(--infi-title-fg);
 }
 
-.morsels-title {
-    border-bottom: var(--morsels-title-border-bottom);
-    color: var(--morsels-title-fg);
+.infi-title {
+    border-bottom: var(--infi-title-border-bottom);
+    color: var(--infi-title-fg);
     line-height: 1.2;
     word-break: break-word;
     padding: 9px 11px 5px;
-    background: var(--morsels-title-bg);
+    background: var(--infi-title-bg);
     font-size: 1.04em;
     font-weight: 600;
 }
 
-.morsels-title:active,
-.morsels-title-link.focus .morsels-title {
-    color: var(--morsels-title-hover-fg);
-    background: var(--morsels-title-hover-bg);
-    border-bottom: var(--morsels-title-border-bottom-hover);
+.infi-title:active,
+.infi-title-link.focus .infi-title {
+    color: var(--infi-title-hover-fg);
+    background: var(--infi-title-hover-bg);
+    border-bottom: var(--infi-title-border-bottom-hover);
 }
 
-.morsels-heading-link {
+.infi-heading-link {
     padding: 3px 0 2px 0;
-    background: var(--morsels-sub-bg);
+    background: var(--infi-sub-bg);
 }
 
-.morsels-title-link + .morsels-heading-link {
+.infi-title-link + .infi-heading-link {
     padding-top: 4px;
 }
 
-.morsels-heading-link:last-child {
+.infi-heading-link:last-child {
     padding-bottom: 7px;
 }
 
-.morsels-heading {
+.infi-heading {
     font-size: 0.94em;
     word-break: break-word;
     padding: 0 5px 0 11px;
     line-height: 1.2;
-    color: var(--morsels-heading-fg);
+    color: var(--infi-heading-fg);
     font-weight: 600;
 }
 
-.morsels-heading-link:active .morsels-heading,
-.morsels-heading-link.focus .morsels-heading {
-    color: var(--morsels-heading-hover-fg);
+.infi-heading-link:active .infi-heading,
+.infi-heading-link.focus .infi-heading {
+    color: var(--infi-heading-hover-fg);
 }
 
-.morsels-body {
+.infi-body {
     font-size: 0.93em;
     line-height: 1.15;
     word-break: break-word;
     padding: 4px 5px 5px 11px;
-    color: var(--morsels-body-fg);
+    color: var(--infi-body-fg);
 }
 
-.morsels-heading-link .morsels-body {
+.infi-heading-link .infi-body {
     padding: 1px 5px 0 16px;
 }
 
-.morsels-title-link > .morsels-body:active,
-.morsels-title-link.focus > .morsels-body,
-.morsels-heading-link:active .morsels-body,
-.morsels-heading-link.focus .morsels-body {
-    color: var(--morsels-body-hover-fg);
+.infi-title-link > .infi-body:active,
+.infi-title-link.focus > .infi-body,
+.infi-heading-link:active .infi-body,
+.infi-heading-link.focus .infi-body {
+    color: var(--infi-body-hover-fg);
 }
 
-.morsels-title-link > .morsels-body:active,
-.morsels-title-link.focus > .morsels-body,
-.morsels-heading-link:active,
-.morsels-heading-link.focus {
-    background: var(--morsels-sub-hover-bg);
+.infi-title-link > .infi-body:active,
+.infi-title-link.focus > .infi-body,
+.infi-heading-link:active,
+.infi-heading-link.focus {
+    background: var(--infi-sub-hover-bg);
 }
 
 @media (hover: hover) {
-    .morsels-list-item:hover .morsels-title {
-        color: var(--morsels-title-hover-fg);
-        background: var(--morsels-title-hover-bg);
-        border-bottom: var(--morsels-title-border-bottom-hover);
+    .infi-list-item:hover .infi-title {
+        color: var(--infi-title-hover-fg);
+        background: var(--infi-title-hover-bg);
+        border-bottom: var(--infi-title-border-bottom-hover);
     }
 
-    .morsels-heading-link:not(:last-child):hover {
-        border-bottom: var(--morsels-item-sub-border-hover);
+    .infi-heading-link:not(:last-child):hover {
+        border-bottom: var(--infi-item-sub-border-hover);
     }
 
-    .morsels-title-link > .morsels-body:hover,
-    .morsels-heading-link:hover {
-        background: var(--morsels-sub-hover-bg);
+    .infi-title-link > .infi-body:hover,
+    .infi-heading-link:hover {
+        background: var(--infi-sub-hover-bg);
     }
 
-    .morsels-heading-link:hover .morsels-heading {
-        color: var(--morsels-heading-hover-fg);
+    .infi-heading-link:hover .infi-heading {
+        color: var(--infi-heading-hover-fg);
     }
 
-    .morsels-body:hover,
-    .morsels-heading-link:hover .morsels-body {
-        color: var(--morsels-body-hover-fg);
+    .infi-body:hover,
+    .infi-heading-link:hover .infi-body {
+        color: var(--infi-body-hover-fg);
     }
 
     /* Prevent transitions from kicking in for keyboard navigation */
-    .morsels-list-item:hover .morsels-title,
-    .morsels-list-item:hover .morsels-heading-link,
-    .morsels-list-item:hover .morsels-body,
-    .morsels-list-item:hover .morsels-heading {
+    .infi-list-item:hover .infi-title,
+    .infi-list-item:hover .infi-heading-link,
+    .infi-list-item:hover .infi-body,
+    .infi-list-item:hover .infi-heading {
         transition: background 0.1s ease-in, color 0.1s ease-in, border 0.1s ease-in;
     }
 }
 
 /* Prevent transitions from kicking for keyboard navigation */
-.morsels-body:active,
-.morsels-list-item:active .morsels-title,
-.morsels-list-item:active .morsels-heading-link,
-.morsels-list-item:active .morsels-body,
-.morsels-list-item:active .morsels-heading {
+.infi-body:active,
+.infi-list-item:active .infi-title,
+.infi-list-item:active .infi-heading-link,
+.infi-list-item:active .infi-body,
+.infi-list-item:active .infi-heading {
     transition: background 0.2s ease-in, color 0.2s ease-in, border 0.2s ease-in !important;
 }
 
-.morsels-highlight {
-    color: var(--morsels-highlight);
-    background-color: var(--morsels-highlight-bg);
+.infi-highlight {
+    color: var(--infi-highlight);
+    background-color: var(--infi-highlight-bg);
     font-weight: bold;
     padding: 0;
     margin: 0;
 }
 
-.morsels-heading .morsels-highlight {
-    color: var(--morsels-heading-highlight, var(--morsels-highlight));
+.infi-heading .infi-highlight {
+    color: var(--infi-heading-highlight, var(--infi-highlight));
 }
 
-.morsels-ellipsis {
+.infi-ellipsis {
     letter-spacing: 0.3mm;
     opacity: 0.85;
 }
 
-.morsels-initialising-text {
+.infi-initialising-text {
     font-size: 0.9em;
-    color: var(--morsels-fine-print-fg);
+    color: var(--infi-fine-print-fg);
     margin-top: -5px;
     padding-bottom: 15px;
     text-align: center;
@@ -912,53 +912,53 @@ input[type="checkbox"].morsels-checkbox:checked::before {
 
 @media screen and (max-width: 768px) {
     :root {
-        --morsels-dropdown-max-width: 100vw;
-        --morsels-dropdown-max-height: 75vh;
-        --morsels-tip-icon-size: 26px;
+        --infi-dropdown-max-width: 100vw;
+        --infi-dropdown-max-height: 75vh;
+        --infi-tip-icon-size: 26px;
     }
 
-    .morsels-fs-input {
+    .infi-fs-input {
         height: 2.25em;
     }
 
-    .morsels-fs-root .morsels-tip-root {
+    .infi-fs-root .infi-tip-root {
         bottom: 19px;
         right: 19px;
     }
 
-    .morsels-title,
-    .morsels-heading,
-    .morsels-body {
+    .infi-title,
+    .infi-heading,
+    .infi-body {
         padding-left: 9px;
     }
 
-    .morsels-filter-header {
+    .infi-filter-header {
         margin-bottom: 3px;
     }
 
-    .morsels-filter:not(:first-child) .morsels-filter-header {
+    .infi-filter:not(:first-child) .infi-filter-header {
         margin-top: 4px;
     }
 
-    .morsels-filter-opt {
+    .infi-filter-opt {
         width: auto;
         padding: 7px 5px 7px 0.5em;
     }
 
-    .morsels-instructions {
+    .infi-instructions {
         display: none;
     }
 
-    .morsels-results-found + .morsels-filters {
+    .infi-results-found + .infi-filters {
         border-right: none;
     }
 
-    .morsels-load-more {
+    .infi-load-more {
         font-size: 1.01em;
         padding: 7px 15px;
     }
 
-    .morsels-footer:last-child {
+    .infi-footer:last-child {
         margin-bottom: 20px;
     }
 }

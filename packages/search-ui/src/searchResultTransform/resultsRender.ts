@@ -1,6 +1,6 @@
-import { Query } from '@morsels/search-lib';
-import { Result } from '@morsels/search-lib/lib/results/Result';
-import h from '@morsels/search-lib/lib/utils/dom';
+import { Query } from '@infisearch/search-lib';
+import { Result } from '@infisearch/search-lib/lib/results/Result';
+import h from '@infisearch/search-lib/lib/utils/dom';
 import { Options } from '../Options';
 import { resultSeparator } from './resultsRender/repeatedFooter';
 

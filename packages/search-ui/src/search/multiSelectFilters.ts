@@ -1,11 +1,11 @@
-import h from '@morsels/search-lib/lib/utils/dom';
+import h from '@infisearch/search-lib/lib/utils/dom';
 
-import { MorselsConfig } from '@morsels/search-lib/lib/results/Config';
+import { InfiConfig } from '@infisearch/search-lib/lib/results/Config';
 import { Options } from '../Options';
 import { IManager } from '../InputManager';
 import { unsetActiveDescendant } from '../utils/aria';
 
-const OPTION_ENTER_EV = 'morsels-filter-opt-enter';
+const OPTION_ENTER_EV = 'infi-filter-opt-enter';
 
 let tieBreaker = 0;
 
@@ -18,7 +18,7 @@ export interface MultiSelectState {
 }
 
 function getMultiSelectStates(
-  opts: Options, cfg: MorselsConfig,
+  opts: Options, cfg: InfiConfig,
 ): MultiSelectState[] {
   const multiSelectBindings = opts.uiOptions.multiSelectFilters;
   const fieldInfos = cfg.fieldInfos;
@@ -42,7 +42,7 @@ function getMultiSelectStates(
 
 function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   const headerIdTieBreaker = tieBreaker++;
-  const id = 'morsels-filter-opts-' + headerIdTieBreaker;
+  const id = 'infi-filter-opts-' + headerIdTieBreaker;
 
   const filterOptions = h('div', {
     id,
@@ -52,7 +52,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   });
 
   const filterHeader = h('div', {
-    class: 'morsels-filter-header',
+    class: 'infi-filter-header',
     tabindex: '0',
     role: 'combobox',
     'aria-expanded': 'false',
@@ -60,7 +60,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   }, state._mrlDisplayName);
 
   const container = h('div',
-    { class: 'morsels-filter' },
+    { class: 'infi-filter' },
     filterHeader,
     filterOptions,
   );
@@ -97,16 +97,16 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   ) {
     const input = h('input', {
       type: 'checkbox',
-      class: 'morsels-checkbox',
+      class: 'infi-checkbox',
       checked: 'true',
       role: 'option',
       'aria-selected': 'true',
-      id: `morsels-filter-opt-${headerIdTieBreaker}-${idx}`,
+      id: `infi-filter-opt-${headerIdTieBreaker}-${idx}`,
     }) as HTMLInputElement;
   
     const opt = h('div',
-      { class: 'morsels-filter-opt' },
-      h('label', { class: 'morsels-checkbox-label' }, input, enumName),
+      { class: 'infi-filter-opt' },
+      h('label', { class: 'infi-checkbox-label' }, input, enumName),
     );
 
     function focusOption(addVisualFocus: boolean) {
@@ -226,7 +226,7 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
 
 export function filtersRender(
   opts: Options,
-  cfg: MorselsConfig,
+  cfg: InfiConfig,
   iManager: IManager,
 ): [HTMLElement, MultiSelectState[], (setValue?: boolean) => boolean] {
   const states = getMultiSelectStates(opts, cfg);
@@ -235,7 +235,7 @@ export function filtersRender(
     ...states.map((state) => renderFilterHeader(iManager, state)),
   );
 
-  const filtersContainer = h('div', { class: 'morsels-filters' });
+  const filtersContainer = h('div', { class: 'infi-filters' });
 
   let shown = false;
   const getOrSetFiltersShown = states.length ? (setValue?: boolean) => {

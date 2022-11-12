@@ -1,13 +1,13 @@
 {
-  "name": "@morsels/search-ui",
+  "name": "@infisearch/search-ui",
   "version": "0.7.3",
   "description": "A complete and more scalable pre-built index approach to client-side search.",
   "keywords": [
     "search"
   ],
-  "homepage": "https://github.com/ang-zeyu/morsels",
+  "homepage": "https://github.com/ang-zeyu/infisearch",
   "bugs": {
-    "url": "https://github.com/ang-zeyu/morsels/issues"
+    "url": "https://github.com/ang-zeyu/infisearch/issues"
   },
   "license": "MIT",
   "author": "Ze Yu <angzeyu@gmail.com>",
@@ -21,11 +21,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ang-zeyu/morsels.git",
+    "url": "https://github.com/ang-zeyu/infisearch.git",
     "directory": "packages/search-ui"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.0",
-    "@morsels/search-lib": "^0.7.3"
+    "@infisearch/search-lib": "^0.7.3"
   }
 }

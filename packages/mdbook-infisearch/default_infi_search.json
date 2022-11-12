@@ -1,0 +1,32 @@
+{
+  "fields_config": {
+    "fields": {
+      "partTitle": {
+        "storage": ["enum"]
+      }
+    }
+  },
+  "indexing_config": {
+    "exclude": [
+      "index.html",
+      "print.html",
+      "404.html",
+      "infi_search.json"
+    ],
+    "loaders": {
+      "HtmlLoader": {
+        "exclude_selectors": [
+          "script,style,#sidebar,#menu-bar"
+        ],
+        "selectors": {
+          "span[data-infisearch-part-title]": {
+            "attr_map": {
+              "data-infisearch-part-title": "partTitle"
+            }
+          }
+        }
+      }
+    }
+  },
+  "preset": "small"
+}

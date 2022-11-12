@@ -10,7 +10,7 @@ To use it, simply pass the `--incremental` or `-i` option when running the index
 
 ## Content Based Hashing
 
-The default change detection currently relies on the last modified time in file metadata. This may not always be guaranteed by the tools that generate the files Morsels indexes, or be an accurate reflection of whether a file's contents were updated.
+The default change detection currently relies on the last modified time in file metadata. This may not always be guaranteed by the tools that generate the files InfiSearch indexes, or be an accurate reflection of whether a file's contents were updated.
 
 If file metadata is *unavailable* for any given file, the file would always be re-indexed as well.
 
@@ -21,9 +21,9 @@ It should only be marginally more expensive for the majority of cases, and may b
 ## Circumstances that Trigger a Full (Re)Index
 
 Note also, that the following circumstances will forcibly trigger a **full** reindex:
-- If the output folder path does not contain any files indexed by morsels
-- It contains files indexed by a different version of morsels
-- The configuration file (`morsels_config.json`) was changed in any way
+- If the output folder path does not contain any files indexed by InfiSearch
+- It contains files indexed by a different version of InfiSearch
+- The configuration file (`infi_search.json`) was changed in any way
 - Usage of the `--incremental-content-hash` option changed
 
 ## Caveats
@@ -32,9 +32,9 @@ There are some additional caveats to note when using this option. Whenever possi
 
 ### How it Works
 
-As the core idea of Morsels is to split up the index into many tiny parts, the incremental indexing feature works by "patching" only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.
+As the core idea of InfiSearch is to split up the index into many tiny parts, the incremental indexing feature works by "patching" only the files which were updated during the current run. This means that at search time, the same amount of index files are retrieved and searched through as before, to reduce the number of network requests.
 
-This is in contrast to a more traditional "segment" based approach you might find in search servers, whereby each incremental indexing run generates an entirely separate "segment", and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something Morsels is trying to minimise.
+This is in contrast to a more traditional "segment" based approach you might find in search servers, whereby each incremental indexing run generates an entirely separate "segment", and segments are merged together at runtime (during search). While this makes sense for traditional search tools, it may unfortunately generate too many network requests for index files and search overhead from merging files, something InfiSearch is trying to minimise.
 
 ### Collection Statistics
 

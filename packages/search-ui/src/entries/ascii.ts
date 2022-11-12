@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Searcher } from '@morsels/search-lib/lib/results/Searcher/Searcher-ascii';
+import { Searcher } from '@infisearch/search-lib/lib/results/Searcher/Searcher-ascii';
 
-import initMorsels from '../search';
+import init from '../search';
 export default {
-  initMorsels,
+  init,
   Searcher,
 };

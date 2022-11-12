@@ -1,10 +1,10 @@
 [workspace]
 
 members = [
-    "packages/morsels_indexer",
-    "packages/morsels_common",
-    "packages/morsels_search",
-    "packages/mdbook-morsels",
+    "packages/infisearch",
+    "packages/infisearch_common",
+    "packages/infisearch_search",
+    "packages/mdbook-infisearch",
 ]
 
 [profile.release]
