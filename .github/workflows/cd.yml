@@ -34,24 +34,24 @@ jobs:
       - uses: Swatinem/rust-cache@v1
 
       - name: Build indexer x86_64
-        run: cargo build --release --target ${{ matrix.target }} -p morsels_indexer
+        run: cargo build --release --target ${{ matrix.target }} -p infisearch
       - name: Build mdbook plugin x86_64
-        run: cargo build --release --target ${{ matrix.target }} -p mdbook-morsels
+        run: cargo build --release --target ${{ matrix.target }} -p mdbook-infisearch
       - name: Zip binaries
-        run: zip -j target/indexer.${{ matrix.target }}.zip target/${{ matrix.target }}/release/morsels target/${{ matrix.target }}/release/mdbook-morsels
+        run: zip -j target/indexer.${{ matrix.target }}.zip target/${{ matrix.target }}/release/morsels target/${{ matrix.target }}/release/mdbook-infisearch
         if: matrix.os != 'windows-latest'
       - name: Zip binaries
-        run: tar -c -f target/indexer.${{ matrix.target }}.zip --directory=target/${{ matrix.target }}/release morsels.exe mdbook-morsels.exe
+        run: tar -c -f target/indexer.${{ matrix.target }}.zip --directory=target/${{ matrix.target }}/release morsels.exe mdbook-infisearch.exe
         if: matrix.os == 'windows-latest'
 
       - name: Build indexer aarch-64
-        run: cargo build --release --target ${{ matrix.extra_target }} -p morsels_indexer
+        run: cargo build --release --target ${{ matrix.extra_target }} -p infisearch
         if: matrix.os == 'macos-latest'
       - name: Build mdbook plugin aarch-64
-        run: cargo build --release --target ${{ matrix.extra_target }} -p mdbook-morsels
+        run: cargo build --release --target ${{ matrix.extra_target }} -p mdbook-infisearch
         if: matrix.os == 'macos-latest'
       - name: Zip binaries
-        run: zip -j target/indexer.${{ matrix.extra_target }}.zip target/${{ matrix.extra_target }}/release/morsels target/${{ matrix.extra_target }}/release/mdbook-morsels
+        run: zip -j target/indexer.${{ matrix.extra_target }}.zip target/${{ matrix.extra_target }}/release/morsels target/${{ matrix.extra_target }}/release/mdbook-infisearch
         if: matrix.os == 'macos-latest'
 
       - name: Upload binaries to release
@@ -83,7 +83,7 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
       - run: cargo install mdbook
-      - run: cargo install mdbook-morsels
+      - run: cargo install mdbook-infisearch
       - run: npm run buildDocs
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4

@@ -7,7 +7,7 @@ use log::warn;
 use path_absolutize::Absolutize;
 use rustc_hash::FxHashMap;
 
-use morsels_common::tokenize::IndexerTokenizer;
+use infisearch_common::tokenize::IndexerTokenizer;
 
 use crate::field_info::{ADD_FILES_FIELD, FieldInfo, FieldInfos, EnumKind, EnumInfo};
 use crate::loader::LoaderBoxed;

@@ -9,8 +9,8 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use morsels_common::dictionary::Dictionary;
-use morsels_common::{bitmap, MetadataReader, METADATA_FILE};
+use infisearch_common::dictionary::Dictionary;
+use infisearch_common::{bitmap, MetadataReader, METADATA_FILE};
 
 use crate::indexer::output_config::MorselsOutputConfig;
 use crate::utils::fs_utils;

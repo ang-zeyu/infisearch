@@ -3,7 +3,7 @@ use std::io::Write;
 use crate::utils::varint::PackedVarIntWriter;
 
 use bitvec::{vec::BitVec, prelude::Msb0};
-use morsels_common::dictionary::{DICT_MAX_BIT_LENS, DICT_MAX_VALUES};
+use infisearch_common::dictionary::{DICT_MAX_BIT_LENS, DICT_MAX_VALUES};
 
 type DictTableWriter = PackedVarIntWriter::<4>; 
 type DictStringWriter = Vec<u8>; 

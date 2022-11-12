@@ -4,11 +4,11 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use morsels_indexer::SOURCE_CONFIG_FILE;
-use morsels_indexer::indexer::Indexer;
-use morsels_indexer::indexer::input_config::MorselsConfig;
-use morsels_indexer::assets;
-use morsels_indexer::i_debug;
+use infisearch::SOURCE_CONFIG_FILE;
+use infisearch::indexer::Indexer;
+use infisearch::indexer::input_config::MorselsConfig;
+use infisearch::assets;
+use infisearch::i_debug;
 
 use log::LevelFilter;
 use log::{info, error};
@@ -95,7 +95,7 @@ fn resolve_folder_paths(
 fn initialize_logger() {
     let log_config = Config::builder()
         .appender(Appender::builder().build("morsels_stdout", Box::new(ConsoleAppender::builder().build())))
-        .logger(Logger::builder().build("morsels_indexer", LevelFilter::Info))
+        .logger(Logger::builder().build("infisearch", LevelFilter::Info))
         .build(Root::builder().appender("morsels_stdout").build(LevelFilter::Off))
         .unwrap();
     log4rs::init_config(log_config).expect("log4rs initialisation should not fail");

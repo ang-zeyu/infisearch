@@ -24,7 +24,7 @@ Powering static site search with Morsels is extremely easy, and requires just a 
 
 ### 1. Installing the indexer
 
-If you have the rust / cargo toolchains setup, simply run `cargo install morsels_indexer --vers 0.7.3`.
+If you have the rust / cargo toolchains setup, simply run `cargo install infisearch --vers 0.7.3`.
 
 Alternatively, download the cli binaries [here](https://github.com/ang-zeyu/morsels/releases).
 
@@ -33,7 +33,7 @@ Alternatively, download the cli binaries [here](https://github.com/ang-zeyu/mors
 Run the executable as such, replacing `<source-folder-path>` with the relative or absolute folder path of your source html files, and `<output-folder-path>` with your desired index output folder.
 
 ```
-morsels <source-folder-path> <output-folder-path>
+infisearch <source-folder-path> <output-folder-path>
 ```
 
 ### 3. Installing the Search UI via CDN

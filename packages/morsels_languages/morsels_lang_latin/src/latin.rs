@@ -4,18 +4,18 @@ use std::collections::HashSet;
 
 use rust_stemmers::{Algorithm, Stemmer};
 
-use morsels_common::{MorselsLanguageConfig, dictionary::Dictionary, tokenize::SearchTokenizeTerm, utils::split_incl::SplitIncl};
+use infisearch_common::{MorselsLanguageConfig, dictionary::Dictionary, tokenize::SearchTokenizeTerm, utils::split_incl::SplitIncl};
 #[cfg(feature = "indexer")]
-use morsels_common::tokenize::{IndexerTokenizer, TermIter};
-use morsels_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer};
+use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
+use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer};
 #[cfg(feature = "indexer")]
-use morsels_lang_ascii::ascii_folding_filter;
-use morsels_lang_ascii::{utils as ascii_utils, spelling};
+use infisearch_lang_ascii::ascii_folding_filter;
+use infisearch_lang_ascii::{utils as ascii_utils, spelling};
 #[cfg(feature = "indexer")]
-use morsels_lang_ascii::ascii::SENTENCE_SPLITTER;
-use morsels_lang_ascii::stop_words::get_stop_words;
+use infisearch_lang_ascii::ascii::SENTENCE_SPLITTER;
+use infisearch_lang_ascii::stop_words::get_stop_words;
 #[cfg(feature = "indexer")]
-use morsels_lang_ascii::utils::term_filter;
+use infisearch_lang_ascii::utils::term_filter;
 
 pub struct Tokenizer {
     // Remove HashSet from the search binary, where speed benefits are minimal

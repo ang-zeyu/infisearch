@@ -1,4 +1,4 @@
-use morsels_common::MorselsLanguageConfig;
+use infisearch_common::MorselsLanguageConfig;
 
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;

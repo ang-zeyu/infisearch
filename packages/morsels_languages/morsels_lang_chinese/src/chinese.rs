@@ -6,13 +6,13 @@ use std::collections::HashSet;
 use regex::Regex;
 
 #[cfg(feature = "indexer")]
-use morsels_common::tokenize::{IndexerTokenizer, TermIter};
-use morsels_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
-use morsels_common::MorselsLanguageConfig;
-use morsels_common::dictionary::Dictionary;
-use morsels_common::utils::split_incl::SplitIncl;
-use morsels_lang_ascii::{ascii_folding_filter, spelling};
-use morsels_lang_ascii::stop_words::get_stop_words;
+use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
+use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
+use infisearch_common::MorselsLanguageConfig;
+use infisearch_common::dictionary::Dictionary;
+use infisearch_common::utils::split_incl::SplitIncl;
+use infisearch_lang_ascii::{ascii_folding_filter, spelling};
+use infisearch_lang_ascii::stop_words::get_stop_words;
 
 use crate::{utils, ts};
 
@@ -207,7 +207,7 @@ impl SearchTokenizer for Tokenizer {
 
 #[cfg(test)]
 mod test {
-    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
+    use infisearch_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
 
     use super::Tokenizer;
     use super::IndexerTokenizer;
@@ -218,7 +218,7 @@ mod test {
             options: MorselsLanguageConfigOpts::default(),
         };
 
-        let stop_words = morsels_lang_ascii::stop_words::get_stop_words(&lang_config, &[]);
+        let stop_words = infisearch_lang_ascii::stop_words::get_stop_words(&lang_config, &[]);
     
         let max_term_len = lang_config.options.max_term_len.unwrap_or(80).min(250);
     

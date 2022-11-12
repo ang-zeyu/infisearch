@@ -9,7 +9,7 @@ use std::thread;
 
 use crossbeam::channel::{Receiver, Sender};
 
-use morsels_common::tokenize::IndexerTokenizer;
+use infisearch_common::tokenize::IndexerTokenizer;
 
 use crate::i_debug;
 use crate::doc_info::DocInfos;

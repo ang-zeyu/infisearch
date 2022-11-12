@@ -1,6 +1,6 @@
-# mdbook-morsels
+# mdbook-infisearch
 
-`mdbook-morsels` is a simple search plugin replacement for [mdBook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
+`mdbook-infisearch` is a simple search plugin replacement for [mdBook](https://github.com/rust-lang/mdBook) to use morsels' search interface and library instead of elasticlunr.js.
 
 ## What, why?
 
@@ -21,7 +21,7 @@ This plugin uses the css variables provided by the 5 main default themes in mdBo
 
 ## Installation
 
-Install the executable either using `cargo install mdbook-morsels`, or download and add the [binaries](https://github.com/ang-zeyu/morsels/releases) to your `PATH` manually.
+Install the executable either using `cargo install mdbook-infisearch`, or download and add the [binaries](https://github.com/ang-zeyu/morsels/releases) to your `PATH` manually.
 
 Then, minimally add the first two configuration sections below to your `book.toml` configuration file:
 
@@ -30,7 +30,7 @@ Then, minimally add the first two configuration sections below to your `book.tom
 enable = false               # disable the default mdBook search feature implementation
 
 [preprocessor.morsels]
-command = "mdbook-morsels"
+command = "mdbook-infisearch"
 
 # Plugin configuration options (optional)
 [output.morsels]

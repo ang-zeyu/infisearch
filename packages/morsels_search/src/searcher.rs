@@ -7,9 +7,9 @@ mod futures;
 
 use byteorder::ByteOrder;
 use byteorder::LittleEndian;
-use morsels_common::EnumMax;
-use morsels_common::MetadataReader;
-use morsels_common::MorselsLanguageConfigOpts;
+use infisearch_common::EnumMax;
+use infisearch_common::MetadataReader;
+use infisearch_common::MorselsLanguageConfigOpts;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
@@ -22,14 +22,14 @@ use crate::postings_list_cache::PostingsListCache;
 use crate::utils;
 
 #[cfg(feature = "lang_ascii")]
-use morsels_lang_ascii::ascii;
+use infisearch_lang_ascii::ascii;
 #[cfg(feature = "lang_latin")]
-use morsels_lang_latin::latin;
+use infisearch_lang_latin::latin;
 #[cfg(feature = "lang_chinese")]
-use morsels_lang_chinese::chinese;
+use infisearch_lang_chinese::chinese;
 
-use morsels_common::tokenize::SearchTokenizer;
-use morsels_common::MorselsLanguageConfig;
+use infisearch_common::tokenize::SearchTokenizer;
+use infisearch_common::MorselsLanguageConfig;
 
 struct SearcherConfig {
     indexing_config: IndexingConfig,
@@ -326,8 +326,8 @@ pub async fn get_query(
 pub mod test {
     use std::collections::BTreeMap;
 
-    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
-    use morsels_lang_ascii::ascii;
+    use infisearch_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
+    use infisearch_lang_ascii::ascii;
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
     use crate::dictionary::Dictionary;

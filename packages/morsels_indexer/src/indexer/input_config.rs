@@ -5,7 +5,7 @@ mod preset_large;
 
 use std::path::Path;
 
-use morsels_common::MorselsLanguageConfig;
+use infisearch_common::MorselsLanguageConfig;
 
 use crate::{field_info::FieldsConfig, SOURCE_CONFIG_FILE};
 use crate::loader::LoaderBoxed;

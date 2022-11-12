@@ -43,24 +43,24 @@ module.exports = (env) => {
     },
     plugins: [
       new WasmPackPlugin({
-        crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
+        crateDirectory: path.resolve(__dirname, './packages/infisearch_search'),
         extraArgs: '-- --no-default-features --features lang_ascii' + perfOption
           + ' -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort',
-        outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_ascii'),
+        outDir: path.resolve(__dirname, './packages/infisearch_search/pkg/lang_ascii'),
         ...perfMode,
       }),
       new WasmPackPlugin({
-        crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
+        crateDirectory: path.resolve(__dirname, './packages/infisearch_search'),
         extraArgs: '-- --no-default-features --features lang_latin' + perfOption
         + ' -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort',
-        outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_latin'),
+        outDir: path.resolve(__dirname, './packages/infisearch_search/pkg/lang_latin'),
         ...perfMode,
       }),
       new WasmPackPlugin({
-        crateDirectory: path.resolve(__dirname, './packages/morsels_search'),
+        crateDirectory: path.resolve(__dirname, './packages/infisearch_search'),
         extraArgs: '-- --no-default-features --features lang_chinese' + perfOption
         + ' -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort',
-        outDir: path.resolve(__dirname, './packages/morsels_search/pkg/lang_chinese'),
+        outDir: path.resolve(__dirname, './packages/infisearch_search/pkg/lang_chinese'),
         ...perfMode,
       }),
     ],

@@ -9,7 +9,7 @@
 
 use std::borrow::Cow;
 
-use morsels_lang_ascii::utils::{intra_filter, separating_filter};
+use infisearch_lang_ascii::utils::{intra_filter, separating_filter};
 
 
 pub fn split_terms(c: char) -> bool {

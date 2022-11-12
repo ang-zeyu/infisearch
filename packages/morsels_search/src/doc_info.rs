@@ -1,4 +1,4 @@
-use morsels_common::{MetadataReader, EnumMax};
+use infisearch_common::{MetadataReader, EnumMax};
 
 pub struct DocInfo {
     pub doc_length_factors: Vec<f64>,

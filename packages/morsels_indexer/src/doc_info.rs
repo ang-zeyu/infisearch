@@ -14,9 +14,9 @@ use bitvec::prelude::Msb0;
 use bitvec::vec::BitVec;
 use bitvec::view::BitView;
 use log::warn;
-use morsels_common::EnumMax;
-use morsels_common::MetadataReader;
-use morsels_common::bitmap;
+use infisearch_common::EnumMax;
+use infisearch_common::MetadataReader;
+use infisearch_common::bitmap;
 use rustc_hash::FxHashMap;
 
 #[derive(Debug)]

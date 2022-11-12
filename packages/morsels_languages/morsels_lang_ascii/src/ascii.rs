@@ -1,8 +1,8 @@
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;
 
-use morsels_common::dictionary::Dictionary;
-use morsels_common::utils::split_incl::SplitIncl;
+use infisearch_common::dictionary::Dictionary;
+use infisearch_common::utils::split_incl::SplitIncl;
 #[cfg(feature = "indexer")]
 use regex::Regex;
 
@@ -11,10 +11,10 @@ use crate::ascii_folding_filter;
 use crate::spelling;
 use crate::stop_words::get_stop_words;
 use crate::utils;
-use morsels_common::MorselsLanguageConfig;
+use infisearch_common::MorselsLanguageConfig;
 #[cfg(feature = "indexer")]
-use morsels_common::tokenize::{IndexerTokenizer, TermIter};
-use morsels_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
+use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
+use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
 
 #[cfg(feature = "indexer")]
 lazy_static! {

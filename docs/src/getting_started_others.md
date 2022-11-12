@@ -18,9 +18,9 @@ jobs:
       - name: Build documentation
         run: # <insert your favourite ssg build command>
       - name: Install Morsels
-        run: cargo install morsels_indexer # or, using the binary release
+        run: cargo install infisearch # or, using the binary release
       - name: Run Morsels
-        run: morsels <docs_build_folder> <docs_build_folder/morsels_output> -c <morsels_config_path>
+        run: infisearch <docs_build_folder> <docs_build_folder/output> -c <indexer_config_path>
       - name: Deploy to github pages 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.5
         with:

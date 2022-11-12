@@ -1302,13 +1302,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "mdbook-morsels"
+name = "mdbook-infisearch"
 version = "0.7.3"
 dependencies = [
  "anyhow",
  "clap 2.34.0",
  "mdbook",
- "morsels_indexer",
+ "infisearch",
  "serde",
  "serde_json",
  "toml",
@@ -1433,7 +1433,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "morsels_common"
+name = "infisearch_common"
 version = "0.7.3"
 dependencies = [
  "byteorder",
@@ -1443,7 +1443,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "morsels_indexer"
+name = "infisearch"
 version = "0.7.3"
 dependencies = [
  "bitvec",
@@ -1458,10 +1458,10 @@ dependencies = [
  "lazy_static",
  "log",
  "log4rs",
- "morsels_common",
- "morsels_lang_ascii",
- "morsels_lang_chinese",
- "morsels_lang_latin",
+ "infisearch_common",
+ "infisearch_lang_ascii",
+ "infisearch_lang_chinese",
+ "infisearch_lang_latin",
  "num_cpus",
  "path-absolutize",
  "path-slash",
@@ -1480,47 +1480,47 @@ dependencies = [
 ]
 
 [[package]]
-name = "morsels_lang_ascii"
+name = "infisearch_lang_ascii"
 version = "0.7.3"
 dependencies = [
  "lazy_static",
- "morsels_common",
+ "infisearch_common",
  "regex",
  "smartstring",
 ]
 
 [[package]]
-name = "morsels_lang_chinese"
+name = "infisearch_lang_chinese"
 version = "0.7.3"
 dependencies = [
  "lazy_static",
- "morsels_common",
- "morsels_lang_ascii",
+ "infisearch_common",
+ "infisearch_lang_ascii",
  "regex",
  "smartstring",
 ]
 
 [[package]]
-name = "morsels_lang_latin"
+name = "infisearch_lang_latin"
 version = "0.7.3"
 dependencies = [
- "morsels_common",
- "morsels_lang_ascii",
+ "infisearch_common",
+ "infisearch_lang_ascii",
  "rust-stemmers",
  "smartstring",
 ]
 
 [[package]]
-name = "morsels_search"
+name = "infisearch_search"
 version = "0.7.3"
 dependencies = [
  "byteorder",
  "js-sys",
  "miniserde",
- "morsels_common",
- "morsels_lang_ascii",
- "morsels_lang_chinese",
- "morsels_lang_latin",
+ "infisearch_common",
+ "infisearch_lang_ascii",
+ "infisearch_lang_chinese",
+ "infisearch_lang_latin",
  "pretty_assertions",
  "smartstring",
  "wasm-bindgen",

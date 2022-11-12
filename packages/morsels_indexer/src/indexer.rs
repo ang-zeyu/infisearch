@@ -11,11 +11,11 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::{Instant, UNIX_EPOCH, SystemTime};
 
-use morsels_common::tokenize::IndexerTokenizer;
-use morsels_common::{MorselsLanguageConfig, METADATA_FILE};
-use morsels_lang_ascii::ascii;
-use morsels_lang_latin::latin;
-use morsels_lang_chinese::chinese;
+use infisearch_common::tokenize::IndexerTokenizer;
+use infisearch_common::{MorselsLanguageConfig, METADATA_FILE};
+use infisearch_lang_ascii::ascii;
+use infisearch_lang_latin::latin;
+use infisearch_lang_chinese::chinese;
 
 use crate::dictionary_writer::DictWriter;
 use crate::doc_info::DocInfos;

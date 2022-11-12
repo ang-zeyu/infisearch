@@ -2,7 +2,7 @@
   "packages": [
     "packages/search",
     "packages/search-ui",
-    "packages/morsels_search/pkg/*"
+    "packages/infisearch_search/pkg/*"
   ],
   "version": "0.7.3"
 }

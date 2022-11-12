@@ -4,7 +4,7 @@ mod proximity_ranking;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
-use morsels_common::{bitmap, EnumMax};
+use infisearch_common::{bitmap, EnumMax};
 
 use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc, PlAndInfo};
 use crate::searcher::query_parser::QueryPart;

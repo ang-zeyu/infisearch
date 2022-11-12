@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use morsels_common::utils::idf::get_idf;
+use infisearch_common::utils::idf::get_idf;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 

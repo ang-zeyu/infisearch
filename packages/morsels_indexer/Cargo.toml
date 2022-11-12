@@ -1,5 +1,5 @@
 [package]
-name = "morsels_indexer"
+name = "infisearch"
 version = "0.7.3"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
@@ -13,7 +13,7 @@ license = "MIT"
 include = ["/src", "/search-ui-dist"]
 
 [[bin]]
-name = "morsels"
+name = "infisearch"
 path = "src/main.rs"
 
 [dependencies]
@@ -32,10 +32,10 @@ glob = "0.3"
 lazy_static = "1.4"
 log = { version = "0.4", features = ["max_level_info", "release_max_level_info"] }
 log4rs = "1.0"
-morsels_common = { path = "../morsels_common", version="=0.7.3", features = ["indexer"] }
-morsels_lang_ascii = { path = "../morsels_languages/morsels_lang_ascii", version="=0.7.3", features = ["indexer"] }
-morsels_lang_latin = { path = "../morsels_languages/morsels_lang_latin", version="=0.7.3", features = ["indexer"] }
-morsels_lang_chinese = { path = "../morsels_languages/morsels_lang_chinese", version="=0.7.3", features = ["indexer"] }
+infisearch_common = { path = "../infisearch_common", version="=0.7.3", features = ["indexer"] }
+infisearch_lang_ascii = { path = "../infisearch_languages/infisearch_lang_ascii", version="=0.7.3", features = ["indexer"] }
+infisearch_lang_latin = { path = "../infisearch_languages/infisearch_lang_latin", version="=0.7.3", features = ["indexer"] }
+infisearch_lang_chinese = { path = "../infisearch_languages/infisearch_lang_chinese", version="=0.7.3", features = ["indexer"] }
 num_cpus = "1"
 path-absolutize = { version = "3.0", features = ["lazy_static_cache"] }
 pathdiff = "0.2"

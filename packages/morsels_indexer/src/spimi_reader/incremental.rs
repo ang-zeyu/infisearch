@@ -11,14 +11,14 @@ use rustc_hash::FxHashMap;
 use smartstring::LazyCompact;
 use smartstring::SmartString;
 
-use morsels_common::{bitmap, FILE_EXT};
-use morsels_common::dictionary::TermInfo;
-use morsels_common::packed_var_int::read_bits_from;
-use morsels_common::postings_list::{
+use infisearch_common::{bitmap, FILE_EXT};
+use infisearch_common::dictionary::TermInfo;
+use infisearch_common::packed_var_int::read_bits_from;
+use infisearch_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
     MIN_CHUNK_SIZE, CHUNK_SIZE,
 };
-use morsels_common::utils::varint::decode_var_int;
+use infisearch_common::utils::varint::decode_var_int;
 
 use crate::dictionary_writer::DictWriter;
 use crate::field_info::FieldInfos;

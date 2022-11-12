@@ -15,9 +15,9 @@ use mdbook::preprocess::CmdPreprocessor;
 use mdbook::preprocess::Preprocessor;
 use mdbook::preprocess::PreprocessorContext;
 use mdbook::renderer::RenderContext;
-use morsels_indexer::assets;
-use morsels_indexer::indexer::Indexer;
-use morsels_indexer::indexer::input_config::MorselsConfig;
+use infisearch::assets;
+use infisearch::indexer::Indexer;
+use infisearch::indexer::input_config::MorselsConfig;
 use toml::value::Value::{self, String as TomlString};
 use serde_json::Value as JsonValue;
 use walkdir::WalkDir;
@@ -46,13 +46,13 @@ fn main() {
         let html_renderer_path = ctx.destination.join("../html");
         let assets_output_dir = html_renderer_path.join("morsels_assets");
         fs::create_dir_all(&assets_output_dir)
-            .expect("mdbook-morsels: Failed to create assets directory.");
+            .expect("mdbook-infisearch: Failed to create assets directory.");
 
         // ---------------------------------
         // Copy mark.min.js
         let mut mark_js = File::create((&assets_output_dir).join(Path::new("mark.min.js")))
-            .expect("mdbook-morsels: Failed to open asset write handler");
-        mark_js.write_all(MARK_MIN_JS).expect("mdbook-morsels: Failed to copy search-ui asset (mark.min.js)!");
+            .expect("mdbook-infisearch: Failed to open asset write handler");
+        mark_js.write_all(MARK_MIN_JS).expect("mdbook-infisearch: Failed to copy search-ui asset (mark.min.js)!");
         // ---------------------------------
 
         let input_folder_path = html_renderer_path.clone();
@@ -101,8 +101,8 @@ fn main() {
                 std::process::exit(1);
             }
         } else {
-            let (ctx, book) = CmdPreprocessor::parse_input(&*buf).expect("mdbook-morsels: Preprocess JSON parsing failed");
-            let processed_book = morsels_preprocessor.run(&ctx, book).expect("mdbook-morsels: Preprocess processing failed");
+            let (ctx, book) = CmdPreprocessor::parse_input(&*buf).expect("mdbook-infisearch: Preprocess JSON parsing failed");
+            let processed_book = morsels_preprocessor.run(&ctx, book).expect("mdbook-infisearch: Preprocess processing failed");
             serde_json::to_writer(io::stdout(), &processed_book).unwrap();
         }
 

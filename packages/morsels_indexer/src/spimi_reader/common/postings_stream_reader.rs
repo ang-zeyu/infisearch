@@ -12,7 +12,7 @@ use byteorder::{ByteOrder, LittleEndian};
 use crossbeam::channel::Sender;
 use dashmap::DashMap;
 
-use morsels_common::postings_list::{
+use infisearch_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
     MIN_CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE_USIZE,
 };

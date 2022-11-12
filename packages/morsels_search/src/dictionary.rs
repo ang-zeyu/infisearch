@@ -2,7 +2,7 @@ use std::ops::Bound::{Excluded, Unbounded};
 
 use smartstring::alias::String;
 
-use morsels_common::dictionary;
+use infisearch_common::dictionary;
 
 use crate::utils;
 

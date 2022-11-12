@@ -1,4 +1,4 @@
-use morsels_common::dictionary::Dictionary;
+use infisearch_common::dictionary::Dictionary;
 
 mod edit_distance;
 

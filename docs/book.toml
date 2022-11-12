@@ -17,7 +17,7 @@ site-url = "/morsels/"
 enable = false
 
 [preprocessor.morsels]
-command = "mdbook-morsels"
+command = "mdbook-infisearch"
 
 [output.morsels]
 # Note

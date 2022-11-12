@@ -1,13 +1,13 @@
 use std::rc::Rc;
 
-use morsels_common::dictionary::TermInfo;
-use morsels_common::packed_var_int::read_bits_from;
-use morsels_common::postings_list::{
+use infisearch_common::dictionary::TermInfo;
+use infisearch_common::packed_var_int::read_bits_from;
+use infisearch_common::postings_list::{
     LAST_FIELD_MASK, SHORT_FORM_MASK,
     MIN_CHUNK_SIZE, CHUNK_SIZE,
 };
-use morsels_common::utils::idf::get_idf;
-use morsels_common::utils::varint::decode_var_int;
+use infisearch_common::utils::idf::get_idf;
+use infisearch_common::utils::varint::decode_var_int;
 
 pub fn get_postings_list<'a, 'b>(
     term: &'b str,
@@ -253,7 +253,7 @@ impl PostingsList {
                 term_doc.fields.push(Field { field_tf: field_tf as f32, field_positions });
             }
 
-            if !morsels_common::bitmap::check(invalidation_vector, prev_doc_id as usize) {
+            if !infisearch_common::bitmap::check(invalidation_vector, prev_doc_id as usize) {
                 self.term_docs.push(term_doc);
             }
         }

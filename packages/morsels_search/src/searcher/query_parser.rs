@@ -1,4 +1,4 @@
-use morsels_common::{
+use infisearch_common::{
     tokenize::{self, SearchTokenizer, SearchTokenizeTerm, PrefixResult},
     dictionary::Dictionary,
 };
@@ -503,11 +503,11 @@ pub fn parse_query(
 pub mod test {
     use std::collections::BTreeMap;
 
-    use morsels_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts, dictionary::{Dictionary, TermInfo}};
+    use infisearch_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts, dictionary::{Dictionary, TermInfo}};
     use pretty_assertions::assert_eq;
 
-    use morsels_lang_ascii::ascii;
-    use morsels_lang_chinese::chinese;
+    use infisearch_lang_ascii::ascii;
+    use infisearch_lang_chinese::chinese;
     use smartstring::{SmartString, LazyCompact};
 
     use super::{QueryPart, QueryPartType};

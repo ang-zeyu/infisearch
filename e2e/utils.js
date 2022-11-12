@@ -230,12 +230,12 @@ function runIndexer(command) {
 }
   
 function runFullIndex(configFile) {
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output -c ${configFile}`);
+  runIndexer(`cargo run -p infisearch -- ./e2e/input ./e2e/output -c ${configFile}`);
   console.log('Ran full indexer run');
 }
   
 function runIncrementalIndex(configFile) {
-  runIndexer(`cargo run -p morsels_indexer -- ./e2e/input ./e2e/output -c ${configFile} --incremental`);
+  runIndexer(`cargo run -p infisearch -- ./e2e/input ./e2e/output -c ${configFile} --incremental`);
   console.log('Ran incremental indexer run');
 }
 

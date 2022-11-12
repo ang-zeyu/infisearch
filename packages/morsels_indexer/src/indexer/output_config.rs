@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use morsels_common::MorselsLanguageConfig;
+use infisearch_common::MorselsLanguageConfig;
 
 use crate::{MORSELS_VERSION, OUTPUT_CONFIG_FILE};
 use crate::field_info::{FieldInfoOutput, EnumInfo};

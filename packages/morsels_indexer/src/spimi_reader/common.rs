@@ -11,7 +11,7 @@ use std::sync::Arc;
 use crossbeam::channel::{Receiver, Sender};
 use dashmap::DashMap;
 
-use morsels_common::FILE_EXT;
+use infisearch_common::FILE_EXT;
 
 use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTINGS_STREAM_INITIAL_READ};
 use self::postings_stream_reader::PostingsStreamReader;
