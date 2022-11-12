@@ -17,7 +17,7 @@ use mdbook::preprocess::PreprocessorContext;
 use mdbook::renderer::RenderContext;
 use infisearch::assets;
 use infisearch::indexer::Indexer;
-use infisearch::indexer::input_config::MorselsConfig;
+use infisearch::indexer::input_config::InfiConfig;
 use toml::value::Value::{self, String as TomlString};
 use serde_json::Value as JsonValue;
 use walkdir::WalkDir;
@@ -64,7 +64,7 @@ fn main() {
         let mut indexer = Indexer::new(
             &input_folder_path,
             &output_folder_path,
-            MorselsConfig::new(config),
+            InfiConfig::new(config),
             is_incremental,
             false,
             false,

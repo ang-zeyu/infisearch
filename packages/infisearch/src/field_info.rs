@@ -7,7 +7,7 @@ use rustc_hash::FxHashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::indexer::output_config::MorselsOutputConfig;
+use crate::indexer::output_config::InfiOutputConfig;
 use crate::utils::escape_json;
 
 pub static RELATIVE_FP_FIELD: &str = "_relative_fp";
@@ -95,7 +95,7 @@ impl FieldsConfig {
     pub fn get_field_infos(
         &self,
         output_folder_path_inner: &Path,
-        incremental_output_config: Option<&MorselsOutputConfig>,
+        incremental_output_config: Option<&InfiOutputConfig>,
     ) -> Arc<FieldInfos> {
         let mut field_infos_by_name: FxHashMap<String, FieldInfo> = FxHashMap::default();
         let mut field_infos_by_id: Vec<FieldInfo> = Vec::with_capacity(self.fields.len());

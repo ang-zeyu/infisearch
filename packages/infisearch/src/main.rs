@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use infisearch::SOURCE_CONFIG_FILE;
 use infisearch::indexer::Indexer;
-use infisearch::indexer::input_config::MorselsConfig;
+use infisearch::indexer::input_config::InfiConfig;
 use infisearch::assets;
 use infisearch::i_debug;
 
@@ -22,7 +22,7 @@ use structopt::StructOpt;
 use walkdir::WalkDir;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "morsels")]
+#[structopt()]
 struct CliArgs {
     #[structopt(parse(from_os_str))]
     source_folder_path: PathBuf,
@@ -94,21 +94,21 @@ fn resolve_folder_paths(
 
 fn initialize_logger() {
     let log_config = Config::builder()
-        .appender(Appender::builder().build("morsels_stdout", Box::new(ConsoleAppender::builder().build())))
+        .appender(Appender::builder().build("infisearch_stdout", Box::new(ConsoleAppender::builder().build())))
         .logger(Logger::builder().build("infisearch", LevelFilter::Info))
-        .build(Root::builder().appender("morsels_stdout").build(LevelFilter::Off))
+        .build(Root::builder().appender("infisearch_stdout").build(LevelFilter::Off))
         .unwrap();
     log4rs::init_config(log_config).expect("log4rs initialisation should not fail");
 }
 
-fn initialise_config(config_file_path: PathBuf, args: &CliArgs) -> Option<MorselsConfig> {
-    let config: MorselsConfig = if config_file_path.exists() && config_file_path.is_file() {
-        MorselsConfig::new(std::fs::read_to_string(&config_file_path).unwrap())
+fn initialise_config(config_file_path: PathBuf, args: &CliArgs) -> Option<InfiConfig> {
+    let config: InfiConfig = if config_file_path.exists() && config_file_path.is_file() {
+        InfiConfig::new(std::fs::read_to_string(&config_file_path).unwrap())
     } else if args.config_file_path.is_some() {
         error!("Specified configuration file {} not found!", config_file_path.to_str().unwrap());
         return None;
     } else {
-        MorselsConfig::default()
+        InfiConfig::default()
     };
     Some(config)
 }
@@ -132,7 +132,7 @@ fn main() {
     );
 
     if args.config_init {
-        Indexer::write_morsels_source_config(MorselsConfig::default(), &config_file_path);
+        Indexer::write_source_config(InfiConfig::default(), &config_file_path);
         return;
     }
 
@@ -145,7 +145,7 @@ fn main() {
                 panic!("Failed to read config from stdin!");
             }
         }
-        MorselsConfig::new(buf.join("\n"))
+        InfiConfig::new(buf.join("\n"))
     } else {
         match initialise_config(config_file_path, &args) {
             Some(value) => value,

@@ -14,7 +14,7 @@ use infisearch_common::tokenize::IndexerTokenizer;
 use crate::i_debug;
 use crate::doc_info::DocInfos;
 use crate::field_info::FieldInfos;
-use crate::indexer::input_config::MorselsIndexingConfig;
+use crate::indexer::input_config::InfiIndexingConfig;
 use crate::loader::{LoaderBoxed, LoaderResult};
 use crate::spimi_reader::common::{postings_stream_reader::PostingsStreamReader, PostingsStreamDecoder};
 use crate::spimi_writer;
@@ -61,7 +61,7 @@ pub fn create_worker(
     rcvr: Receiver<MainToWorkerMessage>,
     tokenizer: Arc<dyn IndexerTokenizer + Send + Sync>,
     field_infos: Arc<FieldInfos>,
-    indexing_config: Arc<MorselsIndexingConfig>,
+    indexing_config: Arc<InfiIndexingConfig>,
     expected_num_docs_per_reset: usize,
     num_workers_writing_blocks_clone: Arc<Mutex<usize>>,
     input_folder_path: PathBuf,

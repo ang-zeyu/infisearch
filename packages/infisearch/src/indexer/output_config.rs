@@ -1,9 +1,9 @@
 use std::fs::File;
 use std::io::Write;
 
-use infisearch_common::MorselsLanguageConfig;
+use infisearch_common::InfiLanguageConfig;
 
-use crate::{MORSELS_VERSION, OUTPUT_CONFIG_FILE};
+use crate::{INFISEARCH_VER, OUTPUT_CONFIG_FILE};
 use crate::field_info::{FieldInfoOutput, EnumInfo};
 use super::Indexer;
 
@@ -12,7 +12,7 @@ use serde::{Serialize, Deserialize};
 // Separate struct to support serializing for --config-init option but not output config
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct MorselsIndexingOutputConfig {
+struct InfiIndexingOutputConfig {
     pl_names_to_cache: Vec<u32>,
     num_docs_per_block: u32,
     num_pls_per_dir: u32,
@@ -21,12 +21,12 @@ struct MorselsIndexingOutputConfig {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MorselsOutputConfig {
+pub struct InfiOutputConfig {
     pub ver: String,
     pub index_ver: String,
     last_doc_id: u32,
-    indexing_config: MorselsIndexingOutputConfig,
-    lang_config: MorselsLanguageConfig,
+    indexing_config: InfiIndexingOutputConfig,
+    lang_config: InfiLanguageConfig,
     cache_all_field_stores: bool,
     pub field_infos: Vec<FieldInfoOutput>,
     num_scored_fields: usize,
@@ -45,11 +45,11 @@ pub fn write_output_config(indexer: Indexer, mut enums_ev_strs: Vec<Vec<String>>
         }
     }
 
-    let serialized = serde_json::to_string(&MorselsOutputConfig {
-        ver: MORSELS_VERSION.to_owned(),
+    let serialized = serde_json::to_string(&InfiOutputConfig {
+        ver: INFISEARCH_VER.to_owned(),
         index_ver: indexer.index_ver,
         last_doc_id: indexer.doc_id_counter,
-        indexing_config: MorselsIndexingOutputConfig {
+        indexing_config: InfiIndexingOutputConfig {
             pl_names_to_cache: indexer.incremental_info.pl_names_to_cache.clone(),
             num_docs_per_block: indexer.indexing_config.num_docs_per_block,
             num_pls_per_dir: indexer.indexing_config.num_pls_per_dir,

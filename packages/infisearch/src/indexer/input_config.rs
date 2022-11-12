@@ -5,7 +5,7 @@ mod preset_large;
 
 use std::path::Path;
 
-use infisearch_common::MorselsLanguageConfig;
+use infisearch_common::InfiLanguageConfig;
 
 use crate::{field_info::FieldsConfig, SOURCE_CONFIG_FILE};
 use crate::loader::LoaderBoxed;
@@ -61,7 +61,7 @@ fn get_default_with_positions() -> bool {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct MorselsIndexingConfig {
+pub struct InfiIndexingConfig {
     #[serde(default = "get_default_num_threads", skip_serializing)]
     pub num_threads: usize,
 
@@ -96,9 +96,9 @@ pub struct MorselsIndexingConfig {
     pub with_positions: bool,
 }
 
-impl Default for MorselsIndexingConfig {
+impl Default for InfiIndexingConfig {
     fn default() -> Self {
-        let mut indexing_config = MorselsIndexingConfig {
+        let mut indexing_config = InfiIndexingConfig {
             num_threads: get_default_num_threads(),
             num_docs_per_block: get_default_num_docs_per_block(),
             pl_limit: get_default_pl_limit(),
@@ -117,7 +117,7 @@ impl Default for MorselsIndexingConfig {
     }
 }
 
-impl MorselsIndexingConfig {
+impl InfiIndexingConfig {
     pub fn get_loaders_from_config(&self) -> Vec<LoaderBoxed> {
         let mut loaders: Vec<LoaderBoxed> = Vec::new();
 
@@ -158,22 +158,22 @@ impl MorselsIndexingConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct MorselsConfig {
+pub struct InfiConfig {
     #[serde(default = "get_default_preset")]
     pub preset: String,
     #[serde(default)]
     pub fields_config: FieldsConfig,
     #[serde(default)]
-    pub lang_config: MorselsLanguageConfig,
+    pub lang_config: InfiLanguageConfig,
     #[serde(default)]
-    pub indexing_config: MorselsIndexingConfig,
+    pub indexing_config: InfiIndexingConfig,
     #[serde(skip)]
     pub json_config: Value,
 }
 
-impl MorselsConfig {
+impl InfiConfig {
     pub fn new(raw_config: String) -> Self {
-        let mut config: MorselsConfig = serde_json::from_str(&raw_config)
+        let mut config: InfiConfig = serde_json::from_str(&raw_config)
             .expect("infi_search.json does not match schema!");
         let json_config: Value = serde_json::from_str(&raw_config)
             .expect("infi_search.json does not match schema!");
@@ -202,8 +202,8 @@ impl MorselsConfig {
     }
 }
 
-impl Default for MorselsConfig {
+impl Default for InfiConfig {
     fn default() -> Self {
-        MorselsConfig::new("{}".to_owned())
+        InfiConfig::new("{}".to_owned())
     }
 }

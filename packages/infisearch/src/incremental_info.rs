@@ -12,9 +12,9 @@ use serde_json::Value;
 use infisearch_common::dictionary::Dictionary;
 use infisearch_common::{bitmap, MetadataReader, METADATA_FILE};
 
-use crate::indexer::output_config::MorselsOutputConfig;
+use crate::indexer::output_config::InfiOutputConfig;
 use crate::utils::fs_utils;
-use crate::{MORSELS_VERSION, i_debug, OLD_SOURCE_CONFIG, OUTPUT_CONFIG_FILE};
+use crate::{INFISEARCH_VER, i_debug, OLD_SOURCE_CONFIG, OUTPUT_CONFIG_FILE};
 
 lazy_static! {
     static ref CURRENT_MILLIS: u128 = SystemTime::now().duration_since(UNIX_EPOCH)
@@ -68,7 +68,7 @@ pub struct IncrementalIndexInfo {
 
 impl IncrementalIndexInfo {
     pub fn empty(use_content_hash: bool) -> (
-        Option<MorselsOutputConfig>,
+        Option<InfiOutputConfig>,
         Option<MetadataReader>,
         IncrementalIndexInfo,
     ) {
@@ -95,7 +95,7 @@ impl IncrementalIndexInfo {
         json_config: &Value,
         is_incremental: bool,
         use_content_hash: bool,
-    ) -> (Option<MorselsOutputConfig>, Option<MetadataReader>, IncrementalIndexInfo) {
+    ) -> (Option<InfiOutputConfig>, Option<MetadataReader>, IncrementalIndexInfo) {
         // --------------------------------------------------------
         // Full index
         if !is_incremental {
@@ -119,21 +119,21 @@ impl IncrementalIndexInfo {
 
         // --------------------------------------------------------
         // Check for the old output config file, which should be here at this point.
-        // The Morsels version used might however be different.
+        // The InfiSearch version used might however be different.
         let old_output_config = output_folder_path.join(OUTPUT_CONFIG_FILE);
         let old_output_config = if old_output_config.exists() {
             let old_output_conf_str = std::fs::read_to_string(&old_output_config).unwrap();
-            let deserialized: Result<MorselsOutputConfig, _> = serde_json::from_str(&old_output_conf_str);
+            let deserialized: Result<InfiOutputConfig, _> = serde_json::from_str(&old_output_conf_str);
 
             if let Ok(old_output_conf) = deserialized {
-                if old_output_conf.ver != MORSELS_VERSION {
-                    info!("Morsels version changed. Running a full reindex.");
+                if old_output_conf.ver != INFISEARCH_VER {
+                    info!("InfiSearch version changed. Running a full reindex.");
                     return IncrementalIndexInfo::empty(use_content_hash);
                 }
 
                 old_output_conf
             } else {
-                info!("Morsels version changed. Running a full reindex.");
+                info!("InfiSearch version changed. Running a full reindex.");
                 return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {

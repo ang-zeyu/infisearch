@@ -1,4 +1,4 @@
-use infisearch_common::MorselsLanguageConfig;
+use infisearch_common::InfiLanguageConfig;
 
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;
@@ -15,7 +15,7 @@ fn get_stop_words_set<'a, T: IntoIterator<Item = &'a str>>(stop_words: T) -> Has
 }
 
 #[cfg(feature = "indexer")]
-pub fn get_stop_words(lang_config: &MorselsLanguageConfig, defaults: &[&'static str]) -> HashSet<String> {
+pub fn get_stop_words(lang_config: &InfiLanguageConfig, defaults: &[&'static str]) -> HashSet<String> {
     if let Some(stop_words) = &lang_config.options.stop_words {
         get_stop_words_set(stop_words.iter().map(|s| s.as_str()))
     } else {
@@ -24,7 +24,7 @@ pub fn get_stop_words(lang_config: &MorselsLanguageConfig, defaults: &[&'static 
 }
 
 #[cfg(not(feature = "indexer"))]
-pub fn get_stop_words(lang_config: &MorselsLanguageConfig, defaults: &[&'static str]) -> Vec<String> {
+pub fn get_stop_words(lang_config: &InfiLanguageConfig, defaults: &[&'static str]) -> Vec<String> {
     if let Some(stop_words) = &lang_config.options.stop_words {
         stop_words.clone()
     } else {

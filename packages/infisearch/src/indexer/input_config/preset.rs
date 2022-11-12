@@ -1,10 +1,10 @@
-use super::MorselsConfig;
+use super::InfiConfig;
 
 use serde_json::Value;
 
 #[allow(clippy::too_many_arguments)]
 pub fn apply_preset_override(
-    config: &mut MorselsConfig,
+    config: &mut InfiConfig,
     json_config: &Value,
     num_docs_per_store: u32,
     cache_all_field_stores: bool,

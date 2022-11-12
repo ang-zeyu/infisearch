@@ -8,7 +8,7 @@ use regex::Regex;
 #[cfg(feature = "indexer")]
 use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
 use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
-use infisearch_common::MorselsLanguageConfig;
+use infisearch_common::InfiLanguageConfig;
 use infisearch_common::dictionary::Dictionary;
 use infisearch_common::utils::split_incl::SplitIncl;
 use infisearch_lang_ascii::{ascii_folding_filter, spelling};
@@ -38,7 +38,7 @@ pub struct Tokenizer {
     max_term_len: usize,
 }
 
-pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
+pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
     let stop_words = get_stop_words(lang_config, &[
         "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no",
         "not", "of", "on", "or", "such", "that", "the", "their", "then", "there", "these", "they", "this",
@@ -207,15 +207,15 @@ impl SearchTokenizer for Tokenizer {
 
 #[cfg(test)]
 mod test {
-    use infisearch_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
+    use infisearch_common::{InfiLanguageConfig, InfiLanguageConfigOpts};
 
     use super::Tokenizer;
     use super::IndexerTokenizer;
 
     fn new() -> Tokenizer {
-        let lang_config = MorselsLanguageConfig {
+        let lang_config = InfiLanguageConfig {
             lang: "chinese".to_owned(),
-            options: MorselsLanguageConfigOpts::default(),
+            options: InfiLanguageConfigOpts::default(),
         };
 
         let stop_words = infisearch_lang_ascii::stop_words::get_stop_words(&lang_config, &[]);

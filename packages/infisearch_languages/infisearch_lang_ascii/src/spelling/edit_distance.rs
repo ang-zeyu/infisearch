@@ -25,7 +25,7 @@ SOFTWARE.
 */
 
 /*
- Modified and optimized from strsim-rs for Morsels' use case:
+ Modified and optimized from strsim-rs for InfiSearch' use case:
  Avoid unnecessary Vec allocation,
  reduces data sizes (Vec -> [; 255]) for the term length hard limit (guarantees unsafe too),
  and remove an unnecessary empty term check.

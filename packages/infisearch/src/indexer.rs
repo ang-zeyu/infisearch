@@ -12,7 +12,7 @@ use std::sync::Mutex;
 use std::time::{Instant, UNIX_EPOCH, SystemTime};
 
 use infisearch_common::tokenize::IndexerTokenizer;
-use infisearch_common::{MorselsLanguageConfig, METADATA_FILE};
+use infisearch_common::{InfiLanguageConfig, METADATA_FILE};
 use infisearch_lang_ascii::ascii;
 use infisearch_lang_latin::latin;
 use infisearch_lang_chinese::chinese;
@@ -23,7 +23,7 @@ use crate::utils::fs_utils;
 use crate::{i_debug, spimi_reader, OLD_SOURCE_CONFIG};
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::field_info::FieldInfos;
-use crate::indexer::input_config::{MorselsConfig, MorselsIndexingConfig};
+use crate::indexer::input_config::{InfiConfig, InfiIndexingConfig};
 use crate::loader::LoaderBoxed;
 use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
@@ -32,7 +32,7 @@ use crossbeam::channel::{self, Receiver, Sender};
 use log::info;
 
 pub struct Indexer {
-    indexing_config: Arc<MorselsIndexingConfig>,
+    indexing_config: Arc<InfiIndexingConfig>,
     doc_id_counter: u32,
     spimi_counter: u32,
     cache_all_field_stores: bool,
@@ -49,7 +49,7 @@ pub struct Indexer {
     rx_main: Receiver<WorkerToMainMessage>,
     rx_worker: Receiver<MainToWorkerMessage>,
     num_workers_writing_blocks: Arc<Mutex<usize>>,
-    lang_config: MorselsLanguageConfig,
+    lang_config: InfiLanguageConfig,
     is_incremental: bool,
     start_doc_id: u32,
     start_block_number: u32,
@@ -61,7 +61,7 @@ impl Indexer {
     pub fn new(
         input_folder_path: &Path,
         output_folder_path: &Path,
-        config: MorselsConfig,
+        config: InfiConfig,
         is_incremental: bool,
         use_content_hash: bool,
         preserve_output_folder: bool,
@@ -240,7 +240,7 @@ impl Indexer {
         indexer
     }
 
-    fn resolve_tokenizer(lang_config: &MorselsLanguageConfig) -> Arc<dyn IndexerTokenizer + Send + Sync> {
+    fn resolve_tokenizer(lang_config: &InfiLanguageConfig) -> Arc<dyn IndexerTokenizer + Send + Sync> {
         match lang_config.lang.as_str() {
             "ascii" => Arc::new(ascii::new_with_options(lang_config)),
             "latin" => Arc::new(latin::new_with_options(lang_config)),
@@ -321,7 +321,7 @@ impl Indexer {
         }
     }
 
-    pub fn write_morsels_source_config(mut config: MorselsConfig, config_file_path: &Path) {
+    pub fn write_source_config(mut config: InfiConfig, config_file_path: &Path) {
         config.indexing_config.loaders = config
             .indexing_config
             .get_loaders_from_config()
@@ -336,7 +336,7 @@ impl Indexer {
             .unwrap()
             .write_all(
                 serde_json::to_string_pretty(&config)
-                    .expect("Failed to serialize morsels config for --config-init!")
+                    .expect("Failed to serialize config for --config-init!")
                     .as_bytes(),
             )
             .unwrap();

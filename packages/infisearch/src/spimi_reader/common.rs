@@ -17,7 +17,7 @@ use self::postings_stream::{PostingsStream, POSTINGS_STREAM_BUFFER_SIZE, POSTING
 use self::postings_stream_reader::PostingsStreamReader;
 
 use crate::dictionary_writer::DictWriter;
-use crate::indexer::input_config::MorselsIndexingConfig;
+use crate::indexer::input_config::InfiIndexingConfig;
 use crate::utils::reusable_writer::ReusableWriter;
 use crate::utils::varint;
 use crate::worker::MainToWorkerMessage;
@@ -142,7 +142,7 @@ pub fn write_new_term_postings(
     dict_writer: Option<&mut DictWriter>,
     pl_writer: &mut PlWriter,
     pl_names_to_cache: &mut Vec<u32>,
-    indexing_config: &MorselsIndexingConfig,
+    indexing_config: &InfiIndexingConfig,
     output_folder_path: &Path,
 ) -> u32 {
     // ---------------------------------------------

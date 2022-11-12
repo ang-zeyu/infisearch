@@ -503,7 +503,7 @@ pub fn parse_query(
 pub mod test {
     use std::collections::BTreeMap;
 
-    use infisearch_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts, dictionary::{Dictionary, TermInfo}};
+    use infisearch_common::{InfiLanguageConfig, InfiLanguageConfigOpts, dictionary::{Dictionary, TermInfo}};
     use pretty_assertions::assert_eq;
 
     use infisearch_lang_ascii::ascii;
@@ -684,9 +684,9 @@ pub mod test {
     }
 
     pub fn parse(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+        let tokenizer = ascii::new_with_options(&InfiLanguageConfig {
             lang: "ascii".to_owned(),
-            options: MorselsLanguageConfigOpts::default(),
+            options: InfiLanguageConfigOpts::default(),
         });
 
         super::parse_query(
@@ -699,9 +699,9 @@ pub mod test {
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+        let tokenizer = ascii::new_with_options(&InfiLanguageConfig {
             lang: "latin".to_owned(),
-            options: MorselsLanguageConfigOpts::default(),
+            options: InfiLanguageConfigOpts::default(),
         });
 
         super::parse_query(
@@ -714,9 +714,9 @@ pub mod test {
     }
 
     pub fn parse_zn(query: &str) -> Vec<QueryPart> {
-        let tokenizer = chinese::new_with_options(&MorselsLanguageConfig {
+        let tokenizer = chinese::new_with_options(&InfiLanguageConfig {
             lang: "chinese".to_owned(),
-            options: MorselsLanguageConfigOpts::default(),
+            options: InfiLanguageConfigOpts::default(),
         });
 
         super::parse_query(
@@ -730,9 +730,9 @@ pub mod test {
 
     // The tokenizer will remove stop words if they are not even indexed
     pub fn parse_with_sw_removal(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(&MorselsLanguageConfig {
+        let tokenizer = ascii::new_with_options(&InfiLanguageConfig {
             lang: "ascii".to_owned(),
-            options: MorselsLanguageConfigOpts {
+            options: InfiLanguageConfigOpts {
                 stop_words: None,
                 ignore_stop_words: Some(true),
                 stemmer: None,

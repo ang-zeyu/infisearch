@@ -9,7 +9,7 @@ use byteorder::ByteOrder;
 use byteorder::LittleEndian;
 use infisearch_common::EnumMax;
 use infisearch_common::MetadataReader;
-use infisearch_common::MorselsLanguageConfigOpts;
+use infisearch_common::InfiLanguageConfigOpts;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
@@ -29,11 +29,11 @@ use infisearch_lang_latin::latin;
 use infisearch_lang_chinese::chinese;
 
 use infisearch_common::tokenize::SearchTokenizer;
-use infisearch_common::MorselsLanguageConfig;
+use infisearch_common::InfiLanguageConfig;
 
 struct SearcherConfig {
     indexing_config: IndexingConfig,
-    lang_config: MorselsLanguageConfig,
+    lang_config: InfiLanguageConfig,
     field_infos: Vec<FieldInfo>,
     valid_fields: Vec<String>,
     num_scored_fields: usize,
@@ -75,17 +75,17 @@ pub struct Searcher {
 }
 
 #[cfg(feature = "lang_ascii")]
-fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
+fn get_tokenizer(lang_config: &InfiLanguageConfig) -> Box<dyn SearchTokenizer> {
     Box::new(ascii::new_with_options(lang_config))
 }
 
 #[cfg(feature = "lang_latin")]
-fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
+fn get_tokenizer(lang_config: &InfiLanguageConfig) -> Box<dyn SearchTokenizer> {
     Box::new(latin::new_with_options(lang_config))
 }
 
 #[cfg(feature = "lang_chinese")]
-fn get_tokenizer(lang_config: &MorselsLanguageConfig) -> Box<dyn SearchTokenizer> {
+fn get_tokenizer(lang_config: &InfiLanguageConfig) -> Box<dyn SearchTokenizer> {
     Box::new(chinese::new_with_options(lang_config))
 }
 
@@ -170,9 +170,9 @@ pub fn get_new_searcher(
             num_pls_per_dir,
             with_positions,
         },
-        lang_config: MorselsLanguageConfig {
+        lang_config: InfiLanguageConfig {
             lang,
-            options: MorselsLanguageConfigOpts {
+            options: InfiLanguageConfigOpts {
                 stop_words,
                 ignore_stop_words,
                 stemmer,
@@ -326,7 +326,7 @@ pub async fn get_query(
 pub mod test {
     use std::collections::BTreeMap;
 
-    use infisearch_common::{MorselsLanguageConfig, MorselsLanguageConfigOpts};
+    use infisearch_common::{InfiLanguageConfig, InfiLanguageConfigOpts};
     use infisearch_lang_ascii::ascii;
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};
@@ -351,9 +351,9 @@ pub mod test {
 
         Searcher {
             dictionary: Dictionary { term_infos: BTreeMap::default() },
-            tokenizer: Box::new(ascii::new_with_options(&MorselsLanguageConfig {
+            tokenizer: Box::new(ascii::new_with_options(&InfiLanguageConfig {
                 lang: "ascii".to_owned(),
-                options: MorselsLanguageConfigOpts::default(),
+                options: InfiLanguageConfigOpts::default(),
             })),
             doc_info: DocInfo {
                 doc_length_factors: vec![1.0; num_docs * num_fields],
@@ -368,9 +368,9 @@ pub mod test {
                     num_pls_per_dir: 0,
                     with_positions: true,
                 },
-                lang_config: MorselsLanguageConfig {
+                lang_config: InfiLanguageConfig {
                     lang: "latin".to_owned(),
-                    options: MorselsLanguageConfigOpts::default(),
+                    options: InfiLanguageConfigOpts::default(),
                 },
                 field_infos,
                 valid_fields,

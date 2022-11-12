@@ -118,7 +118,7 @@ fn get_default_language() -> String {
 }
 
 #[cfg_attr(feature = "indexer", derive(Serialize, Deserialize, Clone))]
-pub struct MorselsLanguageConfigOpts {
+pub struct InfiLanguageConfigOpts {
     pub stop_words: Option<Vec<String>>,
     pub ignore_stop_words: Option<bool>,
     pub stemmer: Option<String>,
@@ -126,9 +126,9 @@ pub struct MorselsLanguageConfigOpts {
 }
 
 #[cfg(feature = "indexer")]
-impl Default for MorselsLanguageConfigOpts {
+impl Default for InfiLanguageConfigOpts {
     fn default() -> Self {
-        MorselsLanguageConfigOpts {
+        InfiLanguageConfigOpts {
             stop_words: None,
             ignore_stop_words: None,
             stemmer: None,
@@ -138,20 +138,20 @@ impl Default for MorselsLanguageConfigOpts {
 }
 
 #[cfg_attr(feature = "indexer", derive(Serialize, Deserialize, Clone))]
-pub struct MorselsLanguageConfig {
+pub struct InfiLanguageConfig {
     #[cfg_attr(feature = "indexer", serde(default = "get_default_language"))]
     pub lang: String,
 
     #[cfg_attr(feature = "indexer", serde(default))]
-    pub options: MorselsLanguageConfigOpts,
+    pub options: InfiLanguageConfigOpts,
 }
 
 #[cfg(feature = "indexer")]
-impl Default for MorselsLanguageConfig {
+impl Default for InfiLanguageConfig {
     fn default() -> Self {
-        MorselsLanguageConfig {
+        InfiLanguageConfig {
             lang: get_default_language(),
-            options: MorselsLanguageConfigOpts::default(),
+            options: InfiLanguageConfigOpts::default(),
         }
     }
 }

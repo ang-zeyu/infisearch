@@ -11,7 +11,7 @@ use crate::ascii_folding_filter;
 use crate::spelling;
 use crate::stop_words::get_stop_words;
 use crate::utils;
-use infisearch_common::MorselsLanguageConfig;
+use infisearch_common::InfiLanguageConfig;
 #[cfg(feature = "indexer")]
 use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
 use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
@@ -35,7 +35,7 @@ pub struct Tokenizer {
     max_term_len: usize,
 }
 
-pub fn new_with_options(lang_config: &MorselsLanguageConfig) -> Tokenizer {
+pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
     let stop_words = get_stop_words(lang_config, &[
         // Same list from tantivy
         "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no",

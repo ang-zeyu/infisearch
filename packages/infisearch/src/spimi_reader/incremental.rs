@@ -23,7 +23,7 @@ use infisearch_common::utils::varint::decode_var_int;
 use crate::dictionary_writer::DictWriter;
 use crate::field_info::FieldInfos;
 use crate::incremental_info::IncrementalIndexInfo;
-use crate::indexer::input_config::MorselsIndexingConfig;
+use crate::indexer::input_config::InfiIndexingConfig;
 use crate::spimi_reader::common::PlWriter;
 use crate::spimi_reader::common::{
     self, postings_stream::PostingsStream, PostingsStreamDecoder, TermDocsForMerge,
@@ -176,7 +176,7 @@ pub fn modify_blocks(
     num_blocks: u32,
     first_block: u32,
     last_block: u32,
-    indexing_config: &MorselsIndexingConfig,
+    indexing_config: &InfiIndexingConfig,
     field_infos: &Arc<FieldInfos>,
     tx_main: &Sender<MainToWorkerMessage>,
     output_folder_path: &Path,
