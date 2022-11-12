@@ -54,7 +54,7 @@ If you wish to host the files, you can find them in the `<output-folder-path>/as
 Give any `<input>` element in your page an `id` of `morsels-search`, then call:
 
 ```js
-morsels.initMorsels({
+infisearch.init({
   searcherOptions: {
     // Output folder URL specified as the second parameter in the cli command
     // URLs like '/output/' will work as well

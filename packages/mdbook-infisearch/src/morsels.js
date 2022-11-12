@@ -1,4 +1,4 @@
-morsels.initMorsels({
+infisearch.init({
   searcherOptions: {
     url: base_url + 'morsels_output/',
   },

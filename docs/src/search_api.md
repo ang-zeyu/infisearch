@@ -4,15 +4,15 @@ You can also interface with Morsels through its API.
 
 ## Setup
 
-Under the global `morsels` variable, you can instantiate an instance of the `Searcher` class.
+Under the global `infisearch` variable, you can instantiate an instance of the `Searcher` class.
 
 ```ts
-const searcher = new morsels.Searcher({
+const searcher = new infisearch.Searcher({
     url: 'https://... the index output directory ...'
 });
 ```
 
-The constructor parameter uses the same options as `morsels.initMorsels`, refer to this [page](./search_configuration.md#search-functionality-options) for the other available options.
+The constructor parameter uses the same options as `infisearch.init`, refer to this [page](./search_configuration.md#search-functionality-options) for the other available options.
 
 **Initialising States**
 

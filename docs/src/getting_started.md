@@ -62,12 +62,12 @@ The same files are also in the release packages [here](https://github.com/ang-ze
 
 ### UI Initialisation
 
-Once you have loaded the bundles, simply call the `morsels.initMorsels` function in your page.
+Once you have loaded the bundles, simply call the `infisearch.init` function in your page.
 
 This requires an input element with an `id=morsels-search` to be present in the page by default. The `id` can be configured via `uiOptions.input`.
 
 ```ts
-morsels.initMorsels({
+infisearch.init({
   searcherOptions: {
     // Output folder url specified as the second parameter in the cli command
     // Urls like '/output/' will work as well

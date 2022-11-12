@@ -28,7 +28,7 @@ Some use cases for this include:
 These API options are similarly specified under the `uiOptions` key of the root configuration object.
 
 ```ts
-morsels.initMorsels({
+infisearch.init({
     uiOptions: {
         // ...
     }
@@ -64,7 +64,7 @@ export type CreateElement = (
 
 `opts`
 
-All renderer functions are also passed an `opts` parameter. This is the original input object that you provided to the `morsels.initMorsels` call, with default parameters populated at this point.
+All renderer functions are also passed an `opts` parameter. This is the original input object that you provided to the `infisearch.init` call, with default parameters populated at this point.
 
 ```ts
 opts = export interface Options {

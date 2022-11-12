@@ -128,7 +128,7 @@ The `num_docs_per_store` parameter controls how many documents to store in one j
 #### Field Store Caching: **`cache_all_field_stores`**
 
 This is the same option as the one under [search functionality options](../search_configuration.md#search-functionality-options).
-If both are specified, the value specified in the `morsels.initMorsels` call will take priority.
+If both are specified, the value specified in the `infisearch.init` call will take priority.
 
 All fields specified with `storage=["text"]` would be cached up front on initialisation of the search library.
 

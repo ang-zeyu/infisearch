@@ -8,7 +8,7 @@ import {
   setDropdownInputAria, unsetDropdownInputAria, targetRender,
 } from './search/rootContainers';
 
-// State / handlers for a single morsels.initMorsels() call
+// State / handlers for a single infisearch.init() call
 class InitState {
   _mrlShowDropdown: () => void;
 
@@ -73,7 +73,7 @@ class InitState {
   }
 }
 
-function initMorsels(options: Options): {
+function init(options: Options): {
   showFullscreen: () => void,
   hideFullscreen: () => void,
 } {
@@ -247,4 +247,4 @@ function initMorsels(options: Options): {
   };
 }
 
-export default initMorsels;
+export default init;
