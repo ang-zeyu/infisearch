@@ -1,6 +1,6 @@
 {
   "name": "@infisearch/search-ui",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "A complete and more scalable pre-built index approach to client-side search.",
   "keywords": [
     "search"
@@ -26,6 +26,6 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.0",
-    "@infisearch/search-lib": "^0.8.3"
+    "@infisearch/search-lib": "^0.8.4"
   }
 }
