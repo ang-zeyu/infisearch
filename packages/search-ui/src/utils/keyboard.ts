@@ -2,14 +2,14 @@ import { setActiveDescendant, unsetActiveDescendant } from './aria';
 
 export const SELECTED_OPTION_ID = 'infi-list-selected';
 
-function scrollListContainer(targetEl: any, listContainer: HTMLElement) {
-  const computedStyles = getComputedStyle(listContainer);
+function scrollListContainer(targetEl: any, scrollContainer: HTMLElement) {
+  const computedStyles = getComputedStyle(scrollContainer);
   if (['scroll', 'auto', 'overlay'].includes(computedStyles.overflowY)) {
     const top = targetEl.offsetTop
-      - listContainer.offsetTop
-      - listContainer.clientHeight / 2
+      - scrollContainer.offsetTop
+      - scrollContainer.clientHeight / 2
       + targetEl.clientHeight / 2;
-    listContainer.scrollTo({ top });
+    scrollContainer.scrollTo({ top });
   } else {
     targetEl.scrollIntoView({
       block: 'center',
@@ -21,7 +21,7 @@ export function focusEl(
   el: Element,
   focusedEl: HTMLElement,
   inputEl: HTMLInputElement,
-  listContainer: HTMLElement,
+  scrollContainer: HTMLElement,
   doScroll: boolean,
 ) {
   if (focusedEl) {
@@ -34,15 +34,19 @@ export function focusEl(
     el.classList.add('focus');
     el.setAttribute('aria-selected', 'true');
     el.setAttribute('id', SELECTED_OPTION_ID);
-    if (doScroll) scrollListContainer(el, listContainer);
+    if (doScroll) scrollListContainer(el, scrollContainer);
     setActiveDescendant(inputEl);
   } else {
-    if (doScroll) listContainer.scrollTo({ top: 0 });
+    if (doScroll) scrollContainer.scrollTo({ top: 0 });
     unsetActiveDescendant(inputEl);
   }
 }
 
-export function addKeyboardHandler(inputEl: HTMLInputElement, resultContainer: HTMLElement) {
+export function addKeyboardHandler(
+  inputEl: HTMLInputElement,
+  resultContainer: HTMLElement,
+  scrollContainer: HTMLElement,
+) {
   inputEl.addEventListener('keydown', (ev: KeyboardEvent) => {
     const { key } = ev;
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(key)) {
@@ -62,10 +66,10 @@ export function addKeyboardHandler(inputEl: HTMLInputElement, resultContainer: H
     });
 
     if (key === 'ArrowDown') {
-      focusEl(opts[(focusedItemIdx + 1) % opts.length], focusedItem, inputEl, resultContainer, true);
+      focusEl(opts[(focusedItemIdx + 1) % opts.length], focusedItem, inputEl, scrollContainer, true);
     } else if (key === 'ArrowUp') {
       focusEl(
-        focusedItemIdx > 0 ? opts[focusedItemIdx - 1] : lastItem, focusedItem, inputEl, resultContainer, true,
+        focusedItemIdx > 0 ? opts[focusedItemIdx - 1] : lastItem, focusedItem, inputEl, scrollContainer, true,
       );
     } else if (key === 'Enter') {
       if (focusedItem)
@@ -76,7 +80,7 @@ export function addKeyboardHandler(inputEl: HTMLInputElement, resultContainer: H
       const pos = key === 'Home' ? 0 : inputEl.value.length;
       inputEl.focus();
       inputEl.setSelectionRange(pos, pos);
-      focusEl(undefined, focusedItem, inputEl, resultContainer, true);
+      focusEl(undefined, focusedItem, inputEl, scrollContainer, true);
     }
 
     ev.preventDefault();

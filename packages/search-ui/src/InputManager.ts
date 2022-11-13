@@ -61,7 +61,7 @@ export class IManager {
     that._mrlState = listContainerChildren[2] as HTMLElement;
     that._mrlResultContainer = listContainerChildren[3] as HTMLElement;
 
-    addKeyboardHandlers(_mrlInputEl, that._mrlResultContainer);
+    addKeyboardHandlers(_mrlInputEl, that._mrlResultContainer, _mrlScroller);
     that._mrlRefreshEmptyInputClass();
     that._mrlRefreshHeader();
 
