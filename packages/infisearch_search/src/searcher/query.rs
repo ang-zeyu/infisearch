@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
+use infisearch_common::utils::push;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::doc_info::DocInfo;
@@ -73,9 +74,12 @@ impl Query {
             && (self.result_limit.is_none() || self.results_retrieved < unsafe { self.result_limit.unwrap_unchecked() })
         {
             let doc_id = unsafe { self.result_heap.pop().unwrap_unchecked().doc_id };
-            raw.push(doc_id);
+            push::push_wo_grow(&mut raw, doc_id);
             for enum_id in 0..doc_infos.num_enum_fields {
-                raw.push(doc_infos.get_enum_val(doc_id as usize, enum_id) as u32);
+                push::push_wo_grow(
+                    &mut raw,
+                    doc_infos.get_enum_val(doc_id as usize, enum_id) as u32,
+                );
             }
 
             docs_added += 1;

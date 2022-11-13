@@ -1,3 +1,5 @@
+use infisearch_common::utils::push;
+
 use crate::{postings_list::{PlIterator, Doc, Field}, utils};
 
 pub struct Position {
@@ -47,7 +49,7 @@ pub fn rank<'a>(
 
         for (j, curr_field) in curr_fields.iter().enumerate() {
             if let Some(&pos) = curr_field.field_positions.first() {
-                positions.push(Position {
+                push::push_wo_grow(positions, Position {
                     pos,
                     pl_it_idx,
                     pl_it_field_idx: j,

@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use infisearch_common::utils::idf::get_idf;
+use infisearch_common::utils::push;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -78,12 +79,12 @@ impl Searcher {
             pl_numbers.into_iter()
                 .map(|pl_num| {
                     // Postings lists that are populated from the same pl_num (postings list file)
-                    let mut curr_pl_num_pls = Vec::new();
+                    let mut curr_pl_num_pls = Vec::with_capacity(postings_lists.len());
 
                     for i in (0..postings_lists.len()).rev() {
                         if let Some(term_info) = &unsafe { postings_lists.get_unchecked(i) }.term_info {
                             if pl_num == term_info.postings_file_name {
-                                curr_pl_num_pls.push(postings_lists.remove(i));
+                                push::push_wo_grow(&mut curr_pl_num_pls, postings_lists.remove(i));
                             }
                         }
                     }
@@ -105,7 +106,9 @@ impl Searcher {
                 self.postings_list_cache.add(result.pl_num, raw_pl_to_cache);
             }
 
-            postings_lists.extend(result.postings_lists);
+            for pl in result.postings_lists {
+                push::push_wo_grow(&mut postings_lists, pl);
+            }
         }
 
         postings_lists.into_iter().map(Rc::new).collect()

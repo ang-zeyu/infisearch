@@ -70,7 +70,8 @@ impl DocInfos {
 
         let metadata_rdr = unsafe { metadata_rdr.unwrap_unchecked() };
         let mut doc_id_counter = 0;
-        let mut average_lengths: Vec<f64> = Vec::new();
+        // Capacity must be set
+        let mut average_lengths: Vec<f64> = Vec::with_capacity(num_scored_fields);
         let docs_enum_values = metadata_rdr.read_docinfo_inital_metadata(
             &mut 0, &mut doc_id_counter, &mut average_lengths,
             &mut 0, num_scored_fields,

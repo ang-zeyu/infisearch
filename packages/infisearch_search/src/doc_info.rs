@@ -1,4 +1,4 @@
-use infisearch_common::{MetadataReader, EnumMax};
+use infisearch_common::{MetadataReader, EnumMax, utils::push};
 
 pub struct DocInfo {
     pub doc_length_factors: Vec<f64>,
@@ -14,7 +14,8 @@ impl DocInfo {
         // num_docs =/= doc_length_factors.len() due to incremental indexing
         let mut num_docs = 0;
         let mut doc_id_counter = 0;
-        let mut avg_doc_lengths: Vec<f64> = Vec::new();
+        // Capacity must be set
+        let mut avg_doc_lengths: Vec<f64> = Vec::with_capacity(num_fields);
         let mut num_enum_fields = 0;
 
         let doc_enum_vals = docinfo_rdr.read_docinfo_inital_metadata(
@@ -30,7 +31,7 @@ impl DocInfo {
         for _doc_id in 0..doc_id_counter {
             for avg_doc_length in avg_doc_lengths.iter() {
                 let field_length = docinfo_rdr.read_docinfo_field_length() as f64;
-                doc_length_factors.push(field_length / *avg_doc_length);
+                push::push_wo_grow(&mut doc_length_factors, field_length / *avg_doc_length);
             }
         }
 

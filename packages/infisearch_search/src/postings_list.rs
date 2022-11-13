@@ -7,6 +7,7 @@ use infisearch_common::postings_list::{
     MIN_CHUNK_SIZE, CHUNK_SIZE,
 };
 use infisearch_common::utils::idf::get_idf;
+use infisearch_common::utils::push;
 use infisearch_common::utils::varint::decode_var_int;
 
 pub fn get_postings_list<'a, 'b>(
@@ -223,7 +224,7 @@ impl PostingsList {
 
                             for _i in 0..CHUNK_SIZE {
                                 prev_pos += read_bits_from(&mut bit_pos, chunk_len, slice_starting_here);
-                                field_positions.push(prev_pos);
+                                push::push_wo_grow(&mut field_positions, prev_pos);
 
                                 read += 1;
                                 if read == field_tf {
@@ -237,7 +238,7 @@ impl PostingsList {
                         let mut prev_pos = 0;
                         for _j in 0..field_tf {
                             prev_pos += decode_var_int(&pl_vec, &mut pos);
-                            field_positions.push(prev_pos);
+                            push::push_wo_grow(&mut field_positions, prev_pos);
                         }
                     }
 
@@ -247,14 +248,17 @@ impl PostingsList {
                 };
 
                 for _field_id_before in term_doc.fields.len() as u8..field_id {
-                    term_doc.fields.push(Field::default());
+                    push::push_wo_grow(&mut term_doc.fields, Field::default());
                 }
 
-                term_doc.fields.push(Field { field_tf: field_tf as f32, field_positions });
+                push::push_wo_grow(&mut term_doc.fields, Field {
+                    field_tf: field_tf as f32,
+                    field_positions,
+                });
             }
 
             if !infisearch_common::bitmap::check(invalidation_vector, prev_doc_id as usize) {
-                self.term_docs.push(term_doc);
+                push::push_wo_grow(&mut self.term_docs, term_doc);
             }
         }
     }
@@ -286,8 +290,9 @@ impl PostingsList {
                         while pos2_idx < term_doc_2_field.field_positions.len()
                             && unsafe { *term_doc_2_field.field_positions.get_unchecked(pos2_idx) } < pos1
                         {
-                            doc_field.field_positions.push(
-                                unsafe { *term_doc_2_field.field_positions.get_unchecked(pos2_idx) }
+                            push::push_wo_grow(
+                                &mut doc_field.field_positions,
+                                unsafe { *term_doc_2_field.field_positions.get_unchecked(pos2_idx) },
                             );
                             pos2_idx += 1;
                         }
@@ -299,20 +304,20 @@ impl PostingsList {
                             pos2_idx += 1;
                         }
 
-                        doc_field.field_positions.push(pos1);
+                        push::push_wo_grow(&mut doc_field.field_positions, pos1);
                     }
 
                     // Guarantee: pos2_idx is at most term_doc_2_field.field_positions.len() at this point
                     for &p in unsafe { term_doc_2_field.field_positions.get_unchecked(pos2_idx..) } {
-                        doc_field.field_positions.push(p);
+                        push::push_wo_grow(&mut doc_field.field_positions, p);
                     }
 
-                    td.fields.push(doc_field);
+                    push::push_wo_grow(&mut td.fields, doc_field);
                 } else {
-                    td.fields.push(term_doc_1_field.clone());
+                    push::push_wo_grow(&mut td.fields, term_doc_1_field.clone());
                 }
             } else if let Some(term_doc_2_field) = term_doc_2_field_opt {
-                td.fields.push(term_doc_2_field.clone());
+                push::push_wo_grow(&mut td.fields, term_doc_2_field.clone());
             }
         }
 

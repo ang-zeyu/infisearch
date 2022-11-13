@@ -4,6 +4,7 @@ mod proximity_ranking;
 use std::collections::BinaryHeap;
 use std::rc::Rc;
 
+use infisearch_common::utils::push;
 use infisearch_common::{bitmap, EnumMax};
 
 use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc, PlAndInfo};
@@ -225,13 +226,21 @@ impl Searcher {
     }
 
     fn invert_postings_list(&self, pl: Rc<PostingsList>, weight: f32) -> Rc<PostingsList> {
-        let mut result_pl = empty_pl();
+        let mut result_pl = PostingsList {
+            term_docs: Vec::with_capacity(self.doc_info.doc_length_factors_len as usize - pl.term_docs.len()),
+            idf: 0.0,
+            term: None,
+            term_info: None,
+        };
 
         let mut prev = 0;
         for td in pl.term_docs.iter() {
             for doc_id in prev..td.doc_id {
                 if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                    result_pl.term_docs.push(Doc { doc_id, fields: Vec::new(), score: 0.0 });
+                    push::push_wo_grow(
+                        &mut result_pl.term_docs,
+                        Doc { doc_id, fields: Vec::new(), score: 0.0 },
+                    );
                 }
             }
             prev = td.doc_id + 1;
@@ -239,7 +248,10 @@ impl Searcher {
 
         for doc_id in prev..self.doc_info.doc_length_factors_len {
             if !bitmap::check(&self.invalidation_vector, doc_id as usize) {
-                result_pl.term_docs.push(Doc { doc_id, fields: Vec::new(), score: 0.0 });
+                push::push_wo_grow(
+                    &mut result_pl.term_docs,
+                    Doc { doc_id, fields: Vec::new(), score: 0.0 },
+                );
             }
         }
 
@@ -264,7 +276,7 @@ impl Searcher {
 
         if let Some((field_id, _field_info)) = field_id_and_info {
             let mut new_pl = PostingsList {
-                term_docs: Vec::new(),
+                term_docs: Vec::with_capacity(pl.term_docs.len()),
                 idf: pl.idf,
                 term: pl.term.clone(),
                 term_info: pl.term_info.clone(),
@@ -285,7 +297,7 @@ impl Searcher {
                     } else {
                         self.calc_doc_bm25_score(term_doc, term_doc.doc_id, pl, weight)
                     };
-                    new_pl.term_docs.push(Doc { doc_id: term_doc.doc_id, fields, score })
+                    push::push_wo_grow(&mut new_pl.term_docs, Doc { doc_id: term_doc.doc_id, fields, score });
                 }
             }
 
@@ -311,7 +323,7 @@ impl Searcher {
         term_postings_lists: &Vec<Rc<PostingsList>>,
         weight: f32,
     ) -> Vec<PlAndInfo> {
-        let mut result: Vec<PlAndInfo> = Vec::new();
+        let mut result: Vec<PlAndInfo> = Vec::with_capacity(query_parts.len());
 
         for query_part in query_parts {
             let mut pl_opt: Option<Rc<PostingsList>> = None;
@@ -352,7 +364,7 @@ impl Searcher {
                 pl = self.invert_postings_list(pl, weight);
             }
 
-            result.push(PlAndInfo {
+            push::push_wo_grow(&mut result, PlAndInfo {
                 pl,
                 weight,
                 include_in_proximity_ranking: !(query_part.is_suffixed || query_part.is_inverted),
@@ -385,7 +397,7 @@ impl Searcher {
                     unsafe { *ev_ids.get_unchecked(ev_id) }
                 });
             if passes_enum_filters {
-                doc_results.push(DocResult { doc_id: td.doc_id, score: td.score });
+                push::push_wo_grow(&mut doc_results, DocResult { doc_id: td.doc_id, score: td.score });
             }
         }
 

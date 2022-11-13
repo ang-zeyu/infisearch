@@ -1,3 +1,5 @@
+use infisearch_common::utils::push;
+
 use crate::dictionary::SearchDictionary;
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::Searcher;
@@ -144,13 +146,13 @@ impl Searcher {
     ) -> Vec<QueryPart> {
         let old_weight = old_query_part.weight;
         let mut wrapper_part_children = Vec::with_capacity(expanded_terms.len() + 1);
-        wrapper_part_children.push(old_query_part);
+        push::push_wo_grow(&mut wrapper_part_children, old_query_part);
 
         for (term, weight) in expanded_terms {
             // For auto suffix search, exclude terms that are used in any other part of the query
             // query_parts is an empty Vec::new() for manual suffix
             if !Self::is_term_used(&term, query_parts) {
-                wrapper_part_children.push(QueryPart {
+                push::push_wo_grow(&mut wrapper_part_children, QueryPart {
                     is_suffixed: true,
                     term: Some(term.to_owned()),
                     terms_searched: Some(vec![term.to_owned()]),

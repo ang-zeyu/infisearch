@@ -12,6 +12,8 @@ pub mod utils;
 use dictionary::Dictionary;
 use utils::varint;
 
+use crate::utils::push;
+
 pub static FILE_EXT: &str = "mls";
 pub static METADATA_FILE: &str = "metadata.json";
 
@@ -62,7 +64,10 @@ impl MetadataReader {
         self.doc_infos_pos += 4;
 
         for _i in 0..num_fields {
-            average_lengths.push(LittleEndian::read_f64(&self.buf[self.doc_infos_pos..]));
+            push::push_wo_grow(
+                average_lengths,
+                LittleEndian::read_f64(&self.buf[self.doc_infos_pos..]),
+            );
             self.doc_infos_pos += 8;
         }
 
@@ -92,7 +97,7 @@ impl MetadataReader {
                     &mut doc_infos_enum_bit_r_pos, bits_used,
                     doc_infos_enum_ev_ids,
                 ) as EnumMax;
-                doc_enum_vals.push(ev_id);
+                push::push_wo_grow(&mut doc_enum_vals, ev_id);
             }
         }
 

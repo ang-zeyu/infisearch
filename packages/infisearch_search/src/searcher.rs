@@ -11,6 +11,7 @@ use infisearch_common::EnumMax;
 use infisearch_common::MetadataReader;
 use infisearch_common::InfiLanguageConfigOpts;
 
+use infisearch_common::utils::push;
 use wasm_bindgen::prelude::wasm_bindgen;
 #[cfg(feature = "perf")]
 use wasm_bindgen::JsCast;
@@ -267,7 +268,7 @@ fn read_enum_filters_param(enum_filters_raw: Vec<u32>) -> Vec<(usize, [bool; Enu
             pos += 1;
         }
 
-        enum_filters.push((enum_id, ev_ids));
+        push::push_wo_grow(&mut enum_filters, (enum_id, ev_ids));
     }
 
     enum_filters
