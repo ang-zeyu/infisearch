@@ -108,6 +108,11 @@ impl Searcher {
 
         let do_accumulate = is_bracket || (is_phrase && total_proximity_ranking_pls == 1);
 
+        // Heuristic, exact size can't be known without processing
+        new_pl.term_docs.reserve_exact(
+            child_postings_lists.iter().map(|pl| pl.pl.term_docs.len()).max().unwrap_or(128),
+        );
+
         loop {
             let doc_id = if num_mandatory_pls > 0 {
                 // Find the largest mandatory id for forwarding other postings lists
