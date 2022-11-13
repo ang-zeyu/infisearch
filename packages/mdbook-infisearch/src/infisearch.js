@@ -6,6 +6,7 @@ infisearch.init({
     mode,
     dropdownAlignment: 'bottom-start',
     target: document.getElementById('infisearch-mdbook-target'),
+    fsInputButtonText: 'Search',
     sourceFilesUrl: base_url,
     resultsRenderOpts: {
       addSearchedTerms: 'search',

@@ -122,15 +122,14 @@
 .infi-input-close-fs {
     position: relative;
     border: none;
-    padding: 0 13px;
-    border-radius: 30px;
-    margin-left: 7px;
+    padding: 0 11px;
+    margin-left: 5px;
     font-size: inherit;
     font-weight: 600;
     cursor: pointer;
     color: var(--infi-fs-header-close-fg);
-    background: var(--infi-fs-header-close-bg);
-    transition: background 0.2s linear, color 0.2s linear;
+    background: none;
+    transition: color 0.15s linear;
     user-select: none;
 }
 
@@ -138,13 +137,13 @@
     .infi-input-close-fs:hover,
     .infi-input-close-fs:focus {
         color: var(--infi-fs-header-close-hover-fg);
-        background: var(--infi-fs-header-close-hover-bg);
+        background: none;
     }
 }
 
 .infi-input-close-fs:active {
-    color: var(--infi-fs-header-close-active-fg);
-    background: var(--infi-fs-header-close-active-bg);
+    color: var(--infi-fs-header-close-hover-fg);
+    background: none;
 }
 
 /*

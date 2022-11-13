@@ -25,8 +25,6 @@ You may want to use this tool if:
 
 > ⚠️ 
 > It is **not possible** to use InfiSearch for **client-side indexing** since the indexer is a cli tool.
->
-> If this is the use case, consider other lighter-weight libraries like lunr.js that already fit well.
 
 ## How it Works:
 
@@ -45,6 +43,3 @@ The following is a quick high level breakdown of how InfiSearch works:
 ## Other Notes
 
 1. **Wasm** is used -- that means no IE support =(
-
-1. **Browser Focused**: The focus is static site search. That means no Node.js support and such.
-

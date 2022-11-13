@@ -43,10 +43,7 @@
     --infi-fs-header-bg: #fdfdfd;
     --infi-fs-header-box-shadow: 0 0 5px 3px #f0f0f0;
     --infi-fs-header-close-fg: #707070;
-    --infi-fs-header-close-hover-bg: #7d7d7d;
-    --infi-fs-header-close-hover-fg: #fff;
-    --infi-fs-header-close-active-bg: #666666;
-    --infi-fs-header-close-active-fg: #fff;
+    --infi-fs-header-close-hover-fg: #1a1a1a;
     --infi-tip-bg: #fff;
     --infi-tip-fg: #444;
     --infi-tip-table-header-border: hsl(0, 0%, 93%);

@@ -38,12 +38,6 @@
     --infi-fs-box-shadow: none;
     --infi-fs-header-bg: var(--sidebar-bg);
     --infi-fs-header-box-shadow: none;
-    --infi-fs-header-close-fg: var(--sidebar-fg);
-    --infi-fs-header-close-bg: var(--sidebar-bg);
-    --infi-fs-header-close-hover-bg: var(--table-header-bg);
-    --infi-fs-header-close-hover-fg: var(--fg);
-    --infi-fs-header-close-active-bg: var(--table-header-bg);
-    --infi-fs-header-close-active-fg: var(--fg);
     --infi-tip-table-header-border: var(--table-border-color);
     --infi-tip-table-border: transparent;
     --infi-tip-table-alternate: var(--table-alternate-bg);
@@ -63,12 +57,21 @@
     font-weight: 600;
 }
 
+.light .infi-root {
+    --infi-fs-header-close-fg: var(--searchresults-header-fg);
+    --infi-fs-header-close-hover-fg: var(--fg);
+}
+
+.ayu .infi-root,
+.rust .infi-root,
+.coal .infi-root,
+.navy .infi-root {
+    --infi-fs-header-close-fg: var(--sidebar-fg);
+    --infi-fs-header-close-hover-fg: white;
+}
+
 .ayu .infi-root,
 .rust .infi-root {
-    --infi-fs-header-close-hover-bg: var(--sidebar-bg);
-    --infi-fs-header-close-hover-fg: white;
-    --infi-fs-header-close-active-bg: var(--sidebar-bg);
-    --infi-fs-header-close-active-fg: white;
     --infi-tip-code-fg: var(--search-mark-bg) !important;
     --infi-tip-icon-bg: rgb(200, 200, 200);
     --infi-tip-icon-fg: rgb(50, 50, 50);
