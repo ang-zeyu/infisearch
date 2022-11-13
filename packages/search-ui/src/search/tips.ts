@@ -77,10 +77,19 @@ export default function createTipButton(
     ),
   );
 
-  function resetPopupStyle() {
-    tipPopup.classList.remove('shown');
+  let shown = false;
+  function hide() {
+    if (shown) {
+      tipPopup.classList.remove('shown');
+      shown = false;
+    }
   }
-  resetPopupStyle();
+
+  tipPopup.ontransitionend = () => {
+    if (!shown) {
+      tipPopup.style.transform = 'scale(0)';
+    }
+  };
 
   const tipContainer = h(
     'div', { class: 'infi-tip-root', tabindex: '0' },
@@ -88,7 +97,8 @@ export default function createTipButton(
     tipPopup,
   );
 
-  function onIconFocus() {
+  function show() {
+    shown = true;
     computePosition(tipContainer, tipPopup, {
       placement: 'top-end',
       middleware: [
@@ -103,15 +113,16 @@ export default function createTipButton(
       Object.assign(tipPopup.style, {
         left: `${x}px`,
         top: `${y}px`,
+        transform: 'scale(1)',
       });
       tipPopup.classList.add('shown');
     });
   }
 
-  tipContainer.onmouseover = onIconFocus;
-  tipContainer.onfocus = onIconFocus;
-  tipContainer.onmouseleave = resetPopupStyle;
-  tipContainer.onblur = resetPopupStyle;
+  tipContainer.onmouseover = show;
+  tipContainer.onfocus = show;
+  tipContainer.onmouseleave = hide;
+  tipContainer.onblur = hide;
 
   return tipContainer;
 }
