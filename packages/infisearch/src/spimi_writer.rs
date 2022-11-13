@@ -2,11 +2,13 @@ use std::collections::BinaryHeap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::Instant;
 
 use crate::doc_info::DocInfos;
 use crate::doc_info::BlockDocLengths;
 use crate::field_info::FieldInfos;
 use crate::i_debug;
+use crate::utils::time;
 use crate::worker::miner::DocIdAndFieldLengthsComparator;
 use crate::worker::miner::TermDoc;
 use crate::worker::miner::WorkerBlockIndexResults;
@@ -27,7 +29,10 @@ pub fn combine_worker_results_and_write_block(
     num_docs_per_block: u32,
     spimi_counter: u32,
     doc_id_counter: u32,
+    log_perf: bool,
 ) {
+    let now = if log_perf { Some(Instant::now()) } else { None };
+
     let mut combined_terms: Vec<(String, Vec<TermDoc>)> = Vec::with_capacity(
         worker_index_results.iter().map(|result| result.terms.len()).sum()
     );
@@ -56,6 +61,10 @@ pub fn combine_worker_results_and_write_block(
 
             sorted_doc_infos.push(worker_document_length);
         }
+
+        if log_perf {
+            time::print_time_elapsed(&now, &format!("block {} sorted", block_number));
+        }
         // ---------------------------------------------
 
         // ---------------------------------------------
@@ -80,14 +89,26 @@ pub fn combine_worker_results_and_write_block(
             // possibly just a incremental indexing run with a deletion
             i_debug!("Encountered empty block {}", block_number);
         }
+
+        if log_perf {
+            time::print_time_elapsed(&now, &format!("block {} fields stored", block_number));
+        }
         // ---------------------------------------------
 
         if !sorted_doc_infos.is_empty() {
             doc_infos.lock().unwrap().all_block_doc_lengths.push(BlockDocLengths(sorted_doc_infos));
         }
+
+        if log_perf {
+            time::print_time_elapsed(&now, &format!("block {} infos stashed", block_number));
+        }
     }
 
     terms::write_block(combined_terms, output_folder_path, block_number);
+
+    if log_perf {
+        time::print_time_elapsed(&now, &format!("block {} written", block_number));
+    }
 }
 
 

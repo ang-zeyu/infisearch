@@ -68,6 +68,7 @@ fn main() {
             is_incremental,
             false,
             false,
+            false,
         );
 
         for entry in WalkDir::new(input_folder_path.clone()) {
@@ -88,7 +89,7 @@ fn main() {
             }
         }
 
-        indexer.finish_writing_docs(None);
+        indexer.finish_writing_docs();
 
         assets::write_infisearch_assets(&assets_output_dir);
     } else {

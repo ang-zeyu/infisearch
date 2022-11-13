@@ -68,6 +68,7 @@ impl Indexer {
                 self.indexing_config.num_docs_per_block,
                 self.spimi_counter,
                 self.doc_id_counter,
+                self.start_instant.is_some(),
             );
         } else {
             self.tx_main

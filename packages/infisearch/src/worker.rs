@@ -67,6 +67,7 @@ pub fn create_worker(
     input_folder_path: PathBuf,
     output_folder_path_inner_clone: PathBuf,
     loaders: Arc<Vec<LoaderBoxed>>,
+    log_perf: bool,
 ) {
     let mut doc_miner = WorkerMiner::new(
         &field_infos,
@@ -109,6 +110,7 @@ pub fn create_worker(
                     indexing_config.num_docs_per_block,
                     spimi_counter,
                     doc_id_counter,
+                    log_perf,
                 );
 
                 i_debug!("Worker {} wrote spimi block {}!", id, block_number);

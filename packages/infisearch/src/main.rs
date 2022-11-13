@@ -2,7 +2,6 @@ use std::env;
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
-use std::time::Instant;
 
 use infisearch::SOURCE_CONFIG_FILE;
 use infisearch::indexer::Indexer;
@@ -160,11 +159,10 @@ fn main() {
         args.incremental,
         args.incremental_content_hash,
         args.preserve_output_folder,
+        args.perf,
     );
 
     info!("Indexer initialised");
-
-    let now = if args.perf { Some(Instant::now()) } else { None };
 
     for entry in WalkDir::new(input_folder_path.clone()) {
         match entry {
@@ -186,7 +184,7 @@ fn main() {
 
     info!("All documents indexed! Merging results...");
 
-    indexer.finish_writing_docs(now);
+    indexer.finish_writing_docs();
 
     assets::write_infisearch_assets(&output_folder_path.join("assets"));
 

@@ -19,7 +19,7 @@ use infisearch_lang_chinese::chinese;
 
 use crate::dictionary_writer::DictWriter;
 use crate::doc_info::DocInfos;
-use crate::utils::fs_utils;
+use crate::utils::{fs_utils, time};
 use crate::{i_debug, spimi_reader, OLD_SOURCE_CONFIG};
 use crate::incremental_info::IncrementalIndexInfo;
 use crate::field_info::FieldInfos;
@@ -29,7 +29,6 @@ use crate::worker::miner::WorkerMiner;
 use crate::worker::{create_worker, MainToWorkerMessage, Worker, WorkerToMainMessage};
 
 use crossbeam::channel::{self, Receiver, Sender};
-use log::info;
 
 pub struct Indexer {
     indexing_config: Arc<InfiIndexingConfig>,
@@ -54,6 +53,7 @@ pub struct Indexer {
     start_doc_id: u32,
     start_block_number: u32,
     incremental_info: IncrementalIndexInfo,
+    start_instant: Option<Instant>,
 }
 
 impl Indexer {
@@ -65,6 +65,7 @@ impl Indexer {
         is_incremental: bool,
         use_content_hash: bool,
         preserve_output_folder: bool,
+        log_perf: bool,
     ) -> Indexer {
         // -----------------------------------------------------------
 
@@ -194,6 +195,7 @@ impl Indexer {
                         input_folder_path_clone,
                         output_folder_path_inner_clone,
                         loaders_clone,
+                        log_perf,
                     )
                 }),
             });
@@ -234,6 +236,7 @@ impl Indexer {
             start_doc_id: doc_id_counter,
             start_block_number: 0,
             incremental_info,
+            start_instant: if log_perf { Some(Instant::now()) } else { None },
         };
         indexer.start_block_number = indexer.block_number();
 
@@ -342,7 +345,7 @@ impl Indexer {
             .unwrap();
     }
 
-    pub fn finish_writing_docs(mut self, instant: Option<Instant>) {
+    pub fn finish_writing_docs(mut self) {
         i_debug!("@finish_writing_docs");
 
         let first_block = self.start_block_number;
@@ -370,16 +373,16 @@ impl Indexer {
             self.doc_id_counter, first_block, last_block,
         );
 
-        print_time_elapsed(&instant, "Block indexing done!");
+        time::print_time_elapsed(&self.start_instant, "Block indexing done!");
 
         // N-way merge of spimi blocks
-        let enums_ev_strs = self.merge_blocks(first_block, last_block, instant.is_some());
+        let enums_ev_strs = self.merge_blocks(first_block, last_block, self.start_instant.is_some());
 
         self.incremental_info.write_info(&self.input_folder_path, &self.output_folder_path);
 
         spimi_reader::common::cleanup_blocks(first_block, last_block, &self.output_folder_path_inner);
 
-        print_time_elapsed(&instant, "Blocks merged!");
+        time::print_time_elapsed(&self.start_instant, "Blocks merged!");
 
         // mem::replace/take to circumvent partial move, TODO find a cleaner solution
         Self::terminate_all_workers(
@@ -513,12 +516,5 @@ impl Indexer {
 
             enums_ev_strs
         }
-    }
-}
-
-fn print_time_elapsed(instant: &Option<Instant>, extra_message: &str) {
-    if let Some(instant) = instant {
-        let elapsed = instant.elapsed().as_secs_f64();
-        info!("({}) {} mins {} seconds elapsed.", extra_message, (elapsed as u32) / 60, elapsed % 60.0);
     }
 }
