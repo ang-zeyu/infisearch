@@ -1,6 +1,6 @@
 [package]
 name = "infisearch"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "A complete and more scalable pre-built index approach to client-side search."
@@ -32,10 +32,10 @@ glob = "0.3"
 lazy_static = "1.4"
 log = { version = "0.4", features = ["max_level_info", "release_max_level_info"] }
 log4rs = "1.0"
-infisearch_common = { path = "../infisearch_common", version="=0.8.0", features = ["indexer"] }
-infisearch_lang_ascii = { path = "../infisearch_languages/infisearch_lang_ascii", version="=0.8.0", features = ["indexer"] }
-infisearch_lang_latin = { path = "../infisearch_languages/infisearch_lang_latin", version="=0.8.0", features = ["indexer"] }
-infisearch_lang_chinese = { path = "../infisearch_languages/infisearch_lang_chinese", version="=0.8.0", features = ["indexer"] }
+infisearch_common = { path = "../infisearch_common", version="=0.8.1", features = ["indexer"] }
+infisearch_lang_ascii = { path = "../infisearch_languages/infisearch_lang_ascii", version="=0.8.1", features = ["indexer"] }
+infisearch_lang_latin = { path = "../infisearch_languages/infisearch_lang_latin", version="=0.8.1", features = ["indexer"] }
+infisearch_lang_chinese = { path = "../infisearch_languages/infisearch_lang_chinese", version="=0.8.1", features = ["indexer"] }
 num_cpus = "1"
 path-absolutize = { version = "3.0", features = ["lazy_static_cache"] }
 pathdiff = "0.2"
