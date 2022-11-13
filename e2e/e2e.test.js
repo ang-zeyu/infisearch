@@ -486,7 +486,7 @@ const cleanup = () => {
 
 function readOutputConfig() {
   return JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'output/_output_config.json'), 'utf8'),
+    fs.readFileSync(path.join(__dirname, 'output/output_config.json'), 'utf8'),
   );
 }
 

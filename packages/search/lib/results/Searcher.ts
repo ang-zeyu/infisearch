@@ -150,7 +150,7 @@ class Searcher {
 
   private async _mrlRetrieveConfig(): Promise<void> {
     const searcherOpts = this._mrlOptions;
-    this.cfg = await (await fetch(`${searcherOpts.url}_output_config.json`, {
+    this.cfg = await (await fetch(`${searcherOpts.url}output_config.json`, {
       cache: 'no-store',
     })).json();
 
