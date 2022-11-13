@@ -25,6 +25,7 @@ export function resultSeparator(
   const loadMoreButton = h('button', {
     class: 'infi-load-more',
     tabindex: '-1',
+    type: 'button',
   }, 'Load more results');
   const loadMoreButtonWrapped = h('div', {
     class: 'infi-load-more-opt',
@@ -36,7 +37,9 @@ export function resultSeparator(
     ev.stopPropagation();
   });
 
-  loadMoreButtonWrapped.onclick = () => {
+  loadMoreButtonWrapped.onclick = (ev) => {
+    ev.preventDefault();
+
     // Was the button clicked as a result of the combobox controls?
     const isDomFocused = document.activeElement === loadMoreButton;
 

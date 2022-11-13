@@ -182,7 +182,10 @@ export function fsRootRender(
     }
   };
 
-  const buttonEl = h('button', { class: 'infi-input-close-fs' }, fsCloseText);
+  const buttonEl = h('button', {
+    class: 'infi-input-close-fs',
+    type: 'button',
+  }, fsCloseText);
   
   const resultContainer = h('div', {
     id: `infi-fs-list-${fsId++}`,

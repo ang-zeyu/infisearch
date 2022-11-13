@@ -33,10 +33,12 @@ export function headerRender(query: Query, getOrSetFiltersShown: (setValue?: boo
     const filters = h('button',
       {
         class: 'infi-filters' + (getOrSetFiltersShown() ? ' active' : ''),
+        type: 'button',
       },
       'Filters',
     );
-    filters.onclick = () => {
+    filters.onclick = (ev) => {
+      ev.preventDefault();
       const shown = getOrSetFiltersShown(!getOrSetFiltersShown());
       if (shown)
         filters.classList.add('active');
