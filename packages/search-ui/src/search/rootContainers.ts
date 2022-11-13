@@ -5,11 +5,16 @@ import { Options } from '../Options';
 import { setInputAria, unsetActiveDescendant } from '../utils/aria';
 
 
-export function openDropdown(root: HTMLElement, listContainer: HTMLElement, placement: Placement) {
+export function openDropdown(
+  input: HTMLInputElement,
+  root: HTMLElement,
+  listContainer: HTMLElement,
+  placement: Placement,
+) {
   const innerRoot = root.children[1] as HTMLElement;
   const caret = innerRoot.firstElementChild as HTMLElement;
   innerRoot.style.display = 'block';
-  computePosition(root, innerRoot, {
+  computePosition(input, innerRoot, {
     placement,
     middleware: [
       flip({

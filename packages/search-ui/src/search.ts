@@ -171,7 +171,7 @@ function init(options: Options): {
     initState._mrlShowDropdown = () => {
       if (input.value) {
         // Show the dropdown only if it is not empty
-        openDropdown(dropdownRoot, dropdownScroller, dropdownAlignment);
+        openDropdown(input, dropdownRoot, dropdownScroller, dropdownAlignment);
         initState._mrlDropdownShown = true;
       }
     };
