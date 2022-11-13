@@ -38,6 +38,7 @@ struct SearcherConfig {
     field_infos: Vec<FieldInfo>,
     valid_fields: Vec<String>,
     num_scored_fields: usize,
+    inner_url: String,
     searcher_options: SearcherOptions,
 }
 
@@ -105,6 +106,7 @@ pub fn get_new_searcher(
     field_infos_raw: JsValue, // custom uint8array, serialized in workerSearcher.ts
     num_scored_fields: usize,
     url: String,
+    inner_url: String,
     max_auto_suffix_search_terms: usize,
     max_suffix_search_terms: usize,
     use_query_term_proximity: bool,
@@ -183,6 +185,7 @@ pub fn get_new_searcher(
         field_infos,
         valid_fields,
         num_scored_fields,
+        inner_url,
         searcher_options: SearcherOptions {
             url,
             max_auto_suffix_search_terms,
@@ -376,6 +379,7 @@ pub mod test {
                 field_infos,
                 valid_fields,
                 num_scored_fields: num_fields,
+                inner_url: "/1261235123/".to_owned(),
                 searcher_options: SearcherOptions {
                     url: "/".to_owned(),
                     max_auto_suffix_search_terms: 0,

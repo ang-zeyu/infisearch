@@ -1,5 +1,11 @@
-export async function fetchPl(plName, numPlsPerDir, baseUrl, plLazyCacheThreshold) {
-  const plUrl = `${baseUrl}pl_${Math.floor(plName / numPlsPerDir)}/pl_${plName}.mls`;
+export async function fetchPl(
+  plName,
+  numPlsPerDir,
+  baseUrl,
+  innerUrl,
+  plLazyCacheThreshold,
+) {
+  const plUrl = `${innerUrl}pl_${Math.floor(plName / numPlsPerDir)}/pl_${plName}.mls`;
   const cacheName = `infi:${baseUrl}`;
 
   function fetchUrl(url) {

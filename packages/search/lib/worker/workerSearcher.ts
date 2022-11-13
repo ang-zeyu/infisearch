@@ -190,6 +190,7 @@ export async function setupWasm(
     options.max_term_len,
     fieldInfosSerialized,
     numScoredFields,
+    searcherOptions.url,
     innerUrl,
     searcherOptions.maxAutoSuffixSearchTerms,
     searcherOptions.maxSuffixSearchTerms,

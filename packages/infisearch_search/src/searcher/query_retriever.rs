@@ -131,6 +131,7 @@ impl Searcher {
                 pl_num,
                 self.searcher_config.indexing_config.num_pls_per_dir,
                 &self.searcher_config.searcher_options.url,
+                &self.searcher_config.inner_url,
                 self.searcher_config.searcher_options.pl_lazy_cache_threshold,
             ).await;
             raw_pl_to_cache = Some(js_sys::Uint8Array::new(&pl_array_buffer).to_vec());
@@ -168,6 +169,7 @@ extern "C" {
         pl_name: u32,
         num_pls_per_dir: u32,
         base_url: &str,
+        inner_url: &str,
         pl_lazy_cache_threshold: u32,
     ) -> JsValue;
 }
