@@ -5,7 +5,6 @@ use std::sync::Arc;
 
 use crate::field_info::FieldInfos;
 use crate::utils::reusable_writer::ReusableWriter;
-use crate::worker::miner::WorkerMinerDocInfo;
 
 
 #[allow(clippy::too_many_arguments)]
@@ -17,7 +16,7 @@ pub fn store_fields(
     spimi_counter: u32,
     num_docs_per_block: u32,
     block_number: u32,
-    sorted_doc_infos: &mut [WorkerMinerDocInfo]
+    field_texts: Vec<Vec<u8>>,
 ) {
     let mut file_number = if check_for_existing_field_store {
         start_doc_id / field_infos.num_docs_per_store
@@ -40,13 +39,12 @@ pub fn store_fields(
     );
     write_field_texts(
         &mut writer,
-        sorted_doc_infos.first_mut()
-            .expect("First doc info for write_field_texts should always be defined"),
+        unsafe { field_texts.first().unwrap_unchecked() },
         &mut curr_block_count,
         field_infos,
         &mut file_number,
     );
-    for worker_miner_doc_info in sorted_doc_infos.iter_mut().skip(1) {
+    for field_texts in field_texts.into_iter().skip(1) {
         if curr_block_count == 0 {
             open_new_block_file(
                 &mut writer, 
@@ -60,7 +58,7 @@ pub fn store_fields(
     
         write_field_texts(
             &mut writer,
-            worker_miner_doc_info,
+            &field_texts,
             &mut curr_block_count,
             field_infos,
             &mut file_number,
@@ -120,12 +118,12 @@ fn open_new_block_file(
 #[inline(always)]
 fn write_field_texts(
     writer: &mut ReusableWriter,
-    worker_miner_doc_info: &mut WorkerMinerDocInfo,
+    field_texts: &Vec<u8>,
     curr_block_count: &mut u32,
     field_infos: &Arc<FieldInfos>,
     file_number: &mut u32,
 ) {
-    writer.write(&std::mem::take(&mut worker_miner_doc_info.field_texts));
+    writer.write(field_texts);
     *curr_block_count += 1;
     if *curr_block_count == field_infos.num_docs_per_store {
         writer.write(b"]");

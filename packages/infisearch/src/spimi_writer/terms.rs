@@ -14,6 +14,7 @@ pub fn write_block(
     block_number: u32,
 ) {
     combined_terms.sort_unstable_by(|a, b| a.0.cmp(&b.0));
+
     let dict_output_file_path = output_folder_path.join(format!("bsbi_block_dict_{}", block_number));
     let output_file_path = output_folder_path.join(format!("bsbi_block_{}", block_number));
 
@@ -24,11 +25,13 @@ pub fn write_block(
         combined_terms.len()
     );
 
-    let df = File::create(dict_output_file_path)
-        .expect("Failed to open temporary dictionary table for writing.");
-    let mut buffered_writer_dict = BufWriter::new(df);
-    let f = File::create(output_file_path).expect("Failed to open temporary block file for writing.");
-    let mut buffered_writer = BufWriter::with_capacity(819200, f);
+    let mut buffered_writer_dict = BufWriter::new(
+        File::create(dict_output_file_path).unwrap(),
+    );
+    let mut buffered_writer = BufWriter::with_capacity(
+        819200,
+        File::create(output_file_path).unwrap(),
+    );
 
     let mut curr_term = String::new();
     let mut curr_term_termdocs: Vec<Vec<TermDoc>> = Vec::new();
@@ -36,15 +39,14 @@ pub fn write_block(
     for (term, worker_term_docs) in combined_terms {
         if term == curr_term {
             curr_term_termdocs.push(worker_term_docs);
-            continue;
+        } else {
+            if !curr_term_termdocs.is_empty() {
+                write_term(&mut buffered_writer_dict, &mut buffered_writer, curr_term, &mut curr_term_termdocs);
+            }
+    
+            curr_term = term;
+            curr_term_termdocs.push(worker_term_docs);
         }
-
-        if !curr_term_termdocs.is_empty() {
-            write_term(&mut buffered_writer_dict, &mut buffered_writer, curr_term, &mut curr_term_termdocs);
-        }
-
-        curr_term = term;
-        curr_term_termdocs.push(worker_term_docs);
     }
 
     write_term(&mut buffered_writer_dict, &mut buffered_writer, curr_term, &mut curr_term_termdocs);
@@ -75,18 +77,16 @@ fn write_term(
     }
 
     buffered_writer_dict.write_all(&doc_freq.to_le_bytes()).unwrap();
-    while !heap.is_empty() {
-        let mut term_doc_and_iter = heap.pop().unwrap();
+    while let Some(TermDocComparator(term_doc, mut iter)) = heap.pop() {
+        buffered_writer.write_all(&term_doc.doc_id.to_le_bytes()).unwrap();
 
-        buffered_writer.write_all(&term_doc_and_iter.0.doc_id.to_le_bytes()).unwrap();
-
-        let num_fields = term_doc_and_iter.0.doc_fields
+        let num_fields = term_doc.doc_fields
             .iter()
             .filter(|doc_field| doc_field.field_tf > 0)
             .count() as u8;
         buffered_writer.write_all(&[num_fields]).unwrap();
 
-        for (field_id, doc_field) in term_doc_and_iter.0.doc_fields.into_iter().enumerate() {
+        for (field_id, doc_field) in term_doc.doc_fields.into_iter().enumerate() {
             if doc_field.field_tf == 0 {
                 continue;
             }
@@ -99,8 +99,8 @@ fn write_term(
             }
         }
 
-        if let Some(term_doc) = term_doc_and_iter.1.next() {
-            heap.push(TermDocComparator(term_doc, term_doc_and_iter.1));
+        if let Some(term_doc) = iter.next() {
+            heap.push(TermDocComparator(term_doc, iter));
         }
     }
 }

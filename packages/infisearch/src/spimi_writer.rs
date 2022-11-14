@@ -13,7 +13,7 @@ use crate::worker::miner::WorkerBlockIndexResults;
 use crate::worker::miner::WorkerMinerDocInfo;
 
 mod fields;
-mod write_block;
+mod terms;
 
 #[allow(clippy::too_many_arguments)]
 pub fn combine_worker_results_and_write_block(
@@ -49,14 +49,12 @@ pub fn combine_worker_results_and_write_block(
 
         // ---------------------------------------------
         // Heap sort by doc id
-        while !heap.is_empty() {
-            let mut top = heap.pop().unwrap();
-
-            if let Some(worker_document_length) = top.1.next() {
-                heap.push(DocIdAndFieldLengthsComparator(worker_document_length, top.1));
+        while let Some(DocIdAndFieldLengthsComparator(worker_document_length, mut iter)) = heap.pop() {
+            if let Some(worker_document_length) = iter.next() {
+                heap.push(DocIdAndFieldLengthsComparator(worker_document_length, iter));
             }
 
-            sorted_doc_infos.push(top.0);
+            sorted_doc_infos.push(worker_document_length);
         }
         // ---------------------------------------------
 
@@ -71,7 +69,10 @@ pub fn combine_worker_results_and_write_block(
                 spimi_counter,
                 num_docs_per_block,
                 block_number,
-                &mut sorted_doc_infos
+                sorted_doc_infos
+                    .iter_mut()
+                    .map(|doc_info| std::mem::take(&mut doc_info.field_texts))
+                    .collect()
             );
 
             i_debug!("Num docs in block {}: {}", block_number, sorted_doc_infos.len());
@@ -86,7 +87,7 @@ pub fn combine_worker_results_and_write_block(
         }
     }
 
-    write_block::write_block(combined_terms, output_folder_path, block_number);
+    terms::write_block(combined_terms, output_folder_path, block_number);
 }
 
 
