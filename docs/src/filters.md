@@ -39,7 +39,7 @@ For this guide, let's assume we're dealing with a bunch of HTML weather forecast
 }
 ```
 
-Lastly, we need to tell InfiSearch' UI to setup a [multi-select](./search_configuration.md#general-options) filter using this field. To do so, add the following to your `init` call.
+Lastly, we need to tell InfiSearch's UI to setup a [multi-select](./search_configuration.md#general-options) filter using this field. To do so, add the following to your `init` call.
 
 ```ts
 infisearch.init({

@@ -78,7 +78,7 @@ InfiSearch adopts a minimally invasive approach to styling your `<input>` elemen
 For accessibility, however, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button (which opens the fullscreen UI). This is limited to:
 - A `background` & `box-shadow` & `color` application on *focus*
 
-  These are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with InfiSearch' css variables.
+  These are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with InfiSearch's css variables.
 - `cursor: pointer` application on *hover*
 
 Accessibility labels and roles are also automatically set.

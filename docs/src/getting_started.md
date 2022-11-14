@@ -46,7 +46,7 @@ If you are using the binaries, replace `infisearch` with the appropriate executa
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.4/packages/search-ui/dist/search-ui-light.css" />
 ```
 
-> ⚠️ Ensure the versions here **match the indexer version** used exactly.
+> ⚠️ Ensure the linked versions **match the indexer version** used exactly.
 
 ### Hosting the Files
 

@@ -24,4 +24,3 @@
 - [Altering HTML outputs](./search_configuration_renderers.md)
 - [Larger Collections](./indexer/larger_collections.md)
   - [Incremental Indexing](./incremental_indexing.md)
-  - [Tradeoffs](./tradeoffs.md)

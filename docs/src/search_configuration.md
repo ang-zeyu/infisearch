@@ -16,12 +16,12 @@ infisearch.init({
 })
 ```
 
-#### Base URL
+#### Site URL
 
 `sourceFilesUrl`
 - Example: `'/'` or `'https://www.infi-search.com'`
 
-This option allows InfiSearch to construct the default link used in search result previews by appending the relative file path of the indexed files.
+This option allows InfiSearch to construct a link to the page for search result previews. This is done by appending the relative file path of the indexed file.
 
 Unless you are providing all links manually (see [Linking to other pages](./linking_to_others.md)), this URL must be provided.
 
@@ -47,7 +47,7 @@ The search UI provides 4 main different behaviours.
 | auto        | This option uses the `fullscreen` mode if a mobile device is [detected](#changing-the-mobile-device-detection-method). Otherwise, the `dropdown` mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.   |
 | dropdown    | This wraps the provided `input` element in a wrapper container, then places search results in a dropdown container next to it.    |
 | fullscreen  | This option creates a completely distinct modal (with its own search input, close button, etc.), and attaches it to the `<body>` element.<br><br>If the `input` element is specified, a click handler is attached to open this UI. For keyboard accessibility, some minimal, but overidable [styling](./search_configuration_styling.md#input-element) is also applied to the input element.<br><br>This UI can also be shown/hidden [programatically](#manually-showing--hiding-the-fullscreen-ui), which is also *the only case* you would not need to specify the `input` element.    |
-| target      | This option is the most flexible, and is used by the mdBook plugin (this documentation). The `input` element must be specified, where keystroke event listeners are attached.<br><br>Search results are then output to a custom `target` element of choice.    |
+| target      | This option is the most flexible, and is used by the mdBook plugin (this documentation).<br><br>Search results are then output to a custom `target` element of choice.    |
 
 Use the following buttons to try out the different modes. The default in this documentation is `target`.
 
@@ -110,7 +110,7 @@ There are also several options specific to each mode. Note that `dropdown` and `
 
 Enum [fields](./indexer/fields.md) you index can be mapped into UI multi-select dropdowns. In this documentation for example, Mdbook's section titles ("User Guide", "Advanced") are mapped (try doing a search).
 
-Setup your bindings in the `uiOptions` like this:
+Setup bindings under `uiOptions` like so:
 
 ```json
 multiSelectFilters: [
@@ -143,19 +143,15 @@ These methods can also be used under `mode="auto"`.
 
 If the client is a "mobile device", the fullscreen version of the user interface is used for `mode='auto'`.
 
-This check is done through a simple media query, which may not be adequate for your use case.
-
-```js
-window.matchMedia('only screen and (max-width: 768px)').matches
-```
-
-Use the `isMobileDevice` option to the override this check:
+This check is done through the following simple media query, and can be overwritten with the `isMobileDevice` option:
 
 ```js
 infisearch.init({
     uiOptions: {
         // Any function returning a boolean
-        isMobileDevice: () => true,
+        isMobileDevice: () => window.matchMedia(
+            'only screen and (max-width: 768px)'
+        ).matches,
     }
 })
 ```

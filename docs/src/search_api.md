@@ -115,7 +115,7 @@ const fields = results[0].fields;
 
 - `texts`: fields are stored as an array of `[fieldName, fieldText]` pairs in the order they were seen.
 
-   This ordered model is more complex than a regular key-value store, but enables the detailed content hierarchy you see in InfiSearch' UI: *Title > Heading > Text under heading*
+   This ordered model is more complex than a regular key-value store, but enables the detailed content hierarchy you see in InfiSearch's UI: *Title > Heading > Text under heading*
 - `enums`: This stores the enum values of the document. Documents missing specific enum values will be assigned `null`.
 
 ## Memory Management

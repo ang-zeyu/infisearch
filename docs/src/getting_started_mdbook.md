@@ -1,6 +1,6 @@
 # mdbook-infisearch
 
-`mdbook-infisearch` is a simple search plugin replacement for [mdBook](https://github.com/rust-lang/mdBook) to use InfiSearch' search interface and library instead of elasticlunr.js.
+`mdbook-infisearch` is a simple search plugin replacement for [mdBook](https://github.com/rust-lang/mdBook) to use InfiSearch's search interface and library instead of elasticlunr.js.
 
 ## What, why?
 

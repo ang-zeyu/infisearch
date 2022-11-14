@@ -6,7 +6,7 @@ This page is mostly *informational*, and explains some search features in more d
 
 Query expressions are ranked using the BM25 model. A soft disjunctive maximum of a document's field's scores is then calculated. By default, titles, `<h1>` headings, other headings, and the rest of the text are indexed into 4 separate fields.
 
-**Query term proximity ranking** is InfiSearch' highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving search relevance.
+**Query term proximity ranking** is InfiSearch's highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving search relevance.
 
 ## Advanced Search Syntax
 
