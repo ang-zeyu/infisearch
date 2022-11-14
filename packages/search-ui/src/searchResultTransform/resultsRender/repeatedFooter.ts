@@ -6,7 +6,6 @@ import { stateRender } from '../../utils/state';
 export function resultSeparator(
   options: Options,
   numResultsSoFar: number,
-  isDoneLoading: boolean,
   loadMore: (nResults: number) => Promise<HTMLElement[] | undefined>,
   focusOption: (el: HTMLElement) => void,
   query: Query,
@@ -63,7 +62,7 @@ export function resultSeparator(
     });
   };
 
-  if (isDoneLoading) {
+  if (numResultsSoFar >= query.resultsTotal) {
     footer.innerHTML = resultsSoFar;
   } else {
     footer.append(loadMoreButtonWrapped);

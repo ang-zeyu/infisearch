@@ -12,16 +12,13 @@ export async function resultsRender(
   loadMore: (nResults: number) => Promise<HTMLElement[] | undefined>,
   focusOption: (el: HTMLElement) => void,
 ): Promise<HTMLElement[]> {
-  const { resultsPerPage, listItemRender } = options.uiOptions;
-
   const resultEls = await Promise.all(results.map(
-    (result) => listItemRender(h, options, result, query),
+    (result) => options.uiOptions.listItemRender(h, options, result, query),
   ));
 
   resultEls.push(resultSeparator(
     options,
     numResultsSoFar + results.length,
-    results.length < resultsPerPage,
     loadMore, focusOption, query,
   ));
 
