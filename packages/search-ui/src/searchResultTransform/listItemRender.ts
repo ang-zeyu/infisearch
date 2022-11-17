@@ -2,6 +2,7 @@ import { ListItemRender, Options } from '../Options';
 import { parseURL } from '../utils/url';
 import { formatTitle } from './listItemRender/titleFormatter';
 import { sortAndLimitResults } from './listItemRender/resultSorter';
+import { createEllipses } from '@infisearch/search-lib/lib/results/Result/MatchResult';
 
 // Undocumented option for mdBook
 function appendSearchedTerms(
@@ -54,8 +55,8 @@ export const listItemRender: ListItemRender = (
     res.highlight(),
   );
   const headings = matchResults.filter(({ type }) => type.startsWith('heading')).map((res) => ({
-    body: res.highlight(),
-    heading: res.heading.highlight(false),
+    body: res.heading ? res.highlight() : [createEllipses()],
+    heading: res.heading ? res.heading.highlight(false) : res.highlight(),
     href: res.headingLink
       ? `${link}#${res.headingLink}`
       : link,

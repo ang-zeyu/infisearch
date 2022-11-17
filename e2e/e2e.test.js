@@ -84,6 +84,11 @@ const testSuite = async (configFile, with_positions, with_enums) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
+  await typePhraseOrAnd('Test Heading Only SERP', with_positions);
+  await assertSingle('Test Heading Only SERP');
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
   // Simple phrase query test on another docid
   await typePhraseOrAnd('forenote on mobile device detection', with_positions);
   await assertSingle('forenote on mobile device detection');

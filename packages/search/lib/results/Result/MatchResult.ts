@@ -1,6 +1,6 @@
 import h from '../../utils/dom';
 
-function createEllipses() {
+export function createEllipses() {
   return h('span', { class: 'infi-ellipses' }, ' ... ');
 }
 
