@@ -79,14 +79,17 @@
 
 .infi-fs-input {
     width: 100%;
-    padding: 0 30px 0 13px;
-    height: 2.1em;
+    padding: 0.35em 30px 0.35em 13px;
     outline: none;
     color: var(--infi-fs-input-fg);
     background: var(--infi-fs-input-bg);
     border: var(--infi-fs-input-border);
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: inherit;
+}
+
+.infi-fs-input::placeholder {
+    font-size: 0.96em;
 }
 
 .infi-fs-input:focus {
@@ -396,7 +399,7 @@ table.infi-tip-table .infi-tip-item li {
     justify-content: space-between;
     color: var(--infi-header-fg);
     padding: 9px 13px 0 13px;
-    margin-bottom: 7px;
+    margin-bottom: 8px;
     font-weight: bold;
     font-size: 1.06em;
 }
@@ -456,6 +459,7 @@ button.infi-filters {
     text-transform: none;
     text-shadow: none;
     cursor: pointer;
+    user-select: none;
 }
 
 button.infi-filters::after {
@@ -494,12 +498,12 @@ button.infi-filters.active::after {
 .infi-filter-header {
     display: flex;
     align-items: center;
-    padding: 0;
+    padding: 0 5px 1px 0;
     font-weight: 600;
     font-size: 1.01em;
     cursor: pointer;
     user-select: none;
-    margin: 0 5px 1px 0;
+    margin: 0;
     color: var(--infi-header-fg);
 }
 
@@ -763,6 +767,7 @@ input[type="checkbox"].infi-checkbox:checked::before {
     text-decoration: none !important;
     outline-offset: -1px;
     outline-color: var(--infi-title-fg);
+    -webkit-tap-highlight-color: transparent;
 }
 
 .infi-title {
@@ -916,10 +921,6 @@ input[type="checkbox"].infi-checkbox:checked::before {
         --infi-tip-icon-size: 26px;
     }
 
-    .infi-fs-input {
-        height: 2.25em;
-    }
-
     .infi-fs-root .infi-tip-root {
         bottom: 19px;
         right: 19px;
@@ -932,7 +933,13 @@ input[type="checkbox"].infi-checkbox:checked::before {
     }
 
     .infi-filter-header {
-        margin-bottom: 3px;
+        padding: 2px 1px;
+    }
+
+    .infi-filter-header:active,
+    .infi-filter-opt:active {
+        background-color: var(--infi-filter-header-active);
+        -webkit-tap-highlight-color: transparent;
     }
 
     .infi-filter:not(:first-child) .infi-filter-header {

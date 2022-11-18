@@ -23,6 +23,7 @@
     --infi-checkbox-bg: #f8f8f8;
     --infi-checkbox-checked-bg: #fff;
     --infi-checkbox-border: #414141;
+    --infi-filter-header-active: var(--infi-title-bg);
     --infi-error-fg: var(--fg);
     --infi-fine-print-fg: var(--fg);
     --infi-loading-bg: var(--fg);
@@ -47,14 +48,6 @@
     --infi-tip-code-bg: transparent;
     --infi-tip-icon-bg: rgb(230, 230, 230);
     --infi-tip-icon-fg: rgb(80, 80, 80);
-}
-
-.light .infi-root .infi-title,
-.rust .infi-root .infi-title,
-.coal .infi-root .infi-title,
-.navy .infi-root .infi-title,
-.ayu .infi-root .infi-title {
-    font-weight: 600;
 }
 
 .light .infi-root {
@@ -229,6 +222,10 @@
 .ayu .infi-root .infi-title::after {
     content: none;
     display: none;
+}
+
+.infi-header {
+    margin-bottom: 9px;
 }
 
 .infi-load-more {

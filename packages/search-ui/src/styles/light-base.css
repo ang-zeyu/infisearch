@@ -17,6 +17,7 @@
     --infi-header-fg: #3a3a3a;
     --infi-key-fg: #fff;
     --infi-key-bg: #ccc;
+    --infi-filter-header-active: #e7f4fe;
     --infi-error-fg: #444;
     --infi-fine-print-fg: #575757;
     --infi-loading-bg: #b0dafb;
@@ -38,11 +39,11 @@
     --infi-fs-input-fg: #000;
     --infi-fs-input-bg: #fdfdfd;
     --infi-fs-input-border: 2px solid #e5e5e5;
-    --infi-fs-input-focus-border: 2px solid #d4d4d4;
-    --infi-fs-input-focus-box-shadow: 0 0 11px -7px #c0c0c0;
+    --infi-fs-input-focus-border: 2px solid #d0d0d0;
+    --infi-fs-input-focus-box-shadow: 0 0 11px -6px #b0b0b0;
     --infi-fs-header-bg: #fdfdfd;
     --infi-fs-header-box-shadow: 0 0 5px 3px #f0f0f0;
-    --infi-fs-header-close-fg: #707070;
+    --infi-fs-header-close-fg: #7a7a7a;
     --infi-fs-header-close-hover-fg: #1a1a1a;
     --infi-tip-bg: #fff;
     --infi-tip-fg: #444;
