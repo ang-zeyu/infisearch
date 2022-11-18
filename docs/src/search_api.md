@@ -159,76 +159,80 @@ Only the first `[fieldName, fieldText]` pair for each field will be populated in
 
 If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-infisearch-link`](./linking_to_others.md) attribute are also available under the `link` field.
 
-### 2. Highlighting and Linking 'Heading' and 'Body' Excerpts
+### 2. Linking and Highlighting 'heading', 'body' Fields
 
-To establish the relationship between adjacent *heading*, *body* and *headingLink* fields in particular, you can call the `getHeadingBodyExcerpts` method.
+To establish the relationship between *heading*, *body* and *headingLink* pairs, you can call the `getHeadingBodyExcerpts` method.
 
 ```ts
 const bodyHeadingMatchResults: Segment[] = result.getHeadingBodyExcerpts();
 ```
 
-This returns an array of *Segments*. Each *Segment* represents a chunk of `fieldText`.
-
-**Sorting and Choosing Segments**
+This returns an array of `Segment` objects, each of which represents a continuous chunk of heading or body text. It follows this interface:
 
 ```ts
 interface Segment {
   /**
-   * 'heading' types come from 'heading' fields,
-   * while 'body' and 'heading-body' types come from 'body' fields.
+   * 'body': body text
+   * 'heading': text from 'heading' fields
+   * 'heading-body': body text with a preceding heading
    */
-  type: 'heading' | 'body' | 'heading-body',
+  type: 'body' | 'heading' | 'heading-body',
 
   /**
-   * This will only be present if type === 'heading-body',
-   * and points to another Segment with type === 'heading'.
+   * Only present if type = 'heading-body',
+   * and points to another Segment of type === 'heading'.
    */
   heading?: Segment,
 
   /**
-   * This will only be present if type === 'heading' | 'heading-body',
+   * Only present if type = 'heading' | 'heading-body',
    * and points to the heading's id, if any.
    */
   headingLink?: string,
-
-  /**
-   * How many terms were matched in this segment.
-   */
+  
+  // Number of terms matched in this segment.
   numTerms: number,
 }
 ```
 
-You would select and display a **few best segments** only. To rank them, you could for example first priortise segments with a greater `numTerms` matched, then tie-break by the `type` of the segment. This is up to your UI!
+**Sorting and Choosing Segments**
+
+You would likely want to select and display a **few best segments** only. To rank them, you could for example first priortise segments with a greater `numTerms` matched, then tie-break by the `type` of the segment. This is up to your UI!
 
 **Text Highlighting**
 
 ```ts
 interface Segment {
   ...
-
-  highlight: (addEllipses: boolean = true) => (string | HTMLElement)[],
   highlightHTML: (addEllipses: boolean = true) => string,
+  highlight: (addEllipses: boolean = true) => (string | HTMLElement)[],
 
-  window: { pos: number, len: number }[],   // Character position and length
   text: string,                             // original string
+  window: { pos: number, len: number }[],   // Character position and length
 }
 
 ```
 
-You can perform text highlighting manually using the original `text` and the closest `window` of term matches, or automatically using the `highlight()` and `highlightHTML()` methods.
+There are 3 choices for text highlighting:
 
-The `highlight()` method wraps term matches in a `<mark>` element, truncates surrounding text, and adds leading and trailing ellipses elements. An example output is as follows:
+1. `highlightHTML()` wraps matched terms with `<mark>` tag, truncates text, and adds trailing and leading ellipses.
+   A single escaped HTML string is then returned for use.
 
-```ts
-[
-  <span class="infi-ellipses"> ... </span>,
-  ' ... text before ... ',
-  <mark class="infi-highlight">highlighted</mark>,
-  ' ... text after ... ',
-  <span class="infi-ellipses"> ... </span>,
-]
-```
+1. `highlight()` does the same but is slightly more efficient, returning a `(string | HTMLElement)[]` array.
+   To use this array safely (strings are unescaped) and conveniently, use the `.append(...output)` [DOM API](https://developer.mozilla.org/en-US/docs/Web/API/Element/append).
 
-To interact with the `(string | HTMLElement)[]` output safely (strings are unescaped) and efficiently, you could use the `.append(...segment.highlight())` [DOM API](https://developer.mozilla.org/en-US/docs/Web/API/Element/append) with the spread operator.
+   <details>
+   <summary style="cursor: default;">Click to see example output</summary>
 
-You can also call `highlightHTML()` which returns a single escaped HTML string. This is less efficient, but easier to use with `.innerHTML = '...'`.
+   ```ts
+   [
+     <span class="infi-ellipses"> ... </span>,
+     ' ... text before ... ',
+     <mark class="infi-highlight">highlighted</mark>,
+     ' ... text after ... ',
+     <span class="infi-ellipses"> ... </span>,
+   ]
+   ```
+   </details>
+
+3. Lastly, you could perform text highlighting manually using the original `text` and the closest `window` of term matches.

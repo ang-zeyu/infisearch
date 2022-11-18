@@ -33,9 +33,19 @@ export function linkHeadings(
         break;
       }
       case 'body': {
+        const buf = [fieldText];
+        let i = pairIdx + 1;
+        while (i < texts.length && texts[i][0] === 'body') {
+          if (texts[i][1].trim().length) {
+            buf.push(texts[i][1]);
+          }
+          i += 1;
+        }
+        pairIdx = i - 1;
+
         const finalMatchResult = new Segment(
           lastHeadingMatch ? MatchType.HEADING_BODY : MatchType.BODY_ONLY,
-          fieldText, termRegexes,
+          buf.join(' ... '), termRegexes,
           lastHeadingMatch?.headingLink, lastHeadingMatch,
         );
 
