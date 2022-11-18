@@ -9,10 +9,9 @@ export function sortAndLimitResults(matchResults: Segment[], maxSubMatches: numb
     const termsA = a.numTerms;
     const termsB = b.numTerms;
     if (termsA === termsB) {
-      // If there are 0 terms matched for both matches, prefer "longer" snippets
-      return termsA === 0
-        ? b.text.length - a.text.length
-        : b.type.localeCompare(a.type);
+      // If there same terms matched for both matches, prefer "longer" snippets
+      return b.type.localeCompare(a.type)
+        || (b.text.length - a.text.length);
     }
     return termsB - termsA;
   });

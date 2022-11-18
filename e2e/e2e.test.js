@@ -261,9 +261,10 @@ const testSuite = async (configFile, with_positions, with_enums) => {
 
   // No ending space triggers an automatic prefix search
   const expectedPrefixResults = [
-    'detecting deleted, changed, or added',
     'detecting such terms',
+    'the change detection',
     'detectedd as per the earlier section',
+    'mobile device detection',
   ];
   await typeText('detec');
   await assertMultiple(expectedPrefixResults, 2);
