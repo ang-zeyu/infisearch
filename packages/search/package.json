@@ -1,6 +1,6 @@
 {
   "name": "@infisearch/search-lib",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "Internal search library module for @infisearch/search-ui",
   "keywords": [
     "search"
@@ -29,8 +29,8 @@
     "escape-string-regexp": "^5.0.0"
   },
   "devDependencies": {
-    "@infisearch/lang-ascii": "^0.8.5",
-    "@infisearch/lang-chinese": "^0.8.5",
-    "@infisearch/lang-latin": "^0.8.5"
+    "@infisearch/lang-ascii": "^0.8.6",
+    "@infisearch/lang-chinese": "^0.8.6",
+    "@infisearch/lang-latin": "^0.8.6"
   }
 }
