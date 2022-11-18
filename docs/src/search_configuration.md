@@ -31,7 +31,7 @@ Unless you are providing all links manually (see [Linking to other pages](./link
 | ----------- | ----------- | ----------- |
 | `input`     | `'infi-search'` | `id` of the input element or a HTML element reference |
 | `inputDebounce`     | `100` | debounce time of keystrokes to the input element |
-| `preprocessQuery`   | `(q) => q` | any function for preprocessing the query. Can be used to add a [field filter](./search_features.md#field-search) for example. |
+| `preprocessQuery`   | `(q) => q` | any function for preprocessing the query. Can be used to add a [field filter](./search_syntax.md#field-search) for example. |
 
 The `input` element is required in most cases. Its behaviour depends on the UI mode.
 
@@ -198,7 +198,7 @@ To keep recall up, an automatic wildcard suffix search is performed on the last 
 
 `maxSuffixSearchTerms = 5`
 
-This controls the maximum number of terms to search for manual wildcard [suffix searches](./search_features.md#wildcard-search).
+This controls the maximum number of terms to search for manual wildcard [suffix searches](./search_syntax.md#wildcard-search).
 
 #### Term Proximity Ranking
 
@@ -208,4 +208,4 @@ If positions are indexed, document scores are also scaled by how close query exp
 
 #### Caching Options (Advanced)
 
-This is discussed more in the chapter on [larger collections](./indexer/larger_collections.md).
+This is discussed more in the chapter on [larger collections](./larger_collections.md).

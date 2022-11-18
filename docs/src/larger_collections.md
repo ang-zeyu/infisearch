@@ -25,7 +25,7 @@ Specify the `preset` key in your configuration file to change this.
 | -----------         | ----------- |
 | `small`             | Generates a monolithic index and field store. Identical to most other client side indexing tools.
 | `medium`            | Generates an almost-monolithic index but sharded field store. Only required field stores are retrieved for generating result previews.
-| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](../language.md#stop-words). This is the preset used in the demo [here](https://infi-search.com)!
+| `large`             | Generates both a sharded index and field store. Only index files that are required for the query are retrieved. Keeps [stop words](./language.md#stop-words). This is the preset used in the demo [here](https://infi-search.com)!
 
 In summary, scaling this tool for larger collections dosen't come freely, and necessitates fragmenting the index and/or field stores, **retrieving only what's needed**. This means extra network requests, but to a reasonable degree.
 
@@ -35,13 +35,13 @@ In summary, scaling this tool for larger collections dosen't come freely, and ne
 
 There are a few other options especially worth highlighting that can help reduce the index size (and hence support larger collections) or modify caching strategies.
 
-- [`plLazyCacheThreshold`](../search_configuration.md#caching-options-advanced)
+- [`plLazyCacheThreshold`](./search_configuration.md#caching-options-advanced)
 
   In addition to **upfront** caching of index files with the `pl_cache_threshold` indexing parameter, InfiSearch also persistently caches any index shard that was requested before, but fell short of the `pl_cache_threshold`.
-- [`ignore_stop_words=false`](../language.md#stop-words)
+- [`ignore_stop_words=false`](./language.md#stop-words)
 
-  This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size, if you are willing to forgo its [benefits](../language.md#stop-words).
-- [`with_positions=true`](../indexer/indexing.md#adding-positions-with_positions--true)
+  This option is mostly only useful when using the `small / medium` presets which generate a monolithic index. Ignoring stop words in this case can reduce the overall index size, if you are willing to forgo its [benefits](./language.md#stop-words).
+- [`with_positions=true`](./indexer/misc.md#indexing-positions)
 
   Positions take up a considerable (~3/4) portion of the index size but produces useful information for proximity ranking, and enables performing phrase queries.
 
@@ -49,7 +49,8 @@ There are a few other options especially worth highlighting that can help reduce
 
 Presets modify only the following properties:
 
-- Search Configuration:  [`cacheAllFieldStores`](../search_configuration.md#search-functionality-options)
-- Indexing Configuration: [`num_docs_per_store`](./fields.md), [`pl_limit`](./indexing.md#larger-collections), [`pl_cache_threshold`](./indexing.md#larger-collections)
+- Search Configuration:  [`cacheAllFieldStores`](./search_configuration.md#search-functionality-options)
+- Indexing Configuration: [`num_docs_per_store`](./indexer/fields.md#field-storage-storagetext), [`pl_limit`](./indexer/misc.md#larger-collections), [`pl_cache_threshold`](./indexer/misc.md#larger-collections)
 
 Any of these values specified in the configuration file will override that of the preset's.
+

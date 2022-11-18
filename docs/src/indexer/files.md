@@ -1,4 +1,4 @@
-# Indexing Configuration
+# Indexer File Configuration
 
 The configurations in this section mainly specify **how** (mapping file contents to fields) and **which** files to index.
 
@@ -105,7 +105,7 @@ Lastly, if you need to remove a default selector, simply replace its definition 
 ```
 
 JSON files can also be indexed. The `field_map` must be specified, which contains a mapping of **JSON data key -> field name**.
-The `field_order` array controls the order in which these fields are indexed, which has a minor influence on [query term proximity ranking](../search_features.md#ranking-model).
+The `field_order` array controls the order in which these fields are indexed, which has a minor influence on [query term proximity ranking](../search_syntax.md#ranking-model).
 
 The JSON file can be either:
 1. An object, following the schema set out in `field_map`
@@ -178,9 +178,9 @@ The search result title would appear as `<...PDF file path breadcrumb...> (PDF)`
 }
 ```
 
-This loader simply reads `.txt` files and indexes all its contents into a single field. This is not particularly useful without the `_add_files` feature [below](#indexing-multiple-files-under-one-document).
+This loader simply reads `.txt` files and indexes all its contents into a single field. This is not particularly useful without the `_add_files` [feature](#misc-multiple-files-under-one-document).
 
-## Miscellaneous Options
+## File Exclusions
 
 ```json
 {
@@ -204,105 +204,3 @@ Global file exclusions can be specified in this parameter, which is simply an ar
 Similarly, you can specify only specific files to index. This is an empty array by default, which indexes everything.
 
 If a file matches both an `exclude` and `include` pattern, the `exclude` pattern will have priority.
-
-#### Adding Positions: **`with_positions = true`**
-
-This option controls whether positions will be stored.
-
-Features such as phrase queries that require positional information will not work if this is disabled.
-
-Turning this off for very large collections (~> 1GB) can increase the tool's scalability, at the cost of such features.
-
-## Indexing Multiple Files Under One Document
-
-You can index **multiple files** into **one document** using the reserved field [`_add_files`](./fields.md#reserved-fields). This can be useful if you need to override or add data but can't modify the source document easily.
-
-#### Example: Overriding a Document's Title
-
-Suppose you have the following files:
-
-```
-folder
-|-- main.html
-|-- overrides.json
-```
-
-To index `main.html` and override its title, you would have:
-
-Inside `overrides.json`,
-
-```json
-{
-  "title": "Title Override",
-  "_add_files": "./main.html"
-}
-```
-
-And inside your configuration file:
-
-```json
-{
-  "indexing_config": {
-    "exclude": ["main.html"]
-  }
-}
-```
-
-This excludes indexing `main.html` directly, but does so through `overrides.json`. As the user interface uses the first title it sees, the title is overwritten.
-
-#### Example: Overriding a Document's Link
-Another example use case might be to redirect to another domain using the [`link` field](./fields.md#default-field-configuration):
-
-
-```json
-{
-  "link": "https://infi-search.com",
-  "_add_files": "./main.html"
-}
-```
-
-> Overrides should be provided with JSON, CSV, or HTML files, as TXT and PDF files have no reliable way of supplying the `_add_files` field. In addition, you will need to manually map the CSV data to the `_add_files` field. This is automatically done for JSON and [HTML](../linking_to_others.md) files.
-
-## Indexer Performance
-
-```json
-{
-  "indexing_config": {
-    "num_threads": <number of physical cpus> - 1
-  }
-}
-```
-
-#### Number of Threads: **`num_threads`**
-
-This is the number of threads to use, excluding the main thread. When unspecified, this is `max(min(num physical cores, num logical cores) - 1, 1)`.
-
-## Larger Collections
-
-> ⚠️ The parameters below this point allow you to adjust caching strategies, and the number of generated files. However, you should mostly be well-served by the preconfigured [scaling presets](./larger_collections.md) for such purposes.
-
-```json
-{
-  "indexing_config": {
-    "pl_limit": 4294967295,
-    "pl_cache_threshold": 0,
-    "num_pls_per_dir": 1000
-  }
-}
-```
-
-#### Index Shard Size: **`pl_limit`**
-
-This is the main threshold parameter (in bytes) at which to "cut" index (**pl** meaning [postings list](https://en.wikipedia.org/wiki/Inverted_index)) files.
-
-Increasing this value produces less but bigger files (which may take longer to retrieve), and vice versa.
-
-Increasing the value may also be useful for caching when used in conjunction with `pl_cache_threshold` below, since fewer index files will be produced.
-
-<br>
-
-#### Index Caching: **`pl_cache_threshold`**
-
-Index files that exceed this number will be cached by the search library at initilisation.
-
-It can be used to configure InfiSearch for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./larger_collections.md).

@@ -1,10 +1,10 @@
-# Field Configuration
+# Indexer Field Configuration
 
 Every document you index contains multiple fields. By default, InfiSearch comes baked in with the configurations needed for supporting static site search.
 
 ## Default Field Configuration
 
-It may be helpful to first understand what the default fields are in InfiSearch, and how they are used in the user interface:
+It is helpful to first know of the default fields in InfiSearch and how they are used in the UI:
 
 ```json
 {
@@ -23,24 +23,27 @@ It may be helpful to first understand what the default fields are in InfiSearch,
 }
 ```
 
+| Field       | Source                | UI Usage              |
+| ----------- | -----------           | -----------           |
+| h1, title | `<h1>`, `<title>` | Result preview's title. When unavailable, the `_relative_fp` field is displayed as a [breadcrumb](../search_configuration.md#general-options).
+| heading | `<h2-6>` | Result preview sub match's heading.
+| headingLink | `<h2-6 id="..">` | Result preview sub match's `#anchor` link.
+| body | `<body>` | Result preview sub match's main text.
+| _relative_fp | Relative file path from the source indexer folder | Result preview's `<a>` link by concatenating [`sourceFilesUrl`](../search_configuration.md#site-url) to `_relative_fp`
+| link | User supplied override for [linking to other pages](../linking_to_others.md) | Result preview's `<a>` link. Convenience default field to support custom overrides for links easily (e.g. when indexing a JSON document).
 
+<br>
+<details>
+<summary style="cursor: default;">Click to view Graphical Illustration</summary>
 <img alt="annotation for fields" src="../images/fields_annotated.png" />
+</details>
 
-- **h1** and **title**: this is the header for a single document match, sourced from the HTML `<h1>` or `<title>` tags. If unavailable, the `_relative_fp` field is displayed as a breadcrumb (e.g. "user guide » introduction").
-
-- **heading**: these are sourced from `<h2-6>` tags. It may contain corresponding highlights from **`body`** fields that are displayed below it.
-
-  - **headingLink**: these are the corresponding `id` attributes of the heading tags. If available, an `#anchor` is appended to the document's link.
-
-- **_relative_fp**: together with the provided `sourceFilesUrl` option, this field is for generating the link to the source document and (optionally).
-
-- **link**: serves to support custom data requirements (e.g. linking to another page, indexing a json document), providing a means to override the default link of `sourceFilesUrl + _relative_fp`.
 
 ## Adding Fields
 
 You can add your own fields to index as well, which will be factored into InfiSearch's search algorithms.
 
-As explained in the default field configurations however, the user interface only incorporates the default set of fields to generate result previews (e.g. for term highlighting). If you need to incorporate additional fields, for example a link to an icon, you will need to [alter](../search_configuration_renderers.md#rendering-search-results) the HTML outputs, or use the [search API](../search_api.md).
+The user interface only incorporates the default set of fields to generate result previews however. If you need to incorporate additional fields, for example to display a icon beside each result, you can [alter](../search_configuration_renderers.md#rendering-search-results) the HTML outputs, or use the [search API](../search_api.md).
 
 If don't need any of InfiSearch's default fields, you can also assign a value of `null` to remove it completely.
 
@@ -54,15 +57,14 @@ If don't need any of InfiSearch's default fields, you can also assign a value of
 }
 ```
 
-## Reserved Fields
+#### Reserved Fields
 
 Reserved fields are prefixed with an underscore `_`, and are hardcoded into the indexer to perform special functions. You can still modify its field definition as desired (for example its `storage` parameter).
 
 - **_relative_fp**: the relative path from your source folder to the file.
 
 - **_add_files**: This field allows you to **index/combine multiple files** as **a single document**, which can be useful for overriding or extending data.
-
-  See this [section](./indexing.md#indexing-multiple-files-under-one-document) under indexing for more details.
+  See this [section](./misc.md#indexing-multiple-files-under-one-document) under indexing for more details.
 
 ## Field Specific Parameters
 
@@ -101,13 +103,13 @@ In this documentation for example (and the mdBook plugin), there is a multi-sele
 Notes:
 - Documents without enum values are internally assigned a default enum value that can be queried.
 - While it is unlikely you will need more, there is a hard limit of 255 possible values for your entire document collection. Values found in excess of this will be ignored, and the CLI indexer tool will print a warning.
-- You can also use InfiSearch's flexible [boolean syntaxes](../search_features.md) to filter documents. Using this option instead however allows a simplifying assumption to store these values far more compactly.
+- You can also use InfiSearch's flexible [boolean syntaxes](../search_syntax.md) to filter documents. Using this option instead however allows a simplifying assumption to store these values far more compactly.
 
 <br>
 
 **Configuring Field Storage for Larger Collections**
 
-⚠️ This section is mostly for reference, consider using the preconfigured [scaling presets](./larger_collections.md) for scaling InfiSearch to larger collections.
+⚠️ This section is mostly for reference, consider using the preconfigured [scaling presets](../larger_collections.md) for scaling InfiSearch to larger collections.
 
 ```json
 {

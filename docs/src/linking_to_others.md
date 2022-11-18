@@ -4,7 +4,7 @@ InfiSearch is extremely easy to get started with if the pages you link to are th
 
 Linking to other pages is facilitated by the default [`link`](./indexer/fields.md#default-field-configuration) field, which lets you override the link used in the result preview. You will however need to let InfiSearch know where to find the content for this field.
 
-The section below covers only the common case for HTML files, which has some default configurations setup already. If you are using JSON, CSV, please refer to this [section](./indexer/indexing.md#indexing-multiple-files-under-one-document).
+The section below covers only the common case for HTML files, which has some default configurations setup already. If you are using JSON, CSV, please refer to this [section](./indexer/misc.md#indexing-multiple-files-under-one-document).
 
 ## Indexing HTML Files
 
@@ -16,7 +16,7 @@ For example,
 <span data-infisearch-link="https://www.google.com"></span>
 ```
 
-Then, modify your indexer [loader configuration](./indexer/indexing.md#html-files-loadershtmlloader) to let InfiSearch know to extract the `data-infisearch-link` attribute of the `span[data-infisearch-link]` into the `link` field.
+Then, modify your indexer [loader configuration](./indexer/files.md#html-files-loadershtmlloader) to let InfiSearch know to extract the `data-infisearch-link` attribute of the `span[data-infisearch-link]` into the `link` field.
 
 This configuration is **already** implemented by default, and is attached here for reference.
 

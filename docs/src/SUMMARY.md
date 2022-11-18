@@ -9,18 +9,20 @@
   - [Others](./getting_started_others.md)
 - [Search UI](./search_configuration.md)
   - [Styling](./search_configuration_styling.md)
-  - [Search Features](./search_features.md)
 - [Language](./language.md)
-- [Indexer](./indexer_configuration.md)
+- [Indexer Configuration](./indexer_configuration.md)
   - [Fields](./indexer/fields.md)
-  - [Indexing](./indexer/indexing.md)
+  - [Files](./indexer/files.md)
+  - [Miscellaneous](./indexer/misc.md)
 - [Search API](./search_api.md)
-- [Guides](./guides.md)
-  - [Linking to Other Pages](./linking_to_others.md)
-  - [Creating Multi-Select Filters](./filters.md)
+  - [Search Syntax](./search_syntax.md)
+- [Larger Collections](./larger_collections.md)
+
+# Guides
+- [Linking to Other Pages](./linking_to_others.md)
+- [Creating Multi-Select Filters](./filters.md)
 
 # Advanced
 
 - [Altering HTML outputs](./search_configuration_renderers.md)
-- [Larger Collections](./indexer/larger_collections.md)
-  - [Incremental Indexing](./incremental_indexing.md)
+- [Incremental Indexing](./incremental_files.md)

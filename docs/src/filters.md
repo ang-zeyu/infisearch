@@ -22,7 +22,7 @@ The `is_enum: true` option tells InfiSearch that each document can only possibly
 
 Next, we'll need to tell InfiSearch where the data for this field comes from.
 
-For this guide, let's assume we're dealing with a bunch of HTML weather forecast articles in particular, which uses the [`HTMLLoader`](./indexer/indexing.md#html-files-loadershtmlloader). Our HTML files also store the weather inside a specific element with an `id="weather"`.
+For this guide, let's assume we're dealing with a bunch of HTML weather forecast articles in particular, which uses the [`HTMLLoader`](./indexer/files.md#html-files-loadershtmlloader). Our HTML files also store the weather inside a specific element with an `id="weather"`.
 
 ```json
 "indexing_config": {

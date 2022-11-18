@@ -27,3 +27,26 @@ The following is a quick high level breakdown of how InfiSearch works:
    1. Retrieves the index files from cache/memory/network requests
    1. Obtains and ranks the result set
    1. Finally, retrieves the field stores from cache/memory/network requests progressively to generate result previews to show to the user!
+
+## Search Features in Detail
+
+#### Ranking Model
+
+Query expressions are ranked using the BM25 model. A soft disjunctive maximum of a document's field's scores is then calculated. By default, titles, `<h1>` headings, other headings, and the rest of the text are indexed into 4 separate fields.
+
+**Query term proximity ranking** is InfiSearch's highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving search relevance.
+
+#### Built-In Compression
+
+Some efficient, high-return compression schemes are also employed, so you get all these features without much penalty.
+To facilitate decompression efficiency of such a low-level format, most of the search library is also powered by WebAssembly (Rust).
+
+This documentation for example, which has all features enabled, generates a main index file of just 19KB, and a dictionary of 9KB.
+
+#### WebWorker Built-in
+
+Most of the search library also operates on a WebWorker, so you can deliver the best UX without blocking the UI thread, especially for large collections.
+
+#### Persistent Caching
+
+Persistent caching is achieved through use of the [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) API, which backs service workers and has excellent support in modern browsers.
