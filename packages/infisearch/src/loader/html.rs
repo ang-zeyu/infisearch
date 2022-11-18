@@ -6,6 +6,7 @@ use std::sync::Arc;
 use log::error;
 use path_slash::PathExt;
 use rustc_hash::FxHashMap;
+use rustc_hash::FxHashSet;
 use scraper::ElementRef;
 use scraper::Html;
 use scraper::Selector;
@@ -17,7 +18,8 @@ use crate::loader::LoaderResult;
 use crate::loader::LoaderResultIterator;
 use crate::worker::miner::{DEFAULT_ZONE_SEPARATION, Zone};
 
-const HTML_ZONE_SEPARATION: u32 = 4;
+const HTML_ZONE_SEPARATION: u32 = 3;
+const SEPARATOR_EL_SEPARATION: u32 = 0;
 
 pub struct HtmlLoaderSelector {
     selector: Selector,
@@ -200,12 +202,35 @@ impl<'de> Deserialize<'de> for HtmlLoader {
     }
 }
 
+lazy_static! {
+    /*
+     Elements that should, in 99.9% of cases indicate a separation and likely directly contain text.
+     Forcibly add a field separation in this case to prevent non-language-separated
+     tokens from being joined together mistakenly.
+     (e.g. "<td>a</td><td>b</td>" wrongly tokenized as "ab")
+    */
+    static ref SEPARATED_ELEMENTS: FxHashSet<&'static str> = FxHashSet::from_iter([
+        "td", "th",
+        "li", "dt", "dd",
+        "h1", "h2", "h3", "h4", "h5", "h6",
+        "hr", "br",
+        "caption", "figcaption", "blockquote",
+        "footer", "header", "main", "aside", "section", "article", "nav",
+        "pre", "kbd", "p",
+        "summary",
+        "textarea",
+        "label", "button", "legend", "option"
+    ]);
+}
+
 impl HtmlLoaderResult {
-    fn traverse_node(
-        &self,
+    fn traverse_node<'a>(
+        &'a self,
         node: ElementRef,
+        // This controls whether to add a new Zone if the field_name is the same
+        do_separate: &mut bool,
         field_texts: &mut Vec<Zone>,
-        field_name: Option<&String>,
+        mut field_name_opt: Option<&'a String>,
     ) {
         for html_loader_selector in self.options.selectors.iter() {
             if html_loader_selector.selector.matches(&node) {
@@ -219,55 +244,57 @@ impl HtmlLoaderResult {
                     }
                 }
 
-                if let Some(field_name) = &html_loader_selector.field_name {
-                    for child in node.children() {
-                        if let Some(el_child) = ElementRef::wrap(child) {
-                            // Traverse children elements with new field name
-                            self.traverse_node(el_child, field_texts, Some(field_name));
-                        } else if let Some(text) = child.value().as_text() {
-                            // Index children text nodes with new field name
-                            add_text_to_field(field_texts, field_name, text);
+                if let Some(selector_field_name) = &html_loader_selector.field_name {
+                    field_name_opt = Some(selector_field_name);
+                    break;
+                }
+            }
+        }
+
+        if let Some(field_name) = field_name_opt {
+            // If there is no field name,
+            // then nothing will be indexed and separator elements need not be handled
+
+            let is_separator_el = SEPARATED_ELEMENTS.contains(node.value().name());
+
+            // Tell the parent context to separate other text before this element too
+            *do_separate = *do_separate || is_separator_el;
+
+            for child in node.children() {
+                if let Some(el_child) = ElementRef::wrap(child) {
+                    self.traverse_node(el_child, do_separate, field_texts, field_name_opt);
+                } else if let Some(text) = child.value().as_text() {
+                    let last = unsafe { field_texts.last_mut().unwrap_unchecked() };
+                    if last.field_name.as_str() == field_name.as_str() {
+                        if *do_separate {
+                            field_texts.push(Zone {
+                                field_name: field_name.to_owned(),
+                                field_text: text.to_string(),
+                                separation: SEPARATOR_EL_SEPARATION,
+                            });
+                            *do_separate = false;
+                        } else {
+                            last.field_text += text;
                         }
+                    } else {
+                        field_texts.push(Zone {
+                            field_name: field_name.to_owned(),
+                            field_text: text.to_string(),
+                            separation: HTML_ZONE_SEPARATION,
+                        });
                     }
-    
-                    return;
                 }
             }
-        }
 
-        // No matching selector, use parent context
-        for child in node.children() {
-            if let Some(el_child) = ElementRef::wrap(child) {
-                // Traverse children elements with parent field name
-                self.traverse_node(el_child, field_texts, field_name);
-            } else if let Some(text) = child.value().as_text() {
-                if let Some(field_name) = field_name {
-                    // Index children text nodes with parent field name
-                    add_text_to_field(field_texts, field_name, text);
-                }
-            }
-        }
-    }
-}
-
-#[inline(always)]
-fn add_text_to_field(field_texts: &mut Vec<Zone>, field_name: &String, text: &scraper::node::Text) {
-    if let Some(last) = field_texts.last_mut() {
-        if last.field_name == *field_name {
-            last.field_text += text;
+            // Tell the parent context to separate other text after this element
+            *do_separate = *do_separate || is_separator_el;
         } else {
-            field_texts.push(Zone {
-                field_name: field_name.to_owned(),
-                field_text: text.to_string(),
-                separation: HTML_ZONE_SEPARATION,
-            });
+            for child in node.children() {
+                if let Some(el_child) = ElementRef::wrap(child) {
+                    self.traverse_node(el_child, do_separate, field_texts, field_name_opt);
+                }
+            }
         }
-    } else {
-        field_texts.push(Zone {
-            field_name: field_name.to_owned(),
-            field_text: text.to_string(),
-            separation: HTML_ZONE_SEPARATION,
-        });
     }
 }
 
@@ -275,6 +302,7 @@ impl LoaderResult for HtmlLoaderResult {
     fn get_field_texts_and_path(mut self: Box<Self>) -> (Vec<Zone>, PathBuf) {
         let mut field_texts: Vec<Zone> = Vec::with_capacity(20);
         let mut document = Html::parse_document(&self.text);
+        let mut do_separate = false;
 
         field_texts.push(Zone {
             field_name: RELATIVE_FP_FIELD.to_owned(),
@@ -291,10 +319,127 @@ impl LoaderResult for HtmlLoaderResult {
 
         for child in document.tree.root().children() {
             if let Some(el_child) = ElementRef::wrap(child) {
-                self.traverse_node(el_child, &mut field_texts, None);
+                self.traverse_node(el_child, &mut do_separate, &mut field_texts, None);
             }
         }
 
         (field_texts, self.absolute_path)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::{sync::Arc, path::PathBuf};
+
+    use scraper::Selector;
+
+    use crate::{loader::LoaderResult, worker::miner::{Zone, DEFAULT_ZONE_SEPARATION}, field_info::RELATIVE_FP_FIELD};
+
+    use super::{
+        HtmlLoaderOptions,
+        HtmlLoaderResult,
+        HtmlLoaderSelector,
+        get_default_html_loader_selectors,
+        get_default_exclude_selectors, HTML_ZONE_SEPARATION, SEPARATOR_EL_SEPARATION,
+    };
+
+    fn get_test_loader_options() -> HtmlLoaderOptions {
+        HtmlLoaderOptions {
+            selectors: get_default_html_loader_selectors()
+                .into_iter()
+                .filter_map(|(selector, opt)| opt.map(|opt| HtmlLoaderSelector {
+                    selector: Selector::parse(&selector).expect("Invalid selector!"),
+                    field_name: opt.field_name.clone(),
+                    attr_map: opt.attr_map.clone(),
+                }))
+                .collect(),
+            exclude_selectors: get_default_exclude_selectors()
+                .iter()
+                .map(|selector| Selector::parse(selector).expect("Invalid exclude selector!"))
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn test_separation() {
+        let loader_result = Box::new(HtmlLoaderResult {
+            link: String::new(),
+            text: "text before".to_owned()
+                + "<table>"
+                + "<thead>"
+                + "<tr><th>o<button>n</button>e</th><th>two</th></tr>"
+                + "</thead><tbody>"
+                + "<tr><th>three</td><td>four</td></tr>"
+                + "<tr><th>five</td><td>si<button>x</button></td></tr>"
+                + "</tbody>"
+                + "</table>"
+                + "text after",
+            options: Arc::from(get_test_loader_options()),
+            absolute_path: PathBuf::new(),
+        });
+
+        let (zones, _path) = loader_result.get_field_texts_and_path();
+        assert_eq!(zones, vec![
+            Zone {
+                field_name: RELATIVE_FP_FIELD.to_owned(),
+                field_text: "".to_owned(),
+                separation: DEFAULT_ZONE_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "text before".to_owned(),
+                separation: HTML_ZONE_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "o".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "n".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "e".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "two".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "three".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "four".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "five".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "si".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "x".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "body".to_owned(),
+                field_text: "text after".to_owned(),
+                separation: SEPARATOR_EL_SEPARATION,
+            },
+        ])
     }
 }

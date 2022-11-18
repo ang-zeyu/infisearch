@@ -16,6 +16,7 @@ use crate::utils::escape_json;
 
 pub const DEFAULT_ZONE_SEPARATION: u32 = 10;
 
+#[cfg_attr(test, derive(PartialEq, Eq, Debug))]
 pub struct Zone {
     pub field_name: String,
     pub field_text: String,
