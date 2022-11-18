@@ -26,7 +26,6 @@ pub fn combine_worker_results_and_write_block(
     block_number: u32,
     start_doc_id: u32,
     check_for_existing_field_store: bool,
-    num_docs_per_block: u32,
     spimi_counter: u32,
     doc_id_counter: u32,
     log_perf: bool,
@@ -76,7 +75,6 @@ pub fn combine_worker_results_and_write_block(
                 field_infos,
                 doc_id_counter,
                 spimi_counter,
-                num_docs_per_block,
                 block_number,
                 sorted_doc_infos
                     .iter_mut()

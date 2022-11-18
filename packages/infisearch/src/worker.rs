@@ -107,7 +107,6 @@ pub fn create_worker(
                     block_number,
                     start_doc_id,
                     check_for_existing_field_store,
-                    indexing_config.num_docs_per_block,
                     spimi_counter,
                     doc_id_counter,
                     log_perf,

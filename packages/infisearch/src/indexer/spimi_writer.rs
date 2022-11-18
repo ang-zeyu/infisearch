@@ -65,7 +65,6 @@ impl Indexer {
                 block_number,
                 self.start_doc_id,
                 check_for_existing_field_store,
-                self.indexing_config.num_docs_per_block,
                 self.spimi_counter,
                 self.doc_id_counter,
                 self.start_instant.is_some(),

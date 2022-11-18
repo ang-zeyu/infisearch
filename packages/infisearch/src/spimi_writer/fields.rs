@@ -14,15 +14,42 @@ pub fn store_fields(
     field_infos: &Arc<FieldInfos>,
     doc_id_counter: u32,
     spimi_counter: u32,
-    num_docs_per_block: u32,
     block_number: u32,
     field_texts: Vec<Vec<u8>>,
 ) {
-    let mut file_number = if check_for_existing_field_store {
+    let file_number = if check_for_existing_field_store {
         start_doc_id / field_infos.num_docs_per_store
     } else {
         (doc_id_counter - spimi_counter) / field_infos.num_docs_per_store
     };
+    let end_file_number = if check_for_existing_field_store {
+        (start_doc_id + field_texts.len() as u32 - 1) / field_infos.num_docs_per_store
+    } else {
+        (doc_id_counter - spimi_counter + field_texts.len() as u32 - 1) / field_infos.num_docs_per_store
+    };
+
+    let block_number = block_number.to_string();
+    let mut prev_subdir = std::u32::MAX;
+    for file_number in file_number..(end_file_number + 1) {
+        let subdir = file_number / field_infos.num_stores_per_dir;
+        if subdir == prev_subdir {
+            continue;
+        }
+
+        prev_subdir = subdir;
+
+        let output_dir = field_infos.field_output_folder_path.join(subdir.to_string());
+        if !output_dir.is_dir() {
+            std::fs::create_dir(&output_dir).expect("Failed to create field store output dir!");
+        }
+
+        let output_dir = output_dir.join(&block_number);
+        if !output_dir.is_dir() {
+            std::fs::create_dir(&output_dir).expect("Failed to create field store output block dir!");
+        }
+    }
+
+    let mut file_number = file_number;
     let mut curr_block_count = if check_for_existing_field_store {
         start_doc_id % field_infos.num_docs_per_store
     } else {
@@ -33,9 +60,10 @@ pub fn store_fields(
 
     open_new_block_file(
         &mut writer,
-         file_number, field_infos, 
-         num_docs_per_block,
-         block_number, check_for_existing_field_store
+        field_infos,
+        file_number,
+        &block_number,
+        check_for_existing_field_store,
     );
     write_field_texts(
         &mut writer,
@@ -48,9 +76,10 @@ pub fn store_fields(
         if curr_block_count == 0 {
             open_new_block_file(
                 &mut writer, 
-                file_number, field_infos,
-                num_docs_per_block,
-                block_number, check_for_existing_field_store
+                field_infos,
+                file_number,
+                &block_number,
+                check_for_existing_field_store,
             );
         } else {
             writer.write(b",");
@@ -73,23 +102,16 @@ pub fn store_fields(
 #[inline(always)]
 fn open_new_block_file(
     buf_writer: &mut ReusableWriter,
-    file_number: u32,
     field_infos: &Arc<FieldInfos>,
-    num_docs_per_block: u32,
-    block_number: u32,
+    file_number: u32,
+    block_number: &str,
     check_for_existing: bool,
 ) {
-    let num_stores_per_dir = field_infos.num_stores_per_dir;
-    let output_dir = field_infos.field_output_folder_path.join(
-        (file_number / num_stores_per_dir).to_string()
-    );
-    if ((file_number % num_stores_per_dir == 0) || (file_number % num_docs_per_block == 0))
-        && !(output_dir.exists() && output_dir.is_dir())
-    {
-        std::fs::create_dir(&output_dir)
-            .expect("Failed to create field store output dir!");
-    }
-    let output_file_path = output_dir.join(format!("{}--{}.json", file_number, block_number));
+    let output_file_path = field_infos.field_output_folder_path
+        .join((file_number / field_infos.num_stores_per_dir).to_string())
+        .join(block_number)
+        .join(format!("{}.json", file_number));
+
     if check_for_existing && output_file_path.exists() {
         // The first block for incremental indexing might have been left halfway through somewhere before
         let mut field_store_file = OpenOptions::new()
