@@ -268,8 +268,7 @@ Another example use case might be to redirect to another domain using the [`link
 ```json
 {
   "indexing_config": {
-    "num_threads": <number of physical cpus> - 1,
-    "num_docs_per_block": 1000
+    "num_threads": <number of physical cpus> - 1
   }
 }
 ```
@@ -277,14 +276,6 @@ Another example use case might be to redirect to another domain using the [`link
 #### Number of Threads: **`num_threads`**
 
 This is the number of threads to use, excluding the main thread. When unspecified, this is `max(min(num physical cores, num logical cores) - 1, 1)`.
-
-#### Memory Usage: **`num_docs_per_block`**
-
-This parameter roughly controls the memory usage of the indexer; You may think of it as "how many documents to keep in memory before flushing results".
-
-If your documents are very small, increasing this *may* help improve indexing performance.
-
-⚠️ Also ensure [`num_docs_per_store`](./fields.md#field-store-granularity-num_docs_per_store-num_stores_per_dir) is a clean multiple or divisor of this parameter.
 
 ## Larger Collections
 
@@ -315,9 +306,3 @@ Increasing the value may also be useful for caching when used in conjunction wit
 Index files that exceed this number will be cached by the search library at initilisation.
 
 It can be used to configure InfiSearch for response time (over scalability) for some use cases. This is discussed in more detail in [Larger Collections](./larger_collections.md).
-
-#### Index Shards per Directory: **`num_pls_per_dir`**
-
-This parameter simply controls how many index files you want to store in a single directory.
-
-While the default value should serve sufficiently for most use cases, some file systems are less efficient at handling large amounts of files in one directory. Tuning this parameter may help to improve performance when looking up a particular index file.

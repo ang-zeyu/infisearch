@@ -2,7 +2,7 @@
 
 ![CI workflow](https://github.com/ang-zeyu/infisearch/actions/workflows/ci.yml/badge.svg)
 
-Easy, relevant, and efficient client-side search for static sites.
+Easy and flexible client-side search for static sites.
 
 ## Description
 
@@ -12,11 +12,17 @@ InfiSearch is a client-side search solution made for static sites, depending on 
 
 ## Features
 
-- **Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, and more...
-- **Speedy** 🏇: WebAssembly & WebWorker powered, enabling efficient, non-blocking query processing. Also includes persistent caching to minimize network requests, and a multi-threaded  CLI indexer powered by Rust.
+- **Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, categorical filters and more...
+- **Speedy** 🏇: WebAssembly & WebWorker powered, enabling efficient, non-blocking query processing. Backed by persistent caching to minimize network requests, and a multi-threaded  CLI indexer.
 - **Semi-Scalable**, achieved by optionally splitting the index into tiny morsels, complete with incremental indexing.
 - A **customisable**, **accessible** [user interface](https://infi-search.com/infisearch/search_configuration_styling.html) 🖥️
 - Support for **multiple file formats** (`.json,csv,pdf,html`) to satisfy more custom data requirements.
+
+## Preview
+
+Check out the website [here](https://infi-search.com)!
+
+The documentation also uses InfiSearch for its search function and can be found [here](https://infi-search.com/infisearch/getting_started.html).
 
 ## Getting Started
 
@@ -68,12 +74,6 @@ infisearch.init({
   }
 });
 ```
-
-## Documentation
-
-The user guide, which also uses InfiSearch for its search function, can be found [here](https://infi-search.com/infisearch/getting_started.html).
-
-Check out the [website](https://infi-search.com) and [medium article](https://medium.com/@angzeyu/easy-relevant-and-semi-scalable-static-site-search-with-morsels-bc9315c5a2c2) as well!
 
 ## License
 

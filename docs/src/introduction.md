@@ -4,7 +4,7 @@ InfiSearch is a *client-side* search solution made for static sites, including a
 
 ## Features
 
-- **Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, and more...
+- **Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, categorical filters and more...
 
 - **Speedy** 🏇: WebAssembly & WebWorker powered, enabling efficient, non-blocking query processing. Also includes persistent caching to minimize network requests, and a multi-threaded  CLI indexer powered by Rust.
 

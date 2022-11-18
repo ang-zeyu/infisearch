@@ -66,6 +66,18 @@ Reserved fields are prefixed with an underscore `_`, and are hardcoded into the 
 
 ## Field Specific Parameters
 
+#### Field Scoring
+
+**`weight=0.0`**
+
+This parameter is a boost / penalty multiplied to a individual field's score.
+
+Specifying `0.0` will also result in the field not being indexed into InfiSearch's inverted index at all meaning that searching for any terms in this field will not show up any results. The use case may be to create a field that is only stored for UI purposes (for example the `_relative_fp` field), when used in combination with the `storage` parameter.
+
+**`k=1.2` & `b=0.75`**
+
+These are Okapi BM25 model parameters that control the impact of term frequency and document lengths. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these, if the defaults are unsuitable for your use case.
+
 #### Field Storage: **`storage=["text"]`**
 
 As with most information retrieval tools, InfiSearch performs full-text search using an [inverted index](https://en.wikipedia.org/wiki/Inverted_index) mapping terms to source documents.
@@ -82,54 +94,37 @@ This "positioned" model is slightly more complex than a regular key-value store 
 
 **2. `enum`**
 
-This storage format stores a **single** value for each indexed document. Only the first such occurence will be stored, if there are multiple found. In this documentation for example (and the mdBook plugin), there is a multi-select checkbox filter that can be used to filter each page by it's mdBook section title. ("User Guide", "Advanced")
+This storage format stores a **single** value for each indexed document. Only the first such occurence will be stored, if there are multiple found. This is useful for data that is categorical in nature. These values can then be queried using the [search API](../search_api.md#filtering-enum-values) or used in the search UI to create [multi-select](../search_configuration.md#general-options) filters.
 
-This storage type should therefore be used for values that are "categorical" and finite in nature, and is useful for filtering documents by said categories.
+In this documentation for example (and the mdBook plugin), there is a multi-select checkbox filter that can be used to filter each page by it's mdBook section title. ("User Guide", "Advanced")
 
-You can also use InfiSearch's regular inverted index and flexible [boolean syntaxes](../search_features.md) to filter documents. Using this option instead however allows a simplifying assumption to store these values far more compactly. These values can then be queried using the [search API](../search_api.md#filtering-enum-values) or used in the search UI to create [multi-select](../search_configuration.md#general-options) filters.
+Notes:
+- Documents without enum values are internally assigned a default enum value that can be queried.
+- While it is unlikely you will need more, there is a hard limit of 255 possible values for your entire document collection. Values found in excess of this will be ignored, and the CLI indexer tool will print a warning.
+- You can also use InfiSearch's flexible [boolean syntaxes](../search_features.md) to filter documents. Using this option instead however allows a simplifying assumption to store these values far more compactly.
 
- Documents that don't have any enum values will internally be assigned a default enum value that can also be queried. While it is highly unlikely that you will need more, note that there is also a hard limit of 255 possible values for your entire document collection. Values found in excess of this will be ignored, and the CLI indexer tool will print a warning.
+<br>
 
-#### Field Scoring Parameters
+**Configuring Field Storage for Larger Collections**
 
-**`weight=0.0`**
-
-This parameter is a boost / penalty multiplied to a individual field's score.
-
-Specifying `0.0` will also result in the field not being indexed into InfiSearch's inverted index at all meaning that searching for any terms in this field will not show up any results. The use case may be to create a field that is only stored for UI purposes (for example the `_relative_fp` field), when used in combination with the `storage` parameter.
-
-**`k=1.2` & `b=0.75`**
-
-These are Okapi BM25 model parameters that control the impact of term frequency and document lengths. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these, if the defaults are unsuitable for your use case.
-
-
-## Larger Collections
-
-> ⚠️ This part is mostly informational, and allows you to adjust caching strategies, and the number of generated files. However, you should mostly be well-served by the preconfigured [scaling presets](./larger_collections.md) for such purposes.
+⚠️ This section is mostly for reference, consider using the preconfigured [scaling presets](./larger_collections.md) for scaling InfiSearch to larger collections.
 
 ```json
 {
   "fields_config": {
     "cache_all_field_stores": true,
-    "num_docs_per_store": 100000000,
-    "num_stores_per_dir": 1000,
+    "num_docs_per_store": 100000000
   }
 }
 ```
 
-#### Field Store Granularity: **`num_docs_per_store`, `num_stores_per_dir`**
-
-The `num_docs_per_store` parameter controls how many documents to store in one json file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching. The `num_stores_per_dir` parameter controls how many json files should be stored together in one directory.
-
-> ⚠️ Ensure `num_docs_per_store` is a clean multiple or divisor of the `num_docs_per_block` parameter under [indexing](./indexing.md).<br>
-> This is a rather arbitiary limitation chosen to reduce the field store indexing scheme complexity,
-> but should work well enough for most use cases.
-
-#### Field Store Caching: **`cache_all_field_stores`**
+**Field Store Caching: `cache_all_field_stores`**
 
 This is the same option as the one under [search functionality options](../search_configuration.md#search-functionality-options).
-If both are specified, the value specified in the `infisearch.init` call will take priority.
+If both are specified, the value specified in the `infisearch.init` takes priority.
 
-All fields specified with `storage=["text"]` would be cached up front on initialisation of the search library.
+All fields specified with `storage=["text"]` are cached up front on initialisation when this is enabled.
 
-Its usage alongside other options is discussed in more detail under the chapter [Larger Collections](larger_collections.md).
+**Field Store Granularity: `num_docs_per_store`**
+
+The `num_docs_per_store` parameter controls how many documents to store in one JSON file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.
