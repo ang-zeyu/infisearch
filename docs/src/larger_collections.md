@@ -1,6 +1,6 @@
 # Larger Collections
 
-*Five* configuration presets are available for scaling this tool to larger collections. They are designed primarily for InfiSearch's main intended use case of supporting static site search.
+*Three* configuration presets are available for scaling this tool to larger collections. They are designed primarily for InfiSearch's main intended use case of supporting static site search.
 
 ## Introduction
 

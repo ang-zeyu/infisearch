@@ -37,7 +37,7 @@ Head on over to the demo site [here](https://infi-search.com) to try them out!
 
 <div class="image-container">
 <img src="./images/light-theme.png" alt="Preview of light theme">
-<img src="./images/light-theme-fullscreen.png" alt="Preview of light theme (fullscreen)">
+<img src="./images/light-theme-dropdown.png" alt="Preview of light theme (dropdown)">
 </div>
 
 
@@ -51,8 +51,7 @@ Head on over to the demo site [here](https://infi-search.com) to try them out!
 ```
 
 <div class="image-container">
-<img src="./images/basic-theme.png" alt="Preview of basic theme">
-<img src="./images/basic-theme-fullscreen.png" alt="Preview of basic theme (fullscreen)">
+<img src="./images/basic-theme-dropdown.png" alt="Preview of basic theme (dropdown)">
 </div>
 
 ### Dark
@@ -67,21 +66,18 @@ Head on over to the demo site [here](https://infi-search.com) to try them out!
 #### Preview
 
 <div class="image-container">
-<img src="./images/dark-theme.png" alt="Preview of dark theme">
-<img src="./images/dark-theme-fullscreen.png" alt="Preview of dark theme (fullscreen)">
+<img src="./images/dark-theme-dropdown.png" alt="Preview of dark theme (dropdown)">
 </div>
 
 ## Styling the Fullscreen UI Input Button
 
-InfiSearch adopts a minimally invasive approach to styling your `<input>` element (except for the one that comes with the fullscreen UI), leaving this to your individual site's styling.
+InfiSearch is minimally invasive in styling your `<input>` element (except for the one that comes with the fullscreen UI), leaving this to your site's design.
 
-For accessibility, however, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button (which opens the fullscreen UI). This is limited to:
+Notably however, for accessibility, some minimal styling is applied when using the [fullscreen UI](./search_configuration.md#ui-mode) to convey the intention of a button (which opens the fullscreen UI). This is limited to:
 - A `background` & `box-shadow` & `color` application on *focus*
 
   These are applied with a `!important` modifier as they are key to conveying keyboard focus, but are also overridable easily with InfiSearch's css variables.
 - `cursor: pointer` application on *hover*
-
-Accessibility labels and roles are also automatically set.
 
 **Applying Input Button Styles under `mode='auto'`**
 

@@ -25,4 +25,4 @@
 # Advanced
 
 - [Altering HTML outputs](./search_configuration_renderers.md)
-- [Incremental Indexing](./incremental_files.md)
+- [Incremental Indexing](./incremental_indexing.md)

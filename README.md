@@ -28,9 +28,10 @@ Powering static site search with InfiSearch is extremely easy, and requires just
 
 ### 1. Installing the indexer
 
-If you have the rust / cargo toolchains setup, simply run `cargo install infisearch --vers 0.8.6`.
-
-Alternatively, download the cli binaries [here](https://github.com/ang-zeyu/infisearch/releases).
+There are a couple of options for installing the indexer:
+- Install the global npm package with `npm install -g @infisearch/cli`.
+- If you have the rust / cargo toolchains setup, run `cargo install infisearch --vers 0.8.6`.
+- You can also grab the cli binaries [here](https://github.com/ang-zeyu/infisearch/releases).
 
 ### 2. Running the indexer
 
