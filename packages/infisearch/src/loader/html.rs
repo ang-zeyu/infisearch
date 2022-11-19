@@ -282,6 +282,7 @@ impl HtmlLoaderResult {
                             field_text: text.to_string(),
                             separation: HTML_ZONE_SEPARATION,
                         });
+                        *do_separate = false;
                     }
                 }
             }
@@ -373,7 +374,8 @@ mod test {
                 + "<tr><th>five</td><td>si<button>x</button></td></tr>"
                 + "</tbody>"
                 + "</table>"
-                + "text after",
+                + "text after"
+                + "<h2><span>test</span> text</h2>",
             options: Arc::from(get_test_loader_options()),
             absolute_path: PathBuf::new(),
         });
@@ -439,6 +441,11 @@ mod test {
                 field_name: "body".to_owned(),
                 field_text: "text after".to_owned(),
                 separation: SEPARATOR_EL_SEPARATION,
+            },
+            Zone {
+                field_name: "heading".to_owned(),
+                field_text: "test text".to_owned(),
+                separation: HTML_ZONE_SEPARATION,
             },
         ])
     }
