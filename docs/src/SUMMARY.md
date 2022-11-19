@@ -5,6 +5,7 @@
 # User Guide
 
 - [Getting Started](./getting_started.md)
+  - [Content Security Policy](./csp.md)
   - [mdBook](./getting_started_mdbook.md)
   - [Others](./getting_started_others.md)
 - [Search UI](./search_configuration.md)

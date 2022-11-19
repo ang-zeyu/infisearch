@@ -16,17 +16,15 @@ InfiSearch is a *client-side* search solution made for static sites, including a
 
 ## How it Works:
 
-The following is a quick high level breakdown of how InfiSearch works:
-
-1. The CLI indexer tool generates:
+1. The CLI indexer tool first generates:
    - Binary index files
    - JSON field stores (raw document texts)
    - Supporting metadata (e.g. search dictionary)
-1. The search UI, which consists a JS file and WebAssembly binary:
+1. The search UI:
    1. Figures out which index files are needed from the user query
    1. Retrieves the index files from cache/memory/network requests
    1. Obtains and ranks the result set
-   1. Finally, retrieves the field stores from cache/memory/network requests progressively to generate result previews to show to the user!
+   1. Finally, retrieves the field stores from cache/memory/network requests progressively to generate result previews
 
 ## Search Features in Detail
 
