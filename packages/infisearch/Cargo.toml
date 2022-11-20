@@ -45,7 +45,6 @@ regex = "1"
 rustc-hash = "1.1"
 scraper = "0.13"
 smartstring = "0.2.7"
-typetag = "0.1"
 walkdir = "2"
 
 [dev-dependencies]

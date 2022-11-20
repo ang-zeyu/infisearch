@@ -37,8 +37,6 @@ struct CliArgs {
     config_file_path: Option<PathBuf>,
     #[structopt(long, help = "Allows you to input your indexer configuration via stdin in json format. The entire json should be serialized in one line. Intended for programmatic use.")]
     config_stdin: bool,
-    #[structopt(long, help = "Initialises the configuration file in the source folder. Does not run any indexing.")]
-    config_init: bool,
     #[structopt(
         short,
         long,
@@ -129,11 +127,6 @@ fn main() {
         output_folder_path.to_str().unwrap(),
         config_file_path.to_str().unwrap(),
     );
-
-    if args.config_init {
-        Indexer::write_source_config(InfiConfig::default(), &config_file_path);
-        return;
-    }
 
     let config = if args.config_stdin {
         let mut buf = Vec::new();

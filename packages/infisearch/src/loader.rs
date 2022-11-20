@@ -12,7 +12,6 @@ pub type LoaderResultIterator<'a> = Box<dyn Iterator<Item = Box<dyn LoaderResult
 
 pub type LoaderBoxed = Box<dyn Loader + Send + Sync>;
 
-#[typetag::serde(tag = "type")]
 pub trait Loader {
     fn try_index_file(
         &self,

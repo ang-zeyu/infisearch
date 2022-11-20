@@ -152,7 +152,6 @@ impl HtmlLoader {
     }
 }
 
-#[typetag::serde]
 impl Loader for HtmlLoader {
     fn try_index_file<'a>(
         &'a self,

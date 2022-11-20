@@ -140,7 +140,6 @@ impl CsvLoader {
     }
 }
 
-#[typetag::serde]
 impl Loader for CsvLoader {
     fn try_index_file<'a>(
         &'a self,

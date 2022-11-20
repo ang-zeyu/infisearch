@@ -324,27 +324,6 @@ impl Indexer {
         }
     }
 
-    pub fn write_source_config(mut config: InfiConfig, config_file_path: &Path) {
-        config.indexing_config.loaders = config
-            .indexing_config
-            .get_loaders_from_config()
-            .into_iter()
-            .map(|loader| (
-                loader.get_name(),
-                serde_json::to_value(loader).expect("Failed to convert loader config to serde value")
-            ))
-            .collect();
-
-        File::create(config_file_path)
-            .unwrap()
-            .write_all(
-                serde_json::to_string_pretty(&config)
-                    .expect("Failed to serialize config for --config-init!")
-                    .as_bytes(),
-            )
-            .unwrap();
-    }
-
     pub fn finish_writing_docs(mut self) {
         i_debug!("@finish_writing_docs");
 

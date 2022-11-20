@@ -49,7 +49,6 @@ impl PdfLoader {
     }
 }
 
-#[typetag::serde]
 impl Loader for PdfLoader {
     fn try_index_file<'a>(
         &'a self,

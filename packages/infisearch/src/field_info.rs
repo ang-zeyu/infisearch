@@ -61,7 +61,7 @@ fn get_default_fields() -> FxHashMap<String, Option<FieldConfig>> {
 }
 
 // Raw Json field configuration
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct FieldsConfig {
     #[serde(default = "get_default_num_docs_per_store")]
     pub num_docs_per_store: u32,
@@ -203,7 +203,7 @@ fn get_default_storage() -> Vec<String> {
     vec!["text".to_owned()]
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct FieldConfig {
     #[serde(default = "get_default_storage")]
     pub storage: Vec<String>,

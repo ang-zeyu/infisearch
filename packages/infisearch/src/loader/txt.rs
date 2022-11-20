@@ -46,7 +46,6 @@ impl TxtLoader {
     }
 }
 
-#[typetag::serde]
 impl Loader for TxtLoader {
     fn try_index_file<'a>(
         &'a self,

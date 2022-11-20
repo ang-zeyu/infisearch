@@ -67,7 +67,6 @@ impl JsonLoader {
     }
 }
 
-#[typetag::serde]
 impl Loader for JsonLoader {
     fn try_index_file<'a>(
         &'a self,

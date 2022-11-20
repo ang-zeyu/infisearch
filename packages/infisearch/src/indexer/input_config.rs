@@ -17,7 +17,7 @@ use crate::loader::pdf::PdfLoader;
 
 use glob::Pattern;
 use rustc_hash::FxHashMap;
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 use serde_json::Value;
 
 fn get_default_preset() -> String {
@@ -60,7 +60,7 @@ fn get_default_with_positions() -> bool {
     true
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct InfiIndexingConfig {
     #[serde(default = "get_default_num_threads", skip_serializing)]
     pub num_threads: usize,
@@ -157,7 +157,7 @@ impl InfiIndexingConfig {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct InfiConfig {
     #[serde(default = "get_default_preset")]
     pub preset: String,
