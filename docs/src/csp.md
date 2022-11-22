@@ -2,7 +2,7 @@
 
 ## WebAssembly CSP
 
-InfiSearch runs using WebAssembly. If you are using a restrictive content security policy,  WebAssembly as a whole currently unfortunately requires adding the `script-src: 'unsafe-eval';` directive.
+InfiSearch runs using WebAssembly. If you are using a restrictive content security policy,  WebAssembly as a whole unfortunately currently requires adding the `script-src: 'unsafe-eval';` directive.
 
 This error will show up in chrome for example as the following extremely detailed error message:
 
@@ -21,4 +21,4 @@ To whitelist this, add the `script-src: blob:;` directive.
 
 ## CDN CSP
 
-Naturally, if you load InfiSearch assets from CDN, you will also need to whitelist this in the `script-src: cdn.jsdelivr.net;` and `style-src: cdn.jsdelivr.net;` directives.
+Naturally, if you load InfiSearch assets from the CDN, you will also need to whitelist this in the `script-src: cdn.jsdelivr.net;` and `style-src: cdn.jsdelivr.net;` directives.

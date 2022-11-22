@@ -1,6 +1,6 @@
 [package]
 name = "infisearch_lang_chinese"
-version = "0.8.7"
+version = "0.8.8"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Chinese tokenizer for InfiSearch."
@@ -13,8 +13,8 @@ license = "MIT"
 indexer = ["regex"]
 
 [dependencies]
-infisearch_common = { path = "../../infisearch_common", version="=0.8.7" }
-infisearch_lang_ascii = { path = "../infisearch_lang_ascii", version="=0.8.7" }
+infisearch_common = { path = "../../infisearch_common", version="=0.8.8" }
+infisearch_lang_ascii = { path = "../infisearch_lang_ascii", version="=0.8.8" }
 lazy_static = { version = "1.4" }
 regex = { version = "1", optional = true }
 smartstring = "0.2.7"

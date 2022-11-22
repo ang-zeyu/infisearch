@@ -3,7 +3,7 @@
   "collaborators": [
     "Ze Yu <angzeyu@gmail.com>"
   ],
-  "version": "0.8.7",
+  "version": "0.8.8",
   "files": [
     "index_bg.wasm",
     "index.js",

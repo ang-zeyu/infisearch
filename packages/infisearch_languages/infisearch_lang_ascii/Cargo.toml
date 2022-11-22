@@ -1,6 +1,6 @@
 [package]
 name = "infisearch_lang_ascii"
-version = "0.8.7"
+version = "0.8.8"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Basic ascii tokenizer for InfiSearch."
@@ -14,6 +14,6 @@ indexer = ["lazy_static", "regex"]
 
 [dependencies]
 lazy_static = { version = "1.4", optional = true }
-infisearch_common = { path = "../../infisearch_common", version="=0.8.7" }
+infisearch_common = { path = "../../infisearch_common", version="=0.8.8" }
 regex = { version = "1", optional = true }
 smartstring = "0.2.7"

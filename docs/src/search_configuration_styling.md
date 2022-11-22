@@ -29,8 +29,8 @@ Head on over to the demo site [here](https://infi-search.com) to try them out!
 #### CDN link
 
 ```html
-<!-- Replace "v0.8.7" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.7/packages/search-ui/dist/search-ui-light.css" />
+<!-- Replace "v0.8.8" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.8/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 #### Preview
@@ -46,8 +46,8 @@ Head on over to the demo site [here](https://infi-search.com) to try them out!
 #### CDN link
 
 ```html
-<!-- Replace "v0.8.7" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.7/packages/search-ui/dist/search-ui-basic.css" />
+<!-- Replace "v0.8.8" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.8/packages/search-ui/dist/search-ui-basic.css" />
 ```
 
 <div class="image-container">
@@ -59,8 +59,8 @@ Head on over to the demo site [here](https://infi-search.com) to try them out!
 #### CDN link
 
 ```html
-<!-- Replace "v0.8.7" as appropriate -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.7/packages/search-ui/dist/search-ui-dark.css" />
+<!-- Replace "v0.8.8" as appropriate -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.8/packages/search-ui/dist/search-ui-dark.css" />
 ```
 
 #### Preview

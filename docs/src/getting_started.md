@@ -16,7 +16,7 @@ This page assumes the use case of a **static site**, that is:
 
 There are a couple of options for installing the indexer:
 - Install the global npm package with `npm install -g @infisearch/cli`.
-- If you have the rust / cargo toolchains setup, run `cargo install infisearch --vers 0.8.7`.
+- If you have the rust / cargo toolchains setup, run `cargo install infisearch --vers 0.8.8`.
 - You can also grab the cli binaries [here](https://github.com/ang-zeyu/infisearch/releases).
 
 ## Running the indexer
@@ -39,12 +39,12 @@ If you are using the binaries, replace `infisearch` with the appropriate executa
 ### Installation via CDN
 
 ```html
-<!-- Replace "v0.8.7" as appropriate -->
+<!-- Replace "v0.8.8" as appropriate -->
 
 <!--  Search UI script -->
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.7/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.8/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 <!-- Search UI css, this provides some basic styling for the search dropdown, and can be omitted if desired -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.7/packages/search-ui/dist/search-ui-light.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.8.8/packages/search-ui/dist/search-ui-light.css" />
 ```
 
 > ⚠️ Ensure the linked versions **match the indexer version** used exactly.
