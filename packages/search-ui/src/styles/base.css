@@ -398,14 +398,13 @@ table.infi-tip-table .infi-tip-item li {
     display: flex;
     justify-content: space-between;
     color: var(--infi-header-fg);
-    padding: 9px 13px 0 13px;
-    margin-bottom: 8px;
+    padding: 9px 13px 8px 13px;
     font-weight: bold;
     font-size: 1.06em;
 }
 
 .infi-fs-root .infi-header {
-    padding: 9px 7px 9px 3px;
+    padding: 9px 7px 14px 3px;
 }
 
 .infi-results-found {
@@ -488,11 +487,11 @@ button.infi-filters.active::after {
  */
 
 .infi-filters.shown {
-    padding: 0 13px 10px 13px;
+    padding: 0 13px 12px 13px;
 }
 
 .infi-fs-root .infi-filters.shown {
-    padding: 0 7px 12px 3px;
+    padding: 0 7px 14px 3px;
 }
 
 .infi-filter-header {
@@ -757,7 +756,7 @@ input[type="checkbox"].infi-checkbox:checked::before {
 }
 
 .infi-list-item:first-child {
-    margin-top: 2px;
+    margin-top: 0;
 }
 
 .infi-title-link,

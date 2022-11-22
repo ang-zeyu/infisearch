@@ -18,14 +18,14 @@
     margin: 12px 3px;
 }
 
+.infi-fs-root .infi-list-item:first-child {
+    margin-top: 0;
+}
+
 @media screen and (max-width: 768px) {
     .infi-fs-root .infi-list-item {
         margin: 14px 3px;
     }
-}
-
-.infi-list-item:first-child {
-    margin-top: 1px;
 }
 
 .infi-heading-link:last-child {
