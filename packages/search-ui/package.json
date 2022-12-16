@@ -25,7 +25,7 @@
     "directory": "packages/search-ui"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.0",
+    "@floating-ui/dom": "^1.0.10",
     "@infisearch/search-lib": "^0.8.8"
   }
 }
