@@ -197,11 +197,32 @@
         resultsPerPage,
         sourceFilesUrl,
         dropdownAlignment: 'bottom-end',
+        sortFields: {
+          price: { asc: 'Price: Low to High', desc: 'Price: High to Low' },
+          dateposted: { asc: 'Date: Oldest First', desc: 'Date: Latest First' },
+        },
         multiSelectFilters: [
           { fieldName: 'weatherField', displayName: 'Weather', defaultOptName: 'None' },
           { fieldName: 'moodField', displayName: 'Mood', defaultOptName: 'None' }
         ],
+        numericFilters: [
+          {
+            fieldName: 'price',
+            displayName: 'Price',
+            type: 'number',
+            gtePlaceholder: 'Min',
+            ltePlaceholder: 'Max',
+          },
+          {
+            fieldName: 'dateposted',
+            displayName: 'Date Posted',
+            type: 'datetime-local',
+            gtePlaceholder: 'After',
+            ltePlaceholder: 'Before',
+          },
+        ],
       }
     });
+
   </script>
 </html>
