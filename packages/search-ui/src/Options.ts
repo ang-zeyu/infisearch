@@ -28,6 +28,40 @@ export interface NumericFilterBinding {
   ltePlaceholder?: string,
 }
 
+export interface Translations {
+  resultsLabel: string,
+  fsButtonPlaceholder?: string,
+  fsButtonLabel: string,
+  fsPlaceholder: string,
+  fsCloseText: string,
+  filtersButton: string,
+  numResultsFound: string,
+  startSearching: string,
+  startingUp: string,
+  navigation: string,
+  tipHeader: string,
+  tip: string,
+  example: string,
+  tipRows: {
+    searchPhrases: string,
+    requireTerm: string,
+    excludeTerm: string,
+    flipResults: string,
+    groupTerms: string,
+    searchPrefixes: string,
+    searchSections: string,
+    exSearchPhrases: string,
+    exRequireTerm: string,
+    exExcludeTerm: string,
+    exFlipResults: string,
+    exGroupTerms: string,
+    exSearchPrefixes: string,
+    exSearchSections: string[],
+  }
+
+  error: string,
+}
+
 export interface UiOptions {
   input: HTMLInputElement,
   inputDebounce?: number,
@@ -35,13 +69,7 @@ export interface UiOptions {
   mode: UiMode,
   isMobileDevice: () => boolean,
   dropdownAlignment?: 'bottom-start' | 'bottom-end',
-  label: string,
-  resultsLabel: string,
-  fsInputButtonText: string,
-  fsInputLabel: string,
   fsContainer?: HTMLElement,
-  fsPlaceholder?: string,
-  fsCloseText?: string,
   fsScrollLock: boolean,
   target?: HTMLElement,
   tip: boolean,
@@ -49,6 +77,7 @@ export interface UiOptions {
   sortFields: { [fieldName: string]: { asc: string, desc: string } },
   multiSelectFilters: MultiSelectFilterBinding[],
   numericFilters: NumericFilterBinding[],
+  translations: Translations,
   // This is specific to the default resultsRender implementation,
   // pulling it up as its a common option
   sourceFilesUrl?: string,

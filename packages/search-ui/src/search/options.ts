@@ -1,5 +1,6 @@
 import { Options, UiMode } from '../Options';
 import { listItemRender } from '../searchResultTransform/listItemRender';
+import { TRANSLATIONS } from '../translations/en';
 
 export function prepareOptions(options: Options) {
   options.searcherOptions = options.searcherOptions || ({} as any);
@@ -53,11 +54,10 @@ export function prepareOptions(options: Options) {
   uiOptions.resultsPerPage = uiOptions.resultsPerPage || 10;
   uiOptions.maxSubMatches = uiOptions.maxSubMatches || 2;
   
-  uiOptions.label = uiOptions.label || 'Search this site';
-  uiOptions.resultsLabel = uiOptions.resultsLabel || 'Site results';
-  uiOptions.fsInputLabel = uiOptions.fsInputLabel || 'Search';
-  uiOptions.fsPlaceholder = uiOptions.fsPlaceholder || 'Search this site';
-  uiOptions.fsCloseText = uiOptions.fsCloseText || 'Close';
+  uiOptions.translations = {
+    ...TRANSLATIONS,
+    ...(uiOptions.translations || {}),
+  };
   if (!('fsScrollLock' in uiOptions)) {
     uiOptions.fsScrollLock = true;
   }

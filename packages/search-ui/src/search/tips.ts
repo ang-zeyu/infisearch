@@ -7,7 +7,9 @@ export default function createTipButton(
   opts: UiOptions,
   cfg: InfiConfig,
 ): HTMLElement | string {
-  if (opts.tip === false) {
+  const { tip, translations } = opts;
+
+  if (tip === false) {
     return '';
   }
 
@@ -21,40 +23,40 @@ export default function createTipButton(
 
   const tipListBody = h('tbody', {});
 
+  const tipRows = translations.tipRows;
+
   if (cfg.indexingConfig.withPositions) {
     tipListBody.append(createRow(
-      'Search for phrases',
-      wrapInCode('"for tomorrow"'),
+      tipRows.searchPhrases,
+      wrapInCode(tipRows.exSearchPhrases),
     ));
   }
 
   tipListBody.append(
     createRow(
-      'Require a term',
-      wrapInCode('+sunny weather'),
+      tipRows.requireTerm,
+      wrapInCode(tipRows.exRequireTerm),
     ),
     createRow(
-      'Exclude a term',
-      wrapInCode('-cloudy sunny'),
+      tipRows.excludeTerm,
+      wrapInCode(tipRows.exExcludeTerm),
     ),
     createRow(
-      'Flip search results',
-      wrapInCode('~rainy'),
+      tipRows.flipResults,
+      wrapInCode(tipRows.exFlipResults),
     ),
     createRow(
-      'Group terms together',
-      wrapInCode('~(sunny warm cloudy)'),
+      tipRows.groupTerms,
+      wrapInCode(tipRows.exGroupTerms),
     ),
     createRow(
-      'Search for prefixes',
-      wrapInCode('run*'),
+      tipRows.searchPrefixes,
+      wrapInCode(tipRows.exSearchPrefixes),
     ),
     createRow(
-      'Search only specific sections',
-      h('ul', {}, 
-        h('li', {}, wrapInCode('title:forecast')),
-        h('li', {}, wrapInCode('heading:sunny')),
-        h('li', {}, wrapInCode('body:(rainy gloomy)')),
+      tipRows.searchSections,
+      h('ul', {},
+        ...tipRows.exSearchSections.map(t => h('li', {}, wrapInCode(t))),
       ),
     ),
   );
@@ -65,14 +67,14 @@ export default function createTipButton(
     h(
       'thead',
       { class: 'infi-tip-table-header' },
-      h('tr', {}, h('th', { scope: 'col' }, 'Tip'), h('th', {}, 'Example')),
+      h('tr', {}, h('th', { scope: 'col' }, translations.tip), h('th', {}, translations.example)),
     ),
     tipListBody,
   );
   const tipPopup = h(
     'div', { class: 'infi-tip-popup-root' },
     h('div', { class: 'infi-tip-popup' },
-      h('div', { class: 'infi-tip-popup-title' }, '🔎 Advanced search tips'),
+      h('div', { class: 'infi-tip-popup-title' }, translations.tipHeader),
       tipList,
     ),
   );

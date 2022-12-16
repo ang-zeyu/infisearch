@@ -100,12 +100,12 @@ export function dropdownRootRender(
   return [root, scrollContainer];
 }
 
-export function setFsTriggerInput(input: HTMLElement, fsInputButtonText: string, fsInputLabel: string) {
+export function setFsTriggerInput(input: HTMLElement, fsButtonPlaceholder: string, fsButtonLabel: string) {
   input.setAttribute('autocomplete', 'off');
   input.setAttribute('readonly', '');
   input.setAttribute('role', 'button');
-  input.setAttribute('aria-label', fsInputLabel);
-  if (fsInputButtonText) input.setAttribute('placeholder', fsInputButtonText);
+  input.setAttribute('aria-label', fsButtonLabel);
+  if (fsButtonPlaceholder) input.setAttribute('placeholder', fsButtonPlaceholder);
   input.classList.add('infi-button-input');
 }
 
@@ -120,18 +120,18 @@ function unsetFsTriggerInput(input: HTMLElement, originalPlaceholder: string) {
 export function setDropdownInputAria(
   input: HTMLElement,
   resultContainer: HTMLElement,
-  label: string,
+  resultsLabel: string,
   originalPlaceholder: string,
 ) {
   unsetFsTriggerInput(input, originalPlaceholder);
-  setInputAria(input, resultContainer, label);
+  setInputAria(input, resultContainer, resultsLabel);
 }
 
 export function unsetDropdownInputAria(
   input: HTMLElement,
   resultContainer: HTMLElement,
-  fsInputLabel: string,
-  fsInputButtonText: string,
+  fsButtonLabel: string,
+  fsButtonPlaceholder: string,
 ) {
   resultContainer.removeAttribute('role');
   resultContainer.removeAttribute('aria-label');
@@ -140,7 +140,7 @@ export function unsetDropdownInputAria(
   input.removeAttribute('aria-autocomplete');
   input.removeAttribute('aria-controls');
   unsetActiveDescendant(input);
-  setFsTriggerInput(input, fsInputButtonText, fsInputLabel);
+  setFsTriggerInput(input, fsButtonPlaceholder, fsButtonLabel);
 }
 
 // Incremental Id for pages with multiple UIs, for aria attributes.
@@ -151,10 +151,12 @@ export function fsRootRender(
   onClose: (isKeyboardClose: boolean) => void,
 ): [HTMLElement, HTMLInputElement, () => void, (isKeyboardClose: boolean) => void] {
   const {
-    fsPlaceholder,
-    fsCloseText,
+    translations: {
+      fsPlaceholder,
+      fsCloseText,
+      resultsLabel,
+    },
     fsContainer,
-    label,
   } = opts.uiOptions;
 
   const labelId = `infi-fs-label-${fsId}`;
@@ -212,7 +214,7 @@ export function fsRootRender(
   innerRoot.onclick = (ev) => ev.stopPropagation();
   innerRoot.onmousedown = (ev) => ev.stopPropagation();
   
-  setInputAria(inputEl, resultContainer, label);
+  setInputAria(inputEl, resultContainer, resultsLabel);
   
   const rootBackdropEl = h('div', { class: 'infi-fs-backdrop' }, innerRoot);
 
@@ -265,5 +267,5 @@ export function targetRender(
     resultContainer,
   );
 
-  setInputAria(input, resultContainer, opts.uiOptions.label);
+  setInputAria(input, resultContainer, opts.uiOptions.translations.resultsLabel);
 }

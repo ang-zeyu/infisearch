@@ -94,3 +94,34 @@ Keeping them enables the following:
 - Processing phrase queries such as `"for tomorrow"` accurately; Stop words would be removed automatically from such queries.
 - Boolean queries of stop words (e.g. `if AND forecast AND sunny`)
 - More accurate ranking for free text queries, which uses stop words in term proximity ranking
+
+## UI Translations
+
+The UI's text can also be overwritten.
+Refer to this [link](https://github.com/ang-zeyu/infisearch/tree/main/packages/search-ui/src/translations/en.ts) for the default set of texts.
+
+```ts
+infisearch.init({
+  uiOptions: {
+    translations: { ... }
+  }
+})
+```
+
+| Option                | Default                 | Description |
+| -----------           | -----------             | ----------- |
+| `resultsLabel`        | `'Site results'`        | Accessibility label for the [`listbox`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/listbox_role) containing result previews. This is announced to screenreaders.
+| `fsButtonLabel`        | `'Search'` | Accessibility label for the original input element that functions as a button when the fullscreen UI is in use.
+| `fsButtonPlaceholder`        | `undefined`| Placeholder override for the provided `input` that functions as a button when the fullscreen UI is in use.
+| `fsPlaceholder` | `'Search this site'` | Placeholder of the input element in the fullscreen UI.
+| `fsCloseText` | `'Close'` | Text for the <kbd>Close</kbd> button.
+| `filtersButton` | `'Filters'` | Text for the <kbd>Filters</kbd> button if any enum or numeric filters are configured.
+| `numResultsFound`        | `' results found'` | The text following the number of results found.
+| `startSearching`        | `'Start Searching Above!'`| Text shown when the input is empty.
+| `startingUp`       | `'... Starting Up ...'` | Text shown when InfiSearch is still not ready to perform any queries. The setup occurs extremely quickly, you will hopefully not be able to see this text most of the time.
+| `navigation`       | `'Navigation'` | Navigation controls text.
+| `tipHeader`       | `'🔎 Advanced search tips'` | Header of the tip popup.
+| `tip`       | `'Tip'` | First column header of the tip popup.
+| `example`       | `'Example'` | Second column header of the tip popup.
+| `tipRows.xx` (refer [here](https://github.com/ang-zeyu/infisearch/tree/main/packages/search-ui/src/translations/en.ts)) |  | Examples for usage of InfiSearch's advanced search syntax.
+| `error`         | `'Oops! Something went wrong... 🙁'` | Generic error text when something goes wrong

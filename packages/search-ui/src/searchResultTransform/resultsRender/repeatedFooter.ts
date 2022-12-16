@@ -10,7 +10,7 @@ export function resultSeparator(
   focusOption: (el: HTMLElement) => void,
   query: Query,
 ) {
-  const { resultsPerPage } = options.uiOptions;
+  const { resultsPerPage, translations } = options.uiOptions;
   const footer = h('div', { class: 'infi-footer', tabindex: '-1' });
   if (!query.resultsTotal) {
     return footer;
@@ -43,7 +43,7 @@ export function resultSeparator(
     const isDomFocused = document.activeElement === loadMoreButton;
 
     loadMoreButtonWrapped.remove();
-    footer.append(stateRender(false, true, false, false, false));
+    footer.append(stateRender(false, true, false, false, false, translations));
     // Announce footer information
     if (isDomFocused) footer.focus({ preventScroll: true });
 

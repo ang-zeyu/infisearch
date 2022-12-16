@@ -101,6 +101,7 @@ export class IManager {
       !that._mrlInputEl.value,
       isDone,
       isError,
+      that._mrlOptions.uiOptions.translations,
     );
 
     that._mrlState.replaceWith(newIndicatorElement);
@@ -108,7 +109,7 @@ export class IManager {
   }
 
   _mrlRefreshHeader(query?: Query) {
-    const el = headerRender(query, this._mrlGetOrSetFiltersShown);
+    const el = headerRender(query, this._mrlGetOrSetFiltersShown, this._mrlOptions.uiOptions.translations);
     this._mrlHeader.replaceWith(el);
     this._mrlHeader = el;
   }

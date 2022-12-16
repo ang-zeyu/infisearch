@@ -83,9 +83,13 @@ function init(options: Options): {
   const {
     input, mode,
     dropdownAlignment,
-    label,
-    fsInputButtonText, fsInputLabel, fsScrollLock,
+    fsScrollLock,
     target,
+    translations: {
+      fsButtonPlaceholder,
+      fsButtonLabel,
+      resultsLabel,
+    },
   } = uiOptions;
 
   const searcher = new Searcher(options.searcherOptions);
@@ -193,10 +197,10 @@ function init(options: Options): {
           // Otherwise, the input should be focused
           initState._mrlShowDropdown();
         }
-        setDropdownInputAria(input, resultContainer, label, originalPlaceholder);
+        setDropdownInputAria(input, resultContainer, resultsLabel, originalPlaceholder);
       } else {
         initState._mrlHideDropdown();
-        unsetDropdownInputAria(input, resultContainer, fsInputLabel, fsInputButtonText);
+        unsetDropdownInputAria(input, resultContainer, fsButtonLabel, fsButtonPlaceholder);
       }
     }
     toggleUiMode();
@@ -231,7 +235,7 @@ function init(options: Options): {
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Fullscreen) {
     // Fullscreen-only mode
-    setFsTriggerInput(input, fsInputButtonText, fsInputLabel);
+    setFsTriggerInput(input, fsButtonPlaceholder, fsButtonLabel);
     addFsTriggerInputListeners();
   } else if (input && mode === UiMode.Target) {
     // Target

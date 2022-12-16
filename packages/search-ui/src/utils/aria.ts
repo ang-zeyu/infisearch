@@ -16,7 +16,7 @@ export function unsetExpanded(combobox: HTMLElement) {
   combobox.setAttribute('aria-expanded', 'false');
 }
 
-export function setInputAria(input: HTMLElement, listbox: HTMLElement, label: string) {
+export function setInputAria(input: HTMLElement, listbox: HTMLElement, listboxLabel: string) {
   input.setAttribute('role', 'combobox');
   input.setAttribute('autocomplete', 'off');
   input.setAttribute('aria-autocomplete', 'list');
@@ -24,5 +24,5 @@ export function setInputAria(input: HTMLElement, listbox: HTMLElement, label: st
   input.setAttribute('aria-controls', listId);
   unsetExpanded(input);
   listbox.setAttribute('role', 'listbox');
-  listbox.setAttribute('aria-label', label);
+  listbox.setAttribute('aria-label', listboxLabel);
 }
