@@ -1,5 +1,6 @@
 import { InfiConfig } from '../results/Config';
 import { QueryOpts } from '../results/Searcher/QueryOpts';
+import { serializeGetQueryParams } from '../utils/wasmParams';
 import WorkerQuery from './workerQuery';
 
 const workerQueries: {
@@ -12,78 +13,14 @@ let wasmSearcher: any;
 
 let config: InfiConfig;
 
-// Format in read_enum_filters_param@searcher.rs
-function constructEnumFilterParam(enumFilters: { [enumFieldName: string]: (string | null)[]; }) {
-  let enumCount = 0;
-  const enumParam = [] as number[];
-  Object.entries(enumFilters).forEach(([enumFieldName, allowedEnumValues]) => {
-    const fieldInfo = config.fieldInfos.find((fi) => fi.name === enumFieldName);
-    if (fieldInfo) {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { enumId, enumValues } = fieldInfo.enumInfo;
-
-      enumParam.push(enumId);
-
-      const enumValuesFiltered = allowedEnumValues
-        .filter((s) => s === null || enumValues.includes(s))
-        .map((s) => s === null
-          ? 0
-          // +1 as 0 is the "default" enum value
-          : enumValues.findIndex((ev) => ev === s) + 1,
-        );
-
-      enumParam.push(enumValuesFiltered.length);
-      enumParam.push(...enumValuesFiltered);
-
-      enumCount += 1;
-    }
-  });
-
-  enumParam.splice(0, 0, enumCount);
-  return enumParam;
-}
-
-function constructI64FilterParam(
-  i64Filters: { [numFieldName: string]: { gte?: number | bigint, lte?: number | bigint, } },
-): bigint[] {
-  let filterCount = 0;
-  const i64FiltersParam = [] as bigint[];
-  function push(n : number | bigint) {
-    i64FiltersParam.push(BigInt(n));
-  }
-
-  Object.entries(i64Filters).forEach(([numFieldName, { gte, lte }]) => {
-    const fieldInfo = config.fieldInfos.find((fi) => fi.name === numFieldName);
-    if (fieldInfo) {
-      push(fieldInfo.i64Info.id);
-      const hasGte = gte !== undefined;
-      push(hasGte ? 1 : 0);
-      if (hasGte) push(gte);
-      const hasLte = lte !== undefined;
-      push(hasLte ? 1 : 0);
-      if (hasLte) push(lte);
-
-      filterCount += 1;
-    }
-  });
-
-  i64FiltersParam.splice(0, 0, BigInt(filterCount));
-  return i64FiltersParam;
-}
 
 export async function processQuery(
   query: string,
   opts: QueryOpts,
   queryId: number,
 ): Promise<WorkerQuery> {
-  const { enumFilters, i64Filters, sort, sortAscending } = opts;
-
-  const enumParam = constructEnumFilterParam(enumFilters);
-  const i64Param = constructI64FilterParam(i64Filters);
-  const sortParam = config.fieldInfos.find((fi) => fi.name === sort)?.i64Info?.id;
-
   const wasmQuery: any = await wasmModule.get_query(
-    wasmSearcher.get_ptr(), query, enumParam, i64Param, sortParam, sortAscending,
+    wasmSearcher.get_ptr(), serializeGetQueryParams(query, opts, config),
   );
 
   const queryPartsRaw = wasmQuery.get_query_parts() as string;

@@ -245,85 +245,9 @@ impl Searcher {
     }
 }
 
-/// Format:
-/// num enums (1 byte)
-///   enum id (1 byte)
-///   number of enum values for this enum (1 byte)
-///   enum value's internal ids (times number of enum values) (1 byte each)
-fn read_enum_filters_param(enum_filters_raw: Vec<u32>) -> Vec<(usize, [bool; EnumMax::MAX as usize])> {
-    // Unsafe gets are guaranteed since it is serialized in from JS interface
-
-    let num_enums = unsafe { *enum_filters_raw.get_unchecked(0) } as usize;
-
-    let mut pos = 1;
-    let mut enum_filters = Vec::with_capacity(num_enums);
-    for _i in 0..num_enums {
-        let enum_id = unsafe { *enum_filters_raw.get_unchecked(pos) } as usize;
-        pos += 1;
-        let num_ev_ids = unsafe { *enum_filters_raw.get_unchecked(pos) };
-        pos += 1;
-
-        let mut ev_ids = [false; EnumMax::MAX as usize];
-        for _j in 0..num_ev_ids {
-            unsafe {
-                *ev_ids.get_unchecked_mut(*enum_filters_raw.get_unchecked(pos) as usize) = true;
-            }
-            pos += 1;
-        }
-
-        push::push_wo_grow(&mut enum_filters, (enum_id, ev_ids));
-    }
-
-    enum_filters
-}
-
-fn read_i64_filters_param(i64_filters_raw: Vec<i64>) -> Vec<(usize, Option<i64>, Option<i64>)> {
-    // Unsafe gets are guaranteed since it is serialized in from JS interface
-
-    let number_of_fields = unsafe { *i64_filters_raw.get_unchecked(0) } as usize;
-
-    let mut pos = 1;
-    let mut filters = Vec::with_capacity(number_of_fields);
-    for _i in 0..number_of_fields {
-        let num_id = unsafe { *i64_filters_raw.get_unchecked(pos) } as usize;
-        pos += 1;
-
-        let has_gte = unsafe { *i64_filters_raw.get_unchecked(pos) } == 1;
-        pos += 1;
-        let gte = if has_gte {
-            let ret = Some(unsafe { *i64_filters_raw.get_unchecked(pos) });
-            pos += 1;
-            ret
-        } else {
-            None
-        };
-
-        let has_lte = unsafe { *i64_filters_raw.get_unchecked(pos) } == 1;
-        pos += 1;
-        let lte = if has_lte {
-            let ret = Some(unsafe { *i64_filters_raw.get_unchecked(pos) });
-            pos += 1;
-            ret
-        } else {
-            None
-        };
-
-        push::push_wo_grow(&mut filters, (num_id, gte, lte));
-    }
-
-    filters
-}
-
 #[allow(dead_code)]
 #[wasm_bindgen]
-pub async fn get_query(
-    searcher: *mut Searcher,
-    query: String,
-    enum_filters_raw: Vec<u32>,
-    i64_filters_raw: Vec<i64>,
-    number_sort: Option<usize>,
-    reverse_sort: bool,
-) -> Result<query::Query, JsValue> {
+pub async fn get_query(searcher: *mut Searcher, params_raw: JsValue) -> Result<query::Query, JsValue> {
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
     #[cfg(feature = "perf")]
@@ -331,12 +255,112 @@ pub async fn get_query(
     #[cfg(feature = "perf")]
     let start = performance.now();
 
-    let enum_filters = read_enum_filters_param(enum_filters_raw);
-    let u64_filters = read_i64_filters_param(i64_filters_raw);
+    // --------------------------------------------------------------------------
+    // Parameter parsing
+
+    let params_raw = js_sys::Uint8Array::new(&params_raw).to_vec();
+
+    // -----------------------------------
+    // Query
+
+    let query_length = LittleEndian::read_u32(&params_raw) as usize;
+    let mut params_raw_pos = 4 + query_length;
+    let query_string = unsafe {
+        std::str::from_utf8_unchecked(params_raw.get_unchecked(4..params_raw_pos)).to_owned()
+    };
+
+    // -----------------------------------
+    // Enums
+
+    // Format:
+    // num enums (1 byte)
+    //   enum id (1 byte)
+    //   number of enum values for this enum (1 byte)
+    //   enum value's internal ids (times number of enum values) (1 byte each)
+    let num_enums = unsafe { *params_raw.get_unchecked(params_raw_pos) } as usize;
+    params_raw_pos += 1;
+
+    let mut enum_filters = Vec::with_capacity(num_enums);
+    for _i in 0..num_enums {
+        let enum_id = unsafe { *params_raw.get_unchecked(params_raw_pos) } as usize;
+        params_raw_pos += 1;
+        let num_ev_ids = unsafe { *params_raw.get_unchecked(params_raw_pos) };
+        params_raw_pos += 1;
+
+        let mut ev_ids = [false; EnumMax::MAX as usize];
+        for _j in 0..num_ev_ids {
+            unsafe {
+                *ev_ids.get_unchecked_mut(*params_raw.get_unchecked(params_raw_pos) as usize) = true;
+            }
+            params_raw_pos += 1;
+        }
+
+        push::push_wo_grow(&mut enum_filters, (enum_id, ev_ids));
+    }
+
+    // -----------------------------------
+    // I64 Min Max filters
+
+    // Format:
+    // num filters (1 byte)
+    //   i64 id (1 byte)
+    //   number of enum values for this enum (1 byte)
+    //   enum value's internal ids (times number of enum values) (1 byte each)
+
+    let num_i64_fields = unsafe { *params_raw.get_unchecked(params_raw_pos) } as usize;
+    params_raw_pos += 1;
+
+    let mut i64_filters = Vec::with_capacity(num_i64_fields);
+    for _i in 0..num_i64_fields {
+        let i64_id = unsafe { *params_raw.get_unchecked(params_raw_pos) } as usize;
+        params_raw_pos += 1;
+
+        let has_gte = unsafe { *params_raw.get_unchecked(params_raw_pos) } == 1;
+        params_raw_pos += 1;
+        let gte = if has_gte {
+            let ret = Some(LittleEndian::read_i64(
+                unsafe { params_raw.get_unchecked(params_raw_pos..) }
+            ));
+            params_raw_pos += 8;
+            ret
+        } else {
+            None
+        };
+
+        let has_lte = unsafe { *params_raw.get_unchecked(params_raw_pos) } == 1;
+        params_raw_pos += 1;
+        let lte = if has_lte {
+            let ret = Some(LittleEndian::read_i64(
+                unsafe { params_raw.get_unchecked(params_raw_pos..) }
+            ));
+            params_raw_pos += 8;
+            ret
+        } else {
+            None
+        };
+
+        push::push_wo_grow(&mut i64_filters, (i64_id, gte, lte));
+    }
+
+    // -----------------------------------
+    // Sort parameters
+    let has_sort = unsafe { *params_raw.get_unchecked(params_raw_pos) } == 1;
+    params_raw_pos += 1;
+    let number_sort = if has_sort {
+        let number_sort = Some(unsafe { *params_raw.get_unchecked(params_raw_pos) } as usize);
+        params_raw_pos += 1;
+        number_sort
+    } else {
+        None
+    };
+
+    let reverse_sort = unsafe { *params_raw.get_unchecked(params_raw_pos) } == 1;
+
+    // --------------------------------------------------------------------------
 
     let searcher_val = unsafe { &mut *searcher };
     let mut query_parts = query_parser::parse_query(
-        query,
+        query_string,
         &*searcher_val.tokenizer,
         &searcher_val.searcher_config.valid_fields,
         searcher_val.searcher_config.indexing_config.with_positions,
@@ -357,7 +381,7 @@ pub async fn get_query(
     web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
     let result_heap = searcher_val.process_and_rank(
-        &mut query_parts, &term_pls, enum_filters, u64_filters, number_sort, reverse_sort,
+        &mut query_parts, &term_pls, enum_filters, i64_filters, number_sort, reverse_sort,
     );
 
     #[cfg(feature = "perf")]
