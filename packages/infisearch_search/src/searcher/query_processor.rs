@@ -961,6 +961,28 @@ mod test {
     fn test_freetext_queries() {
         assert_eq!(
             search(
+                "",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
+                    .with("ipsum", "[[4,[2,4,6,8]],[0,[]]], null, [],   null")
+                    .get_rc_wrapped()
+            ),
+            to_pl_rc(""),
+        );
+
+        assert_eq!(
+            search(
+                " ",
+                TermPostingsListsBuilder::new()
+                    .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")
+                    .with("ipsum", "[[4,[2,4,6,8]],[0,[]]], null, [],   null")
+                    .get_rc_wrapped()
+            ),
+            to_pl_rc(""),
+        );
+
+        assert_eq!(
+            search(
                 "lorem ipsum",
                 TermPostingsListsBuilder::new()
                     .with("lorem", "[[0,[]],[4,[1,3,5,7]]], null, null, [[0,[]],[4,[1,3,5,7]]]")

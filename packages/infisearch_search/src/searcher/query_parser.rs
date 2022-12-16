@@ -751,6 +751,8 @@ pub mod test {
 
     #[test]
     fn free_text_test() {
+        assert_eq!(parse(""), vec![]);
+        assert_eq!(parse(" "), vec![]);
         assert_eq!(parse("lorem ipsum"), vec![get_lorem(), get_ipsum()]);
         assert_eq!(parse("lorem ipsum "), vec![get_lorem().no_expand(), get_ipsum().no_expand()]);
         assert_eq!(parse_with_sw_removal("for by lorem and"), vec![
