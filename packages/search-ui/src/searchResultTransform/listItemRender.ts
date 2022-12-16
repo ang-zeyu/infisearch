@@ -31,7 +31,7 @@ export const listItemRender: ListItemRender = (
   const fields = result.getKVFields('link', '_relative_fp', 'title', 'h1');
 
   const title = formatTitle(
-    fields.h1 || fields.title || ' ',
+    fields.h1 || fields.title || '',
     useBreadcrumb,
     fields._relative_fp,
   );
