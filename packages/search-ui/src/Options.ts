@@ -3,8 +3,6 @@ import { Result } from '@infisearch/search-lib/lib/results/Result';
 import { Query } from '@infisearch/search-lib';
 import { CreateElement } from '@infisearch/search-lib/lib/utils/dom';
 
-export type ArbitraryOptions = any;
-
 export enum UiMode {
   Auto = 'auto',
   Dropdown = 'dropdown',
@@ -102,5 +100,4 @@ export type ListItemRender = (
 export interface Options {
   searcherOptions?: SearcherOptions,
   uiOptions?: UiOptions,
-  otherOptions: ArbitraryOptions
 }
