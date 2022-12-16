@@ -38,6 +38,10 @@ struct DocIdsAndFileHash(
     Vec<String>,         // secondary files that were _add_files linked to
 );
 
+// Special hash to indicate a file does not exist
+// If it turns out a file organically has this hash, the worst case is that we re-index it.
+static ABSENT_HASH: u32 = 126487710;
+
 #[derive(Serialize, Deserialize)]
 pub struct IncrementalIndexInfo {
     pub use_content_hash: bool,
@@ -133,7 +137,7 @@ impl IncrementalIndexInfo {
 
                 old_output_conf
             } else {
-                info!("InfiSearch version changed. Running a full reindex.");
+                info!("Old output config invalid. Running a full reindex.");
                 return IncrementalIndexInfo::empty(use_content_hash);
             }
         } else {
@@ -268,6 +272,10 @@ impl IncrementalIndexInfo {
     }
 
     fn get_timestamp(path: &Path) -> u128 {
+        if !path.is_file() {
+            return ABSENT_HASH as u128;
+        }
+
         if let Ok(metadata) = std::fs::metadata(path) {
             if let Ok(modified) = metadata.modified() {
                 modified.duration_since(UNIX_EPOCH)
@@ -298,13 +306,22 @@ impl IncrementalIndexInfo {
         if use_content_hash {
             static ERR: &str = "Failed to read file for calculating content hash!";
 
-            let mut buf = std::fs::read(path).expect(ERR);
+            let mut buf = if path.is_file() {
+                std::fs::read(path).expect(ERR)
+            } else {
+                ABSENT_HASH.to_le_bytes().to_vec()
+            };
 
             for secondary_path in secondary_paths {
-                File::open(input_folder_path.join(secondary_path))
-                    .expect(ERR)
-                    .read_to_end(&mut buf)
-                    .expect(ERR);
+                let secondary_path = input_folder_path.join(secondary_path);
+                if secondary_path.is_file() {
+                    File::open(secondary_path)
+                        .expect(ERR)
+                        .read_to_end(&mut buf)
+                        .expect(ERR);
+                } else {
+                    buf.extend_from_slice(&ABSENT_HASH.to_le_bytes());
+                }
             }
 
             crc32fast::hash(&buf)

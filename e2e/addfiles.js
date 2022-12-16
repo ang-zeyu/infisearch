@@ -123,17 +123,17 @@ async function addFilesTest(with_positions, configFile) {
   await waitNoResults();
   
   runIncrementalIndex(configFile);
-  expectNumDeletedDocs(5); // false-positive, forced update (unable to get deleted linked file metadata)
+  expectNumDeletedDocs(4);
   
   
   // Delete the main document
   fs.rmSync(mainDocumentPath);
   
   runIncrementalIndex(configFile);
-  expectNumDeletedDocs(6); // deletion
+  expectNumDeletedDocs(5); // deletion
   
   runIncrementalIndex(configFile);
-  expectNumDeletedDocs(6); // stays the same
+  expectNumDeletedDocs(5); // stays the same
 }
 
 function cleanupAddFilesTests() {

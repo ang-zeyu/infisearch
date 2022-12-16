@@ -214,13 +214,16 @@ const testSuite = async (configFile, with_positions, with_enums) => {
 
       if (introductionMood === 'delightful') {
         replaceIntroductionMood('ecstatic');
+        expectNumDeletedDocs(0);
         runIncrementalIndex(configFile);
+        expectNumDeletedDocs(1);
         await reloadPage(lang);
       } else if (introductionMood === 'ecstatic') {
         // Empty strings are discarded
         // So this doc should be assigned the default enum value
         replaceIntroductionMood('');
         runIncrementalIndex(configFile);
+        expectNumDeletedDocs(2);
         await reloadPage(lang);
       }
     }
