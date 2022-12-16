@@ -47,10 +47,10 @@
     --infi-fs-input-fg: #e3e3e3;
     --infi-fs-input-bg: #212121;
     --infi-fs-input-border: 2px solid #2f3030;
-    --infi-fs-input-focus-border: 2px solid #404040;
+    --infi-fs-input-focus-border: 2px solid #375a7f;
     --infi-fs-input-focus-box-shadow: 0 1px 4px #363839;
     --infi-fs-header-bg: #292a2b;
-    --infi-fs-header-box-shadow: 0 1px 5px 1px #2f3030;
+    --infi-fs-header-box-shadow: 0 0 11px -6px #2f3f3f;
     --infi-fs-header-close-fg: #e3e3e3;
     --infi-fs-header-close-hover-fg: #f8fffe;
     --infi-tip-bg: #292a2b;

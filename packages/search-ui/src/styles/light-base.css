@@ -28,7 +28,7 @@
     --infi-load-more-hover-fg: #565656;
     --infi-load-more-hover-bg: #bce0fe;
     --infi-scrollbar-bg: #fff;
-    --infi-scrollbar-thumb-bg: #d9d9d9;
+    --infi-scrollbar-thumb-bg: #ccc;
     /* 
      Below 3 values from https://bootswatch.com/darkly/'s info-themed button.
     */
@@ -38,12 +38,12 @@
     --infi-fs-border: none;
     --infi-fs-box-shadow: 0 1px 5px #9c9c9c;
     --infi-fs-input-fg: #000;
-    --infi-fs-input-bg: #fdfdfd;
-    --infi-fs-input-border: 2px solid #e5e5e5;
-    --infi-fs-input-focus-border: 2px solid #d0d0d0;
+    --infi-fs-input-bg: #fff;
+    --infi-fs-input-border: 2px solid #e0e0e0;
+    --infi-fs-input-focus-border: 2px solid #d3d3d3;
     --infi-fs-input-focus-box-shadow: 0 0 11px -6px #b0b0b0;
-    --infi-fs-header-bg: #fdfdfd;
-    --infi-fs-header-box-shadow: 0 0 5px 3px #f0f0f0;
+    --infi-fs-header-bg: #fff;
+    --infi-fs-header-box-shadow: 0 0 5px 3px #eee;
     --infi-fs-header-close-fg: #7a7a7a;
     --infi-fs-header-close-hover-fg: #1a1a1a;
     --infi-tip-bg: #fff;
@@ -59,7 +59,7 @@
 }
 
 .infi-fs-input-clear::after {
-    background-image: url("data:image/svg+xml;utf8,<svg fill=\"%23cacaca\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 512\"><path d=\"M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z\"/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg fill=\"%23c0c0c0\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 512\"><path d=\"M310.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L160 210.7 54.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L114.7 256 9.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 301.3 265.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L205.3 256 310.6 150.6z\"/></svg>");
 }
 
 @media (hover: hover) {
