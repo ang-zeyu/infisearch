@@ -21,6 +21,25 @@ pub fn decode_var_int(slice: &[u8], pos: &mut usize) -> u32 {
     current_value
 }
 
+pub fn decode_var_int_u64(slice: &[u8], pos: &mut usize) -> u64 {
+    let mut current_value: u64 = 0;
+    let mut shift_amount: u8 = 0;
+
+    while *pos < slice.len() {
+        let current_byte = unsafe { *slice.get_unchecked(*pos) };
+        let mask_result = VALUE_MASK & current_byte;
+        current_value |= (mask_result as u64) << shift_amount;
+
+        *pos += 1;
+        if (CONTINUATION_MASK & current_byte) != 0 {
+            break;
+        }
+        shift_amount += 7;
+    }
+
+    current_value
+}
+
 #[cfg(test)]
 mod test {
     use pretty_assertions::assert_eq;

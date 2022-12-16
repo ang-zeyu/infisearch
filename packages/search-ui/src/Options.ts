@@ -18,6 +18,16 @@ export interface MultiSelectFilterBinding {
   defaultOptName: string,
 }
 
+export interface NumericFilterBinding {
+  fieldName: string,
+  displayName: string,
+  type: 'number' | 'datetime-local' | 'date',
+  gte?: number,
+  lte?: number,
+  gtePlaceholder?: string,
+  ltePlaceholder?: string,
+}
+
 export interface UiOptions {
   input: HTMLInputElement,
   inputDebounce?: number,
@@ -36,7 +46,9 @@ export interface UiOptions {
   target?: HTMLElement,
   tip: boolean,
   resultsPerPage?: number,
+  sortFields: { [fieldName: string]: { asc: string, desc: string } },
   multiSelectFilters: MultiSelectFilterBinding[],
+  numericFilters: NumericFilterBinding[],
   // This is specific to the default resultsRender implementation,
   // pulling it up as its a common option
   sourceFilesUrl?: string,

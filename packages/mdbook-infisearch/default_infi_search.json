@@ -2,7 +2,7 @@
   "fields_config": {
     "fields": {
       "partTitle": {
-        "storage": ["enum"]
+        "storage": [{ "type": "enum" }]
       }
     }
   },

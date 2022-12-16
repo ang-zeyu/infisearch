@@ -102,6 +102,7 @@ impl FieldsConfig {
 
         let mut num_scored_fields = 0;
         let mut num_enum_fields = 0;
+        let mut num_i64_fields = 0;
         for (field_name, field_config) in self.fields.iter() {
             if field_config.is_none() {
                 continue;
@@ -116,7 +117,7 @@ impl FieldsConfig {
                 name: field_name.to_owned(),
                 escaped_name: escape_json::escape(field_name).into_owned(),
                 id: 0,
-                enum_info: if field_config.storage.iter().any(|s| s == "enum") {
+                enum_info: if field_config.storage.iter().any(|s| matches!(s, StorageType::Enum)) {
                     let (enum_id, enum_values) = if let Some(incremental_output_config) = incremental_output_config {
                         let old_enum_info = incremental_output_config.field_infos
                             .iter()
@@ -140,7 +141,33 @@ impl FieldsConfig {
                 } else {
                     None
                 },
-                store_text: field_config.storage.iter().any(|s| s == "text"),
+                store_text: field_config.storage.iter().any(|s| matches!(s, StorageType::Text)),
+                i64_info: field_config.storage
+                    .iter()
+                    .find_map(|s| if let StorageType::I64(num_info) = s {
+                        let info = if let Some(incremental_output_config) = incremental_output_config {
+                            let old_num_info = incremental_output_config.field_infos
+                                .iter()
+                                .find_map(|fi| if fi.name.as_str() == field_name {
+                                    fi.i64_info.as_ref()
+                                } else {
+                                    None
+                                })
+                                .unwrap();
+                            old_num_info.clone()
+                        } else {
+                            I64Info {
+                                id: num_i64_fields,
+                                ..num_info.clone()
+                            }
+                        };
+
+                        num_i64_fields += 1;
+
+                        Some(info)
+                    } else {
+                        None
+                    }),
                 weight: field_config.weight,
                 k: field_config.k,
                 b: field_config.b,
@@ -173,6 +200,7 @@ impl FieldsConfig {
             field_infos_by_id,
             num_scored_fields,
             num_enum_fields,
+            num_i64_fields,
             num_docs_per_store: self.num_docs_per_store,
             num_stores_per_dir: self.num_stores_per_dir,
             field_output_folder_path,
@@ -199,14 +227,49 @@ fn get_default_b() -> f32 {
     0.75
 }
 
-fn get_default_storage() -> Vec<String> {
-    vec!["text".to_owned()]
+fn get_default_i64_parse() -> I64ParseStrategy {
+    I64ParseStrategy::Integer
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "lowercase", tag = "method")]
+pub enum I64ParseStrategy {
+    Integer,
+    Round,
+    Datetime {
+        datetime_fmt: String,
+        #[serde(default)]
+        timezone: Option<i32>,
+        #[serde(default)]
+        time: Option<u32>,
+    },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct I64Info {
+    #[serde(default)]
+    pub id: usize,
+    #[serde(default = "get_default_i64_parse")]
+    pub parse: I64ParseStrategy,
+    pub default: i64,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase", tag = "type")]
+pub enum StorageType {
+    Text,
+    Enum,
+    I64(I64Info),
+}
+
+fn get_default_storage() -> Vec<StorageType> {
+    vec![StorageType::Text]
 }
 
 #[derive(Deserialize)]
 pub struct FieldConfig {
     #[serde(default = "get_default_storage")]
-    pub storage: Vec<String>,
+    pub storage: Vec<StorageType>,
     #[serde(default = "get_default_weight")]
     pub weight: f32,
     #[serde(default = "get_default_k")]
@@ -225,6 +288,7 @@ pub struct FieldInfo {
     pub b: f32,
     pub enum_info: Option<EnumInfo>,
     pub store_text: bool,
+    pub i64_info: Option<I64Info>,
 }
 
 // Initialised json field configuration
@@ -236,6 +300,8 @@ pub struct FieldInfos {
     pub num_scored_fields: usize,
 
     pub num_enum_fields: usize,
+
+    pub num_i64_fields: usize,
 
     pub num_docs_per_store: u32,
 
@@ -255,6 +321,7 @@ pub struct FieldInfoOutput {
     pub b: f32,
     pub store_text: bool,
     pub enum_info: Option<EnumInfo>,
+    pub i64_info: Option<I64Info>,
 }
 
 impl FieldInfos {
@@ -267,6 +334,7 @@ impl FieldInfos {
                 enum_info: field_info.enum_info.clone(),
                 name: field_name.to_owned(),
                 store_text: field_info.store_text,
+                i64_info: field_info.i64_info.clone(),
                 weight: field_info.weight,
                 k: field_info.k, b: field_info.b,
             })

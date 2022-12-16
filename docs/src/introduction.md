@@ -4,7 +4,7 @@ InfiSearch is a *client-side* search solution made for static sites, including a
 
 ## Features
 
-- **Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, categorical filters and more...
+- **Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, facet filters and more...
 
 - **Speedy** 🏇: WebAssembly & WebWorker powered, enabling efficient, non-blocking query processing. Also includes persistent caching to minimize network requests, and a multi-threaded  CLI indexer powered by Rust.
 
@@ -14,19 +14,7 @@ InfiSearch is a *client-side* search solution made for static sites, including a
 
 - Support for **multiple file formats** (`.json,csv,pdf,html`) to satisfy more custom data requirements.
 
-## How it Works:
-
-1. The CLI indexer tool first generates:
-   - Binary index files
-   - JSON field stores (raw document texts)
-   - Supporting metadata (e.g. search dictionary)
-1. The search UI:
-   1. Figures out which index files are needed from the user query
-   1. Retrieves the index files from cache/memory/network requests
-   1. Obtains and ranks the result set
-   1. Finally, retrieves the field stores from cache/memory/network requests progressively to generate result previews
-
-## Search Features in Detail
+### Search Features in Detail
 
 #### Ranking Model
 
@@ -48,3 +36,17 @@ Most of the search library also operates on a WebWorker, so you can deliver the 
 #### Persistent Caching
 
 Persistent caching is achieved through use of the [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) API, which backs service workers and has excellent support in modern browsers.
+
+## How it Works:
+
+InfiSearch depends on a static, pre-built index that is a collection of various files.
+
+1. The CLI indexer tool first generates:
+   - Binary index chunk(s)
+   - JSON field store(s) containing raw document texts
+   - Supporting metadata, for example the search dictionary
+1. The search UI:
+   1. Figures out which index files are needed from the user query
+   1. Retrieves the index files from cache/memory/network requests
+   1. Obtains and ranks the result set
+   1. Finally, retrieves the field stores from cache/memory/network requests progressively to generate result previews

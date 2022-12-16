@@ -30,11 +30,23 @@
         "b": 0.75
       },
       "weatherField": {
-        "storage": ["enum"],
+        "storage": [{ "type": "enum" }],
         "weight": 0.0
       },
       "moodField": {
-        "storage": ["enum"]
+        "storage": [{ "type": "enum" }]
+      },
+      "price": {
+        "storage": [{ "type": "i64", "default": 1 }]
+      },
+      "dateposted": {
+        "storage": [
+          {
+            "type": "i64",
+            "default": 1,
+            "parse": { "method": "datetime", "datetime_fmt": "%Y %b %d %H:%M %z" }
+          }
+        ]
       }
     }
   },
@@ -88,6 +100,16 @@
           "[data-infisearch-mood]": {
             "attr_map": {
               "data-infisearch-mood": "moodField"
+            }
+          },
+          "[data-infisearch-price]": {
+            "attr_map": {
+              "data-infisearch-price": "price"
+            }
+          },
+          "[data-infisearch-dateposted]": {
+            "attr_map": {
+              "data-infisearch-dateposted": "dateposted"
             }
           }
         }

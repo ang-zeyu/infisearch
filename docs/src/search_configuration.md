@@ -114,17 +114,47 @@ Setup bindings under `uiOptions` like so:
 
 ```json
 multiSelectFilters: [
-    {
-        fieldName: 'partTitle',
-        displayName: 'Section',
-        defaultOptName: 'None'
-    },
+  {
+    fieldName: 'partTitle',
+    displayName: 'Section',
+    defaultOptName: 'None'
+  },
 ]
 ```
 
 The `fieldName` corresponds to the `name` of your [field](./indexer/fields.md) definition, while `displayName` controls the text to show to the user for the field.
 
 Some indexed documents may also not have an enum value, and are assigned an internal default enum value. The name of this enum value to show to searchers is specified by `defaultOptName`.
+
+#### Setting Up Numeric Filters and Sort Orders
+
+Indexed numeric [fields](./indexer/fields.md) can be mapped into minimum-maximum filters of `<input type="number|date|datetime-local" />`, or used to create custom sort orders.
+
+*Minimum-Maximum Filters*
+
+```ts
+numericFilters: [
+  {
+    fieldName: 'pageViewsField',
+    displayName: 'Number of Views',
+    type: 'number', // date, datetime-local is also supported
+    gtePlaceholder: 'Min',
+    ltePlaceholder: 'Max',
+  }
+]
+```
+
+*Sorting by Numbers, Dates*
+
+```ts
+sortFields: {
+  // Map of the name of your numeric field to UI options
+  price: {
+    asc: 'Price: Low to High',
+    desc: 'Price: High to Low',
+  },
+},
+```
 
 #### Manually Showing / Hiding the Fullscreen UI
 
@@ -176,7 +206,8 @@ infisearch.init({
 
         // ---------------------------------------------------------------
         // Caching Options
-        // Whether to cache **all** the texts storage=["text"] fields on initialisation
+        // Whether to cache **all** the texts storage=[{ "type": "text" }] fields on initialisation,
+        // to avoid making network requests when generating result previews.
         // See the chapter on Fields for more information.
         cacheAllFieldStores: undefined,
 

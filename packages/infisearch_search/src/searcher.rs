@@ -277,12 +277,52 @@ fn read_enum_filters_param(enum_filters_raw: Vec<u32>) -> Vec<(usize, [bool; Enu
     enum_filters
 }
 
+fn read_i64_filters_param(i64_filters_raw: Vec<i64>) -> Vec<(usize, Option<i64>, Option<i64>)> {
+    // Unsafe gets are guaranteed since it is serialized in from JS interface
+
+    let number_of_fields = unsafe { *i64_filters_raw.get_unchecked(0) } as usize;
+
+    let mut pos = 1;
+    let mut filters = Vec::with_capacity(number_of_fields);
+    for _i in 0..number_of_fields {
+        let num_id = unsafe { *i64_filters_raw.get_unchecked(pos) } as usize;
+        pos += 1;
+
+        let has_gte = unsafe { *i64_filters_raw.get_unchecked(pos) } == 1;
+        pos += 1;
+        let gte = if has_gte {
+            let ret = Some(unsafe { *i64_filters_raw.get_unchecked(pos) });
+            pos += 1;
+            ret
+        } else {
+            None
+        };
+
+        let has_lte = unsafe { *i64_filters_raw.get_unchecked(pos) } == 1;
+        pos += 1;
+        let lte = if has_lte {
+            let ret = Some(unsafe { *i64_filters_raw.get_unchecked(pos) });
+            pos += 1;
+            ret
+        } else {
+            None
+        };
+
+        push::push_wo_grow(&mut filters, (num_id, gte, lte));
+    }
+
+    filters
+}
+
 #[allow(dead_code)]
 #[wasm_bindgen]
 pub async fn get_query(
     searcher: *mut Searcher,
     query: String,
     enum_filters_raw: Vec<u32>,
+    i64_filters_raw: Vec<i64>,
+    number_sort: Option<usize>,
+    reverse_sort: bool,
 ) -> Result<query::Query, JsValue> {
     #[cfg(feature = "perf")]
     let window: web_sys::Window = js_sys::global().unchecked_into();
@@ -292,6 +332,7 @@ pub async fn get_query(
     let start = performance.now();
 
     let enum_filters = read_enum_filters_param(enum_filters_raw);
+    let u64_filters = read_i64_filters_param(i64_filters_raw);
 
     let searcher_val = unsafe { &mut *searcher };
     let mut query_parts = query_parser::parse_query(
@@ -315,7 +356,9 @@ pub async fn get_query(
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Population took {}", performance.now() - start).into());
 
-    let result_heap = searcher_val.process_and_rank(&mut query_parts, &term_pls, enum_filters);
+    let result_heap = searcher_val.process_and_rank(
+        &mut query_parts, &term_pls, enum_filters, u64_filters, number_sort, reverse_sort,
+    );
 
     #[cfg(feature = "perf")]
     web_sys::console::log_1(&format!("Process took {}", performance.now() - start).into());
@@ -363,9 +406,11 @@ pub mod test {
                 doc_length_factors: vec![1.0; num_docs * num_fields],
                 doc_length_factors_len: num_docs as u32,
                 doc_enum_vals: Vec::new(),
+                doc_i64_vals: Vec::new(),
                 num_docs: num_docs as u32,
                 num_fields,
                 num_enum_fields: 0,
+                num_i64_fields: 0,
             },
             searcher_config: SearcherConfig {
                 indexing_config: IndexingConfig {

@@ -61,7 +61,9 @@ export function prepareOptions(options: Options) {
   if (!('fsScrollLock' in uiOptions)) {
     uiOptions.fsScrollLock = true;
   }
+  uiOptions.sortFields = uiOptions.sortFields || {};
   uiOptions.multiSelectFilters = uiOptions.multiSelectFilters || [];
+  uiOptions.numericFilters = uiOptions.numericFilters || [];
 
   uiOptions.listItemRender = uiOptions.listItemRender || listItemRender;
   

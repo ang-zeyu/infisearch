@@ -15,6 +15,7 @@ lang_chinese = ["infisearch_lang_chinese"]
 perf = ["web-sys"]
 
 [dependencies]
+binary-heap-plus = "0.5.0"
 byteorder = "1"
 js-sys = "0.3.51"
 infisearch_common = { path = "../infisearch_common", features = [] }

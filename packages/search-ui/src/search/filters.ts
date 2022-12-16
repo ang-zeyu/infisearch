@@ -1,11 +1,11 @@
 import h from '@infisearch/search-lib/lib/utils/dom';
 
 import { InfiConfig } from '@infisearch/search-lib/lib/results/Config';
-import { Options } from '../Options';
+import { NumericFilterBinding, Options, UiOptions } from '../Options';
 import { IManager } from '../InputManager';
 import { unsetActiveDescendant } from '../utils/aria';
 
-const OPTION_ENTER_EV = 'infi-filter-opt-enter';
+const OPTION_ENTER_EV = 'infi-multi-opt-enter';
 
 let tieBreaker = 0;
 
@@ -17,32 +17,56 @@ export interface MultiSelectState {
   readonly _mrlIsEnumActive: boolean[],
 }
 
-function getMultiSelectStates(
-  opts: Options, cfg: InfiConfig,
-): MultiSelectState[] {
-  const multiSelectBindings = opts.uiOptions.multiSelectFilters;
-  const fieldInfos = cfg.fieldInfos;
-
-  return multiSelectBindings
-    .filter(({ fieldName }) => fieldInfos.find(({ name }) => fieldName === name))
-    .map(({ fieldName, displayName, defaultOptName }, idx) => {
-      const fieldInfo = fieldInfos.find(({ name }) => fieldName === name);
-      const enumValues = [defaultOptName, ...fieldInfo.enumInfo.enumValues];
-      const state = {
-        _mrlIdx: idx,
-        _mrlFieldName: fieldName,
-        _mrlDisplayName: displayName,
-        _mrlEnumNames: enumValues,
-        _mrlIsEnumActive: enumValues.map(() => true),
-      };
-
-      return state;
-    });
+export interface NumericFilterState {
+  readonly _mrlBinding: NumericFilterBinding,
+  _mrlGte?: number | bigint,
+  _mrlLte?: number | bigint,
 }
 
-function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
+export interface FilterSortStates {
+  _mrlMultiSelects: MultiSelectState[],
+  _mrlNumericFilters: NumericFilterState[],
+  _mrlSortChoice: string | null,  // null = default (relevance)
+  _mrlSortAscending: boolean,     // default = descending
+}
+
+function getFilterSortStates(
+  opts: Options, cfg: InfiConfig,
+): FilterSortStates {
+  const { multiSelectFilters, numericFilters } = opts.uiOptions;
+  const fieldInfos = cfg.fieldInfos;
+
+  return {
+    _mrlMultiSelects: multiSelectFilters
+      .filter(({ fieldName }) => fieldInfos.find(({ name }) => fieldName === name))
+      .map(({ fieldName, displayName, defaultOptName }, idx) => {
+        const fieldInfo = fieldInfos.find(({ name }) => fieldName === name);
+        const enumValues = [defaultOptName, ...fieldInfo.enumInfo.enumValues];
+        const state = {
+          _mrlIdx: idx,
+          _mrlFieldName: fieldName,
+          _mrlDisplayName: displayName,
+          _mrlEnumNames: enumValues,
+          _mrlIsEnumActive: enumValues.map(() => true),
+        };
+
+        return state;
+      }),
+    _mrlNumericFilters: numericFilters
+      .filter(({ fieldName }) => fieldInfos.find(({ name }) => fieldName === name))
+      .map((binding) => ({
+        _mrlBinding: binding,
+        _mrlGte: binding.gte,
+        _mrlLte: binding.lte,
+      })),
+    _mrlSortChoice: null,
+    _mrlSortAscending: false,
+  };
+}
+
+function renderMultiSelectFilter(iManager: IManager, state: MultiSelectState) {
   const headerIdTieBreaker = tieBreaker++;
-  const id = 'infi-filter-opts-' + headerIdTieBreaker;
+  const id = 'infi-multi-opts-' + headerIdTieBreaker;
 
   const filterOptions = h('div', {
     id,
@@ -52,18 +76,12 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
   });
 
   const filterHeader = h('div', {
-    class: 'infi-filter-header',
+    class: 'infi-multi-header',
     tabindex: '0',
     role: 'combobox',
     'aria-expanded': 'false',
     'aria-label': 'filter',
   }, state._mrlDisplayName);
-
-  const container = h('div',
-    { class: 'infi-filter' },
-    filterHeader,
-    filterOptions,
-  );
 
   function visualFocusEl(el: Element, focusedEl: HTMLElement) {
     if (focusedEl) {
@@ -101,11 +119,11 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
       checked: 'true',
       role: 'option',
       'aria-selected': 'true',
-      id: `infi-filter-opt-${headerIdTieBreaker}-${idx}`,
+      id: `infi-multi-opt-${headerIdTieBreaker}-${idx}`,
     }) as HTMLInputElement;
   
     const opt = h('div',
-      { class: 'infi-filter-opt' },
+      { class: 'infi-multi' },
       h('label', { class: 'infi-checkbox-label' }, input, enumName),
     );
 
@@ -221,24 +239,141 @@ function renderFilterHeader(iManager: IManager, state: MultiSelectState) {
     }
   };
 
-  return container;
+  return h('div', {}, filterHeader, filterOptions);
+}
+
+function renderNumericFilter(iManager: IManager, state: NumericFilterState) {
+  const { type, displayName, gtePlaceholder, ltePlaceholder } = state._mrlBinding;
+
+  const onChange = (isGte: boolean) => (ev: Event) => {
+    const rawValue = (ev.target as HTMLInputElement).value;
+    let value: number | bigint;
+    try {
+      const intPart = rawValue.split('.')[0];
+      value = type === 'number'
+
+        // Round down
+        // BigInt('') = 0n, so, set it to undefined
+        ? (intPart.trim() ? BigInt(intPart) : undefined)
+
+        // Date constructor will not throw errors (ends up as NaN), but BigInt will.
+        : (BigInt(+new Date(rawValue)) / BigInt(1000));
+    } catch (ex) {
+      // Parsing error, set value = undefined
+    }
+
+    if (isGte) {
+      state._mrlGte = value;
+    } else {
+      state._mrlLte = value;
+    }
+
+    const query = iManager._mrlInputEl.value;
+    if (query) iManager._mrlQueueNewQuery(query);
+  };
+
+  const id = `infi-minmax-${tieBreaker++}`;
+  const minInput = h('input', {
+    class: 'infi-minmax',
+    placeholder: gtePlaceholder || '',
+    type,
+    'aria-labelledby': id,
+  });
+  minInput.onchange = onChange(true);
+  const maxInput = h('input', {
+    class: 'infi-minmax',
+    placeholder: ltePlaceholder || '',
+    type,
+    'aria-labelledby': id,
+  });
+  maxInput.onchange = onChange(false);
+
+  const el = h(
+    'div',
+    { class: 'infi-min-max' },
+    h('label', { class: 'infi-filter-header', id }, displayName),
+    minInput,
+    ' - ',
+    maxInput,
+  );
+
+  return el;
+}
+
+function sortOptionRender(fieldName: string, isAscending: number, label: string): HTMLElement {
+  return h('option', { value: `${fieldName}<->${isAscending}` }, label);
+}
+
+function sortFieldsRender(iManager: IManager, opts: UiOptions, states: FilterSortStates) {
+  const { sortFields } = opts;
+  const sortFieldsEntries = Object.entries(sortFields);
+  if (!sortFieldsEntries.length) {
+    return '';
+  }
+
+  const sortOptionEls = [
+    h('option', { value: 'relevance', selected: 'true' }, 'Relevance'),
+  ];
+  sortFieldsEntries.forEach(([fieldName, { asc, desc }]) => {
+    if (asc) {
+      sortOptionEls.push(sortOptionRender(fieldName, 1, asc));
+    }
+
+    if (desc) {
+      sortOptionEls.push(sortOptionRender(fieldName, 0, desc));
+    }
+  });
+
+  const id = `infi-sort-${tieBreaker++}`;
+  const selectEl = h('select', {
+    class: 'infi-sort',
+    id,
+  }, ...sortOptionEls);
+  selectEl.onchange = (ev: any) => {
+    const [fieldName, isAscending] = ev.target.value.split('<->');
+    states._mrlSortChoice = fieldName;
+    states._mrlSortAscending = !!Number(isAscending);
+
+    const query = iManager._mrlInputEl.value;
+    if (query) iManager._mrlQueueNewQuery(query);
+  };
+
+  return h('div', {},
+    h('label', { class: 'infi-filter-header', for: id }, 'Sort by'),
+    selectEl,
+  );
 }
 
 export function filtersRender(
   opts: Options,
   cfg: InfiConfig,
   iManager: IManager,
-): [HTMLElement, MultiSelectState[], (setValue?: boolean) => boolean] {
-  const states = getMultiSelectStates(opts, cfg);
+): [HTMLElement, FilterSortStates, (setValue?: boolean) => boolean] {
+  const states = getFilterSortStates(opts, cfg);
   
+  const sortFields = sortFieldsRender(iManager, opts.uiOptions, states);
+  const numericFilters = states._mrlNumericFilters.map((state) => renderNumericFilter(iManager, state));
+  const multiSelectFilters = states._mrlMultiSelects.map((state) => renderMultiSelectFilter(iManager, state));
+
+  const hasAnyControls = sortFields || numericFilters.length || multiSelectFilters.length;
+
   const filters = h('div', {},
-    ...states.map((state) => renderFilterHeader(iManager, state)),
+    sortFields,
+    (sortFields && (numericFilters.length || multiSelectFilters.length))
+      ? h('hr', { class: 'infi-sep' })
+      : '',
+    ...numericFilters,
+    (numericFilters.length && multiSelectFilters.length)
+      ? h('hr', { class: 'infi-sep' })
+      : '',
+    ...multiSelectFilters,
+    hasAnyControls ? h('hr', { class: 'infi-sep' }) : '',
   );
 
   const filtersContainer = h('div', { class: 'infi-filters' });
 
   let shown = false;
-  const getOrSetFiltersShown = states.length ? (setValue?: boolean) => {
+  const getOrSetFiltersShown = hasAnyControls ? (setValue?: boolean) => {
     if (setValue === undefined || shown === setValue) {
       return shown;
     }

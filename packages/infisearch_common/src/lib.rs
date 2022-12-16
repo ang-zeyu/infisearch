@@ -54,8 +54,9 @@ impl MetadataReader {
         doc_id_counter: &mut u32,
         average_lengths: &mut Vec<f64>,
         num_enum_fields: &mut usize,
+        num_i64_fields: &mut usize,
         num_fields: usize,
-    ) -> Vec<EnumMax> {
+    ) -> (Vec<EnumMax>, Vec<i64>) {
         self.doc_infos_pos = self.doc_infos_offset;
 
         *num_docs = LittleEndian::read_u32(&self.buf[self.doc_infos_pos..]);
@@ -101,7 +102,37 @@ impl MetadataReader {
             }
         }
 
-        doc_enum_vals
+        let mut doc_infos_num_pos = doc_infos_enum_pos
+            + doc_infos_enum_bit_r_pos / 8
+            + if doc_infos_enum_bit_r_pos % 8 == 0 { 0 } else { 1 };
+
+        debug_assert!(doc_infos_num_pos <= self.buf.len());
+        *num_i64_fields = LittleEndian::read_u32(unsafe { self.buf.get_unchecked(doc_infos_num_pos..) }) as usize;
+        doc_infos_num_pos += 4;
+
+        let mut i64_min_vals: Vec<i64> = Vec::with_capacity(*num_i64_fields as usize);
+        for _i64_id in 0..*num_i64_fields {
+            debug_assert!(doc_infos_num_pos <= self.buf.len());
+            push::push_wo_grow(
+                &mut i64_min_vals,
+                LittleEndian::read_i64(unsafe { &self.buf.get_unchecked(doc_infos_num_pos..) }),
+            );
+            doc_infos_num_pos += 8;
+        }
+
+        let mut doc_i64_vals: Vec<i64> = Vec::with_capacity(*num_i64_fields * *doc_id_counter as usize);
+        for _doc_id in 0..*doc_id_counter {
+            for i64_id in 0..*num_i64_fields {
+                debug_assert!(doc_infos_num_pos <= self.buf.len());
+                let delta = varint::decode_var_int_u64(&self.buf, &mut doc_infos_num_pos);
+                let base = unsafe { *i64_min_vals.get_unchecked(i64_id) };
+                let value = base.wrapping_add(delta as i64);
+
+                push::push_wo_grow(&mut doc_i64_vals,value);
+            }
+        }
+
+        (doc_enum_vals, doc_i64_vals)
     }
 
     #[inline(always)]

@@ -26,7 +26,7 @@ searcher.setupPromise.then(() => {
 
 **Retrieving Enum Values**
 
-If you have an [enum field](./indexer/fields.md#field-storage-storagetext), you can retrieve all its possible values like such:
+If you have an [enum field](./indexer/fields.md#field-storage), you can retrieve all its possible values like such:
 
 ```ts
 const enumValues: string[] = await searcher.getEnumValues('weather');
@@ -66,19 +66,36 @@ interface Query {
 }
 ```
 
-### Filtering Enum Values
+### Filtering and Sorting
 
-Filter document results with [enum fields](./indexer/fields.md#field-storage-storagetext) by passing an additional parameter.
+Filter document results with [enum fields](./indexer/fields.md#field-storage) or [numeric fields](./indexer/fields.md#field-storage) by passing an additional parameter.
 
 ```ts
 const query: Query = await searcher.runQuery('weather', {
   enumFilters: {
+    // 'weather' is the enum field name
     weather: [
       null,    // Use null to include documents that have no enum values
       'sunny',
       'warm',
     ]
-  }
+  },
+  i64Filters: {
+    // 'price' is the numeric field name
+    price: {
+      gte?: number | bigint,
+      lte?: number | bigint,
+    }
+  },
+});
+```
+
+Sort document results using [numeric fields](./indexer/fields.md#field-storage) instead of using relevance. Results are still tie-broken by their relevance.
+
+```ts
+const query: Query = await searcher.runQuery('weather', {
+  sort: 'pageViews',     // where 'pageViews' is the name of the field
+  sortAscending: false,  // the default is to sort in descending order
 });
 ```
 

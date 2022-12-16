@@ -50,7 +50,7 @@ There are a few other options especially worth highlighting that can help reduce
 Presets modify only the following properties:
 
 - Search Configuration:  [`cacheAllFieldStores`](./search_configuration.md#search-functionality-options)
-- Indexing Configuration: [`num_docs_per_store`](./indexer/fields.md#field-storage-storagetext), [`pl_limit`](./indexer/misc.md#larger-collections), [`pl_cache_threshold`](./indexer/misc.md#larger-collections)
+- Indexing Configuration: [`num_docs_per_store`](./indexer/misc.md#larger-collections), [`pl_limit`](./indexer/misc.md#larger-collections), [`pl_cache_threshold`](./indexer/misc.md#larger-collections)
 
 Any of these values specified in the configuration file will override that of the preset's.
 

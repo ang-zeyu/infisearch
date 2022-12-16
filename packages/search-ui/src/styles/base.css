@@ -494,24 +494,79 @@ button.infi-filters.active::after {
     padding: 0 7px 14px 3px;
 }
 
-.infi-filter-header {
+.infi-filter-header,
+.infi-multi-header {
     display: flex;
     align-items: center;
     padding: 0 5px 1px 0;
     font-weight: 600;
     font-size: 1.01em;
-    cursor: pointer;
     user-select: none;
     margin: 0;
     color: var(--infi-header-fg);
 }
 
-.infi-filter-header:focus-visible {
+hr.infi-sep {
+    height: 1pt;
+    margin: 10px 0 5px;
+    background: var(--infi-key-bg);
+    border: none;
+    opacity: 0.4;
+}
+
+.infi-sep:last-child {
+    margin: 7px 0 6px 0;
+}
+
+.infi-sort,
+.infi-minmax {
+    padding: 1px 0;
+    margin: 1px 0;
+    color: var(--infi-header-fg);
+    background: var(--infi-checkbox-bg);
+    border: 1px solid var(--infi-checkbox-border);
+    border-radius: 3px;
+    box-shadow: var(--infi-filter-box-shadow);
+}
+
+.infi-sort:focus,
+.infi-minmax:focus {
+    background: var(--infi-checkbox-checked-bg);
+}
+
+.infi-sort {
+    padding: 2px 0;
+}
+
+.infi-minmax {
+    padding: 1px 3px;
+    width: 70px;
+    appearance: textfield;
+}
+
+.infi-minmax:focus {
+    outline: none;
+}
+
+.infi-minmax::-webkit-inner-spin-button,
+.infi-minmax::-webkit-outer-spin-button {
+    appearance: none;
+}
+
+.infi-minmax[type^="date"] {
+    width: 100px;
+}
+
+.infi-multi-header {
+    cursor: pointer;
+}
+
+.infi-multi-header:focus-visible {
     outline: 2px solid var(--infi-header-fg);
     color: var(--infi-header-fg);
 }
 
-.infi-filter-header::before {
+.infi-multi-header::before {
     content: '';
     display: inline-block;
     margin-right: 0.2em;
@@ -522,17 +577,17 @@ button.infi-filters.active::after {
     transform: rotateZ(-90deg);
 }
 
-.infi-filter-header.active::before {
+.infi-multi-header.active::before {
     transform: rotateZ(180deg);
 }
 
-.infi-filter-opt {
+.infi-multi {
     width: fit-content;
     padding: 3px 3px 3px 0.5em;
     user-select: none;
 }
 
-.infi-filter-opt:last-child {
+.infi-multi:last-child {
     margin: 0 0 2px 0;
 }
 
@@ -931,23 +986,32 @@ input[type="checkbox"].infi-checkbox:checked::before {
         padding-left: 9px;
     }
 
-    .infi-filter-header {
+    .infi-filter-header,
+    .infi-multi-header {
         padding: 2px 1px;
     }
 
-    .infi-filter-header:active,
-    .infi-filter-opt:active {
+    .infi-sort {
+        padding: 4px 1px;
+    }
+
+    .infi-minmax {
+        padding: 3px;
+    }
+
+    .infi-multi {
+        width: auto;
+        padding: 7px 5px 7px 0.5em;
+    }
+
+    .infi-multi-header:active,
+    .infi-multi:active {
         background-color: var(--infi-filter-header-active);
         -webkit-tap-highlight-color: transparent;
     }
 
-    .infi-filter:not(:first-child) .infi-filter-header {
+    .infi-filter:not(:first-child) .infi-multi-header {
         margin-top: 4px;
-    }
-
-    .infi-filter-opt {
-        width: auto;
-        padding: 7px 5px 7px 0.5em;
     }
 
     .infi-instructions {

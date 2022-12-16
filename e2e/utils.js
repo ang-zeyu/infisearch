@@ -125,6 +125,37 @@ async function assertMultiple(texts, count) {
   }
 }
 
+async function assertMultipleOrdered(texts) {
+  try {
+    await page.waitForSelector('#target-mode-el .infi-list-item', { timeout: 60000 });
+
+    const result = await page.evaluate(() => {
+      const queryResult = document.querySelectorAll('#target-mode-el .infi-list-item');
+      return {
+        texts: Array.from(queryResult).map((el) => el.textContent),
+        resultCount: queryResult.length,
+      };
+    });
+
+    expect(result.resultCount).toBe(texts.length);
+    texts.forEach((text, idx) => {
+      expect(
+        result.texts[idx].toLowerCase().includes(text.toLowerCase()),
+      ).toBe(true);
+    });
+  } catch (ex) {
+    const output = await page.evaluate(() => {
+      return {
+        html: document.getElementById('target-mode-el').innerHTML,
+        text: document.getElementById('target-mode-el').textContent,
+      };
+    });
+    console.error('assertMultipleOrdered failed, html in target:', output.html);
+    console.error('assertMultipleOrdered failed, text in target:', output.text);
+    throw ex;
+  }
+}
+
 function expectNumDeletedDocs(n) {
   const incrementalIndexInfo = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'output/_incremental_info.json'), 'utf-8'),
@@ -157,31 +188,31 @@ async function clickCheckbox(selector, active) {
 }
 
 async function selectFilters(enumsToValues, unspecifiedIsChecked = true) {
-  // Expand the filters
+  // Expand the filters if needed
   await setActiveClass('#target-mode-el button.infi-filters');
 
   const allHeaders = await page.evaluate(() => {
-    const options = document.querySelectorAll('#target-mode-el .infi-filter-header');
+    const options = document.querySelectorAll('#target-mode-el .infi-multi-header');
     return Array.from(options).map((el) => el.textContent);
   });
 
-  // Expand all headers
-  for (let headerIdx = 1; headerIdx <= allHeaders.length; headerIdx += 1) {
-    await setActiveClass(
-      `#target-mode-el .infi-filter:nth-child(${headerIdx}) .infi-filter-header`,
-    );
-  }
-
   // Click the options
-  for (let headerIdx = 1; headerIdx <= allHeaders.length; headerIdx += 1) {
-    const headerText = allHeaders[headerIdx - 1];
+  siblingSelector = '';
+  for (const headerText of allHeaders) {
+    siblingSelector += '+div';
+
+    // Expand the header if needed
+    await setActiveClass(
+      `#target-mode-el .infi-sep${siblingSelector} .infi-multi-header`,
+    );
+
     const specifiedValues = enumsToValues[headerText];
 
     const optionsContainer =
-      `#target-mode-el .infi-filter:nth-child(${headerIdx}) [role="listbox"]`;
+      `#target-mode-el .infi-sep${siblingSelector} [role="listbox"]`;
 
     const uiValues = await page.evaluate((optionsContainerSelector) => {
-      const options = document.querySelectorAll(optionsContainerSelector + ' .infi-filter-opt');
+      const options = document.querySelectorAll(optionsContainerSelector + ' .infi-multi');
       return Array.from(options).map((el) => el.textContent.trim());
     }, optionsContainer);
 
@@ -193,11 +224,46 @@ async function selectFilters(enumsToValues, unspecifiedIsChecked = true) {
 
       await clickCheckbox(
         optionsContainer
-        + ` .infi-filter-opt:nth-child(${optionIdx}) input[type="checkbox"]`,
+        + ` .infi-multi:nth-child(${optionIdx}) input[type="checkbox"]`,
         active,
       );
     }
   }
+}
+
+async function setNumericFilter(filterName, min, max) {
+  // Expand the filters if needed
+  await setActiveClass('#target-mode-el button.infi-filters');
+
+  const headerIdx = await page.evaluate((name) => {
+    const options = document.querySelectorAll('#target-mode-el .infi-min-max .infi-filter-header');
+    return Array.from(options).findIndex((el) => el.textContent === name);
+  }, filterName);
+
+  if (headerIdx === -1) {
+    throw new Error('Invalid filter name');
+  }
+
+  const minMaxSelector = '#target-mode-el .infi-sep' + '+.infi-min-max'.repeat(headerIdx + 1);
+  const minSelector = minMaxSelector + ' .infi-filter-header+.infi-minmax';
+  const maxSelector = minMaxSelector + ' .infi-minmax:last-child';
+
+  await page.evaluate((minSel, maxSel, minValue, maxValue) => {
+    const minInput = document.querySelector(minSel);
+    const maxInput = document.querySelector(maxSel);
+
+    minInput.value = minValue;
+    minInput.dispatchEvent(new KeyboardEvent('change'));
+    maxInput.value = maxValue;
+    maxInput.dispatchEvent(new KeyboardEvent('change'));
+  }, minSelector, maxSelector, min, max);
+}
+
+async function setSortOption(option) {
+  // Expand the filters if needed
+  await setActiveClass('#target-mode-el button.infi-filters');
+  await clearInput();
+  await page.select('#target-mode-el .infi-sort', option);
 }
 
 async function reloadPage(lang = 'ascii') {
@@ -245,9 +311,12 @@ module.exports = {
   waitNoResults,
   assertSingle,
   assertMultiple,
+  assertMultipleOrdered,
   expectNumDeletedDocs,
   reloadPage,
   runFullIndex,
   runIncrementalIndex,
   selectFilters,
+  setNumericFilter,
+  setSortOption,
 };

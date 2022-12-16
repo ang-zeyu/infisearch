@@ -78,8 +78,14 @@ Another example use case might be to redirect to another domain using the [`link
 
 > ⚠️ This section is mostly for reference, use the preconfigured [scaling presets](../larger_collections.md) if possible.
 
+**Field Configuration**
+
 ```json
 {
+  "fields_config": {
+    "cache_all_field_stores": true,
+    "num_docs_per_store": 100000000
+  },
   "indexing_config": {
     "pl_limit": 4294967295,
     "pl_cache_threshold": 0,
@@ -88,6 +94,17 @@ Another example use case might be to redirect to another domain using the [`link
 }
 ```
 
+#### Field Store Caching: **`cache_all_field_stores`**
+
+This is the same option as the one under [search functionality options](../search_configuration.md#search-functionality-options).
+If both are specified, the value specified in the `infisearch.init` takes priority.
+
+All fields specified with `storage=[{ "type": "text" }]` are cached up front on initialisation when this is enabled.
+
+#### Field Store Granularity: `num_docs_per_store`
+
+The `num_docs_per_store` parameter controls how many documents to store in one JSON file. Batching multiple files together if the fields stored are small can lead to less files and better browser caching.
+
 #### Index Shard Size: **`pl_limit`**
 
 This is the main threshold parameter (in bytes) at which to "cut" index (**pl** meaning [postings list](https://en.wikipedia.org/wiki/Inverted_index)) files.
@@ -95,8 +112,6 @@ This is the main threshold parameter (in bytes) at which to "cut" index (**pl** 
 Increasing this value produces less but bigger files (which may take longer to retrieve), and vice versa.
 
 Increasing the value may also be useful for caching when used in conjunction with `pl_cache_threshold` below, since fewer index files will be produced.
-
-<br>
 
 #### Index Caching: **`pl_cache_threshold`**
 

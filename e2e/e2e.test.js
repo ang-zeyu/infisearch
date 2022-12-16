@@ -13,6 +13,9 @@ const {
   runFullIndex,
   runIncrementalIndex,
   selectFilters,
+  setNumericFilter,
+  setSortOption,
+  assertMultipleOrdered,
 } = require('./utils');
 
 jest.setTimeout(3000000);
@@ -22,20 +25,29 @@ beforeAll(async () => {
   await reloadPage();
 });
 
+const GETTING_STARTED_TITLE = 'Getting Started - Morsels Documentation';
+const GETTING_STARTED_MDBOOK_TITLE = 'Mdbook - Morsels Documentation';
+const GETTING_STARTED_OTHERS_TITLE = 'Others - Morsels Documentation';
+const INDEXER_CONFIG_PAGE_TITLE = 'Indexing Configuration - Morsels Documentation';
+const DEVELOPING_PAGE_TITLE = 'Developing - Morsels Documentation';
 
 function replaceIntroductionMood(mood) {
-  const introductionHTML = fs.readFileSync(
-    path.join(__dirname, './input/introduction.html'), { encoding: 'utf-8' },
-  );
+  const fp = path.join(__dirname, './input/introduction.html');
+  const inputHTML = fs.readFileSync(fp, { encoding: 'utf-8' });
   const moodMatcher = new RegExp('data-infisearch-mood="[a-z]*"');
-  const replacedHTML = introductionHTML.replace(moodMatcher, `data-infisearch-mood="${mood}"`);
-  fs.writeFileSync(
-    path.join(__dirname, 'input/introduction.html'), replacedHTML,
-  );
+  const replacedHTML = inputHTML.replace(moodMatcher, `data-infisearch-mood="${mood}"`);
+  fs.writeFileSync(fp, replacedHTML);
 }
 
+function replaceGettingStartedOthersDate(dateString) {
+  const fp = path.join(__dirname, './input/getting_started_others.html');
+  const inputHTML = fs.readFileSync(fp, { encoding: 'utf-8' });
+  const dateMatcher = new RegExp('data-infisearch-dateposted=".*?"');
+  const replacedHTML = inputHTML.replace(dateMatcher, `data-infisearch-dateposted="${dateString}"`);
+  fs.writeFileSync(fp, replacedHTML);
+}
 
-const testSuite = async (configFile, with_positions, with_enums) => {
+const testSuite = async (configFile, with_positions, with_filters) => {
   runFullIndex(configFile);
 
   const lang = JSON.parse(
@@ -101,8 +113,9 @@ const testSuite = async (configFile, with_positions, with_enums) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
-  // Multi-select tests
-  if (with_enums) {
+  if (with_filters) {
+    // ------------------------------------------------------
+    // Multi-select tests
     /*
      enumtestvalidationstringone - sunny delightful
      enumtestvalidationstringtwo - gloomy sad
@@ -122,7 +135,7 @@ const testSuite = async (configFile, with_positions, with_enums) => {
 
       await selectFilters({ Weather: ['gloomy'] });
       await typeText('~returnalldocs');
-      await assertSingle('Other Use Cases');
+      await assertSingle(GETTING_STARTED_OTHERS_TITLE);
   
       await selectFilters({ Weather: ['sunny'] });
       await typeText('enumteststring ');
@@ -227,6 +240,113 @@ const testSuite = async (configFile, with_positions, with_enums) => {
         await reloadPage(lang);
       }
     }
+    // ------------------------------------------------------
+    // Numeric filter tests
+
+    await reloadPage(lang);
+
+    await setNumericFilter('Price', 200, 100);
+    await typeText('~returnalldocs');
+    await waitNoResults();
+
+    await setNumericFilter('Price', -100, -100);
+    await typeText('~returnalldocs');
+    await assertSingle(GETTING_STARTED_TITLE);
+
+    await setNumericFilter('Price', -100, 0);
+    await typeText('~returnalldocs');
+    await assertSingle(GETTING_STARTED_TITLE);
+
+    await setNumericFilter('Price', 0, 0);
+    await typeText('~returnalldocs');
+    await waitNoResults();
+
+    await setNumericFilter('Price', 100, 100);
+    await typeText('~returnalldocs');
+    await assertSingle(GETTING_STARTED_MDBOOK_TITLE);
+
+    await setNumericFilter('Price', 100, 199);
+    await typeText('~returnalldocs');
+    await assertSingle(GETTING_STARTED_MDBOOK_TITLE);
+
+    await setNumericFilter('Price', 100, 200);
+    await typeText('~returnalldocs');
+    await assertMultiple([GETTING_STARTED_MDBOOK_TITLE, GETTING_STARTED_OTHERS_TITLE], 2);
+
+    await setNumericFilter('Price', 100, '');
+    await typeText('~returnalldocs');
+    await assertMultiple([GETTING_STARTED_MDBOOK_TITLE, GETTING_STARTED_OTHERS_TITLE], 2);
+
+    await setNumericFilter('Price', 200, 200);
+    await typeText('~returnalldocs');
+    await assertSingle(GETTING_STARTED_OTHERS_TITLE);
+
+    await setNumericFilter('Price', 200, 201);
+    await typeText('~returnalldocs');
+    await assertSingle(GETTING_STARTED_OTHERS_TITLE);
+
+    await setNumericFilter('Price', '', '');
+
+    // Negative UNIX timestamp test
+    await setNumericFilter('Date Posted', '1950-12-11T00:00', '1950-12-12T11:59');
+    await typeText('~returnalldocs');
+    await assertSingle(DEVELOPING_PAGE_TITLE);
+
+    await setNumericFilter('Date Posted', '2022-12-11T00:00', '2022-12-12T11:59');
+    await typeText('~returnalldocs');
+    await assertSingle(GETTING_STARTED_OTHERS_TITLE);
+
+    await setNumericFilter('Date Posted', '2022-12-11T00:00', '2022-12-15T23:59');
+    await typeText('~returnalldocs');
+    await assertMultiple([INDEXER_CONFIG_PAGE_TITLE, GETTING_STARTED_TITLE, GETTING_STARTED_OTHERS_TITLE], 3);
+
+    replaceGettingStartedOthersDate('2022 Dec 13 12:08 +0000');
+    runIncrementalIndex(configFile);
+    expectNumDeletedDocs(3);
+    await reloadPage(lang);
+
+    // Negative UNIX timestamp test
+    await setNumericFilter('Date Posted', '1950-12-11T00:00', '1950-12-12T11:59');
+    await typeText('~returnalldocs');
+    await assertSingle(DEVELOPING_PAGE_TITLE);
+
+    await setNumericFilter('Date Posted', '2022-12-11T00:00', '2022-12-12T11:59');
+    await typeText('~returnalldocs');
+    await waitNoResults();
+
+    await setNumericFilter('Date Posted', '2022-12-11T00:00', '2022-12-15T23:59');
+    await typeText('~returnalldocs');
+    await assertMultiple([INDEXER_CONFIG_PAGE_TITLE, GETTING_STARTED_TITLE, GETTING_STARTED_OTHERS_TITLE], 3);
+
+    // ------------------------------------------------------
+    // Sort option tests
+
+    // <->0 means high (latest) to low (oldest)
+    await setSortOption('dateposted<->0');
+    await typeText('~returnalldocs');
+    await assertMultipleOrdered([
+      INDEXER_CONFIG_PAGE_TITLE, GETTING_STARTED_TITLE, GETTING_STARTED_OTHERS_TITLE,
+    ]);
+
+    // <->1 means low (oldest) to high (latest)
+    await setSortOption('dateposted<->1');
+    await typeText('~returnalldocs');
+    await assertMultipleOrdered([
+      GETTING_STARTED_OTHERS_TITLE, GETTING_STARTED_TITLE, INDEXER_CONFIG_PAGE_TITLE,
+    ]);
+
+    await reloadPage(lang);
+    await setNumericFilter('Price', 100, 200);
+    await typeText('~returnalldocs');
+    await assertMultiple([GETTING_STARTED_MDBOOK_TITLE, GETTING_STARTED_OTHERS_TITLE], 2);
+
+    await setSortOption('price<->0');
+    await typeText('~returnalldocs');
+    await assertMultipleOrdered([GETTING_STARTED_OTHERS_TITLE, GETTING_STARTED_MDBOOK_TITLE]);
+
+    await setSortOption('price<->1');
+    await typeText('~returnalldocs');
+    await assertMultipleOrdered([GETTING_STARTED_MDBOOK_TITLE, GETTING_STARTED_OTHERS_TITLE]);
 
     runFullIndex(configFile);
     await reloadPage(lang);
@@ -491,6 +611,7 @@ const cleanup = () => {
   cleanupAddFilesTests();
 
   replaceIntroductionMood('delightful');
+  replaceGettingStartedOthersDate('2022 Dec 11 12:09 +0000');
 };
 
 function readOutputConfig() {

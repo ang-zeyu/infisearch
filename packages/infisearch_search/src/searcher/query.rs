@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
-use std::collections::BinaryHeap;
 
+use binary_heap_plus::BinaryHeap;
 use infisearch_common::utils::push;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -13,37 +13,12 @@ pub struct DocResult {
     pub score: f32,
 }
 
-impl Eq for DocResult {}
-
-impl PartialEq for DocResult {
-    fn eq(&self, other: &Self) -> bool {
-        self.doc_id == other.doc_id
-    }
-}
-
-impl Ord for DocResult {
-    fn cmp(&self, other: &Self) -> Ordering {
-        if self.score < other.score {
-            Ordering::Less
-        } else if self.score > other.score {
-            Ordering::Greater
-        } else {
-            Ordering::Equal
-        }
-    }
-}
-
-impl PartialOrd for DocResult {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
+pub type DocResultComparator = dyn Fn(&DocResult, &DocResult) -> Ordering;
 
 #[wasm_bindgen]
 pub struct Query {
     query_parts: Vec<QueryPart>,
-    result_heap: BinaryHeap<DocResult>,
+    result_heap: BinaryHeap<DocResult, Box<DocResultComparator>>,
     results_retrieved: u32,
     pub results_total: usize,
     result_limit: Option<u32>,
@@ -63,10 +38,13 @@ impl Query {
     /// enum value for enum_id=1
     /// ...
     /// doc id 2
-    pub fn get_next_n(&mut self, n: usize) -> Vec<u32> {
+    pub fn get_next_n(&mut self, n: usize) -> Vec<u8> {
         let doc_infos = unsafe { &*self.doc_infos };
 
-        let mut raw: Vec<u32> = Vec::with_capacity(n * (1 + doc_infos.num_enum_fields));
+        let mut raw: Vec<u8> = Vec::with_capacity(n * (
+            4 + doc_infos.num_enum_fields + (8 * doc_infos.num_i64_fields)
+        ));
+
         let mut docs_added = 0;
 
         while !self.result_heap.is_empty()
@@ -74,11 +52,22 @@ impl Query {
             && (self.result_limit.is_none() || self.results_retrieved < unsafe { self.result_limit.unwrap_unchecked() })
         {
             let doc_id = unsafe { self.result_heap.pop().unwrap_unchecked().doc_id };
-            push::push_wo_grow(&mut raw, doc_id);
+
+            push::extend_wo_grow(&mut raw, &doc_id.to_le_bytes());
+
+            let doc_id = doc_id as usize;
+
             for enum_id in 0..doc_infos.num_enum_fields {
                 push::push_wo_grow(
                     &mut raw,
-                    doc_infos.get_enum_val(doc_id as usize, enum_id) as u32,
+                    doc_infos.get_enum_val(doc_id, enum_id),
+                );
+            }
+
+            for num_id in 0..doc_infos.num_i64_fields {
+                push::extend_wo_grow(
+                    &mut raw,
+                    &doc_infos.get_num_val(doc_id, num_id).to_le_bytes(),
                 );
             }
 
@@ -98,7 +87,7 @@ impl Searcher {
     pub fn create_query(
         &self,
         query_parts: Vec<QueryPart>,
-        result_heap: BinaryHeap<DocResult>,
+        result_heap: BinaryHeap<DocResult, Box<DocResultComparator>>,
         result_limit: Option<u32>,
     ) -> Query {
         let results_total = result_heap.len();

@@ -3,13 +3,14 @@ use std::io::Write;
 use std::path::{PathBuf, Path};
 use std::sync::Arc;
 
+use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone, FixedOffset, NaiveDateTime};
 use log::warn;
 use path_absolutize::Absolutize;
 use rustc_hash::FxHashMap;
 
 use infisearch_common::tokenize::IndexerTokenizer;
 
-use crate::field_info::{ADD_FILES_FIELD, FieldInfo, FieldInfos, EnumKind, EnumInfo};
+use crate::field_info::{ADD_FILES_FIELD, FieldInfo, FieldInfos, EnumKind, EnumInfo, I64Info, I64ParseStrategy};
 use crate::loader::LoaderBoxed;
 use crate::i_debug;
 use crate::utils::escape_json;
@@ -44,6 +45,7 @@ pub struct TermDoc {
 pub struct WorkerMinerDocInfo {
     pub doc_id: u32,
     pub doc_enums: Vec<EnumKind>,
+    pub doc_nums: Vec<Option<i64>>,
     pub field_lengths: Vec<u32>,
     pub field_texts: Vec<u8>,
 }
@@ -128,6 +130,7 @@ lazy_static! {
         id: 0,
         enum_info: None,
         store_text: false,
+        i64_info: None,
         weight: 0.0, k: 0.0, b: 0.0
     };
 }
@@ -199,6 +202,7 @@ impl WorkerMiner {
         is_first_stored_field: &mut bool,
         field_store_buffered_writer: &mut Vec<u8>,
         doc_enums: &mut Vec<EnumKind>,
+        doc_nums: &mut Vec<Option<i64>>,
         field_lengths: &mut Vec<u32>,
         doc_id: u32,
         num_scored_fields: usize,
@@ -262,6 +266,7 @@ impl WorkerMiner {
                         is_first_stored_field,
                         field_store_buffered_writer,
                         doc_enums,
+                        doc_nums,
                         field_lengths,
                         doc_id,
                         num_scored_fields,
@@ -282,6 +287,7 @@ impl WorkerMiner {
         is_first_stored_field: &mut bool,
         field_store_buffered_writer: &mut Vec<u8>,
         doc_enums: &mut Vec<EnumKind>,
+        doc_nums: &mut Vec<Option<i64>>,
         field_lengths: &mut Vec<u32>,
         doc_id: u32,
         num_scored_fields: usize,
@@ -295,6 +301,7 @@ impl WorkerMiner {
                     is_first_stored_field,
                     field_store_buffered_writer,
                     doc_enums,
+                    doc_nums,
                     field_lengths,
                     doc_id,
                     num_scored_fields,
@@ -324,11 +331,48 @@ impl WorkerMiner {
             // ----------------------------------------------
 
             // ----------------------------------------------
-            // Enums
+            // Enums and Numbers
             if let Some(EnumInfo { enum_id, enum_values: _ }) = &field_info.enum_info {
                 let existing = unsafe { doc_enums.get_unchecked_mut(*enum_id) };
                 if existing.is_empty() {
                     *existing = field_text.clone();
+                }
+            }
+
+            if let Some(I64Info { id, parse, default: _ }) = &field_info.i64_info {
+                let existing = unsafe { doc_nums.get_unchecked_mut(*id) };
+                if existing.is_none() {
+                    *existing = Some(match parse {
+                        I64ParseStrategy::Integer => {
+                            field_text.parse::<i64>().expect("Failed to parse i64")
+                        },
+                        I64ParseStrategy::Round => {
+                            field_text.parse::<f64>().expect("Failed to parse i64 as f64").round() as i64
+                        },
+                        I64ParseStrategy::Datetime { datetime_fmt: format, time, timezone } => {
+                            if let Some(timezone) = timezone {
+                                let naive_date_time = if let Some(time) = time {
+                                    NaiveDate::parse_from_str(&field_text, format)
+                                        .unwrap()
+                                        .and_time(
+                                            NaiveTime::from_num_seconds_from_midnight_opt(*time, 0)
+                                                .expect("Invalid default time provided")
+                                        )
+                                } else {
+                                    NaiveDateTime::parse_from_str(&field_text, format).unwrap()
+                                };
+
+                                FixedOffset::east_opt(*timezone)
+                                    .expect("Invalid default timezone provided")
+                                    .from_utc_datetime(&naive_date_time)
+                                    .timestamp()
+                            } else if let Some(_time) = time {
+                                panic!("Default time without timezone specified, a timezone is required to calculate the UNIX timestamp");
+                            } else {
+                                DateTime::parse_from_str(&field_text, format).unwrap().timestamp()
+                            }
+                        },
+                    });
                 }
             }
             // ----------------------------------------------
@@ -396,6 +440,7 @@ impl WorkerMiner {
 
         let num_scored_fields = self.field_infos.num_scored_fields;
         let mut doc_enums = vec![String::new(); self.field_infos.num_enum_fields];
+        let mut doc_nums = vec![None; self.field_infos.num_i64_fields];
         let mut field_lengths = vec![0; num_scored_fields];
         let mut field_store_buffered_writer = Vec::with_capacity(
             ((2 + field_texts.iter().fold(0, |acc, b| acc + 7 + b.field_text.len())) as f32 * 1.1) as usize,
@@ -408,6 +453,7 @@ impl WorkerMiner {
             &mut is_first_stored_field,
             &mut field_store_buffered_writer,
             &mut doc_enums,
+            &mut doc_nums,
             &mut field_lengths,
             doc_id,
             num_scored_fields,
@@ -424,6 +470,7 @@ impl WorkerMiner {
         self.doc_infos.push(WorkerMinerDocInfo {
             doc_id,
             doc_enums,
+            doc_nums,
             field_lengths,
             field_texts: field_store_buffered_writer,
         });

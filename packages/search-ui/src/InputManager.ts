@@ -1,6 +1,6 @@
 import { Query, Searcher } from '@infisearch/search-lib';
 import { Options } from './Options';
-import { MultiSelectState, filtersRender } from './search/multiSelectFilters';
+import { filtersRender, FilterSortStates } from './search/filters';
 import createTipButton from './search/tips';
 import loadQueryResults from './searchResultTransform';
 import { headerRender } from './utils/header';
@@ -32,7 +32,7 @@ export class IManager {
 
   private _mrlIsRunningAction = false;
 
-  private _mrlFiltersStates: MultiSelectState[] = [];
+  private _mrlFiltersStates: FilterSortStates;
 
   /**
    * Supporting elements
@@ -176,9 +176,11 @@ export class IManager {
     // const now = performance.now();
 
     // --------------------------------------------------------------
-    // Extract enum filters
+    // Extract filters
+    const filterStates = that._mrlFiltersStates;
+
     const enumFilters = Object.create(null);
-    that._mrlFiltersStates.forEach((state) => {
+    filterStates?._mrlMultiSelects.forEach((state) => {
       if (state._mrlIsEnumActive.every((a) => a)) {
         // If all boxes are ticked, don't even add the filter
         return;
@@ -192,12 +194,38 @@ export class IManager {
         ...state._mrlEnumNames.filter((_, idx) => idx > 0 && state._mrlIsEnumActive[idx]),
       );
     });
+
+    const i64Filters: {
+      [fieldName: string]: { gte?: number | bigint, lte?: number | bigint }
+    } = Object.create(null);
+    filterStates?._mrlNumericFilters.forEach((state) => {
+      const hasGte = state._mrlGte !== undefined;
+      const hasLte = state._mrlLte !== undefined;
+      if (!hasGte && !hasLte) {
+        // Don't even add the filter
+        return;
+      }
+
+      const filters: { gte?: number | bigint, lte?: number | bigint } = {};
+      i64Filters[state._mrlBinding.fieldName] = filters;
+      if (hasGte) filters.gte = state._mrlGte;
+      if (hasLte) filters.lte = state._mrlLte;
+    });
+
+    const sort = filterStates._mrlSortChoice;
+    const sortAscending = filterStates._mrlSortAscending;
+
     // --------------------------------------------------------------
 
     if (that._mrlCurrQuery) that._mrlCurrQuery.free();
 
     const searcher = that._mrlSearcher;
-    that._mrlCurrQuery = await searcher.runQuery(queryString, { enumFilters });
+    that._mrlCurrQuery = await searcher.runQuery(queryString, {
+      enumFilters,
+      i64Filters,
+      sort,
+      sortAscending,
+    });
 
     // console.log(`runQuery "${queryString}" took ${performance.now() - now} milliseconds`);
 

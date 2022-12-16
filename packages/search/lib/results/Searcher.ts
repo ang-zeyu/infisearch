@@ -4,6 +4,7 @@ import { Result } from './Result';
 import { QueryPart } from '../parser/queryParser';
 import PersistentCache from './Cache';
 import { getFieldUrl } from '../utils/FieldStore';
+import { QueryOpts } from './Searcher/QueryOpts';
 
 declare const INFISEARCH_VER;
 
@@ -29,6 +30,8 @@ class Searcher {
   readonly setupPromise: Promise<any>;
 
   private _mrlEnumFieldInfos: FieldInfo[];
+
+  private _mrlI64FieldInfos: FieldInfo[];
 
   private _mrlWorker: Worker;
 
@@ -170,6 +173,9 @@ class Searcher {
     this._mrlEnumFieldInfos = this.cfg.fieldInfos
       .filter((fi) => fi.enumInfo)
       .sort((a, b) => a.enumInfo.enumId - b.enumInfo.enumId);
+    this._mrlI64FieldInfos = this.cfg.fieldInfos
+      .filter((fi) => fi.i64Info)
+      .sort((a, b) => a.i64Info.id - b.i64Info.id);
   }
 
   async getEnumValues(enumFieldName: string): Promise<string[] | null> {
@@ -186,15 +192,14 @@ class Searcher {
 
   async runQuery(
     query: string,
-    opts: {
-      enumFilters: { [enumFieldName: string]: (string | null)[] },
-    } = {
-      enumFilters: {},
-    },
+    opts: QueryOpts = {},
   ): Promise<Query> {
     await this.setupPromise;
 
     opts.enumFilters = opts.enumFilters || {};
+    opts.i64Filters = opts.i64Filters || {};
+    opts.sort = opts.sort || null;
+    opts.sortAscending = opts.sortAscending || false;
 
     const queryId = this.id;
     this.id += 1;
@@ -245,19 +250,22 @@ class Searcher {
       const { nextResults }: {
         nextResults: ArrayBuffer,
       } = await queries[queryId].promise;
-      const docIdsAndEnums = new Uint32Array(nextResults);
+      const nextResultsView = new DataView(nextResults);
       
       const promises: Promise<Result>[] = [];
-      const groupSize = 1 + this._mrlEnumFieldInfos.length;
-      for (let i = 0; i < docIdsAndEnums.length; i += groupSize) {
+      const groupSize = 4
+        + this._mrlEnumFieldInfos.length
+        + (this._mrlI64FieldInfos.length * 8);
+      for (let byteOffset = 0; byteOffset < nextResults.byteLength; byteOffset += groupSize) {
         promises.push(Result._mrlPopulate(
-          i,
-          docIdsAndEnums,
+          byteOffset,
+          nextResultsView,
           termRegexes as RegExp[],
           this._mrlOptions.url,
           this._mrlCache,
           this.cfg,
           this._mrlEnumFieldInfos,
+          this._mrlI64FieldInfos,
         ));
       }
 

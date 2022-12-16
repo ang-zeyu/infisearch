@@ -48,6 +48,7 @@ pub struct DocInfos {
     pub all_block_doc_lengths: Vec<BlockDocLengths>, // store doc lengths from each block and sort later
     average_lengths: Vec<f64>,
     docs_enum_values: Vec<EnumMax>,
+    docs_i64_values: Vec<i64>,
     original_doc_id_counter: u32,
 }
 
@@ -64,6 +65,7 @@ impl DocInfos {
                 all_block_doc_lengths: Vec::new(),
                 average_lengths: vec![0.0; num_scored_fields],
                 docs_enum_values: Vec::new(),
+                docs_i64_values: Vec::new(),
                 original_doc_id_counter: 0,
             };
         }
@@ -72,9 +74,9 @@ impl DocInfos {
         let mut doc_id_counter = 0;
         // Capacity must be set
         let mut average_lengths: Vec<f64> = Vec::with_capacity(num_scored_fields);
-        let docs_enum_values = metadata_rdr.read_docinfo_inital_metadata(
+        let (docs_enum_values, docs_i64_values) = metadata_rdr.read_docinfo_inital_metadata(
             &mut 0, &mut doc_id_counter, &mut average_lengths,
-            &mut 0, num_scored_fields,
+            &mut 0, &mut 0, num_scored_fields,
         );
 
         let mut doc_lengths = Vec::with_capacity(doc_id_counter as usize);
@@ -83,6 +85,7 @@ impl DocInfos {
             let mut doc_info = WorkerMinerDocInfo {
                 doc_id,
                 doc_enums: Vec::new(),
+                doc_nums: Vec::new(),
                 field_lengths: Vec::with_capacity(num_scored_fields),
                 field_texts: Vec::new(),
             };
@@ -99,6 +102,7 @@ impl DocInfos {
             all_block_doc_lengths: Vec::new(),
             average_lengths,
             docs_enum_values,
+            docs_i64_values,
             original_doc_id_counter: doc_id_counter,
         }
     }
@@ -290,6 +294,72 @@ impl DocInfos {
             .collect()
     }
 
+    fn write_nums(&mut self, field_infos: &Arc<FieldInfos>, doc_info_writer: &mut Vec<u8>) {
+        let mut field_infos_i64: Vec<_> = field_infos.field_infos_by_id.iter()
+            .filter(|fi| fi.i64_info.is_some())
+            .collect();
+        field_infos_i64.sort_by_key(|fi| fi.i64_info.as_ref().unwrap().id);
+
+        doc_info_writer.write_all(&(field_infos.num_i64_fields as u32).to_le_bytes()).unwrap();
+
+        // -----------------------------------------------------
+        // Find the minimum
+        let mut minimums = vec![i64::MAX; field_infos.num_i64_fields];
+
+        // Old values
+        if field_infos.num_i64_fields > 0 {
+            // .chunks panics if == 0
+            for chunk in self.docs_i64_values.chunks(field_infos.num_i64_fields) {
+                for (idx, &v) in chunk.into_iter().enumerate() {
+                    minimums[idx] = minimums[idx].min(v);
+                }
+            }
+        }
+
+        // New values
+        for doc_info in self.doc_infos.iter() {
+            for (idx, num) in doc_info.doc_nums.iter().enumerate() {
+                let default = field_infos_i64[idx].i64_info.as_ref().unwrap().default;
+                minimums[idx] = minimums[idx].min(num.unwrap_or(default));
+            }
+        }
+
+        for min in minimums.iter() {
+            doc_info_writer.write_all(&min.to_le_bytes()).unwrap();
+        }
+        // -----------------------------------------------------
+
+        // -----------------------------------------------------
+        // Write old values
+        if field_infos.num_i64_fields > 0 {
+            for chunk in self.docs_i64_values.chunks(field_infos.num_i64_fields) {
+                for (idx, &v) in chunk.into_iter().enumerate() {
+                    debug_assert!(v >= minimums[idx]);
+                    let delta = v - minimums[idx];
+                    debug_assert!(delta >= 0);
+                    varint::get_var_int_vec_u64(delta as u64, doc_info_writer);
+                }
+            }
+        }
+        // -----------------------------------------------------
+
+        // -----------------------------------------------------
+        // Write new values
+        for doc_info in self.doc_infos.iter() {
+            for (idx, num) in doc_info.doc_nums.iter().enumerate() {
+                let default = field_infos_i64[idx].i64_info.as_ref().unwrap().default;
+                let num = num.unwrap_or(default);
+                
+                debug_assert!(num >= minimums[idx]);
+                let delta = num - minimums[idx];
+                debug_assert!(delta >= 0);
+
+                varint::get_var_int_vec_u64(delta as u64, doc_info_writer);
+            }
+        }
+        // -----------------------------------------------------
+    }
+
     /// 4 bytes - number of documents
     /// 4 bytes - doc id counter
     /// 8 * Number of fields bytes - average field lengths
@@ -332,6 +402,7 @@ impl DocInfos {
         doc_info_writer.extend(field_length_writer);
 
         let enums_ev_str_and_ids = self.write_enums(field_infos, &mut doc_info_writer);
+        self.write_nums(field_infos, &mut doc_info_writer);
 
         doc_info_writer.flush().unwrap();
 
@@ -346,6 +417,7 @@ impl Default for DocInfos {
             all_block_doc_lengths: Vec::new(),
             average_lengths: vec![0.0; 0],
             docs_enum_values: Vec::new(),
+            docs_i64_values: Vec::new(),
             original_doc_id_counter: 0,
         }
     }

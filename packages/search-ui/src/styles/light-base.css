@@ -11,9 +11,10 @@
     --infi-sub-hover-bg: #bce0fe;
     --infi-highlight: #1e94f4;
     --infi-highlight-bg: none;
-    --infi-checkbox-bg: #f8f8f8;
+    --infi-checkbox-bg: #fdfdfd;
     --infi-checkbox-checked-bg: #fff;
-    --infi-checkbox-border: #414141;
+    --infi-checkbox-border: #666;
+    --infi-filter-box-shadow: 0 1px 1px #eee;
     --infi-header-fg: #3a3a3a;
     --infi-key-fg: #fff;
     --infi-key-bg: #ccc;

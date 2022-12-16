@@ -66,8 +66,9 @@ export interface InfiConfig {
 export interface FieldInfo {
   id: number
   name: string,
-  enumInfo?: { enumId: number, enumValues: string[] }
   storeText: boolean,
+  enumInfo?: { enumId: number, enumValues: string[] },
+  i64Info?: { id: number },
   weight: number,
   k: number,
   b: number,

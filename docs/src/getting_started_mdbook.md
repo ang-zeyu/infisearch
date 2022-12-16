@@ -11,7 +11,6 @@ MdBook already has its own built-in search function utilising elasticlunr, which
 You may nonetheless want to use this plugin if you need InfiSearch's extra features. Some examples:
 - you require PDF file support, or JSON file support to link to out-of-domain pages.
 - spelling correction, automatic prefix search, term proximity ranking, etc.
-- you prefer the look of the UI here.
 
 ## Styling
 

@@ -1,18 +1,20 @@
 mod bm25;
 mod proximity_ranking;
 
-use std::collections::BinaryHeap;
+use std::cmp::Ordering;
 use std::rc::Rc;
 
+use binary_heap_plus::BinaryHeap;
 use infisearch_common::utils::push;
 use infisearch_common::{bitmap, EnumMax};
 
+use crate::doc_info::DocInfo;
 use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc, PlAndInfo};
 use crate::searcher::query_parser::QueryPart;
 use crate::searcher::query_parser::QueryPartType;
 use crate::searcher::Searcher;
 
-use super::query::DocResult;
+use super::query::{DocResult, DocResultComparator};
 
 
 fn empty_pl() -> PostingsList {
@@ -387,7 +389,10 @@ impl Searcher {
         query_parts: &mut Vec<QueryPart>,
         term_postings_lists: &Vec<Rc<PostingsList>>,
         enum_filters: Vec<(usize, [bool; EnumMax::MAX as usize])>,
-    ) -> BinaryHeap<DocResult> {
+        i64_filters: Vec<(usize, Option<i64>, Option<i64>)>,
+        num_sort: Option<usize>,
+        reverse_sort: bool,
+    ) -> BinaryHeap<DocResult, Box<DocResultComparator>> {
         let root_pl = self.populate_conjunctive_postings_lists(
             false, false, query_parts, term_postings_lists, 1.0,
         );
@@ -401,12 +406,53 @@ impl Searcher {
                     debug_assert!(ev_id < ev_ids.len());
                     unsafe { *ev_ids.get_unchecked(ev_id) }
                 });
-            if passes_enum_filters {
+
+            let passes_i64_filters = i64_filters
+                .iter()
+                .all(|(id, gte, lte)| {
+                    let v = self.doc_info.get_num_val(td.doc_id as usize, *id);
+
+                    let satisfies_gte = if let Some(lower_bound) = gte {
+                        v >= *lower_bound
+                    } else {
+                        true
+                    };
+
+                    let satisfies_lte = if let Some(upper_bound) = lte {
+                        v <= *upper_bound
+                    } else {
+                        true
+                    };
+
+                    satisfies_gte && satisfies_lte
+                });
+
+            if passes_enum_filters && passes_i64_filters {
                 push::push_wo_grow(&mut doc_results, DocResult { doc_id: td.doc_id, score: td.score });
             }
         }
 
-        BinaryHeap::from(doc_results)
+        let doc_info_pointer = &self.doc_info as *const DocInfo;
+        BinaryHeap::from_vec_cmp(doc_results, Box::new(move |a: &DocResult, b: &DocResult| {
+            let mut cmp = if let Some(num_sort) = num_sort {
+                let doc_info = unsafe { &*doc_info_pointer };
+                let value_a = doc_info.get_num_val(a.doc_id as usize, num_sort);
+                let value_b = doc_info.get_num_val(b.doc_id as usize, num_sort);
+                value_a.cmp(&value_b)
+            } else {
+                Ordering::Equal
+            };
+
+            if let Ordering::Equal = cmp {
+                cmp = unsafe { a.score.partial_cmp(&b.score).unwrap_unchecked() };
+            }
+
+            if reverse_sort {
+                cmp.reverse()
+            } else {
+                cmp
+            }
+        }))
     }
 }
 

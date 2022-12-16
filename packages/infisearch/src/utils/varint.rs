@@ -35,6 +35,22 @@ pub fn get_var_int_vec(mut value: u32, output_buf: &mut Vec<u8>) {
     panic!("Attempted to encode variable integer over 16 bytes in length!");
 }
 
+pub fn get_var_int_vec_u64(mut value: u64, output_buf: &mut Vec<u8>) {
+    for _buf_idx in 0..16 {
+        let last_seven_bits: u8 = (value & 127) as u8;
+        value >>= 7;
+
+        if value != 0 {
+            output_buf.push(last_seven_bits);
+        } else {
+            output_buf.push(last_seven_bits | CONTINUATION_MASK);
+            return;
+        }
+    }
+
+    panic!("Attempted to encode variable integer over 16 bytes in length!");
+}
+
 
 struct PackedVarIntUnit {
     t: usize,
