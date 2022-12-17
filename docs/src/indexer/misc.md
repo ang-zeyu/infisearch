@@ -25,7 +25,7 @@ This is the number of threads to use, excluding the main thread. When unspecifie
 
 ## Indexing Multiple Files Under One Document
 
-InfiSearch regards each file as a single document by default. You can index **multiple files** into **one document** using the reserved field [`_add_files`](./fields.md#reserved-fields). This is useful if you need to **override or add data** but can't modify the source document easily.
+InfiSearch regards each file as a single document by default. You can index **multiple files** into **one document** using the reserved field [`_add_files`](./fields.md#reserved-fields). This is useful if you need to override or add data but can't modify the source document easily.
 
 #### Example: Overriding a Document's Title
 
@@ -39,7 +39,7 @@ folder
 
 To index `main.html` and override its title, you would have:
 
-Inside `overrides.json`,
+1\) Inside `overrides.json`,
 
 ```json
 {
@@ -48,7 +48,7 @@ Inside `overrides.json`,
 }
 ```
 
-And inside your configuration file:
+2\) Inside your indexer configuration file:
 
 ```json
 {

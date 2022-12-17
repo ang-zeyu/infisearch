@@ -14,7 +14,9 @@ InfiSearch is a *client-side* search solution made for static sites, including a
 
 - Support for **multiple file formats** (`.json,csv,pdf,html`) to satisfy more custom data requirements.
 
-### Search Features in Detail
+### Search Features
+
+A little more about some of InfiSearch's search features.
 
 #### Ranking Model
 

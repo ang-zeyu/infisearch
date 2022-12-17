@@ -2,7 +2,7 @@
 
 ## Multi-Select Filters
 
-Multi-select filters, for example the ones you see in this documentation ("User Guide", "Advanced"), allow users to filter for results belonging to one or more categories.
+Multi-select filters, for example the ones you see in this documentation's search ("User Guide", "Advanced"), allow users to filter for results belonging to one or more categories.
 
 For this guide, let's suppose we have a bunch of weather forecast articles and want to support filtering them by the weather (sunny, warm, cloudy).
 
@@ -64,6 +64,8 @@ Some of the weather forecast articles indexed may also be missing the `id="weath
 ## Numeric Filters
 
 You can also create minimum-maximum numeric filters with InfiSearch. These can be of either `<input type="number|date|datetime-local" />`.
+
+![numeric filters example](./images/numeric_filters.png)
 
 Continuing the same example as multi-select filters, let's suppose we also want to support filtering weather forecast articles by their number of page views. These page views are stored in the `data-pageviews` attribute of the element with an `id="weather"`.
 

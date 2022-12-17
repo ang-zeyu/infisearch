@@ -2,7 +2,9 @@
 
 Results can also be sorted by [numeric fields](./indexer/fields.md#field-storage). Let's suppose we want to support filtering weather forecast articles by their date posted. The date is stored in an element with the `data-date-posted` attribute.
 
-First, we define the numeric [field](./indexer/fields.md#field-storage) that can store any signed 64-bit integers.
+![sort options dropdown](./images/custom_sort.png)
+
+First, define the numeric [field](./indexer/fields.md#field-storage) that can store any signed 64-bit integers.
 
 ```json
 "fields_config": {
@@ -28,7 +30,7 @@ First, we define the numeric [field](./indexer/fields.md#field-storage) that can
 }
 ```
 
-Next, we map the data from the `data-date-posted` attribute into the above field.
+Next, map the data from the `data-date-posted` attribute into the above field.
 
 ```json
 "indexing_config": {
@@ -48,7 +50,7 @@ Next, we map the data from the `data-date-posted` attribute into the above field
 }
 ```
 
-Lastly, we tell InfiSearch's UI to [setup the UI](./search_configuration.md#setting-up-numeric-filters-and-sort-orders) `<select>` element using this field. To do so, add the following to your `infisearch.init` call.
+Lastly, configure InfiSearch's UI to [setup the UI](./search_configuration.md#setting-up-numeric-filters-and-sort-orders) dropdown using this field.
 
 ```ts
 infisearch.init({

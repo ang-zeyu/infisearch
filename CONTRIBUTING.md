@@ -4,7 +4,7 @@ To get your development environment setup, you'll need to have installed the fol
 - [cargo](https://crates.io/), the package manager for Rust
 - [wasm-pack](https://github.com/rustwasm/wasm-pack), for working with rust generated WebAssembly
 - [mdbook](https://rust-lang.github.io/mdBook/), if working on mdbook-infisearch plugin
-- Any nightly rust toolchain set as the default build toolchain (see webpack.worker.js)
+- Any nightly rust toolchain set as the default build toolchain
 
 ## Commands
 
@@ -12,7 +12,9 @@ After you have installed the above dependencies, and cloned the repository, run 
 
 # Documentation Updates
 
-Simply run `npm run devDocsFull` to build the project and launch the mdBook development server at `localhost:8000`.
+Simply run `npm run devDocsFull` to build the project and launch the mdBook development server at `localhost:8000`, you will need to have installed the above dependencies for this.
+
+If making minor edits where you don't need to preview the live site, you can also use any markdown file editor.
 
 # Developing
 
