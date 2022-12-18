@@ -96,15 +96,13 @@ There are also several options specific to each mode. Note that `dropdown` and `
 
 | Option                | Default                 | Description |
 | -----------           | -----------             | ----------- |
-| `label`               | `'Search this site'`    | Placeholder for the fullscreen UI input.
-| `resultsLabel`        | `'Site results'`        | Accessibility label for the result [`listbox`](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/listbox_role).
 | `useBreadcrumb`       | `false`                 | Prefer the file path of the indexed file for the result preview's title. This is formatted into a breadcrumb, with its components transformed to Title Case.<br><br>For example, `documentation/userGuide/my_file.html` is displayed as `Documentation » User Guide » My File`.
 | `maxSubMatches`       | `2`                     | Maximum number of heading-body pairs to show for a document.
 | `resultsPerPage`      | `10`                    | The number of results to load when the load more button is clicked.
 
 #### Setting Up Enum Filters ∀
 
-Enum [fields](./indexer/fields.md) you index can be mapped into UI multi-select dropdowns. In this documentation for example, Mdbook's section titles ("User Guide", "Advanced") are mapped (try doing a search).
+Enum [fields](./indexer/fields.md#field-storage) you index can be mapped into UI multi-select dropdowns. In this documentation for example, Mdbook's section titles ("User Guide", "Advanced") are mapped (try the search).
 
 Setup bindings under `uiOptions` like so:
 
@@ -124,7 +122,7 @@ Some indexed documents may also not have an enum value, and are assigned an inte
 
 #### Setting Up Numeric Filters and Sort Orders
 
-Indexed numeric [fields](./indexer/fields.md) can be mapped into minimum-maximum filters of `<input type="number|date|datetime-local" />`, or used to create custom sort orders.
+Indexed numeric [fields](./indexer/fields.md#field-storage) can be mapped into minimum-maximum filters of `<input type="number|date|datetime-local" />`, or used to create custom sort orders.
 
 *Minimum-Maximum Filters*
 
@@ -158,28 +156,38 @@ sortFields: {
 const { showFullscreen, hideFullscreen } = infisearch.init({ ... });
 ```
 
-You may call the `showFullscreen()` function returned by the `infisearch.init` call to programatically show the fullscreen search UI.
+Call the `showFullscreen()` and `hideFullscreen()` functions returned by the `infisearch.init` to programatically show/hide the fullscreen search UI.
 
-Correspondingly, the `hideFullscreen()` method hides the fullscreen interface, although, this shouldn't be needed since a close button is available by default (the <kbd>Esc</kbd> key works too).
+These methods can be used under `mode="auto|fullscreen"`.
 
-These methods can also be used under `mode="auto"`.
+#### Client Side Routing
+
+To override the link click handler, use the specially provided parameter `onLinkClick`.
+
+```js
+uiOptions: {
+  onLinkClick: function (ev) {
+    /*
+     By default, this function is a thunk.
+     Call ev.preventDefault() and the client-side routing code here.
+     Access the anchor element using "this".
+    */
+  }
+}
+```
 
 #### Changing The Mobile Device Detection Method
 
 
-If the client is a "mobile device", the fullscreen version of the user interface is used for `mode='auto'`.
-
-This check is done through the following simple media query, and can be overwritten with the `isMobileDevice` option:
+If the client is a "mobile device", the fullscreen version of the user interface under `mode='auto'`.
+This check is done through the following media query, which can be overwritten:
 
 ```js
-infisearch.init({
-    uiOptions: {
-        // Any function returning a boolean
-        isMobileDevice: () => window.matchMedia(
-            'only screen and (max-width: 768px)'
-        ).matches,
-    }
-})
+uiOptions: {
+  // Any function returning a boolean
+  isMobileDevice: () =>
+    window.matchMedia('only screen and (max-width: 768px)').matches,
+}
 ```
 
 ## Search Functionality Options

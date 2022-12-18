@@ -75,6 +75,7 @@ export function addKeyboardHandler(
       if (focusedItem)
         focusedItem.dispatchEvent(new MouseEvent('click', {
           ctrlKey: ev.ctrlKey,
+          cancelable: true,
         }));
     } else {
       const pos = key === 'Home' ? 0 : inputEl.value.length;

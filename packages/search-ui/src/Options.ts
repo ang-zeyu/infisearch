@@ -61,6 +61,7 @@ export interface Translations {
 }
 
 export interface UiOptions {
+  sourceFilesUrl?: string,
   input: HTMLInputElement,
   inputDebounce?: number,
   preprocessQuery: (input: string) => string,
@@ -76,16 +77,14 @@ export interface UiOptions {
   multiSelectFilters: MultiSelectFilterBinding[],
   numericFilters: NumericFilterBinding[],
   translations: Translations,
-  // This is specific to the default resultsRender implementation,
-  // pulling it up as its a common option
-  sourceFilesUrl?: string,
 
   // -----------------------------------------------------
   // Renderers
 
   // Rendering Results
   listItemRender?: ListItemRender,
-  addSearchedTerms?: string,
+  onLinkClick: (ev: MouseEvent) => void,
+  searchedTermsParam?: string,
   useBreadcrumb?: boolean,
   maxSubMatches?: number,
 }

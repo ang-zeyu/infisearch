@@ -9,7 +9,7 @@ infisearch.init({
     fsButtonPlaceholder: 'Search',
     sourceFilesUrl: base_url,
     resultsRenderOpts: {
-      addSearchedTerms: 'search',
+      searchedTermsParam: 'search',
     },
     multiSelectFilters: [
       { fieldName: 'partTitle', displayName: 'Section', defaultOptName: 'None' },

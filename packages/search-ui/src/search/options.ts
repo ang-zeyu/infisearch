@@ -23,6 +23,7 @@ export function prepareOptions(options: Options) {
     multiSelectFilters: [],
     numericFilters: [],
     listItemRender,
+    onLinkClick: () => {},
     ...suppliedUiOpts,
     translations: {
       ...TRANSLATIONS,

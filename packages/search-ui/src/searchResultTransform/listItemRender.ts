@@ -1,17 +1,18 @@
-import { ListItemRender, Options } from '../Options';
+import { ListItemRender } from '../Options';
 import { parseURL } from '../utils/url';
 import { formatTitle } from './listItemRender/titleFormatter';
 import { sortAndLimitResults } from './listItemRender/resultSorter';
 import { createEllipses } from '@infisearch/search-lib/lib/results/Result/MatchResult';
 
-// Undocumented option for mdBook
+// Undocumented option for mdBook to attach query terms to the URL
 function appendSearchedTerms(
-  opts: Options, fullLink: string, searchedTermsJSON: string,
+  fullLink: string,
+  searchedTermsParam: string,
+  searchedTermsJSON: string,
 ) {
-  const { addSearchedTerms } = opts.uiOptions;
-  if (addSearchedTerms) {
+  if (searchedTermsParam) {
     const fullLinkUrl = parseURL(fullLink);
-    fullLinkUrl.searchParams.append(addSearchedTerms, searchedTermsJSON);
+    fullLinkUrl.searchParams.append(searchedTermsParam, searchedTermsJSON);
     return fullLinkUrl.toString();
   }
   return fullLink;
@@ -23,7 +24,13 @@ export const listItemRender: ListItemRender = (
   result,
   query,
 ) => {
-  const {  sourceFilesUrl, useBreadcrumb, maxSubMatches } = opts.uiOptions;
+  const {
+    sourceFilesUrl,
+    useBreadcrumb,
+    maxSubMatches,
+    searchedTermsParam,
+    onLinkClick,
+  } = opts.uiOptions;
 
   // -----------------------------------------------------------
   // First sort out the document level info (title, link)
@@ -76,7 +83,8 @@ export const listItemRender: ListItemRender = (
   );
 
   if (link) {
-    mainLinkEl.setAttribute('href', appendSearchedTerms(opts, link, query._mrlTermsFlattened));
+    mainLinkEl.setAttribute('href', appendSearchedTerms(link, searchedTermsParam, query._mrlTermsFlattened));
+    mainLinkEl.onclick = onLinkClick;
   }
 
   const subOptions = headings.map(({ body, heading, href }) => {
@@ -89,7 +97,8 @@ export const listItemRender: ListItemRender = (
       h('div', { class: 'infi-heading' }, ...heading),
       h('div', { class: 'infi-body' }, ...body));
     if (href) {
-      el.setAttribute('href', appendSearchedTerms(opts, href, query._mrlTermsFlattened));
+      el.setAttribute('href', appendSearchedTerms(href, searchedTermsParam, query._mrlTermsFlattened));
+      el.onclick = onLinkClick;
     }
     return el;
   });

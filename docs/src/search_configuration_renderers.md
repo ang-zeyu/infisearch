@@ -19,7 +19,6 @@ This page covers customising the result preview HTML output structure.
 
 Some use cases for this include:
 - The default HTML structure is not sufficient for your styling needs
-- You need to attach additional event listeners to elements
 - You want to override or insert additional content sourced from your own fields (e.g. an image)
 - You want to change the [default use case](#1-rendering-a-single-result) of linking to a web page entirely (e.g. use client side routing)
 
