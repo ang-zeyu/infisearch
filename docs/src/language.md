@@ -31,7 +31,7 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.0/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.1/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 ```
 
 ## Latin Tokenizer
@@ -60,7 +60,7 @@ If you do not need stemming, use the `ascii` tokenizer, which has a smaller wasm
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.0/packages/search-ui/dist/search-ui.latin.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.1/packages/search-ui/dist/search-ui.latin.bundle.js"></script>
 ```
 
 ## Chinese Tokenizer
@@ -83,7 +83,7 @@ You are highly recommended to keep positions indexed and query term proximity ra
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.0/packages/search-ui/dist/search-ui.chinese.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.1/packages/search-ui/dist/search-ui.chinese.bundle.js"></script>
 ```
 
 ## Stop Words

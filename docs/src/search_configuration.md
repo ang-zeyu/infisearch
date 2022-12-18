@@ -44,10 +44,10 @@ The search UI provides 4 main different behaviours.
 
 | Mode        | Details |
 | ----------- | ----------- |
-| auto        | This option uses the `fullscreen` mode if a mobile device is [detected](#changing-the-mobile-device-detection-method). Otherwise, the `dropdown` mode is used.<br><br>An event handler is also attached that reruns this adjustment whenever the window is resized.   |
-| dropdown    | This wraps the provided `input` element in a wrapper container, then places search results in a dropdown container next to it.    |
-| fullscreen  | This option creates a completely distinct modal (with its own search input, close button, etc.), and attaches it to the `<body>` element.<br><br>If the `input` element is specified, a click handler is attached to open this UI. For keyboard accessibility, some minimal, but overidable [styling](./search_configuration_styling.md#input-element) is also applied to the input element.<br><br>This UI can also be shown/hidden [programatically](#manually-showing--hiding-the-fullscreen-ui), which is also *the only case* you would not need to specify the `input` element.    |
-| target      | This option is the most flexible, and is used by the mdBook plugin (this documentation).<br><br>Search results are then output to a custom `target` element of choice.    |
+| auto        | This uses the `fullscreen` mode for a [mobile device](#changing-the-mobile-device-detection-method), and `dropdown` otherwise.<br>This adjustment is rerunned whenever the window is resized.   |
+| dropdown    | This wraps the provided `input` element in a wrapper container, then creates a dropdown next to house InfiSearch's UI.    |
+| fullscreen  | This creates a distinct modal (with its own search input, close button, etc.) and appends it to the page `<body>`.<br><br>If the `input` element is specified, a click handler is attached to open this UI so that it functions as a button. For default keyboard accessibility, some minimal and overidable [styling](./search_configuration_styling.md#input-element) is also applied to this button.<br><br>This UI can also be toggled [programatically](#manually-showing--hiding-the-fullscreen-ui), removing the need for the `input`.    |
+| target      | This option is most flexible, and is used by the mdBook plugin (this documentation).<br><br>Search results are then output to a custom `target` element of choice.    |
 
 Use the following buttons to try out the different modes. The default in this documentation is `target`.
 
@@ -82,31 +82,31 @@ Use the following buttons to try out the different modes. The default in this do
 
 #### UI Mode Specific Options
 
-There are also several options specific to each mode. Note that `dropdown` and `fullscreen` options are both applicable to the `auto` mode.
+There are also several options specific to each mode. `dropdown` and `fullscreen` options are also applicable to the `auto` mode.
 
 | Mode        | Option                | Default                 | Description |
 | ----------- | -----------           | -----------             | ----------- |
-| dropdown  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom'` or `'bottom-start'` or `'bottom-end'`.<br><br>This is the side of the input element to align the dropdown results container and dropdown seperator against.<br><br>The alignment will also be automatically flipped horizontally to ensure the most optimal placement.
-| fullscreen | `fsContainer`         | `<body>` element        | `id` of the element, or an element reference to attach the separate root container to.
-| fullscreen | `fsScrollLock`        | `true` | Whether to automatically scroll lock the body element when the fullscreen UI is opened.
-| all except target         | `tip`                 | `true`        | Whether to show the tip icon. When hovered over, this shows advanced usage information (e.g. how to perform phrase queries).
-| target    | `target`              | `undefined`                       | `id` of the element, or an element reference to attach results to.<br><br>Required if using `mode='target'`.
+| dropdown  | `dropdownAlignment`   | `'bottom-end'`          | `'bottom'` or `'bottom-start'` or `'bottom-end'`.<br><br>The alignment will be automatically flipped horizontally to ensure optimal placement.
+| fullscreen | `fsContainer`         | `<body>`        | `id` of or an element reference to attach the modal to.
+| fullscreen | `fsScrollLock`        | `true` | Scroll locks the body element when the fullscreen UI is opened.
+| target    | `target`              | `undefined`                       | `id` of or an element reference to attach the UI.
 
 #### General Options
 
 | Option                | Default                 | Description |
 | -----------           | -----------             | ----------- |
-| `useBreadcrumb`       | `false`                 | Prefer the file path of the indexed file for the result preview's title. This is formatted into a breadcrumb, with its components transformed to Title Case.<br><br>For example, `documentation/userGuide/my_file.html` is displayed as `Documentation » User Guide » My File`.
-| `maxSubMatches`       | `2`                     | Maximum number of heading-body pairs to show for a document.
-| `resultsPerPage`      | `10`                    | The number of results to load when the load more button is clicked.
+| `tip`                 | `true`                  | Shows the advanced search tips icon on the bottom right.
+| `maxSubMatches`       | `2`                     | Maximum headings to show for a result preview.
+| `resultsPerPage`      | `10`                    | Number of results to load when the 'load more' is clicked.
+| `useBreadcrumb`       | `false`                 | Prefer using the file path as the result preview's title. This is formatted into a breadcrumb, transformed to Title Case.<br><br>Example: `'documentation/userGuide/my_file.html'` → `Documentation » User Guide » My File`.
 
 #### Setting Up Enum Filters ∀
 
-Enum [fields](./indexer/fields.md#field-storage) you index can be mapped into UI multi-select dropdowns. In this documentation for example, Mdbook's section titles ("User Guide", "Advanced") are mapped (try the search).
+Enum [fields](./indexer/fields.md#field-storage) you index can be mapped into UI multi-select dropdowns. In this documentation for example (try the search), Mdbook's section titles ("User Guide", "Advanced") are mapped.
 
 Setup bindings under `uiOptions` like so:
 
-```json
+```ts
 multiSelectFilters: [
   {
     fieldName: 'partTitle',
@@ -116,9 +116,9 @@ multiSelectFilters: [
 ]
 ```
 
-The `fieldName` corresponds to the `name` of your [field](./indexer/fields.md) definition, while `displayName` controls the text to show to the user for the field.
+The `fieldName` corresponds to the `name` of your [field](./indexer/fields.md) definition, while `displayName` controls the UI header text.
 
-Some indexed documents may also not have an enum value, and are assigned an internal default enum value. The name of this enum value to show to searchers is specified by `defaultOptName`.
+Documents that do not have an enum value are assigned an internal default enum value. The option text of this enum value to show is specified by `defaultOptName`.
 
 #### Setting Up Numeric Filters and Sort Orders
 
@@ -152,13 +152,12 @@ sortFields: {
 
 #### Manually Showing / Hiding the Fullscreen UI
 
-```ts
-const { showFullscreen, hideFullscreen } = infisearch.init({ ... });
-```
-
 Call the `showFullscreen()` and `hideFullscreen()` functions returned by the `infisearch.init` to programatically show/hide the fullscreen search UI.
 
-These methods can be used under `mode="auto|fullscreen"`.
+```ts
+// These methods can be used under `mode="auto|fullscreen"`
+const { showFullscreen, hideFullscreen } = infisearch.init({ ... });
+```
 
 #### Client Side Routing
 
