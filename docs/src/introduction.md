@@ -18,26 +18,25 @@ InfiSearch is a *client-side* search solution made for static sites, including a
 
 A little more about some of InfiSearch's search features.
 
-#### Ranking Model
+#### Blazing Fast
 
-Query expressions are ranked using the BM25 model. A soft disjunctive maximum of a document's field's scores is then calculated. By default, titles, `<h1>` headings, other headings, and the rest of the text are indexed into 4 separate fields.
-
-**Query term proximity ranking** is InfiSearch's highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving search relevance.
-
-#### Built-In Compression
+Powered by WebAssembly and Webworkers, InfiSearch blazes through searches on tens of thousands of documents.
+Index downloads are persistently cached using the [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) API that backs service workers, but comes without its setup hassle. Users will never download the same data twice.
 
 Some efficient, high-return compression schemes are also employed, so you get all these features without much penalty.
-To facilitate decompression efficiency of such a low-level format, most of the search library is also powered by WebAssembly (Rust).
+This documentation for example, which has all features enabled, generates a main index file of just 20KB, and a dictionary of 9KB.
 
-This documentation for example, which has all features enabled, generates a main index file of just 19KB, and a dictionary of 9KB.
+#### Scalable
 
-#### WebWorker Built-in
+A monolithic index is built by default to reduce network latency, which suffices for 90% of use cases. But, you also have the option of splitting up the index so users retrieve only what's necessary, greatly improving client-side search scalability.
 
-Most of the search library also operates on a WebWorker, so you can deliver the best UX without blocking the UI thread, especially for large collections.
+#### Ranking Model & Query Refinement
 
-#### Persistent Caching
+InfiSearch adopts industry standard scoring schemes. Queries are first ranked using the BM25 model, then a soft disjunctive maximum of the document's field scores is taken. By default, `<title>`, `<h1>`, `<h2-6>`, then other texts are indexed as four separate fields.
 
-Persistent caching is achieved through use of the [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) API, which backs service workers and has excellent support in modern browsers.
+Query term proximity ranking is InfiSearch's highlight here, and is enabled by default. Results are scaled according to how close search expressions are to one another, greatly improving contextuality of searches.
+
+InfiSearch also gives the searchers the a powerful boolean query syntax, made known to them through an advanced search tips icon. You also have the option of setting up custom facet filters such as multi-select checkboxes, numeric filters, and date time filters for ease of use.
 
 ## How it Works:
 
@@ -48,7 +47,7 @@ InfiSearch depends on a static, pre-built index that is a collection of various 
    - JSON field store(s) containing raw document texts
    - Supporting metadata, for example the search dictionary
 1. The search UI:
-   1. Figures out which index files are needed from the user query
-   1. Retrieves the index files from cache/memory/network requests
+   1. Figures out which index files are needed from the query
+   1. Retrieves the files from cache/memory/network requests
    1. Obtains and ranks the result set
-   1. Finally, retrieves the field stores from cache/memory/network requests progressively to generate result previews
+   1. Lastly, retrieves field stores from cache/memory/network requests progressively to generate result previews

@@ -16,7 +16,7 @@ You may nonetheless want to use this plugin if you need InfiSearch's extra featu
 
 This plugin uses the css variables provided by the 5 main default themes in mdBook to style the search user interface. Switch the themes in this documentation to try out the different themes!
 
-**Note:** The "InfiSearch" theme is not included in the plugin and is specific to this documentation. It is included only to show the default styling (without this plugin).
+**Note:** The default InfiSearch theme is not included in the plugin. To see the default styling, head on over to the [styling](./search_configuration_styling.md) page or view the [demo](https://infi-search.com) site.
 
 ## Installation
 
@@ -26,18 +26,21 @@ Then, minimally add the first two configuration sections below to your `book.tom
 
 ```toml
 [output.html.search]
-enable = false               # disable the default mdBook search feature implementation
+# disable the default mdBook search feature implementation
+enable = false
 
 [preprocessor.infisearch]
 command = "mdbook-infisearch"
 
+[output.infisearch]  # this header should be added
 # Plugin configuration options (optional)
-[output.infisearch]
 # See search configuration page, or use the buttons below
 mode = "target"
 
 # Relative path to a InfiSearch indexer configuration file from the project directory.
-# The config file will also automatically be created here if it dosen't exist.
+#
+# If you are creating this for the first time, let this point to a non-existent file
+# and the config file will be created with Infisearch's settings tailored for mdBook.
 config = "infi_search.json"
 ```
 

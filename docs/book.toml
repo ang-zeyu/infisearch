@@ -6,10 +6,8 @@ src = "src"
 title = "InfiSearch Documentation"
 
 [output.html]
-default-theme = "infi-theme"
+default-theme = "navy"
 curly-quotes = true
-additional-css = ["src/infi-theme.css"]
-additional-js = ["src/infi-theme.js"]
 git-repository-url = "https://github.com/ang-zeyu/infisearch"
 site-url = "/infisearch/"
 

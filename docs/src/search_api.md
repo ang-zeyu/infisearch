@@ -126,6 +126,10 @@ const fields = results[0].fields;
   enums: {
     weather: 'cloudy',
     reporter: null,
+  },
+  numbers: {
+    // These are bigints
+    datePosted: 1671336914,
   }
 }
 ```
