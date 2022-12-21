@@ -2,9 +2,11 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use log::error;
+use log::warn;
 use path_slash::PathExt;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Map;
 use serde_json::value::Value;
 
 use crate::field_info::{ADD_FILES_FIELD, RELATIVE_FP_FIELD};
@@ -39,7 +41,7 @@ impl JsonLoader {
 
     fn unwrap_json_deserialize_result(
         &self,
-        mut read_result: FxHashMap<String, String>,
+        map: &Map<String, Value>,
         link: String,
         absolute_path: PathBuf,
     ) -> Box<dyn LoaderResult + Send> {
@@ -52,12 +54,27 @@ impl JsonLoader {
         });
 
         for header_name in self.options.field_order.iter() {
-            if let Some((field_name, text)) = read_result.remove_entry(header_name) {
+            if let Some((field_name, value)) = map.get_key_value(header_name) {
+                let field_text = if let Some(text) = value.as_str() {
+                    text.to_owned()
+                } else if let Some(int) = value.as_i64() {
+                    int.to_string()
+                } else if let Some(double) = value.as_f64() {
+                    double.to_string()
+                } else if value.is_null() {
+                    continue;
+                } else {
+                    panic!(
+                        "Invalid JSON value in array {}, expected String or Number or null.",
+                        absolute_path.to_slash_lossy()
+                    );
+                };
+
                 field_texts.push(Zone {
-                    field_name: self.options.field_map.get(&field_name)
+                    field_name: self.options.field_map.get(field_name)
                         .expect("field_order does not match field_map!")
                         .to_owned(),
-                    field_text: text,
+                    field_text,
                     separation: DEFAULT_ZONE_SEPARATION,
                 });
             }
@@ -77,8 +94,7 @@ impl Loader for JsonLoader {
             if extension == "json" {
                 let as_value: Value = serde_json::from_str(
                     &std::fs::read_to_string(absolute_path).expect("Failed to read json file!"),
-                )
-                .expect("Invalid json!");
+                ).unwrap_or_else(|_err| panic!("Invalid json! {}", relative_path.to_slash_lossy()));
 
                 let link = relative_path.to_slash();
                 if link.is_none() {
@@ -89,34 +105,37 @@ impl Loader for JsonLoader {
                 let link = unsafe { link.unwrap_unchecked().into_owned() };
                 let absolute_path_as_buf = PathBuf::from(absolute_path);
 
-                if as_value.is_array() {
-                    let documents: Vec<FxHashMap<String, String>> = serde_json::from_value(as_value)
-                        .unwrap_or_else(|_| panic!(
-                            "Json file {} not in the expected format of [{{ \"field_name\": \"... field text ...\", ... }}]!",
-                            relative_path.as_os_str().to_string_lossy()
-                        ));
-
+                if let Some(values) = as_value.as_array() {
                     return Some(Box::new({
-                        let doc_count = documents.len();
+                        let doc_count = values.len();
                         let links = vec![link; doc_count];
-                        documents.into_iter().zip(links).zip(0..doc_count).map(
-                            move |((document, link), idx)| {
-                                self.unwrap_json_deserialize_result(
-                                    document, format!("{}#{}", link, idx), absolute_path_as_buf.clone(),
-                                )
-                            },
-                        )
+                        values.to_owned()
+                            .into_iter()
+                            .zip(links)
+                            .zip(0..doc_count)
+                            .filter_map(move |((value, link), idx)|
+                                if let Some(map) = value.as_object() {
+                                    Some(self.unwrap_json_deserialize_result(
+                                        map, format!("{}#{}", link, idx), absolute_path_as_buf.clone(),
+                                    ))
+                                } else {
+                                    warn!(
+                                        "Invalid JSON document in array {}, expected Map. Skipping.",
+                                        link
+                                    );
+                                    None
+                                }
+                            )
                     }));
-                } else {
-                    let document = serde_json::from_value(as_value)
-                        .unwrap_or_else(|_| panic!(
-                            "Json file {} not in the expected format of {{ \"field_name\": \"... field text ...\", ... }}!",
-                            relative_path.as_os_str().to_string_lossy()
-                        ));
-
+                } else if let Some(map) = as_value.as_object() {
                     return Some(Box::new(std::iter::once(self.unwrap_json_deserialize_result(
-                        document, link, absolute_path_as_buf,
+                        map, link, absolute_path_as_buf,
                     ))));
+                } else {
+                    warn!(
+                        "Invalid JSON document {}, expected Map or Vec<Map>. Skipping.",
+                        relative_path.to_slash_lossy()
+                    )
                 }
             }
         }

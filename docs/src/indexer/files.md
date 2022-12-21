@@ -103,12 +103,12 @@ Lastly, if you need to remove a default selector, simply replace its definition 
 }
 ```
 
-JSON files can also be indexed. The `field_map` must be specified, which contains a mapping of **JSON data key -> field name**.
-The `field_order` array controls the order in which these fields are indexed, which has a minor influence on [query term proximity ranking](../introduction.md#ranking-model).
+JSON files can also be indexed. The `field_map` contains a mapping of your **JSON data key -> field name**.
+The `field_order` array controls the order in which the data keys are indexed, which has a minor influence on [query term proximity ranking](../introduction.md#ranking-model).
 
 The JSON file can be either:
-1. An object, following the schema set out in `field_map`
-2. An array of objects following the schema set out in `field_map`
+1. An object, with numbers, strings or `null` values
+2. An array of such objects
 
 
 #### CSV Files: **`loaders.CsvLoader`**
