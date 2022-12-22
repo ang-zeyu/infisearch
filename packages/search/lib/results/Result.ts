@@ -72,8 +72,8 @@ export class Result {
     return new Result({ texts, enums, numbers }, regexes);
   }
 
-  getHeadingBodyExcerpts(): Segment[] {
-    return linkHeadings(this.fields.texts, this._mrlRegexes);
+  linkHeadingsToContents(...contentFields: string[]): Segment[] {
+    return linkHeadings(this.fields.texts, this._mrlRegexes, contentFields);
   }
 
   getKVFields(...fieldNames: string[]): { [fieldName: string]: string } {

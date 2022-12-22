@@ -79,14 +79,13 @@ export interface UiOptions {
   translations: Translations,
 
   // -----------------------------------------------------
-  // Renderers
-
   // Rendering Results
   listItemRender?: ListItemRender,
   onLinkClick: (ev: MouseEvent) => void,
   searchedTermsParam?: string,
   useBreadcrumb?: boolean,
   maxSubMatches?: number,
+  contentFields: string[],
 }
 
 export type ListItemRender = (

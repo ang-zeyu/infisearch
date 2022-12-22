@@ -14,8 +14,8 @@ const BODY_SERP_BOUND = 40;
 const PREVIEW_LENGTH = 80;
 
 export enum MatchType {
-  HEADING_BODY = 'heading-body',
-  BODY_ONLY = 'body',
+  CONTENT_AND_HEADING = 'heading-content',
+  CONTENT = 'content',
   HEADING_ONLY = 'heading',
 }
 

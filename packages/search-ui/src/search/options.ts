@@ -24,6 +24,7 @@ export function prepareOptions(options: Options) {
     numericFilters: [],
     listItemRender,
     onLinkClick: () => {},
+    contentFields: ['body'],
     ...suppliedUiOpts,
     translations: {
       ...TRANSLATIONS,

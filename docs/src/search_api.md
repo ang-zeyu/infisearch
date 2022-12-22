@@ -180,33 +180,34 @@ Only the first `[fieldName, fieldText]` pair for each field will be populated in
 
 If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-infisearch-link`](./linking_to_others.md) attribute are also available under the `link` field.
 
-### 2. Linking and Highlighting 'heading', 'body' Fields
+### 2. Linking and Highlighting Headings to other Content Fields
 
-To establish the relationship between *heading*, *body* and *headingLink* pairs, you can call the `getHeadingBodyExcerpts` method.
+To establish the relationship between *heading* and *headingLink* pairs to other content fields following them, call `getHeadingsAndContents`.
 
 ```ts
-const bodyHeadingMatchResults: Segment[] = result.getHeadingBodyExcerpts();
+// The parameter is a varargs of field names to consider as content fields
+const headingsAndContents: Segment[] = result.linkHeadingsToContents('body');
 ```
 
-This returns an array of `Segment` objects, each of which represents a continuous chunk of heading or body text. It follows this interface:
+This returns an array of `Segment` objects, each of which represents a continuous chunk of heading or content text. It follows this interface:
 
 ```ts
 interface Segment {
   /**
-   * 'body': body text
+   * 'content': content text without preceding heading
    * 'heading': text from 'heading' fields
-   * 'heading-body': body text with a preceding heading
+   * 'heading-content': content text with a preceding heading
    */
-  type: 'body' | 'heading' | 'heading-body',
+  type: 'content' | 'heading' | 'heading-content',
 
   /**
-   * Only present if type = 'heading-body',
+   * Only present if type = 'heading-content',
    * and points to another Segment of type === 'heading'.
    */
   heading?: Segment,
 
   /**
-   * Only present if type = 'heading' | 'heading-body',
+   * Only present if type = 'heading' | 'heading-content',
    * and points to the heading's id, if any.
    */
   headingLink?: string,

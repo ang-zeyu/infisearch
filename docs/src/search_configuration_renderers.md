@@ -78,7 +78,7 @@ Elements with `role='option'` will also have the `.focus` class applied to them 
 
 **Granularity**
 
-At the current, this API is moderately lengthy, performing things such as limiting the number of sub matches (heading-body pairs) per document, formatting the relative file path of documents into a breadcrumb form, etc.
+At the current, this API is moderately lengthy, performing things such as limiting the number of sub matches (heading-content pairs) per document, formatting the relative file path of documents into a breadcrumb form, etc.
 
 There may be room for breaking this API down further as such, please help to bring up a feature request if you have any suggestions!.
 

@@ -30,6 +30,7 @@ export const listItemRender: ListItemRender = (
     maxSubMatches,
     searchedTermsParam,
     onLinkClick,
+    contentFields,
   } = opts.uiOptions;
 
   // -----------------------------------------------------------
@@ -51,18 +52,18 @@ export const listItemRender: ListItemRender = (
   // -----------------------------------------------------------
 
   // -----------------------------------------------------------
-  // Next, get heading, body excerpts (submatches), and format them.
-  
-  const matchResults = result.getHeadingBodyExcerpts();
+  // Next, link headings to contents (submatches), and format them.
+
+  const matchResults = result.linkHeadingsToContents(...contentFields);
 
   // Limit the number of sub matches
   sortAndLimitResults(matchResults, maxSubMatches);
 
-  const bodies = matchResults.filter(({ type }) => type === 'body').map((res) =>
+  const contents = matchResults.filter(({ type }) => type === 'content').map((res) =>
     res.highlight(),
   );
-  const headings = matchResults.filter(({ type }) => type.startsWith('heading')).map((res) => ({
-    body: res.heading ? res.highlight() : [createEllipses()],
+  const headingsAndContents = matchResults.filter(({ type }) => type.startsWith('heading')).map((res) => ({
+    content: res.heading ? res.highlight() : [createEllipses()],
     heading: res.heading ? res.heading.highlight(false) : res.highlight(),
     href: res.headingLink
       ? `${link}#${res.headingLink}`
@@ -77,8 +78,8 @@ export const listItemRender: ListItemRender = (
   const mainLinkEl = h(
     'a', { class: 'infi-title-link', role: 'option', tabindex: '-1' },
     h('div', { class: 'infi-title' }, title),
-    ...bodies.map((bodyMatches) => h(
-      'div', { class: 'infi-body' }, ...bodyMatches,
+    ...contents.map((contentMatches) => h(
+      'div', { class: 'infi-body' }, ...contentMatches,
     )),
   );
 
@@ -87,7 +88,7 @@ export const listItemRender: ListItemRender = (
     mainLinkEl.onclick = onLinkClick;
   }
 
-  const subOptions = headings.map(({ body, heading, href }) => {
+  const subOptions = headingsAndContents.map(({ content, heading, href }) => {
     const el = h('a',
       {
         class: 'infi-heading-link',
@@ -95,7 +96,7 @@ export const listItemRender: ListItemRender = (
         tabindex: '-1',
       },
       h('div', { class: 'infi-heading' }, ...heading),
-      h('div', { class: 'infi-body' }, ...body));
+      h('div', { class: 'infi-body' }, ...content));
     if (href) {
       el.setAttribute('href', appendSearchedTerms(href, searchedTermsParam, query._mrlTermsFlattened));
       el.onclick = onLinkClick;
