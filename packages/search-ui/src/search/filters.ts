@@ -15,6 +15,7 @@ export interface MultiSelectState {
   readonly _mrlDisplayName: string,
   readonly _mrlEnumNames: string[],
   readonly _mrlIsEnumActive: boolean[],
+  readonly _mrlInitialExpanded: boolean,
 }
 
 export interface NumericFilterState {
@@ -39,7 +40,7 @@ function getFilterSortStates(
   return {
     _mrlMultiSelects: multiSelectFilters
       .filter(({ fieldName }) => fieldInfos.find(({ name }) => fieldName === name))
-      .map(({ fieldName, displayName, defaultOptName }, idx) => {
+      .map(({ fieldName, displayName, defaultOptName, collapsed }, idx) => {
         const fieldInfo = fieldInfos.find(({ name }) => fieldName === name);
         const enumValues = [defaultOptName, ...fieldInfo.enumInfo.enumValues];
         const state = {
@@ -48,6 +49,8 @@ function getFilterSortStates(
           _mrlDisplayName: displayName,
           _mrlEnumNames: enumValues,
           _mrlIsEnumActive: enumValues.map(() => true),
+          // Expand the first header
+          _mrlInitialExpanded: collapsed === undefined ? (idx === 0) : collapsed,
         };
 
         return state;
@@ -180,8 +183,7 @@ function renderMultiSelectFilter(iManager: IManager, state: MultiSelectState) {
     unsetActiveDescendant(filterHeader);
   }
 
-  // Expand the first header
-  let shown = state._mrlIdx === 0;
+  let shown = state._mrlInitialExpanded;
   const showOrHideOptions = () => {
     if (shown) {
       collapseHeader();

@@ -111,7 +111,8 @@ multiSelectFilters: [
   {
     fieldName: 'partTitle',
     displayName: 'Section',
-    defaultOptName: 'None'
+    defaultOptName: 'None',
+    collapsed: true,  // only the first header is initially expanded
   },
 ]
 ```

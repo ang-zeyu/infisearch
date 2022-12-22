@@ -49,7 +49,8 @@ infisearch.init({
       {
         fieldName: 'weatherField', // matching our earlier defined field
         displayName: 'Weather',
-        defaultOptName: 'Probably Sunny!'
+        defaultOptName: 'Probably Sunny!',
+        collapsed: true,  // only the first header is initially expanded
       },
       // You can setup more filters as needed following the above procedures
     ]

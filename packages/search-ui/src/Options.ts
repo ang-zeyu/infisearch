@@ -14,6 +14,7 @@ export interface MultiSelectFilterBinding {
   fieldName: string,
   displayName: string,
   defaultOptName: string,
+  collapsed?: boolean,
 }
 
 export interface NumericFilterBinding {
