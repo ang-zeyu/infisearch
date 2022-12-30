@@ -370,12 +370,14 @@ table.infi-tip-table .infi-tip-item li {
     position: static;
 }
 
-.infi-list::-webkit-scrollbar-track {
+.infi-list::-webkit-scrollbar-track,
+.infi-multi-listbox::-webkit-scrollbar-track {
     border-radius: 5px;
     background: var(--infi-scrollbar-bg);
 }
 
-.infi-list::-webkit-scrollbar {
+.infi-list::-webkit-scrollbar,
+.infi-multi-listbox::-webkit-scrollbar {
     width: 6px;
     background-color: transparent;
 }
@@ -384,7 +386,8 @@ table.infi-tip-table .infi-tip-item li {
     width: 7px;
 }
 
-.infi-list::-webkit-scrollbar-thumb {
+.infi-list::-webkit-scrollbar-thumb,
+.infi-multi-listbox::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background: var(--infi-scrollbar-thumb-bg);
 }
@@ -588,6 +591,12 @@ hr.infi-sep {
 
 .infi-multi-header.active::before {
     transform: rotateZ(180deg);
+}
+
+.infi-multi-listbox {
+    overflow-y: auto;
+    overflow-y: overlay;
+    max-height: 250px;
 }
 
 .infi-multi {

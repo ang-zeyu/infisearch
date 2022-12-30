@@ -4,6 +4,7 @@ import { InfiConfig } from '@infisearch/search-lib/lib/results/Config';
 import { NumericFilterBinding, Options, UiOptions } from '../Options';
 import { IManager } from '../InputManager';
 import { unsetActiveDescendant } from '../utils/aria';
+import { scrollListContainer } from '../utils/scrollListContainer';
 
 const OPTION_ENTER_EV = 'infi-multi-opt-enter';
 
@@ -72,6 +73,7 @@ function renderMultiSelectFilter(iManager: IManager, state: MultiSelectState) {
   const id = 'infi-multi-opts-' + headerIdTieBreaker;
 
   const filterOptions = h('div', {
+    class: 'infi-multi-listbox',
     id,
     role: 'listbox',
     'aria-multiselectable': 'true',
@@ -94,6 +96,7 @@ function renderMultiSelectFilter(iManager: IManager, state: MultiSelectState) {
     if (el) {
       el.classList.add('focus');
       filterHeader.setAttribute('aria-activedescendant', el.getAttribute('id'));
+      scrollListContainer(el, filterOptions);
     } else {
       unsetActiveDescendant(filterHeader);
     }
