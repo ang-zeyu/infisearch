@@ -21,7 +21,7 @@ function getLangConfig(lang) {
 module.exports = {
   entry: {
     'search-ui-ascii': getLangConfig('ascii'),
-    'search-ui-latin': getLangConfig('latin'),
+    'search-ui-ascii_stemmer': getLangConfig('ascii-stemmer'),
     'search-ui-chinese': getLangConfig('chinese'),
     'search-ui-basic': {
       import: path.resolve(__dirname, 'packages/search-ui/src/styles/basic.css'),

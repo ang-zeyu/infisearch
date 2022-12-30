@@ -100,10 +100,10 @@
           function toggleLang() {
             if (window.location.pathname.includes('chinese-lang')) {
               window.location.href = window.location.href.replace(/chinese-lang/, 'ascii-lang');
-            } else if (window.location.pathname.includes('latin-lang')) {
-              window.location.href = window.location.href.replace(/latin-lang/, 'chinese-lang');
+            } else if (window.location.pathname.includes('ascii_stemmer-lang')) {
+              window.location.href = window.location.href.replace(/ascii_stemmer-lang/, 'chinese-lang');
             } else {
-              window.location.href = window.location.href.replace(/ascii-lang/, 'latin-lang');
+              window.location.href = window.location.href.replace(/ascii-lang/, 'ascii_stemmer-lang');
             }
           }
         </script>

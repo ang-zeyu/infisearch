@@ -56,10 +56,16 @@ const testSuite = async (configFile, with_positions, with_filters) => {
 
   await reloadPage(lang);
 
+  const isAsciiStemmer = lang === 'ascii_stemmer';
+
   // ------------------------------------------------------
   // Various basic tests on docid=0
   await typeText('+npm +run +dev +installmdbook');
-  await assertSingle('use the npm run dev script');
+  await assertSingle(
+    isAsciiStemmer
+      ? 'then run npm run devServer1 to'
+      : 'use the npm run dev script',
+  );
 
   if (with_positions) {
     await typeText('+"npm run dev" +(installmdbook 8080)');
@@ -399,8 +405,12 @@ const testSuite = async (configFile, with_positions, with_filters) => {
     'detecting such terms',
     'the change detection',
     'detectedd as per the earlier section',
-    'mobile device detection',
   ];
+  if (!isAsciiStemmer) {
+    // The stemmer version generates 'detect' and 'detectedd',
+    // weighting the other sub result more heavily and discarding this one.
+    expectedPrefixResults.push('mobile device detection');
+  }
   await typeText('detec');
   await assertMultiple(expectedPrefixResults, 2);
 
@@ -427,7 +437,11 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   await assertSingle('lorem ipsum is simply dummy text');
 
   await typePhraseOrAnd('test many json 2', with_positions);
-  await assertSingle('test many json 2');
+  if (isAsciiStemmer) {
+    await assertMultiple(['test many json 2', 'estimate from testing'], 2);
+  } else {
+    await assertSingle('test many json 2');
+  }
   // ------------------------------------------------------
 
   // ------------------------------------------------------
@@ -454,8 +468,14 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   runFullIndex(configFile);
 
   // 1, to be deleted later
+
+  // For AND queries, make it slightly more specific
+  const test404Query = 'This URL is invaldi' + (with_positions ? '' : ' navigation');
+  const testContributionsQuery = 'Contributions of any form' + (with_positions ? '' : ' development');
+  const testContributionsUpdatedQuery = 'Contributions of all forms' + (with_positions ? '' : ' atquejxusd');
+
   await reloadPage(lang);
-  await typePhraseOrAnd('This URL is invaldi', with_positions);
+  await typePhraseOrAnd(test404Query, with_positions);
   await waitNoResults();
 
   fs.copyFileSync(
@@ -465,11 +485,11 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   runIncrementalIndex(configFile);
 
   await reloadPage(lang);
-  await typePhraseOrAnd('This URL is invaldi', with_positions);
+  await typePhraseOrAnd(test404Query, with_positions);
   await assertSingle('this url is invalid');
 
   // 2, to be updated later
-  await typePhraseOrAnd('Contributions of any form', with_positions);
+  await typePhraseOrAnd(testContributionsQuery, with_positions);
   await waitNoResults();
 
   const contributingHtmlOutputPath = path.join(__dirname, 'input/contributing.html');
@@ -480,7 +500,7 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   runIncrementalIndex(configFile);
   
   await reloadPage(lang);
-  await typePhraseOrAnd('Contributions of any form', with_positions);
+  await typePhraseOrAnd(testContributionsQuery, with_positions);
   await assertSingle('contributions of any form');
 
   // ------------------------------------------------------
@@ -494,7 +514,7 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   runIncrementalIndex(configFile);
   
   await reloadPage(lang);
-  await typePhraseOrAnd('This URL is invaldi', with_positions);
+  await typePhraseOrAnd(test404Query, with_positions);
   await waitNoResults();
 
   expectNumDeletedDocs(1);
@@ -504,7 +524,7 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   // ------------------------------------------------------
   // Test incremental indexing update
 
-  await typePhraseOrAnd('Contributions of all forms', with_positions);
+  await typePhraseOrAnd(testContributionsUpdatedQuery, with_positions);
   await waitNoResults();
 
   let contributingHtml = fs.readFileSync(contributingHtmlOutputPath, 'utf-8');
@@ -515,10 +535,10 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   runIncrementalIndex(configFile);
 
   await reloadPage(lang);
-  await typePhraseOrAnd('Contributions of any form', with_positions);
+  await typePhraseOrAnd(testContributionsQuery, with_positions);
   await waitNoResults();
 
-  await typePhraseOrAnd('Contributions of all forms', with_positions);
+  await typePhraseOrAnd(testContributionsUpdatedQuery, with_positions);
   await assertSingle('contributions of all forms');
 
   await typeText('atquejxusd ');
@@ -532,10 +552,10 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   runIncrementalIndex(configFile);
   
   await reloadPage(lang);
-  await typePhraseOrAnd('Contributions of any form', with_positions);
+  await typePhraseOrAnd(testContributionsQuery, with_positions);
   await waitNoResults();
 
-  await typePhraseOrAnd('Contributions of all forms', with_positions);
+  await typePhraseOrAnd(testContributionsUpdatedQuery, with_positions);
   await waitNoResults();
 
   await typeText('atquejxusd');
@@ -678,7 +698,7 @@ const mainTest = async () => {
   outputConfig = readOutputConfig();
   expect(outputConfig.indexingConfig.plNamesToCache).toHaveLength(0);
 
-  // Latin tokenizer
+  // Ascii with stemmer tokenizer
   // No positions
   cleanup();
   console.log('Starting infi_search_4 tests');

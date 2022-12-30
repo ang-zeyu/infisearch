@@ -41,7 +41,7 @@ export function getRegexes(queryParts: QueryPart[], config: InfiConfig) {
       .sort((a, b) => b.length - a.length)
       .join('|');
 
-    if (config.langConfig.lang === 'latin') {
+    if (config.langConfig.lang === 'ascii_stemmer') {
       const nonEndBoundariedRegex = new RegExp(`(^|\\W|_)(${innerTermsJoined})(\\w*?)(?=\\W|$)`, 'gi');
       termRegexes.push(nonEndBoundariedRegex);
     } else {

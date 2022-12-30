@@ -6,7 +6,7 @@
     "fields": {}
   },
   "lang_config": {
-    "lang": "ascii",
+    "lang": "ascii_stemmer",
     "options": {
       "ignore_stop_words": false
     }

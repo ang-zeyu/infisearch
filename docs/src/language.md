@@ -2,13 +2,19 @@
 
 There are 3 language modules available. To configure these, you will need to serve the appropriate [language bundle](./getting_started.md#hosting-the-files) in your HTML (or edit the CDN link accordingly), and edit the indexer configuration file.
 
+```json
+{
+  "lang_config": {
+    // ... options go here ...
+  }
+}
+```
+
 ## Ascii Tokenizer
 
-#### CDN link
+The default tokenizer should work for any language that relies on ASCII characters, or their inflections (e.g. "á").
 
-The default tokenizer splits on sentences, then whitespaces to obtain tokens.
-
-An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to these tokens, followed by punctuation and non-word-character boundary removal.
+The text is first split into on sentences, then whitespaces to obtain tokens. An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/tokenizer/ascii_folding_filter.rs) is then applied to normalize diacritics, followed by punctuation and non-word-character boundary removal.
 
 ```json
 {
@@ -34,13 +40,13 @@ An [asciiFoldingFilter](https://github.com/tantivy-search/tantivy/blob/main/src/
 <script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.1/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 ```
 
-## Latin Tokenizer
+## Ascii Tokenizer with Stemmer
 
 This is essentially the same as the ascii tokenizer, but adds a `stemmer` option.
 
 ```json
 {
-  "lang": "latin",
+  "lang": "ascii_stemmer",
   "options": {
     // ----------------------------------
     // Ascii Tokenizer options also apply
@@ -60,7 +66,7 @@ If you do not need stemming, use the `ascii` tokenizer, which has a smaller wasm
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.1/packages/search-ui/dist/search-ui.latin.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.9.1/packages/search-ui/dist/search-ui.ascii-stemmer.bundle.js"></script>
 ```
 
 ## Chinese Tokenizer

@@ -31,6 +31,6 @@
   "devDependencies": {
     "@infisearch/lang-ascii": "^0.9.1",
     "@infisearch/lang-chinese": "^0.9.1",
-    "@infisearch/lang-latin": "^0.9.1"
+    "@infisearch/lang-ascii-stemmer": "^0.9.1"
   }
 }

@@ -1059,8 +1059,8 @@ dependencies = [
  "include_dir",
  "infisearch_common",
  "infisearch_lang_ascii",
+ "infisearch_lang_ascii_stemmer",
  "infisearch_lang_chinese",
- "infisearch_lang_latin",
  "lazy_static",
  "log",
  "log4rs",
@@ -1101,6 +1101,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "infisearch_lang_ascii_stemmer"
+version = "0.9.1"
+dependencies = [
+ "infisearch_common",
+ "infisearch_lang_ascii",
+ "rust-stemmers",
+ "smartstring",
+]
+
+[[package]]
 name = "infisearch_lang_chinese"
 version = "0.9.1"
 dependencies = [
@@ -1112,16 +1122,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "infisearch_lang_latin"
-version = "0.9.1"
-dependencies = [
- "infisearch_common",
- "infisearch_lang_ascii",
- "rust-stemmers",
- "smartstring",
-]
-
-[[package]]
 name = "infisearch_search"
 version = "0.9.1"
 dependencies = [
@@ -1129,8 +1129,8 @@ dependencies = [
  "byteorder",
  "infisearch_common",
  "infisearch_lang_ascii",
+ "infisearch_lang_ascii_stemmer",
  "infisearch_lang_chinese",
- "infisearch_lang_latin",
  "js-sys",
  "miniserde",
  "pretty_assertions",

@@ -199,7 +199,8 @@ const base_url = '{}';
 const mode = {};
 {}
 </script>",
-        base_url, lang,
+        base_url,
+        lang.replace("_", "-"),
         base_url,
         base_url,
         mode,

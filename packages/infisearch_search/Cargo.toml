@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 [features]
 default = ["lang_ascii"]
 lang_ascii = ["infisearch_lang_ascii"]
-lang_latin = ["infisearch_lang_latin"]
+lang_ascii_stemmer = ["infisearch_lang_ascii_stemmer"]
 lang_chinese = ["infisearch_lang_chinese"]
 perf = ["web-sys"]
 
@@ -20,7 +20,7 @@ byteorder = "1"
 js-sys = "0.3.51"
 infisearch_common = { path = "../infisearch_common", features = [] }
 infisearch_lang_ascii = { path = "../infisearch_languages/infisearch_lang_ascii", optional = true, features = [] }
-infisearch_lang_latin = { path = "../infisearch_languages/infisearch_lang_latin", optional = true, features = [] }
+infisearch_lang_ascii_stemmer = { path = "../infisearch_languages/infisearch_lang_ascii_stemmer", optional = true, features = [] }
 infisearch_lang_chinese = { path = "../infisearch_languages/infisearch_lang_chinese", optional = true, features = [] }
 smartstring = "0.2.7"
 wasm-bindgen = { version = "0.2" }

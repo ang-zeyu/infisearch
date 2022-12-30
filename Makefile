@@ -31,7 +31,7 @@ releaseAsciiLanguage:
 
 # These 2 are separate as the prior needs to be published first
 preReleaseOtherLanguages:
-	cd packages/infisearch_languages/infisearch_lang_latin &&\
+	cd packages/infisearch_languages/infisearch_lang_ascii_stemmer &&\
 	cargo package &&\
 	cargo package --list
 	cd packages/infisearch_languages/infisearch_lang_chinese &&\
@@ -39,7 +39,7 @@ preReleaseOtherLanguages:
 	cargo package --list
 
 releaseOtherLanguages:
-	cd packages/infisearch_languages/infisearch_lang_latin &&\
+	cd packages/infisearch_languages/infisearch_lang_ascii_stemmer &&\
 	cargo publish
 	cd packages/infisearch_languages/infisearch_lang_chinese &&\
 	cargo publish

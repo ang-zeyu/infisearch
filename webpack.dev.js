@@ -72,7 +72,7 @@ module.exports = (env) => merge(common, {
     };
 
     const themes = ['basic', 'light', 'dark'];
-    const languages = ['ascii', 'latin', 'chinese'];
+    const languages = ['ascii', 'ascii_stemmer', 'chinese'];
 
     const plugins = [];
     for (const theme of themes) {

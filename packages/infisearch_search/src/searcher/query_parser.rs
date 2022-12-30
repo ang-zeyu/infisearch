@@ -701,7 +701,7 @@ pub mod test {
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
         let tokenizer = ascii::new_with_options(&InfiLanguageConfig {
-            lang: "latin".to_owned(),
+            lang: "ascii_stemmer".to_owned(),
             options: InfiLanguageConfigOpts::default(),
         });
 

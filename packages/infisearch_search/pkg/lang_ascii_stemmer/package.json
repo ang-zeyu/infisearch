@@ -1,5 +1,5 @@
 {
-  "name": "@infisearch/lang-latin",
+  "name": "@infisearch/lang-ascii-stemmer",
   "collaborators": [
     "Ze Yu <angzeyu@gmail.com>"
   ],

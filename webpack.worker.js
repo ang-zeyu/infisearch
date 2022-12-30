@@ -18,7 +18,7 @@ module.exports = (env) => {
     mode: 'development',
     entry: {
       'search-worker-ascii': getWorkerLangConfig('ascii'),
-      'search-worker-latin': getWorkerLangConfig('latin'),
+      'search-worker-ascii_stemmer': getWorkerLangConfig('ascii-stemmer'),
       'search-worker-chinese': getWorkerLangConfig('chinese'),
     },
     output: {
@@ -51,9 +51,9 @@ module.exports = (env) => {
       }),
       new WasmPackPlugin({
         crateDirectory: path.resolve(__dirname, './packages/infisearch_search'),
-        extraArgs: '-- --no-default-features --features lang_latin' + perfOption
+        extraArgs: '-- --no-default-features --features lang_ascii_stemmer' + perfOption
         + ' -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort',
-        outDir: path.resolve(__dirname, './packages/infisearch_search/pkg/lang_latin'),
+        outDir: path.resolve(__dirname, './packages/infisearch_search/pkg/lang_ascii_stemmer'),
         ...perfMode,
       }),
       new WasmPackPlugin({

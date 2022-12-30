@@ -23,8 +23,8 @@ use crate::utils;
 
 #[cfg(feature = "lang_ascii")]
 use infisearch_lang_ascii::ascii;
-#[cfg(feature = "lang_latin")]
-use infisearch_lang_latin::latin;
+#[cfg(feature = "lang_ascii_stemmer")]
+use infisearch_lang_ascii_stemmer::ascii_stemmer;
 #[cfg(feature = "lang_chinese")]
 use infisearch_lang_chinese::chinese;
 
@@ -80,9 +80,9 @@ fn get_tokenizer(lang_config: &InfiLanguageConfig) -> Box<dyn SearchTokenizer> {
     Box::new(ascii::new_with_options(lang_config))
 }
 
-#[cfg(feature = "lang_latin")]
+#[cfg(feature = "lang_ascii_stemmer")]
 fn get_tokenizer(lang_config: &InfiLanguageConfig) -> Box<dyn SearchTokenizer> {
-    Box::new(latin::new_with_options(lang_config))
+    Box::new(ascii_stemmer::new_with_options(lang_config))
 }
 
 #[cfg(feature = "lang_chinese")]
@@ -441,7 +441,7 @@ pub mod test {
                     with_positions: true,
                 },
                 lang_config: InfiLanguageConfig {
-                    lang: "latin".to_owned(),
+                    lang: "ascii_stemmer".to_owned(),
                     options: InfiLanguageConfigOpts::default(),
                 },
                 field_infos,

@@ -1,5 +1,5 @@
 [package]
-name = "infisearch_lang_latin"
+name = "infisearch_lang_ascii_stemmer"
 version = "0.9.1"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"

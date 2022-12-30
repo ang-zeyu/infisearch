@@ -15,7 +15,7 @@ use infisearch_common::language::InfiLanguageConfig;
 use infisearch_common::METADATA_FILE;
 use infisearch_common::tokenize::IndexerTokenizer;
 use infisearch_lang_ascii::ascii;
-use infisearch_lang_latin::latin;
+use infisearch_lang_ascii_stemmer::ascii_stemmer;
 use infisearch_lang_chinese::chinese;
 
 use crate::dictionary_writer::DictWriter;
@@ -247,7 +247,7 @@ impl Indexer {
     fn resolve_tokenizer(lang_config: &InfiLanguageConfig) -> Arc<dyn IndexerTokenizer + Send + Sync> {
         match lang_config.lang.as_str() {
             "ascii" => Arc::new(ascii::new_with_options(lang_config)),
-            "latin" => Arc::new(latin::new_with_options(lang_config)),
+            "ascii_stemmer" => Arc::new(ascii_stemmer::new_with_options(lang_config)),
             "chinese" => Arc::new(chinese::new_with_options(lang_config)),
             _ => panic!("Unsupported language {}", lang_config.lang),
         }
