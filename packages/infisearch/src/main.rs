@@ -52,6 +52,12 @@ struct CliArgs {
     incremental_content_hash: bool,
     #[structopt(long, hidden = true)]
     perf: bool,
+    #[structopt(
+        long,
+        help = "Logging level for the CLI output. Valid options are \"debug\", \"info\", \"warn\", \"error\"",
+        default_value = "info"
+    )]
+    log_level: String,
 }
 
 fn get_relative_or_absolute_path(from_path: &Path, path: &Path) -> PathBuf {
@@ -91,10 +97,18 @@ fn resolve_folder_paths(
     }
 }
 
-fn initialize_logger() {
+fn initialize_logger(log_level: &str) {
+    let log_level = match log_level {
+      "debug" => LevelFilter::Debug,
+      "info" => LevelFilter::Info,
+      "warn" => LevelFilter::Warn,
+      "error" => LevelFilter::Error,
+      _ => panic!("Invalid --log-level option specified."),
+    };
+
     let log_config = Config::builder()
         .appender(Appender::builder().build("infisearch_stdout", Box::new(ConsoleAppender::builder().build())))
-        .logger(Logger::builder().build("infisearch", LevelFilter::Info))
+        .logger(Logger::builder().build("infisearch", log_level))
         .build(Root::builder().appender("infisearch_stdout").build(LevelFilter::Off))
         .unwrap();
     log4rs::init_config(log_config).expect("log4rs initialisation should not fail");
@@ -121,7 +135,7 @@ fn main() {
         args.config_file_path.as_ref(),
     );
 
-    initialize_logger();
+    initialize_logger(&args.log_level);
 
     i_debug!(
         "Resolved Paths:\n{}\n{}\n{}",
