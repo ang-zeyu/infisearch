@@ -965,8 +965,8 @@ input[type="checkbox"].infi-checkbox:checked::before {
 }
 
 .infi-initialising-text {
-    font-size: 0.9em;
-    color: var(--infi-fine-print-fg);
+    font-size: 0.93em;
+    color: var(--infi-header-fg);
     margin-top: -5px;
     padding-bottom: 15px;
     text-align: center;
