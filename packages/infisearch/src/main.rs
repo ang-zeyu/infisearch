@@ -1,7 +1,9 @@
 use std::env;
 use std::io;
+use std::panic;
 use std::path::Path;
 use std::path::PathBuf;
+use std::process;
 
 use infisearch::SOURCE_CONFIG_FILE;
 use infisearch::indexer::Indexer;
@@ -144,6 +146,14 @@ fn main() {
             None => return,
         }
     };
+
+    let orig_hook = panic::take_hook();
+    panic::set_hook(Box::new(move |panic_info| {
+        // invoke the default handler and exit the process
+        orig_hook(panic_info);
+        error!("Thread panicked");
+        process::exit(1);
+    }));
 
     let mut indexer = Indexer::new(
         &input_folder_path,
