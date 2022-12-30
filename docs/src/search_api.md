@@ -90,7 +90,7 @@ const query: Query = await searcher.runQuery('weather', {
 });
 ```
 
-Sort document results using [numeric fields](./indexer/fields.md#field-storage) instead of using relevance. Results are still tie-broken by their relevance.
+Sort document results using [numeric fields](./indexer/fields.md#field-storage). Results are tie-broken by their relevance.
 
 ```ts
 const query: Query = await searcher.runQuery('weather', {
@@ -107,7 +107,7 @@ Running a query alone probably isn't very useful. You can get a `Result` object 
 const results: Result[] = await query.getNextN(10);
 ```
 
-A `Result` object stores the fields of the indexed document.
+A `Result` object stores the [fields](./indexer/fields.md#field-storage) of the indexed document.
 
 ```ts
 const fields = results[0].fields;
@@ -128,16 +128,16 @@ const fields = results[0].fields;
     reporter: null,
   },
   numbers: {
-    // These are bigints
-    datePosted: 1671336914,
+    datePosted: 1671336914n,
   }
 }
 ```
 
-- `texts`: fields are stored as an array of `[fieldName, fieldText]` pairs in the order they were seen.
+- `texts`: an array of `[fieldName, fieldText]` pairs stored in the order they were seen.
 
    This ordered model is more complex than a regular key-value store, but enables the detailed content hierarchy you see in InfiSearch's UI: *Title > Heading > Text under heading*
-- `enums`: This stores the enum values of the document. Documents missing specific enum values will be assigned `null`.
+- `enums`: stores the enum values of the document. Documents missing enum values are assigned `null`.
+- `numbers`: `u64` fields returned as Javascript [`BigInt`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt) values.
 
 ## Memory Management
 
@@ -155,13 +155,13 @@ Search interfaces usually live for the entire lifetime of the application. If yo
 searcher.free();
 ```
 
-## Convenience Methods
+## UI Convenience Methods
 
 A `Result` object also exposes 2 other convenience functions that may be useful to help deal with the positional format of the `text` type field stores.
 
 ### 1. Retrieving Singular Fields as KV Stores
 
-Certain fields will only occur once in every document (e.g. titles, `<h1>` tags). To retrieve these easily, you can use the `getKVFields` method:
+Certain fields will only occur once in every document (e.g. titles, `<h1>` tags). To retrieve these easily, use the `getKVFields` method:
 
 ```ts
 const kvFields = result.getKVFields('link', '_relative_fp', 'title', 'h1');
@@ -178,18 +178,18 @@ Only the first `[fieldName, fieldText]` pair for each field will be populated in
 
 **Tip: Constructing a Document Link**
 
-If you haven't manually added any links to your source documents, you can use the `_relative_fp` field to construct one, by concatenating it to a base URL for example. Any links added via the [`data-infisearch-link`](./linking_to_others.md) attribute are also available under the `link` field.
+If you haven't manually added links to your source documents, you can use the `_relative_fp` field to construct one by concatenating it to a base URL. Any links added via the [`data-infisearch-link`](./linking_to_others.md) attribute are also available under the `link` field.
 
-### 2. Linking and Highlighting Headings to other Content Fields
+### 2. Associating Headings to other Content Fields and Highlighting 
 
-To establish the relationship between *heading* and *headingLink* pairs to other content fields following them, call `getHeadingsAndContents`.
+To establish the relationship between `heading` and `headingLink` pairs to other content fields following them, call `getHeadingsAndContents`.
 
 ```ts
 // The parameter is a varargs of field names to consider as content fields
 const headingsAndContents: Segment[] = result.linkHeadingsToContents('body');
 ```
 
-This returns an array of `Segment` objects, each of which represents a continuous chunk of heading or content text. It follows this interface:
+This returns an array of `Segment` objects, each of which represents a continuous chunk of heading or content text:
 
 ```ts
 interface Segment {
@@ -219,20 +219,20 @@ interface Segment {
 
 **Sorting and Choosing Segments**
 
-You would likely want to select and display a **few best segments** only. To rank them, you could for example first priortise segments with a greater `numTerms` matched, then tie-break by the `type` of the segment. This is up to your UI!
+This is fully up to your UI. For example, you can first priortise segments with a greater `numTerms`, then tie-break by the `type` of the segment. 
 
 **Text Highlighting**
 
 ```ts
 interface Segment {
-  ...
+  // ... continuation ...
+
   highlightHTML: (addEllipses: boolean = true) => string,
   highlight: (addEllipses: boolean = true) => (string | HTMLElement)[],
 
   text: string,                             // original string
   window: { pos: number, len: number }[],   // Character position and length
 }
-
 ```
 
 There are 3 choices for text highlighting:
@@ -241,7 +241,7 @@ There are 3 choices for text highlighting:
    A single escaped HTML string is then returned for use.
 
 1. `highlight()` does the same but is slightly more efficient, returning a `(string | HTMLElement)[]` array.
-   To use this array safely (strings are unescaped) and conveniently, use the `.append(...output)` [DOM API](https://developer.mozilla.org/en-US/docs/Web/API/Element/append).
+   To use this array safely (strings are unescaped) and conveniently, use the `.append(...seg.highlight())` [DOM API](https://developer.mozilla.org/en-US/docs/Web/API/Element/append).
 
    <details>
    <summary style="cursor: default;">Click to see example output</summary>
@@ -257,4 +257,4 @@ There are 3 choices for text highlighting:
    ```
    </details>
 
-3. Lastly, you could perform text highlighting manually using the original `text` and the closest `window` of term matches.
+3. Lastly, you can perform text highlighting manually using the original `text` and the closest `window` of term matches.

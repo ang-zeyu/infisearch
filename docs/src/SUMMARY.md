@@ -11,7 +11,7 @@
   - [Styling](./search_configuration_styling.md)
 - [Indexer](./indexer_configuration.md)
   - [Fields](./indexer/fields.md)
-  - [Files](./indexer/files.md)
+  - [Data](./indexer/files.md)
   - [Miscellaneous](./indexer/misc.md)
 - [Language](./language.md)
 - [Search API](./search_api.md)
