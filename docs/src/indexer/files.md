@@ -53,6 +53,12 @@ The `HTMLLoader` is the only loader that is configured by default, which is as f
         "field_name": "body"
       },
 
+      "meta[name=\"description\"],meta[name=\"keywords\"]": {
+        "attr_map": {
+          "content": "body"
+        }
+      },
+
       // A convenient means to override the link used in the result preview
       // See "Linking to other pages" for more information
       "span[data-infisearch-link]": {

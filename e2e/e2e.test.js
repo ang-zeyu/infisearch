@@ -101,6 +101,14 @@ const testSuite = async (configFile, with_positions, with_filters) => {
   // ------------------------------------------------------
 
   // ------------------------------------------------------
+  await typeText('testMetaDescription ', with_positions);
+  await assertSingle('testMetaDescription');
+
+  await typeText('testMetaKeywords ', with_positions);
+  await assertSingle('testMetaDescription');
+  // ------------------------------------------------------
+
+  // ------------------------------------------------------
   // Simple phrase query test on another docid
   await typePhraseOrAnd('forenote on mobile device detection', with_positions);
   await assertSingle('forenote on mobile device detection');

@@ -73,6 +73,16 @@ fn get_default_html_loader_selectors() -> FxHashMap<String, Option<HtmlLoaderSel
             })
         ),
         (
+            "meta[name=\"description\"],meta[name=\"keywords\"]".to_owned(),
+            Some(HtmlLoaderSelectorRaw {
+                priority: 0,
+                field_name: None,
+                attr_map: FxHashMap::from_iter(vec![
+                    ("content".to_owned(), "body".to_owned())
+                ]),
+            })
+        ),
+        (
             "h2,h3,h4,h5,h6".to_owned(),
             Some(HtmlLoaderSelectorRaw {
                 priority: 0,
