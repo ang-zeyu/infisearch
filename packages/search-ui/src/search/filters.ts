@@ -245,7 +245,7 @@ function renderMultiSelectFilter(iManager: IManager, state: MultiSelectState) {
 }
 
 function renderNumericFilter(iManager: IManager, state: NumericFilterState) {
-  const { type, displayName, gtePlaceholder, ltePlaceholder } = state._mrlBinding;
+  const { type, displayName, minLabel, maxLabel } = state._mrlBinding;
 
   const onChange = (isGte: boolean) => (ev: Event) => {
     const rawValue = (ev.target as HTMLInputElement).value;
@@ -274,29 +274,36 @@ function renderNumericFilter(iManager: IManager, state: NumericFilterState) {
     if (query) iManager._mrlQueueNewQuery(query);
   };
 
-  const id = `infi-minmax-${tieBreaker++}`;
-  const minInput = h('input', {
-    class: 'infi-minmax',
-    placeholder: gtePlaceholder || '',
-    type,
-    'aria-labelledby': id,
-  });
-  minInput.onchange = onChange(true);
-  const maxInput = h('input', {
-    class: 'infi-minmax',
-    placeholder: ltePlaceholder || '',
-    type,
-    'aria-labelledby': id,
-  });
-  maxInput.onchange = onChange(false);
+  const isDateTime = type.startsWith('date');
+  const minText = minLabel || (isDateTime ? 'After' : 'Min');
+  const maxText = maxLabel || (isDateTime ? 'Before' : 'Max');
+
+  function srOnlyText(text: string) {
+    return h('span', { class: 'infi-sr-only' }, text);
+  }
+
+  function getInput(label: string, isMin: boolean): HTMLElement {
+    const input = h('input', {
+      class: 'infi-minmax',
+      placeholder: label,
+      type,
+    });
+    input.onchange = onChange(isMin);
+
+    return h('label', {},
+      srOnlyText(displayName),
+      isDateTime ? h('span', { class: 'infi-minmax-label' }, label) : srOnlyText(label),
+      input,
+    );
+  }
 
   const el = h(
     'div',
     { class: 'infi-min-max' },
-    h('label', { class: 'infi-filter-header', id }, displayName),
-    minInput,
+    h('div', { class: 'infi-filter-header' }, displayName),
+    getInput(minText, true),
     ' - ',
-    maxInput,
+    getInput(maxText, false),
   );
 
   return el;

@@ -102,7 +102,7 @@ There are also several options specific to each mode. `dropdown` and `fullscreen
 
 #### Setting Up Enum Filters ∀
 
-Enum [fields](./indexer/fields.md#field-storage) you index can be mapped into UI multi-select dropdowns. In this documentation for example (try the search), Mdbook's section titles ("User Guide", "Advanced") are mapped.
+Enum [fields](./indexer/fields.md#field-storage) you index can be mapped into UI multi-select dropdowns. In this documentation for example, Mdbook's section titles "User Guide", "Advanced" are mapped.
 
 Setup bindings under `uiOptions` like so:
 
@@ -132,9 +132,11 @@ numericFilters: [
   {
     fieldName: 'pageViewsField',
     displayName: 'Number of Views',
-    type: 'number', // date, datetime-local is also supported
-    gtePlaceholder: 'Min',
-    ltePlaceholder: 'Max',
+    type: 'number' | 'date' | 'datetime-local',
+    // Text above date, datetime-local filters and placeholder text for number filters
+    // Also announced to screenreaders
+    minLabel: 'Min',
+    maxLabel: 'Max',
   }
 ]
 ```
@@ -143,7 +145,7 @@ numericFilters: [
 
 ```ts
 sortFields: {
-  // Map of the name of your numeric field to UI options
+  // Map of the name of your numeric field to names of UI options
   price: {
     asc: 'Price: Low to High',
     desc: 'Price: High to Low',
@@ -156,7 +158,7 @@ sortFields: {
 Call the `showFullscreen()` and `hideFullscreen()` functions returned by the `infisearch.init` to programatically show/hide the fullscreen search UI.
 
 ```ts
-// These methods can be used under `mode="auto|fullscreen"`
+// These methods can be used under mode="auto|fullscreen"
 const { showFullscreen, hideFullscreen } = infisearch.init({ ... });
 ```
 

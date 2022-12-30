@@ -120,8 +120,8 @@ infisearch.init({
         fieldName: 'pageViewsField',
         displayName: 'Number of Views',
         type: 'number', // date, datetime-local is also supported
-        gtePlaceholder: 'Min',
-        ltePlaceholder: 'Max',
+        minLabel: 'Min',
+        maxLabel: 'Max',
       }
     ]
   }

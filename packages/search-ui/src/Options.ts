@@ -23,8 +23,8 @@ export interface NumericFilterBinding {
   type: 'number' | 'datetime-local' | 'date',
   gte?: number,
   lte?: number,
-  gtePlaceholder?: string,
-  ltePlaceholder?: string,
+  minLabel?: string,
+  maxLabel?: string,
 }
 
 export interface Translations {

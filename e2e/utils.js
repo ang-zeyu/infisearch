@@ -245,8 +245,8 @@ async function setNumericFilter(filterName, min, max) {
   }
 
   const minMaxSelector = '#target-mode-el .infi-sep' + '+.infi-min-max'.repeat(headerIdx + 1);
-  const minSelector = minMaxSelector + ' .infi-filter-header+.infi-minmax';
-  const maxSelector = minMaxSelector + ' .infi-minmax:last-child';
+  const minSelector = minMaxSelector + ' .infi-filter-header+label input.infi-minmax';
+  const maxSelector = minMaxSelector + ' .infi-filter-header+label+label input.infi-minmax';
 
   await page.evaluate((minSel, maxSel, minValue, maxValue) => {
     const minInput = document.querySelector(minSel);

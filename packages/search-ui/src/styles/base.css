@@ -498,7 +498,7 @@ button.infi-filters.active::after {
 .infi-multi-header {
     display: flex;
     align-items: center;
-    padding: 0 5px 1px 0;
+    padding: 1px 5px 1px 0;
     font-weight: 600;
     font-size: 1.01em;
     user-select: none;
@@ -508,7 +508,7 @@ button.infi-filters.active::after {
 
 hr.infi-sep {
     height: 1pt;
-    margin: 10px 0 5px;
+    margin: 7px 0 5px;
     background: var(--infi-key-bg);
     border: none;
     opacity: 0.4;
@@ -521,7 +521,7 @@ hr.infi-sep {
 .infi-sort,
 .infi-minmax {
     padding: 1px 0;
-    margin: 1px 0;
+    margin: 1px 0 4px;
     color: var(--infi-header-fg);
     background: var(--infi-checkbox-bg);
     border: 1px solid var(--infi-checkbox-border);
@@ -536,6 +536,14 @@ hr.infi-sep {
 
 .infi-sort {
     padding: 2px 0;
+}
+
+.infi-minmax-label {
+    display: block;
+    font-size: 0.88em;
+    opacity: 0.9;
+    margin-top: -2px;
+    color: var(--infi-header-fg);
 }
 
 .infi-minmax {
@@ -555,6 +563,7 @@ hr.infi-sep {
 
 .infi-minmax[type^="date"] {
     width: 100px;
+    margin-top: 0;
 }
 
 .infi-multi-header {
@@ -999,6 +1008,10 @@ input[type="checkbox"].infi-checkbox:checked::before {
         padding: 3px;
     }
 
+    .infi-minmax[type^="date"] {
+        width: 80px;
+    }
+
     .infi-multi {
         width: auto;
         padding: 7px 5px 7px 0.5em;
@@ -1030,4 +1043,18 @@ input[type="checkbox"].infi-checkbox:checked::before {
     .infi-footer:last-child {
         margin-bottom: 20px;
     }
+}
+
+.infi-sr-only {
+	border: 0 !important;
+	clip: rect(1px, 1px, 1px, 1px) !important;
+	-webkit-clip-path: inset(50%) !important;
+		clip-path: inset(50%) !important;
+	height: 1px !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	padding: 0 !important;
+	position: absolute !important;
+	width: 1px !important;
+	white-space: nowrap !important;
 }
