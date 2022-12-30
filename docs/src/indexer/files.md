@@ -66,7 +66,8 @@ The `HTMLLoader` is the only loader that is configured by default, which is as f
           "data-infisearch-link": "link"
         }
       }
-    }
+    },
+    "merge_default_selectors": true
   }
 }
 ```
@@ -87,7 +88,7 @@ To **exclude elements** from indexing, use the `exclude_selectors` option, or ad
 
 If needed, you can also index **HTML fragments** that are incomplete documents (for example, documents which are missing the `<head>`). To match the entire fragment, use the `body` selector.
 
-Lastly, if you need to remove a default selector, simply replace its definition with `null`. For example, `"h2,h3,h4,h5,h6": null`.
+Lastly, if you need to remove a default selector, simply replace its definition with `null`. For example, `"h2,h3,h4,h5,h6": null`. Alternatively, specifying `"merge_default_selectors": false` will remove all default selectors.
 
 #### JSON Files: **`loaders.JsonLoader`**
 

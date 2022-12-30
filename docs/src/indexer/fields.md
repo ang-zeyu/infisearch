@@ -45,24 +45,21 @@ You can add your own fields to index for free-text search, create categorical an
 
 The user interface only incorporates the default set of fields in result highlighting however. If you need to incorporate additional fields, for example to display a icon beside each result, you can [alter](../search_configuration_renderers.md#rendering-search-results) the HTML outputs, or use the [search API](../search_api.md).
 
-<details>
+#### Removing Default Fields
 
-<summary>If don't need any of InfiSearch's default fields</summary>
-
-You can also assign a value of `null` to remove it completely as a minor optimization.
+If you are using InfiSearch as a general-purpose client side search tool, you can assign a value of `null` to remove default field definitions completely as a minor optimization.
+Alternatively, `merge_default_fields: false` removes all default field definitions.
 
 ```json
 {
   "fields_config": {
     "fields": {
       "h1": null
-    }
+    },
+    "merge_default_fields": false
   }
 }
 ```
-
-</details>
-
 
 #### Reserved Fields
 

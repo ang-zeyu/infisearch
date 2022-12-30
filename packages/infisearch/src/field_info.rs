@@ -27,6 +27,10 @@ fn get_default_cache_all_field_stores() -> bool {
     true
 }
 
+fn get_default_merge_default_fields() -> bool {
+    true
+}
+
 fn get_default_fields() -> FxHashMap<String, Option<FieldConfig>> {
     FxHashMap::from_iter(vec![
         ("title".to_owned(), Some(FieldConfig {
@@ -71,6 +75,8 @@ pub struct FieldsConfig {
     pub cache_all_field_stores: bool,
     #[serde(default="FxHashMap::default")]
     pub fields: FxHashMap<String, Option<FieldConfig>>,
+    #[serde(default="get_default_merge_default_fields")]
+    pub merge_default_fields: bool,
 }
 
 impl Default for FieldsConfig {
@@ -81,15 +87,18 @@ impl Default for FieldsConfig {
             num_stores_per_dir: get_default_num_field_stores_per_dir(),
             cache_all_field_stores: get_default_cache_all_field_stores(),
             fields: FxHashMap::default(),
+            merge_default_fields: get_default_merge_default_fields(),
         }
     }
 }
 
 impl FieldsConfig {
     pub fn merge_default_fields(&mut self) {
-        let mut fields = get_default_fields();
-        std::mem::swap(&mut fields, &mut self.fields);
-        self.fields.extend(fields)
+        if self.merge_default_fields {
+            let mut fields = get_default_fields();
+            std::mem::swap(&mut fields, &mut self.fields);
+            self.fields.extend(fields)
+        }
     }
 
     pub fn get_field_infos(

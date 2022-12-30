@@ -95,6 +95,10 @@ fn get_default_html_loader_selectors() -> FxHashMap<String, Option<HtmlLoaderSel
     ])
 }
 
+fn get_default_merge_default_selectors() -> bool {
+    true
+}
+
 fn get_default_exclude_selectors() -> Vec<String> {
     vec!["script,style,form,nav,[data-infisearch-ignore]".to_owned()]
 }
@@ -103,6 +107,8 @@ fn get_default_exclude_selectors() -> Vec<String> {
 pub struct HtmlLoaderOptionsRaw {
     #[serde(default)]
     selectors: FxHashMap<String, Option<HtmlLoaderSelectorRaw>>,
+    #[serde(default = "get_default_merge_default_selectors")]
+    merge_default_selectors: bool,
     #[serde(default = "get_default_exclude_selectors")]
     exclude_selectors: Vec<String>,
 }
@@ -131,9 +137,11 @@ impl HtmlLoader {
 
         // --------------------------------------------------------------
         // Merge/update the default selectors
-        let mut selectors = get_default_html_loader_selectors();
-        std::mem::swap(&mut selectors, &mut html_loader_options_raw.selectors);
-        html_loader_options_raw.selectors.extend(selectors);
+        if html_loader_options_raw.merge_default_selectors {
+            let mut selectors = get_default_html_loader_selectors();
+            std::mem::swap(&mut selectors, &mut html_loader_options_raw.selectors);
+            html_loader_options_raw.selectors.extend(selectors);
+        }
         // --------------------------------------------------------------
         
         let mut selectors: Vec<_> = html_loader_options_raw.selectors.iter()
