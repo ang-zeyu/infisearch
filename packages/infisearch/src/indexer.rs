@@ -324,9 +324,7 @@ impl Indexer {
         }
     }
 
-    pub fn finish_writing_docs(mut self) {
-        i_debug!("@finish_writing_docs");
-
+    pub fn finish_writing_docs(mut self) -> u32 {
         let first_block = self.start_block_number;
         let mut last_block = self.block_number();
 
@@ -369,8 +367,12 @@ impl Indexer {
             std::mem::take(&mut self.workers),
         );
 
+        let total_docs = self.doc_id_counter - self.incremental_info.num_deleted_docs;
+
         // Config needs to be written after workers are joined, as it calls Arc::try_unwrap.
         output_config::write_output_config(self, enums_ev_strs);
+
+        total_docs
     }
 
     fn has_docs_added(&self) -> bool {

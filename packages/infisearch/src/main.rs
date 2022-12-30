@@ -138,7 +138,7 @@ fn main() {
     initialize_logger(&args.log_level);
 
     i_debug!(
-        "Resolved Paths:\n{}\n{}\n{}",
+        "Resolved Paths:\n  Input folder: {}\n  Output folder: {}\n  Config file: {}",
         input_folder_path.to_str().unwrap(),
         output_folder_path.to_str().unwrap(),
         config_file_path.to_str().unwrap(),
@@ -179,7 +179,7 @@ fn main() {
         args.perf,
     );
 
-    info!("Indexer initialised");
+    info!("Finding files to index.");
 
     for entry in WalkDir::new(input_folder_path.clone()) {
         match entry {
@@ -199,11 +199,11 @@ fn main() {
         }
     }
 
-    info!("All documents indexed! Merging results...");
+    info!("All documents indexed, merging results.");
 
-    indexer.finish_writing_docs();
+    let total_documents = indexer.finish_writing_docs();
 
     assets::write_infisearch_assets(&output_folder_path.join("assets"));
 
-    info!("Done!");
+    info!("{} documents indexed.", total_documents);
 }
