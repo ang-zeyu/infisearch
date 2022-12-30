@@ -439,7 +439,11 @@ impl Searcher {
                 let doc_info = unsafe { &*doc_info_pointer };
                 let value_a = doc_info.get_num_val(a.doc_id as usize, num_sort);
                 let value_b = doc_info.get_num_val(b.doc_id as usize, num_sort);
-                value_a.cmp(&value_b)
+                if reverse_sort {
+                    value_b.cmp(&value_a)
+                } else {
+                    value_a.cmp(&value_b)
+                }
             } else {
                 Ordering::Equal
             };
@@ -448,11 +452,7 @@ impl Searcher {
                 cmp = unsafe { a.score.partial_cmp(&b.score).unwrap_unchecked() };
             }
 
-            if reverse_sort {
-                cmp.reverse()
-            } else {
-                cmp
-            }
+            cmp
         }))
     }
 }
