@@ -314,7 +314,7 @@ function sortOptionRender(fieldName: string, isAscending: number, label: string)
 }
 
 function sortFieldsRender(iManager: IManager, opts: UiOptions, states: FilterSortStates) {
-  const { sortFields } = opts;
+  const { sortFields, translations } = opts;
   const sortFieldsEntries = Object.entries(sortFields);
   if (!sortFieldsEntries.length) {
     return '';
@@ -348,7 +348,7 @@ function sortFieldsRender(iManager: IManager, opts: UiOptions, states: FilterSor
   };
 
   return h('div', {},
-    h('label', { class: 'infi-filter-header', for: id }, 'Sort by'),
+    h('label', { class: 'infi-filter-header', for: id }, translations.sortBy),
     selectEl,
   );
 }

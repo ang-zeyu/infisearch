@@ -9,6 +9,7 @@ export const TRANSLATIONS = {
   startingUp: '... Starting Up ...',
   error: 'Oops! Something went wrong... 🙁',
   navigation: 'Navigation',
+  sortBy: 'Sort by',
   tipHeader: '🔎 Advanced search tips',
   tip: 'Tip',
   example: 'Example',

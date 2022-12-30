@@ -38,6 +38,7 @@ export interface Translations {
   startSearching: string,
   startingUp: string,
   navigation: string,
+  sortBy: string,
   tipHeader: string,
   tip: string,
   example: string,

@@ -120,6 +120,7 @@ infisearch.init({
 | `startSearching`        | `'Start Searching Above!'`| Text shown when the input is empty.
 | `startingUp`       | `'... Starting Up ...'` | Text shown when InfiSearch is still not ready to perform any queries. The setup occurs extremely quickly, you will hopefully not be able to see this text most of the time.
 | `navigation`       | `'Navigation'` | Navigation controls text.
+| `sortBy`       | `'Sort by'` | Header text for custom [sort orders](./search_configuration.md#setting-up-numeric-filters-and-sort-orders).
 | `tipHeader`       | `'🔎 Advanced search tips'` | Header of the tip popup.
 | `tip`       | `'Tip'` | First column header of the tip popup.
 | `example`       | `'Example'` | Second column header of the tip popup.
