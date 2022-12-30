@@ -9,8 +9,6 @@ pub fn apply_config(config: &mut InfiConfig, json_config: &Value) {
         2,
         false,
         4096000,
-        0,
-        true,
-        false
+        0
     );
 }

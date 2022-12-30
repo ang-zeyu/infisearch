@@ -1,4 +1,4 @@
-use infisearch_common::InfiLanguageConfig;
+use infisearch_common::language::InfiLanguageConfig;
 
 #[cfg(feature = "indexer")]
 use std::collections::HashSet;

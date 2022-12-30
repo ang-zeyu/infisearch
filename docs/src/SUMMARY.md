@@ -15,7 +15,7 @@
   - [Files](./indexer/files.md)
   - [Miscellaneous](./indexer/misc.md)
 - [Search API](./search_api.md)
-  - [Query Syntax](./search_syntax.md)
+- [Query Syntax](./search_syntax.md)
 - [Larger Collections](./larger_collections.md)
 
 # Guides

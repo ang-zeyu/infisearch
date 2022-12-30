@@ -503,7 +503,8 @@ pub fn parse_query(
 pub mod test {
     use std::collections::BTreeMap;
 
-    use infisearch_common::{InfiLanguageConfig, InfiLanguageConfigOpts, dictionary::{Dictionary, TermInfo}};
+    use infisearch_common::language::{InfiLanguageConfig, InfiLanguageConfigOpts};
+    use infisearch_common::dictionary::{Dictionary, TermInfo};
     use pretty_assertions::assert_eq;
 
     use infisearch_lang_ascii::ascii;

@@ -9,7 +9,7 @@
   </head>
   <body>
     <div id="app">
-      <nav class="navbar navbar-expand-lg navbar-dark app-navbar position-fixed" style="background: var(--bg-secondary);">
+      <nav class="navbar navbar-expand-lg navbar-dark app-navbar" style="background: var(--bg-secondary);">
         <div class="d-flex justify-content-end mx-auto">
           <input class="infi-search" id="infi-search" type="search" placeholder="🔎 Search" />
         </div>
@@ -123,7 +123,7 @@
           })();
         </script>
       </div>
-      <div class="infi-root d-flex justify-content-center w-75">
+      <div class="infi-root d-flex flex-column align-items-center justify-content-center w-75">
         <div id="target-mode-el"></div>
       </div>
       <div class="px-5 mt-5 filler-text">
@@ -210,15 +210,15 @@
             fieldName: 'price',
             displayName: 'Price',
             type: 'number',
-            gtePlaceholder: 'Min',
-            ltePlaceholder: 'Max',
+            minLabel: 'Min',
+            maxLabel: 'Max',
           },
           {
             fieldName: 'dateposted',
             displayName: 'Date Posted',
             type: 'datetime-local',
-            gtePlaceholder: 'After',
-            ltePlaceholder: 'Before',
+            minLabel: 'After: ',
+            maxLabel: ' Before: ',
           },
         ],
       }

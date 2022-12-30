@@ -11,8 +11,6 @@ pub fn apply_config(config: &mut InfiConfig, json_config: &Value) {
         100000000,
         true,
         u32::MAX,
-        0,
-        true,
-        false
+        0
     );
 }

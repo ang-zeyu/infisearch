@@ -11,7 +11,7 @@ use crate::ascii_folding_filter;
 use crate::spelling;
 use crate::stop_words::get_stop_words;
 use crate::utils;
-use infisearch_common::InfiLanguageConfig;
+use infisearch_common::language::InfiLanguageConfig;
 #[cfg(feature = "indexer")]
 use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
 use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};

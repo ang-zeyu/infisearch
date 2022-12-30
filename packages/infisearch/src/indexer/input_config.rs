@@ -5,7 +5,7 @@ mod preset_large;
 
 use std::path::Path;
 
-use infisearch_common::InfiLanguageConfig;
+use infisearch_common::language::InfiLanguageConfig;
 
 use crate::{field_info::FieldsConfig, SOURCE_CONFIG_FILE};
 use crate::loader::LoaderBoxed;

@@ -1,4 +1,5 @@
-use infisearch_common::{MetadataReader, EnumMax, utils::push};
+use infisearch_common::metadata::{MetadataReader, EnumMax};
+use infisearch_common::utils::push;
 
 pub struct DocInfo {
     pub doc_length_factors: Vec<f64>,

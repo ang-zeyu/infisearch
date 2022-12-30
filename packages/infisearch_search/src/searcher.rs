@@ -7,9 +7,8 @@ mod futures;
 
 use byteorder::ByteOrder;
 use byteorder::LittleEndian;
-use infisearch_common::EnumMax;
-use infisearch_common::MetadataReader;
-use infisearch_common::InfiLanguageConfigOpts;
+use infisearch_common::metadata::{EnumMax, MetadataReader};
+use infisearch_common::language::InfiLanguageConfigOpts;
 
 use infisearch_common::utils::push;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -30,7 +29,7 @@ use infisearch_lang_latin::latin;
 use infisearch_lang_chinese::chinese;
 
 use infisearch_common::tokenize::SearchTokenizer;
-use infisearch_common::InfiLanguageConfig;
+use infisearch_common::language::InfiLanguageConfig;
 
 struct SearcherConfig {
     indexing_config: IndexingConfig,
@@ -397,7 +396,7 @@ pub async fn get_query(searcher: *mut Searcher, params_raw: JsValue) -> Result<q
 pub mod test {
     use std::collections::BTreeMap;
 
-    use infisearch_common::{InfiLanguageConfig, InfiLanguageConfigOpts};
+    use infisearch_common::language::{InfiLanguageConfig, InfiLanguageConfigOpts};
     use infisearch_lang_ascii::ascii;
 
     use super::{FieldInfo, IndexingConfig, Searcher, SearcherConfig, SearcherOptions};

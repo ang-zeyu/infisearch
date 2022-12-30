@@ -10,7 +10,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use infisearch_common::dictionary::Dictionary;
-use infisearch_common::{bitmap, MetadataReader, METADATA_FILE};
+use infisearch_common::{bitmap, METADATA_FILE};
+use infisearch_common::metadata::MetadataReader;
 
 use crate::indexer::output_config::InfiOutputConfig;
 use crate::utils::fs_utils;

@@ -11,8 +11,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::{Instant, UNIX_EPOCH, SystemTime};
 
+use infisearch_common::language::InfiLanguageConfig;
+use infisearch_common::METADATA_FILE;
 use infisearch_common::tokenize::IndexerTokenizer;
-use infisearch_common::{InfiLanguageConfig, METADATA_FILE};
 use infisearch_lang_ascii::ascii;
 use infisearch_lang_latin::latin;
 use infisearch_lang_chinese::chinese;

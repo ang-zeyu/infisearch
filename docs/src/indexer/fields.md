@@ -67,7 +67,7 @@ Reserved fields are prefixed with an underscore `_`, and are hardcoded into the 
 
 - **_relative_fp**: the relative path from your source folder to the file.
 
-- **_add_files**: This field allows you to **index/combine multiple files** as **a single document**, which can be useful for overriding or extending data.
+- **_add_files**: This field allows you to **index multiple files** as **a single document**, which can be useful for overriding or extending data.
   See this [section](./misc.md#indexing-multiple-files-under-one-document) under indexing for more details.
 
 ## Field Scoring
@@ -90,9 +90,9 @@ Specifying `0.0` will also result in the field not being indexed into InfiSearch
 
 `k=1.2` & `b=0.75`
 
-These are Okapi BM25 model parameters that control the impact of term frequency and document lengths. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these, if needed.
+These are scoring parameters that control the impact of term frequency and document lengths. The following [article](https://www.elastic.co/guide/en/elasticsearch/guide/current/pluggable-similarites.html#bm25-tunability) provides a good overview on how to configure these, if needed.
 
-All fields except titles (`b=0.15`) and headings (`b=0.25`) use the above stated default parameters.
+All default fields except titles and headings use the above default parameters.
 
 ## Field Storage
 

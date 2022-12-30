@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use infisearch_common::InfiLanguageConfig;
+use infisearch_common::language::InfiLanguageConfig;
 
 use crate::{INFISEARCH_VER, OUTPUT_CONFIG_FILE};
 use crate::field_info::{FieldInfoOutput, EnumInfo};

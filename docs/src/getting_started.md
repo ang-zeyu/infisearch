@@ -1,5 +1,12 @@
 # Getting Started
 
+<script>
+if (localStorage.getItem('mdbook-theme') === 'infi-theme' || localStorage.getItem('mdbook-theme') === 'morsels-theme') {
+   localStorage.removeItem('mdbook-theme');
+   location.reload();
+}
+</script>
+
 This page assumes the use case of a **static site**, that is:
 - You have some HTML files you want to index.
 - These HTML files are served in a static file server, and are linkable to.

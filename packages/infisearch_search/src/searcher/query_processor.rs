@@ -5,8 +5,9 @@ use std::cmp::Ordering;
 use std::rc::Rc;
 
 use binary_heap_plus::BinaryHeap;
+use infisearch_common::bitmap;
+use infisearch_common::metadata::EnumMax;
 use infisearch_common::utils::push;
-use infisearch_common::{bitmap, EnumMax};
 
 use crate::doc_info::DocInfo;
 use crate::postings_list::{self, Field, PlIterator, PostingsList, Doc, PlAndInfo};

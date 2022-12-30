@@ -4,7 +4,10 @@ use std::collections::HashSet;
 
 use rust_stemmers::{Algorithm, Stemmer};
 
-use infisearch_common::{InfiLanguageConfig, dictionary::Dictionary, tokenize::SearchTokenizeTerm, utils::split_incl::SplitIncl};
+use infisearch_common::dictionary::Dictionary;
+use infisearch_common::language::InfiLanguageConfig;
+use infisearch_common::tokenize::SearchTokenizeTerm;
+use infisearch_common::utils::split_incl::SplitIncl;
 #[cfg(feature = "indexer")]
 use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
 use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer};

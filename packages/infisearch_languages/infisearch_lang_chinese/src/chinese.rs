@@ -8,7 +8,7 @@ use regex::Regex;
 #[cfg(feature = "indexer")]
 use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
 use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, SearchTokenizeTerm};
-use infisearch_common::InfiLanguageConfig;
+use infisearch_common::language::InfiLanguageConfig;
 use infisearch_common::dictionary::Dictionary;
 use infisearch_common::utils::split_incl::SplitIncl;
 use infisearch_lang_ascii::{ascii_folding_filter, spelling};
@@ -207,7 +207,7 @@ impl SearchTokenizer for Tokenizer {
 
 #[cfg(test)]
 mod test {
-    use infisearch_common::{InfiLanguageConfig, InfiLanguageConfigOpts};
+    use infisearch_common::language::{InfiLanguageConfig, InfiLanguageConfigOpts};
 
     use super::Tokenizer;
     use super::IndexerTokenizer;

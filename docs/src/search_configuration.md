@@ -212,14 +212,16 @@ infisearch.init({
 
         // ---------------------------------------------------------------
         // Caching Options
+
         // Whether to cache **all** the texts storage=[{ "type": "text" }] fields on initialisation,
         // to avoid making network requests when generating result previews.
         // See the chapter on Fields for more information.
         cacheAllFieldStores: undefined,
 
-        // Any index file >= this size requested before will be persistently cached
-        // This option does not affect field stores.
+        // Any index chunk larger than this number of bytes
+        // will be persistently cached once requested.
         plLazyCacheThreshold: 0,
+
         // ---------------------------------------------------------------
     },
 });
