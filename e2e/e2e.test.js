@@ -133,13 +133,17 @@ const testSuite = async (configFile, with_positions, with_filters) => {
     */
 
     for (const introductionMood of ['delightful', 'ecstatic', 'None']) {
-      await selectFilters({ Weather: [] });
-      await typeText('~returnalldocs');
-      await waitNoResults();
+      await selectFilters({ Weather: ['None'] });
+      await typeText('enumteststring ');
+      await assertMultiple(['enumtestvalidationstringfour', 'enumtestvalidationstringfive'], 2);
 
-      await selectFilters({ Mood: [] });
-      await typeText('~returnalldocs');
-      await waitNoResults();
+      await selectFilters({ Mood: ['delightful'] });
+      await typeText('enumteststring ');
+      if (introductionMood === 'delightful') {
+        await assertMultiple(['enumtestvalidationstringone', 'enumtestvalidationstringfive'], 2);
+      } else {
+        await assertSingle('enumtestvalidationstringone');
+      }
 
       await selectFilters({ Weather: ['gloomy'] });
       await typeText('~returnalldocs');
@@ -149,11 +153,11 @@ const testSuite = async (configFile, with_positions, with_filters) => {
       await typeText('enumteststring ');
       await assertMultiple(['enumtestvalidationstringone', 'enumtestvalidationstringthree'], 2); 
   
-      await selectFilters({ Weather: ['sunny'], Mood: [] });
+      await selectFilters({ Weather: ['sunny'], Mood: ['sad'] });
       await typeText('enumteststring ');
       await waitNoResults();
   
-      await selectFilters({ Weather: [], Mood: ['None'] });
+      await selectFilters({ Weather: ['gloomy'], Mood: ['None'] });
       await typeText('enumteststring ');
       await waitNoResults();
   

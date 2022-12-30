@@ -48,7 +48,7 @@ function getFilterSortStates(
           _mrlFieldName: fieldName,
           _mrlDisplayName: displayName,
           _mrlEnumNames: enumValues,
-          _mrlIsEnumActive: enumValues.map(() => true),
+          _mrlIsEnumActive: enumValues.map(() => false),
           // Expand the first header
           _mrlInitialExpanded: collapsed === undefined ? (idx === 0) : collapsed,
         };
@@ -119,9 +119,8 @@ function renderMultiSelectFilter(iManager: IManager, state: MultiSelectState) {
     const input = h('input', {
       type: 'checkbox',
       class: 'infi-checkbox',
-      checked: 'true',
       role: 'option',
-      'aria-selected': 'true',
+      'aria-selected': 'false',
       id: `infi-multi-opt-${headerIdTieBreaker}-${idx}`,
     }) as HTMLInputElement;
   

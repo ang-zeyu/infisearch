@@ -181,25 +181,26 @@ export class IManager {
     const filterStates = that._mrlFiltersStates;
 
     const enumFilters = Object.create(null);
-    filterStates?._mrlMultiSelects.forEach((state) => {
-      if (state._mrlIsEnumActive.every((a) => a)) {
+    filterStates._mrlMultiSelects.forEach((state) => {
+      const isEnumOptsActive = state._mrlIsEnumActive;
+      if (isEnumOptsActive.every((a) => a) || isEnumOptsActive.every((a) => !a)) {
         // If all boxes are ticked, don't even add the filter
+        // If all boxes are unticked, assume the user meant to tick all boxes
         return;
       }
 
-      // null is the default, unspecified enum value for documents
       const filters: (string | null)[] = [];
       enumFilters[state._mrlFieldName] = filters;
-      if (state._mrlIsEnumActive[0]) filters.push(null);
+      if (isEnumOptsActive[0]) filters.push(null);  // [0], null represents the default enum value
       filters.push(
-        ...state._mrlEnumNames.filter((_, idx) => idx > 0 && state._mrlIsEnumActive[idx]),
+        ...state._mrlEnumNames.filter((_, idx) => idx > 0 && isEnumOptsActive[idx]),
       );
     });
 
     const i64Filters: {
       [fieldName: string]: { gte?: number | bigint, lte?: number | bigint }
     } = Object.create(null);
-    filterStates?._mrlNumericFilters.forEach((state) => {
+    filterStates._mrlNumericFilters.forEach((state) => {
       const hasGte = state._mrlGte !== undefined;
       const hasLte = state._mrlLte !== undefined;
       if (!hasGte && !hasLte) {
