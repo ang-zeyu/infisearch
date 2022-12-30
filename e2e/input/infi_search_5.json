@@ -39,17 +39,9 @@
           "body": "body",
           "heading": "heading",
           "title": "title"
-        },
-        "field_order": [
-          "title",
-          "heading",
-          "body"
-        ],
-        "type": "JsonLoader"
+        }
       },
       "CsvLoader": {
-        "header_field_map": {},
-        "header_field_order": [],
         "index_field_map": {
           "0": "title",
           "1": "body",
@@ -67,9 +59,7 @@
           "escape": null,
           "has_headers": true,
           "quote": 34
-        },
-        "type": "CsvLoader",
-        "use_headers": false
+        }
       },
       "PdfLoader": {}
     }

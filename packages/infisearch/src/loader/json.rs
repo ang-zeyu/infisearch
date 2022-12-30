@@ -33,6 +33,14 @@ impl JsonLoader {
         let mut json_loader_options: JsonLoaderOptions =
             serde_json::from_value(config).expect("JsonLoader options did not match schema!");
 
+        if json_loader_options.field_order.is_empty() {
+            let arbitrary_field_order: Vec<String> = json_loader_options.field_map
+                .keys()
+                .map(String::to_owned)
+                .collect();
+            json_loader_options.field_order = arbitrary_field_order;
+        }
+
         json_loader_options.field_order.push(ADD_FILES_FIELD.to_owned());
         json_loader_options.field_map.insert(ADD_FILES_FIELD.to_owned(), ADD_FILES_FIELD.to_owned());
 

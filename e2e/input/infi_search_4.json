@@ -52,22 +52,14 @@
           "title",
           "heading",
           "body"
-        ],
-        "type": "JsonLoader"
+        ]
       },
       "CsvLoader": {
-        "header_field_map": {},
-        "header_field_order": [],
         "index_field_map": {
           "0": "title",
           "1": "body",
           "2": "_add_files"
         },
-        "index_field_order": [
-          0,
-          1,
-          2
-        ],
         "parse_options": {
           "comment": null,
           "delimiter": 44,
@@ -75,9 +67,7 @@
           "escape": null,
           "has_headers": true,
           "quote": 34
-        },
-        "type": "CsvLoader",
-        "use_headers": false
+        }
       },
       "PdfLoader": {}
     },

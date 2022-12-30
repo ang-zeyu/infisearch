@@ -56,8 +56,6 @@ impl Default for CsvLoaderParseOptions {
 pub struct CsvLoaderOptions {
     #[serde(default = "CsvLoaderParseOptions::default")]
     parse_options: CsvLoaderParseOptions,
-    #[serde(default)]
-    use_headers: bool,
     #[serde(default = "FxHashMap::default")]
     index_field_map: FxHashMap<usize, String>,
     #[serde(default = "Vec::new")]
@@ -69,6 +67,8 @@ pub struct CsvLoaderOptions {
 }
 
 pub struct CsvLoader {
+    use_headers: bool,
+
     options: CsvLoaderOptions,
 
     reader_builder: ReaderBuilder,
@@ -76,8 +76,34 @@ pub struct CsvLoader {
 
 impl CsvLoader {
     pub fn get_new_csv_loader(config: serde_json::Value) -> Box<Self> {
-        let csv_loader_options: CsvLoaderOptions =
+        let mut csv_loader_options: CsvLoaderOptions =
             serde_json::from_value(config).expect("CsvLoader options did not match schema!");
+
+        let use_headers = if !csv_loader_options.header_field_map.is_empty()
+            && csv_loader_options.index_field_map.is_empty()
+        {
+            true
+        } else if !csv_loader_options.index_field_map.is_empty()
+            && csv_loader_options.header_field_map.is_empty()
+        {
+            false
+        } else {
+            panic!("One of CsvLoader header_field_map and index_field_map must be specified.");
+        };
+
+        if use_headers {
+            let arbitrary_field_order: Vec<String> = csv_loader_options.header_field_map
+                .keys()
+                .map(String::to_owned)
+                .collect();
+            csv_loader_options.header_field_order = arbitrary_field_order;
+        } else {
+            let arbitrary_field_order: Vec<usize> = csv_loader_options.index_field_map
+                .keys()
+                .map(|i| *i)
+                .collect();
+            csv_loader_options.index_field_order = arbitrary_field_order;
+        }
 
         let csv_loader_parse_opts = &csv_loader_options.parse_options;
         let mut reader_builder = ReaderBuilder::new();
@@ -89,9 +115,10 @@ impl CsvLoader {
             .escape(csv_loader_parse_opts.escape)
             .comment(csv_loader_parse_opts.comment);
 
-        Box::new(CsvLoader { options: csv_loader_options, reader_builder })
+        Box::new(CsvLoader { use_headers, options: csv_loader_options, reader_builder })
     }
 
+    // Uses indexes
     fn unwrap_csv_read_result(
         &self,
         read_result: Result<csv::StringRecord, csv::Error>,
@@ -116,6 +143,7 @@ impl CsvLoader {
         Box::new(BasicLoaderResult { field_texts, absolute_path }) as Box<dyn LoaderResult + Send>
     }
 
+    // Uses headers
     fn unwrap_csv_deserialize_result(
         &self,
         read_result: FxHashMap<String, String>,
@@ -148,7 +176,7 @@ impl Loader for CsvLoader {
     ) -> Option<LoaderResultIterator<'a>> {
         if let Some(extension) = relative_path.extension() {
             if extension == "csv" {
-                let num_fields = if self.options.use_headers {
+                let num_fields = if self.use_headers {
                     self.options.header_field_map.len()
                 } else {
                     self.options.index_field_map.len()
@@ -156,7 +184,7 @@ impl Loader for CsvLoader {
 
                 let absolute_path_as_buf = PathBuf::from(absolute_path);
 
-                return Some(if self.options.use_headers {
+                return Some(if self.use_headers {
                     Box::new(
                         self.reader_builder.from_path(absolute_path)
                             .unwrap_or_else(|_| panic!("Failed to read csv {}", relative_path.as_os_str().to_string_lossy()))

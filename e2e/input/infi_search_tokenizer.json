@@ -79,8 +79,7 @@
           "title",
           "heading",
           "body"
-        ],
-        "type": "JsonLoader"
+        ]
       },
       "CsvLoader": {
         "header_field_map": {},

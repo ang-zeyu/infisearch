@@ -67,8 +67,7 @@
           "title",
           "heading",
           "body"
-        ],
-        "type": "JsonLoader"
+        ]
       },
       "CsvLoader": {
         "header_field_map": {},
@@ -90,9 +89,7 @@
           "escape": null,
           "has_headers": true,
           "quote": 34
-        },
-        "type": "CsvLoader",
-        "use_headers": false
+        }
       },
       "PdfLoader": {}
     },

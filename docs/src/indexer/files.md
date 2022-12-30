@@ -100,7 +100,7 @@ Lastly, if you need to remove a default selector, simply replace its definition 
       "book_link": "link",
       "chapter_title": "title"
     },
-    // Order in which to index the keys of the json {} document
+    // Optional, order in which to index the keys of the json {} document
     "field_order": [
       "book_link",
       "chapter_title",
@@ -125,9 +125,8 @@ The JSON file can be either:
   "CsvLoader": {
     // ---------------------
     // Map data using CSV headers
-    "use_headers": false,
     "header_field_map": {},
-    "header_field_order": [],
+    "header_field_order": [],            // Optional, order to index the columns
     // ---------------------
     // Or with header indices
     "index_field_map": {
@@ -136,7 +135,7 @@ The JSON file can be either:
       "2": "body",
       "4": "heading"
     },
-    "index_field_order": [1, 4, 2, 0],
+    "index_field_order": [1, 4, 2, 0],   // Optional, order to index the columns
     // ---------------------
     // Options for csv parsing, from the Rust "csv" crate
     "parse_options": {
@@ -151,9 +150,9 @@ The JSON file can be either:
 }
 ```
 
-Field mappings for CSV files can be configured using one of the `field_map / field_order` key pairs. The `use_headers` parameter specifies which of the two pairs of settings to use.
+Field mappings for CSV files can be configured using one of the `field_map` keys. The `field_order` arrays controls the order columns are indexed.
 
-The `parse_options` key specifies options for parsing the csv file. In particular, note that the `has_headers` key is distinct from and does not influence the `use_headers` parameter.
+The `parse_options` key specifies options for parsing the csv file.
 
 #### PDF Files: **`loaders.PdfLoader`**
 
