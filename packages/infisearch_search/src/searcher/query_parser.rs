@@ -259,7 +259,7 @@ fn is_double_quote(c: char) -> bool {
 #[allow(clippy::too_many_arguments)]
 #[inline(never)]
 fn handle_terminator(
-    tokenizer: &dyn SearchTokenizer,
+    tokenizer: &mut dyn SearchTokenizer,
     query_chars: &[char],
     i: usize,
     j: usize,
@@ -313,7 +313,7 @@ fn handle_terminator(
 
 pub fn parse_query(
     query: String,
-    tokenizer: &dyn SearchTokenizer,
+    tokenizer: &mut dyn SearchTokenizer,
     valid_fields: &Vec<String>,
     with_positions: bool,
     dict: &Dictionary,
@@ -685,14 +685,14 @@ pub mod test {
     }
 
     pub fn parse(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(&InfiLanguageConfig {
+        let mut tokenizer = ascii::new_with_options(&InfiLanguageConfig {
             lang: "ascii".to_owned(),
             options: InfiLanguageConfigOpts::default(),
         });
 
         super::parse_query(
             query.to_owned(),
-            &tokenizer,
+            &mut tokenizer,
             &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
             true,
             &get_dictionary(),
@@ -700,14 +700,14 @@ pub mod test {
     }
 
     pub fn parse_wo_pos(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(&InfiLanguageConfig {
+        let mut tokenizer = ascii::new_with_options(&InfiLanguageConfig {
             lang: "ascii_stemmer".to_owned(),
             options: InfiLanguageConfigOpts::default(),
         });
 
         super::parse_query(
             query.to_owned(),
-            &tokenizer,
+            &mut tokenizer,
             &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
             false,
             &get_dictionary(),
@@ -715,14 +715,14 @@ pub mod test {
     }
 
     pub fn parse_zn(query: &str) -> Vec<QueryPart> {
-        let tokenizer = chinese::new_with_options(&InfiLanguageConfig {
+        let mut tokenizer = chinese::new_with_options(&InfiLanguageConfig {
             lang: "chinese".to_owned(),
             options: InfiLanguageConfigOpts::default(),
         });
 
         super::parse_query(
             query.to_owned(),
-            &tokenizer,
+            &mut tokenizer,
             &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
             false,
             &get_dictionary(),
@@ -731,7 +731,7 @@ pub mod test {
 
     // The tokenizer will remove stop words if they are not even indexed
     pub fn parse_with_sw_removal(query: &str) -> Vec<QueryPart> {
-        let tokenizer = ascii::new_with_options(&InfiLanguageConfig {
+        let mut tokenizer = ascii::new_with_options(&InfiLanguageConfig {
             lang: "ascii".to_owned(),
             options: InfiLanguageConfigOpts {
                 stop_words: None,
@@ -743,7 +743,7 @@ pub mod test {
 
         super::parse_query(
             query.to_owned(),
-            &tokenizer,
+            &mut tokenizer,
             &vec!["title".to_owned(), "body".to_owned(), "heading".to_owned()],
             true,
             &get_dictionary(),

@@ -360,7 +360,7 @@ pub async fn get_query(searcher: *mut Searcher, params_raw: JsValue) -> Result<q
     let searcher_val = unsafe { &mut *searcher };
     let mut query_parts = query_parser::parse_query(
         query_string,
-        &*searcher_val.tokenizer,
+        &mut *searcher_val.tokenizer,
         &searcher_val.searcher_config.valid_fields,
         searcher_val.searcher_config.indexing_config.with_positions,
         &searcher_val.dictionary,

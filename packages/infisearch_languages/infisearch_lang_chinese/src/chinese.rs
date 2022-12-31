@@ -11,7 +11,8 @@ use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer, S
 use infisearch_common::language::InfiLanguageConfig;
 use infisearch_common::dictionary::Dictionary;
 use infisearch_common::utils::split_incl::SplitIncl;
-use infisearch_lang_ascii::{ascii_folding_filter, spelling};
+use infisearch_lang_ascii::ascii_folding_filter;
+use infisearch_lang_ascii::spelling::BestTermCorrector;
 use infisearch_lang_ascii::stop_words::get_stop_words;
 
 use crate::{utils, ts};
@@ -36,6 +37,8 @@ pub struct Tokenizer {
     // Just needs to be filtered during indexing
     #[cfg(feature = "indexer")]
     max_term_len: usize,
+
+    best_term_corrector: BestTermCorrector,
 }
 
 pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
@@ -53,6 +56,7 @@ pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         #[cfg(feature = "indexer")]
         max_term_len,
+        best_term_corrector: BestTermCorrector::new(),
     }
 }
 
@@ -112,7 +116,7 @@ fn ascii_and_nonword_filter<'a>(term_inflections: &mut Vec<String>, term_slice: 
 
 impl SearchTokenizer for Tokenizer {
     fn search_tokenize(
-        &self,
+        &mut self,
         query_chars: &[char],
         query_chars_offset: usize,
         query_chars_offset_end: usize,
@@ -167,7 +171,7 @@ impl SearchTokenizer for Tokenizer {
             let term = if dict.get_term_info(&preprocessed).is_none() {
                 if suffix_wildcard || preprocessed.chars().any(utils::is_chinese_char) {
                     None
-                } else if let Some(corrected_term) = spelling::get_best_corrected_term(dict, &preprocessed) {
+                } else if let Some(corrected_term) = self.best_term_corrector.get_best_corrected_term(dict, &preprocessed) {
                     term_inflections.push(corrected_term.clone());
                     is_corrected = true;
                     Some(corrected_term)
@@ -208,6 +212,7 @@ impl SearchTokenizer for Tokenizer {
 #[cfg(test)]
 mod test {
     use infisearch_common::language::{InfiLanguageConfig, InfiLanguageConfigOpts};
+    use infisearch_lang_ascii::spelling::BestTermCorrector;
 
     use super::Tokenizer;
     use super::IndexerTokenizer;
@@ -226,6 +231,7 @@ mod test {
             stop_words,
             ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
             max_term_len,
+            best_term_corrector: BestTermCorrector::new(),
         }
     }
 

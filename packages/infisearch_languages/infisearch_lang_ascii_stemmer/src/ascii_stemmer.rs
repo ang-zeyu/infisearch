@@ -13,7 +13,7 @@ use infisearch_common::tokenize::{IndexerTokenizer, TermIter};
 use infisearch_common::tokenize::{self, SearchTokenizeResult, SearchTokenizer};
 #[cfg(feature = "indexer")]
 use infisearch_lang_ascii::ascii_folding_filter;
-use infisearch_lang_ascii::{utils as ascii_utils, spelling};
+use infisearch_lang_ascii::{utils as ascii_utils, spelling::BestTermCorrector};
 #[cfg(feature = "indexer")]
 use infisearch_lang_ascii::ascii::SENTENCE_SPLITTER;
 use infisearch_lang_ascii::stop_words::get_stop_words;
@@ -34,6 +34,8 @@ pub struct Tokenizer {
     // Just needs to be filtered during indexing
     #[cfg(feature = "indexer")]
     max_term_len: usize,
+
+    best_term_corrector: BestTermCorrector,
 }
 
 pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
@@ -79,6 +81,7 @@ pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
         stemmer,
         #[cfg(feature = "indexer")]
         max_term_len,
+        best_term_corrector: BestTermCorrector::new(),
     }
 }
 
@@ -112,7 +115,7 @@ impl IndexerTokenizer for Tokenizer {
 
 impl SearchTokenizer for Tokenizer {
     fn search_tokenize(
-        &self,
+        &mut self,
         query_chars: &[char],
         query_chars_offset: usize,
         query_chars_offset_end: usize,
@@ -174,7 +177,7 @@ impl SearchTokenizer for Tokenizer {
             let term = if dict.get_term_info(&stemmed).is_none() {
                 if suffix_wildcard {
                     None
-                } else if let Some(corrected_term) = spelling::get_best_corrected_term(dict, &stemmed) {
+                } else if let Some(corrected_term) = self.best_term_corrector.get_best_corrected_term(dict, &stemmed) {
                     term_inflections.push(corrected_term.clone());
                     is_corrected = true;
                     Some(corrected_term)

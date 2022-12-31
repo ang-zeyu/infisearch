@@ -12,7 +12,7 @@ pub trait IndexerTokenizer {
 
 pub trait SearchTokenizer {
     fn search_tokenize(
-        &self,
+        &mut self,
         query_chars: &[char],
         query_chars_offset: usize,
         query_chars_offset_end: usize,

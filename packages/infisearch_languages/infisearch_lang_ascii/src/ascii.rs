@@ -8,7 +8,7 @@ use regex::Regex;
 
 #[cfg(feature = "indexer")]
 use crate::ascii_folding_filter;
-use crate::spelling;
+use crate::spelling::BestTermCorrector;
 use crate::stop_words::get_stop_words;
 use crate::utils;
 use infisearch_common::language::InfiLanguageConfig;
@@ -33,6 +33,8 @@ pub struct Tokenizer {
     // Just needs to be filtered during indexing
     #[cfg(feature = "indexer")]
     max_term_len: usize,
+
+    best_term_corrector: BestTermCorrector,
 }
 
 pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
@@ -51,6 +53,7 @@ pub fn new_with_options(lang_config: &InfiLanguageConfig) -> Tokenizer {
         ignore_stop_words: lang_config.options.ignore_stop_words.unwrap_or(false),
         #[cfg(feature = "indexer")]
         max_term_len,
+        best_term_corrector: BestTermCorrector::new(),
     }
 }
 
@@ -78,7 +81,7 @@ impl IndexerTokenizer for Tokenizer {
 
 impl SearchTokenizer for Tokenizer {
     fn search_tokenize(
-        &self,
+        &mut self,
         query_chars: &[char],
         query_chars_offset: usize,
         query_chars_offset_end: usize,
@@ -133,7 +136,7 @@ impl SearchTokenizer for Tokenizer {
             let term = if dict.get_term_info(&preprocessed).is_none() {
                 if suffix_wildcard {
                     None
-                } else if let Some(corrected_term) = spelling::get_best_corrected_term(dict, &preprocessed) {
+                } else if let Some(corrected_term) = self.best_term_corrector.get_best_corrected_term(dict, &preprocessed) {
                     term_inflections.push(corrected_term.clone());
                     is_corrected = true;
                     Some(corrected_term)
