@@ -60,7 +60,7 @@ async function setupMetadata(baseUrl: string, innerUrl: string): Promise<ArrayBu
     // Cache API blocked / unsupported (e.g. firefox private)
   }
 
-  const metadataUrl = `${innerUrl}/metadata.json`;
+  const metadataUrl = `${innerUrl}metadata.json`;
 
   return (
     cache
