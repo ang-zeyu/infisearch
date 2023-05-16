@@ -1045,7 +1045,7 @@ dependencies = [
 
 [[package]]
 name = "infisearch"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "bitvec",
  "byteorder",
@@ -1082,7 +1082,7 @@ dependencies = [
 
 [[package]]
 name = "infisearch_common"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "byteorder",
  "pretty_assertions",
@@ -1092,7 +1092,7 @@ dependencies = [
 
 [[package]]
 name = "infisearch_lang_ascii"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "infisearch_common",
  "lazy_static",
@@ -1102,7 +1102,7 @@ dependencies = [
 
 [[package]]
 name = "infisearch_lang_ascii_stemmer"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "infisearch_common",
  "infisearch_lang_ascii",
@@ -1112,7 +1112,7 @@ dependencies = [
 
 [[package]]
 name = "infisearch_lang_chinese"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "infisearch_common",
  "infisearch_lang_ascii",
@@ -1123,7 +1123,7 @@ dependencies = [
 
 [[package]]
 name = "infisearch_search"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "binary-heap-plus",
  "byteorder",
@@ -1385,7 +1385,7 @@ dependencies = [
 
 [[package]]
 name = "mdbook-infisearch"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "clap 2.34.0",

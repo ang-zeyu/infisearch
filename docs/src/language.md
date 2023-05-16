@@ -37,7 +37,7 @@ The text is first split into on sentences, then whitespaces to obtain tokens. An
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.10.0/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.10.1/packages/search-ui/dist/search-ui.ascii.bundle.js"></script>
 ```
 
 ## Ascii Tokenizer with Stemmer
@@ -66,7 +66,7 @@ If you do not need stemming, use the `ascii` tokenizer, which has a smaller wasm
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.10.0/packages/search-ui/dist/search-ui.ascii-stemmer.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.10.1/packages/search-ui/dist/search-ui.ascii-stemmer.bundle.js"></script>
 ```
 
 ## Chinese Tokenizer
@@ -89,7 +89,7 @@ You are highly recommended to keep positions indexed and query term proximity ra
 **CDN Link**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.10.0/packages/search-ui/dist/search-ui.chinese.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ang-zeyu/infisearch@v0.10.1/packages/search-ui/dist/search-ui.chinese.bundle.js"></script>
 ```
 
 ## Stop Words

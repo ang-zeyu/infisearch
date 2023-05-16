@@ -1,6 +1,6 @@
 [package]
 name = "infisearch_common"
-version = "0.10.0"
+version = "0.10.1"
 authors = ["Ze Yu <angzeyu@gmail.com>"]
 edition = "2018"
 description = "Internal library for other InfiSearch packages."
