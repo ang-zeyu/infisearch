@@ -1,8 +1,6 @@
 # InfiSearch
 
-<div style="background-color: yellow; ">
-
-### Deprecated
+### ❗ Deprecated ❗
 
 This project is no longer being actively developed.
 
@@ -11,7 +9,6 @@ As an alternative for scalable static site search, please check out https://page
 The documentation for the latest release version will continue to be hosted at the URLs in this README, if needed.
 
 If you have been trying out or even contributing ideas and reports to InfiSearch, thank you for the huge time investment.
-</div>
 
 ![CI workflow](https://github.com/ang-zeyu/infisearch/actions/workflows/ci.yml/badge.svg)
 
