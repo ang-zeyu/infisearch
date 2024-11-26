@@ -1,5 +1,18 @@
 # InfiSearch
 
+<div style="background-color: yellow; ">
+
+### Deprecated
+
+This project is no longer being actively developed.
+
+As an alternative for scalable static site search, please check out https://pagefind.app/ which also implements the core idea of InfiSearch - a fragmented static index.
+
+The documentation for the latest release version will continue to be hosted at the URLs in this README, if needed.
+
+If you have been trying out or even contributing ideas and reports to InfiSearch, thank you for the huge time investment.
+</div>
+
 ![CI workflow](https://github.com/ang-zeyu/infisearch/actions/workflows/ci.yml/badge.svg)
 
 Easy and flexible client-side search for static sites.
@@ -13,16 +26,16 @@ InfiSearch is a client-side search solution made for static sites, depending on 
 - **Relevant Search** 🔍: spelling correction, automatic prefix search, boolean and phrase queries, BM25 scoring, proximity scoring, facet filters and more...
 - **Speedy** 🏇: WebAssembly & WebWorker powered, enabling efficient, non-blocking query processing. Backed by persistent caching to minimize network requests, and a multi-threaded  CLI indexer.
 - **Semi-Scalable**, achieved by optionally splitting the index into tiny morsels, complete with incremental indexing.
-- A **customisable**, **accessible** [user interface](https://infi-search.com/infisearch/search_configuration_styling.html) 🖥️
+- A **customisable**, **accessible** [user interface](https://ang-zeyu.github.io/infisearch-website/infisearch/search_configuration_styling.html) 🖥️
 - Support for **multiple file formats** (`.json,csv,pdf,html`) to satisfy more custom data requirements.
 
 ## Documentation
 
-The documentation, which uses InfiSearch for its search function, can be found [here](https://infi-search.com/infisearch/getting_started.html).
+The documentation, which uses InfiSearch for its search function, can be found [here](https://ang-zeyu.github.io/infisearch-website/infisearch/getting_started.html).
 
 ## Preview
 
-Some demos of InfiSearch on a much larger Gutenberg collection are also available [here](https://infi-search.com).
+Some demos of InfiSearch on a much larger Gutenberg collection are also available [here](https://ang-zeyu.github.io/infisearch-website).
 
 ## Getting Started
 

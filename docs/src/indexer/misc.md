@@ -46,7 +46,7 @@ To index `main.html` and override its link, you would have:
 
 ```json
 {
-  "link": "https://infi-search.com",
+  "link": "https://ang-zeyu.github.io/infisearch-website",
   "_add_files": "./main.html"
 }
 ```

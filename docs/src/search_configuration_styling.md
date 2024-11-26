@@ -21,7 +21,7 @@ InfiSearch provides 3 built-in themes by default, which correspond to the 3 styl
 
 These 3 stylesheets also expose a wide range of css variables which you can alter as needed.
 
-Head on over to the demo site [here](https://infi-search.com) to try them out!
+Head on over to the demo site [here](https://ang-zeyu.github.io/infisearch-website) to try them out!
 
 
 ### Light

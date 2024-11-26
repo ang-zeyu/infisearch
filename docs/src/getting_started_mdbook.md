@@ -16,7 +16,7 @@ You may nonetheless want to use this plugin if you need InfiSearch's extra featu
 
 This plugin uses the css variables provided by the 5 main default themes in mdBook to style the search user interface. Switch the themes in this documentation to try out the different themes!
 
-**Note:** The default InfiSearch theme is not included in the plugin. To see the default styling, head on over to the [styling](./search_configuration_styling.md) page or view the [demo](https://infi-search.com) site.
+**Note:** The default InfiSearch theme is not included in the plugin. To see the default styling, head on over to the [styling](./search_configuration_styling.md) page or view the [demo](https://ang-zeyu.github.io/infisearch-website) site.
 
 ## Installation
 

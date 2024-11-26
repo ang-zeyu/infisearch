@@ -19,7 +19,7 @@ infisearch.init({
 #### Site URL
 
 `sourceFilesUrl`
-- Example: `'/'` or `'https://www.infi-search.com'`
+- Example: `'/'` or `'https://www.ang-zeyu.github.io/infisearch-website'`
 
 This option allows InfiSearch to construct a link to the page for search result previews. This is done by appending the relative file path of the indexed file.
 

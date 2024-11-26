@@ -17,7 +17,7 @@ InfiSearch is a *client-side* search solution made for static sites, including a
 
 - **Semi-Scalable**, achieved by optionally splitting the index into tiny morsels, complete with incremental indexing.
 
-- A **customisable**, **accessible** [user interface](https://infi-search.com/infisearch/search_configuration_styling.html) 🖥️
+- A **customisable**, **accessible** [user interface](https://ang-zeyu.github.io/infisearch-website/infisearch/search_configuration_styling.html) 🖥️
 
 - Support for **multiple file formats** (`.json,csv,pdf,html`) to satisfy more custom data requirements.
 
