@@ -9,7 +9,7 @@ title = "InfiSearch Documentation"
 default-theme = "navy"
 curly-quotes = true
 git-repository-url = "https://github.com/ang-zeyu/infisearch"
-site-url = "/infisearch/"
+site-url = "/infisearch-website/infisearch/"
 
 [output.html.search]
 enable = false

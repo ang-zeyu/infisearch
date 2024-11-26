@@ -79,11 +79,11 @@ infisearch.init({
   searcherOptions: {
     // Output folder url specified as the second parameter in the cli command
     // Urls like '/output/' will work as well
-    url: 'http://<your-domain>/output/',
+    url: 'https://<your-domain>/output/',
   },
   uiOptions: {
     // Input / source folder url, specified as the first parameter in the cli command
-    sourceFilesUrl: 'http://<your-domain>/source/',
+    sourceFilesUrl: 'https://<your-domain>/source/',
     input: 'infi-search',
   }
 });
